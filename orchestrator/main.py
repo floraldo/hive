@@ -6,9 +6,25 @@ class HiveOrchestrator:
     def __init__(self, dry_run=False, auto_merge=True):
         self.tmux = TmuxController()
         self.git = GitWorkflow(dry_run=dry_run, auto_merge=auto_merge)
+    
+    def preflight_checks(self):
+        """Quick sanity check before running"""
+        try:
+            if not self.tmux.session:
+                print("❌ Tmux session not found. Run: make swarm")
+                return False
+            print("✅ Preflight checks passed - ready to fly!")
+            return True
+        except Exception as e:
+            print(f"❌ Preflight failed: {e}")
+            return False
         
     def run_task(self, goal):
         """Complete task execution cycle"""
+        # Run preflight checks first
+        if not self.preflight_checks():
+            return False
+            
         print(f"\n👑 Queen initiating task: {goal}")
         
         # 1. Create feature branch

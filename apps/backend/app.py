@@ -17,6 +17,10 @@ CORS(app)
 # Load configuration from environment
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 
+# Register weather API blueprint
+from weather_api import weather_bp
+app.register_blueprint(weather_bp)
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""

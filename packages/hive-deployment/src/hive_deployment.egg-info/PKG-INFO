@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: hive-deployment
+Version: 1.0.0
+Summary: Remote deployment and SSH utilities for Hive applications
+Author-email: Hive System <hive@example.com>
+Requires-Python: >=3.10
+Requires-Dist: paramiko>=3.3.0
+Requires-Dist: requests>=2.31.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.3.2; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"

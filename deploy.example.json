@@ -1,0 +1,19 @@
+{
+  "ssh_host": "your-server.example.com",
+  "ssh_user": "your-username",
+  "ssh_port": 22,
+  "ssh_key_path": "~/.ssh/id_rsa",
+  "base_url": "https://your-domain.com",
+  "start_port": 5001,
+  "max_ports": 50,
+  "rollback_remove_files": false,
+  "deployment": {
+    "workers": 3,
+    "restart_sec": 5,
+    "timeout": 120
+  },
+  "environment": {
+    "FLASK_ENV": "production",
+    "SECRET_KEY": "your-production-secret-key"
+  }
+}

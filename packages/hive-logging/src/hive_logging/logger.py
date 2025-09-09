@@ -4,6 +4,7 @@ Logging utilities for Hive applications
 
 import logging
 import sys
+import os
 from typing import Optional
 
 def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:

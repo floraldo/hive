@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hive-api"
+version = "1.0.0"
+description = "API client utilities and integrations for Hive applications"
+authors = [
+    {name = "Hive System", email = "hive@example.com"}
+]
+dependencies = [
+    "requests>=2.31.0",
+]
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.2",
+    "pytest-cov>=4.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["hive_api*"]

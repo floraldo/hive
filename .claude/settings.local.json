@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/git/SmartHoodsOptimisationTool/apps/Apper/utils/**)",
+      "Read(//c/git/SmartHoodsOptimisationTool/apps/Apper/**)",
+      "Bash(rm:*)",
+      "Bash(python -m pytest packages/hive-api/tests/test_weather.py -v)",
+      "Bash(python -m pytest tests/test_weather_api.py -v)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "mcp__sequential-thinking__sequentialthinking"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

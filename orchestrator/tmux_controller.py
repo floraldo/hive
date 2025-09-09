@@ -35,6 +35,7 @@ class TmuxController:
             f"STATUS: success|partial|blocked|failed\n"
             f"CHANGES: <files changed or summary>\n"
             f"NEXT: <recommended next action>\n"
+            f"LAST_CMD: <last shell command executed>\n"
             f"===END TASK {task_id}==="
         )
         

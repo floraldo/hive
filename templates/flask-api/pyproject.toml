@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "{{project_name}}"
+version = "1.0.0"
+description = "{{project_description}}"
+authors = [
+    {name = "{{author_name}}", email = "{{author_email}}"}
+]
+dependencies = [
+    "flask>=3.0.0",
+    "flask-cors>=4.0.0",
+    "python-dotenv>=1.0.0",
+    "gunicorn>=21.2.0",
+    "hive-api>=1.0.0",
+    "hive-logging>=1.0.0",
+    "hive-db>=1.0.0",
+]
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.2",
+    "pytest-cov>=4.1.0",
+    "black>=24.8.0",
+    "flake8>=7.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["api*"]
