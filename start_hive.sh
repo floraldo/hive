@@ -56,16 +56,23 @@ if [ ! -f "$LOCK_FILE" ]; then
     echo "📦 First-time setup: Installing all Hive packages. This may take a few minutes..."
     
     # Install individual packages first to handle dependencies
-    pip install --quiet -e packages/hive-logging || { echo "❌ ERROR: Failed to install hive-logging."; exit 1; }
-    pip install --quiet -e packages/hive-db || { echo "❌ ERROR: Failed to install hive-db."; exit 1; }
-    pip install --quiet -e packages/hive-deployment || { echo "❌ ERROR: Failed to install hive-deployment."; exit 1; }
-    pip install --quiet -e packages/hive-api || { echo "❌ ERROR: Failed to install hive-api."; exit 1; }
+    echo "Installing hive-logging..."
+    pip install --quiet -e packages/hive-logging
     
-    # Now install main hivemind package
-    pip install --quiet -e . || { echo "❌ ERROR: Failed to install Hive main package."; exit 1; }
+    echo "Installing hive-db..."
+    pip install --quiet -e packages/hive-db
     
-    # Install additional required dependencies
-    pip install --quiet libtmux gitpython || { echo "❌ ERROR: Failed to install libtmux and gitpython."; exit 1; }
+    echo "Installing hive-deployment..."
+    pip install --quiet -e packages/hive-deployment
+    
+    echo "Installing hive-api..."
+    pip install --quiet -e packages/hive-api
+    
+    echo "Installing main hivemind package..."
+    pip install --quiet -e .
+    
+    echo "Installing additional dependencies (libtmux, gitpython)..."
+    pip install --quiet libtmux gitpython
     
     echo "✅ All packages installed successfully."
     echo "   Creating install lock file to speed up future launches."
