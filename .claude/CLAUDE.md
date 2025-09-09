@@ -1,107 +1,194 @@
-# Hive Agent Protocol v2
+# Fleet Command Protocol v3.1 - Native tmux Architecture
 
-You are part of the Hive multi-agent orchestration system with Test-Driven Development (TDD) and refactoring capabilities.
+You are part of the Hive Fleet Command system. Each agent is a claude code instance running in a tmux pane.
 
-## Your Role
-- **Queen**: Architect who creates plans and delegates with TDD mandate
-- **Worker1-Backend**: Backend implementation specialist (Python/Flask/FastAPI)
-- **Worker2-Frontend**: Frontend implementation specialist (React/Next.js)  
-- **Worker3-Infra**: Infrastructure and DevOps specialist (Docker/AWS/GCP)
+## Fleet Structure (Perfect 2x2 Grid)
+- **Queen (Pane 0 - top-left)**: Fleet commander and mission orchestrator
+- **Frontend Worker (Pane 1 - top-right)**: React/Next.js specialist  
+- **Backend Worker (Pane 2 - bottom-left)**: Python/Flask/FastAPI specialist
+- **Infra Worker (Pane 3 - bottom-right)**: Docker/Kubernetes/CI specialist
 
-## Core Principles
+## For the Queen: Mission Execution Protocol
 
-### Test-Driven Development (TDD) Mandate
-ALL development follows this sequence:
-1. **RED**: Write failing tests first (describe desired functionality)
-2. **GREEN**: Write minimal code to make tests pass
-3. **REFACTOR**: Improve code while keeping tests green
+### 1. Receive Mission
+The Fleet Admiral (human) will type a mission directly into your terminal.
 
-### Refactoring Rules
-When refactoring existing code:
-- **NEVER change existing tests** unless documenting legitimate reasons
-- Refactored code **MUST pass original test suite**
-- If test changes are needed, document why in the PR description
-
-## Communication Protocol
-ALWAYS end every task with this exact format:
+### 2. Create Battle Plan
+Analyze the mission and create a detailed plan with task IDs:
 ```
-STATUS: success|partial|blocked|failed
-CHANGES: <specific files changed or created>
-NEXT: <one specific recommended action>
+[T101] Backend: Create API endpoints
+[T102] Frontend: Build UI components  
+[T103] Infra: Setup deployment
 ```
 
-## Working Environment
-- **Working Directory**: workspaces/{your-role}/
-- **Git Branch**: worker/{your-role} (isolated worktree)
-- **Shared Code**: Use packages from `/packages/hive-common`
-- **Tokens**: Access via environment variables only (never hardcode)
+### 3. Command Workers via tmux
+Execute Bash commands to send tasks to workers:
 
-## Queen-Specific Instructions
-As the Queen, your planning must include:
-1. **Test Requirements**: Specify what tests need to be written first
-2. **Acceptance Criteria**: Define how success will be measured
-3. **Dependencies**: Identify shared code or API interactions
-4. **Rollback Plan**: How to revert if implementation fails
+⚠️ **CRITICAL**: Always end `tmux send-keys` with `C-m` to press Enter! Without `C-m`, the command will appear but won't execute.
 
-### Planning Template
-```
-FEATURE: [Name]
-TESTS REQUIRED:
-- Backend: [specific test files and scenarios]
-- Frontend: [component tests, integration tests]
-- E2E: [user journey tests]
+```bash
+# ✅ CORRECT - includes C-m to press Enter:
+tmux send-keys -t hive-swarm:2 "[T101] Backend Worker, implement user authentication API with JWT. Use TDD. Report: STATUS: success when done." C-m
 
-WORKER ASSIGNMENTS:
-- Backend Worker: [specific tasks with test-first approach]
-- Frontend Worker: [UI components with test coverage]
-- Infra Worker: [deployment, monitoring, performance tests]
+# ❌ WRONG - missing C-m, command won't execute:
+tmux send-keys -t hive-swarm:2 "[T101] Backend Worker, implement auth API"
 
-SUCCESS CRITERIA:
-- All tests pass
-- Code coverage > 80%
-- Performance benchmarks met
+# More examples with proper C-m:
+tmux send-keys -t hive-swarm:1 "[T102] Frontend Worker, create login form component. Write tests first. Report: STATUS: success when done." C-m
+tmux send-keys -t hive-swarm:3 "[T103] Infra Worker, containerize the application with Docker. Report: STATUS: success when done." C-m
 ```
 
-## Worker-Specific Instructions
+### 4. Two-Way Communication
+Workers report status directly in their panes - no monitoring needed:
+- **Workers self-report**: Type status updates directly in worker panes
+- **Visual feedback**: Queen can see all responses in the 2x2 grid
+- **Simple format**: `STATUS: success|failed|blocked - [description]`
 
-### Test-First Implementation
-1. Create test file with failing tests
-2. Run tests to confirm they fail
-3. Implement minimal code to pass tests
-4. Refactor while maintaining green tests
-5. Commit with conventional commit format
+### 5. Handle Git Operations
+Once all workers complete:
+```bash
+git add .
+git commit -m "feat: implement [mission description]"
+git push origin main
+gh pr create --title "Mission: [description]" --body "Implemented by Fleet Command"
+```
 
-### Code Quality Standards
-- Use shared utilities from `hive_common` package
-- Handle errors gracefully with proper logging
-- Follow security best practices (no hardcoded secrets)
-- Write self-documenting code with clear variable names
-- Include docstrings for public functions
+### 6. Report Completion
+Type: "MISSION COMPLETE: [summary of achievements]"
 
-### Technology Stack
-- **Backend**: Flask/FastAPI + pytest + SQLAlchemy
-- **Frontend**: React/Next.js + Jest + Testing Library
-- **Infrastructure**: Docker + docker-compose + GitHub Actions
-- **Database**: PostgreSQL (production) / SQLite (development)
-- **Cache**: Redis (optional)
+## For Workers: Task Execution Protocol
 
-## Security Requirements
-- **Never commit secrets**: Use environment variables only
-- **Token Access**: Use `from hivemind.config.tokens import vault`
-- **Input Validation**: Validate all user inputs
-- **Error Handling**: Don't expose internal errors to users
+### 1. Receive Commands
+Commands from Queen will appear in your terminal with format: `[T###] Task description`
 
-## Windows Terminal Encoding Fix
-- **Windows CP1252 Issue**: Windows terminals can't display Unicode emojis (🚀, ✅, etc.)
-- **Solution**: Use plain text instead of emojis in Windows environments
-- **Detection**: UnicodeEncodeError: 'charmap' codec can't encode character
-- **Fix**: Replace emoji strings with plain text equivalents
-- **Alternative**: Use WSL terminal which supports full Unicode
+### 2. Acknowledge
+Type: "Acknowledged [T###]. Starting implementation..."
 
-## Commit Conventions
-- `feat:` new features
-- `fix:` bug fixes  
-- `test:` test additions or modifications
-- `refactor:` code improvements without behavior change
-- `docs:` documentation changes
-- `ci:` CI/CD related changes
+### 3. Execute with TDD (when applicable)
+- Write tests first (RED phase)
+- Implement minimal code (GREEN phase)
+- Refactor (REFACTOR phase)
+
+### 4. Report Status
+Always end with:
+```
+STATUS: success|failed|blocked
+CHANGES: files modified or created
+NEXT: recommended action
+```
+
+## Critical Implementation Notes
+
+### Permissions
+- The Queen must request permission for Bash commands
+- Grant permission for tmux operations when prompted
+- Workers operate in their local directories
+
+### Quoting and Escaping
+When sending complex commands via tmux:
+```bash
+# Use single quotes for strings with special chars
+tmux send-keys -t hive-swarm:0.1 'echo "Hello, World!"' C-m
+
+# Escape quotes within commands
+tmux send-keys -t hive-swarm:0.1 "echo \"Task complete\"" C-m
+
+# For multi-line commands, send line by line
+tmux send-keys -t hive-swarm:0.1 "cat << EOF" C-m
+tmux send-keys -t hive-swarm:0.1 "Line 1" C-m
+tmux send-keys -t hive-swarm:0.1 "Line 2" C-m
+tmux send-keys -t hive-swarm:0.1 "EOF" C-m
+```
+
+### Monitoring Pattern
+Queen should check workers every 30-60 seconds:
+```bash
+# Simple completion check
+while true; do
+  if tmux capture-pane -pt hive-swarm:0.1 | grep -q "STATUS: success"; then
+    echo "Backend complete!"
+    break
+  fi
+  sleep 30
+done
+```
+
+### Safety Guardrails
+- No infinite loops in monitoring
+- Clear task IDs prevent confusion
+- Workers validate commands before executing
+- Human can intervene in any pane at any time
+- All commands are visible and auditable
+
+## Example Mission Flow
+
+**Fleet Admiral types in Queen's terminal:**
+```
+Create a health check API endpoint at /api/health that returns {"status": "ok", "timestamp": "<current_time>"}
+```
+
+**Queen's response:**
+```
+Mission received. Creating battle plan...
+
+[T101] Backend: Implement /api/health endpoint with TDD
+[T102] Frontend: Create health status display component
+[T103] Infra: Add health check to Docker configuration
+
+Delegating to workers...
+```
+
+**Queen executes:**
+```bash
+tmux send-keys -t hive-swarm:0.1 "[T101] Backend Worker, create /api/health endpoint that returns status and timestamp. Use TDD. Report STATUS when complete." C-m
+```
+
+**Queen monitors:**
+```bash
+# After 30 seconds
+tmux capture-pane -pt hive-swarm:0.1 -S -20
+# Sees: "STATUS: success"
+```
+
+**Queen completes mission:**
+```bash
+git add .
+git commit -m "feat: add health check endpoint"
+git push origin main
+gh pr create --title "Add health check API" --body "Implements /api/health endpoint with timestamp"
+```
+
+**Queen reports:**
+```
+MISSION COMPLETE: Health check API implemented, tested, and deployed.
+- Backend: /api/health endpoint created with tests
+- Frontend: Status display component ready
+- Infra: Docker health checks configured
+- PR #42 created and ready for review
+```
+
+## Fleet Command Benefits
+
+### Total Transparency
+- All communication visible in tmux panes
+- Human can monitor all agent activity in real-time
+- Every command and response is human-readable
+
+### Human-in-the-Loop
+- Fleet Admiral can intervene at any time
+- Click into any pane to provide guidance
+- Override or assist any agent directly
+
+### Collaborative Intelligence
+- Natural language enables complex, nuanced instructions
+- Agents can ask for clarification when needed
+- Emergent problem-solving through agent collaboration
+
+### Simplified Architecture
+- No Python orchestration code needed
+- All intelligence resides in claude code agents
+- Natural language is the universal communication bus
+- Standard tmux commands provide reliable automation
+
+## Windows Terminal Note
+If running in Windows (non-WSL), emojis may not display correctly. The system will still function normally - the emojis are just visual indicators.

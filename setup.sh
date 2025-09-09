@@ -1,22 +1,45 @@
 #!/bin/bash
+
 SESSION="hive-swarm"
 
-# Kill existing session if it exists
-tmux kill-session -t $SESSION 2>/dev/null || true
+echo "🚀 Launching Fleet Command..."
 
-# Create new session with 4 panes (Queen + 3 Workers)
-tmux new-session -d -s $SESSION -n "Hive"
+# Use full path to tmux
+TMUX="/usr/bin/tmux"
 
-# Create 3 additional panes (split horizontally then vertically)
-tmux split-window -h -t $SESSION:0
-tmux split-window -v -t $SESSION:0.0  
-tmux split-window -v -t $SESSION:0.2
+# Check if tmux exists
+if ! command -v tmux &> /dev/null; then
+    echo "❌ tmux not found. Installing..."
+    apt update && apt install -y tmux
+fi
 
-# Optional: Set pane titles if tmux version supports it
-tmux send-keys -t $SESSION:0.0 "echo 'Queen Pane Ready'" C-m
-tmux send-keys -t $SESSION:0.1 "echo 'Backend Worker Ready'" C-m  
-tmux send-keys -t $SESSION:0.2 "echo 'Frontend Worker Ready'" C-m
-tmux send-keys -t $SESSION:0.3 "echo 'Infra Worker Ready'" C-m
+$TMUX kill-session -t $SESSION 2>/dev/null || true
 
-echo "✅ Tmux session '$SESSION' created with 4 panes"
-echo "   Pane layout: Queen (top-left), Backend (top-right), Frontend (bottom-left), Infra (bottom-right)"
+# Create workspaces
+mkdir -p workspaces/backend workspaces/frontend workspaces/infra
+
+# Simple approach - run claude without dangerous permissions
+# It will prompt for permission when needed, which is actually safer
+
+echo "🧠 Queen..."
+$TMUX new-session -d -s $SESSION -c "$(pwd)" "bash -c 'claude; exec bash'"
+
+echo "🔧 Backend..."
+$TMUX split-window -h -c "$(pwd)/workspaces/backend" "bash -c 'claude; exec bash'"
+
+echo "🎨 Frontend..." 
+$TMUX split-window -v -c "$(pwd)/workspaces/frontend" "bash -c 'claude; exec bash'"
+
+echo "🏗️ Infra..."
+$TMUX select-pane -t 0
+$TMUX split-window -v -c "$(pwd)/workspaces/infra" "bash -c 'claude; exec bash'"
+
+# Configure layout
+$TMUX set -g mouse on
+$TMUX select-layout -t $SESSION tiled
+
+echo "✅ Fleet launched successfully!"
+echo "   All panes will stay open even if claude exits"
+echo "   Layout: Perfect 2x2 grid"
+echo ""
+echo "Run 'make attach' to enter."
