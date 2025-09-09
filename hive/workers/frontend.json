@@ -1,0 +1,20 @@
+{
+  "worker_id": "frontend",
+  "role": "frontend_developer",
+  "status": "idle",
+  "current_task": null,
+  "last_heartbeat": "2025-09-09T14:30:00Z",
+  "branch": "agent/frontend",
+  "workdir": "./workspaces/frontend",
+  "capabilities": ["react", "nextjs", "typescript", "css", "ui_components", "testing"],
+  "max_concurrent_tasks": 1,
+  "total_tasks_completed": 0,
+  "is_enabled": true,
+  "config": {
+    "claude_args": [
+      "--add-dir", "./workspaces/frontend",
+      "--output-format", "stream-json",
+      "--allowedTools", "Bash(npm,yarn,git,cat,ls,mkdir),Read(*),Write(*),Edit(*),MultiEdit(*)"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "worker_id": "queen",
+  "role": "planner_orchestrator",
+  "status": "idle",
+  "current_task": null,
+  "last_heartbeat": "2025-09-09T14:30:00Z",
+  "branch": "main",
+  "workdir": ".",
+  "capabilities": ["planning", "task_generation", "coordination", "review"],
+  "max_concurrent_tasks": 2,
+  "total_tasks_completed": 0,
+  "is_enabled": true,
+  "config": {
+    "claude_args": [
+      "--add-dir", ".",
+      "--output-format", "stream-json",
+      "--allowedTools", "Bash(git,cat,ls,mkdir,touch),Read(*),Write(*),Edit(*)"
+    ]
+  }
+}

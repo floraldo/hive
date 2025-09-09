@@ -1,0 +1,20 @@
+{
+  "worker_id": "backend",
+  "role": "backend_developer", 
+  "status": "idle",
+  "current_task": null,
+  "last_heartbeat": "2025-09-09T14:30:00Z",
+  "branch": "agent/backend",
+  "workdir": "./workspaces/backend",
+  "capabilities": ["python", "flask", "fastapi", "sqlalchemy", "pytest", "api_design", "database"],
+  "max_concurrent_tasks": 1,
+  "total_tasks_completed": 0,
+  "is_enabled": true,
+  "config": {
+    "claude_args": [
+      "--add-dir", "./workspaces/backend", 
+      "--output-format", "stream-json",
+      "--allowedTools", "Bash(python,pip,pytest,git,cat,ls,mkdir),Read(*),Write(*),Edit(*),MultiEdit(*)"
+    ]
+  }
+}

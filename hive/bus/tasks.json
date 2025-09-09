@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-09-09T14:30:00Z",
+  "tasks": [
+    {
+      "id": "tsk_init_001",
+      "title": "Initialize headless MAS system",
+      "description": "Set up the foundational headless multi-agent system with task queue management",
+      "tags": ["initialization", "system"],
+      "priority": "high",
+      "status": "completed",
+      "assignee": null,
+      "created_at": "2025-09-09T14:30:00Z",
+      "updated_at": "2025-09-09T14:30:00Z",
+      "acceptance_criteria": [
+        "Directory structure created",
+        "Task queue system operational",
+        "Worker processes ready"
+      ],
+      "estimated_effort": "2h",
+      "dependencies": []
+    }
+  ],
+  "task_counter": 1,
+  "settings": {
+    "max_concurrent_tasks": 4,
+    "task_timeout_hours": 24,
+    "auto_assign": true,
+    "require_acceptance_criteria": true
+  }
+}
