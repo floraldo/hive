@@ -1,0 +1,6 @@
+#!/bin/bash
+# Claude launcher that bypasses all PATH and direnv issues
+# Works even when direnv breaks the environment
+
+# Direct execution using absolute paths
+exec "/c/Program Files/nodejs/node.exe" "/c/Users/flori/.npm-global/node_modules/@anthropic-ai/claude-code/cli.js" "$@"

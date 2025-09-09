@@ -1,0 +1,200 @@
+#!/bin/bash
+#
+# hive-send - Send messages through the Hive message bus
+# Usage: hive-send --to <agent> --topic <topic> --message <message>
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+BUS_DIR="$PROJECT_DIR/bus"
+
+# Default values
+TO=""
+FROM=""
+TOPIC="general"
+MESSAGE=""
+PRIORITY="normal"
+
+# Logging function
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$1] $2" >&2
+}
+
+# Show usage
+show_usage() {
+    cat << EOF
+Hive Message Bus - Send Message
+
+Usage: $0 --to <agent> --topic <topic> --message <message> [options]
+
+Required:
+  --to <agent>        Target agent (queen|frontend|backend|infra)
+  --message <msg>     Message content (use quotes for multi-line)
+
+Optional:
+  --from <agent>      Sender agent (auto-detected if not specified)
+  --topic <topic>     Message topic (default: general)
+  --priority <level>  Priority level (low|normal|high|critical)
+  --file <path>       Read message from file instead of --message
+  --json              Output in JSON format
+  --help              Show this help
+
+Examples:
+  $0 --to frontend --message "Build login component"
+  $0 --to backend --topic task --message "Implement JWT auth"  
+  $0 --to infra --priority high --message "Scale database"
+  $0 --to queen --file task_description.md
+
+Topics:
+  task        - Task assignments and work items
+  status      - Status updates and progress reports
+  question    - Questions requiring responses
+  info        - General information sharing
+  alert       - Important notifications
+  general     - Default topic for misc messages
+EOF
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --to)
+            TO="$2"
+            shift 2
+            ;;
+        --from)
+            FROM="$2"
+            shift 2
+            ;;
+        --topic)
+            TOPIC="$2"
+            shift 2
+            ;;
+        --message)
+            MESSAGE="$2"
+            shift 2
+            ;;
+        --file)
+            if [[ -f "$2" ]]; then
+                MESSAGE=$(cat "$2")
+            else
+                log "ERROR" "File not found: $2"
+                exit 1
+            fi
+            shift 2
+            ;;
+        --priority)
+            PRIORITY="$2"
+            shift 2
+            ;;
+        --json)
+            OUTPUT_FORMAT="json"
+            shift
+            ;;
+        --help|-h)
+            show_usage
+            exit 0
+            ;;
+        *)
+            log "ERROR" "Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+    esac
+done
+
+# Validate required arguments
+if [[ -z "$TO" ]]; then
+    log "ERROR" "Target agent (--to) is required"
+    show_usage
+    exit 1
+fi
+
+if [[ -z "$MESSAGE" ]]; then
+    log "ERROR" "Message content (--message or --file) is required"
+    show_usage
+    exit 1
+fi
+
+# Validate agent names
+VALID_AGENTS=("queen" "frontend" "backend" "infra")
+if [[ ! " ${VALID_AGENTS[*]} " =~ " $TO " ]]; then
+    log "ERROR" "Invalid target agent: $TO. Valid agents: ${VALID_AGENTS[*]}"
+    exit 1
+fi
+
+# Auto-detect sender if not specified
+if [[ -z "$FROM" ]]; then
+    # Try to detect from current working directory
+    case "$(pwd)" in
+        *frontend*)
+            FROM="frontend"
+            ;;
+        *backend*)
+            FROM="backend"
+            ;;
+        *infra*)
+            FROM="infra"
+            ;;
+        *)
+            FROM="unknown"
+            ;;
+    esac
+fi
+
+# Validate priority
+VALID_PRIORITIES=("low" "normal" "high" "critical")
+if [[ ! " ${VALID_PRIORITIES[*]} " =~ " $PRIORITY " ]]; then
+    log "ERROR" "Invalid priority: $PRIORITY. Valid priorities: ${VALID_PRIORITIES[*]}"
+    exit 1
+fi
+
+# Create bus directory structure
+mkdir -p "$BUS_DIR"/{messages,queen,frontend,backend,infra}
+
+# Generate message ID
+MESSAGE_ID="msg_$(date +%s)_$$_$(shuf -i 1000-9999 -n 1)"
+
+# Create timestamp
+TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%S.%3NZ')
+
+# Create message object
+MESSAGE_DATA=$(cat << EOF
+{
+    "id": "$MESSAGE_ID",
+    "timestamp": "$TIMESTAMP", 
+    "from": "$FROM",
+    "to": "$TO",
+    "topic": "$TOPIC",
+    "priority": "$PRIORITY",
+    "message": $(echo "$MESSAGE" | jq -R -s .),
+    "status": "sent",
+    "read": false
+}
+EOF
+)
+
+# Write to global messages log
+echo "$MESSAGE_DATA" >> "$BUS_DIR/messages/all.jsonl"
+
+# Write to recipient's inbox
+echo "$MESSAGE_DATA" >> "$BUS_DIR/$TO/inbox.jsonl"
+
+# Write to sender's outbox (if sender is known)
+if [[ "$FROM" != "unknown" && " ${VALID_AGENTS[*]} " =~ " $FROM " ]]; then
+    echo "$MESSAGE_DATA" >> "$BUS_DIR/$FROM/outbox.jsonl"
+fi
+
+# Output confirmation
+if [[ "$OUTPUT_FORMAT" == "json" ]]; then
+    echo "$MESSAGE_DATA"
+else
+    log "SUCCESS" "Message sent: $MESSAGE_ID"
+    log "INFO" "From: $FROM → To: $TO"
+    log "INFO" "Topic: $TOPIC, Priority: $PRIORITY"
+    log "INFO" "Message: $(echo "$MESSAGE" | head -c 100)$([ ${#MESSAGE} -gt 100 ] && echo "...")"
+fi
+
+exit 0

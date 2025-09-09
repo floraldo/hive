@@ -1,0 +1,268 @@
+#!/bin/bash
+#
+# hive-recv - Receive messages from the Hive message bus
+# Usage: hive-recv --for <agent> [options]
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+BUS_DIR="$PROJECT_DIR/bus"
+
+# Default values
+FOR=""
+SINCE=""
+TOPIC=""
+PRIORITY=""
+UNREAD_ONLY=false
+MARK_READ=false
+COUNT_ONLY=false
+LIMIT=""
+
+# Logging function
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$1] $2" >&2
+}
+
+# Show usage
+show_usage() {
+    cat << EOF
+Hive Message Bus - Receive Messages
+
+Usage: $0 --for <agent> [options]
+
+Required:
+  --for <agent>       Target agent (queen|frontend|backend|infra)
+
+Optional:
+  --since <time>      Only messages since timestamp (ISO 8601 format)
+  --topic <topic>     Filter by topic
+  --priority <level>  Filter by priority (low|normal|high|critical)
+  --unread-only       Only show unread messages
+  --mark-read         Mark retrieved messages as read
+  --count-only        Only return message count
+  --limit <n>         Limit number of messages returned
+  --json              Output in JSON format
+  --help              Show this help
+
+Examples:
+  $0 --for frontend --unread-only
+  $0 --for backend --topic task --mark-read
+  $0 --for infra --since 2025-09-09T10:00:00Z
+  $0 --for queen --priority high --count-only
+  $0 --for frontend --limit 10
+
+Topics:
+  task        - Task assignments and work items  
+  status      - Status updates and progress reports
+  question    - Questions requiring responses
+  info        - General information sharing
+  alert       - Important notifications
+  general     - Default topic for misc messages
+EOF
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --for)
+            FOR="$2"
+            shift 2
+            ;;
+        --since)
+            SINCE="$2"
+            shift 2
+            ;;
+        --topic)
+            TOPIC="$2"
+            shift 2
+            ;;
+        --priority)
+            PRIORITY="$2"
+            shift 2
+            ;;
+        --unread-only)
+            UNREAD_ONLY=true
+            shift
+            ;;
+        --mark-read)
+            MARK_READ=true
+            shift
+            ;;
+        --count-only)
+            COUNT_ONLY=true
+            shift
+            ;;
+        --limit)
+            LIMIT="$2"
+            shift 2
+            ;;
+        --json)
+            OUTPUT_FORMAT="json"
+            shift
+            ;;
+        --help|-h)
+            show_usage
+            exit 0
+            ;;
+        *)
+            log "ERROR" "Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+    esac
+done
+
+# Validate required arguments
+if [[ -z "$FOR" ]]; then
+    log "ERROR" "Target agent (--for) is required"
+    show_usage
+    exit 1
+fi
+
+# Validate agent names
+VALID_AGENTS=("queen" "frontend" "backend" "infra")
+if [[ ! " ${VALID_AGENTS[*]} " =~ " $FOR " ]]; then
+    log "ERROR" "Invalid agent: $FOR. Valid agents: ${VALID_AGENTS[*]}"
+    exit 1
+fi
+
+# Validate priority if specified
+if [[ -n "$PRIORITY" ]]; then
+    VALID_PRIORITIES=("low" "normal" "high" "critical")
+    if [[ ! " ${VALID_PRIORITIES[*]} " =~ " $PRIORITY " ]]; then
+        log "ERROR" "Invalid priority: $PRIORITY. Valid priorities: ${VALID_PRIORITIES[*]}"
+        exit 1
+    fi
+fi
+
+# Ensure inbox exists
+INBOX_FILE="$BUS_DIR/$FOR/inbox.jsonl"
+mkdir -p "$BUS_DIR/$FOR"
+touch "$INBOX_FILE"
+
+# Build filter command
+FILTER_CMD="cat '$INBOX_FILE'"
+
+# Apply filters
+if [[ -n "$SINCE" ]]; then
+    FILTER_CMD="$FILTER_CMD | jq -c 'select(.timestamp >= \"$SINCE\")'"
+fi
+
+if [[ -n "$TOPIC" ]]; then
+    FILTER_CMD="$FILTER_CMD | jq -c 'select(.topic == \"$TOPIC\")'"
+fi
+
+if [[ -n "$PRIORITY" ]]; then
+    FILTER_CMD="$FILTER_CMD | jq -c 'select(.priority == \"$PRIORITY\")'"
+fi
+
+if [[ "$UNREAD_ONLY" == true ]]; then
+    FILTER_CMD="$FILTER_CMD | jq -c 'select(.read == false)'"
+fi
+
+# Apply limit if specified
+if [[ -n "$LIMIT" ]]; then
+    FILTER_CMD="$FILTER_CMD | head -n $LIMIT"
+fi
+
+# Execute filter command
+MESSAGES=$(eval "$FILTER_CMD" 2>/dev/null || echo "")
+
+# Handle count-only mode
+if [[ "$COUNT_ONLY" == true ]]; then
+    COUNT=$(echo "$MESSAGES" | grep -c . || echo "0")
+    if [[ "$OUTPUT_FORMAT" == "json" ]]; then
+        echo "{\"count\": $COUNT, \"agent\": \"$FOR\"}"
+    else
+        echo "$COUNT"
+    fi
+    exit 0
+fi
+
+# Check if any messages were found
+if [[ -z "$MESSAGES" ]]; then
+    if [[ "$OUTPUT_FORMAT" == "json" ]]; then
+        echo "[]"
+    else
+        log "INFO" "No messages found for $FOR with specified filters"
+    fi
+    exit 0
+fi
+
+# Mark messages as read if requested
+if [[ "$MARK_READ" == true ]]; then
+    # Create a temporary file with updated messages
+    TEMP_FILE=$(mktemp)
+    
+    # Process each message and mark as read
+    while IFS= read -r message; do
+        if [[ -n "$message" ]]; then
+            echo "$message" | jq -c '.read = true'
+        fi
+    done <<< "$MESSAGES" > "$TEMP_FILE"
+    
+    # Replace the original inbox with updated messages
+    # This is a simplified approach - in production, you'd want atomic updates
+    if [[ -s "$TEMP_FILE" ]]; then
+        # Get messages that weren't marked as read
+        UNMARKED_MESSAGES=""
+        if [[ "$UNREAD_ONLY" != true ]]; then
+            # If we weren't filtering for unread only, we need to preserve other messages
+            OTHER_MESSAGES=$(eval "cat '$INBOX_FILE' | jq -c 'select(.read == true)'" 2>/dev/null || echo "")
+            if [[ -n "$OTHER_MESSAGES" ]]; then
+                UNMARKED_MESSAGES="$OTHER_MESSAGES"
+            fi
+        fi
+        
+        # Combine updated and unmarked messages
+        {
+            if [[ -n "$UNMARKED_MESSAGES" ]]; then
+                echo "$UNMARKED_MESSAGES"
+            fi
+            cat "$TEMP_FILE"
+        } > "$INBOX_FILE"
+    fi
+    
+    rm -f "$TEMP_FILE"
+    
+    if [[ "$OUTPUT_FORMAT" != "json" ]]; then
+        local count=$(echo "$MESSAGES" | grep -c . || echo "0")
+        log "SUCCESS" "Marked $count messages as read for $FOR"
+    fi
+fi
+
+# Output messages
+if [[ "$OUTPUT_FORMAT" == "json" ]]; then
+    # Output as JSON array
+    echo "$MESSAGES" | jq -s .
+else
+    # Human-readable format
+    echo "$MESSAGES" | while IFS= read -r message; do
+        if [[ -n "$message" ]]; then
+            ID=$(echo "$message" | jq -r '.id')
+            TIMESTAMP=$(echo "$message" | jq -r '.timestamp')
+            FROM=$(echo "$message" | jq -r '.from')
+            TOPIC=$(echo "$message" | jq -r '.topic')
+            PRIORITY=$(echo "$message" | jq -r '.priority')
+            MSG_CONTENT=$(echo "$message" | jq -r '.message')
+            READ_STATUS=$(echo "$message" | jq -r '.read')
+            
+            # Format timestamp for human readability
+            HUMAN_TIME=$(date -d "$TIMESTAMP" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "$TIMESTAMP")
+            
+            echo "=================================="
+            echo "Message ID: $ID"
+            echo "Time: $HUMAN_TIME"
+            echo "From: $FROM → To: $FOR"
+            echo "Topic: $TOPIC | Priority: $PRIORITY | Read: $READ_STATUS"
+            echo "----------------------------------"
+            echo "$MSG_CONTENT"
+            echo "=================================="
+            echo ""
+        fi
+    done
+fi
+
+exit 0

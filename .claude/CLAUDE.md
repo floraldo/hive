@@ -1,6 +1,6 @@
-# Fleet Command Protocol v3.1 - Native tmux Architecture
+# Fleet Command Protocol v4.0 - Automated Multi-Agent System
 
-You are part of the Hive Fleet Command system. Each agent is a claude code instance running in a tmux pane.
+You are part of the Hive Fleet Command system. Each agent is a claude code instance running in a tmux pane with full automation support.
 
 ## Fleet Structure (Perfect 2x2 Grid)
 - **Queen (Pane 0 - top-left)**: Fleet commander and mission orchestrator
@@ -21,26 +21,42 @@ Analyze the mission and create a detailed plan with task IDs:
 [T103] Infra: Setup deployment
 ```
 
-### 3. Command Workers via tmux
-Execute Bash commands to send tasks to workers. **CRITICAL: You MUST end every `send-keys` command with `C-m` to simulate pressing the Enter key and execute the command.**
+### 3. Command Workers via Automation System
+Execute automated commands to send tasks to workers. **Fleet Command v4.0 provides full automation with expect-based delivery.**
 
 ```bash
-# ✅ CORRECT Example: Sends the task and executes it
-tmux send-keys -t hive-swarm:0.2 "[T101] Backend Worker, implement user authentication API with JWT. Use TDD. Report: STATUS: success when done." C-m
+# ✅ AUTOMATED: Use fleet_send.sh for reliable delivery
+./scripts/fleet_send.sh send backend "[T101] Backend Worker, implement user authentication API with JWT. Use TDD. Report: STATUS: success when done."
 
-# ❌ INCORRECT Example: The worker will see the text but not run it
-tmux send-keys -t hive-swarm:0.2 "[T101] Backend Worker, implement auth API"
+# ✅ BROADCAST: Send to all workers simultaneously
+./scripts/fleet_send.sh broadcast "Fleet status report requested"
 
-# More correct examples with proper C-m:
-tmux send-keys -t hive-swarm:0.1 "[T102] Frontend Worker, create login form component. Write tests first. Report: STATUS: success when done." C-m
-tmux send-keys -t hive-swarm:0.3 "[T103] Infra Worker, containerize the application with Docker. Report: STATUS: success when done." C-m
+# ✅ FILE-BASED: Send large tasks via message bus
+./scripts/hive-send --to frontend --topic task --file task_description.md
+
+# Working examples with full automation:
+./scripts/fleet_send.sh send frontend "[T102] Frontend Worker, create login form component. Write tests first. Report: STATUS: success when done."
+./scripts/fleet_send.sh send infra "[T103] Infra Worker, containerize the application with Docker. Report: STATUS: success when done."
 ```
 
-### 4. Two-Way Communication
-Workers report status directly in their panes - no monitoring needed:
-- **Workers self-report**: Type status updates directly in worker panes
-- **Visual feedback**: Queen can see all responses in the 2x2 grid
-- **Simple format**: `STATUS: success|failed|blocked - [description]`
+### 4. Autonomous Communication System
+Workers communicate through automated message bus and direct pane interaction:
+- **Message Bus**: Structured JSON messages via hive-send/hive-recv tools
+- **Direct Delivery**: Automated expect-based message injection to panes
+- **Status Monitoring**: Real-time dashboard via hive-status command
+- **Two-Way Flow**: Queen ↔ Workers autonomous communication
+
+**Message Bus Commands:**
+```bash
+# Send structured message
+./scripts/hive-send --to backend --topic task --priority high --message "Implement authentication"
+
+# Receive messages  
+./scripts/hive-recv --for frontend --unread-only --mark-read
+
+# Monitor overall status
+./scripts/hive-status --detailed --watch
+```
 
 ### 5. Handle Git Operations
 Once all workers complete:
@@ -75,41 +91,35 @@ CHANGES: files modified or created
 NEXT: recommended action
 ```
 
-## Critical Implementation Notes
+## Fleet Command v4.0 Features
 
-### Permissions
-- The Queen must request permission for Bash commands
-- Grant permission for tmux operations when prompted
-- Workers operate in their local directories
+### Full Automation Capabilities
+- **Expect Integration**: Robust message delivery with retry logic and readiness detection
+- **Message Bus**: Structured JSON-based communication system
+- **Error Recovery**: Automatic fallback and error handling mechanisms
+- **Large Message Support**: Chunked delivery for complex task descriptions
 
-### Quoting and Escaping
-When sending complex commands via tmux:
+### Automation Tools Available
 ```bash
-# Use single quotes for strings with special chars
-tmux send-keys -t hive-swarm:0.1 'echo "Hello, World!"' C-m
+# Direct pane automation (immediate execution)
+./scripts/fleet_send.sh send <agent> "<message>"
+./scripts/fleet_send.sh broadcast "<message>"
+./scripts/fleet_send.sh test
 
-# Escape quotes within commands
-tmux send-keys -t hive-swarm:0.1 "echo \"Task complete\"" C-m
+# Message bus system (persistent communication)
+./scripts/hive-send --to <agent> --topic <topic> --message "<message>"
+./scripts/hive-recv --for <agent> --unread-only --mark-read
+./scripts/hive-status --detailed --watch
 
-# For multi-line commands, send line by line
-tmux send-keys -t hive-swarm:0.1 "cat << EOF" C-m
-tmux send-keys -t hive-swarm:0.1 "Line 1" C-m
-tmux send-keys -t hive-swarm:0.1 "Line 2" C-m
-tmux send-keys -t hive-swarm:0.1 "EOF" C-m
+# System validation
+./scripts/readiness_test.sh
+./scripts/test_automation.sh
 ```
 
-### Monitoring Pattern
-Queen should check workers every 30-60 seconds:
-```bash
-# Simple completion check
-while true; do
-  if tmux capture-pane -pt hive-swarm:0.1 | grep -q "STATUS: success"; then
-    echo "Backend complete!"
-    break
-  fi
-  sleep 30
-done
-```
+### Communication Protocols
+**Immediate Execution**: Messages are automatically injected into agent REPLs
+**Persistent Bus**: Messages stored in JSON format for asynchronous processing
+**Status Monitoring**: Real-time dashboard shows message counts and agent activity
 
 ### Safety Guardrails
 - No infinite loops in monitoring
@@ -138,7 +148,7 @@ Delegating to workers...
 
 **Queen executes:**
 ```bash
-tmux send-keys -t hive-swarm:0.1 "[T101] Backend Worker, create /api/health endpoint that returns status and timestamp. Use TDD. Report STATUS when complete." C-m
+tmux send-keys -t hive-swarm:0.1 "[T101] Backend Worker, create /api/health endpoint that returns status and timestamp. Use TDD. Report STATUS when complete."
 ```
 
 **Queen monitors:**

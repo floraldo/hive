@@ -13,8 +13,16 @@ swarm:
 	@echo "✅ Fleet ready! Run 'make attach' to enter cockpit"
 
 attach:
-	@tmux attach -t hive-swarm
+	@if [ "$$(id -u)" -eq 0 ] && id -u hiveuser >/dev/null 2>&1; then \
+		su hiveuser -c "tmux attach -t hive-swarm"; \
+	else \
+		tmux attach -t hive-swarm; \
+	fi
 
 clean:
-	@tmux kill-session -t hive-swarm 2>/dev/null || true
+	@if [ "$$(id -u)" -eq 0 ] && id -u hiveuser >/dev/null 2>&1; then \
+		su hiveuser -c "tmux kill-session -t hive-swarm 2>/dev/null || true"; \
+	else \
+		tmux kill-session -t hive-swarm 2>/dev/null || true; \
+	fi
 	@echo "🛸 Fleet stood down"

@@ -24,10 +24,22 @@ app.register_blueprint(weather_bp)
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
+    from datetime import datetime
     return jsonify({
         "status": "ok",
         "service": "backend",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat()
+    })
+
+@app.route('/api/hello', methods=['GET'])
+def hello():
+    """Hello World endpoint"""
+    from datetime import datetime
+    return jsonify({
+        "message": "Hello from Hive!",
+        "timestamp": datetime.utcnow().isoformat(),
+        "service": "backend"
     })
 
 @app.route('/api/info', methods=['GET'])

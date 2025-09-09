@@ -1,1 +1,0 @@
-# GitOps Plugin Package
