@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e # Exit immediately if a command fails
 
-echo "🐝 STARTING THE HIVE - ULTIMATE LAUNCH SCRIPT"
-echo "============================================="
+echo "🐝 HIVE IGNITION SEQUENCE - The Definitive Launch Script"
+echo "======================================================="
 
 # --- STEP 1: ENVIRONMENT VERIFICATION ---
 echo "🔍 Verifying environment..."
@@ -36,51 +36,46 @@ elif ! command -v pip3 &> /dev/null || ! python3 -m venv --help &> /dev/null; th
     echo "✅ Python3 tools updated."
 fi
 
-# --- STEP 2: PYTHON VENV SETUP ---
-if [ ! -d ".venv-wsl" ]; then
-    echo "🐍 WSL Python virtual environment not found. Creating..."
-    python3 -m venv .venv-wsl
-    echo "✅ WSL Virtual environment created."
+# --- STEP 2: PYTHON VENV & DEPENDENCY SETUP ---
+
+VENV_DIR=".venv-wsl"
+LOCK_FILE="$VENV_DIR/.install_lock"
+
+if [ ! -d "$VENV_DIR" ]; then
+    echo "🐍 WSL Python virtual environment not found. Creating at $VENV_DIR..."
+    python3 -m venv $VENV_DIR
+    echo "✅ Virtual environment created."
 fi
 
 echo "🐍 Activating WSL Python virtual environment..."
-source .venv-wsl/bin/activate
+source $VENV_DIR/bin/activate
 
-echo "📦 Installing/updating all Hive packages..."
-# Install individual packages first to handle dependencies
-if ! pip install --quiet -e packages/hive-logging; then
-    echo "❌ ERROR: Failed to install hive-logging package."
-    exit 1
+# --- THE NEW "SMART INSTALL" LOGIC ---
+
+if [ ! -f "$LOCK_FILE" ]; then
+    echo "📦 First-time setup: Installing all Hive packages. This may take a few minutes..."
+    
+    # Install individual packages first to handle dependencies
+    pip install --quiet -e packages/hive-logging || { echo "❌ ERROR: Failed to install hive-logging."; exit 1; }
+    pip install --quiet -e packages/hive-db || { echo "❌ ERROR: Failed to install hive-db."; exit 1; }
+    pip install --quiet -e packages/hive-deployment || { echo "❌ ERROR: Failed to install hive-deployment."; exit 1; }
+    pip install --quiet -e packages/hive-api || { echo "❌ ERROR: Failed to install hive-api."; exit 1; }
+    
+    # Now install main hivemind package
+    pip install --quiet -e . || { echo "❌ ERROR: Failed to install Hive main package."; exit 1; }
+    
+    # Install additional required dependencies
+    pip install --quiet libtmux gitpython || { echo "❌ ERROR: Failed to install libtmux and gitpython."; exit 1; }
+    
+    echo "✅ All packages installed successfully."
+    echo "   Creating install lock file to speed up future launches."
+    touch "$LOCK_FILE"
+    
+else
+    echo "✅ All packages are already installed (lock file found). Skipping installation."
 fi
 
-if ! pip install --quiet -e packages/hive-db; then
-    echo "❌ ERROR: Failed to install hive-db package."
-    exit 1
-fi
-
-if ! pip install --quiet -e packages/hive-deployment; then
-    echo "❌ ERROR: Failed to install hive-deployment package."
-    exit 1
-fi
-
-if ! pip install --quiet -e packages/hive-api; then
-    echo "❌ ERROR: Failed to install hive-api package."
-    exit 1
-fi
-
-# Now install main hivemind package
-if ! pip install --quiet -e .; then
-    echo "❌ ERROR: Failed to install Hive main package."
-    exit 1
-fi
-
-# Install additional required dependencies
-if ! pip install --quiet libtmux gitpython; then
-    echo "❌ ERROR: Failed to install libtmux and gitpython."
-    exit 1
-fi
-
-echo "✅ All packages are installed and ready."
+# --- END OF NEW LOGIC ---
 
 # Verify critical tools are working
 if ! make --version &> /dev/null; then
@@ -93,45 +88,20 @@ if ! tmux -V &> /dev/null; then
     exit 1
 fi
 
-# --- STEP 3: LAUNCHING THE SWARM ---
-echo "🚀 Launching the Hive Swarm in tmux..."
+# --- STEP 3: LAUNCHING THE SWARM & ORCHESTRATOR ---
 
-# Kill any existing session
-tmux kill-session -t hive-swarm 2>/dev/null || true
+echo "🚀 Launching the Hive Swarm in a new tmux session..."
+make swarm
 
-# Start the swarm using the setup script
-echo "Starting tmux session with Queen and Workers..."
-./setup.sh
-if [ $? -ne 0 ]; then
-    echo "❌ ERROR: Failed to start tmux session. Check setup.sh script."
-    exit 1
-fi
-
-# Wait for tmux session to be ready
-sleep 3
-
-# Verify tmux session is actually running
-if ! tmux list-sessions | grep -q "hive-swarm"; then
-    echo "❌ ERROR: Tmux session 'hive-swarm' failed to start properly."
-    echo "Try running manually: ./setup.sh"
-    exit 1
-fi
-
-echo "✅ Tmux session 'hive-swarm' is running!"
-echo "   View the swarm: tmux attach -t hive-swarm"
+echo "✅ Tmux session 'hive-swarm' is running in the background."
+echo "   You can attach to it to watch the agents with: tmux attach -t hive-swarm"
+echo ""
+echo "---"
 echo ""
 
-# --- STEP 4: LAUNCH THE QUEEN ---
-echo "👑 LAUNCHING THE QUEEN ORCHESTRATOR..."
-echo "====================================="
-echo ""
-echo "The Queen is now ready for her first mission!"
-echo ""
-echo "SUGGESTED FIRST MISSION (copy and paste when prompted):"
-echo "-------------------------------------------------------"
-echo "Add a GET /api/v1/ping endpoint to the apps/backend service. It should return JSON {\"status\": \"pong\", \"timestamp\": current_time}. Add a pytest test for this endpoint. After tests pass, create a Pull Request."
-echo "-------------------------------------------------------"
-echo ""
+echo "👑 Launching the Queen Orchestrator in this terminal..."
+echo "   The Queen is now ready and awaits your command."
+echo "---"
 
 # Launch the orchestrator in the current terminal
-python hive_cli.py run
+make run
