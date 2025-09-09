@@ -91,6 +91,13 @@ SUCCESS CRITERIA:
 - **Input Validation**: Validate all user inputs
 - **Error Handling**: Don't expose internal errors to users
 
+## Windows Terminal Encoding Fix
+- **Windows CP1252 Issue**: Windows terminals can't display Unicode emojis (🚀, ✅, etc.)
+- **Solution**: Use plain text instead of emojis in Windows environments
+- **Detection**: UnicodeEncodeError: 'charmap' codec can't encode character
+- **Fix**: Replace emoji strings with plain text equivalents
+- **Alternative**: Use WSL terminal which supports full Unicode
+
 ## Commit Conventions
 - `feat:` new features
 - `fix:` bug fixes  
