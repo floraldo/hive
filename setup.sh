@@ -1,30 +1,22 @@
 #!/bin/bash
 SESSION="hive-swarm"
 
-# Kill existing session
-tmux kill-session -t $SESSION 2>/dev/null
+# Kill existing session if it exists
+tmux kill-session -t $SESSION 2>/dev/null || true
 
-# Create new session with Queen pane
+# Create new session with 4 panes (Queen + 3 Workers)
 tmux new-session -d -s $SESSION -n "Hive"
-tmux rename-pane -t $SESSION:0.0 "Queen"
 
-# Create Worker panes
+# Create 3 additional panes (split horizontally then vertically)
 tmux split-window -h -t $SESSION:0
-tmux rename-pane -t $SESSION:0.1 "Worker1-Backend"
+tmux split-window -v -t $SESSION:0.0  
+tmux split-window -v -t $SESSION:0.2
 
-tmux split-window -v -t $SESSION:0.0
-tmux rename-pane -t $SESSION:0.2 "Worker2-Frontend"
+# Optional: Set pane titles if tmux version supports it
+tmux send-keys -t $SESSION:0.0 "echo 'Queen Pane Ready'" C-m
+tmux send-keys -t $SESSION:0.1 "echo 'Backend Worker Ready'" C-m  
+tmux send-keys -t $SESSION:0.2 "echo 'Frontend Worker Ready'" C-m
+tmux send-keys -t $SESSION:0.3 "echo 'Infra Worker Ready'" C-m
 
-tmux split-window -v -t $SESSION:0.1
-tmux rename-pane -t $SESSION:0.3 "Worker3-Infra"
-
-# Queen operates from root (read-only overview)
-tmux send-keys -t $SESSION:0.0 "cc" C-m
-
-# Workers in their isolated worktrees
-tmux send-keys -t $SESSION:0.1 "cd workspaces/backend && cc" C-m
-tmux send-keys -t $SESSION:0.2 "cd workspaces/frontend && cc" C-m
-tmux send-keys -t $SESSION:0.3 "cd workspaces/infra && cc" C-m
-
-# Attach to session
-tmux attach-session -t $SESSION
+echo "✅ Tmux session '$SESSION' created with 4 panes"
+echo "   Pane layout: Queen (top-left), Backend (top-right), Frontend (bottom-left), Infra (bottom-right)"

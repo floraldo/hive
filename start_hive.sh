@@ -5,38 +5,31 @@ echo "🐝 HIVE IGNITION SEQUENCE - The Definitive Launch Script"
 echo "======================================================="
 
 # --- STEP 1: ENVIRONMENT VERIFICATION ---
-echo "🔍 Verifying environment..."
 
+echo "🔍 Verifying environment..."
 if [ ! -f "pyproject.toml" ]; then
     echo "❌ ERROR: This script must be run from the root of the 'hive' repository."
-    echo "Run this from: /mnt/c/git/hive"
     exit 1
 fi
 
-if ! command -v tmux &> /dev/null; then
-    echo "⚠️  tmux not found. Attempting to install..."
-    sudo apt update && sudo apt install tmux -y
-    echo "✅ tmux installed."
-fi
+# Function to check for and install missing packages
+install_if_missing() {
+    if ! command -v $1 &> /dev/null; then
+        echo "⚠️  $1 not found. Installing..."
+        sudo apt update -qq && sudo apt install -y $2
+        echo "✅ $1 is now installed."
+    fi
+}
 
-if ! command -v make &> /dev/null; then
-    echo "⚠️  make not found. Installing build-essential (includes make, gcc, g++)..."
-    sudo apt update -qq && sudo apt install build-essential -y
-    echo "✅ build-essential installed."
-fi
+install_if_missing make build-essential
+install_if_missing tmux tmux
+install_if_missing python3 python3-pip
+install_if_missing pip3 python3-pip
+install_if_missing python3 python3-venv
 
-# Check for Python3 and related tools
-if ! command -v python3 &> /dev/null; then
-    echo "⚠️  python3 not found. Installing..."
-    sudo apt install python3 python3-pip python3-venv -y
-    echo "✅ Python3 tools installed."
-elif ! command -v pip3 &> /dev/null || ! python3 -m venv --help &> /dev/null; then
-    echo "⚠️  pip3 or venv missing. Installing python3 tools..."
-    sudo apt install python3-pip python3-venv -y
-    echo "✅ Python3 tools updated."
-fi
+echo "✅ All required system packages are present."
 
-# --- STEP 2: PYTHON VENV & DEPENDENCY SETUP ---
+# --- STEP 2: PYTHON VENV & SMART DEPENDENCY SETUP ---
 
 VENV_DIR=".venv-wsl"
 LOCK_FILE="$VENV_DIR/.install_lock"
@@ -44,58 +37,51 @@ LOCK_FILE="$VENV_DIR/.install_lock"
 if [ ! -d "$VENV_DIR" ]; then
     echo "🐍 WSL Python virtual environment not found. Creating at $VENV_DIR..."
     python3 -m venv $VENV_DIR
-    echo "✅ Virtual environment created."
 fi
 
 echo "🐍 Activating WSL Python virtual environment..."
 source $VENV_DIR/bin/activate
 
-# --- THE NEW "SMART INSTALL" LOGIC ---
-
 if [ ! -f "$LOCK_FILE" ]; then
     echo "📦 First-time setup: Installing all Hive packages. This may take a few minutes..."
     
-    # Install individual packages first to handle dependencies
-    echo "Installing hive-logging..."
+    # Use sequential installation for maximum reliability
+    pip install --quiet -r requirements.txt
     pip install --quiet -e packages/hive-logging
-    
-    echo "Installing hive-db..."
     pip install --quiet -e packages/hive-db
-    
-    echo "Installing hive-deployment..."
     pip install --quiet -e packages/hive-deployment
-    
-    echo "Installing hive-api..."
     pip install --quiet -e packages/hive-api
-    
-    echo "Installing main hivemind package..."
-    pip install --quiet -e .
-    
-    echo "Installing additional dependencies (libtmux, gitpython)..."
-    pip install --quiet libtmux gitpython
+    pip install --quiet -e . # Install the main hivemind package
     
     echo "✅ All packages installed successfully."
-    echo "   Creating install lock file to speed up future launches."
     touch "$LOCK_FILE"
     
 else
-    echo "✅ All packages are already installed (lock file found). Skipping installation."
+    echo "✅ Packages are already installed (lock file found)."
 fi
 
-# --- END OF NEW LOGIC ---
+# --- STEP 3: THE "ONE WORD" COMMAND SETUP (ALIAS) ---
 
-# Verify critical tools are working
-if ! make --version &> /dev/null; then
-    echo "❌ ERROR: make command still not working after installation."
-    exit 1
+ALIAS_CMD="alias hive='cd /mnt/c/git/hive && ./start_hive.sh'"
+SHELL_CONFIG=""
+
+if [ -f "$HOME/.bashrc" ]; then
+    SHELL_CONFIG="$HOME/.bashrc"
+elif [ -f "$HOME/.zshrc" ]; then
+    SHELL_CONFIG="$HOME/.zshrc"
 fi
 
-if ! tmux -V &> /dev/null; then
-    echo "❌ ERROR: tmux command still not working after installation."
-    exit 1
+if [ -n "$SHELL_CONFIG" ] && ! grep -q "alias hive=" "$SHELL_CONFIG"; then
+    echo "🔧 Creating the 'hive' command for easy launching..."
+    echo "" >> "$SHELL_CONFIG"
+    echo "$ALIAS_CMD" >> "$SHELL_CONFIG"
+    echo "✅ The 'hive' command has been created! Please restart your WSL terminal to use it."
+    echo "   From now on, you can just type 'hive' to launch the system."
+elif [ -n "$SHELL_CONFIG" ]; then
+    echo "✅ The 'hive' command is already configured."
 fi
 
-# --- STEP 3: LAUNCHING THE SWARM & ORCHESTRATOR ---
+# --- STEP 4: LAUNCHING THE SWARM & ORCHESTRATOR ---
 
 echo "🚀 Launching the Hive Swarm in a new tmux session..."
 make swarm
@@ -110,5 +96,5 @@ echo "👑 Launching the Queen Orchestrator in this terminal..."
 echo "   The Queen is now ready and awaits your command."
 echo "---"
 
-# Launch the orchestrator in the current terminal
+# Launch the orchestrator in the current terminal, giving you direct control
 make run
