@@ -26,11 +26,11 @@ swarm:
 
 run:
 	@echo "👑 Starting the Queen orchestrator..."
-	@source .venv/Scripts/activate && python run.py
+	@bash -c "source .venv-wsl/bin/activate && python hive_cli.py run"
 
 dry-run:
 	@echo "🧪 Starting orchestrator in dry-run mode..."
-	@source .venv/Scripts/activate && python run.py --dry-run
+	@bash -c "source .venv-wsl/bin/activate && python hive_cli.py run --dry-run"
 
 test-setup:
 	@echo "🔍 Verifying Hive setup..."
