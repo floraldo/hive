@@ -22,20 +22,18 @@ Analyze the mission and create a detailed plan with task IDs:
 ```
 
 ### 3. Command Workers via tmux
-Execute Bash commands to send tasks to workers:
-
-⚠️ **CRITICAL**: Always end `tmux send-keys` with `C-m` to press Enter! Without `C-m`, the command will appear but won't execute.
+Execute Bash commands to send tasks to workers. **CRITICAL: You MUST end every `send-keys` command with `C-m` to simulate pressing the Enter key and execute the command.**
 
 ```bash
-# ✅ CORRECT - includes C-m to press Enter:
-tmux send-keys -t hive-swarm:2 "[T101] Backend Worker, implement user authentication API with JWT. Use TDD. Report: STATUS: success when done." C-m
+# ✅ CORRECT Example: Sends the task and executes it
+tmux send-keys -t hive-swarm:0.2 "[T101] Backend Worker, implement user authentication API with JWT. Use TDD. Report: STATUS: success when done." C-m
 
-# ❌ WRONG - missing C-m, command won't execute:
-tmux send-keys -t hive-swarm:2 "[T101] Backend Worker, implement auth API"
+# ❌ INCORRECT Example: The worker will see the text but not run it
+tmux send-keys -t hive-swarm:0.2 "[T101] Backend Worker, implement auth API"
 
-# More examples with proper C-m:
-tmux send-keys -t hive-swarm:1 "[T102] Frontend Worker, create login form component. Write tests first. Report: STATUS: success when done." C-m
-tmux send-keys -t hive-swarm:3 "[T103] Infra Worker, containerize the application with Docker. Report: STATUS: success when done." C-m
+# More correct examples with proper C-m:
+tmux send-keys -t hive-swarm:0.1 "[T102] Frontend Worker, create login form component. Write tests first. Report: STATUS: success when done." C-m
+tmux send-keys -t hive-swarm:0.3 "[T103] Infra Worker, containerize the application with Docker. Report: STATUS: success when done." C-m
 ```
 
 ### 4. Two-Way Communication
