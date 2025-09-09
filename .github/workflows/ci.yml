@@ -2,6 +2,15 @@ name: CI
 on:
   pull_request:
     branches: [ main ]
+env:
+  # Inject all secrets as environment variables
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+  AIRTABLE_BASE: ${{ secrets.AIRTABLE_BASE }}
+
 jobs:
   backend:
     runs-on: ubuntu-latest

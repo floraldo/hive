@@ -1,0 +1,1 @@
+"""Hivemind Configuration Package"""
