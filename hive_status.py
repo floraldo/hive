@@ -42,6 +42,9 @@ class HiveStatus:
             "reset": "\033[0m",
             "bold": "\033[1m"
         }
+        
+        # Emoji toggle for Windows compatibility
+        self.use_emoji = os.getenv("HIVE_EMOJI", "1") != "0"
     
     def get_events_file(self) -> Path:
         """Get today's events file"""
@@ -159,19 +162,40 @@ class HiveStatus:
             return f"{ms / 60000:.1f}m"
     
     def get_status_icon(self, status: str) -> str:
-        """Get colored status icon"""
-        icons = {
-            "queued": self.color("⏳", "white"),
-            "assigned": self.color("📋", "cyan"),
-            "in_progress": self.color("🔄", "yellow"),
-            "testing": self.color("🧪", "blue"),
-            "reviewing": self.color("👀", "blue"),
-            "pr_open": self.color("🔗", "cyan"),
-            "completed": self.color("✅", "green"),
-            "failed": self.color("❌", "red"),
-            "blocked": self.color("🚫", "red")
-        }
-        return icons.get(status, "❓")
+        """Get colored status icon with emoji/ASCII fallback"""
+        if self.use_emoji:
+            icons = {
+                "queued": self.color("⏳", "white"),
+                "assigned": self.color("📋", "cyan"),
+                "in_progress": self.color("🔄", "yellow"),
+                "testing": self.color("🧪", "blue"),
+                "reviewing": self.color("👀", "blue"),
+                "pr_open": self.color("🔗", "cyan"),
+                "completed": self.color("✅", "green"),
+                "failed": self.color("❌", "red"),
+                "blocked": self.color("🚫", "red")
+            }
+        else:
+            icons = {
+                "queued": self.color("Q", "white"),
+                "assigned": self.color("A", "cyan"),
+                "in_progress": self.color("IP", "yellow"),
+                "testing": self.color("T", "blue"),
+                "reviewing": self.color("R", "blue"),
+                "pr_open": self.color("PR", "cyan"),
+                "completed": self.color("OK", "green"),
+                "failed": self.color("X", "red"),
+                "blocked": self.color("BLK", "red")
+            }
+        return icons.get(status, "?")
+    
+    def get_border_char(self, char_type: str) -> str:
+        """Get border character with ASCII fallback"""
+        if self.use_emoji:
+            borders = {"double": "═", "single": "─"}
+        else:
+            borders = {"double": "=", "single": "-"}
+        return borders.get(char_type, "-")
     
     def print_dashboard(self):
         """Print the status dashboard"""
@@ -179,9 +203,9 @@ class HiveStatus:
         print("\033[2J\033[H", end="")
         
         # Header
-        print(self.color("═" * 80, "cyan"))
+        print(self.color(self.get_border_char("double") * 80, "cyan"))
         print(self.color("HIVE FLEET STATUS - READ-ONLY VIEWER", "bold"))
-        print(self.color("═" * 80, "cyan"))
+        print(self.color(self.get_border_char("double") * 80, "cyan"))
         print(f"Time: {datetime.now().strftime('%H:%M:%S')} | Events: {self.events_file.name}")
         print()
         
@@ -196,7 +220,7 @@ class HiveStatus:
         
         # Status bar
         print(self.color("TASK PIPELINE", "bold"))
-        print("─" * 40)
+        print(self.get_border_char("single") * 40)
         status_line = (
             f"Queued: {self.color(str(stats['queued']), 'white'):>3} | "
             f"Assigned: {self.color(str(stats['assigned']), 'cyan'):>3} | "
@@ -217,7 +241,7 @@ class HiveStatus:
         
         if active_tasks:
             print(self.color("ACTIVE TASKS", "bold"))
-            print("─" * 40)
+            print(self.get_border_char("single") * 40)
             for task in sorted(active_tasks, key=lambda t: t.get("started_at", ""))[:5]:
                 status = task.get("status", "unknown")
                 icon = self.get_status_icon(status)
@@ -246,7 +270,7 @@ class HiveStatus:
         
         if completed:
             print(self.color("RECENT COMPLETIONS", "bold"))
-            print("─" * 40)
+            print(self.get_border_char("single") * 40)
             for task in sorted(completed, key=lambda t: t.get("completed_at", ""), reverse=True)[:3]:
                 icon = self.get_status_icon(task.get("status"))
                 pr = task.get("pr", "")
@@ -273,7 +297,7 @@ class HiveStatus:
         
         if failed:
             print(self.color("FAILURES & BLOCKS", "bold"))
-            print("─" * 40)
+            print(self.get_border_char("single") * 40)
             for task in sorted(failed, key=lambda t: t.get("failed_at", ""), reverse=True)[:3]:
                 icon = self.get_status_icon(task.get("status"))
                 reason = task.get("failure_reason", "Unknown")[:40]
@@ -292,7 +316,7 @@ class HiveStatus:
         # Recent events
         if self.recent_events:
             print(self.color("EVENT STREAM", "bold"))
-            print("─" * 40)
+            print(self.get_border_char("single") * 40)
             
             for event in self.recent_events[-8:]:
                 evt_type = event.get("type", "")
@@ -302,28 +326,35 @@ class HiveStatus:
                 
                 # Format by type
                 if evt_type == "worker_spawned":
-                    print(f"  🚀 {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)")
+                    rocket = "🚀" if self.use_emoji else ">"
+                    print(f"  {rocket} {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)")
                 elif evt_type == "task_execution_complete":
                     status = event.get("status", "?")
                     color = "green" if status == "success" else "red"
-                    print(f"  ✓ {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)")
+                    check = "✓" if self.use_emoji else "+"
+                    print(f"  {check} {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)")
                 elif evt_type == "task_complete":
-                    print(f"  ✅ {task_id} completed ({ts} ago)")
+                    check = "✅" if self.use_emoji else "OK"
+                    print(f"  {check} {task_id} completed ({ts} ago)")
                 elif evt_type == "task_failed":
-                    print(f"  ❌ {task_id} failed: {event.get('notes', '')[:30]} ({ts} ago)")
+                    x = "❌" if self.use_emoji else "X"
+                    print(f"  {x} {task_id} failed: {event.get('notes', '')[:30]} ({ts} ago)")
                 elif evt_type == "inspector_task_created":
-                    print(f"  🔧 Inspector {self.color(event.get('inspector', '?'), 'yellow')} "
+                    tool = "🔧" if self.use_emoji else "FIX"
+                    print(f"  {tool} Inspector {self.color(event.get('inspector', '?'), 'yellow')} "
                           f"for {event.get('parent_task', '?')} ({ts} ago)")
                 elif evt_type == "queen_started":
-                    print(f"  👑 Queen orchestrator started ({ts} ago)")
+                    crown = "👑" if self.use_emoji else "Q"
+                    print(f"  {crown} Queen orchestrator started ({ts} ago)")
                 elif evt_type == "queen_stopped":
-                    print(f"  👑 Queen orchestrator stopped ({ts} ago)")
+                    crown = "👑" if self.use_emoji else "Q"
+                    print(f"  {crown} Queen orchestrator stopped ({ts} ago)")
                 else:
                     print(f"  • {evt_type} from {worker} ({ts} ago)")
             print()
         
         # Footer
-        print("─" * 80)
+        print(self.get_border_char("single") * 80)
         print("Press Ctrl+C to exit | Updates every 2 seconds | Read-only viewer")
     
     def run(self, refresh_seconds: int = 2):
