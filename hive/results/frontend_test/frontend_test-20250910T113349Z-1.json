@@ -1,0 +1,21 @@
+{
+  "status": "success",
+  "notes": "Task completed successfully (no FINAL_JSON)",
+  "next_state": "completed",
+  "duration_ms": 47732,
+  "exit_code": 0,
+  "phase": "apply",
+  "tests_pass": true,
+  "diff_stats": {
+    "files_changed": 170,
+    "insertions": 149,
+    "deletions": 9471,
+    "diff_summary": " 170 files changed, 149 insertions(+), 9471 deletions(-)"
+  },
+  "run_id": "frontend_test-20250910T113349Z-1",
+  "worker": "frontend",
+  "workspace": "C:\\git\\hive\\.worktrees\\frontend",
+  "timestamp": "2025-09-10T11:34:37.608110+00:00",
+  "branch": "main",
+  "commit_sha": "19477257"
+}

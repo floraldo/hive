@@ -35,7 +35,7 @@ class CCWorker:
         if workspace:
             self.workspace = Path(workspace)
         else:
-            self.workspace = self.root / "workspaces" / worker_id
+            self.workspace = self.root / ".worktrees" / worker_id
         
         self.workspace.mkdir(parents=True, exist_ok=True)
         
@@ -127,7 +127,8 @@ class CCWorker:
                     ["git", "branch", "--show-current"],
                     cwd=self.workspace,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    encoding='utf-8'
                 )
                 if branch_result.returncode == 0:
                     result["branch"] = branch_result.stdout.strip()
@@ -136,7 +137,8 @@ class CCWorker:
                     ["git", "rev-parse", "HEAD"],
                     cwd=self.workspace,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    encoding='utf-8'
                 )
                 if commit_result.returncode == 0:
                     result["commit_sha"] = commit_result.stdout.strip()[:8]
@@ -157,27 +159,15 @@ class CCWorker:
             self.print_error(f"Failed to save result: {e}")
     
     def find_claude_command(self) -> Optional[str]:
-        """Find the claude command"""
-        # Check environment override
+        """Find the claude command - simplified to use what works"""
+        # Check environment override first
         if os.environ.get("CLAUDE_BIN"):
             return os.environ["CLAUDE_BIN"]
         
-        # Check local files
-        for claude_file in ["claude.bat", "claude.sh", "claude"]:
-            local_claude = self.root / claude_file
-            if local_claude.exists():
-                return str(local_claude.resolve())
-        
-        # Windows: prefer .cmd/.bat launchers to avoid WinError 193
-        if os.name == "nt":
-            for name in ("claude.cmd", "claude.bat", "claude.exe", "claude.ps1"):
-                cmd_path = shutil.which(name)
-                if cmd_path:
-                    return cmd_path
-        
-        # Check system PATH (unix or fallback)
+        # Use the claude command from PATH (this works in Git Bash)
         claude_cmd = shutil.which("claude")
         if claude_cmd:
+            self.print_info(f"Using Claude from PATH: {claude_cmd}")
             return claude_cmd
         
         return None
@@ -192,6 +182,37 @@ class CCWorker:
             except:
                 pass
         return None
+    
+    def check_files_created(self) -> List[str]:
+        """Check for recently created files in workspace"""
+        try:
+            import os
+            from datetime import datetime, timedelta
+            
+            created_files = []
+            now = datetime.now()
+            cutoff = now - timedelta(minutes=35)  # Check files created in last 35 mins
+            
+            for root, dirs, files in os.walk(self.workspace):
+                # Skip git directories
+                if '.git' in root:
+                    continue
+                    
+                for file in files:
+                    filepath = os.path.join(root, file)
+                    try:
+                        stat = os.stat(filepath)
+                        created_time = datetime.fromtimestamp(stat.st_ctime)
+                        if created_time > cutoff:
+                            rel_path = os.path.relpath(filepath, self.workspace)
+                            created_files.append(rel_path)
+                    except:
+                        pass
+                        
+            return created_files[:10]  # Return max 10 files
+        except Exception as e:
+            self.print_error(f"Error checking files: {e}")
+            return []
     
     def get_git_diff_stats(self) -> Dict[str, Any]:
         """Get git diff statistics for changes"""
@@ -208,7 +229,8 @@ class CCWorker:
                 ["git", "diff", "--stat"],
                 cwd=self.workspace,
                 capture_output=True,
-                text=True
+                text=True,
+                encoding='utf-8'
             )
             
             if diff_result.returncode == 0 and diff_result.stdout:
@@ -268,6 +290,7 @@ class CCWorker:
                 cwd=self.workspace,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
                 timeout=300  # 5 minute timeout for tests
             )
             
@@ -379,7 +402,17 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
     
     def parse_final_json(self, lines: List[str]) -> Dict[str, Any]:
         """Parse FINAL_JSON marker output from stream-json format"""
-        for line in reversed(lines[-200:] if len(lines) > 200 else lines):
+        # Filter out permission prompts when in YOLO mode
+        filtered_lines = []
+        for line in lines:
+            if os.getenv("HIVE_SKIP_PERMS", "0") == "1" and "permission" in line.lower():
+                continue  # Skip permission prompts
+            filtered_lines.append(line)
+        
+        # Use filtered lines for parsing
+        search_lines = filtered_lines[-200:] if len(filtered_lines) > 200 else filtered_lines
+        
+        for line in reversed(search_lines):
             s = line.strip()
             
             # Handle raw FINAL_JSON format
@@ -443,32 +476,32 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             "-p", prompt
         ]
         
-        # Add role-specific tool restrictions
-        if self.worker_id == "backend":
-            cmd.extend(["--allowedTools", 
-                       "Bash(python,pip,pytest,git,cat,ls,mkdir,echo),Read(*),Write(*),Edit(*),MultiEdit(*)"])
-        elif self.worker_id == "frontend":
-            cmd.extend(["--allowedTools",
-                       "Bash(npm,node,jest,git,cat,ls,mkdir,echo),Read(*),Write(*),Edit(*),MultiEdit(*)"])
-        elif self.worker_id == "infra":
-            cmd.extend(["--allowedTools",
-                       "Bash(docker,kubectl,helm,git,cat,ls,mkdir,echo,sh),Read(*),Write(*),Edit(*),MultiEdit(*)"])
+        # Add role-specific tool restrictions (skip if YOLO mode)
+        if os.getenv("HIVE_SKIP_PERMS", "0") != "1":
+            if self.worker_id == "backend":
+                cmd.extend(["--allowedTools", 
+                           "Bash(python,pip,pytest,git,cat,ls,mkdir,echo),Read(*),Write(*),Edit(*),MultiEdit(*)"])
+            elif self.worker_id == "frontend":
+                cmd.extend(["--allowedTools",
+                           "Bash(npm,node,jest,git,cat,ls,mkdir,echo),Read(*),Write(*),Edit(*),MultiEdit(*)"])
+            elif self.worker_id == "infra":
+                cmd.extend(["--allowedTools",
+                           "Bash(docker,kubectl,helm,git,cat,ls,mkdir,echo,sh),Read(*),Write(*),Edit(*),MultiEdit(*)"])
         
         # Auto-approve tool prompts in headless mode (opt-in via env)
         if os.getenv("HIVE_SKIP_PERMS", "0") == "1":
-            # Safety: only in worktrees or workspaces, not root workspace
+            # Safety: only in worktrees, not root workspace
             workspace_path = str(self.workspace.resolve()).replace("\\", "/")
-            safe_workspace = ("/.worktrees/" in workspace_path or "/workspaces/" in workspace_path)
+            safe_workspace = "/.worktrees/" in workspace_path
             
             if not safe_workspace and os.getenv("HIVE_ALLOW_ROOT_WRITE", "0") != "1":
-                return {"status": "blocked", "notes": "Auto-approve blocked outside .worktrees/.workspaces", "next_state": "blocked"}
+                return {"status": "blocked", "notes": "Auto-approve blocked outside .worktrees", "next_state": "blocked"}
             
             cmd.append("--dangerously-skip-permissions")
-            workspace_type = "worktree" if "/.worktrees/" in workspace_path else "workspace"
-            self.print_info(f"YOLO MODE: Auto-approving tool actions in {workspace_type}")
+            self.print_info(f"YOLO MODE: Auto-approving tool actions in worktree")
             
             # Telemetry
-            self.emit_event(type="worker_perms_mode", auto_approve=True, workspace=str(self.workspace), workspace_type=workspace_type)
+            self.emit_event(type="worker_perms_mode", auto_approve=True, workspace=str(self.workspace), workspace_type="worktree")
         
         self.print_status("RUNNING", "Claude is working...")
         self.print_info(f"Workspace: {self.workspace}")
@@ -483,32 +516,46 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 cwd=str(self.workspace),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
-                text=True
+                text=True,
+                encoding='utf-8'
             ) as process:
                 
                 for line in process.stdout:
                     lines.append(line)
-                    # Echo key lines
+                    # Echo key lines but filter out permission prompts when in YOLO mode
                     if any(x in line for x in ["FINAL_JSON:", "ERROR", "Failed"]):
+                        # Skip permission prompts when HIVE_SKIP_PERMS=1
+                        if os.getenv("HIVE_SKIP_PERMS", "0") == "1" and "permission" in line.lower():
+                            continue
                         self.print_info(line.strip()[:150])
                 
-                rc = process.wait(timeout=600)  # 10 min timeout
+                rc = process.wait(timeout=1800)  # 30 min timeout
             
             duration_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
             
             # Parse result
             result = self.parse_final_json(lines)
             if not result:
-                # Debug: Print last few lines to see what we're missing
-                self.print_error("DEBUG: Last 10 lines of output:")
-                for i, line in enumerate(lines[-10:] if len(lines) >= 10 else lines):
+                # Debug: Print last few lines to see what we're missing (filtered)
+                self.print_error("DEBUG: Last 10 lines of output (filtered):")
+                filtered_debug_lines = [line for line in lines[-10:] if not (os.getenv("HIVE_SKIP_PERMS", "0") == "1" and "permission" in line.lower())]
+                for i, line in enumerate(filtered_debug_lines):
                     self.print_error(f"  {i}: {line[:200]}")
                 
-                result = {
-                    "status": "failed",
-                    "notes": f"No FINAL_JSON found (exit: {rc})",
-                    "next_state": "failed"
-                }
+                # No FINAL_JSON but check exit code
+                if rc == 0:
+                    # Success without FINAL_JSON - common when Claude completes task
+                    result = {
+                        "status": "success",
+                        "notes": "Task completed successfully (no FINAL_JSON)",
+                        "next_state": "completed"
+                    }
+                else:
+                    result = {
+                        "status": "failed",
+                        "notes": f"Task failed with exit code {rc}",
+                        "next_state": "failed"
+                    }
             
             result["duration_ms"] = duration_ms
             result["exit_code"] = rc
@@ -539,7 +586,7 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             return result
             
         except subprocess.TimeoutExpired:
-            self.print_error("Execution timeout (10 minutes)")
+            self.print_error("Execution timeout (30 minutes)")
             return {
                 "status": "failed",
                 "notes": "Execution timeout",

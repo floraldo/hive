@@ -27,7 +27,9 @@
       "WebSearch",
       "Bash(dir:*)",
       "Bash(cmd /c:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(echo $CLAUDE_BIN)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

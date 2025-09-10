@@ -1,0 +1,21 @@
+{
+  "status": "success",
+  "notes": "Task completed successfully (no FINAL_JSON)",
+  "next_state": "completed",
+  "duration_ms": 13916,
+  "exit_code": 0,
+  "phase": "apply",
+  "tests_pass": true,
+  "diff_stats": {
+    "files_changed": 170,
+    "insertions": 137,
+    "deletions": 9470,
+    "diff_summary": " 170 files changed, 137 insertions(+), 9470 deletions(-)"
+  },
+  "run_id": "simple_worker_test-20250910T112943Z-1",
+  "worker": "backend",
+  "workspace": "C:\\git\\hive\\.worktrees\\backend",
+  "timestamp": "2025-09-10T11:29:57.663257+00:00",
+  "branch": "main",
+  "commit_sha": "19477257"
+}

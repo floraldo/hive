@@ -29,6 +29,7 @@ env/
 logs/*.jsonl
 .ops/
 workspaces/
+.worktrees/
 
 # Testing
 .pytest_cache/

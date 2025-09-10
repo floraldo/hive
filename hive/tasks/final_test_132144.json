@@ -1,0 +1,14 @@
+{
+  "id": "final_test_132144",
+  "title": "Final verification test",
+  "description": "Create final_test_132144.py with success message",
+  "tags": ["backend"],
+  "priority": "P1",
+  "risk": "low",
+  "status": "queued",
+  "acceptance": [
+    "Create final_test_132144.py file",
+    "File prints 'FINAL TEST 132144: SUCCESS'"
+  ]
+}
+EOF && echo "Created final_test_132144"
