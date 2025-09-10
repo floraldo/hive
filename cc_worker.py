@@ -439,7 +439,7 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             self.claude_cmd,
             "--output-format", "stream-json",
             "--verbose",  # Required for stream-json format
-            "--add-dir", ".",  # Current directory (since cwd=workspace)
+            "--add-dir", ".",  # CRITICAL: Use "." not str(workspace) to prevent path duplication
             "-p", prompt
         ]
         
