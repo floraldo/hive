@@ -2,7 +2,6 @@
   "id": "simple_infra_test",
   "title": "Simple Configuration File Test",
   "description": "Create a simple configuration file and script",
-  "assignee": "infra",
   "status": "queued",
   "priority": "high",
   "complexity": "low",
@@ -24,5 +23,7 @@
       "setup.sh is executable",
       "Script runs and displays config"
     ]
-  }
+  },
+  "updated_at": "2025-09-10T18:34:31.842320+00:00",
+  "current_phase": "plan"
 }

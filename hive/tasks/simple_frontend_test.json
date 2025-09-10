@@ -2,7 +2,6 @@
   "id": "simple_frontend_test",
   "title": "Simple HTML/CSS Creation Test",
   "description": "Create a simple HTML page with basic styling",
-  "assignee": "frontend",
   "status": "queued",
   "priority": "high",
   "complexity": "low",
@@ -24,5 +23,7 @@
       "styles.css contains the styling",
       "Files are properly linked"
     ]
-  }
+  },
+  "updated_at": "2025-09-10T18:34:31.841321+00:00",
+  "current_phase": "plan"
 }

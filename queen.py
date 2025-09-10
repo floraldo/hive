@@ -16,7 +16,7 @@ from typing import Dict, Any, Optional, List, Tuple
 from enum import Enum
 
 # Import HiveCore for tight integration
-from hive_core import HiveCore
+from hive import HiveCore
 
 class Phase(Enum):
     """Task execution phases"""
@@ -127,7 +127,7 @@ Workspace for {worker} tasks.
         # Build command - use streamlined worker
         cmd = [
             sys.executable,
-            str(self.hive.root / "worker_core.py"),  # Absolute path
+            str(self.hive.root / "worker.py"),  # Absolute path
             worker,
             "--one-shot",
             "--task-id", task_id,
@@ -193,8 +193,8 @@ Workspace for {worker} tasks.
             if active_per_role[worker] >= max_per_role:
                 continue
             
-            # Start with APPLY phase for tests, PLAN for others
-            current_phase = Phase.APPLY if (task_id.endswith("_test") or task_id == "hello_hive") else Phase.PLAN
+            # Always start with APPLY phase (skip PLAN - Claude plans internally)
+            current_phase = Phase.APPLY
             
             # Set assigned status
             task["status"] = "assigned"
@@ -302,13 +302,33 @@ Workspace for {worker} tasks.
                             
                             # Update task based on result
                             status = result.get("status", "failed")
+                            current_phase = metadata.get("phase", "apply")
+                            
                             if status == "success":
-                                task["status"] = "completed" 
+                                # Check if we should advance to TEST phase
+                                if current_phase == "apply":
+                                    # Spawn TEST phase
+                                    print(f"[{self.timestamp()}] Task {task_id} APPLY succeeded, starting TEST phase")
+                                    worker = task.get("assignee", "backend")
+                                    result = self.spawn_worker(task, worker, Phase.TEST)
+                                    if result:
+                                        process, run_id = result
+                                        self.active_workers[task_id] = {
+                                            "process": process,
+                                            "run_id": run_id,
+                                            "phase": Phase.TEST.value,
+                                            "worker_type": worker
+                                        }
+                                        continue  # Don't mark as completed yet
+                                else:
+                                    # TEST phase completed successfully
+                                    task["status"] = "completed"
+                                    print(f"[{self.timestamp()}] Task {task_id} TEST succeeded - COMPLETED")
                             else:
                                 task["status"] = "failed"
+                                print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed")
                             
                             self.hive.save_task(task)
-                            print(f"[{self.timestamp()}] Task {task_id} {status}")
                         except Exception as e:
                             print(f"[{self.timestamp()}] Error reading result for {task_id}: {e}")
                 

@@ -28,6 +28,7 @@ class WorkerCore:
         self.hive_dir = self.root / "hive"
         self.tasks_dir = self.hive_dir / "tasks"
         self.results_dir = self.hive_dir / "results"
+        self.logs_dir = self.hive_dir / "logs"
         
         # Workspace
         if workspace:
@@ -119,11 +120,10 @@ class WorkerCore:
         }
         role = role_map.get(self.worker_id, f"{self.worker_id.title()} Developer")
         
-        # Phase-specific instructions
+        # Phase-specific instructions (two-phase system)
         phase_instructions = {
-            "plan": "Focus on planning and design. Create documentation, outlines, or specifications.",
-            "apply": "Focus on implementation. Create actual working code/configuration.",
-            "test": "Focus on testing and validation. Write and run tests to verify functionality."
+            "apply": "Focus on implementation. Create actual working code/configuration with inline planning.",
+            "test": "Focus on validation. Write comprehensive tests and verify the implementation works correctly."
         }
         
         phase_focus = phase_instructions.get(self.phase, "Complete the requested task.")
@@ -139,15 +139,17 @@ DESCRIPTION: {description}
 ACCEPTANCE CRITERIA:
 {instruction}
 
+PHASE: {self.phase.upper()}
+{phase_focus}
+
 EXECUTION REQUIREMENTS:
-1. Follow the phase-specific focus above
-2. Create actual working code/configuration (in APPLY phase)
-3. Write or update tests as appropriate for the phase
-4. Run tests locally to verify they pass
+1. {'Create the implementation with proper structure and functionality' if self.phase == 'apply' else 'Write and run comprehensive tests for the implementation'}
+2. {'Focus on making it work correctly' if self.phase == 'apply' else 'Verify all functionality works as expected'}
+3. {'Include basic validation/checks in the code' if self.phase == 'apply' else 'Test edge cases and error conditions'}
+4. Run any tests to verify they pass
 5. If tests fail, attempt ONE minimal fix
-6. If still failing after one fix, stop and report blocked
-7. Keep changes focused and minimal
-8. Commit with message including task ID: {task_id}
+6. Keep changes focused and minimal
+7. Commit with message including task ID: {task_id} and phase: {self.phase}
 
 IMPORTANT: At the very end, print EXACTLY ONE LINE prefixed by 'FINAL_JSON: ':
 FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"<PR URL or empty>","next_state":"completed|testing|reviewing|pr_open|failed|blocked"}}
@@ -190,6 +192,14 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         print(f"         [INFO] Command: {' '.join(cmd)}")
         print(f"         [INFO] Prompt length: {len(prompt)} chars")
         
+        # Create log file for this run
+        log_file = None
+        if self.task_id and self.run_id:
+            log_dir = self.logs_dir / self.task_id
+            log_dir.mkdir(parents=True, exist_ok=True)
+            log_file = log_dir / f"{self.run_id}.log"
+            print(f"         [INFO] Logging to: {log_file}")
+        
         try:
             # Run from workspace directory (Claude will create files here)
             with subprocess.Popen(
@@ -207,6 +217,12 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 # Stream output and look for final JSON
                 for line in process.stdout:
                     output_lines.append(line.rstrip())
+                    
+                    # Write to log file if available
+                    if log_file:
+                        with open(log_file, "a", encoding="utf-8") as f:
+                            f.write(line)
+                    
                     if line.strip().startswith("FINAL_JSON:"):
                         try:
                             json_str = line.strip()[11:].strip()  # Remove "FINAL_JSON:" prefix
@@ -216,6 +232,13 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 
                 # Wait for completion
                 exit_code = process.wait()
+                
+                # Save final status to log
+                if log_file:
+                    with open(log_file, "a", encoding="utf-8") as f:
+                        f.write(f"\n\n=== EXIT CODE: {exit_code} ===\n")
+                        if final_json:
+                            f.write(f"=== FINAL JSON: {json.dumps(final_json, indent=2)} ===\n")
                 
                 # Handle results
                 if exit_code == 0 and final_json:
