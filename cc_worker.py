@@ -422,6 +422,22 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             cmd.extend(["--allowedTools",
                        "Bash(docker,kubectl,helm,git,cat,ls,mkdir,echo,sh),Read(*),Write(*),Edit(*),MultiEdit(*)"])
         
+        # Auto-approve tool prompts in headless mode (opt-in via env)
+        if os.getenv("HIVE_SKIP_PERMS", "0") == "1":
+            # Safety: only in worktrees or workspaces, not root workspace
+            workspace_path = str(self.workspace.resolve()).replace("\\", "/")
+            safe_workspace = ("/.worktrees/" in workspace_path or "/workspaces/" in workspace_path)
+            
+            if not safe_workspace and os.getenv("HIVE_ALLOW_ROOT_WRITE", "0") != "1":
+                return {"status": "blocked", "notes": "Auto-approve blocked outside .worktrees/.workspaces", "next_state": "blocked"}
+            
+            cmd.append("--dangerously-skip-permissions")
+            workspace_type = "worktree" if "/.worktrees/" in workspace_path else "workspace"
+            self.print_info(f"YOLO MODE: Auto-approving tool actions in {workspace_type}")
+            
+            # Telemetry
+            self.emit_event(type="worker_perms_mode", auto_approve=True, workspace=str(self.workspace), workspace_type=workspace_type)
+        
         self.print_status("RUNNING", "Claude is working...")
         self.print_info(f"Workspace: {self.workspace}")
         
