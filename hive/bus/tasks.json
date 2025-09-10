@@ -1,27 +1,332 @@
 {
   "version": "1.0",
-  "last_updated": "2025-09-09T14:30:00Z",
+  "last_updated": "2025-09-09T23:15:33.126859+00:00",
   "tasks": [
     {
-      "id": "tsk_init_001",
-      "title": "Initialize headless MAS system",
-      "description": "Set up the foundational headless multi-agent system with task queue management",
-      "tags": ["initialization", "system"],
+      "id": "real_test_001",
+      "title": "Create simple hello API",
+      "description": "Create a Flask API with a /hello endpoint that returns 'Hello, Hive!'",
+      "tags": [
+        "python",
+        "flask",
+        "backend"
+      ],
       "priority": "high",
       "status": "completed",
-      "assignee": null,
-      "created_at": "2025-09-09T14:30:00Z",
-      "updated_at": "2025-09-09T14:30:00Z",
+      "assignee": "backend",
+      "created_at": "2025-09-09T22:17:00.000000+00:00",
+      "updated_at": "2025-09-09T22:17:58.391607+00:00",
       "acceptance_criteria": [
-        "Directory structure created",
-        "Task queue system operational",
-        "Worker processes ready"
+        "Flask app created",
+        "/hello endpoint works",
+        "Returns JSON response"
       ],
-      "estimated_effort": "2h",
-      "dependencies": []
+      "estimated_effort": "30s",
+      "dependencies": [],
+      "assigned_at": "2025-09-09T22:17:56.389087+00:00",
+      "completed_at": "2025-09-09T22:17:58.391607+00:00"
+    },
+    {
+      "id": "cc_demo_001",
+      "title": "Create user API endpoint",
+      "description": "Build /api/users CRUD endpoint",
+      "tags": [
+        "python",
+        "api",
+        "backend"
+      ],
+      "priority": "high",
+      "status": "completed",
+      "assignee": "backend",
+      "created_at": "2025-09-09T22:14:00.000000+00:00",
+      "updated_at": "2025-09-09T22:14:40.595224+00:00",
+      "acceptance_criteria": [
+        "GET /api/users returns list",
+        "POST /api/users creates user",
+        "Proper error handling"
+      ],
+      "estimated_effort": "30s",
+      "dependencies": [],
+      "assigned_at": "2025-09-09T22:14:38.567581+00:00",
+      "completed_at": "2025-09-09T22:14:40.595224+00:00"
+    },
+    {
+      "id": "cc_demo_002",
+      "title": "Build user list component",
+      "description": "Create React component to display users",
+      "tags": [
+        "react",
+        "frontend",
+        "ui_components"
+      ],
+      "priority": "high",
+      "status": "completed",
+      "assignee": "frontend",
+      "created_at": "2025-09-09T22:14:00.000000+00:00",
+      "updated_at": "2025-09-09T22:14:41.466756+00:00",
+      "acceptance_criteria": [
+        "Displays user list",
+        "Handles loading state",
+        "Responsive design"
+      ],
+      "estimated_effort": "30s",
+      "dependencies": [],
+      "assigned_at": "2025-09-09T22:14:39.463553+00:00",
+      "completed_at": "2025-09-09T22:14:41.466756+00:00"
+    },
+    {
+      "id": "cc_demo_003",
+      "title": "Setup nginx proxy",
+      "description": "Configure nginx for API and frontend",
+      "tags": [
+        "docker",
+        "deployment",
+        "monitoring"
+      ],
+      "priority": "medium",
+      "status": "completed",
+      "assignee": "infra",
+      "created_at": "2025-09-09T22:14:00.000000+00:00",
+      "updated_at": "2025-09-09T22:14:38.773433+00:00",
+      "acceptance_criteria": [
+        "Nginx config created",
+        "Routes API traffic",
+        "Serves static files"
+      ],
+      "estimated_effort": "30s",
+      "dependencies": [],
+      "assigned_at": "2025-09-09T22:14:36.754258+00:00",
+      "completed_at": "2025-09-09T22:14:38.773433+00:00"
+    },
+    {
+      "id": "demo_backend_001",
+      "title": "Backend API Task",
+      "description": "Create a simple REST endpoint",
+      "tags": [
+        "python",
+        "api",
+        "backend"
+      ],
+      "priority": "high",
+      "status": "completed",
+      "assignee": "backend",
+      "created_at": "2025-09-09T22:08:30.000000+00:00",
+      "updated_at": "2025-09-09T22:13:13.157760+00:00",
+      "acceptance_criteria": [
+        "Endpoint created",
+        "Returns JSON",
+        "Follows REST principles"
+      ],
+      "estimated_effort": "30s",
+      "dependencies": [],
+      "assigned_at": "2025-09-09T22:13:11.136836+00:00",
+      "started_at": "2025-09-09T22:08:58.411773+00:00",
+      "failed_at": "2025-09-09T22:09:29.375658+00:00",
+      "failure_reason": "Unknown error",
+      "completed_at": "2025-09-09T22:13:13.157760+00:00"
+    },
+    {
+      "id": "demo_frontend_001",
+      "title": "Frontend Component Task",
+      "description": "Create a React button component",
+      "tags": [
+        "react",
+        "frontend",
+        "ui_components"
+      ],
+      "priority": "high",
+      "status": "completed",
+      "assignee": "frontend",
+      "created_at": "2025-09-09T22:08:30.000000+00:00",
+      "updated_at": "2025-09-09T22:13:19.109248+00:00",
+      "acceptance_criteria": [
+        "Component renders",
+        "Has click handler",
+        "Styled properly"
+      ],
+      "estimated_effort": "30s",
+      "dependencies": [],
+      "assigned_at": "2025-09-09T22:13:17.106682+00:00",
+      "started_at": "2025-09-09T22:08:58.414776+00:00",
+      "failed_at": "2025-09-09T22:09:29.426776+00:00",
+      "failure_reason": "Unknown error",
+      "completed_at": "2025-09-09T22:13:19.109248+00:00"
+    },
+    {
+      "id": "demo_infra_001",
+      "title": "Infrastructure Task",
+      "description": "Create Docker health check script",
+      "tags": [
+        "docker",
+        "monitoring",
+        "deployment"
+      ],
+      "priority": "medium",
+      "status": "completed",
+      "assignee": "infra",
+      "created_at": "2025-09-09T22:08:30.000000+00:00",
+      "updated_at": "2025-09-09T22:13:26.455211+00:00",
+      "acceptance_criteria": [
+        "Script checks containers",
+        "Returns status",
+        "Handles errors"
+      ],
+      "estimated_effort": "30s",
+      "dependencies": [],
+      "assigned_at": "2025-09-09T22:13:24.432206+00:00",
+      "started_at": "2025-09-09T22:08:58.434786+00:00",
+      "failed_at": "2025-09-09T22:09:29.270334+00:00",
+      "failure_reason": "Unknown error",
+      "completed_at": "2025-09-09T22:13:26.455211+00:00"
+    },
+    {
+      "id": "mas_test_20250910_002820_001",
+      "title": "Create fibonacci function",
+      "description": "Write a Python function that calculates fibonacci numbers efficiently",
+      "tags": [
+        "python",
+        "backend",
+        "algorithms"
+      ],
+      "priority": "high",
+      "status": "completed",
+      "created_at": "2025-09-09T22:28:20.134123+00:00",
+      "acceptance_criteria": [
+        "Function handles n=0 and n=1 correctly",
+        "Works for large values of n",
+        "Includes docstring"
+      ],
+      "estimated_effort": "2m",
+      "updated_at": "2025-09-09T22:32:45.657989+00:00",
+      "started_at": "2025-09-09T22:32:20.874899+00:00",
+      "log_file": "C:\\git\\hive\\hive\\logs\\backend_mas_test_20250910_002820_001_20250910_002842.log",
+      "assignee": "backend",
+      "assigned_at": "2025-09-09T22:32:20.870899+00:00",
+      "result": "I'm a backend developer ready to work on the Hive system. I can see from the git status that we're on the main branch with various modified and untracked files related to the multi-agent system (MAS) ",
+      "completed_at": "2025-09-09T22:32:45.657989+00:00"
+    },
+    {
+      "id": "mas_test_20250910_002820_002",
+      "title": "Create Button component",
+      "description": "Build a reusable Button component in React",
+      "tags": [
+        "react",
+        "frontend",
+        "ui_components"
+      ],
+      "priority": "high",
+      "status": "completed",
+      "created_at": "2025-09-09T22:28:20.134123+00:00",
+      "acceptance_criteria": [
+        "Component accepts text prop",
+        "Has onClick handler",
+        "Includes hover state"
+      ],
+      "estimated_effort": "2m",
+      "updated_at": "2025-09-09T22:32:54.356324+00:00",
+      "started_at": "2025-09-09T22:32:27.359954+00:00",
+      "log_file": "C:\\git\\hive\\hive\\logs\\frontend_mas_test_20250910_002820_002_20250910_002845.log",
+      "assignee": "frontend",
+      "assigned_at": "2025-09-09T22:32:27.354421+00:00",
+      "result": "I'll help you with frontend development for the Hive system. I can see this is a multi-agent system with a Fleet Command architecture, where I'm the Frontend Worker specializing in React/Next.js devel",
+      "completed_at": "2025-09-09T22:32:54.356324+00:00"
+    },
+    {
+      "id": "mas_test_20250910_002820_003",
+      "title": "Create health check script",
+      "description": "Write a bash script to check Docker container health",
+      "tags": [
+        "docker",
+        "deployment",
+        "monitoring"
+      ],
+      "priority": "medium",
+      "status": "queued",
+      "created_at": "2025-09-09T22:28:20.134123+00:00",
+      "acceptance_criteria": [
+        "Checks if containers are running",
+        "Returns appropriate exit codes",
+        "Outputs status message"
+      ],
+      "estimated_effort": "2m"
+    },
+    {
+      "id": "live_test_backend_001",
+      "title": "Create User Management API",
+      "description": "Build a Flask REST API with full user CRUD operations including validation",
+      "tags": [
+        "python",
+        "flask",
+        "backend",
+        "api"
+      ],
+      "priority": "high",
+      "status": "failed",
+      "created_at": "2025-09-09T23:14:00.000000+00:00",
+      "acceptance": [
+        "Create User model with id, name, email fields",
+        "Implement GET /api/users to list all users",
+        "Implement POST /api/users to create a user",
+        "Implement GET /api/users/<id> to get one user",
+        "Add input validation for email format",
+        "Create app.py with proper Flask setup"
+      ],
+      "estimated_effort": "3m",
+      "assignee": "backend",
+      "assigned_at": "2025-09-09T23:15:32.442220+00:00",
+      "updated_at": "2025-09-09T23:15:33.125823+00:00",
+      "started_at": "2025-09-09T23:15:32.446226+00:00",
+      "failure_reason": "Unknown error",
+      "failed_at": "2025-09-09T23:15:33.126859+00:00"
+    },
+    {
+      "id": "live_test_frontend_001",
+      "title": "Build Interactive Dashboard Component",
+      "description": "Create a React dashboard component with charts and real-time data display",
+      "tags": [
+        "react",
+        "frontend",
+        "javascript",
+        "ui"
+      ],
+      "priority": "high",
+      "status": "queued",
+      "created_at": "2025-09-09T23:14:00.000000+00:00",
+      "acceptance": [
+        "Create Dashboard.jsx component",
+        "Add state management with useState hook",
+        "Include loading and error states",
+        "Add at least 2 chart placeholders",
+        "Style with modern CSS",
+        "Export as reusable component"
+      ],
+      "estimated_effort": "3m"
+    },
+    {
+      "id": "live_test_infra_001",
+      "title": "Setup Complete Docker Environment",
+      "description": "Create Docker configuration for a multi-service application with health checks",
+      "tags": [
+        "docker",
+        "deployment",
+        "infrastructure",
+        "monitoring"
+      ],
+      "priority": "high",
+      "status": "queued",
+      "created_at": "2025-09-09T23:14:00.000000+00:00",
+      "acceptance": [
+        "Create Dockerfile for Python application",
+        "Create docker-compose.yml with app and database services",
+        "Add health check endpoint configuration",
+        "Include environment variable setup",
+        "Add volume mounts for persistence",
+        "Create health_check.sh script"
+      ],
+      "estimated_effort": "3m"
     }
   ],
-  "task_counter": 1,
+  "task_counter": 13,
   "settings": {
     "max_concurrent_tasks": 4,
     "task_timeout_hours": 24,

@@ -24,7 +24,10 @@
       "Bash(echo $USER)",
       "Bash(tmux list-panes:*)",
       "Bash(tmux list-sessions:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(dir:*)",
+      "Bash(cmd /c:*)",
+      "Bash(gh auth:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,98 @@
+{
+  "backend-debugger": {
+    "trigger": ["backend", "python", "api", "flask", "fastapi"],
+    "role": "Debug Python/Flask/FastAPI failures",
+    "description": "Specialized in debugging backend Python code, API endpoints, database issues, and test failures",
+    "capabilities": [
+      "Python error analysis",
+      "Flask/FastAPI debugging",
+      "SQLAlchemy troubleshooting",
+      "Pytest failure diagnosis",
+      "API contract validation"
+    ]
+  },
+  "ui-troubleshooter": {
+    "trigger": ["frontend", "react", "ui", "javascript", "typescript"],
+    "role": "Debug React/UI test failures", 
+    "description": "Expert in frontend debugging, React component issues, state management problems, and UI test failures",
+    "capabilities": [
+      "React debugging",
+      "JavaScript/TypeScript error analysis",
+      "Component lifecycle issues",
+      "State management debugging",
+      "Jest/React Testing Library failures"
+    ]
+  },
+  "infra-doctor": {
+    "trigger": ["docker", "deployment", "kubernetes", "infra", "cicd"],
+    "role": "Fix container/deployment issues",
+    "description": "Infrastructure specialist for Docker, Kubernetes, CI/CD pipelines, and deployment problems",
+    "capabilities": [
+      "Docker container debugging",
+      "Kubernetes troubleshooting",
+      "CI/CD pipeline fixes",
+      "Deployment configuration",
+      "Network and security issues"
+    ]
+  },
+  "test-surgeon": {
+    "trigger": ["test", "testing", "tdd", "integration"],
+    "role": "Fix complex test failures",
+    "description": "Testing expert for complex test failures, flaky tests, and test infrastructure issues",
+    "capabilities": [
+      "Test isolation problems",
+      "Flaky test diagnosis",
+      "Mock/stub configuration",
+      "Integration test debugging",
+      "Test performance optimization"
+    ]
+  },
+  "performance-tuner": {
+    "trigger": ["performance", "optimization", "slow", "memory"],
+    "role": "Optimize performance issues",
+    "description": "Performance specialist for slow code, memory leaks, and optimization opportunities",
+    "capabilities": [
+      "Performance profiling",
+      "Memory leak detection",
+      "Query optimization",
+      "Caching strategies",
+      "Algorithmic improvements"
+    ]
+  },
+  "security-auditor": {
+    "trigger": ["security", "vulnerability", "auth", "crypto"],
+    "role": "Fix security vulnerabilities",
+    "description": "Security expert for vulnerability fixes, authentication issues, and secure coding",
+    "capabilities": [
+      "Vulnerability remediation",
+      "Authentication/authorization fixes",
+      "Secure coding practices",
+      "Dependency security updates",
+      "Cryptography implementation"
+    ]
+  },
+  "data-archaeologist": {
+    "trigger": ["database", "migration", "schema", "sql"],
+    "role": "Database and data migration issues",
+    "description": "Database specialist for schema problems, migration failures, and data integrity issues",
+    "capabilities": [
+      "Database migration debugging",
+      "Schema design fixes",
+      "Query optimization",
+      "Data integrity validation",
+      "Transaction management"
+    ]
+  },
+  "api-surgeon": {
+    "trigger": ["api", "rest", "graphql", "contract"],
+    "role": "API contract and integration issues",
+    "description": "API specialist for contract violations, integration failures, and API design problems",
+    "capabilities": [
+      "API contract validation",
+      "REST/GraphQL debugging",
+      "Integration test fixes",
+      "OpenAPI/Swagger issues",
+      "Rate limiting and throttling"
+    ]
+  }
+}
