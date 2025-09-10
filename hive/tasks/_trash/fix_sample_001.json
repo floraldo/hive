@@ -1,0 +1,25 @@
+{
+  "id": "fix_sample_001",
+  "title": "Fix: Sample task for testing new architecture",
+  "description": "Debug and fix: [WinError 2] The system cannot find the file specified",
+  "tags": [
+    "backend",
+    "test",
+    "inspector",
+    "backend-debugger"
+  ],
+  "status": "failed",
+  "priority": "P1",
+  "risk": "low",
+  "parent_task": "sample_001",
+  "created_at": "2025-09-10T00:42:00.758513+00:00",
+  "updated_at": "2025-09-10T00:42:44.498658+00:00",
+  "assignee": "backend",
+  "assigned_at": "2025-09-10T00:42:40.500418+00:00",
+  "current_phase": "plan",
+  "worktree": "C:\\git\\hive\\.worktrees\\backend\\fix_sample_001",
+  "branch": "agent/backend/fix_sample_001",
+  "started_at": "2025-09-10T00:42:42.290877+00:00",
+  "failed_at": "2025-09-10T00:42:44.465585+00:00",
+  "failure_reason": "[WinError 193] %1 is not a valid Win32 application"
+}

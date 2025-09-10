@@ -1,0 +1,14 @@
+{
+  "status": "failed",
+  "notes": "No FINAL_JSON found (exit: 1)",
+  "next_state": "failed",
+  "duration_ms": 10068,
+  "exit_code": 1,
+  "phase": "plan",
+  "run_id": "tsk_001-20250910T005126Z-1",
+  "worker": "backend",
+  "workspace": "C:\\git\\hive\\workspaces\\backend",
+  "timestamp": "2025-09-10T00:51:36.839902+00:00",
+  "branch": "main",
+  "commit_sha": "70432999"
+}

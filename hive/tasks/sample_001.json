@@ -6,11 +6,20 @@
     "backend",
     "test"
   ],
-  "status": "queued",
+  "status": "failed",
   "priority": "low",
   "acceptance": [
     "Create a simple hello.py file",
     "File should print 'Hello from new architecture'"
   ],
-  "created_at": "2025-09-10T00:12:59.762794+00:00"
+  "created_at": "2025-09-10T00:12:59.762794+00:00",
+  "assignee": "backend",
+  "assigned_at": "2025-09-10T00:41:49.800563+00:00",
+  "current_phase": "plan",
+  "updated_at": "2025-09-10T00:42:00.773514+00:00",
+  "worktree": "C:\\git\\hive\\.worktrees\\backend\\sample_001",
+  "branch": "agent/backend/sample_001",
+  "started_at": "2025-09-10T00:41:51.300256+00:00",
+  "failed_at": "2025-09-10T00:42:00.758513+00:00",
+  "failure_reason": "[WinError 2] The system cannot find the file specified"
 }

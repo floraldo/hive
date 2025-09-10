@@ -1,0 +1,25 @@
+{
+  "id": "fix_cli_test_001",
+  "title": "Fix: Test task from CLI",
+  "description": "Debug and fix: [WinError 2] The system cannot find the file specified",
+  "tags": [
+    "backend",
+    "python",
+    "inspector",
+    "backend-debugger"
+  ],
+  "status": "failed",
+  "priority": "P1",
+  "risk": "low",
+  "parent_task": "cli_test_001",
+  "created_at": "2025-09-10T00:42:00.945787+00:00",
+  "updated_at": "2025-09-10T00:42:44.252789+00:00",
+  "assignee": "backend",
+  "assigned_at": "2025-09-10T00:42:34.426430+00:00",
+  "current_phase": "plan",
+  "worktree": "C:\\git\\hive\\.worktrees\\backend\\fix_cli_test_001",
+  "branch": "agent/backend/fix_cli_test_001",
+  "started_at": "2025-09-10T00:42:35.952629+00:00",
+  "failed_at": "2025-09-10T00:42:44.235776+00:00",
+  "failure_reason": "[WinError 193] %1 is not a valid Win32 application"
+}

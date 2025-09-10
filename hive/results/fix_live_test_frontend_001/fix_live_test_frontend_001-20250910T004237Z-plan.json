@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "notes": "[WinError 193] %1 is not a valid Win32 application",
+  "next_state": "failed",
+  "run_id": "fix_live_test_frontend_001-20250910T004237Z-plan",
+  "worker": "backend",
+  "workspace": "C:\\git\\hive\\.worktrees\\backend\\fix_live_test_frontend_001",
+  "timestamp": "2025-09-10T00:42:39.196450+00:00",
+  "branch": "agent/backend/fix_live_test_frontend_001",
+  "commit_sha": "70432999"
+}

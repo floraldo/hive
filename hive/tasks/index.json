@@ -4,15 +4,11 @@
     "sample_001",
     "mas_test_20250910_002820_003",
     "live_test_frontend_001",
-    "live_test_infra_001"
+    "live_test_infra_001",
+    "cli_test_001",
+    "test_cli_002",
+    "fe_demo",
+    "infra_health"
   ],
-  "task_counter": 13,
-  "settings": {
-    "max_concurrent_tasks": 4,
-    "task_timeout_hours": 24,
-    "auto_assign": true,
-    "require_acceptance_criteria": true
-  },
-  "migrated_at": "2025-09-10T00:12:59.758796+00:00",
-  "updated_at": "2025-09-10T00:12:59.758796+00:00"
+  "updated_at": "2025-09-10T00:42:44.495662+00:00"
 }

@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "notes": "[WinError 2] The system cannot find the file specified",
+  "next_state": "failed",
+  "run_id": "cli_test_001-20250910T004155Z-plan",
+  "worker": "backend",
+  "workspace": "C:\\git\\hive\\.worktrees\\backend\\cli_test_001",
+  "timestamp": "2025-09-10T00:41:58.293156+00:00",
+  "branch": "agent/backend/cli_test_001",
+  "commit_sha": "70432999"
+}

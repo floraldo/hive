@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "notes": "[WinError 2] The system cannot find the file specified",
+  "next_state": "failed",
+  "run_id": "live_test_infra_001-20250910T004154Z-plan",
+  "worker": "infra",
+  "workspace": "C:\\git\\hive\\.worktrees\\infra\\live_test_infra_001",
+  "timestamp": "2025-09-10T00:41:57.011905+00:00",
+  "branch": "agent/infra/live_test_infra_001",
+  "commit_sha": "70432999"
+}

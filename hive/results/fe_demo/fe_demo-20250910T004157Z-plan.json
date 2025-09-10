@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "notes": "[WinError 2] The system cannot find the file specified",
+  "next_state": "failed",
+  "run_id": "fe_demo-20250910T004157Z-plan",
+  "worker": "frontend",
+  "workspace": "C:\\git\\hive\\.worktrees\\frontend\\fe_demo",
+  "timestamp": "2025-09-10T00:41:59.887817+00:00",
+  "branch": "agent/frontend/fe_demo",
+  "commit_sha": "70432999"
+}

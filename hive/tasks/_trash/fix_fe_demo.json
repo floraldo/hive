@@ -1,0 +1,25 @@
+{
+  "id": "fix_fe_demo",
+  "title": "Fix: Add KPI widget",
+  "description": "Debug and fix: [WinError 2] The system cannot find the file specified",
+  "tags": [
+    "frontend",
+    "react",
+    "inspector",
+    "ui-troubleshooter"
+  ],
+  "status": "failed",
+  "priority": "P1",
+  "risk": "low",
+  "parent_task": "fe_demo",
+  "created_at": "2025-09-10T00:42:00.990830+00:00",
+  "updated_at": "2025-09-10T00:42:44.198756+00:00",
+  "assignee": "backend",
+  "assigned_at": "2025-09-10T00:42:32.883793+00:00",
+  "current_phase": "plan",
+  "worktree": "C:\\git\\hive\\.worktrees\\backend\\fix_fe_demo",
+  "branch": "agent/backend/fix_fe_demo",
+  "started_at": "2025-09-10T00:42:34.424429+00:00",
+  "failed_at": "2025-09-10T00:42:44.181694+00:00",
+  "failure_reason": "[WinError 193] %1 is not a valid Win32 application"
+}

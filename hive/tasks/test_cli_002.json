@@ -1,0 +1,12 @@
+{
+  "id": "test_cli_002",
+  "title": "CLI Test Task",
+  "description": "Testing CLI functionality",
+  "tags": [
+    "test",
+    "cli"
+  ],
+  "priority": "P3",
+  "risk": "low",
+  "status": "queued"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "fix_tsk_001",
+  "title": "Fix: Add /healthz endpoint",
+  "description": "Debug and fix: [WinError 2] The system cannot find the file specified",
+  "tags": [
+    "backend",
+    "fastapi",
+    "inspector",
+    "backend-debugger"
+  ],
+  "status": "in_progress",
+  "priority": "P1",
+  "risk": "low",
+  "parent_task": "tsk_001",
+  "created_at": "2025-09-10T00:42:00.710591+00:00",
+  "updated_at": "2025-09-10T00:42:44.152662+00:00",
+  "assignee": "backend",
+  "assigned_at": "2025-09-10T00:42:42.293404+00:00",
+  "current_phase": "plan",
+  "worktree": "C:\\git\\hive\\.worktrees\\backend\\fix_tsk_001",
+  "branch": "agent/backend/fix_tsk_001",
+  "started_at": "2025-09-10T00:42:44.152662+00:00"
+}

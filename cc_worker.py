@@ -168,7 +168,14 @@ class CCWorker:
             if local_claude.exists():
                 return str(local_claude.resolve())
         
-        # Check system PATH
+        # Windows: prefer .cmd/.bat launchers to avoid WinError 193
+        if os.name == "nt":
+            for name in ("claude.cmd", "claude.bat", "claude.exe", "claude.ps1"):
+                cmd_path = shutil.which(name)
+                if cmd_path:
+                    return cmd_path
+        
+        # Check system PATH (unix or fallback)
         claude_cmd = shutil.which("claude")
         if claude_cmd:
             return claude_cmd
