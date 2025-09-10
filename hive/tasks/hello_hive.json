@@ -1,0 +1,25 @@
+{
+  "id": "hello_hive",
+  "title": "Hello Hive Test",
+  "description": "Simple test to verify the Hive system is working. Create a Python script that prints 'Hello from Hive!' with a timestamp.",
+  "acceptance": [
+    "Create file: hello_hive.py",
+    "Script should print: 'Hello from Hive!'",
+    "Include current timestamp in output",
+    "Return success status"
+  ],
+  "priority": "P1",
+  "risk": "low",
+  "status": "in_progress",
+  "tags": [
+    "test",
+    "backend"
+  ],
+  "current_phase": "apply",
+  "updated_at": "2025-09-10T17:43:35.818382+00:00",
+  "assignee": "backend",
+  "assigned_at": "2025-09-10T17:43:35.804386+00:00",
+  "worktree": "C:\\git\\hive\\.worktrees\\fresh\\backend\\hello_hive",
+  "workspace_type": "fresh",
+  "started_at": "2025-09-10T17:43:35.818382+00:00"
+}

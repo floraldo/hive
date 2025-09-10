@@ -1,0 +1,28 @@
+{
+  "id": "simple_frontend_test",
+  "title": "Simple HTML/CSS Creation Test",
+  "description": "Create a simple HTML page with basic styling",
+  "assignee": "frontend",
+  "status": "queued",
+  "priority": "high",
+  "complexity": "low",
+  "created": "2025-09-10T17:27:00Z",
+  "instruction": "Create a simple web page that:\n\n1. Creates an HTML file called 'index.html'\n2. Contains a heading 'Hello from frontend worker!'\n3. Includes basic CSS styling in a 'styles.css' file\n4. The page should have a blue background and white text\n\nThis is a minimal test to verify the worker can create web files in its workspace.",
+  "tags": [
+    "html",
+    "css",
+    "simple-test"
+  ],
+  "verification": {
+    "required_files": [
+      "index.html",
+      "styles.css"
+    ],
+    "test_command": "echo 'Files created successfully'",
+    "success_indicators": [
+      "index.html is created with proper structure",
+      "styles.css contains the styling",
+      "Files are properly linked"
+    ]
+  }
+}

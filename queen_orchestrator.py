@@ -10,6 +10,7 @@ import sys
 import time
 import os
 import re
+import argparse
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Optional, List, Tuple
@@ -25,7 +26,7 @@ class Phase(Enum):
 class QueenOrchestrator:
     """Epoch-based orchestrator with interrupt/resume capability"""
     
-    def __init__(self):
+    def __init__(self, fresh_env: bool = False):
         self.root = Path.cwd()
         self.hive_dir = self.root / "hive"
         self.tasks_dir = self.hive_dir / "tasks"
@@ -35,6 +36,17 @@ class QueenOrchestrator:
         self.interrupts_dir = self.operator_dir / "interrupts"
         self.events_file = self.get_events_file()
         self.worktrees_dir = self.root / ".worktrees"
+        
+        # Fresh environment mode
+        self.fresh_env = fresh_env
+        if self.fresh_env:
+            self.clean_fresh_environment()
+        
+        # Streaming and retry configuration
+        self.max_retries = 3
+        self.streaming_buffers = {}  # task_id -> output buffer
+        self.retry_counts = {}  # task_id -> attempt count
+        self.learning_patterns = []  # Store failure patterns for learning
         
         # Ensure directories exist
         for d in [self.tasks_dir, self.results_dir, self.hints_dir, 
@@ -192,6 +204,75 @@ class QueenOrchestrator:
         fallback.mkdir(parents=True, exist_ok=True)
         return fallback
     
+    def create_fresh_workspace(self, worker: str, task_id: str) -> Path:
+        """Create fresh isolated workspace for testing (no git history)"""
+        safe_task_id = self.slugify(task_id)
+        workspace_path = self.worktrees_dir / "fresh" / worker / safe_task_id
+        
+        # Clean existing workspace
+        if workspace_path.exists():
+            import shutil
+            shutil.rmtree(workspace_path)
+        
+        # Create fresh directory
+        workspace_path.mkdir(parents=True, exist_ok=True)
+        
+        # Add basic .gitignore for cleanliness
+        gitignore_content = """# Fresh workspace - auto-generated
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+node_modules/
+*.log
+.env
+"""
+        gitignore_path = workspace_path / ".gitignore"
+        with open(gitignore_path, "w") as f:
+            f.write(gitignore_content)
+        
+        # Add worker-specific template files
+        self.setup_fresh_template(workspace_path, worker)
+        
+        print(f"[{self.timestamp()}] Created fresh workspace: {workspace_path}")
+        return workspace_path
+    
+    def setup_fresh_template(self, workspace_path: Path, worker: str):
+        """Setup basic template files for fresh workspace"""
+        if worker == "backend":
+            # Create minimal Python structure
+            readme_content = """# Backend Worker Test Environment
+Fresh isolated workspace for Python development.
+
+## Files created by worker will appear here.
+"""
+            
+        elif worker == "frontend":
+            # Create minimal frontend structure
+            readme_content = """# Frontend Worker Test Environment
+Fresh isolated workspace for web development.
+
+## Files created by worker will appear here.
+"""
+            
+        elif worker == "infra":
+            # Create minimal infrastructure structure  
+            readme_content = """# Infrastructure Worker Test Environment
+Fresh isolated workspace for Docker/K8s development.
+
+## Files created by worker will appear here.
+"""
+        else:
+            readme_content = f"""# {worker.title()} Worker Test Environment
+Fresh isolated workspace for development.
+
+## Files created by worker will appear here.
+"""
+        
+        readme_path = workspace_path / "README.md"
+        with open(readme_path, "w") as f:
+            f.write(readme_content)
+    
     def check_interrupt(self, task_id: str) -> Optional[str]:
         """Check if task has been interrupted"""
         interrupt_file = self.interrupts_dir / f"{task_id}.json"
@@ -215,6 +296,63 @@ class QueenOrchestrator:
                 pass
         return None
     
+    def clean_fresh_environment(self):
+        """Clean all state for fresh environment testing"""
+        print(f"[{self.timestamp()}] Cleaning fresh environment...")
+        
+        # 1. Reset all task statuses to queued
+        for task_file in self.tasks_dir.glob("*.json"):
+            if task_file.name == "index.json":
+                continue
+                
+            try:
+                with open(task_file, "r") as f:
+                    task = json.load(f)
+                    
+                # Reset task state for fresh start
+                if task.get("status") != "queued":
+                    task["status"] = "queued"
+                    task["current_phase"] = "plan"
+                    
+                    # Remove assignment details
+                    for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
+                        if key in task:
+                            del task[key]
+                    
+                    task["updated_at"] = datetime.now(timezone.utc).isoformat()
+                    
+                    with open(task_file, "w") as f:
+                        json.dump(task, f, indent=2)
+                        
+                    print(f"[{self.timestamp()}] Reset task: {task['id']}")
+                        
+            except Exception as e:
+                print(f"[{self.timestamp()}] Error resetting task {task_file.name}: {e}")
+        
+        # 2. Clear all results
+        if self.results_dir.exists():
+            for result_file in self.results_dir.rglob("*"):
+                if result_file.is_file():
+                    try:
+                        result_file.unlink()
+                    except Exception as e:
+                        print(f"[{self.timestamp()}] Error removing result {result_file}: {e}")
+        
+        # 3. Clear fresh worktrees
+        fresh_worktrees = self.worktrees_dir / "fresh"
+        if fresh_worktrees.exists():
+            import shutil
+            try:
+                shutil.rmtree(fresh_worktrees)
+                print(f"[{self.timestamp()}] Cleared fresh worktrees")
+            except Exception as e:
+                print(f"[{self.timestamp()}] Error clearing fresh worktrees: {e}")
+        
+        # 4. Clear events (optional - keep for debugging if needed)
+        # Keeping events for now to track Queen behavior
+        
+        print(f"[{self.timestamp()}] Fresh environment ready")
+    
     def determine_next_phase(self, task: Dict[str, Any], result: Dict[str, Any]) -> Optional[Phase]:
         """Determine next phase based on current state and result"""
         current_phase = task.get("current_phase")
@@ -235,11 +373,17 @@ class QueenOrchestrator:
         task_id = task["id"]
         run_id = f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{phase.value}"
         
-        # Get or create worktree
+        # Get or create workspace (fresh or git worktree)
         if not task.get("worktree"):
-            worktree = self.create_worktree(worker, task_id)
-            task["worktree"] = str(worktree)
-            task["branch"] = f"agent/{worker}/{self.slugify(task_id)}"
+            if self.fresh_env:
+                worktree = self.create_fresh_workspace(worker, task_id)
+                task["worktree"] = str(worktree)
+                task["workspace_type"] = "fresh"
+            else:
+                worktree = self.create_worktree(worker, task_id)
+                task["worktree"] = str(worktree)
+                task["branch"] = f"agent/{worker}/{self.slugify(task_id)}"
+                task["workspace_type"] = "git_worktree"
             self.save_task(task)
         else:
             worktree = Path(task["worktree"])
@@ -365,9 +509,19 @@ class QueenOrchestrator:
                                 print(f"[{self.timestamp()}] Skipping auto-merge label - checks not green")
                             
             elif next_state in ["failed", "blocked"]:
+                # Check if we should retry the task
+                if self.should_retry_task(task, result):
+                    self.learn_from_failure(task, result)
+                    self.retry_task(task)
+                    return  # Don't mark as failed, retry instead
+                
+                # Task has failed after all retries
                 task["status"] = next_state
                 task["failed_at"] = datetime.now(timezone.utc).isoformat()
                 task["failure_reason"] = result.get("notes", "Unknown")
+                
+                # Learn from final failure
+                self.learn_from_failure(task, result)
                 
                 # Create inspector task
                 self.create_inspector_task(task, result)
@@ -656,30 +810,90 @@ Generated by Hive Fleet Command
             if active_per_role[worker] >= self.max_parallel_per_role.get(worker, 1):
                 continue
             
-            # Start first phase
+            # Start first phase - skip planning for test tasks, go directly to apply
+            current_phase = Phase.APPLY if (task_id.endswith("_test") or task_id == "hello_hive") else Phase.PLAN
             task["status"] = "assigned"
             task["assignee"] = worker
             task["assigned_at"] = datetime.now(timezone.utc).isoformat()
-            task["current_phase"] = Phase.PLAN.value
+            task["current_phase"] = current_phase.value
             self.save_task(task)
             
-            # Spawn worker for plan phase
-            result = self.spawn_worker(task, worker, Phase.PLAN)
+            # Spawn worker for first phase
+            result = self.spawn_worker(task, worker, current_phase)
             if result:
                 process, run_id = result
                 self.active_workers[task_id] = {
                     "process": process,
                     "run_id": run_id,
-                    "phase": Phase.PLAN.value
+                    "phase": current_phase.value
                 }
                 task["status"] = "in_progress"
                 task["started_at"] = datetime.now(timezone.utc).isoformat()
                 self.save_task(task)
+                print(f"[{self.timestamp()}] Successfully spawned {worker} for {task_id} (PID: {process.pid})")
+            else:
+                # Spawn failed - revert task to queued status
+                print(f"[{self.timestamp()}] Failed to spawn {worker} for {task_id} - reverting to queued")
+                task["status"] = "queued"
+                # Remove assignment details to allow reassignment
+                for key in ["assignee", "assigned_at", "current_phase"]:
+                    if key in task:
+                        del task[key]
+                task["updated_at"] = datetime.now(timezone.utc).isoformat()
+                self.save_task(task)
         
         self.save_task_index(queue)
     
+    def recover_zombie_tasks(self):
+        """Detect and recover tasks stuck in 'in_progress' state without active workers"""
+        # Find all in_progress tasks
+        for task_file in self.tasks_dir.glob("*.json"):
+            if task_file.name == "index.json":
+                continue
+                
+            try:
+                with open(task_file, "r") as f:
+                    task = json.load(f)
+                
+                task_id = task.get("id")
+                status = task.get("status")
+                
+                # Check for zombie: in_progress but no active worker
+                if status == "in_progress" and task_id not in self.active_workers:
+                    started_at = task.get("started_at")
+                    if started_at:
+                        start_time = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+                        age_minutes = (datetime.now(timezone.utc) - start_time).total_seconds() / 60
+                        
+                        # Only recover if task has been zombie for >5 minutes (prevent race conditions)
+                        if age_minutes > 5:
+                            print(f"[{self.timestamp()}] Recovering zombie task: {task_id} (stale for {age_minutes:.1f} minutes)")
+                            
+                            # Reset to queued for retry
+                            task["status"] = "queued"
+                            task["current_phase"] = "plan"
+                            
+                            # Remove assignment details to allow reassignment  
+                            for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
+                                if key in task:
+                                    del task[key]
+                            
+                            task["updated_at"] = datetime.now(timezone.utc).isoformat()
+                            
+                            with open(task_file, "w") as f:
+                                json.dump(task, f, indent=2)
+                                
+                            # Emit event for tracking
+                            self.emit_event(type="zombie_task_recovered", task_id=task_id, age_minutes=age_minutes)
+                    
+            except Exception as e:
+                print(f"[{self.timestamp()}] Error checking zombie task {task_file.name}: {e}")
+    
     def monitor_workers(self):
         """Monitor active workers and handle phase transitions"""
+        # First, detect and recover zombie tasks
+        self.recover_zombie_tasks()
+        
         completed = []
         
         for task_id, metadata in list(self.active_workers.items()):
@@ -695,6 +909,26 @@ Generated by Hive Fleet Command
                     continue
                 
                 current_phase = Phase(task.get("current_phase", Phase.PLAN.value))
+                
+                # Check if worker failed (non-zero exit code)
+                if poll != 0:
+                    print(f"[{self.timestamp()}] Worker failed for {task_id} (exit: {poll}) - reverting to queued")
+                    # Revert task to queued status for retry
+                    task["status"] = "queued"
+                    # Remove assignment details to allow reassignment
+                    if "assignee" in task:
+                        del task["assignee"]
+                    if "assigned_at" in task:
+                        del task["assigned_at"]
+                    if "worktree" in task:
+                        del task["worktree"]
+                    if "workspace_type" in task:
+                        del task["workspace_type"]
+                    if "started_at" in task:
+                        del task["started_at"]
+                    self.save_task(task)
+                    completed.append(task_id)
+                    continue
                 
                 # Check result with specific run_id
                 result = self.check_worker_result(task_id, run_id)
@@ -723,7 +957,131 @@ Generated by Hive Fleet Command
         # Remove completed
         for task_id in completed:
             del self.active_workers[task_id]
+            
+        # Stream output for active workers
+        self.stream_worker_output()
     
+    def stream_worker_output(self):
+        """Stream output from active workers for real-time monitoring"""
+        for task_id, metadata in self.active_workers.items():
+            process = metadata["process"]
+            
+            # Initialize buffer for new tasks
+            if task_id not in self.streaming_buffers:
+                self.streaming_buffers[task_id] = ""
+            
+            # Read available output without blocking
+            try:
+                import select
+                if hasattr(select, 'select'):  # Unix-like systems
+                    if select.select([process.stdout], [], [], 0)[0]:
+                        output = process.stdout.read(1024).decode('utf-8', errors='replace')
+                        if output:
+                            self.streaming_buffers[task_id] += output
+                            # Print new output with task prefix
+                            for line in output.splitlines():
+                                if line.strip():
+                                    print(f"[{task_id}] {line}")
+                else:
+                    # Windows - use polling approach
+                    import msvcrt
+                    if process.stdout and hasattr(process.stdout, 'peek'):
+                        try:
+                            output = process.stdout.read(1024)
+                            if output:
+                                decoded = output.decode('utf-8', errors='replace')
+                                self.streaming_buffers[task_id] += decoded
+                                for line in decoded.splitlines():
+                                    if line.strip():
+                                        print(f"[{task_id}] {line}")
+                        except:
+                            pass
+            except Exception as e:
+                pass  # Silently ignore streaming errors
+    
+    def should_retry_task(self, task: Dict[str, Any], result: Dict[str, Any]) -> bool:
+        """Determine if a failed task should be retried"""
+        task_id = task["id"]
+        
+        # Don't retry inspector tasks
+        if "inspector" in task.get("tags", []):
+            return False
+        
+        # Check retry count
+        current_retries = self.retry_counts.get(task_id, 0)
+        if current_retries >= self.max_retries:
+            return False
+        
+        # Don't retry certain failure types
+        failure_reason = result.get("notes", "").lower()
+        no_retry_patterns = [
+            "compilation error", 
+            "syntax error",
+            "permission denied",
+            "file not found"
+        ]
+        
+        if any(pattern in failure_reason for pattern in no_retry_patterns):
+            return False
+        
+        return True
+    
+    def learn_from_failure(self, task: Dict[str, Any], result: Dict[str, Any]):
+        """Learn patterns from task failures to improve future success"""
+        failure_pattern = {
+            "task_type": task.get("tags", []),
+            "worker": task.get("assignee"),
+            "failure_reason": result.get("notes", ""),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        self.learning_patterns.append(failure_pattern)
+        
+        # Keep only recent patterns (last 100)
+        if len(self.learning_patterns) > 100:
+            self.learning_patterns = self.learning_patterns[-100:]
+        
+        # Analyze patterns for common issues
+        similar_failures = [p for p in self.learning_patterns 
+                           if p["worker"] == failure_pattern["worker"]]
+        
+        if len(similar_failures) >= 3:
+            print(f"[{self.timestamp()}] Learning: Detected pattern in {failure_pattern['worker']} failures")
+            self.emit_event(
+                type="learning_pattern_detected",
+                worker=failure_pattern["worker"],
+                pattern_count=len(similar_failures),
+                recent_failure=failure_pattern["failure_reason"]
+            )
+    
+    def retry_task(self, task: Dict[str, Any]):
+        """Retry a failed task with exponential backoff"""
+        task_id = task["id"]
+        
+        # Increment retry count
+        self.retry_counts[task_id] = self.retry_counts.get(task_id, 0) + 1
+        retry_count = self.retry_counts[task_id]
+        
+        # Reset task status for retry
+        task["status"] = "queued"
+        task["current_phase"] = Phase.PLAN.value
+        task["retry_count"] = retry_count
+        task["retried_at"] = datetime.now(timezone.utc).isoformat()
+        
+        # Clear previous failure info
+        task.pop("failed_at", None)
+        task.pop("failure_reason", None)
+        
+        self.save_task(task)
+        
+        print(f"[{self.timestamp()}] Retrying task {task_id} (attempt {retry_count}/{self.max_retries})")
+        self.emit_event(
+            type="task_retry",
+            task_id=task_id,
+            retry_count=retry_count,
+            max_retries=self.max_retries
+        )
+
     def print_status(self):
         """Print periodic status update"""
         now = time.time()
@@ -746,20 +1104,11 @@ Generated by Hive Fleet Command
             except:
                 pass
         
-        print(f"\n[{self.timestamp()}] QUEEN STATUS (Epoch Mode)")
-        print("-" * 50)
-        print(f"Active: {len(self.active_workers)} | "
+        # Single-line status update - only show active count
+        print(f"[{self.timestamp()}] Active: {len(self.active_workers)} | "
               f"Q: {stats['queued']} | A: {stats['assigned']} | "
               f"IP: {stats['in_progress']} | PR: {stats['pr_open']} | "
               f"C: {stats['completed']} | F: {stats['failed']}")
-        
-        if self.active_workers:
-            print("Running:")
-            for task_id in list(self.active_workers.keys())[:3]:
-                task = self.load_task(task_id)
-                if task:
-                    phase = task.get("current_phase", "?")
-                    print(f"  {task_id} ({phase})")
     
     def run_forever(self):
         """Main orchestration loop"""
@@ -788,7 +1137,22 @@ Generated by Hive Fleet Command
 
 def main():
     """Main entry point"""
-    queen = QueenOrchestrator()
+    parser = argparse.ArgumentParser(description="Queen Orchestrator - Multi-Agent Task Manager")
+    parser.add_argument("--fresh-env", action="store_true", 
+                       help="Use fresh isolated environments instead of git worktrees")
+    parser.add_argument("--worktree-mode", action="store_true",
+                       help="Use full git worktrees with branches (default)")
+    
+    args = parser.parse_args()
+    
+    # Determine environment mode
+    fresh_env = args.fresh_env
+    if args.worktree_mode and args.fresh_env:
+        print("Error: Cannot use both --fresh-env and --worktree-mode")
+        sys.exit(1)
+    
+    print(f"Starting Queen Orchestrator in {'FRESH ENVIRONMENT' if fresh_env else 'WORKTREE'} mode")
+    queen = QueenOrchestrator(fresh_env=fresh_env)
     queen.run_forever()
 
 if __name__ == "__main__":

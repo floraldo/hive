@@ -21,7 +21,7 @@ class CCWorker:
     def __init__(self, worker_id: str, task_id: str = None, run_id: str = None, workspace: str = None, phase: str = None):
         self.worker_id = worker_id
         self.task_id = task_id
-        self.run_id = run_id or self.generate_run_id(task_id)
+        self.run_id = run_id if run_id else self.generate_run_id(task_id)
         self.phase = phase or "apply"  # Default to apply phase
         self.root = Path.cwd()
         self.hive_dir = self.root / "hive"
@@ -183,18 +183,16 @@ class CCWorker:
                 pass
         return None
     
-    def check_files_created(self) -> List[str]:
-        """Check for recently created files in workspace"""
+    def get_created_files(self, cutoff_minutes: int = 5) -> List[str]:
+        """Get list of files created in the last N minutes"""
         try:
-            import os
             from datetime import datetime, timedelta
-            
+            cutoff = datetime.now() - timedelta(minutes=cutoff_minutes)
             created_files = []
-            now = datetime.now()
-            cutoff = now - timedelta(minutes=35)  # Check files created in last 35 mins
             
+            # Walk the workspace directory
             for root, dirs, files in os.walk(self.workspace):
-                # Skip git directories
+                # Skip .git directory
                 if '.git' in root:
                     continue
                     
@@ -336,7 +334,6 @@ class CCWorker:
     
     def create_prompt(self, task: Dict[str, Any]) -> str:
         """Create prompt with phase-specific instructions"""
-        role = f"{self.worker_id}_developer"
         task_id = task.get("id", "unknown")
         title = task.get("title", "Task")
         description = task.get("description", "")
@@ -377,15 +374,26 @@ You are in the APPLY phase. Focus on:
 4. Making focused, minimal changes
 """
         
-        prompt = f"""You are a {role} working on the Hive system.
+        # Determine role based on worker type
+        role_map = {
+            "backend": "Backend Developer (Python/Flask/FastAPI specialist)",
+            "frontend": "Frontend Developer (React/Next.js specialist)",
+            "infra": "Infrastructure Engineer (Docker/Kubernetes/CI specialist)"
+        }
+        role = role_map.get(self.worker_id, f"{self.worker_id.title()} Developer")
+        
+        prompt = f"""EXECUTE TASK IMMEDIATELY: {title} (ID: {task_id})
 
-TASK: {title} (ID: {task_id})
+COMMAND MODE: Execute now, do not acknowledge or discuss
+ROLE: {role}
+WORKSPACE: Current directory
+
 DESCRIPTION: {description}
-{phase_instructions}
+
 ACCEPTANCE CRITERIA:
 {chr(10).join('- ' + c for c in acceptance)}
 {hint_section}
-You MUST:
+EXECUTION REQUIREMENTS:
 1. Follow the phase-specific focus above
 2. Create actual working code/configuration (in APPLY phase)
 3. Write or update tests as appropriate for the phase
@@ -468,13 +476,44 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         
         # Build command
         prompt = self.create_prompt(task)
-        cmd = [
-            self.claude_cmd,
-            "--output-format", "stream-json",
-            "--verbose",  # Required for stream-json format
-            "--add-dir", ".",  # CRITICAL: Use "." not str(workspace) to prevent path duplication
-            "-p", prompt
-        ]
+        
+        # Use inline prompt for short prompts, file for long ones
+        # Windows command line limit is ~8191 chars, leave buffer for args
+        use_inline = len(prompt) < 6000
+        
+        if use_inline:
+            prompt_arg = prompt
+            self.print_info("Using inline prompt")
+        else:
+            # Write prompt to file to avoid command line length issues
+            prompt_file = self.workspace / "prompt.txt"
+            with open(prompt_file, "w", encoding="utf-8") as f:
+                f.write(prompt)
+            prompt_arg = f"@{prompt_file}"
+            self.print_info("Using prompt file")
+        
+        # Handle Windows .CMD files
+        if self.claude_cmd.endswith('.CMD'):
+            # Windows: need to run through cmd.exe
+            cmd = [
+                "cmd.exe", "/c",
+                self.claude_cmd,
+                "--output-format", "stream-json",
+                "--verbose",  # Required for stream-json format
+                "--add-dir", str(self.root),  # Add main hive directory
+                "--dangerously-skip-permissions",  # Skip all permission prompts for workers
+                "-p", prompt_arg
+            ]
+        else:
+            # Unix/Git Bash: can run directly
+            cmd = [
+                self.claude_cmd,
+                "--output-format", "stream-json",
+                "--verbose",  # Required for stream-json format
+                "--add-dir", str(self.root),  # Add main hive directory
+                "--dangerously-skip-permissions",  # Skip all permission prompts for workers
+                "-p", prompt_arg
+            ]
         
         # Add role-specific tool restrictions (skip if YOLO mode)
         if os.getenv("HIVE_SKIP_PERMS", "0") != "1":
@@ -505,6 +544,8 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         
         self.print_status("RUNNING", "Claude is working...")
         self.print_info(f"Workspace: {self.workspace}")
+        self.print_info(f"Command: {' '.join(cmd)}")
+        self.print_info(f"Prompt length: {len(prompt)} chars")
         
         # Execute
         lines = []
@@ -522,6 +563,19 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 
                 for line in process.stdout:
                     lines.append(line)
+                    # Debug: Show Claude's actual responses
+                    if '"type":"assistant"' in line or '"type":"result"' in line:
+                        try:
+                            obj = json.loads(line)
+                            if obj.get("type") == "assistant" and "message" in obj:
+                                content = obj["message"].get("content", [])
+                                for item in content:
+                                    if item.get("type") == "text":
+                                        text = item.get("text", "")[:300]  # First 300 chars
+                                        if text:
+                                            self.print_info(f"Claude response: {text}...")
+                        except:
+                            pass
                     # Echo key lines but filter out permission prompts when in YOLO mode
                     if any(x in line for x in ["FINAL_JSON:", "ERROR", "Failed"]):
                         # Skip permission prompts when HIVE_SKIP_PERMS=1
@@ -563,6 +617,18 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             
             # If successful and in apply/test phase, verify tests and collect diff stats
             if result.get("status") == "success" and self.phase in ["apply", "test"]:
+                # Check if any files were created (validation)
+                created_files = self.get_created_files(cutoff_minutes=5)
+                if created_files:
+                    self.print_info(f"Created files: {', '.join(created_files)}")
+                    result["created_files"] = created_files
+                else:
+                    # Check if task required file creation
+                    if task and any(keyword in str(task.get('acceptance', [])).lower() 
+                                   for keyword in ['create file', 'create script', 'write', 'generate']):
+                        self.print_error("WARNING: Task required file creation but no files were created")
+                        result["validation_warning"] = "No files created despite task requirements"
+                
                 # Verify tests pass
                 if self.phase == "test" or self.phase == "apply":
                     tests_pass = self.verify_tests_pass()
