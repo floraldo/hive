@@ -1,0 +1,81 @@
+2025-09-09 23:49:15,669 - INFO - Loaded config for infra
+2025-09-09 23:49:15,669 - INFO - Starting infra worker (cycle interval: 15s)
+2025-09-09 23:52:15,710 - INFO - Starting task execution: tsk_20250909_235212_722924 - Implement health check endpoint
+2025-09-09 23:52:15,714 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_235212_722924', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:52:15.711241+00:00'}
+2025-09-09 23:52:15,717 - INFO - Event: task_execution_start - {'task_id': 'tsk_20250909_235212_722924'}
+2025-09-09 23:52:15,718 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/infra... in C:\git\hive\workspaces\infra
+2025-09-09 23:52:15,755 - INFO - Claude execution completed: success=False
+2025-09-09 23:52:15,756 - ERROR - Task tsk_20250909_235212_722924 failed: Unknown error
+2025-09-09 23:52:15,777 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_235212_722924', 'new_status': 'failed', 'failed_at': '2025-09-09T21:52:15.757769+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\infra_execution_20250909_235215.log'}
+2025-09-09 23:52:15,781 - INFO - Event: task_execution_complete - {'task_id': 'tsk_20250909_235212_722924', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:52:15,892 - INFO - Loaded config for infra
+2025-09-09 23:52:15,892 - INFO - Starting infra worker (cycle interval: 15s)
+2025-09-09 23:53:13,902 - INFO - Loaded config for infra
+2025-09-09 23:53:13,902 - INFO - Starting infra worker (cycle interval: 15s)
+2025-09-09 23:53:13,920 - INFO - Starting task execution: tsk_20250909_235310_e539fd - Implement health check endpoint
+2025-09-09 23:53:13,923 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_235310_e539fd', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:53:13.921283+00:00'}
+2025-09-09 23:53:13,925 - INFO - Event: task_execution_start - {'task_id': 'tsk_20250909_235310_e539fd'}
+2025-09-09 23:53:13,926 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/infra... in C:\git\hive\workspaces\infra
+2025-09-09 23:53:13,963 - INFO - Claude execution completed: success=False
+2025-09-09 23:53:13,964 - ERROR - Task tsk_20250909_235310_e539fd failed: Unknown error
+2025-09-09 23:53:13,996 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_235310_e539fd', 'new_status': 'failed', 'failed_at': '2025-09-09T21:53:13.964349+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\infra_execution_20250909_235313.log'}
+2025-09-09 23:53:13,998 - INFO - Event: task_execution_complete - {'task_id': 'tsk_20250909_235310_e539fd', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:54:26,680 - INFO - Loaded config for infra
+2025-09-09 23:54:26,681 - INFO - Starting infra worker (cycle interval: 15s)
+2025-09-09 23:57:26,737 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:29,077 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:30,859 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:30,990 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:41,739 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:44,082 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:45,861 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:45,993 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:56,743 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:59,085 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:00,864 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:00,996 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:11,746 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:14,088 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:15,866 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:15,999 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:26,748 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:29,091 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:30,868 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:31,002 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:41,752 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:44,095 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:45,872 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:46,004 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:56,755 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:59,097 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:00,878 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:01,006 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:11,757 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:14,100 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:15,883 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:16,010 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:26,759 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:45,917 - INFO - Starting task execution: tsk_simple_script - Create deployment script
+2025-09-09 23:59:45,923 - INFO - Event: task_status_updated - {'task_id': 'tsk_simple_script', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:59:45.917536+00:00'}
+2025-09-09 23:59:45,925 - INFO - Event: task_execution_start - {'task_id': 'tsk_simple_script'}
+2025-09-09 23:59:45,926 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/infra... in C:\git\hive\workspaces\infra
+2025-09-09 23:59:45,972 - INFO - Claude execution completed: success=False
+2025-09-09 23:59:45,973 - ERROR - Task tsk_simple_script failed: Unknown error
+2025-09-09 23:59:45,999 - INFO - Event: task_status_updated - {'task_id': 'tsk_simple_script', 'new_status': 'failed', 'failed_at': '2025-09-09T21:59:45.973138+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\infra_execution_20250909_235945.log'}
+2025-09-09 23:59:46,001 - INFO - Event: task_execution_complete - {'task_id': 'tsk_simple_script', 'success': False, 'final_status': 'failed'}
+2025-09-10 00:03:29,174 - INFO - Starting task execution: cc_test_003 - Create deployment health check
+2025-09-10 00:03:29,176 - INFO - Event: task_status_updated - {'task_id': 'cc_test_003', 'new_status': 'in_progress', 'started_at': '2025-09-09T22:03:29.174344+00:00'}
+2025-09-10 00:03:29,179 - INFO - Event: task_execution_start - {'task_id': 'cc_test_003'}
+2025-09-10 00:03:29,179 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/infra... in C:\git\hive\workspaces\infra
+2025-09-10 00:03:29,211 - INFO - Claude execution completed: success=False
+2025-09-10 00:03:29,212 - ERROR - Task cc_test_003 failed: Unknown error
+2025-09-10 00:03:29,228 - INFO - Event: task_status_updated - {'task_id': 'cc_test_003', 'new_status': 'failed', 'failed_at': '2025-09-09T22:03:29.212543+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\infra_execution_20250910_000329.log'}
+2025-09-10 00:03:29,230 - INFO - Event: task_execution_complete - {'task_id': 'cc_test_003', 'success': False, 'final_status': 'failed'}
+2025-09-10 00:08:59,318 - INFO - Starting task execution: demo_infra_001 - Infrastructure Task
+2025-09-10 00:08:59,321 - INFO - Event: task_status_updated - {'task_id': 'demo_infra_001', 'new_status': 'in_progress', 'started_at': '2025-09-09T22:08:59.319818+00:00'}
+2025-09-10 00:08:59,324 - INFO - Event: task_execution_start - {'task_id': 'demo_infra_001'}
+2025-09-10 00:08:59,325 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/infra... in C:\git\hive\workspaces\infra
+2025-09-10 00:08:59,360 - INFO - Claude execution completed: success=False
+2025-09-10 00:08:59,361 - ERROR - Task demo_infra_001 failed: Unknown error
+2025-09-10 00:08:59,377 - INFO - Event: task_status_updated - {'task_id': 'demo_infra_001', 'new_status': 'failed', 'failed_at': '2025-09-09T22:08:59.361828+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\infra_execution_20250910_000859.log'}
+2025-09-10 00:08:59,380 - INFO - Event: task_execution_complete - {'task_id': 'demo_infra_001', 'success': False, 'final_status': 'failed'}

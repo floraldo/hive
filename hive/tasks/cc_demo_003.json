@@ -1,0 +1,24 @@
+{
+  "id": "cc_demo_003",
+  "title": "Setup nginx proxy",
+  "description": "Configure nginx for API and frontend",
+  "tags": [
+    "docker",
+    "deployment",
+    "monitoring"
+  ],
+  "priority": "medium",
+  "status": "completed",
+  "assignee": "infra",
+  "created_at": "2025-09-09T22:14:00.000000+00:00",
+  "updated_at": "2025-09-09T22:14:38.773433+00:00",
+  "acceptance_criteria": [
+    "Nginx config created",
+    "Routes API traffic",
+    "Serves static files"
+  ],
+  "estimated_effort": "30s",
+  "dependencies": [],
+  "assigned_at": "2025-09-09T22:14:36.754258+00:00",
+  "completed_at": "2025-09-09T22:14:38.773433+00:00"
+}

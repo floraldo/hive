@@ -1,0 +1,23 @@
+{
+  "id": "live_test_infra_001",
+  "title": "Setup Complete Docker Environment",
+  "description": "Create Docker configuration for a multi-service application with health checks",
+  "tags": [
+    "docker",
+    "deployment",
+    "infrastructure",
+    "monitoring"
+  ],
+  "priority": "high",
+  "status": "queued",
+  "created_at": "2025-09-09T23:14:00.000000+00:00",
+  "acceptance": [
+    "Create Dockerfile for Python application",
+    "Create docker-compose.yml with app and database services",
+    "Add health check endpoint configuration",
+    "Include environment variable setup",
+    "Add volume mounts for persistence",
+    "Create health_check.sh script"
+  ],
+  "estimated_effort": "3m"
+}

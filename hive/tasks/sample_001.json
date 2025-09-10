@@ -1,0 +1,16 @@
+{
+  "id": "sample_001",
+  "title": "Sample task for testing new architecture",
+  "description": "Test the new Queen orchestrator with a simple task",
+  "tags": [
+    "backend",
+    "test"
+  ],
+  "status": "queued",
+  "priority": "low",
+  "acceptance": [
+    "Create a simple hello.py file",
+    "File should print 'Hello from new architecture'"
+  ],
+  "created_at": "2025-09-10T00:12:59.762794+00:00"
+}

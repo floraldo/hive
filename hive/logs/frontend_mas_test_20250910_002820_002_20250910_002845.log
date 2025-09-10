@@ -1,0 +1,11 @@
+Task: mas_test_20250910_002820_002 - Create Button component
+Command: C:\git\hive\claude.bat --add-dir ./workspaces/frontend...
+Return Code: 1
+
+--- STDOUT ---
+
+
+--- STDERR ---
+Path C:\git\hive\workspaces\frontend\workspaces\frontend was not found.
+Error: When using --print, --output-format=stream-json requires --verbose
+

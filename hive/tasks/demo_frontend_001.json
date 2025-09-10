@@ -1,0 +1,27 @@
+{
+  "id": "demo_frontend_001",
+  "title": "Frontend Component Task",
+  "description": "Create a React button component",
+  "tags": [
+    "react",
+    "frontend",
+    "ui_components"
+  ],
+  "priority": "high",
+  "status": "completed",
+  "assignee": "frontend",
+  "created_at": "2025-09-09T22:08:30.000000+00:00",
+  "updated_at": "2025-09-09T22:13:19.109248+00:00",
+  "acceptance_criteria": [
+    "Component renders",
+    "Has click handler",
+    "Styled properly"
+  ],
+  "estimated_effort": "30s",
+  "dependencies": [],
+  "assigned_at": "2025-09-09T22:13:17.106682+00:00",
+  "started_at": "2025-09-09T22:08:58.414776+00:00",
+  "failed_at": "2025-09-09T22:09:29.426776+00:00",
+  "failure_reason": "Unknown error",
+  "completed_at": "2025-09-09T22:13:19.109248+00:00"
+}

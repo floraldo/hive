@@ -1,0 +1,27 @@
+{
+  "id": "demo_backend_001",
+  "title": "Backend API Task",
+  "description": "Create a simple REST endpoint",
+  "tags": [
+    "python",
+    "api",
+    "backend"
+  ],
+  "priority": "high",
+  "status": "completed",
+  "assignee": "backend",
+  "created_at": "2025-09-09T22:08:30.000000+00:00",
+  "updated_at": "2025-09-09T22:13:13.157760+00:00",
+  "acceptance_criteria": [
+    "Endpoint created",
+    "Returns JSON",
+    "Follows REST principles"
+  ],
+  "estimated_effort": "30s",
+  "dependencies": [],
+  "assigned_at": "2025-09-09T22:13:11.136836+00:00",
+  "started_at": "2025-09-09T22:08:58.411773+00:00",
+  "failed_at": "2025-09-09T22:09:29.375658+00:00",
+  "failure_reason": "Unknown error",
+  "completed_at": "2025-09-09T22:13:13.157760+00:00"
+}

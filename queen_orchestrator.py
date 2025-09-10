@@ -367,17 +367,22 @@ class QueenOrchestrator:
         
         # Check diff size
         diff_stats = result.get("diff_stats", {})
-        if diff_stats.get("files", 0) > 10 or diff_stats.get("insertions", 0) > 200:
+        if diff_stats.get("files_changed", 0) > 10 or diff_stats.get("insertions", 0) > 200:
             return False
         
         # Check if tests passed
-        if result.get("tests_passed", False):
+        if result.get("tests_pass", False):
             return True
         
         return False
     
     def create_pr(self, task: Dict[str, Any], result: Dict[str, Any]) -> Optional[str]:
         """Create GitHub PR for completed task"""
+        # Allow disabling PR creation for testing
+        if os.environ.get("HIVE_DISABLE_PR") == "1":
+            print(f"[{self.timestamp()}] PR creation disabled (HIVE_DISABLE_PR=1)")
+            return None
+            
         try:
             branch = task.get("branch")
             if not branch:

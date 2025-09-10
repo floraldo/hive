@@ -1,0 +1,152 @@
+2025-09-09 23:49:15,187 - INFO - Loaded config for backend
+2025-09-09 23:49:15,188 - INFO - Starting backend worker (cycle interval: 15s)
+2025-09-09 23:49:15,209 - INFO - Starting task execution: tsk_20250909_234912_ae2bc2 - Setup headless MAS foundation
+2025-09-09 23:49:15,211 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_234912_ae2bc2', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:49:15.209705+00:00'}
+2025-09-09 23:49:15,214 - INFO - Event: task_execution_start - {'task_id': 'tsk_20250909_234912_ae2bc2'}
+2025-09-09 23:49:15,215 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-09 23:49:15,251 - INFO - Claude execution completed: success=False
+2025-09-09 23:49:15,252 - ERROR - Task tsk_20250909_234912_ae2bc2 failed: Unknown error
+2025-09-09 23:49:15,271 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_234912_ae2bc2', 'new_status': 'failed', 'failed_at': '2025-09-09T21:49:15.253879+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250909_234915.log'}
+2025-09-09 23:49:15,273 - INFO - Event: task_execution_complete - {'task_id': 'tsk_20250909_234912_ae2bc2', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:52:15,300 - INFO - Starting task execution: tsk_hello_001 - Create simple hello world endpoint
+2025-09-09 23:52:15,304 - INFO - Event: task_status_updated - {'task_id': 'tsk_hello_001', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:52:15.301965+00:00'}
+2025-09-09 23:52:15,307 - INFO - Event: task_execution_start - {'task_id': 'tsk_hello_001'}
+2025-09-09 23:52:15,308 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-09 23:52:15,353 - INFO - Claude execution completed: success=False
+2025-09-09 23:52:15,354 - ERROR - Task tsk_hello_001 failed: Unknown error
+2025-09-09 23:52:15,378 - INFO - Event: task_status_updated - {'task_id': 'tsk_hello_001', 'new_status': 'failed', 'failed_at': '2025-09-09T21:52:15.354282+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250909_235215.log'}
+2025-09-09 23:52:15,380 - INFO - Event: task_execution_complete - {'task_id': 'tsk_hello_001', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:52:15,410 - INFO - Loaded config for backend
+2025-09-09 23:52:15,411 - INFO - Starting backend worker (cycle interval: 15s)
+2025-09-09 23:53:13,381 - INFO - Loaded config for backend
+2025-09-09 23:53:13,382 - INFO - Starting backend worker (cycle interval: 15s)
+2025-09-09 23:53:13,405 - INFO - Starting task execution: tsk_hello_001 - Create simple hello world endpoint
+2025-09-09 23:53:13,409 - INFO - Event: task_status_updated - {'task_id': 'tsk_hello_001', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:53:13.406331+00:00'}
+2025-09-09 23:53:13,411 - INFO - Event: task_execution_start - {'task_id': 'tsk_hello_001'}
+2025-09-09 23:53:13,411 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-09 23:53:13,452 - INFO - Claude execution completed: success=False
+2025-09-09 23:53:13,453 - ERROR - Task tsk_hello_001 failed: Unknown error
+2025-09-09 23:53:13,474 - INFO - Event: task_status_updated - {'task_id': 'tsk_hello_001', 'new_status': 'failed', 'failed_at': '2025-09-09T21:53:13.453489+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250909_235313.log'}
+2025-09-09 23:53:13,476 - INFO - Event: task_execution_complete - {'task_id': 'tsk_hello_001', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:54:15,422 - INFO - Starting task execution: tsk_hello_001 - Create simple hello world endpoint
+2025-09-09 23:54:15,425 - INFO - Event: task_status_updated - {'task_id': 'tsk_hello_001', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:54:15.423862+00:00'}
+2025-09-09 23:54:15,428 - INFO - Event: task_execution_start - {'task_id': 'tsk_hello_001'}
+2025-09-09 23:54:15,430 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-09 23:54:15,453 - INFO - Claude execution completed: success=False
+2025-09-09 23:54:15,454 - ERROR - Task tsk_hello_001 failed: Unknown error
+2025-09-09 23:54:15,472 - INFO - Event: task_status_updated - {'task_id': 'tsk_hello_001', 'new_status': 'failed', 'failed_at': '2025-09-09T21:54:15.454066+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250909_235415.log'}
+2025-09-09 23:54:15,474 - INFO - Event: task_execution_complete - {'task_id': 'tsk_hello_001', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:54:26,069 - INFO - Loaded config for backend
+2025-09-09 23:54:26,070 - INFO - Starting backend worker (cycle interval: 15s)
+2025-09-09 23:54:26,098 - INFO - Starting task execution: tsk_20250909_235423_07f1df - Setup headless MAS foundation
+2025-09-09 23:54:26,101 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_235423_07f1df', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:54:26.098016+00:00'}
+2025-09-09 23:54:26,103 - INFO - Event: task_execution_start - {'task_id': 'tsk_20250909_235423_07f1df'}
+2025-09-09 23:54:26,104 - INFO - Executing Claude: C:\git\hive\claude.bat --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-09 23:54:28,490 - INFO - Starting task execution: tsk_20250909_235423_07f1df - Setup headless MAS foundation
+2025-09-09 23:54:28,497 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_235423_07f1df', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:54:28.490889+00:00'}
+2025-09-09 23:54:28,500 - INFO - Event: task_execution_start - {'task_id': 'tsk_20250909_235423_07f1df'}
+2025-09-09 23:54:28,500 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-09 23:54:28,595 - INFO - Claude execution completed: success=False
+2025-09-09 23:54:28,596 - ERROR - Task tsk_20250909_235423_07f1df failed: Unknown error
+2025-09-09 23:54:28,624 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_235423_07f1df', 'new_status': 'failed', 'failed_at': '2025-09-09T21:54:28.596009+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250909_235428.log'}
+2025-09-09 23:54:28,626 - INFO - Event: task_execution_complete - {'task_id': 'tsk_20250909_235423_07f1df', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:54:52,096 - INFO - Claude execution completed: success=False
+2025-09-09 23:54:52,097 - ERROR - Task tsk_20250909_235423_07f1df failed: Unknown error
+2025-09-09 23:54:52,120 - INFO - Event: task_status_updated - {'task_id': 'tsk_20250909_235423_07f1df', 'new_status': 'failed', 'failed_at': '2025-09-09T21:54:52.097851+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250909_235426.log'}
+2025-09-09 23:54:52,121 - INFO - Event: task_execution_complete - {'task_id': 'tsk_20250909_235423_07f1df', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:57:22,143 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:28,664 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:30,532 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:30,533 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:37,146 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:43,666 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:45,535 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:45,535 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:52,147 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:57:58,670 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:00,539 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:00,539 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:07,151 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:13,673 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:15,541 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:15,541 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:22,155 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:28,677 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:30,545 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:30,545 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:37,157 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:43,678 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:45,547 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:45,547 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:52,160 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:58:58,681 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:00,550 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:00,550 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:07,163 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:13,684 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:15,553 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:15,553 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:22,164 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:28,687 - ERROR - Failed to load tasks: Expecting property name enclosed in double quotes: line 259 column 5 (char 9207)
+2025-09-09 23:59:45,581 - INFO - Starting task execution: tsk_simple_api - Create simple JSON API endpoint
+2025-09-09 23:59:45,585 - INFO - Event: task_status_updated - {'task_id': 'tsk_simple_api', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:59:45.581425+00:00'}
+2025-09-09 23:59:45,585 - INFO - Event: task_status_updated - {'task_id': 'tsk_simple_api', 'new_status': 'in_progress', 'started_at': '2025-09-09T21:59:45.581425+00:00'}
+2025-09-09 23:59:45,588 - INFO - Event: task_execution_start - {'task_id': 'tsk_simple_api'}
+2025-09-09 23:59:45,588 - INFO - Event: task_execution_start - {'task_id': 'tsk_simple_api'}
+2025-09-09 23:59:45,588 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-09 23:59:45,588 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-09 23:59:45,626 - INFO - Claude execution completed: success=False
+2025-09-09 23:59:45,627 - ERROR - Task tsk_simple_api failed: Unknown error
+2025-09-09 23:59:45,630 - INFO - Claude execution completed: success=False
+2025-09-09 23:59:45,635 - ERROR - Task tsk_simple_api failed: Unknown error
+2025-09-09 23:59:45,653 - INFO - Event: task_status_updated - {'task_id': 'tsk_simple_api', 'new_status': 'failed', 'failed_at': '2025-09-09T21:59:45.635049+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250909_235945.log'}
+2025-09-09 23:59:45,653 - INFO - Event: task_status_updated - {'task_id': 'tsk_simple_api', 'new_status': 'failed', 'failed_at': '2025-09-09T21:59:45.628011+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250909_235945.log'}
+2025-09-09 23:59:45,655 - INFO - Event: task_execution_complete - {'task_id': 'tsk_simple_api', 'success': False, 'final_status': 'failed'}
+2025-09-09 23:59:45,656 - INFO - Event: task_execution_complete - {'task_id': 'tsk_simple_api', 'success': False, 'final_status': 'failed'}
+2025-09-10 00:03:28,746 - INFO - Starting task execution: cc_test_001 - Create Hello World API endpoint
+2025-09-10 00:03:28,750 - INFO - Event: task_status_updated - {'task_id': 'cc_test_001', 'new_status': 'in_progress', 'started_at': '2025-09-09T22:03:28.747517+00:00'}
+2025-09-10 00:03:28,752 - INFO - Event: task_execution_start - {'task_id': 'cc_test_001'}
+2025-09-10 00:03:28,752 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-10 00:03:28,785 - INFO - Claude execution completed: success=False
+2025-09-10 00:03:28,786 - ERROR - Task cc_test_001 failed: Unknown error
+2025-09-10 00:03:28,804 - INFO - Event: task_status_updated - {'task_id': 'cc_test_001', 'new_status': 'failed', 'failed_at': '2025-09-09T22:03:28.786537+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250910_000328.log'}
+2025-09-10 00:03:28,806 - INFO - Event: task_execution_complete - {'task_id': 'cc_test_001', 'success': False, 'final_status': 'failed'}
+2025-09-10 00:04:15,703 - INFO - Starting task execution: cc_demo_001 - Hello World API Demo
+2025-09-10 00:04:15,703 - INFO - Starting task execution: cc_demo_001 - Hello World API Demo
+2025-09-10 00:04:15,704 - ERROR - Failed to update task status: Expecting value: line 1 column 1 (char 0)
+2025-09-10 00:04:15,705 - INFO - Event: task_status_updated - {'task_id': 'cc_demo_001', 'new_status': 'in_progress', 'started_at': '2025-09-09T22:04:15.703665+00:00'}
+2025-09-10 00:04:15,706 - INFO - Event: task_execution_start - {'task_id': 'cc_demo_001'}
+2025-09-10 00:04:15,708 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-10 00:04:15,708 - INFO - Event: task_execution_start - {'task_id': 'cc_demo_001'}
+2025-09-10 00:04:15,709 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-10 00:04:15,745 - INFO - Claude execution completed: success=False
+2025-09-10 00:04:15,745 - INFO - Claude execution completed: success=False
+2025-09-10 00:04:15,746 - ERROR - Task cc_demo_001 failed: Unknown error
+2025-09-10 00:04:15,766 - INFO - Event: task_status_updated - {'task_id': 'cc_demo_001', 'new_status': 'failed', 'failed_at': '2025-09-09T22:04:15.746706+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250910_000415.log'}
+2025-09-10 00:04:15,766 - INFO - Event: task_status_updated - {'task_id': 'cc_demo_001', 'new_status': 'failed', 'failed_at': '2025-09-09T22:04:15.746706+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250910_000415.log'}
+2025-09-10 00:04:15,768 - INFO - Event: task_execution_complete - {'task_id': 'cc_demo_001', 'success': False, 'final_status': 'failed'}
+2025-09-10 00:04:15,769 - INFO - Event: task_execution_complete - {'task_id': 'cc_demo_001', 'success': False, 'final_status': 'failed'}
+2025-09-10 00:05:58,863 - INFO - Starting task execution: cc_working_demo - Working CC MAS Demo
+2025-09-10 00:05:58,866 - INFO - Event: task_status_updated - {'task_id': 'cc_working_demo', 'new_status': 'in_progress', 'started_at': '2025-09-09T22:05:58.864500+00:00'}
+2025-09-10 00:05:58,868 - INFO - Event: task_execution_start - {'task_id': 'cc_working_demo'}
+2025-09-10 00:05:58,869 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-10 00:05:58,916 - INFO - Claude execution completed: success=False
+2025-09-10 00:05:58,917 - ERROR - Task cc_working_demo failed: Unknown error
+2025-09-10 00:05:58,940 - INFO - Event: task_status_updated - {'task_id': 'cc_working_demo', 'new_status': 'failed', 'failed_at': '2025-09-09T22:05:58.917486+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250910_000558.log'}
+2025-09-10 00:05:58,942 - INFO - Event: task_execution_complete - {'task_id': 'cc_working_demo', 'success': False, 'final_status': 'failed'}
+2025-09-10 00:06:37,326 - INFO - Starting task execution: cc_live_demo - Live CC MAS Monitoring Demo
+2025-09-10 00:06:37,331 - INFO - Event: task_status_updated - {'task_id': 'cc_live_demo', 'new_status': 'in_progress', 'started_at': '2025-09-09T22:06:37.327886+00:00'}
+2025-09-10 00:06:37,334 - INFO - Event: task_execution_start - {'task_id': 'cc_live_demo'}
+2025-09-10 00:06:37,338 - INFO - Executing Claude: C:\git\hive\claude.bat --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-10 00:06:55,811 - INFO - Claude execution completed: success=False
+2025-09-10 00:06:55,812 - ERROR - Task cc_live_demo failed: Unknown error
+2025-09-10 00:06:55,831 - INFO - Event: task_status_updated - {'task_id': 'cc_live_demo', 'new_status': 'failed', 'failed_at': '2025-09-09T22:06:55.813891+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250910_000637.log'}
+2025-09-10 00:06:55,833 - INFO - Event: task_execution_complete - {'task_id': 'cc_live_demo', 'success': False, 'final_status': 'failed'}
+2025-09-10 00:08:58,977 - INFO - Starting task execution: demo_backend_001 - Backend API Task
+2025-09-10 00:08:58,980 - INFO - Event: task_status_updated - {'task_id': 'demo_backend_001', 'new_status': 'in_progress', 'started_at': '2025-09-09T22:08:58.978314+00:00'}
+2025-09-10 00:08:58,983 - INFO - Event: task_execution_start - {'task_id': 'demo_backend_001'}
+2025-09-10 00:08:58,983 - INFO - Executing Claude: .\claude.BAT --add-dir ./workspaces/backend... in C:\git\hive\workspaces\backend
+2025-09-10 00:08:59,018 - INFO - Claude execution completed: success=False
+2025-09-10 00:08:59,018 - ERROR - Task demo_backend_001 failed: Unknown error
+2025-09-10 00:08:59,038 - INFO - Event: task_status_updated - {'task_id': 'demo_backend_001', 'new_status': 'failed', 'failed_at': '2025-09-09T22:08:59.019432+00:00', 'failure_reason': 'Unknown error', 'execution_log': 'C:\\git\\hive\\hive\\logs\\backend_execution_20250910_000858.log'}
+2025-09-10 00:08:59,040 - INFO - Event: task_execution_complete - {'task_id': 'demo_backend_001', 'success': False, 'final_status': 'failed'}

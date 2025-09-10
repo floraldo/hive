@@ -1,0 +1,24 @@
+{
+  "id": "real_test_001",
+  "title": "Create simple hello API",
+  "description": "Create a Flask API with a /hello endpoint that returns 'Hello, Hive!'",
+  "tags": [
+    "python",
+    "flask",
+    "backend"
+  ],
+  "priority": "high",
+  "status": "completed",
+  "assignee": "backend",
+  "created_at": "2025-09-09T22:17:00.000000+00:00",
+  "updated_at": "2025-09-09T22:17:58.391607+00:00",
+  "acceptance_criteria": [
+    "Flask app created",
+    "/hello endpoint works",
+    "Returns JSON response"
+  ],
+  "estimated_effort": "30s",
+  "dependencies": [],
+  "assigned_at": "2025-09-09T22:17:56.389087+00:00",
+  "completed_at": "2025-09-09T22:17:58.391607+00:00"
+}

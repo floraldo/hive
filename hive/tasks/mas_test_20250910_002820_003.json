@@ -1,0 +1,19 @@
+{
+  "id": "mas_test_20250910_002820_003",
+  "title": "Create health check script",
+  "description": "Write a bash script to check Docker container health",
+  "tags": [
+    "docker",
+    "deployment",
+    "monitoring"
+  ],
+  "priority": "medium",
+  "status": "queued",
+  "created_at": "2025-09-09T22:28:20.134123+00:00",
+  "acceptance_criteria": [
+    "Checks if containers are running",
+    "Returns appropriate exit codes",
+    "Outputs status message"
+  ],
+  "estimated_effort": "2m"
+}
