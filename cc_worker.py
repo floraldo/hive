@@ -378,14 +378,45 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         return prompt
     
     def parse_final_json(self, lines: List[str]) -> Dict[str, Any]:
-        """Parse FINAL_JSON marker output"""
+        """Parse FINAL_JSON marker output from stream-json format"""
         for line in reversed(lines[-200:] if len(lines) > 200 else lines):
             s = line.strip()
+            
+            # Handle raw FINAL_JSON format
             if s.startswith("FINAL_JSON:"):
                 try:
                     return json.loads(s.split("FINAL_JSON:", 1)[1].strip())
                 except:
-                    self.print_error(f"Failed to parse: {s}")
+                    self.print_error(f"Failed to parse raw: {s}")
+            
+            # Handle stream-json format
+            if s.startswith("{") and "FINAL_JSON:" in s:
+                try:
+                    obj = json.loads(s)
+                    
+                    # Check the final result field (Claude CLI puts final output here)
+                    if obj.get("type") == "result" and "result" in obj:
+                        result_text = obj["result"]
+                        if result_text and result_text.startswith("FINAL_JSON:"):
+                            try:
+                                return json.loads(result_text.split("FINAL_JSON:", 1)[1].strip())
+                            except:
+                                self.print_error(f"Failed to parse JSON from result: {result_text}")
+                    
+                    # Check assistant message content
+                    if obj.get("type") == "assistant" and "message" in obj:
+                        message = obj["message"]
+                        if "content" in message:
+                            for content in message["content"]:
+                                if content.get("type") == "text":
+                                    text = content.get("text", "")
+                                    if text.startswith("FINAL_JSON:"):
+                                        try:
+                                            return json.loads(text.split("FINAL_JSON:", 1)[1].strip())
+                                        except:
+                                            self.print_error(f"Failed to parse JSON from message: {text}")
+                except:
+                    pass  # Not valid JSON, continue
         return {}
     
     def execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
@@ -407,7 +438,8 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         cmd = [
             self.claude_cmd,
             "--output-format", "stream-json",
-            "--add-dir", str(self.workspace),
+            "--verbose",  # Required for stream-json format
+            "--add-dir", ".",  # Current directory (since cwd=workspace)
             "-p", prompt
         ]
         
@@ -467,6 +499,11 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             # Parse result
             result = self.parse_final_json(lines)
             if not result:
+                # Debug: Print last few lines to see what we're missing
+                self.print_error("DEBUG: Last 10 lines of output:")
+                for i, line in enumerate(lines[-10:] if len(lines) >= 10 else lines):
+                    self.print_error(f"  {i}: {line[:200]}")
+                
                 result = {
                     "status": "failed",
                     "notes": f"No FINAL_JSON found (exit: {rc})",
