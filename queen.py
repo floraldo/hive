@@ -45,161 +45,30 @@ class QueenLite:
         return self.hive.timestamp()
     
     
-    def create_worktree(self, worker: str, task_id: str, mode: str = "branch") -> Optional[Path]:
-        """Create or reuse git worktree for task
-        
-        Args:
-            worker: Worker type (backend, frontend, infra)
-            task_id: Task identifier 
-            mode: 'branch' for real implementation with repo files, 'fresh' for empty testing
-        """
-        safe_task_id = self.hive.slugify(task_id)
-        
-        # Unified naming: .worktrees/worker/task_id for both modes
-        worktree_path = self.hive.worktrees_dir / worker / safe_task_id
-        
-        if mode == "fresh":
-            # Create empty workspace for testing
-            worktree_path.mkdir(parents=True, exist_ok=True)
-            print(f"[{self.timestamp()}] Created fresh workspace: {worktree_path}")
-            return worktree_path
-        
-        # Branching mode - create git worktree with repo files
-        branch = f"agent/{worker}/{safe_task_id}"
-        
-        # If worktree already exists, reuse it (for refinements)
-        if worktree_path.exists():
-            print(f"[{self.timestamp()}] Reusing existing worktree: {worktree_path}")
-            return worktree_path
-        
-        try:
-            # Create new worktree with branch FROM CURRENT HEAD
-            # Important: specify HEAD as the source to get all repo files
-            result = subprocess.run(
-                ["git", "worktree", "add", "-b", branch, str(worktree_path), "HEAD"],
-                cwd=str(self.hive.root),
-                capture_output=True, text=True
-            )
-            
-            if result.returncode == 0:
-                # CRITICAL: Validate that worktree was created properly
-                git_file = worktree_path / ".git"
-                if git_file.exists():
-                    print(f"[{self.timestamp()}] ✅ Created valid git worktree: {worktree_path} (branch: {branch})")
-                    return worktree_path
-                else:
-                    print(f"[{self.timestamp()}] ❌ Worktree created but missing .git file: {worktree_path}")
-                    return None
-            else:
-                print(f"[{self.timestamp()}] ❌ Git worktree failed (exit {result.returncode}): {result.stderr}")
-                return None
-                
-        except Exception as e:
-            print(f"[{self.timestamp()}] ❌ Git worktree error: {e}")
-            return None
-    
-    def create_fresh_workspace(self, worker: str, task_id: str) -> Path:
-        """Create fresh isolated workspace for testing"""
-        # Simple slugify
-        safe_task_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in task_id)
-        workspace_path = self.hive.worktrees_dir / "fresh" / worker / safe_task_id
-        
-        # Create directory
-        workspace_path.mkdir(parents=True, exist_ok=True)
-        
-        # Create basic template files
-        self.setup_fresh_template(workspace_path, worker)
-        
-        print(f"[{self.timestamp()}] Created fresh workspace: {workspace_path}")
-        return workspace_path
-    
-    def setup_fresh_template(self, workspace_path: Path, worker: str):
-        """Setup basic template files for fresh workspace"""
-        if worker == "backend":
-            # Python project template
-            readme_content = f"""# Backend Worker Test Environment
-Basic Python workspace for {worker} tasks.
-"""
-            gitignore_content = """*.pyc
-__pycache__/
-*.egg-info/
-.pytest_cache/
-"""
-        elif worker == "frontend":
-            # Frontend project template  
-            readme_content = f"""# Frontend Worker Test Environment
-Basic web development workspace for {worker} tasks.
-"""
-            gitignore_content = """node_modules/
-dist/
-.cache/
-*.log
-"""
-        elif worker == "infra":
-            # Infrastructure project template
-            readme_content = f"""# Infrastructure Worker Test Environment  
-Basic infrastructure workspace for {worker} tasks.
-"""
-            gitignore_content = """*.tfstate
-*.tfstate.backup
-.terraform/
-"""
-        else:
-            # Generic template
-            readme_content = f"""# {worker.title()} Worker Test Environment
-Workspace for {worker} tasks.
-"""
-            gitignore_content = """*.log
-*.tmp
-"""
-        
-        # Write template files
-        (workspace_path / "README.md").write_text(readme_content)
-        (workspace_path / ".gitignore").write_text(gitignore_content)
     
     def spawn_worker(self, task: Dict[str, Any], worker: str, phase: Phase) -> Optional[Tuple[subprocess.Popen, str]]:
-        """Spawn worker with enhanced error handling"""
+        """Spawn worker and let it manage its own workspace."""
         task_id = task["id"]
         run_id = f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{phase.value}"
         
-        # Get or create workspace
-        if not task.get("worktree"):
-            if self.fresh_env:
-                worktree = self.create_fresh_workspace(worker, task_id)
-                task["worktree"] = str(worktree)
-                task["workspace_type"] = "fresh"
-                self.hive.save_task(task)
-            else:
-                # Use git worktree with full codebase
-                worktree = self.create_worktree(worker, task_id)
-                if not worktree:
-                    print(f"[{self.timestamp()}] ❌ Failed to create worktree for {task_id}")
-                    return None
-                task["worktree"] = str(worktree)
-                task["branch"] = f"agent/{worker}/{self.hive.slugify(task_id)}"
-                task["workspace_type"] = "git_worktree"
-                self.hive.save_task(task)
-        else:
-            worktree = Path(task["worktree"])
-        
-        # Build command - use streamlined worker
+        # The worker will create its own workspace based on task_id, worker_id, and mode.
+        # We no longer need to create it here.
+        print(f"[{self.timestamp()}] Delegating workspace creation to worker for task: {task_id}")
+
+        # Determine mode
+        mode = "repo" if not self.fresh_env else "fresh"
+
+        # Build command - remove the --workspace argument
         cmd = [
             sys.executable,
-            str(self.hive.root / "worker.py"),  # Absolute path
+            str(self.hive.root / "worker.py"),
             worker,
             "--one-shot",
             "--task-id", task_id,
             "--run-id", run_id,
-            "--workspace", str(worktree),
-            "--phase", phase.value
+            "--phase", phase.value,
+            "--mode", mode
         ]
-        
-        # Add mode based on workspace type
-        workspace_type = task.get("workspace_type")
-        if workspace_type == "git_worktree":
-            cmd += ["--mode", "repo"]
-        else:
-            cmd += ["--mode", "fresh"]
         
         # Enhanced environment
         env = os.environ.copy()

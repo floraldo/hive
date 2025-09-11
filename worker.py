@@ -167,80 +167,39 @@ class WorkerCore:
         print("[WARN] Claude command not found - running in simulation mode")
         return None
     
-    def _resolve_worktree_gitdir(self, workspace: Path) -> Optional[Path]:
-        """Resolve worktree .git file to actual gitdir directory"""
-        dotgit = workspace / ".git"
-        if not dotgit.exists():
-            return None
-        try:
-            # Worktrees: .git is a file "gitdir: /path/to/.git/worktrees/<name>"
-            txt = dotgit.read_text(encoding="utf-8", errors="ignore").strip()
-            if txt.startswith("gitdir:"):
-                gitdir_path = Path(txt.split("gitdir:", 1)[1].strip()).resolve()
-                return gitdir_path
-            # In normal repos .git is a directory:
-            if dotgit.is_dir():
-                return dotgit.resolve()
-        except Exception:
-            pass
-        return None
     
     def _verify_workspace_isolation(self):
-        """Pre-flight invariant checks to ensure workspace isolation"""
+        """Pre-flight invariant checks to ensure workspace isolation."""
         if os.getenv("HIVE_DEBUG") != "1":
             return
+        
         print(f"[{self.timestamp()}] [ISOLATION] Verifying workspace isolation...")
-        
-        # Check 1: Process cwd matches workspace
-        current_cwd = Path.cwd().resolve()
         workspace_resolved = self.workspace.resolve()
-        if current_cwd != workspace_resolved:
-            print(f"[{self.timestamp()}] [WARN] Process cwd mismatch: {current_cwd} != {workspace_resolved}")
-        else:
+        
+        # Check 1: Process cwd MUST match the workspace for git to work reliably.
+        current_cwd = Path.cwd().resolve()
+        if current_cwd == workspace_resolved:
             print(f"[{self.timestamp()}] [OK] Process cwd matches workspace: {current_cwd}")
-        
-        # Check 2: Git toplevel matches workspace (repo mode only)
-        if self.mode == "repo":
-            try:
-                # Check if we're inside a git work tree
-                result = subprocess.run(
-                    ["git", "rev-parse", "--is-inside-work-tree"],
-                    capture_output=True, text=True, cwd=str(self.workspace)
-                )
-                if result.returncode == 0 and result.stdout.strip() == "true":
-                    # Get git toplevel
-                    toplevel_result = subprocess.run(
-                        ["git", "rev-parse", "--show-toplevel"],
-                        capture_output=True, text=True, cwd=str(self.workspace)
-                    )
-                    if toplevel_result.returncode == 0:
-                        git_toplevel = Path(toplevel_result.stdout.strip()).resolve()
-                        if git_toplevel != workspace_resolved:
-                            print(f"[{self.timestamp()}] [WARN] Git toplevel mismatch: {git_toplevel} != {workspace_resolved}")
-                        else:
-                            print(f"[{self.timestamp()}] [OK] Git toplevel matches workspace: {git_toplevel}")
-                    else:
-                        print(f"[{self.timestamp()}] [WARN] Could not get git toplevel")
-                else:
-                    print(f"[{self.timestamp()}] [WARN] Not inside git work tree")
-            except Exception as e:
-                print(f"[{self.timestamp()}] [WARN] Git verification failed: {e}")
         else:
-            print(f"[{self.timestamp()}] [OK] Fresh mode - skipping git checks")
-        
-        # Check 3: Verify git can detect worktree naturally (KISS approach)
+            # This is a critical failure condition for the KISS approach.
+            print(f"[{self.timestamp()}] [CRITICAL] Process cwd mismatch: {current_cwd} != {workspace_resolved}")
+
+        # Check 2: Verify git can naturally operate within this directory.
         if self.mode == "repo":
             try:
+                # A lightweight command like 'git rev-parse --git-dir' is better than 'git status'.
                 result = subprocess.run(
-                    ["git", "status", "--porcelain"],
-                    capture_output=True, text=True, cwd=str(self.workspace)
+                    ["git", "rev-parse", "--git-dir"],
+                    capture_output=True, text=True, cwd=str(self.workspace), check=True
                 )
-                if result.returncode == 0:
-                    print(f"[{self.timestamp()}] [OK] Git naturally detects worktree (KISS)")
+                if result.stdout.strip():
+                    print(f"[{self.timestamp()}] [OK] Git context successfully detected in workspace.")
                 else:
-                    print(f"[{self.timestamp()}] [WARN] Git detection failed")
-            except Exception as e:
-                print(f"[{self.timestamp()}] [WARN] Git status check failed: {e}")
+                    print(f"[{self.timestamp()}] [WARN] Git command ran but returned no git-dir.")
+            except subprocess.CalledProcessError as e:
+                print(f"[{self.timestamp()}] [WARN] Git detection failed in workspace: {e.stderr.strip()}")
+        else:
+            print(f"[{self.timestamp()}] [OK] Fresh mode - skipping git checks.")
     
     def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Load task definition"""
@@ -369,22 +328,9 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 "GIT_CEILING_DIRECTORIES": str(self.workspace),
             })
             
-            # Dual approach: try KISS first, fallback to complex if needed
+            # KISS approach: trust git's native worktree detection
             if self.mode == "repo":
-                # Option 1: KISS - let git naturally detect (preferred)
-                # Option 2: Complex - explicit GIT_DIR/GIT_WORK_TREE (fallback)
-                use_complex_git = os.getenv("HIVE_USE_COMPLEX_GIT", "0") == "1"
-                
-                if use_complex_git:
-                    gitdir = self._resolve_worktree_gitdir(self.workspace)
-                    if gitdir:
-                        env["GIT_DIR"] = str(gitdir)
-                        env["GIT_WORK_TREE"] = str(self.workspace)
-                        print(f"[{self.timestamp()}] [INFO] Using complex GIT_DIR: {gitdir}")
-                    else:
-                        print(f"[{self.timestamp()}] [WARN] Complex mode failed, falling back to KISS")
-                else:
-                    print(f"[{self.timestamp()}] [INFO] Using KISS git detection")
+                print(f"[{self.timestamp()}] [INFO] Using standard git context detection within worktree")
             
             # Run from workspace directory (Claude will create files here)
             log_fp = open(log_file, "a", encoding="utf-8") if log_file else None
