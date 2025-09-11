@@ -1,9 +1,8 @@
 {
   "queue": [
-    "hello_hive",
-    "simple_backend_test",
-    "simple_frontend_test",
-    "simple_infra_test"
+    "B001-add-queen-tests",
+    "I001-dockerize-hive",
+    "B002-worker-local-mode"
   ],
-  "updated_at": "2025-09-10T17:45:35.261485+00:00"
+  "updated_at": "2025-09-11T12:00:00.000000+00:00"
 }

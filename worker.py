@@ -24,8 +24,8 @@ class WorkerCore:
         self.phase = phase or "apply"
         self.mode = mode or "fresh"
         
-        # Core paths
-        self.root = Path.cwd().parent if Path.cwd().name.startswith(('.worktrees', 'fresh')) else Path.cwd()
+        # Core paths (deterministic, independent of shell cwd)
+        self.root = Path(__file__).resolve().parent  # .../hive
         self.hive_dir = self.root / "hive"
         self.tasks_dir = self.hive_dir / "tasks"
         self.results_dir = self.hive_dir / "results"
@@ -167,23 +167,6 @@ class WorkerCore:
         print("[WARN] Claude command not found - running in simulation mode")
         return None
     
-    def _get_validated_add_dir(self) -> str:
-        """Validate workspace integrity and return appropriate add-dir"""
-        if not self.workspace.exists():
-            print(f"[WARN] Workspace doesn't exist, using root: {self.workspace}")
-            return str(self.root)
-        
-        # Check if workspace is a proper git worktree
-        git_file = self.workspace / ".git"
-        if git_file.exists():
-            print(f"[INFO] Using validated git worktree: {self.workspace}")
-            return str(self.workspace)
-        
-        # For non-git workspaces, trust the workspace if it exists
-        # This handles both fresh workspaces and local mode directories
-        print(f"[INFO] Using workspace directory: {self.workspace}")
-        return str(self.workspace)
-    
     def _resolve_worktree_gitdir(self, workspace: Path) -> Optional[Path]:
         """Resolve worktree .git file to actual gitdir directory"""
         dotgit = workspace / ".git"
@@ -204,6 +187,8 @@ class WorkerCore:
     
     def _verify_workspace_isolation(self):
         """Pre-flight invariant checks to ensure workspace isolation"""
+        if os.getenv("HIVE_DEBUG") != "1":
+            return
         print(f"[{self.timestamp()}] [ISOLATION] Verifying workspace isolation...")
         
         # Check 1: Process cwd matches workspace
@@ -243,13 +228,19 @@ class WorkerCore:
         else:
             print(f"[{self.timestamp()}] [OK] Fresh mode - skipping git checks")
         
-        # Check 3: Log resolved GIT_DIR in repo mode
+        # Check 3: Verify git can detect worktree naturally (KISS approach)
         if self.mode == "repo":
-            gitdir = self._resolve_worktree_gitdir(self.workspace)
-            if gitdir:
-                print(f"[{self.timestamp()}] [OK] Resolved GIT_DIR: {gitdir}")
-            else:
-                print(f"[{self.timestamp()}] [WARN] Could not resolve GIT_DIR")
+            try:
+                result = subprocess.run(
+                    ["git", "status", "--porcelain"],
+                    capture_output=True, text=True, cwd=str(self.workspace)
+                )
+                if result.returncode == 0:
+                    print(f"[{self.timestamp()}] [OK] Git naturally detects worktree (KISS)")
+                else:
+                    print(f"[{self.timestamp()}] [WARN] Git detection failed")
+            except Exception as e:
+                print(f"[{self.timestamp()}] [WARN] Git status check failed: {e}")
     
     def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Load task definition"""
@@ -328,8 +319,7 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         if not self.claude_cmd:
             return {"status": "blocked", "notes": "Claude command not available", "next_state": "blocked"}
         
-        # Run Claude from workspace directory without --add-dir to avoid dual creation
-        # Claude will create files in its current working directory (the workspace)
+        # Run Claude confined to a single writable root (workspace) via --add-dir
         
         # Windows vs Unix command handling
         if os.name == "nt":
@@ -339,6 +329,7 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 self.claude_cmd,
                 "--output-format", "stream-json",
                 "--verbose",
+                "--add-dir", str(self.workspace),
                 "--dangerously-skip-permissions",
                 "-p", prompt
             ]
@@ -348,6 +339,7 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 self.claude_cmd,
                 "--output-format", "stream-json", 
                 "--verbose",
+                "--add-dir", str(self.workspace),
                 "--dangerously-skip-permissions",
                 "-p", prompt
             ]
@@ -373,57 +365,67 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 "CLAUDE_WORKSPACE_ROOT": str(self.workspace),
                 "PWD": str(self.workspace),
                 "WORKSPACE": str(self.workspace),
+                # Prevent repo-root climbing; treat workspace as the ceiling
+                "GIT_CEILING_DIRECTORIES": str(self.workspace),
             })
             
+            # Dual approach: try KISS first, fallback to complex if needed
             if self.mode == "repo":
-                gitdir = self._resolve_worktree_gitdir(self.workspace)
-                if gitdir:
-                    env["GIT_DIR"] = str(gitdir)
-                    env["GIT_WORK_TREE"] = str(self.workspace)
+                # Option 1: KISS - let git naturally detect (preferred)
+                # Option 2: Complex - explicit GIT_DIR/GIT_WORK_TREE (fallback)
+                use_complex_git = os.getenv("HIVE_USE_COMPLEX_GIT", "0") == "1"
+                
+                if use_complex_git:
+                    gitdir = self._resolve_worktree_gitdir(self.workspace)
+                    if gitdir:
+                        env["GIT_DIR"] = str(gitdir)
+                        env["GIT_WORK_TREE"] = str(self.workspace)
+                        print(f"[{self.timestamp()}] [INFO] Using complex GIT_DIR: {gitdir}")
+                    else:
+                        print(f"[{self.timestamp()}] [WARN] Complex mode failed, falling back to KISS")
                 else:
-                    # Fallback: treat as fresh if resolution failed
-                    env.pop("GIT_DIR", None)
-                    env.pop("GIT_WORK_TREE", None)
+                    print(f"[{self.timestamp()}] [INFO] Using KISS git detection")
             
             # Run from workspace directory (Claude will create files here)
-            with subprocess.Popen(
-                cmd,
-                cwd=str(self.workspace),  # Claude runs from workspace
-                env=env,  # Isolated environment
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1
-            ) as process:
-                
-                output_lines = []
-                final_json = None
-                
-                # Stream output and look for final JSON
-                for line in process.stdout:
-                    output_lines.append(line.rstrip())
+            log_fp = open(log_file, "a", encoding="utf-8") if log_file else None
+            try:
+                with subprocess.Popen(
+                    cmd,
+                    cwd=str(self.workspace),  # Claude runs from workspace
+                    env=env,  # Isolated environment
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1
+                ) as process:
                     
-                    # Write to log file if available
-                    if log_file:
-                        with open(log_file, "a", encoding="utf-8") as f:
-                            f.write(line)
+                    output_lines = []
+                    final_json = None
                     
-                    if line.strip().startswith("FINAL_JSON:"):
-                        try:
-                            json_str = line.strip()[11:].strip()  # Remove "FINAL_JSON:" prefix
-                            final_json = json.loads(json_str)
-                        except json.JSONDecodeError:
-                            print(f"[ERROR] Invalid final JSON: {line.strip()}")
-                
-                # Wait for completion
-                exit_code = process.wait()
-                
-                # Save final status to log
-                if log_file:
-                    with open(log_file, "a", encoding="utf-8") as f:
-                        f.write(f"\n\n=== EXIT CODE: {exit_code} ===\n")
+                    # Stream output and look for final JSON
+                    for line in process.stdout:
+                        output_lines.append(line.rstrip())
+                        if log_fp:
+                            log_fp.write(line)
+                        
+                        if line.strip().startswith("FINAL_JSON:"):
+                            try:
+                                json_str = line.strip()[11:].strip()  # Remove "FINAL_JSON:" prefix
+                                final_json = json.loads(json_str)
+                            except json.JSONDecodeError:
+                                print(f"[ERROR] Invalid final JSON: {line.strip()}")
+                    
+                    # Wait for completion
+                    exit_code = process.wait()
+                    
+                    # Save final status to log
+                    if log_fp:
+                        log_fp.write(f"\n\n=== EXIT CODE: {exit_code} ===\n")
                         if final_json:
-                            f.write(f"=== FINAL JSON: {json.dumps(final_json, indent=2)} ===\n")
+                            log_fp.write(f"=== FINAL JSON: {json.dumps(final_json, indent=2)} ===\n")
+            finally:
+                if log_fp:
+                    log_fp.close()
                 
                 # Handle results
                 if exit_code == 0 and final_json:

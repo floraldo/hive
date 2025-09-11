@@ -1,0 +1,11 @@
+{
+  "task_id": "hello_hive",
+  "run_id": "local_20250911_033224",
+  "worker": "backend",
+  "phase": "apply",
+  "workspace": "C:\\git\\hive\\.worktrees\\test-fresh",
+  "timestamp": "2025-09-11T01:33:43.152261+00:00",
+  "status": "success",
+  "notes": "Completed but missing final status",
+  "next_state": "completed"
+}

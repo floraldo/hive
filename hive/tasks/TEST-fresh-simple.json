@@ -1,0 +1,23 @@
+{
+  "id": "TEST-fresh-simple",
+  "title": "Simple Fresh Mode Test - Create Hello File",
+  "description": "Test fresh mode operation by creating a simple file in an empty workspace. This verifies that fresh workspaces work correctly after our path dependency fixes.",
+  "instruction": "Create a simple test to verify fresh mode workspace functionality:\n\n1. Create a file named 'hello_fresh.txt' in the current directory\n2. Write 'Hello from fresh mode!' as the content\n3. Verify the file was created successfully\n4. Report success status\n\nThis is a simple test to verify that fresh mode (empty workspace) operations work correctly with our new workspace validation logic.",
+  "acceptance": [
+    "File hello_fresh.txt created in workspace",
+    "Content matches expected text",
+    "No git operations attempted (fresh mode)",
+    "Worker reports success status"
+  ],
+  "priority": "P0",
+  "risk": "low",
+  "status": "queued",
+  "tags": [
+    "test",
+    "fresh-mode",
+    "validation"
+  ],
+  "created_at": "2025-09-11T12:30:00.000000+00:00",
+  "updated_at": "2025-09-11T01:31:17.977294+00:00",
+  "current_phase": "plan"
+}

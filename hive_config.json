@@ -1,0 +1,57 @@
+{
+  "system": {
+    "name": "Hive Multi-Agent System",
+    "version": "2.0.0",
+    "description": "Autonomous task execution system with iterative refinement"
+  },
+  "orchestration": {
+    "max_total_workers": 10,
+    "max_parallel_per_role": {
+      "backend": 2,
+      "frontend": 2,
+      "infra": 1
+    },
+    "worker_timeout_minutes": 30,
+    "zombie_detection_minutes": 5,
+    "task_retry_limit": 2,
+    "iteration_limit": 3
+  },
+  "quality": {
+    "review_enabled": true,
+    "review_threshold": 70,
+    "auto_refinement": true,
+    "pr_creation_enabled": false,
+    "auto_merge_enabled": false
+  },
+  "git": {
+    "base_branch": "main",
+    "branch_prefix": "agent",
+    "worktree_reuse": true,
+    "commit_prefix": "feat",
+    "push_on_completion": false
+  },
+  "paths": {
+    "worktrees_dir": ".worktrees",
+    "hive_dir": "hive",
+    "tasks_dir": "hive/tasks",
+    "results_dir": "hive/results",
+    "logs_dir": "hive/logs",
+    "bus_dir": "hive/bus"
+  },
+  "worker_defaults": {
+    "claude_args": [
+      "--output-format", "stream-json",
+      "--verbose",
+      "--dangerously-skip-permissions"
+    ],
+    "environment": {
+      "PYTHONUNBUFFERED": "1",
+      "HIVE_SKIP_PERMS": "1"
+    }
+  },
+  "debug": {
+    "verbose_logging": true,
+    "save_all_outputs": true,
+    "fresh_environment_mode": false
+  }
+}

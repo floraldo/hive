@@ -30,7 +30,8 @@
       "Bash(gh auth:*)",
       "Bash(echo $CLAUDE_BIN)",
       "Bash(find:*)",
-      "Bash(git worktree:*)"
+      "Bash(git worktree:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

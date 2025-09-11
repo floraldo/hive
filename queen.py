@@ -44,14 +44,6 @@ class QueenLite:
         """Current timestamp for logging"""
         return self.hive.timestamp()
     
-    def slugify(self, text: str) -> str:
-        """Convert text to filesystem-safe slug"""
-        import re
-        # Replace non-alphanumeric with hyphens
-        text = re.sub(r'[^\w\s-]', '', text)
-        # Replace spaces with hyphens
-        text = re.sub(r'[-\s]+', '-', text)
-        return text.lower()
     
     def create_worktree(self, worker: str, task_id: str, mode: str = "branch") -> Optional[Path]:
         """Create or reuse git worktree for task
@@ -61,7 +53,7 @@ class QueenLite:
             task_id: Task identifier 
             mode: 'branch' for real implementation with repo files, 'fresh' for empty testing
         """
-        safe_task_id = self.slugify(task_id)
+        safe_task_id = self.hive.slugify(task_id)
         
         # Unified naming: .worktrees/worker/task_id for both modes
         worktree_path = self.hive.worktrees_dir / worker / safe_task_id
@@ -184,7 +176,7 @@ Workspace for {worker} tasks.
                     print(f"[{self.timestamp()}] ❌ Failed to create worktree for {task_id}")
                     return None
                 task["worktree"] = str(worktree)
-                task["branch"] = f"agent/{worker}/{self.slugify(task_id)}"
+                task["branch"] = f"agent/{worker}/{self.hive.slugify(task_id)}"
                 task["workspace_type"] = "git_worktree"
                 self.hive.save_task(task)
         else:
@@ -211,11 +203,7 @@ Workspace for {worker} tasks.
         
         # Enhanced environment
         env = os.environ.copy()
-        env.update({
-            "HIVE_SKIP_PERMS": "1",
-            "HIVE_DISABLE_PR": "1",
-            "PYTHONUNBUFFERED": "1"
-        })
+        env["PYTHONUNBUFFERED"] = "1"
         
         try:
             process = subprocess.Popen(

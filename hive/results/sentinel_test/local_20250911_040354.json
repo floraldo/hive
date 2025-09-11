@@ -1,0 +1,11 @@
+{
+  "task_id": "sentinel_test",
+  "run_id": "local_20250911_040354",
+  "worker": "backend",
+  "phase": "apply",
+  "workspace": "C:\\git\\hive\\.worktrees\\kiss-test",
+  "timestamp": "2025-09-11T02:05:44.287653+00:00",
+  "status": "success",
+  "notes": "Completed but missing final status",
+  "next_state": "completed"
+}

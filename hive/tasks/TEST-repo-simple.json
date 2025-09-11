@@ -1,0 +1,25 @@
+{
+  "id": "TEST-repo-simple",
+  "title": "Simple Repo Mode Test - Create Hello File with Git",
+  "description": "Test repo mode operation by creating a simple file in a git worktree workspace. This verifies that git worktree creation and workspace validation work correctly after our fixes.",
+  "instruction": "Create a simple test to verify repo mode workspace functionality:\n\n1. Create a file named 'hello_repo.txt' in the current directory\n2. Write 'Hello from repo mode!' as the content\n3. Stage and commit the file with git\n4. Verify the commit was successful\n5. Report success status\n\nThis is a simple test to verify that repo mode (git worktree) operations work correctly with our new worktree creation and validation logic.",
+  "acceptance": [
+    "File hello_repo.txt created in worktree",
+    "Content matches expected text",
+    "File committed to git successfully",
+    "Worktree remains in valid state",
+    "Worker reports success status"
+  ],
+  "priority": "P0",
+  "risk": "low",
+  "status": "queued",
+  "tags": [
+    "test",
+    "repo-mode",
+    "git",
+    "validation"
+  ],
+  "created_at": "2025-09-11T12:30:00.000000+00:00",
+  "updated_at": "2025-09-11T01:31:17.980296+00:00",
+  "current_phase": "plan"
+}

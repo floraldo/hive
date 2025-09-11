@@ -1,3 +1,0 @@
-Hello from TEST-repo-simple task!
-This file was created as part of the simple repository test.
-Timestamp: 2025-09-11

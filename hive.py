@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 
 class HiveCore:
-    """Streamlined hive task manager with unified operations"""
+    """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
     
     def __init__(self, root_dir: Optional[Path] = None):
         # Core paths
@@ -24,23 +24,129 @@ class HiveCore:
         self.results_dir = self.hive_dir / "results"
         self.bus_dir = self.hive_dir / "bus"
         self.worktrees_dir = self.root / ".worktrees"
+        self.logs_dir = self.hive_dir / "logs"
+        self.workers_dir = self.hive_dir / "workers"
         
-        # Configuration
-        self.config = {
-            "max_parallel_per_role": {"backend": 2, "frontend": 2, "infra": 1},
-            "worker_timeout_minutes": 30,
-            "zombie_detection_minutes": 5,
-            "fresh_cleanup_enabled": True
-        }
+        # Load configuration (will be enhanced to load from file)
+        self.config = self.load_config()
         
         # Ensure directories exist
         self.ensure_directories()
     
+    def load_config(self) -> Dict[str, Any]:
+        """Load configuration from file or use defaults"""
+        config_file = self.root / "hive_config.json"
+        
+        # Default configuration
+        default_config = {
+            "max_parallel_per_role": {"backend": 2, "frontend": 2, "infra": 1},
+            "worker_timeout_minutes": 30,
+            "zombie_detection_minutes": 5,
+            "fresh_cleanup_enabled": True,
+            "pr_creation_enabled": False,
+            "default_max_retries": 2
+        }
+        
+        if config_file.exists():
+            try:
+                with open(config_file, "r") as f:
+                    file_config = json.load(f)
+                # Merge with defaults
+                default_config.update(file_config)
+            except Exception as e:
+                print(f"Warning: Could not load config: {e}")
+        
+        return default_config
+    
+    def get_config(self, key: str, worker_type: Optional[str] = None) -> Any:
+        """Get configuration value with optional worker-specific override"""
+        # Check for worker-specific config
+        if worker_type:
+            worker_config_file = self.workers_dir / f"{worker_type}.json"
+            if worker_config_file.exists():
+                try:
+                    with open(worker_config_file, "r") as f:
+                        worker_data = json.load(f)
+                    if "config" in worker_data and key in worker_data["config"]:
+                        return worker_data["config"][key]
+                except:
+                    pass
+        
+        # Return default from main config
+        return self.config.get(key)
+    
     def ensure_directories(self):
         """Create all required directories"""
-        dirs = [self.hive_dir, self.tasks_dir, self.results_dir, self.bus_dir, self.worktrees_dir]
+        dirs = [
+            self.hive_dir, self.tasks_dir, self.results_dir, 
+            self.bus_dir, self.worktrees_dir, self.logs_dir, self.workers_dir
+        ]
         for d in dirs:
             d.mkdir(parents=True, exist_ok=True)
+    
+    # === Path Management Methods ===
+    
+    def get_task_path(self, task_id: str) -> Path:
+        """Get path to task JSON file"""
+        return self.tasks_dir / f"{task_id}.json"
+    
+    def get_result_path(self, task_id: str, run_id: str) -> Path:
+        """Get path to result JSON file"""
+        result_dir = self.results_dir / task_id
+        result_dir.mkdir(parents=True, exist_ok=True)
+        return result_dir / f"{run_id}.json"
+    
+    def get_log_path(self, task_id: str, run_id: str) -> Path:
+        """Get path to log file"""
+        log_dir = self.logs_dir / task_id
+        log_dir.mkdir(parents=True, exist_ok=True)
+        return log_dir / f"{run_id}.log"
+    
+    def get_worktree_path(self, worker: str, task_id: str) -> Path:
+        """Get path to git worktree"""
+        return self.worktrees_dir / worker / self.slugify(task_id)
+    
+    def slugify(self, text: str) -> str:
+        """Convert text to filesystem-safe slug"""
+        import re
+        text = re.sub(r'[^\w\s-]', '', text)
+        text = re.sub(r'[-\s]+', '-', text)
+        return text.lower()
+    
+    # === Result Management Methods ===
+    
+    def save_result(self, task_id: str, run_id: str, result: Dict[str, Any]) -> bool:
+        """Save task execution result"""
+        try:
+            result_path = self.get_result_path(task_id, run_id)
+            result_data = {
+                "task_id": task_id,
+                "run_id": run_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                **result
+            }
+            with open(result_path, "w") as f:
+                json.dump(result_data, f, indent=2)
+            return True
+        except Exception as e:
+            print(f"Error saving result: {e}")
+            return False
+    
+    def get_latest_result(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Get the latest result for a task"""
+        results_dir = self.results_dir / task_id
+        if not results_dir.exists():
+            return None
+        
+        result_files = sorted(results_dir.glob("*.json"))
+        if not result_files:
+            return None
+        
+        try:
+            with open(result_files[-1], "r") as f:
+                return json.load(f)
+        except Exception:
+            return None
     
     def timestamp(self) -> str:
         """Current timestamp for logging"""
@@ -159,6 +265,54 @@ class HiveCore:
                 print(f"[{self.timestamp()}] Error clearing fresh worktrees: {e}")
         
         print(f"[{self.timestamp()}] Fresh environment ready - reset {reset_count} tasks")
+    
+    def clean_task_workspace(self, task_id: str):
+        """Clean a specific task's workspace"""
+        task = self.load_task(task_id)
+        if not task:
+            print(f"[{self.timestamp()}] Task {task_id} not found")
+            return False
+        
+        # Clear the task's worktree if it exists
+        worktree_path = task.get("worktree")
+        if worktree_path:
+            worktree = Path(worktree_path)
+            if worktree.exists():
+                try:
+                    shutil.rmtree(worktree)
+                    print(f"[{self.timestamp()}] Cleared workspace for {task_id}")
+                except Exception as e:
+                    print(f"[{self.timestamp()}] Error clearing workspace: {e}")
+                    return False
+        
+        # Clear task results
+        task_results = self.results_dir / task_id
+        if task_results.exists():
+            try:
+                shutil.rmtree(task_results)
+                print(f"[{self.timestamp()}] Cleared results for {task_id}")
+            except Exception as e:
+                print(f"[{self.timestamp()}] Error clearing results: {e}")
+        
+        # Clear task logs
+        task_logs = self.root / "hive" / "logs" / task_id
+        if task_logs.exists():
+            try:
+                shutil.rmtree(task_logs)
+                print(f"[{self.timestamp()}] Cleared logs for {task_id}")
+            except Exception as e:
+                print(f"[{self.timestamp()}] Error clearing logs: {e}")
+        
+        # Reset task status
+        task["status"] = "queued"
+        task["current_phase"] = "plan"
+        for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
+            if key in task:
+                del task[key]
+        
+        self.save_task(task)
+        print(f"[{self.timestamp()}] Task {task_id} reset to queued")
+        return True
     
     def get_task_stats(self) -> Dict[str, int]:
         """Get current task statistics"""
@@ -292,6 +446,30 @@ def cmd_list(args, core: HiveCore):
         title = task.get("title", task["id"])
         print(f"  [{status:12}] {task['id']:30} - {title}")
 
+def cmd_clear(args, core: HiveCore):
+    """Clear a specific task's workspace"""
+    task_id = args.task_id
+    if core.clean_task_workspace(task_id):
+        print(f"Successfully cleared workspace for {task_id}")
+    else:
+        print(f"Failed to clear workspace for {task_id}")
+
+def cmd_reset(args, core: HiveCore):
+    """Reset a task to queued status"""
+    task = core.load_task(args.task_id)
+    if not task:
+        print(f"Task {args.task_id} not found")
+        return
+    
+    task["status"] = "queued"
+    task["current_phase"] = "plan"
+    for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
+        if key in task:
+            del task[key]
+    
+    core.save_task(task)
+    print(f"Task {args.task_id} reset to queued")
+
 def main():
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(description="HiveCore - Streamlined Hive Manager")
@@ -327,6 +505,16 @@ def main():
     list_parser = subparsers.add_parser("list", help="List all tasks")
     list_parser.add_argument("--status", help="Filter by status")
     list_parser.set_defaults(func=cmd_list)
+    
+    # Clear command (clear specific task workspace)
+    clear_parser = subparsers.add_parser("clear", help="Clear a specific task's workspace")
+    clear_parser.add_argument("task_id", help="Task ID to clear")
+    clear_parser.set_defaults(func=cmd_clear)
+    
+    # Reset command (reset task to queued)
+    reset_parser = subparsers.add_parser("reset", help="Reset a task to queued status")
+    reset_parser.add_argument("task_id", help="Task ID to reset")
+    reset_parser.set_defaults(func=cmd_reset)
     
     args = parser.parse_args()
     

@@ -156,6 +156,44 @@ python hive.py worker:oneshot --role frontend --id dashboard_ui
 python hive.py worker:oneshot --role backend --id api_endpoint --phase test --workspace ./custom_workspace
 ```
 
+#### `worker:local` - Local development mode (NEW)
+```bash
+python worker.py ROLE --local --task-id TASK_ID [options]
+```
+
+Run tasks directly without the Queen orchestrator - perfect for debugging and development.
+
+**Required:**
+- `ROLE`: Worker ID (backend|frontend|infra)
+- `--local`: Enable local development mode
+- `--task-id`: Task to execute
+
+**Optional:**
+- `--phase apply|test`: Execution phase (default: apply)
+- `--workspace PATH`: Custom workspace directory
+- `--run-id ID`: Custom run ID (auto-generated if not provided)
+
+**Features:**
+- **Auto-generated Run IDs**: Creates timestamped IDs like `local_20250911_143022`
+- **Direct Execution**: No Queen orchestrator required
+- **Full Logging**: Saves logs to `hive/logs/{task_id}/{run_id}.log`
+- **Result Persistence**: Saves results to `hive/results/{task_id}/{run_id}.json`
+
+**Examples:**
+```bash
+# Basic local execution
+python worker.py backend --local --task-id hello_hive
+
+# Test phase execution
+python worker.py frontend --local --task-id user_auth --phase test
+
+# Custom workspace for isolation
+python worker.py infra --local --task-id docker_setup --workspace ./test_workspace
+
+# With explicit run ID
+python worker.py backend --local --task-id api_endpoint --run-id test_run_001
+```
+
 ### Monitoring
 
 #### `events:tail` - Watch event stream
@@ -204,6 +242,30 @@ python hive.py worker:oneshot --role backend --id test_task --phase plan
 python hive.py worker:oneshot --role backend --id test_task --phase apply  
 python hive.py worker:oneshot --role backend --id test_task --phase test
 ```
+
+### Local Development Workflow (NEW)
+```bash
+# 1. Create or modify a task
+python hive.py task:add --id dev_feature --title "Development feature"
+
+# 2. Run locally without Queen orchestrator
+python worker.py backend --local --task-id dev_feature --phase apply
+
+# 3. Check results
+cat hive/results/dev_feature/local_*.json
+
+# 4. Run tests locally
+python worker.py backend --local --task-id dev_feature --phase test
+
+# 5. Iterate as needed (auto-generates new run IDs)
+python worker.py backend --local --task-id dev_feature --phase apply
+```
+
+This local mode is ideal for:
+- **Rapid Development**: No need to start Queen orchestrator
+- **Debugging**: Direct execution with full visibility
+- **Testing**: Isolate and test individual tasks
+- **CI/CD Integration**: Run tasks in automated pipelines
 
 ## Environment Variables
 
