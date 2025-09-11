@@ -12,44 +12,44 @@ from pathlib import Path
 
 def run_command(cmd, description):
     """Run a command and report results"""
-    print(f"🧹 {description}...")
+    print(f"Cleaning {description}...")
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         if result.returncode == 0:
-            print(f"✅ {description} completed")
+            print(f"[OK] {description} completed")
         else:
-            print(f"⚠️  {description} completed with warnings: {result.stderr}")
+            print(f"[WARN]  {description} completed with warnings: {result.stderr}")
     except Exception as e:
-        print(f"❌ {description} failed: {e}")
+        print(f"[ERROR] {description} failed: {e}")
 
 def clean_directory(path, description):
     """Clean a directory if it exists"""
     if Path(path).exists():
-        print(f"🧹 {description}...")
+        print(f"Cleaning {description}...")
         try:
             shutil.rmtree(path)
-            print(f"✅ {description} completed")
+            print(f"[OK] {description} completed")
         except Exception as e:
-            print(f"❌ {description} failed: {e}")
+            print(f"[ERROR] {description} failed: {e}")
     else:
-        print(f"ℹ️  {description} - directory doesn't exist")
+        print(f"[INFO]  {description} - directory doesn't exist")
 
 def clean_files(pattern, description):
     """Clean files matching a pattern"""
-    print(f"🧹 {description}...")
+    print(f"Cleaning {description}...")
     try:
         result = subprocess.run(f"find . -name '{pattern}' -delete 2>/dev/null || true", shell=True)
-        print(f"✅ {description} completed")
+        print(f"[OK] {description} completed")
     except Exception as e:
-        print(f"❌ {description} failed: {e}")
+        print(f"[ERROR] {description} failed: {e}")
 
 def main():
-    print("🚀 Hive Cleanup Script")
+    print("Hive Cleanup Script")
     print("=" * 50)
     
     # Change to hive directory
     os.chdir(Path(__file__).parent)
-    print(f"📁 Working in: {os.getcwd()}")
+    print(f"Working in: {os.getcwd()}")
     
     # Clean worktrees
     clean_directory(".worktrees", "Clearing worktrees")
@@ -65,7 +65,7 @@ def main():
     clean_files("events_*.jsonl", "Clearing event files")
     
     # Reset task statuses to queued
-    print("🧹 Resetting task statuses...")
+    print("Cleaning Resetting task statuses...")
     try:
         import json
         tasks_dir = Path("hive/tasks")
@@ -84,31 +84,31 @@ def main():
                     with open(task_file, 'w') as f:
                         json.dump(task, f, indent=2)
                     
-                    print(f"  ✅ Reset {task_file.name} to queued")
+                    print(f"  [OK] Reset {task_file.name} to queued")
         
-        print("✅ Task status reset completed")
+        print("[OK] Task status reset completed")
     except Exception as e:
-        print(f"❌ Task status reset failed: {e}")
+        print(f"[ERROR] Task status reset failed: {e}")
     
     # Kill any running worker processes
-    print("🧹 Checking for running worker processes...")
+    print("Cleaning Checking for running worker processes...")
     try:
         # Find and kill any python processes running cc_worker.py
         result = subprocess.run("ps aux | grep 'cc_worker.py' | grep -v grep | awk '{print $2}' | xargs kill -9 2>/dev/null || true", 
                               shell=True, capture_output=True)
-        print("✅ Worker process cleanup completed")
+        print("[OK] Worker process cleanup completed")
     except Exception as e:
-        print(f"⚠️  Worker process cleanup: {e}")
+        print(f"[WARN]  Worker process cleanup: {e}")
     
-    print("\n🎉 Hive cleanup completed!")
-    print("📋 Summary:")
-    print("  • Worktrees cleared")
-    print("  • All logs cleared")
-    print("  • Results cleared")
-    print("  • Hints cleared")
-    print("  • Task statuses reset to queued")
-    print("  • Worker processes terminated")
-    print("\n🚀 Ready for fresh start!")
+    print("\n[SUCCESS] Hive cleanup completed!")
+    print(" Summary:")
+    print("  - Worktrees cleared")
+    print("  - All logs cleared")
+    print("  - Results cleared")
+    print("  - Hints cleared")
+    print("  - Task statuses reset to queued")
+    print("  - Worker processes terminated")
+    print("\n[READY] Ready for fresh start!")
 
 if __name__ == "__main__":
     main()

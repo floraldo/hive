@@ -1,0 +1,16 @@
+{
+  "id": "test-backend-simple",
+  "title": "Simple Backend Test",
+  "description": "Create a Python function that calculates factorial",
+  "worker_type": "backend",
+  "workspace": "fresh",
+  "priority": "normal",
+  "acceptance_criteria": [
+    "Create a Python file with a factorial function",
+    "Function should handle input validation", 
+    "Include basic tests to verify it works"
+  ],
+  "phase": "apply",
+  "status": "queued",
+  "created": "2025-09-11T04:50:00Z"
+}

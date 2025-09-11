@@ -28,17 +28,12 @@ class Phase(Enum):
 class QueenLite:
     """Streamlined orchestrator with preserved hardening"""
     
-    def __init__(self, hive_core: HiveCore, fresh_env: bool = False):
+    def __init__(self, hive_core: HiveCore):
         # Tight integration with HiveCore
         self.hive = hive_core
-        self.fresh_env = fresh_env
         
         # State management
         self.active_workers = {}  # task_id -> {process, run_id, phase}
-        
-        # Apply fresh environment cleanup if requested
-        if self.fresh_env:
-            self.hive.clean_fresh_environment()
     
     def timestamp(self) -> str:
         """Current timestamp for logging"""
@@ -55,8 +50,9 @@ class QueenLite:
         # We no longer need to create it here.
         print(f"[{self.timestamp()}] Delegating workspace creation to worker for task: {task_id}")
 
-        # Determine mode
-        mode = "repo" if not self.fresh_env else "fresh"
+        # Determine mode from task definition, default to "repo" if not specified
+        mode = task.get("workspace", "repo")
+        print(f"[{self.timestamp()}] Task requires '{mode}' workspace mode")
 
         # Build command - remove the --workspace argument
         cmd = [
@@ -193,7 +189,8 @@ class QueenLite:
                 
                 # Wait up to 5 seconds for graceful shutdown
                 try:
-                    process.wait(timeout=5)
+                    shutdown_timeout = self.hive.config["orchestration"]["graceful_shutdown_seconds"]
+                    process.wait(timeout=shutdown_timeout)
                 except subprocess.TimeoutExpired:
                     # Force kill if not responding
                     process.kill()
@@ -274,110 +271,188 @@ class QueenLite:
         completed = []
         
         for task_id, metadata in list(self.active_workers.items()):
-            process = metadata["process"]
-            poll = process.poll()
-            
-            if poll is not None:
-                # Worker finished
-                task = self.hive.load_task(task_id)
-                if not task:
-                    completed.append(task_id)
-                    continue
-                
-                # HARDENING: Check if worker failed (non-zero exit code)
-                if poll != 0:
-                    print(f"[{self.timestamp()}] Worker failed for {task_id} (exit: {poll}) - reverting to queued")
-                    # Revert task to queued status for retry
-                    task["status"] = "queued"
-                    # Remove assignment details to allow reassignment
-                    for key in ["assignee", "assigned_at", "current_phase", "started_at"]:
-                        if key in task:
-                            del task[key]
-                    self.hive.save_task(task)
-                    completed.append(task_id)
-                    continue
-                
-                # Check for result file (simplified)
-                results_dir = self.hive.results_dir / task_id
-                if results_dir.exists():
-                    # Find latest result file
-                    result_files = list(results_dir.glob("*.json"))
-                    if result_files:
-                        latest = max(result_files, key=lambda f: f.stat().st_mtime)
-                        try:
-                            with open(latest, "r") as f:
-                                result = json.load(f)
-                            
-                            # Update task based on result
-                            status = result.get("status", "failed")
-                            current_phase = metadata.get("phase", "apply")
-                            
-                            if status == "success":
-                                # Check if we should advance to TEST phase
-                                if current_phase == "apply":
-                                    # Spawn TEST phase
-                                    print(f"[{self.timestamp()}] Task {task_id} APPLY succeeded, starting TEST phase")
-                                    worker = task.get("assignee", "backend")
-                                    result = self.spawn_worker(task, worker, Phase.TEST)
-                                    if result:
-                                        process, run_id = result
-                                        self.active_workers[task_id] = {
-                                            "process": process,
-                                            "run_id": run_id,
-                                            "phase": Phase.TEST.value,
-                                            "worker_type": worker
-                                        }
-                                        continue  # Don't mark as completed yet - TEST phase is running
-                                else:
-                                    # TEST phase completed successfully
-                                    task["status"] = "completed"
-                                    print(f"[{self.timestamp()}] Task {task_id} TEST succeeded - COMPLETED")
-                                    completed.append(task_id)  # Now mark as completed
-                            else:
-                                # Check for retries before marking as failed
-                                retry_count = task.get("retry_count", 0)
-                                if retry_count < 2:  # Allow up to 2 retries
-                                    print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed - retrying (attempt {retry_count + 1}/2)")
-                                    task["retry_count"] = retry_count + 1
-                                    # Reset to queued for retry
-                                    task["status"] = "queued"
-                                    task["current_phase"] = "plan"
-                                    # Remove assignment details for clean restart
-                                    for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
-                                        if key in task:
-                                            del task[key]
-                                else:
-                                    # Max retries reached
-                                    task["status"] = "failed"
-                                    print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed after {retry_count} retries")
-                                completed.append(task_id)  # Mark as completed (failed or retrying)
-                            
-                            self.hive.save_task(task)
-                        except Exception as e:
-                            print(f"[{self.timestamp()}] Error reading result for {task_id}: {e}")
-                            completed.append(task_id)  # Mark as completed on error
-                else:
-                    # No result file yet, keep monitoring
-                    continue
+            if self._process_finished_worker(task_id, metadata, completed):
+                continue
         
         # Clean up completed workers
+        self._cleanup_completed_workers(completed)
+    
+    def _process_finished_worker(self, task_id: str, metadata: Dict[str, Any], completed: List[str]) -> bool:
+        """Process a finished worker and return True if processing should continue to next worker"""
+        process = metadata["process"]
+        poll = process.poll()
+        
+        if poll is None:
+            return True  # Worker still running, continue to next
+        
+        # Worker finished - load task
+        task = self.hive.load_task(task_id)
+        if not task:
+            completed.append(task_id)
+            return True
+        
+        # Handle worker failure (non-zero exit code)
+        if poll != 0:
+            self._handle_worker_failure(task_id, task, completed)
+            return True
+        
+        # Handle successful worker completion
+        return self._handle_worker_success(task_id, task, metadata, completed)
+    
+    def _handle_worker_failure(self, task_id: str, task: Dict[str, Any], completed: List[str]):
+        """Handle worker process failure"""
+        print(f"[{self.timestamp()}] Worker failed for {task_id} - reverting to queued")
+        
+        # Revert task to queued status for retry
+        task["status"] = "queued"
+        
+        # Remove assignment details to allow reassignment
+        for key in ["assignee", "assigned_at", "current_phase", "started_at"]:
+            if key in task:
+                del task[key]
+        
+        self.hive.save_task(task)
+        completed.append(task_id)
+    
+    def _handle_worker_success(self, task_id: str, task: Dict[str, Any], metadata: Dict[str, Any], completed: List[str]) -> bool:
+        """Handle successful worker completion. Returns True if processing should continue to next worker"""
+        result = self._load_task_result(task_id)
+        if not result:
+            return True  # No result file yet, keep monitoring
+        
+        try:
+            status = result.get("status", "failed")
+            current_phase = metadata.get("phase", "apply")
+            
+            if status == "success":
+                return self._handle_task_success(task_id, task, current_phase, completed)
+            else:
+                return self._handle_task_failure(task_id, task, current_phase, completed)
+                
+        except Exception as e:
+            print(f"[{self.timestamp()}] Error processing result for {task_id}: {e}")
+            completed.append(task_id)
+            return True
+    
+    def _load_task_result(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Load the latest result file for a task"""
+        results_dir = self.hive.results_dir / task_id
+        if not results_dir.exists():
+            return None
+        
+        result_files = list(results_dir.glob("*.json"))
+        if not result_files:
+            return None
+        
+        latest = max(result_files, key=lambda f: f.stat().st_mtime)
+        try:
+            with open(latest, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[{self.timestamp()}] Error reading result file {latest}: {e}")
+            return None
+    
+    def _handle_task_success(self, task_id: str, task: Dict[str, Any], current_phase: str, completed: List[str]) -> bool:
+        """Handle successful task completion"""
+        if current_phase == "apply":
+            # Advance to TEST phase
+            print(f"[{self.timestamp()}] Task {task_id} APPLY succeeded, starting TEST phase")
+            worker = task.get("assignee", "backend")
+            result = self.spawn_worker(task, worker, Phase.TEST)
+            
+            if result:
+                process, run_id = result
+                self.active_workers[task_id] = {
+                    "process": process,
+                    "run_id": run_id,
+                    "phase": Phase.TEST.value,
+                    "worker_type": worker
+                }
+                return True  # Don't mark as completed yet - TEST phase is running
+        else:
+            # TEST phase completed successfully
+            task["status"] = "completed"
+            print(f"[{self.timestamp()}] Task {task_id} TEST succeeded - COMPLETED")
+            completed.append(task_id)
+        
+        self.hive.save_task(task)
+        return True
+    
+    def _handle_task_failure(self, task_id: str, task: Dict[str, Any], current_phase: str, completed: List[str]) -> bool:
+        """Handle task failure with retry logic"""
+        retry_count = task.get("retry_count", 0)
+        max_retries = self.hive.config["orchestration"]["task_retry_limit"]
+        
+        if retry_count < max_retries:
+            # Retry the task
+            print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed - retrying (attempt {retry_count + 1}/{max_retries})")
+            task["retry_count"] = retry_count + 1
+            task["status"] = "queued"
+            task["current_phase"] = "plan"
+            
+            # Remove assignment details for clean restart
+            for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
+                if key in task:
+                    del task[key]
+        else:
+            # Max retries reached
+            task["status"] = "failed"
+            print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed after {retry_count} retries")
+        
+        completed.append(task_id)
+        self.hive.save_task(task)
+        return True
+    
+    def _cleanup_completed_workers(self, completed: List[str]):
+        """Clean up completed workers from active_workers dict"""
         for task_id in completed:
             if task_id in self.active_workers:
                 del self.active_workers[task_id]
     
     def print_status(self):
-        """Print concise status"""
+        """Print enhanced status with worker details"""
         stats = self.hive.get_task_stats()
         active_count = len(self.active_workers)
         
-        print(f"[{self.timestamp()}] Active: {active_count} | "
-              f"Q: {stats['queued']} | A: {stats['assigned']} | "
-              f"IP: {stats['in_progress']} | C: {stats['completed']} | F: {stats['failed']}")
+        # Header with overall stats
+        print(f"[{self.timestamp()}] === HIVE STATUS ===")
+        print(f"|- Active: {active_count} | Queued: {stats['queued']} | In Progress: {stats['in_progress']} | Completed: {stats['completed']} | Failed: {stats['failed']}")
+        
+        # Show active worker details
+        if self.active_workers:
+            worker_items = list(self.active_workers.items())
+            for i, (task_id, metadata) in enumerate(worker_items):
+                process = metadata["process"]
+                worker_type = metadata["worker_type"]
+                phase = metadata["phase"]
+                pid = process.pid
+                
+                # Calculate runtime
+                task = self.hive.load_task(task_id)
+                if task and "started_at" in task:
+                    try:
+                        started_time = datetime.fromisoformat(task["started_at"].replace('Z', '+00:00'))
+                        runtime = datetime.now(timezone.utc) - started_time
+                        runtime_str = f"{int(runtime.total_seconds() // 60)}m {int(runtime.total_seconds() % 60)}s"
+                    except:
+                        runtime_str = "unknown"
+                else:
+                    runtime_str = "unknown"
+                
+                # Use appropriate prefix for tree structure
+                if i == len(worker_items) - 1:
+                    prefix = "`-"
+                else:
+                    prefix = "|-"
+                
+                print(f"{prefix} {worker_type}: {task_id} ({phase}, {runtime_str}, PID: {pid})")
+        else:
+            print("`- No active workers")
     
     def run_forever(self):
         """Main orchestration loop"""
         print(f"[{self.timestamp()}] QueenLite starting...")
-        print(f"Fresh Environment: {self.fresh_env}")
+        print("Task-driven workspace management enabled")
         print("="*50)
         
         try:
@@ -409,12 +484,11 @@ class QueenLite:
 def main():
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(description="QueenLite - Streamlined Queen Orchestrator")
-    parser.add_argument("--fresh-env", action="store_true", help="Use fresh environment mode with auto-cleanup")
     args = parser.parse_args()
     
     # Create tightly integrated components
     hive_core = HiveCore()
-    queen = QueenLite(hive_core, fresh_env=args.fresh_env)
+    queen = QueenLite(hive_core)
     
     # Start orchestration
     queen.run_forever()

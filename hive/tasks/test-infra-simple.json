@@ -1,0 +1,15 @@
+{
+  "id": "test-infra-simple",
+  "title": "Simple Infrastructure Test",
+  "description": "Create a simple Dockerfile for a Python app",
+  "worker_type": "infra",
+  "priority": "normal",
+  "acceptance_criteria": [
+    "Create a basic Dockerfile for Python application",
+    "Include requirements.txt with common dependencies",
+    "Test that the image builds successfully"
+  ],
+  "phase": "apply",
+  "status": "queued",
+  "created": "2025-09-11T04:50:00Z"
+}
