@@ -17,11 +17,12 @@ class WorkerCore:
     """Streamlined worker with preserved path fix"""
     
     def __init__(self, worker_id: str, task_id: str = None, run_id: str = None, 
-                 workspace: str = None, phase: str = None):
+                 workspace: str = None, phase: str = None, mode: str = None):
         self.worker_id = worker_id
         self.task_id = task_id
         self.run_id = run_id
         self.phase = phase or "apply"
+        self.mode = mode or "fresh"
         
         # Core paths
         self.root = Path.cwd().parent if Path.cwd().name.startswith(('.worktrees', 'fresh')) else Path.cwd()
@@ -30,13 +31,23 @@ class WorkerCore:
         self.results_dir = self.hive_dir / "results"
         self.logs_dir = self.hive_dir / "logs"
         
-        # Workspace
+        # Workspace creation based on mode
         if workspace:
-            self.workspace = Path(workspace)
+            # Use provided workspace path - normalize to absolute path
+            self.workspace = Path(workspace).resolve()
+            self.workspace.mkdir(parents=True, exist_ok=True)
         else:
-            self.workspace = self.root / ".worktrees" / worker_id
+            # Create workspace based on mode
+            self.workspace = self._create_workspace()
         
-        self.workspace.mkdir(parents=True, exist_ok=True)
+        # Ensure process-level cwd is the workspace (safe even if you also set cwd in Popen)
+        try:
+            os.chdir(self.workspace)
+        except Exception as e:
+            print(f"[{self.timestamp()}] [WARN] Could not chdir to workspace: {e}")
+        
+        # Pre-flight invariant checks to ensure workspace isolation
+        self._verify_workspace_isolation()
         
         # Find Claude command
         self.claude_cmd = self.find_claude_cmd()
@@ -53,6 +64,70 @@ class WorkerCore:
     def timestamp(self) -> str:
         """Current timestamp for logging"""
         return datetime.now().strftime("%H:%M:%S")
+    
+    def _create_workspace(self) -> Path:
+        """Create workspace based on mode (fresh or repo)"""
+        # Determine workspace path
+        if self.task_id:
+            workspace_path = self.root / ".worktrees" / self.worker_id / self.task_id
+        else:
+            workspace_path = self.root / ".worktrees" / self.worker_id
+        
+        if self.mode == "fresh":
+            # Fresh mode: create empty directory
+            workspace_path.mkdir(parents=True, exist_ok=True)
+            print(f"[{self.timestamp()}] Created fresh workspace: {workspace_path}")
+            return workspace_path
+            
+        elif self.mode == "repo":
+            # Repo mode: create git worktree
+            return self._create_git_worktree(workspace_path)
+        
+        else:
+            raise ValueError(f"Unknown mode: {self.mode}")
+    
+    def _create_git_worktree(self, workspace_path: Path) -> Path:
+        """Create git worktree for repo mode"""
+        # Create branch name
+        safe_task_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in self.task_id)
+        branch = f"agent/{self.worker_id}/{safe_task_id}"
+        
+        # If worktree already exists and is valid, reuse it
+        if workspace_path.exists():
+            git_file = workspace_path / ".git"
+            if git_file.exists():
+                print(f"[{self.timestamp()}] Reusing existing git worktree: {workspace_path}")
+                return workspace_path
+            else:
+                # Directory exists but not a git worktree - remove it
+                import shutil
+                shutil.rmtree(workspace_path)
+        
+        try:
+            # Create git worktree with branch from HEAD
+            result = subprocess.run(
+                ["git", "worktree", "add", "-b", branch, str(workspace_path), "HEAD"],
+                cwd=str(self.root),
+                capture_output=True, text=True
+            )
+            
+            if result.returncode == 0:
+                # Validate that worktree was created properly
+                git_file = workspace_path / ".git"
+                if git_file.exists():
+                    print(f"[{self.timestamp()}] Created git worktree: {workspace_path} (branch: {branch})")
+                    return workspace_path
+                else:
+                    raise RuntimeError(f"Git worktree created but missing .git file: {workspace_path}")
+            else:
+                raise RuntimeError(f"Git worktree failed (exit {result.returncode}): {result.stderr}")
+                
+        except Exception as e:
+            print(f"[{self.timestamp()}] ERROR: Failed to create git worktree: {e}")
+            print(f"[{self.timestamp()}] Falling back to fresh mode")
+            # Fallback to fresh mode
+            workspace_path.mkdir(parents=True, exist_ok=True)
+            return workspace_path
     
     def find_claude_cmd(self) -> Optional[str]:
         """Find Claude command with fallbacks"""
@@ -91,6 +166,90 @@ class WorkerCore:
         
         print("[WARN] Claude command not found - running in simulation mode")
         return None
+    
+    def _get_validated_add_dir(self) -> str:
+        """Validate workspace integrity and return appropriate add-dir"""
+        if not self.workspace.exists():
+            print(f"[WARN] Workspace doesn't exist, using root: {self.workspace}")
+            return str(self.root)
+        
+        # Check if workspace is a proper git worktree
+        git_file = self.workspace / ".git"
+        if git_file.exists():
+            print(f"[INFO] Using validated git worktree: {self.workspace}")
+            return str(self.workspace)
+        
+        # For non-git workspaces, trust the workspace if it exists
+        # This handles both fresh workspaces and local mode directories
+        print(f"[INFO] Using workspace directory: {self.workspace}")
+        return str(self.workspace)
+    
+    def _resolve_worktree_gitdir(self, workspace: Path) -> Optional[Path]:
+        """Resolve worktree .git file to actual gitdir directory"""
+        dotgit = workspace / ".git"
+        if not dotgit.exists():
+            return None
+        try:
+            # Worktrees: .git is a file "gitdir: /path/to/.git/worktrees/<name>"
+            txt = dotgit.read_text(encoding="utf-8", errors="ignore").strip()
+            if txt.startswith("gitdir:"):
+                gitdir_path = Path(txt.split("gitdir:", 1)[1].strip()).resolve()
+                return gitdir_path
+            # In normal repos .git is a directory:
+            if dotgit.is_dir():
+                return dotgit.resolve()
+        except Exception:
+            pass
+        return None
+    
+    def _verify_workspace_isolation(self):
+        """Pre-flight invariant checks to ensure workspace isolation"""
+        print(f"[{self.timestamp()}] [ISOLATION] Verifying workspace isolation...")
+        
+        # Check 1: Process cwd matches workspace
+        current_cwd = Path.cwd().resolve()
+        workspace_resolved = self.workspace.resolve()
+        if current_cwd != workspace_resolved:
+            print(f"[{self.timestamp()}] [WARN] Process cwd mismatch: {current_cwd} != {workspace_resolved}")
+        else:
+            print(f"[{self.timestamp()}] [OK] Process cwd matches workspace: {current_cwd}")
+        
+        # Check 2: Git toplevel matches workspace (repo mode only)
+        if self.mode == "repo":
+            try:
+                # Check if we're inside a git work tree
+                result = subprocess.run(
+                    ["git", "rev-parse", "--is-inside-work-tree"],
+                    capture_output=True, text=True, cwd=str(self.workspace)
+                )
+                if result.returncode == 0 and result.stdout.strip() == "true":
+                    # Get git toplevel
+                    toplevel_result = subprocess.run(
+                        ["git", "rev-parse", "--show-toplevel"],
+                        capture_output=True, text=True, cwd=str(self.workspace)
+                    )
+                    if toplevel_result.returncode == 0:
+                        git_toplevel = Path(toplevel_result.stdout.strip()).resolve()
+                        if git_toplevel != workspace_resolved:
+                            print(f"[{self.timestamp()}] [WARN] Git toplevel mismatch: {git_toplevel} != {workspace_resolved}")
+                        else:
+                            print(f"[{self.timestamp()}] [OK] Git toplevel matches workspace: {git_toplevel}")
+                    else:
+                        print(f"[{self.timestamp()}] [WARN] Could not get git toplevel")
+                else:
+                    print(f"[{self.timestamp()}] [WARN] Not inside git work tree")
+            except Exception as e:
+                print(f"[{self.timestamp()}] [WARN] Git verification failed: {e}")
+        else:
+            print(f"[{self.timestamp()}] [OK] Fresh mode - skipping git checks")
+        
+        # Check 3: Log resolved GIT_DIR in repo mode
+        if self.mode == "repo":
+            gitdir = self._resolve_worktree_gitdir(self.workspace)
+            if gitdir:
+                print(f"[{self.timestamp()}] [OK] Resolved GIT_DIR: {gitdir}")
+            else:
+                print(f"[{self.timestamp()}] [WARN] Could not resolve GIT_DIR")
     
     def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Load task definition"""
@@ -151,6 +310,13 @@ EXECUTION REQUIREMENTS:
 6. Keep changes focused and minimal
 7. Commit with message including task ID: {task_id} and phase: {self.phase}
 
+CRITICAL PATH CONSTRAINT:
+- You are running in an isolated workspace directory
+- ONLY create files in the current directory (.) using relative paths
+- DO NOT use absolute paths or ../../../ paths to access parent directories
+- All file operations must be relative to your current working directory
+- Do not navigate outside your workspace
+
 IMPORTANT: At the very end, print EXACTLY ONE LINE prefixed by 'FINAL_JSON: ':
 FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"<PR URL or empty>","next_state":"completed|testing|reviewing|pr_open|failed|blocked"}}
 """
@@ -158,9 +324,12 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         return prompt
     
     def run_claude(self, prompt: str) -> Dict[str, Any]:
-        """Execute Claude with CRITICAL path fix"""
+        """Execute Claude with workspace-aware path handling"""
         if not self.claude_cmd:
             return {"status": "blocked", "notes": "Claude command not available", "next_state": "blocked"}
+        
+        # Run Claude from workspace directory without --add-dir to avoid dual creation
+        # Claude will create files in its current working directory (the workspace)
         
         # Windows vs Unix command handling
         if os.name == "nt":
@@ -170,8 +339,6 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 self.claude_cmd,
                 "--output-format", "stream-json",
                 "--verbose",
-                # CRITICAL FIX: Only add root directory, NOT workspace (prevents path duplication)
-                "--add-dir", str(self.root),
                 "--dangerously-skip-permissions",
                 "-p", prompt
             ]
@@ -181,8 +348,6 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 self.claude_cmd,
                 "--output-format", "stream-json", 
                 "--verbose",
-                # CRITICAL FIX: Only add root directory, NOT workspace (prevents path duplication)
-                "--add-dir", str(self.root),
                 "--dangerously-skip-permissions",
                 "-p", prompt
             ]
@@ -201,10 +366,30 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             print(f"         [INFO] Logging to: {log_file}")
         
         try:
+            # Create isolated environment for workspace
+            env = os.environ.copy()
+            env.update({
+                "CLAUDE_PROJECT_ROOT": str(self.workspace),
+                "CLAUDE_WORKSPACE_ROOT": str(self.workspace),
+                "PWD": str(self.workspace),
+                "WORKSPACE": str(self.workspace),
+            })
+            
+            if self.mode == "repo":
+                gitdir = self._resolve_worktree_gitdir(self.workspace)
+                if gitdir:
+                    env["GIT_DIR"] = str(gitdir)
+                    env["GIT_WORK_TREE"] = str(self.workspace)
+                else:
+                    # Fallback: treat as fresh if resolution failed
+                    env.pop("GIT_DIR", None)
+                    env.pop("GIT_WORK_TREE", None)
+            
             # Run from workspace directory (Claude will create files here)
             with subprocess.Popen(
                 cmd,
                 cwd=str(self.workspace),  # Claude runs from workspace
+                env=env,  # Isolated environment
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -332,13 +517,30 @@ def main():
     parser = argparse.ArgumentParser(description="WorkerCore - Streamlined Worker")
     parser.add_argument("worker_id", help="Worker ID (backend, frontend, infra)")
     parser.add_argument("--one-shot", action="store_true", help="One-shot mode for Queen")
-    parser.add_argument("--task-id", help="Task ID for one-shot mode")
-    parser.add_argument("--run-id", help="Run ID for this execution")
+    parser.add_argument("--local", action="store_true", 
+                       help="Local development mode - run task directly without Queen")
+    parser.add_argument("--task-id", help="Task ID (required for one-shot and local modes)")
+    parser.add_argument("--run-id", help="Run ID for this execution (auto-generated in local mode)")
     parser.add_argument("--workspace", help="Workspace directory")
     parser.add_argument("--phase", choices=["plan", "apply", "test"], default="apply",
                        help="Execution phase")
+    parser.add_argument("--mode", choices=["fresh", "repo"], default="fresh",
+                       help="Workspace mode: fresh (empty directory) or repo (git worktree)")
     
     args = parser.parse_args()
+    
+    # Validate local mode arguments
+    if args.local:
+        if not args.task_id:
+            print("[ERROR] Local mode requires --task-id to be specified")
+            print("\nUsage example:")
+            print("  python worker.py backend --local --task-id hello_hive --phase apply")
+            sys.exit(1)
+        
+        # Generate run_id if not provided in local mode
+        if not args.run_id:
+            args.run_id = f"local_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            print(f"[INFO] Generated run_id for local mode: {args.run_id}")
     
     # Create worker
     worker = WorkerCore(
@@ -346,15 +548,20 @@ def main():
         task_id=args.task_id,
         run_id=args.run_id,
         workspace=args.workspace,
-        phase=args.phase
+        phase=args.phase,
+        mode=args.mode
     )
     
-    if args.one_shot:
-        # One-shot execution for Queen
+    if args.one_shot or args.local:
+        # One-shot execution for Queen or local development
+        if args.local:
+            print(f"[INFO] Running in LOCAL DEVELOPMENT MODE")
+            print(f"[INFO] Task: {args.task_id}, Phase: {args.phase}")
+        
         result = worker.run_one_shot()
         sys.exit(0 if result.get("status") == "success" else 1)
     else:
-        print("Interactive mode not implemented - use --one-shot")
+        print("Interactive mode not implemented - use --one-shot or --local")
         sys.exit(1)
 
 if __name__ == "__main__":

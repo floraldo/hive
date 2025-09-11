@@ -10,6 +10,7 @@ import sys
 import time
 import os
 import argparse
+import re
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Tuple
@@ -42,6 +43,68 @@ class QueenLite:
     def timestamp(self) -> str:
         """Current timestamp for logging"""
         return self.hive.timestamp()
+    
+    def slugify(self, text: str) -> str:
+        """Convert text to filesystem-safe slug"""
+        import re
+        # Replace non-alphanumeric with hyphens
+        text = re.sub(r'[^\w\s-]', '', text)
+        # Replace spaces with hyphens
+        text = re.sub(r'[-\s]+', '-', text)
+        return text.lower()
+    
+    def create_worktree(self, worker: str, task_id: str, mode: str = "branch") -> Optional[Path]:
+        """Create or reuse git worktree for task
+        
+        Args:
+            worker: Worker type (backend, frontend, infra)
+            task_id: Task identifier 
+            mode: 'branch' for real implementation with repo files, 'fresh' for empty testing
+        """
+        safe_task_id = self.slugify(task_id)
+        
+        # Unified naming: .worktrees/worker/task_id for both modes
+        worktree_path = self.hive.worktrees_dir / worker / safe_task_id
+        
+        if mode == "fresh":
+            # Create empty workspace for testing
+            worktree_path.mkdir(parents=True, exist_ok=True)
+            print(f"[{self.timestamp()}] Created fresh workspace: {worktree_path}")
+            return worktree_path
+        
+        # Branching mode - create git worktree with repo files
+        branch = f"agent/{worker}/{safe_task_id}"
+        
+        # If worktree already exists, reuse it (for refinements)
+        if worktree_path.exists():
+            print(f"[{self.timestamp()}] Reusing existing worktree: {worktree_path}")
+            return worktree_path
+        
+        try:
+            # Create new worktree with branch FROM CURRENT HEAD
+            # Important: specify HEAD as the source to get all repo files
+            result = subprocess.run(
+                ["git", "worktree", "add", "-b", branch, str(worktree_path), "HEAD"],
+                cwd=str(self.hive.root),
+                capture_output=True, text=True
+            )
+            
+            if result.returncode == 0:
+                # CRITICAL: Validate that worktree was created properly
+                git_file = worktree_path / ".git"
+                if git_file.exists():
+                    print(f"[{self.timestamp()}] ✅ Created valid git worktree: {worktree_path} (branch: {branch})")
+                    return worktree_path
+                else:
+                    print(f"[{self.timestamp()}] ❌ Worktree created but missing .git file: {worktree_path}")
+                    return None
+            else:
+                print(f"[{self.timestamp()}] ❌ Git worktree failed (exit {result.returncode}): {result.stderr}")
+                return None
+                
+        except Exception as e:
+            print(f"[{self.timestamp()}] ❌ Git worktree error: {e}")
+            return None
     
     def create_fresh_workspace(self, worker: str, task_id: str) -> Path:
         """Create fresh isolated workspace for testing"""
@@ -115,11 +178,14 @@ Workspace for {worker} tasks.
                 task["workspace_type"] = "fresh"
                 self.hive.save_task(task)
             else:
-                # Use regular worktree (simplified - just create directory)
-                worktree = self.hive.worktrees_dir / worker / task_id
-                worktree.mkdir(parents=True, exist_ok=True)
+                # Use git worktree with full codebase
+                worktree = self.create_worktree(worker, task_id)
+                if not worktree:
+                    print(f"[{self.timestamp()}] ❌ Failed to create worktree for {task_id}")
+                    return None
                 task["worktree"] = str(worktree)
-                task["workspace_type"] = "regular"
+                task["branch"] = f"agent/{worker}/{self.slugify(task_id)}"
+                task["workspace_type"] = "git_worktree"
                 self.hive.save_task(task)
         else:
             worktree = Path(task["worktree"])
@@ -135,6 +201,13 @@ Workspace for {worker} tasks.
             "--workspace", str(worktree),
             "--phase", phase.value
         ]
+        
+        # Add mode based on workspace type
+        workspace_type = task.get("workspace_type")
+        if workspace_type == "git_worktree":
+            cmd += ["--mode", "repo"]
+        else:
+            cmd += ["--mode", "fresh"]
         
         # Enhanced environment
         env = os.environ.copy()
@@ -183,6 +256,29 @@ Workspace for {worker} tasks.
             if not task or task.get("status") != "queued":
                 continue
             
+            # Check dependencies
+            depends_on = task.get("depends_on", [])
+            if depends_on:
+                dependencies_met = True
+                print(f"[{self.timestamp()}] Checking dependencies for {task_id}: {depends_on}")
+                for dep_id in depends_on:
+                    dep_task = self.hive.load_task(dep_id)
+                    if not dep_task:
+                        print(f"[{self.timestamp()}] Dependency {dep_id} not found")
+                        dependencies_met = False
+                        break
+                    dep_status = dep_task.get("status")
+                    print(f"[{self.timestamp()}] Dependency {dep_id} status: {dep_status}")
+                    if dep_status != "completed":
+                        dependencies_met = False
+                        break
+                
+                if not dependencies_met:
+                    print(f"[{self.timestamp()}] Skipping {task_id} - dependencies not met")
+                    continue
+                else:
+                    print(f"[{self.timestamp()}] Dependencies met for {task_id}")
+            
             # Determine worker type
             worker = task.get("tags", [None])[0] if task.get("tags") else "backend"
             if worker not in ["backend", "frontend", "infra"]:
@@ -226,6 +322,61 @@ Workspace for {worker} tasks.
                     if key in task:
                         del task[key]
                 self.hive.save_task(task)
+    
+    def kill_worker(self, task_id: str) -> bool:
+        """Kill a specific worker by task_id"""
+        if task_id in self.active_workers:
+            metadata = self.active_workers[task_id]
+            process = metadata["process"]
+            
+            try:
+                # Try graceful termination first
+                process.terminate()
+                print(f"[{self.timestamp()}] Terminating worker for {task_id} (PID: {process.pid})")
+                
+                # Wait up to 5 seconds for graceful shutdown
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    # Force kill if not responding
+                    process.kill()
+                    print(f"[{self.timestamp()}] Force killed worker for {task_id}")
+                
+                # Clean up from active workers
+                del self.active_workers[task_id]
+                return True
+                
+            except Exception as e:
+                print(f"[{self.timestamp()}] Error killing worker for {task_id}: {e}")
+                return False
+        else:
+            print(f"[{self.timestamp()}] No active worker found for {task_id}")
+            return False
+    
+    def restart_worker(self, task_id: str) -> bool:
+        """Restart a specific worker"""
+        # First kill if running
+        if task_id in self.active_workers:
+            self.kill_worker(task_id)
+        
+        # Load and reset task
+        task = self.hive.load_task(task_id)
+        if not task:
+            print(f"[{self.timestamp()}] Task {task_id} not found")
+            return False
+        
+        # Reset task to queued for fresh start
+        task["status"] = "queued"
+        task["current_phase"] = "plan"
+        
+        # Remove assignment details for clean restart
+        for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
+            if key in task:
+                del task[key]
+        
+        self.hive.save_task(task)
+        print(f"[{self.timestamp()}] Task {task_id} reset to queued for restart")
+        return True
     
     def recover_zombie_tasks(self):
         """HARDENING: Detect and recover zombie tasks"""
@@ -319,20 +470,38 @@ Workspace for {worker} tasks.
                                             "phase": Phase.TEST.value,
                                             "worker_type": worker
                                         }
-                                        continue  # Don't mark as completed yet
+                                        continue  # Don't mark as completed yet - TEST phase is running
                                 else:
                                     # TEST phase completed successfully
                                     task["status"] = "completed"
                                     print(f"[{self.timestamp()}] Task {task_id} TEST succeeded - COMPLETED")
+                                    completed.append(task_id)  # Now mark as completed
                             else:
-                                task["status"] = "failed"
-                                print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed")
+                                # Check for retries before marking as failed
+                                retry_count = task.get("retry_count", 0)
+                                if retry_count < 2:  # Allow up to 2 retries
+                                    print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed - retrying (attempt {retry_count + 1}/2)")
+                                    task["retry_count"] = retry_count + 1
+                                    # Reset to queued for retry
+                                    task["status"] = "queued"
+                                    task["current_phase"] = "plan"
+                                    # Remove assignment details for clean restart
+                                    for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
+                                        if key in task:
+                                            del task[key]
+                                else:
+                                    # Max retries reached
+                                    task["status"] = "failed"
+                                    print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed after {retry_count} retries")
+                                completed.append(task_id)  # Mark as completed (failed or retrying)
                             
                             self.hive.save_task(task)
                         except Exception as e:
                             print(f"[{self.timestamp()}] Error reading result for {task_id}: {e}")
-                
-                completed.append(task_id)
+                            completed.append(task_id)  # Mark as completed on error
+                else:
+                    # No result file yet, keep monitoring
+                    continue
         
         # Clean up completed workers
         for task_id in completed:
