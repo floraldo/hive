@@ -11,7 +11,7 @@ import sys
 import argparse
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 class WorkerCore:
     """Streamlined worker with preserved path fix"""
@@ -66,7 +66,7 @@ class WorkerCore:
         return datetime.now().strftime("%H:%M:%S")
     
     def _create_workspace(self) -> Path:
-        """Create workspace based on mode (fresh or repo)"""
+        """Create workspace based on mode (fresh, repo, or continue)"""
         # Determine workspace path
         if self.task_id:
             workspace_path = self.root / ".worktrees" / self.worker_id / self.task_id
@@ -82,6 +82,28 @@ class WorkerCore:
         elif self.mode == "repo":
             # Repo mode: create git worktree
             return self._create_git_worktree(workspace_path)
+            
+        elif self.mode == "continue":
+            # Continue mode: reuse existing workspace or create from parent task
+            if workspace_path.exists():
+                print(f"[{self.timestamp()}] Continuing in existing workspace: {workspace_path}")
+                return workspace_path
+            
+            # Look for parent task workspace
+            task = self.load_task(self.task_id)
+            if task and "parent_task" in task:
+                parent_workspace = self.root / ".worktrees" / self.worker_id / task["parent_task"]
+                if parent_workspace.exists():
+                    # Copy parent workspace to continue from it
+                    import shutil
+                    shutil.copytree(parent_workspace, workspace_path)
+                    print(f"[{self.timestamp()}] Created workspace from parent task: {task['parent_task']}")
+                    return workspace_path
+            
+            # Fallback to fresh if no parent found
+            print(f"[{self.timestamp()}] No parent workspace found, creating fresh workspace")
+            workspace_path.mkdir(parents=True, exist_ok=True)
+            return workspace_path
         
         else:
             raise ValueError(f"Unknown mode: {self.mode}")
@@ -203,6 +225,61 @@ class WorkerCore:
             print(f"[ERROR] Failed to load task {task_id}: {e}")
             return None
     
+    def _load_context_from_tasks(self, context_from: List[str]) -> str:
+        """Load context from previous task results"""
+        if not context_from:
+            return ""
+        
+        context_sections = []
+        for prev_task_id in context_from:
+            # Load the most recent result for the referenced task
+            results_dir = self.results_dir / prev_task_id
+            if not results_dir.exists():
+                context_sections.append(f"[Context from {prev_task_id}: No results found]")
+                continue
+            
+            result_files = list(results_dir.glob("*.json"))
+            if not result_files:
+                context_sections.append(f"[Context from {prev_task_id}: No results found]")
+                continue
+            
+            # Get the most recent result
+            latest = max(result_files, key=lambda f: f.stat().st_mtime)
+            try:
+                with open(latest, "r") as f:
+                    result = json.load(f)
+                
+                # Extract relevant context
+                context_text = f"CONTEXT FROM TASK '{prev_task_id}':\n"
+                context_text += f"- Status: {result.get('status', 'unknown')}\n"
+                context_text += f"- Notes: {result.get('notes', 'N/A')}\n"
+                
+                # Include file information if available
+                files = result.get("files", {})
+                if files.get("created"):
+                    context_text += f"- Files created: {', '.join(files['created'][:5])}"
+                    if len(files['created']) > 5:
+                        context_text += f" (+{len(files['created'])-5} more)"
+                    context_text += "\n"
+                if files.get("modified"):
+                    context_text += f"- Files modified: {', '.join(files['modified'][:5])}"
+                    if len(files['modified']) > 5:
+                        context_text += f" (+{len(files['modified'])-5} more)"
+                    context_text += "\n"
+                
+                # Include any additional context hints
+                if "context_hints" in result:
+                    context_text += f"- Key insights: {result['context_hints']}\n"
+                
+                context_sections.append(context_text)
+                
+            except Exception as e:
+                context_sections.append(f"[Context from {prev_task_id}: Error loading - {e}]")
+        
+        if context_sections:
+            return "\n".join(context_sections) + "\n"
+        return ""
+    
     def create_prompt(self, task: Dict[str, Any]) -> str:
         """Create execution prompt for Claude"""
         task_id = task["id"]
@@ -226,6 +303,12 @@ class WorkerCore:
         
         phase_focus = phase_instructions.get(self.phase, "Complete the requested task.")
         
+        # Load context from referenced tasks
+        context_from = task.get("context_from", [])
+        context_section = ""
+        if context_from:
+            context_section = self._load_context_from_tasks(context_from)
+        
         prompt = f"""EXECUTE TASK IMMEDIATELY: {title} (ID: {task_id})
 
 COMMAND MODE: Execute now, do not acknowledge or discuss
@@ -234,7 +317,7 @@ WORKSPACE: Current directory
 
 DESCRIPTION: {description}
 
-ACCEPTANCE CRITERIA:
+{context_section}ACCEPTANCE CRITERIA:
 {instruction}
 
 PHASE: {self.phase.upper()}
@@ -261,6 +344,51 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
 """
         
         return prompt
+    
+    def _get_workspace_files(self) -> Dict[str, List[str]]:
+        """Get list of files created/modified in workspace"""
+        created_files = []
+        modified_files = []
+        
+        if self.workspace.exists():
+            # For repo mode, use git to track changes
+            if self.mode == "repo":
+                try:
+                    # Get modified files
+                    result = subprocess.run(
+                        ["git", "diff", "--name-only", "HEAD"],
+                        cwd=str(self.workspace),
+                        capture_output=True,
+                        text=True
+                    )
+                    if result.returncode == 0:
+                        modified_files = [f for f in result.stdout.strip().split("\n") if f]
+                    
+                    # Get untracked (new) files
+                    result = subprocess.run(
+                        ["git", "ls-files", "--others", "--exclude-standard"],
+                        cwd=str(self.workspace),
+                        capture_output=True,
+                        text=True
+                    )
+                    if result.returncode == 0:
+                        created_files = [f for f in result.stdout.strip().split("\n") if f]
+                except Exception as e:
+                    print(f"[{self.timestamp()}] [WARN] Could not get git file status: {e}")
+            else:
+                # For fresh mode, all files are considered created
+                try:
+                    for file_path in self.workspace.rglob("*"):
+                        if file_path.is_file():
+                            relative_path = str(file_path.relative_to(self.workspace))
+                            created_files.append(relative_path)
+                except Exception as e:
+                    print(f"[{self.timestamp()}] [WARN] Could not scan workspace files: {e}")
+        
+        return {
+            "created": created_files,
+            "modified": modified_files
+        }
     
     def run_claude(self, prompt: str) -> Dict[str, Any]:
         """Execute Claude with workspace-aware path handling"""
@@ -323,6 +451,10 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             
             # Run from workspace directory (Claude will create files here)
             log_fp = open(log_file, "a", encoding="utf-8") if log_file else None
+            exit_code = None
+            output_lines = []
+            final_json = None
+            
             try:
                 with subprocess.Popen(
                     cmd,
@@ -333,9 +465,6 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                     text=True,
                     bufsize=1
                 ) as process:
-                    
-                    output_lines = []
-                    final_json = None
                     
                     # Stream output and look for final JSON
                     for line in process.stdout:
@@ -362,13 +491,23 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 if log_fp:
                     log_fp.close()
                 
+                # Get file changes after execution
+                files_changed = self._get_workspace_files()
+                
                 # Handle results
                 if exit_code == 0 and final_json:
                     print(f"[{self.timestamp()}] [SUCCESS] Task completed successfully")
+                    # Enhance the result with file metadata
+                    final_json["files"] = files_changed
                     return final_json
                 elif exit_code == 0:
                     print(f"[{self.timestamp()}] [WARNING] Task completed but no final JSON found")
-                    return {"status": "success", "notes": "Completed but missing final status", "next_state": "completed"}
+                    return {
+                        "status": "success", 
+                        "notes": "Completed but missing final status", 
+                        "next_state": "completed",
+                        "files": files_changed
+                    }
                 else:
                     print(f"[{self.timestamp()}] [ERROR] Claude failed with exit code {exit_code}")
                     # Show last few lines for debugging
@@ -377,7 +516,12 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                         for line in output_lines[-10:]:
                             print(f"         [ERROR]   {line}")
                     
-                    return {"status": "failed", "notes": f"Claude exit code {exit_code}", "next_state": "failed"}
+                    return {
+                        "status": "failed", 
+                        "notes": f"Claude exit code {exit_code}", 
+                        "next_state": "failed",
+                        "files": files_changed
+                    }
         
         except Exception as e:
             print(f"[{self.timestamp()}] [ERROR] Claude execution failed: {e}")
@@ -461,8 +605,8 @@ def main():
     parser.add_argument("--workspace", help="Workspace directory")
     parser.add_argument("--phase", choices=["plan", "apply", "test"], default="apply",
                        help="Execution phase")
-    parser.add_argument("--mode", choices=["fresh", "repo"], default="fresh",
-                       help="Workspace mode: fresh (empty directory) or repo (git worktree)")
+    parser.add_argument("--mode", choices=["fresh", "repo", "continue"], default="fresh",
+                       help="Workspace mode: fresh (empty), repo (git worktree), or continue (reuse existing)")
     
     args = parser.parse_args()
     

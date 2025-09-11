@@ -1,0 +1,13 @@
+{
+  "id": "real-demo",
+  "title": "Real Terminal Demo",
+  "description": "Simple task to demonstrate real worker terminal output. Create a Python script that prints colorful messages and runs some commands.",
+  "instruction": "Create a Python script called 'hello_demo.py' that:\n1. Prints a welcome message with colors\n2. Shows the current time\n3. Lists files in the current directory\n4. Prints a success message\n5. Make it visually appealing with emojis and colors",
+  "priority": "P1",
+  "risk": "low",
+  "status": "queued",
+  "tags": [
+    "demo",
+    "backend"
+  ]
+}

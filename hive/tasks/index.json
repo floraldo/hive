@@ -1,5 +1,6 @@
 {
   "queue": [
+    "demo-terminal-output",
     "test-terminal-output",
     "B001-add-queen-tests",
     "I001-dockerize-hive",

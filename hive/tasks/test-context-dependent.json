@@ -1,0 +1,21 @@
+{
+  "id": "test-context-dependent",
+  "title": "Context Test: Dependent Task",
+  "description": "Extend the calculator module created by test-context-base task",
+  "instruction": "Building on the calculator module from the previous task:\n\n1. Create an advanced_calculator.py that imports and extends the basic calculator\n2. Add power and square root operations\n3. Add a statistics module with mean and median functions\n4. Create comprehensive tests for the new functions\n5. Create a README.md documenting all available operations\n\nNOTE: This task depends on test-context-base and will receive context about what files were created.",
+  "acceptance": [
+    "advanced_calculator.py created extending the base calculator",
+    "New mathematical operations added",
+    "Statistics functions implemented",
+    "Tests cover new functionality",
+    "README.md documents all operations"
+  ],
+  "priority": "P2",
+  "risk": "low",
+  "status": "queued",
+  "tags": ["backend"],
+  "workspace": "fresh",
+  "depends_on": ["test-context-base"],
+  "context_from": ["test-context-base"],
+  "created_at": "2025-09-11T14:00:00.000000+00:00"
+}
