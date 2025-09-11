@@ -14,9 +14,6 @@ import re
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Tuple
-
-# Hive logging system
-from hive_logging import setup_logging, get_logger
 from enum import Enum
 
 # Import HiveCore for tight integration
@@ -36,13 +33,12 @@ class QueenLite:
         self.hive = hive_core
         self.live_output = live_output
         
-        # Initialize logger
-        self.log = get_logger(__name__)
-        
         # State management
         self.active_workers = {}  # task_id -> {process, run_id, phase}
     
-
+    def timestamp(self) -> str:
+        """Current timestamp for logging"""
+        return self.hive.timestamp()
     
     
     
@@ -502,14 +498,6 @@ def main():
     parser.add_argument("--live", action="store_true",
                        help="Enable live streaming output from workers")
     args = parser.parse_args()
-    
-    # Configure logging for Queen
-    setup_logging(
-        name="queen",
-        log_to_file=True,
-        log_file_path="logs/queen.log"
-    )
-    log = get_logger(__name__)
     
     # Create tightly integrated components
     hive_core = HiveCore()

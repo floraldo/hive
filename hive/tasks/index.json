@@ -1,5 +1,6 @@
 {
   "queue": [
+    "simple-demo",
     "demo-terminal-output",
     "test-terminal-output",
     "B001-add-queen-tests",

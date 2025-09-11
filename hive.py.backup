@@ -13,9 +13,6 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 
-# Hive logging system
-from hive_logging import setup_logging, get_logger
-
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
     
@@ -29,9 +26,6 @@ class HiveCore:
         self.worktrees_dir = self.root / ".worktrees"
         self.logs_dir = self.hive_dir / "logs"
         self.workers_dir = self.hive_dir / "workers"
-        
-        # Initialize logger
-        self.log = get_logger(__name__)
         
         # Load configuration (will be enhanced to load from file)
         self.config = self.load_config()
@@ -160,7 +154,9 @@ class HiveCore:
         except Exception:
             return None
     
-
+    def timestamp(self) -> str:
+        """Current timestamp for logging"""
+        return datetime.now().strftime("%H:%M:%S")
     
     def load_task_queue(self) -> List[str]:
         """Load task queue from index.json"""

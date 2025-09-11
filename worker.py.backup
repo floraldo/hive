@@ -13,9 +13,6 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 
-# Hive logging system
-from hive_logging import setup_logging, get_logger
-
 class WorkerCore:
     """Streamlined worker with preserved path fix"""
     
@@ -28,9 +25,6 @@ class WorkerCore:
         self.phase = phase or "apply"
         self.mode = mode or "fresh"
         self.live_output = live_output
-        
-        # Initialize logger
-        self.log = get_logger(__name__)
         
         # Core paths (deterministic, independent of shell cwd)
         self.root = Path(__file__).resolve().parent  # .../hive
@@ -69,7 +63,9 @@ class WorkerCore:
         print(f"         [INFO] Workspace: {self.workspace}")
         print(f"         [INFO] Claude: {self.claude_cmd or 'SIMULATION MODE'}")
     
-
+    def timestamp(self) -> str:
+        """Current timestamp for logging"""
+        return datetime.now().strftime("%H:%M:%S")
     
     def _create_workspace(self) -> Path:
         """Create or reuse workspace based on mode (fresh or repo)"""
@@ -682,18 +678,6 @@ def main():
                        help="Enable live streaming output to terminal (shows Claude messages, commands, and results)")
     
     args = parser.parse_args()
-    
-    # Configure logging based on worker ID and task
-    log_name = f"worker-{args.worker_id}"
-    if args.task_id:
-        log_name += f"-{args.task_id}"
-    
-    setup_logging(
-        name=log_name,
-        log_to_file=True,
-        log_file_path=f"logs/{log_name}.log"
-    )
-    log = get_logger(__name__)
     
     # Validate local mode arguments
     if args.local:

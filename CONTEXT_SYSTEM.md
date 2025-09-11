@@ -47,26 +47,34 @@ When a worker processes this task, it automatically receives:
 
 ### 3. Workspace Modes
 
-Three workspace modes are now available:
+Two distinct workspace modes with clear semantics:
 
 #### Fresh Mode (Default)
-- Creates an empty directory
-- Complete isolation
-- Best for independent tasks
+- **Always starts clean** - removes any existing workspace
+- Creates new empty directory every run
+- Perfect for testing and isolated tasks
+- Ensures reproducible, predictable environments
 
 #### Repo Mode
-- Creates a git worktree
-- Access to repository files
-- Enables version control
+- Creates git worktree on first run  
+- **Automatically reuses** existing worktree for subsequent runs
+- Workspace persists until PR is merged
+- Enables version control and iterative development
 
-#### Continue Mode (New)
-- Reuses existing workspace
-- Or copies from parent task
-- Perfect for refinement tasks
+#### Key Difference
+- **Fresh**: Always clean slate (testing, isolated tasks)
+- **Repo**: Persistent workspace (development, iterative work)
 
-Example usage:
+Example:
 ```bash
-python worker.py backend --local --task-id refine-code --mode continue
+# Fresh mode - always starts clean
+python worker.py backend --local --task-id test-auth --mode fresh  # Clean workspace
+python worker.py backend --local --task-id test-auth --mode fresh  # Clean again!
+
+# Repo mode - persistent workspace
+python worker.py backend --local --task-id create-auth --mode repo  # Creates worktree
+python worker.py backend --local --task-id create-auth --mode repo  # Reuses worktree
+# After PR merge, worktree is cleaned up automatically
 ```
 
 ### 4. Task Dependencies

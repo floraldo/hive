@@ -9,7 +9,9 @@ description = "Structured logging utilities for Hive applications"
 authors = [
     {name = "Hive System", email = "hive@example.com"}
 ]
-dependencies = []
+dependencies = [
+    "python-json-logger>=2.0.0"
+]
 requires-python = ">=3.10"
 
 [project.optional-dependencies]

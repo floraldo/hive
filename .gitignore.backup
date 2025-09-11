@@ -26,15 +26,10 @@ env/
 *~
 
 # Project specific
-logs/
-hive/logs/
-hive/results/
+logs/*.jsonl
 .ops/
 workspaces/
 .worktrees/
-
-# Hive runtime files
-*.log
 
 # Testing
 .pytest_cache/
