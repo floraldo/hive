@@ -30,6 +30,7 @@ class HiveCore:
         # Load configuration (will be enhanced to load from file)
         self.config = self.load_config()
         
+        
         # Ensure directories exist
         self.ensure_directories()
     
@@ -57,6 +58,7 @@ class HiveCore:
                 print(f"Warning: Could not load config: {e}")
         
         return default_config
+    
     
     def get_config(self, key: str, worker_type: Optional[str] = None) -> Any:
         """Get configuration value with optional worker-specific override"""

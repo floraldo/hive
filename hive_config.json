@@ -13,6 +13,7 @@
     },
     "worker_timeout_minutes": 30,
     "zombie_detection_minutes": 5,
+    "graceful_shutdown_seconds": 5,
     "task_retry_limit": 2,
     "iteration_limit": 3
   },

@@ -7,7 +7,7 @@
   "priority": "normal",
   "acceptance_criteria": [
     "Create a Python file with a factorial function",
-    "Function should handle input validation", 
+    "Function should handle input validation",
     "Include basic tests to verify it works"
   ],
   "phase": "apply",

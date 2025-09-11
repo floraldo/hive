@@ -1,0 +1,18 @@
+{
+  "id": "test-terminal-output",
+  "title": "Test Terminal Output",
+  "description": "Simple test to demonstrate worker terminal output. Create a Python script that prints multiple lines with timestamps to show how worker output appears in the terminal.",
+  "instruction": "Create a Python script called 'output_test.py' that:\n1. Prints 'Starting worker test...' with timestamp\n2. Prints 5 lines with different messages and timestamps\n3. Prints 'Worker test completed!' with final timestamp\n4. The script should run successfully and show clear output",
+  "priority": "P1",
+  "risk": "low",
+  "status": "in_progress",
+  "tags": [
+    "test",
+    "backend"
+  ],
+  "assignee": "backend",
+  "assigned_at": "2025-09-11T11:21:55.681516+00:00",
+  "current_phase": "apply",
+  "updated_at": "2025-09-11T11:21:55.694517+00:00",
+  "started_at": "2025-09-11T11:21:55.694517+00:00"
+}

@@ -103,31 +103,20 @@ class WorkerCore:
                 import shutil
                 shutil.rmtree(workspace_path)
         
-        try:
-            # Create git worktree with branch from HEAD
-            result = subprocess.run(
-                ["git", "worktree", "add", "-b", branch, str(workspace_path), "HEAD"],
-                cwd=str(self.root),
-                capture_output=True, text=True
-            )
+        # Create git worktree with branch from HEAD - fail fast on errors
+        result = subprocess.run(
+            ["git", "worktree", "add", "-b", branch, str(workspace_path), "HEAD"],
+            cwd=str(self.root),
+            capture_output=True, text=True, check=True  # check=True raises CalledProcessError on failure
+        )
+        
+        # Validate that worktree was created properly
+        git_file = workspace_path / ".git"
+        if not git_file.exists():
+            raise RuntimeError(f"Git worktree created but missing .git file: {workspace_path}")
             
-            if result.returncode == 0:
-                # Validate that worktree was created properly
-                git_file = workspace_path / ".git"
-                if git_file.exists():
-                    print(f"[{self.timestamp()}] Created git worktree: {workspace_path} (branch: {branch})")
-                    return workspace_path
-                else:
-                    raise RuntimeError(f"Git worktree created but missing .git file: {workspace_path}")
-            else:
-                raise RuntimeError(f"Git worktree failed (exit {result.returncode}): {result.stderr}")
-                
-        except Exception as e:
-            print(f"[{self.timestamp()}] ERROR: Failed to create git worktree: {e}")
-            print(f"[{self.timestamp()}] Falling back to fresh mode")
-            # Fallback to fresh mode
-            workspace_path.mkdir(parents=True, exist_ok=True)
-            return workspace_path
+        print(f"[{self.timestamp()}] Created git worktree: {workspace_path} (branch: {branch})")
+        return workspace_path
     
     def find_claude_cmd(self) -> Optional[str]:
         """Find Claude command with fallbacks"""

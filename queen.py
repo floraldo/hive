@@ -71,10 +71,9 @@ class QueenLite:
         env["PYTHONUNBUFFERED"] = "1"
         
         try:
+            # Enable live output - don't capture stdout/stderr
             process = subprocess.Popen(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
                 text=True,
                 env=env
             )
@@ -410,42 +409,38 @@ class QueenLite:
                 del self.active_workers[task_id]
     
     def print_status(self):
-        """Print enhanced status with worker details"""
+        """Print clean multi-line status"""
         stats = self.hive.get_task_stats()
         active_count = len(self.active_workers)
         
-        # Header with overall stats
+        # Simple clear and reprint
+        print("\n" + "=" * 70)
         print(f"[{self.timestamp()}] === HIVE STATUS ===")
         print(f"|- Active: {active_count} | Queued: {stats['queued']} | In Progress: {stats['in_progress']} | Completed: {stats['completed']} | Failed: {stats['failed']}")
         
         # Show active worker details
         if self.active_workers:
-            worker_items = list(self.active_workers.items())
-            for i, (task_id, metadata) in enumerate(worker_items):
-                process = metadata["process"]
+            for i, (task_id, metadata) in enumerate(list(self.active_workers.items())):
                 worker_type = metadata["worker_type"]
                 phase = metadata["phase"]
-                pid = process.pid
+                pid = metadata["process"].pid
                 
-                # Calculate runtime
+                # Simple runtime calc
                 task = self.hive.load_task(task_id)
                 if task and "started_at" in task:
                     try:
-                        started_time = datetime.fromisoformat(task["started_at"].replace('Z', '+00:00'))
-                        runtime = datetime.now(timezone.utc) - started_time
-                        runtime_str = f"{int(runtime.total_seconds() // 60)}m {int(runtime.total_seconds() % 60)}s"
+                        started = datetime.fromisoformat(task["started_at"].replace('Z', '+00:00'))
+                        runtime_sec = int((datetime.now(timezone.utc) - started).total_seconds())
+                        runtime_str = f"{runtime_sec//60}m {runtime_sec%60}s"
                     except:
-                        runtime_str = "unknown"
+                        runtime_str = "?"
                 else:
-                    runtime_str = "unknown"
+                    runtime_str = "?"
                 
-                # Use appropriate prefix for tree structure
-                if i == len(worker_items) - 1:
-                    prefix = "`-"
-                else:
-                    prefix = "|-"
-                
-                print(f"{prefix} {worker_type}: {task_id} ({phase}, {runtime_str}, PID: {pid})")
+                prefix = "`-" if i == len(self.active_workers) - 1 else "|-"
+                # Handle phase as either string or Enum
+                phase_str = phase.value if hasattr(phase, 'value') else phase
+                print(f"{prefix} [{worker_type.upper()}] {task_id} ({phase_str}, {runtime_str}, PID: {pid})")
         else:
             print("`- No active workers")
     

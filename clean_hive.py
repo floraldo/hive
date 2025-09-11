@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess
 import sys
+import argparse
 from pathlib import Path
 
 def run_command(cmd, description):
@@ -43,13 +44,55 @@ def clean_files(pattern, description):
     except Exception as e:
         print(f"[ERROR] {description} failed: {e}")
 
+def clean_git_branches(preserve=False):
+    """Clean up agent git branches unless preserve flag is set"""
+    if preserve:
+        print("[INFO] Preserving git branches (--keep-branches flag set)")
+        return
+    
+    print("Cleaning agent git branches...")
+    try:
+        # First, remove any worktrees
+        result = subprocess.run("git worktree prune", shell=True, capture_output=True, text=True)
+        
+        # Get list of agent branches
+        result = subprocess.run("git branch | grep 'agent/' | sed 's/^[ *]*//'", 
+                              shell=True, capture_output=True, text=True)
+        branches = result.stdout.strip().split('\n')
+        branches = [b for b in branches if b]  # Remove empty strings
+        
+        if branches:
+            print(f"  Found {len(branches)} agent branches to clean")
+            for branch in branches:
+                try:
+                    subprocess.run(f"git branch -D '{branch}'", shell=True, 
+                                 capture_output=True, check=True)
+                    print(f"  [OK] Deleted branch: {branch}")
+                except subprocess.CalledProcessError:
+                    print(f"  [WARN] Could not delete branch: {branch}")
+        else:
+            print("  [OK] No agent branches found")
+        
+        print("[OK] Git branch cleanup completed")
+    except Exception as e:
+        print(f"[WARN] Git branch cleanup: {e}")
+
 def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="Clean Hive workspace and reset for fresh start")
+    parser.add_argument("--keep-branches", action="store_true", 
+                       help="Preserve git branches (don't delete agent/* branches)")
+    args = parser.parse_args()
+    
     print("Hive Cleanup Script")
     print("=" * 50)
     
     # Change to hive directory
     os.chdir(Path(__file__).parent)
     print(f"Working in: {os.getcwd()}")
+    
+    # Clean git branches first (before removing worktrees)
+    clean_git_branches(preserve=args.keep_branches)
     
     # Clean worktrees
     clean_directory(".worktrees", "Clearing worktrees")
@@ -102,6 +145,7 @@ def main():
     
     print("\n[SUCCESS] Hive cleanup completed!")
     print(" Summary:")
+    print("  - Git branches cleaned" if not args.keep_branches else "  - Git branches preserved")
     print("  - Worktrees cleared")
     print("  - All logs cleared")
     print("  - Results cleared")

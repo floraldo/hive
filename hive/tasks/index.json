@@ -1,5 +1,6 @@
 {
   "queue": [
+    "test-terminal-output",
     "B001-add-queen-tests",
     "I001-dockerize-hive",
     "B002-worker-local-mode"
