@@ -85,9 +85,13 @@ class QueenLite:
         env["PYTHONUNBUFFERED"] = "1"
         
         try:
-            # Enable live output - don't capture stdout/stderr
+            # Capture stdout/stderr for proper Windows subprocess monitoring
+            # Without pipes, Windows process.poll() is unreliable
             process = subprocess.Popen(
                 cmd,
+                stdin=subprocess.DEVNULL,  # Prevent stdin inheritance issues
+                stdout=subprocess.PIPE if not self.live_output else None,
+                stderr=subprocess.PIPE if not self.live_output else None,
                 text=True,
                 env=env
             )

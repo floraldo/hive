@@ -552,9 +552,16 @@ CRITICAL PATH CONSTRAINT:
             output_lines = []
             claude_completed = False
             last_assistant_message = None
-            
+
+            # Debug logging
+            self.log.info(f"[DEBUG] About to spawn Claude subprocess")
+            self.log.info(f"[DEBUG] Command: {' '.join(cmd)}")
+            self.log.info(f"[DEBUG] CWD: {self.workspace}")
+            self.log.info(f"[DEBUG] Environment CLAUDE_BIN: {env.get('CLAUDE_BIN', 'not set')}")
+            self.log.info(f"[DEBUG] Environment PATH: {env.get('PATH', 'not set')[:200]}...")
+
             try:
-                with subprocess.Popen(
+                process = subprocess.Popen(
                     cmd,
                     cwd=str(self.workspace),  # Claude runs from workspace
                     env=env,  # Isolated environment
@@ -563,38 +570,57 @@ CRITICAL PATH CONSTRAINT:
                     stdin=subprocess.DEVNULL,  # Prevent hanging on input
                     text=True,
                     bufsize=1
-                ) as process:
-                    
-                    # Stream output and analyze Claude's responses
-                    for line in process.stdout:
-                        output_lines.append(line.rstrip())
-                        if log_fp:
-                            log_fp.write(line)
-                            log_fp.flush()  # Ensure immediate write
-                        
-                        # Live output to terminal if enabled
-                        if self.live_output:
-                            formatted = self._format_live_output(line)
-                            if formatted:
-                                print(formatted)
-                        
-                        # Parse JSON messages to track Claude's state
-                        try:
-                            data = json.loads(line)
-                            if data.get("type") == "assistant":
-                                last_assistant_message = data
-                            elif data.get("type") == "result":
-                                claude_completed = True
-                                if data.get("subtype") == "success":
-                                    # Extract the result text as our output
-                                    result_text = data.get("result", "")
-                                    self.log.info(f"[CLAUDE] Completed with result: {result_text[:100]}...")
-                        except json.JSONDecodeError:
-                            pass  # Not JSON, that's fine
-                    
+                )
+                self.log.info(f"[DEBUG] Subprocess started with PID: {process.pid}")
+                self.log.info(f"[DEBUG] Process poll status: {process.poll()}")
+
+                # Stream output and analyze Claude's responses
+                while True:
+                    line = process.stdout.readline()
+                    if not line:
+                        # Check if process has exited
+                        poll_result = process.poll()
+                        if poll_result is not None:
+                            exit_code = poll_result
+                            self.log.info(f"[DEBUG] Process exited with code: {exit_code}")
+                            break
+                        # No more output but process still running, wait a bit
+                        import time
+                        time.sleep(0.1)
+                        continue
+
+                    output_lines.append(line.rstrip())
+                    if log_fp:
+                        log_fp.write(line)
+                        log_fp.flush()  # Ensure immediate write
+
+                    # Live output to terminal if enabled
+                    if self.live_output:
+                        formatted = self._format_live_output(line)
+                        if formatted:
+                            print(formatted)
+
+                    # Parse JSON messages to track Claude's state
+                    try:
+                        data = json.loads(line)
+                        if data.get("type") == "assistant":
+                            last_assistant_message = data
+                        elif data.get("type") == "result":
+                            claude_completed = True
+                            if data.get("subtype") == "success":
+                                # Extract the result text as our output
+                                result_text = data.get("result", "")
+                                self.log.info(f"[CLAUDE] Completed with result: {result_text[:100]}...")
+                    except json.JSONDecodeError:
+                        pass  # Not JSON, that's fine
+
+                # Process should have already exited in the loop above
+                if exit_code is None:
                     # Wait for completion with timeout (10 minutes max)
+                    self.log.info(f"[DEBUG] Process still running, waiting for exit...")
                     try:
                         exit_code = process.wait(timeout=600)
+                        self.log.info(f"[DEBUG] Process completed with exit code: {exit_code}")
                     except subprocess.TimeoutExpired:
                         self.log.error("[ERROR] Claude timed out after 10 minutes")
                         try:
@@ -610,10 +636,10 @@ CRITICAL PATH CONSTRAINT:
                             self.log.error(f"[ERROR] Failed to terminate process: {e}")
                             process.kill()
                             exit_code = -1
-                    
-                    # Save final status to log
-                    if log_fp:
-                        log_fp.write(f"\n\n=== EXIT CODE: {exit_code} ===\n")
+
+                # Save final status to log
+                if log_fp:
+                    log_fp.write(f"\n\n=== EXIT CODE: {exit_code} ===\n")
             finally:
                 if log_fp:
                     log_fp.close()
