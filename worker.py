@@ -560,6 +560,7 @@ CRITICAL PATH CONSTRAINT:
                     env=env,  # Isolated environment
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,  # Prevent hanging on input
                     text=True,
                     bufsize=1
                 ) as process:

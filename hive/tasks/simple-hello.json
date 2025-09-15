@@ -5,14 +5,10 @@
   "instruction": "Create a file called hello.txt that contains the text 'Hello from Hive System!'",
   "priority": "P1",
   "risk": "low",
-  "status": "in_progress",
+  "status": "queued",
   "tags": [
     "backend"
   ],
   "workspace": "fresh",
-  "updated_at": "2025-09-15T22:45:56.870910+00:00",
-  "assignee": "backend",
-  "assigned_at": "2025-09-15T22:45:56.534798+00:00",
-  "current_phase": "apply",
-  "started_at": "2025-09-15T22:45:56.870910+00:00"
+  "updated_at": "2025-09-15T23:12:59.660700+00:00"
 }

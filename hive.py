@@ -148,9 +148,9 @@ class HiveCore:
             with open(temp_path, "w") as f:
                 json.dump(result_data, f, indent=2)
             
-            # Atomic write: temp file then rename
+            # Atomic write: temp file then replace
             try:
-                temp_path.rename(result_path)
+                temp_path.replace(result_path)  # replace() is more robust on Windows
             except (PermissionError, OSError) as e:
                 self.log.error(f"Failed to save result: {e}")
                 raise
@@ -209,9 +209,9 @@ class HiveCore:
             with open(temp_file, "w") as f:
                 json.dump(data, f, indent=2)
             
-            # Atomic write: temp file then rename
+            # Atomic write: temp file then replace
             try:
-                temp_file.rename(index_file)
+                temp_file.replace(index_file)  # replace() is more robust on Windows
             except (PermissionError, OSError) as e:
                 self.log.error(f"Failed to update index: {e}")
                 raise
@@ -247,9 +247,9 @@ class HiveCore:
             with open(temp_file, "w") as f:
                 json.dump(task, f, indent=2)
             
-            # Atomic write: temp file then rename
+            # Atomic write: temp file then replace
             try:
-                temp_file.rename(task_file)
+                temp_file.replace(task_file)  # replace() is more robust on Windows
             except (PermissionError, OSError) as e:
                 self.log.error(f"Failed to save task: {e}")
                 raise
