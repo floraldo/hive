@@ -1,0 +1,13 @@
+{
+  "id": "backend-task",
+  "title": "Create Backend API",
+  "description": "Create a simple backend API endpoint",
+  "instruction": "Create a file called api.py that contains a simple Flask hello world endpoint",
+  "priority": "P1",
+  "risk": "low",
+  "status": "queued",
+  "tags": [
+    "backend"
+  ],
+  "workspace": "fresh"
+}

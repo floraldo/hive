@@ -344,6 +344,15 @@ class HiveCore:
                 self.save_task(task)
                 reset_count += 1
         
+        # Clear all logs first
+        if self.logs_dir.exists():
+            try:
+                shutil.rmtree(self.logs_dir)
+                self.logs_dir.mkdir(parents=True, exist_ok=True)
+                self.log.info(f"Cleared all logs")
+            except Exception as e:
+                self.log.error(f"Error clearing logs: {e}")
+
         # Clear all results
         if self.results_dir.exists():
             for result_file in self.results_dir.rglob("*"):
@@ -352,7 +361,7 @@ class HiveCore:
                         result_file.unlink()
                     except Exception as e:
                         print(f"[{self.timestamp()}] Error removing result {result_file}: {e}")
-        
+
         # Clear all worker worktrees created by WorkerCore (.worktrees/<worker>/<task>)
         if self.worktrees_dir.exists():
             try:
@@ -360,7 +369,7 @@ class HiveCore:
                 self.log.info(f"Cleared all worktrees")
             except Exception as e:
                 self.log.error(f"Error clearing worktrees: {e}")
-        
+
         self.log.info(f"Fresh environment ready - reset {reset_count} tasks")
     
     def clean_task_workspace(self, task_id: str):

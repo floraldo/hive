@@ -1,0 +1,13 @@
+{
+  "id": "frontend-task",
+  "title": "Create Frontend Component",
+  "description": "Create a simple React component",
+  "instruction": "Create a file called component.jsx that contains a simple React hello world component",
+  "priority": "P1",
+  "risk": "low",
+  "status": "queued",
+  "tags": [
+    "frontend"
+  ],
+  "workspace": "fresh"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "infra-task",
+  "title": "Create Docker Config",
+  "description": "Create a simple Docker configuration",
+  "instruction": "Create a file called Dockerfile that contains a simple Docker configuration for a Node.js app",
+  "priority": "P1",
+  "risk": "low",
+  "status": "queued",
+  "tags": [
+    "infra"
+  ],
+  "workspace": "fresh"
+}
