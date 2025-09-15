@@ -148,29 +148,12 @@ class HiveCore:
             with open(temp_path, "w") as f:
                 json.dump(result_data, f, indent=2)
             
-            # Windows-safe atomic rename with retry
-            import time
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    temp_path.rename(result_path)
-                    break
-                except (PermissionError, OSError) as e:
-                    if attempt < max_retries - 1:
-                        self.log.warning(f"Atomic rename failed (attempt {attempt + 1}/{max_retries}): {e}")
-                        time.sleep(0.1 * (attempt + 1))  # Progressive backoff
-                        continue
-                    else:
-                        # Final attempt failed - fallback to direct write
-                        self.log.warning(f"Atomic rename failed, using fallback write: {e}")
-                        with open(result_path, "w") as f:
-                            json.dump(result_data, f, indent=2)
-                        # Clean up temp file
-                        try:
-                            temp_path.unlink()
-                        except:
-                            pass
-                        break
+            # Atomic write: temp file then rename
+            try:
+                temp_path.rename(result_path)
+            except (PermissionError, OSError) as e:
+                self.log.error(f"Failed to save result: {e}")
+                raise
             return True
         except Exception as e:
             self.log.error(f"Error saving result: {e}")
@@ -226,29 +209,12 @@ class HiveCore:
             with open(temp_file, "w") as f:
                 json.dump(data, f, indent=2)
             
-            # Windows-safe atomic rename with retry
-            import time
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    temp_file.rename(index_file)
-                    break
-                except (PermissionError, OSError) as e:
-                    if attempt < max_retries - 1:
-                        self.log.warning(f"Atomic rename failed (attempt {attempt + 1}/{max_retries}): {e}")
-                        time.sleep(0.1 * (attempt + 1))  # Progressive backoff
-                        continue
-                    else:
-                        # Final attempt failed - fallback to direct write
-                        self.log.warning(f"Atomic rename failed, using fallback write: {e}")
-                        with open(index_file, "w") as f:
-                            json.dump(data, f, indent=2)
-                        # Clean up temp file
-                        try:
-                            temp_file.unlink()
-                        except:
-                            pass
-                        break
+            # Atomic write: temp file then rename
+            try:
+                temp_file.rename(index_file)
+            except (PermissionError, OSError) as e:
+                self.log.error(f"Failed to update index: {e}")
+                raise
         except Exception as e:
             self.log.error(f"Error saving queue: {e}")
     
@@ -281,29 +247,12 @@ class HiveCore:
             with open(temp_file, "w") as f:
                 json.dump(task, f, indent=2)
             
-            # Windows-safe atomic rename with retry
-            import time
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    temp_file.rename(task_file)
-                    break
-                except (PermissionError, OSError) as e:
-                    if attempt < max_retries - 1:
-                        self.log.warning(f"Atomic rename failed (attempt {attempt + 1}/{max_retries}): {e}")
-                        time.sleep(0.1 * (attempt + 1))  # Progressive backoff
-                        continue
-                    else:
-                        # Final attempt failed - fallback to direct write
-                        self.log.warning(f"Atomic rename failed, using fallback write: {e}")
-                        with open(task_file, "w") as f:
-                            json.dump(task, f, indent=2)
-                        # Clean up temp file
-                        try:
-                            temp_file.unlink()
-                        except:
-                            pass
-                        break
+            # Atomic write: temp file then rename
+            try:
+                temp_file.rename(task_file)
+            except (PermissionError, OSError) as e:
+                self.log.error(f"Failed to save task: {e}")
+                raise
         except Exception as e:
             self.log.error(f"Error saving task {task_id}: {e}")
     

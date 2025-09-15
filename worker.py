@@ -507,7 +507,6 @@ CRITICAL PATH CONSTRAINT:
             "-p", prompt
         ]
         
-        # No Windows wrapper needed - Claude CLI works directly on Windows
         
         self.log.info("[RUNNING] Claude is working...")
         print(f"         [INFO] Workspace: {self.workspace}")
@@ -561,10 +560,8 @@ CRITICAL PATH CONSTRAINT:
                     env=env,  # Isolated environment
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,  # Prevent interactive input
                     text=True,
-                    bufsize=1,
-                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0  # Hide console window on Windows
+                    bufsize=1
                 ) as process:
                     
                     # Stream output and analyze Claude's responses
@@ -697,29 +694,12 @@ CRITICAL PATH CONSTRAINT:
             with open(tmp_file, "w") as f:
                 json.dump(result_data, f, indent=2)
             
-            # Windows-safe atomic rename with retry
-            import time
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    tmp_file.replace(result_file)
-                    break
-                except (PermissionError, OSError) as e:
-                    if attempt < max_retries - 1:
-                        self.log.warning(f"Atomic rename failed (attempt {attempt + 1}/{max_retries}): {e}")
-                        time.sleep(0.1 * (attempt + 1))  # Progressive backoff
-                        continue
-                    else:
-                        # Final attempt failed - fallback to direct write
-                        self.log.warning(f"Atomic rename failed, using fallback write: {e}")
-                        with open(result_file, "w") as f:
-                            json.dump(result_data, f, indent=2)
-                        # Clean up temp file
-                        try:
-                            tmp_file.unlink()
-                        except:
-                            pass
-                        break
+            # Atomic write: temp file then rename
+            try:
+                tmp_file.replace(result_file)
+            except (PermissionError, OSError) as e:
+                self.log.error(f"Failed to save result: {e}")
+                raise
             
             self.log.info(f"[RESULT] Saved to {result_file}")
             
