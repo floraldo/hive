@@ -507,9 +507,7 @@ CRITICAL PATH CONSTRAINT:
             "-p", prompt
         ]
         
-        # Windows: wrap in cmd.exe
-        if os.name == "nt":
-            cmd = ["cmd.exe", "/c"] + cmd
+        # No Windows wrapper needed - Claude CLI works directly on Windows
         
         self.log.info("[RUNNING] Claude is working...")
         print(f"         [INFO] Workspace: {self.workspace}")
