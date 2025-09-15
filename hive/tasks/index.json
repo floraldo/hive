@@ -1,11 +1,4 @@
 {
-  "queue": [
-    "simple-demo",
-    "demo-terminal-output",
-    "test-terminal-output",
-    "B001-add-queen-tests",
-    "I001-dockerize-hive",
-    "B002-worker-local-mode"
-  ],
-  "updated_at": "2025-09-11T12:00:00.000000+00:00"
+  "queue": ["simple-hello"],
+  "updated_at": "2025-09-15T23:57:00Z"
 }

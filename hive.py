@@ -20,8 +20,8 @@ class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
     
     def __init__(self, root_dir: Optional[Path] = None):
-        # Core paths
-        self.root = root_dir or Path.cwd()
+        # Core paths (deterministic: repo root where this file lives)
+        self.root = root_dir or Path(__file__).resolve().parent
         self.hive_dir = self.root / "hive"
         self.tasks_dir = self.hive_dir / "tasks"
         self.results_dir = self.hive_dir / "results"
@@ -40,6 +40,10 @@ class HiveCore:
         # Ensure directories exist
         self.ensure_directories()
     
+    def timestamp(self) -> str:
+        """Return ISO timestamp for CLI output"""
+        return datetime.now(timezone.utc).isoformat()
+    
     def load_config(self) -> Dict[str, Any]:
         """Load configuration from file or use defaults"""
         config_file = self.root / "hive_config.json"
@@ -54,7 +58,8 @@ class HiveCore:
             "default_max_retries": 2,
             "orchestration": {
                 "task_retry_limit": 2,
-                "status_refresh_seconds": 10
+                "status_refresh_seconds": 10,
+                "graceful_shutdown_seconds": 5
             }
         }
         
@@ -128,7 +133,7 @@ class HiveCore:
     # === Result Management Methods ===
     
     def save_result(self, task_id: str, run_id: str, result: Dict[str, Any]) -> bool:
-        """Save task execution result"""
+        """Save task execution result atomically"""
         try:
             result_path = self.get_result_path(task_id, run_id)
             result_data = {
@@ -137,27 +142,58 @@ class HiveCore:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 **result
             }
-            with open(result_path, "w") as f:
+            
+            # Atomic write: write to temp, then move
+            temp_path = result_path.with_suffix('.tmp')
+            with open(temp_path, "w") as f:
                 json.dump(result_data, f, indent=2)
+            
+            # Windows-safe atomic rename with retry
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    temp_path.rename(result_path)
+                    break
+                except (PermissionError, OSError) as e:
+                    if attempt < max_retries - 1:
+                        self.log.warning(f"Atomic rename failed (attempt {attempt + 1}/{max_retries}): {e}")
+                        time.sleep(0.1 * (attempt + 1))  # Progressive backoff
+                        continue
+                    else:
+                        # Final attempt failed - fallback to direct write
+                        self.log.warning(f"Atomic rename failed, using fallback write: {e}")
+                        with open(result_path, "w") as f:
+                            json.dump(result_data, f, indent=2)
+                        # Clean up temp file
+                        try:
+                            temp_path.unlink()
+                        except:
+                            pass
+                        break
             return True
         except Exception as e:
-            print(f"Error saving result: {e}")
+            self.log.error(f"Error saving result: {e}")
             return False
     
     def get_latest_result(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """Get the latest result for a task"""
+        """Get the latest result for a task by checking file modification times."""
         results_dir = self.results_dir / task_id
         if not results_dir.exists():
             return None
         
-        result_files = sorted(results_dir.glob("*.json"))
+        result_files = list(results_dir.glob("*.json"))
         if not result_files:
             return None
         
+        # Find the most recently modified file
+        latest_file = max(result_files, key=lambda f: f.stat().st_mtime)
+        
         try:
-            with open(result_files[-1], "r") as f:
+            with open(latest_file, "r") as f:
                 return json.load(f)
-        except Exception:
+        except Exception as e:
+            self.log.warning(f"Error loading latest result for task {task_id}: {e}")
             return None
     
 
@@ -177,7 +213,7 @@ class HiveCore:
             return []
     
     def save_task_queue(self, queue: List[str]):
-        """Save task queue to index.json"""
+        """Save task queue to index.json atomically"""
         index_file = self.tasks_dir / "index.json"
         data = {
             "queue": queue,
@@ -185,10 +221,36 @@ class HiveCore:
         }
         
         try:
-            with open(index_file, "w") as f:
+            # Atomic write: write to temp, then move
+            temp_file = index_file.with_suffix('.tmp')
+            with open(temp_file, "w") as f:
                 json.dump(data, f, indent=2)
+            
+            # Windows-safe atomic rename with retry
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    temp_file.rename(index_file)
+                    break
+                except (PermissionError, OSError) as e:
+                    if attempt < max_retries - 1:
+                        self.log.warning(f"Atomic rename failed (attempt {attempt + 1}/{max_retries}): {e}")
+                        time.sleep(0.1 * (attempt + 1))  # Progressive backoff
+                        continue
+                    else:
+                        # Final attempt failed - fallback to direct write
+                        self.log.warning(f"Atomic rename failed, using fallback write: {e}")
+                        with open(index_file, "w") as f:
+                            json.dump(data, f, indent=2)
+                        # Clean up temp file
+                        try:
+                            temp_file.unlink()
+                        except:
+                            pass
+                        break
         except Exception as e:
-            print(f"[{self.timestamp()}] Error saving queue: {e}")
+            self.log.error(f"Error saving queue: {e}")
     
     def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Load task data by ID"""
@@ -204,20 +266,46 @@ class HiveCore:
             return None
     
     def save_task(self, task: Dict[str, Any]):
-        """Save task data"""
+        """Save task data atomically"""
         task_id = task.get("id")
         if not task_id:
-            print(f"[{self.timestamp()}] Error: task missing ID")
+            self.log.error(f"Task missing ID")
             return
         
         task_file = self.tasks_dir / f"{task_id}.json"
         task["updated_at"] = datetime.now(timezone.utc).isoformat()
         
         try:
-            with open(task_file, "w") as f:
+            # Atomic write: write to temp, then move
+            temp_file = task_file.with_suffix('.tmp')
+            with open(temp_file, "w") as f:
                 json.dump(task, f, indent=2)
+            
+            # Windows-safe atomic rename with retry
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    temp_file.rename(task_file)
+                    break
+                except (PermissionError, OSError) as e:
+                    if attempt < max_retries - 1:
+                        self.log.warning(f"Atomic rename failed (attempt {attempt + 1}/{max_retries}): {e}")
+                        time.sleep(0.1 * (attempt + 1))  # Progressive backoff
+                        continue
+                    else:
+                        # Final attempt failed - fallback to direct write
+                        self.log.warning(f"Atomic rename failed, using fallback write: {e}")
+                        with open(task_file, "w") as f:
+                            json.dump(task, f, indent=2)
+                        # Clean up temp file
+                        try:
+                            temp_file.unlink()
+                        except:
+                            pass
+                        break
         except Exception as e:
-            print(f"[{self.timestamp()}] Error saving task {task_id}: {e}")
+            self.log.error(f"Error saving task {task_id}: {e}")
     
     def get_all_tasks(self) -> List[Dict[str, Any]]:
         """Get all tasks with their current status"""
@@ -265,16 +353,15 @@ class HiveCore:
                     except Exception as e:
                         print(f"[{self.timestamp()}] Error removing result {result_file}: {e}")
         
-        # Clear fresh worktrees
-        fresh_worktrees = self.worktrees_dir / "fresh"
-        if fresh_worktrees.exists():
+        # Clear all worker worktrees created by WorkerCore (.worktrees/<worker>/<task>)
+        if self.worktrees_dir.exists():
             try:
-                shutil.rmtree(fresh_worktrees)
-                print(f"[{self.timestamp()}] Cleared fresh worktrees")
+                shutil.rmtree(self.worktrees_dir)
+                self.log.info(f"Cleared all worktrees")
             except Exception as e:
-                print(f"[{self.timestamp()}] Error clearing fresh worktrees: {e}")
+                self.log.error(f"Error clearing worktrees: {e}")
         
-        print(f"[{self.timestamp()}] Fresh environment ready - reset {reset_count} tasks")
+        self.log.info(f"Fresh environment ready - reset {reset_count} tasks")
     
     def clean_task_workspace(self, task_id: str):
         """Clean a specific task's workspace"""
@@ -282,18 +369,25 @@ class HiveCore:
         if not task:
             print(f"[{self.timestamp()}] Task {task_id} not found")
             return False
-        
-        # Clear the task's worktree if it exists
-        worktree_path = task.get("worktree")
-        if worktree_path:
-            worktree = Path(worktree_path)
-            if worktree.exists():
-                try:
-                    shutil.rmtree(worktree)
-                    print(f"[{self.timestamp()}] Cleared workspace for {task_id}")
-                except Exception as e:
-                    print(f"[{self.timestamp()}] Error clearing workspace: {e}")
-                    return False
+
+        # Prefer the recorded workspace from the latest result
+        latest = self.get_latest_result(task_id)
+        worktree = None
+        if latest and latest.get("workspace"):
+            worktree = Path(latest["workspace"])
+        else:
+            # Fallback: search under .worktrees for directories matching task_id
+            candidate = next(self.worktrees_dir.glob(f"**/{task_id}"), None)
+            if candidate:
+                worktree = candidate
+
+        if worktree and worktree.exists():
+            try:
+                shutil.rmtree(worktree)
+                print(f"[{self.timestamp()}] Cleared workspace for {task_id} at {worktree}")
+            except Exception as e:
+                print(f"[{self.timestamp()}] Error clearing workspace: {e}")
+                return False
         
         # Clear task results
         task_results = self.results_dir / task_id
@@ -358,6 +452,56 @@ class HiveCore:
                 f.write(json.dumps(event) + "\n")
         except Exception as e:
             print(f"[{self.timestamp()}] Error emitting event: {e}")
+    
+    # === Status Transition Helpers ===
+    
+    def mark_task_in_progress(self, task_id: str, worker: str, phase: str) -> bool:
+        """Mark a task as in progress with atomic update"""
+        task = self.load_task(task_id)
+        if not task:
+            return False
+        
+        task["status"] = "in_progress"
+        task["assignee"] = worker
+        task["current_phase"] = phase
+        task["started_at"] = datetime.now(timezone.utc).isoformat()
+        self.save_task(task)
+        return True
+    
+    def mark_task_completed(self, task_id: str) -> bool:
+        """Mark a task as completed"""
+        task = self.load_task(task_id)
+        if not task:
+            return False
+        
+        task["status"] = "completed"
+        task["completed_at"] = datetime.now(timezone.utc).isoformat()
+        self.save_task(task)
+        return True
+    
+    def mark_task_failed(self, task_id: str, reason: str = "") -> bool:
+        """Mark a task as failed with optional reason"""
+        task = self.load_task(task_id)
+        if not task:
+            return False
+        
+        task["status"] = "failed"
+        task["failed_at"] = datetime.now(timezone.utc).isoformat()
+        if reason:
+            task["failure_reason"] = reason
+        self.save_task(task)
+        return True
+    
+    def get_next_phase(self, current_phase: str) -> Optional[str]:
+        """Get the next phase in the execution workflow"""
+        phase_order = ["apply", "test"]
+        try:
+            current_idx = phase_order.index(current_phase)
+            if current_idx < len(phase_order) - 1:
+                return phase_order[current_idx + 1]
+        except ValueError:
+            pass
+        return None
 
 
 def cmd_init(args, core: HiveCore):

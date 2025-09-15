@@ -13,8 +13,12 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 
-# Hive logging system
-from hive_logging import setup_logging, get_logger
+# Hive logging system (with local dev fallback for import path)
+try:
+    from hive_logging import setup_logging, get_logger
+except ImportError:
+    sys.path.append(str(Path(__file__).resolve().parent.parent / "packages" / "hive-logging" / "src"))
+    from hive_logging import setup_logging, get_logger
 
 class WorkerCore:
     """Streamlined worker with preserved path fix"""
@@ -52,7 +56,7 @@ class WorkerCore:
         try:
             os.chdir(self.workspace)
         except Exception as e:
-            print(f"[{self.timestamp()}] [WARN] Could not chdir to workspace: {e}")
+            self.log.warning(f"Could not chdir to workspace: {e}")
         
         # Pre-flight invariant checks to ensure workspace isolation
         self._verify_workspace_isolation()
@@ -61,7 +65,7 @@ class WorkerCore:
         self.claude_cmd = self.find_claude_cmd()
         
         # Logging
-        print(f"[{self.timestamp()}] [INITIALIZED] Worker {worker_id} ready")
+        self.log.info(f"Worker {worker_id} ready")
         if self.task_id:
             print(f"         [INFO] Task: {self.task_id}")
             print(f"         [INFO] Run ID: {self.run_id}")
@@ -83,10 +87,14 @@ class WorkerCore:
             # Fresh mode: always start clean (remove existing, create new)
             if workspace_path.exists():
                 import shutil
-                shutil.rmtree(workspace_path)
-                print(f"[{self.timestamp()}] Cleaned existing workspace: {workspace_path}")
+                try:
+                    shutil.rmtree(workspace_path)
+                    self.log.info(f"Cleaned existing workspace: {workspace_path}")
+                except PermissionError:
+                    # Windows file locking issue - just continue, mkdir will handle it
+                    self.log.warning(f"Could not clean workspace (file in use), continuing anyway")
             workspace_path.mkdir(parents=True, exist_ok=True)
-            print(f"[{self.timestamp()}] Created fresh workspace: {workspace_path}")
+            self.log.info(f"Created fresh workspace: {workspace_path}")
             return workspace_path
             
         elif self.mode == "repo":
@@ -106,26 +114,53 @@ class WorkerCore:
         if workspace_path.exists():
             git_file = workspace_path / ".git"
             if git_file.exists():
-                print(f"[{self.timestamp()}] Reusing existing git worktree: {workspace_path}")
+                self.log.info(f"Reusing existing git worktree: {workspace_path}")
                 return workspace_path
             else:
                 # Directory exists but not a git worktree - remove it
                 import shutil
-                shutil.rmtree(workspace_path)
+                try:
+                    shutil.rmtree(workspace_path)
+                except PermissionError:
+                    # Windows file locking issue - just continue
+                    self.log.warning(f"Could not clean non-git directory (file in use), continuing anyway")
         
-        # Create git worktree with branch from HEAD - fail fast on errors
-        result = subprocess.run(
-            ["git", "worktree", "add", "-b", branch, str(workspace_path), "HEAD"],
-            cwd=str(self.root),
-            capture_output=True, text=True, check=True  # check=True raises CalledProcessError on failure
-        )
-        
+        # Prune stale worktrees
+        subprocess.run(["git", "worktree", "prune"], cwd=str(self.root), capture_output=True, text=True)
+
+        # Does the branch already exist?
+        branch_exists = subprocess.run(
+            ["git", "rev-parse", "--verify", "--quiet", branch],
+            cwd=str(self.root), capture_output=True, text=True
+        ).returncode == 0
+
+        try:
+            if branch_exists:
+                # Add existing branch
+                self.log.info(f"Attaching worktree to existing branch: {branch}")
+                subprocess.run(
+                    ["git", "worktree", "add", str(workspace_path), branch],
+                    cwd=str(self.root), capture_output=True, text=True, check=True
+                )
+            else:
+                # Create new branch from HEAD
+                self.log.info(f"Creating worktree with new branch: {branch}")
+                subprocess.run(
+                    ["git", "worktree", "add", "-b", branch, str(workspace_path), "HEAD"],
+                    cwd=str(self.root), capture_output=True, text=True, check=True
+                )
+        except subprocess.CalledProcessError as e:
+            # Helpful diagnostics
+            error_message = e.stderr.strip() if e.stderr else str(e)
+            self.log.error(f"git worktree add failed: {error_message}")
+            raise RuntimeError(f"Could not create or attach git worktree: {error_message}") from e
+            
         # Validate that worktree was created properly
         git_file = workspace_path / ".git"
         if not git_file.exists():
             raise RuntimeError(f"Git worktree created but missing .git file: {workspace_path}")
             
-        print(f"[{self.timestamp()}] Created git worktree: {workspace_path} (branch: {branch})")
+        self.log.info(f"Created git worktree: {workspace_path} (branch: {branch})")
         return workspace_path
     
     def find_claude_cmd(self) -> Optional[str]:
@@ -172,16 +207,16 @@ class WorkerCore:
         if os.getenv("HIVE_DEBUG") != "1":
             return
         
-        print(f"[{self.timestamp()}] [ISOLATION] Verifying workspace isolation...")
+        self.log.info("[ISOLATION] Verifying workspace isolation...")
         workspace_resolved = self.workspace.resolve()
         
         # Check 1: Process cwd MUST match the workspace for git to work reliably.
         current_cwd = Path.cwd().resolve()
         if current_cwd == workspace_resolved:
-            print(f"[{self.timestamp()}] [OK] Process cwd matches workspace: {current_cwd}")
+            self.log.info(f"[OK] Process cwd matches workspace: {current_cwd}")
         else:
             # This is a critical failure condition for the KISS approach.
-            print(f"[{self.timestamp()}] [CRITICAL] Process cwd mismatch: {current_cwd} != {workspace_resolved}")
+            self.log.error(f"[CRITICAL] Process cwd mismatch: {current_cwd} != {workspace_resolved}")
 
         # Check 2: Verify git can naturally operate within this directory.
         if self.mode == "repo":
@@ -192,13 +227,13 @@ class WorkerCore:
                     capture_output=True, text=True, cwd=str(self.workspace), check=True
                 )
                 if result.stdout.strip():
-                    print(f"[{self.timestamp()}] [OK] Git context successfully detected in workspace.")
+                    self.log.info("[OK] Git context successfully detected in workspace.")
                 else:
-                    print(f"[{self.timestamp()}] [WARN] Git command ran but returned no git-dir.")
+                    self.log.warning("[WARN] Git command ran but returned no git-dir.")
             except subprocess.CalledProcessError as e:
-                print(f"[{self.timestamp()}] [WARN] Git detection failed in workspace: {e.stderr.strip()}")
+                self.log.warning(f"[WARN] Git detection failed in workspace: {e.stderr.strip()}")
         else:
-            print(f"[{self.timestamp()}] [OK] Fresh mode - skipping git checks.")
+            self.log.info("[OK] Fresh mode - skipping git checks.")
     
     def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Load task definition"""
@@ -326,9 +361,6 @@ CRITICAL PATH CONSTRAINT:
 - DO NOT use absolute paths or ../../../ paths to access parent directories
 - All file operations must be relative to your current working directory
 - Do not navigate outside your workspace
-
-IMPORTANT: At the very end, print EXACTLY ONE LINE prefixed by 'FINAL_JSON: ':
-FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"<PR URL or empty>","next_state":"completed|testing|reviewing|pr_open|failed|blocked"}}
 """
         
         return prompt
@@ -342,17 +374,22 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             # For repo mode, use git to track changes
             if self.mode == "repo":
                 try:
-                    # Get modified files
-                    result = subprocess.run(
-                        ["git", "diff", "--name-only", "HEAD"],
-                        cwd=str(self.workspace),
-                        capture_output=True,
-                        text=True
+                    # If we have a baseline, diff against it; else fallback to HEAD
+                    baseline = getattr(self, "_baseline_commit", None)
+                    if baseline:
+                        diff_target = f"{baseline}..HEAD"
+                    else:
+                        diff_target = "HEAD"
+
+                    # Files changed in commits since baseline
+                    res = subprocess.run(
+                        ["git", "diff", "--name-only", diff_target],
+                        cwd=str(self.workspace), capture_output=True, text=True
                     )
-                    if result.returncode == 0:
-                        modified_files = [f for f in result.stdout.strip().split("\n") if f]
-                    
-                    # Get untracked (new) files
+                    if res.returncode == 0:
+                        modified_files = [f for f in res.stdout.strip().split("\n") if f]
+
+                    # Untracked files (never committed)
                     result = subprocess.run(
                         ["git", "ls-files", "--others", "--exclude-standard"],
                         cwd=str(self.workspace),
@@ -362,7 +399,7 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                     if result.returncode == 0:
                         created_files = [f for f in result.stdout.strip().split("\n") if f]
                 except Exception as e:
-                    print(f"[{self.timestamp()}] [WARN] Could not get git file status: {e}")
+                    self.log.warning(f"[WARN] Could not get git file status: {e}")
             else:
                 # For fresh mode, all files are considered created
                 try:
@@ -371,7 +408,7 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                             relative_path = str(file_path.relative_to(self.workspace))
                             created_files.append(relative_path)
                 except Exception as e:
-                    print(f"[{self.timestamp()}] [WARN] Could not scan workspace files: {e}")
+                    self.log.warning(f"[WARN] Could not scan workspace files: {e}")
         
         return {
             "created": created_files,
@@ -460,32 +497,21 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         if not self.claude_cmd:
             return {"status": "blocked", "notes": "Claude command not available", "next_state": "blocked"}
         
-        # Run Claude confined to a single writable root (workspace) via --add-dir
+        # Build base command
+        cmd = [
+            self.claude_cmd,
+            "--output-format", "stream-json",
+            "--verbose",
+            "--add-dir", str(self.workspace),
+            "--dangerously-skip-permissions",
+            "-p", prompt
+        ]
         
-        # Windows vs Unix command handling
+        # Windows: wrap in cmd.exe
         if os.name == "nt":
-            # Windows: wrap in cmd.exe
-            cmd = [
-                "cmd.exe", "/c",
-                self.claude_cmd,
-                "--output-format", "stream-json",
-                "--verbose",
-                "--add-dir", str(self.workspace),
-                "--dangerously-skip-permissions",
-                "-p", prompt
-            ]
-        else:
-            # Unix: direct execution
-            cmd = [
-                self.claude_cmd,
-                "--output-format", "stream-json", 
-                "--verbose",
-                "--add-dir", str(self.workspace),
-                "--dangerously-skip-permissions",
-                "-p", prompt
-            ]
+            cmd = ["cmd.exe", "/c"] + cmd
         
-        print(f"[{self.timestamp()}] [RUNNING] Claude is working...")
+        self.log.info("[RUNNING] Claude is working...")
         print(f"         [INFO] Workspace: {self.workspace}")
         print(f"         [INFO] Command: {' '.join(cmd)}")
         print(f"         [INFO] Prompt length: {len(prompt)} chars")
@@ -512,13 +538,23 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
             
             # KISS approach: trust git's native worktree detection
             if self.mode == "repo":
-                print(f"[{self.timestamp()}] [INFO] Using standard git context detection within worktree")
+                self.log.info("[INFO] Using standard git context detection within worktree")
+                # Capture baseline commit before run
+                try:
+                    base = subprocess.run(
+                        ["git", "rev-parse", "HEAD"],
+                        cwd=str(self.workspace), capture_output=True, text=True, check=True
+                    )
+                    self._baseline_commit = base.stdout.strip()
+                except Exception:
+                    self._baseline_commit = None
             
             # Run from workspace directory (Claude will create files here)
             log_fp = open(log_file, "a", encoding="utf-8") if log_file else None
             exit_code = None
             output_lines = []
-            final_json = None
+            claude_completed = False
+            last_assistant_message = None
             
             try:
                 with subprocess.Popen(
@@ -527,15 +563,18 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                     env=env,  # Isolated environment
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,  # Prevent interactive input
                     text=True,
-                    bufsize=1
+                    bufsize=1,
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0  # Hide console window on Windows
                 ) as process:
                     
-                    # Stream output and look for final JSON
+                    # Stream output and analyze Claude's responses
                     for line in process.stdout:
                         output_lines.append(line.rstrip())
                         if log_fp:
                             log_fp.write(line)
+                            log_fp.flush()  # Ensure immediate write
                         
                         # Live output to terminal if enabled
                         if self.live_output:
@@ -543,21 +582,42 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                             if formatted:
                                 print(formatted)
                         
-                        if line.strip().startswith("FINAL_JSON:"):
-                            try:
-                                json_str = line.strip()[11:].strip()  # Remove "FINAL_JSON:" prefix
-                                final_json = json.loads(json_str)
-                            except json.JSONDecodeError:
-                                print(f"[ERROR] Invalid final JSON: {line.strip()}")
+                        # Parse JSON messages to track Claude's state
+                        try:
+                            data = json.loads(line)
+                            if data.get("type") == "assistant":
+                                last_assistant_message = data
+                            elif data.get("type") == "result":
+                                claude_completed = True
+                                if data.get("subtype") == "success":
+                                    # Extract the result text as our output
+                                    result_text = data.get("result", "")
+                                    self.log.info(f"[CLAUDE] Completed with result: {result_text[:100]}...")
+                        except json.JSONDecodeError:
+                            pass  # Not JSON, that's fine
                     
-                    # Wait for completion
-                    exit_code = process.wait()
+                    # Wait for completion with timeout (10 minutes max)
+                    try:
+                        exit_code = process.wait(timeout=600)
+                    except subprocess.TimeoutExpired:
+                        self.log.error("[ERROR] Claude timed out after 10 minutes")
+                        try:
+                            # Try graceful termination first
+                            process.terminate()
+                            try:
+                                exit_code = process.wait(timeout=30)
+                            except subprocess.TimeoutExpired:
+                                # Force kill if terminate didn't work
+                                process.kill()
+                                exit_code = -1
+                        except Exception as e:
+                            self.log.error(f"[ERROR] Failed to terminate process: {e}")
+                            process.kill()
+                            exit_code = -1
                     
                     # Save final status to log
                     if log_fp:
                         log_fp.write(f"\n\n=== EXIT CODE: {exit_code} ===\n")
-                        if final_json:
-                            log_fp.write(f"=== FINAL JSON: {json.dumps(final_json, indent=2)} ===\n")
             finally:
                 if log_fp:
                     log_fp.close()
@@ -565,37 +625,50 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
                 # Get file changes after execution
                 files_changed = self._get_workspace_files()
                 
-                # Handle results
-                if exit_code == 0 and final_json:
-                    print(f"[{self.timestamp()}] [SUCCESS] Task completed successfully")
-                    # Enhance the result with file metadata
-                    final_json["files"] = files_changed
-                    return final_json
-                elif exit_code == 0:
-                    print(f"[{self.timestamp()}] [WARNING] Task completed but no final JSON found")
-                    return {
-                        "status": "success", 
-                        "notes": "Completed but missing final status", 
-                        "next_state": "completed",
-                        "files": files_changed
-                    }
+                # Determine success based on multiple factors
+                success = False
+                status_notes = ""
+                
+                if exit_code == 0 and claude_completed:
+                    # Claude completed successfully
+                    success = True
+                    status_notes = "Claude completed successfully"
+                    self.log.info("[SUCCESS] Task completed successfully")
+                elif exit_code == 0 and not claude_completed:
+                    # Claude exited cleanly but didn't send completion
+                    # Check if files were created as a success indicator
+                    if files_changed.get("created") or files_changed.get("modified"):
+                        success = True
+                        status_notes = f"Created {len(files_changed.get('created', []))} files, modified {len(files_changed.get('modified', []))} files"
+                        self.log.info(f"[SUCCESS] Task likely succeeded - files were created/modified")
+                    else:
+                        success = False
+                        status_notes = "Claude exited without creating files"
+                        self.log.warning("[WARNING] Claude exited but no files created")
+                elif exit_code == -1:
+                    # Timeout
+                    success = False
+                    status_notes = "Claude timed out after 5 minutes"
+                    self.log.error("[ERROR] Claude timed out")
                 else:
-                    print(f"[{self.timestamp()}] [ERROR] Claude failed with exit code {exit_code}")
-                    # Show last few lines for debugging
-                    if len(output_lines) > 10:
-                        print(f"         [ERROR] Last 10 lines of output:")
-                        for line in output_lines[-10:]:
-                            print(f"         [ERROR]   {line}")
-                    
-                    return {
-                        "status": "failed", 
-                        "notes": f"Claude exit code {exit_code}", 
-                        "next_state": "failed",
-                        "files": files_changed
-                    }
+                    # Non-zero exit code
+                    success = False
+                    status_notes = f"Claude exit code {exit_code}"
+                    self.log.error(f"[ERROR] Claude failed with exit code {exit_code}")
+                
+                # Build result from what we observed
+                return {
+                    "status": "success" if success else "failed",
+                    "notes": status_notes,
+                    "next_state": "completed" if success else "failed",
+                    "files": files_changed,
+                    "claude_completed": claude_completed,
+                    "exit_code": exit_code,
+                    "output_lines": len(output_lines)
+                }
         
         except Exception as e:
-            print(f"[{self.timestamp()}] [ERROR] Claude execution failed: {e}")
+            self.log.error(f"[ERROR] Claude execution failed: {e}")
             return {"status": "failed", "notes": f"Execution error: {str(e)}", "next_state": "failed"}
     
     def emit_result(self, result: Dict[str, Any]):
@@ -621,20 +694,46 @@ FINAL_JSON: {{"status":"success|failed|blocked","notes":"<brief summary>","pr":"
         
         result_file = results_dir / f"{self.run_id}.json"
         try:
-            with open(result_file, "w") as f:
+            # Atomic write: write to temp file then rename with retry for Windows
+            tmp_file = result_file.with_suffix(".json.tmp")
+            with open(tmp_file, "w") as f:
                 json.dump(result_data, f, indent=2)
             
-            print(f"[{self.timestamp()}] [RESULT] Saved to {result_file}")
+            # Windows-safe atomic rename with retry
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    tmp_file.replace(result_file)
+                    break
+                except (PermissionError, OSError) as e:
+                    if attempt < max_retries - 1:
+                        self.log.warning(f"Atomic rename failed (attempt {attempt + 1}/{max_retries}): {e}")
+                        time.sleep(0.1 * (attempt + 1))  # Progressive backoff
+                        continue
+                    else:
+                        # Final attempt failed - fallback to direct write
+                        self.log.warning(f"Atomic rename failed, using fallback write: {e}")
+                        with open(result_file, "w") as f:
+                            json.dump(result_data, f, indent=2)
+                        # Clean up temp file
+                        try:
+                            tmp_file.unlink()
+                        except:
+                            pass
+                        break
+            
+            self.log.info(f"[RESULT] Saved to {result_file}")
             
         except Exception as e:
-            print(f"[{self.timestamp()}] [ERROR] Failed to save result: {e}")
+            self.log.error(f"[ERROR] Failed to save result: {e}")
     
     def execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Execute task with streamlined workflow"""
         task_id = task["id"]
         title = task.get("title", task_id)
         
-        print(f"[{self.timestamp()}] [EXECUTING] Task: {title}")
+        self.log.info(f"Executing task: {title}")
         
         # Create prompt
         prompt = self.create_prompt(task)
@@ -688,10 +787,14 @@ def main():
     if args.task_id:
         log_name += f"-{args.task_id}"
     
+    # Make log path absolute + centralized (before any chdir operations)
+    repo_root = Path(__file__).resolve().parent
+    centralized_log = repo_root / "hive" / "logs" / f"{log_name}.log"
+    centralized_log = centralized_log.resolve()  # Make fully absolute before chdir
     setup_logging(
         name=log_name,
         log_to_file=True,
-        log_file_path=f"logs/{log_name}.log"
+        log_file_path=str(centralized_log)
     )
     log = get_logger(__name__)
     

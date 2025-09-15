@@ -15,7 +15,8 @@
     "zombie_detection_minutes": 5,
     "graceful_shutdown_seconds": 5,
     "task_retry_limit": 2,
-    "iteration_limit": 3
+    "iteration_limit": 3,
+    "status_refresh_seconds": 10
   },
   "quality": {
     "review_enabled": true,

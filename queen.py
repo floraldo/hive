@@ -41,6 +41,11 @@ class QueenLite:
         
         # State management
         self.active_workers = {}  # task_id -> {process, run_id, phase}
+        
+        # Simple mode toggle (optional environment-based simplification)
+        self.simple_mode = os.environ.get("HIVE_SIMPLE_MODE", "false").lower() == "true"
+        if self.simple_mode:
+            self.log.info("Running in HIVE_SIMPLE_MODE - some features may be simplified")
     
 
     
@@ -53,11 +58,11 @@ class QueenLite:
         
         # The worker will create its own workspace based on task_id, worker_id, and mode.
         # We no longer need to create it here.
-        print(f"[{self.timestamp()}] Delegating workspace creation to worker for task: {task_id}")
+        self.log.info(f"Delegating workspace creation to worker for task: {task_id}")
 
         # Determine mode from task definition, default to "repo" if not specified
         mode = task.get("workspace", "repo")
-        print(f"[{self.timestamp()}] Task requires '{mode}' workspace mode")
+        self.log.info(f"Task requires '{mode}' workspace mode")
 
         # Build command - remove the --workspace argument
         cmd = [
@@ -87,13 +92,13 @@ class QueenLite:
                 env=env
             )
             
-            print(f"[{self.timestamp()}] 🚀 Spawned {worker} for {task_id} phase:{phase.value} (PID: {process.pid})")
+            self.log.info(f"[SPAWN] Spawned {worker} for {task_id} phase:{phase.value} (PID: {process.pid})")
             if self.live_output:
-                print("─" * 70)
+                print("-" * 70)
             return process, run_id
             
         except Exception as e:
-            print(f"[{self.timestamp()}] Spawn failed: {e}")
+            self.log.info(f"Spawn failed: {e}")
             return None
     
     def process_queue(self):
@@ -165,10 +170,10 @@ class QueenLite:
                 task["status"] = "in_progress"
                 task["started_at"] = datetime.now(timezone.utc).isoformat()
                 self.hive.save_task(task)
-                print(f"[{self.timestamp()}] Successfully spawned {worker} for {task_id} (PID: {process.pid})")
+                self.log.info(f"Successfully spawned {worker} for {task_id} (PID: {process.pid})")
             else:
                 # HARDENING: Spawn failed - revert task to queued status
-                print(f"[{self.timestamp()}] Failed to spawn {worker} for {task_id} - reverting to queued")
+                self.log.info(f"Failed to spawn {worker} for {task_id} - reverting to queued")
                 task["status"] = "queued"
                 # Remove assignment details to allow reassignment
                 for key in ["assignee", "assigned_at", "current_phase"]:
@@ -184,27 +189,27 @@ class QueenLite:
             
             try:
                 # Try graceful termination first
+                self.log.info(f"Terminating worker for {task_id} (PID: {process.pid})")
                 process.terminate()
-                print(f"[{self.timestamp()}] Terminating worker for {task_id} (PID: {process.pid})")
                 
-                # Wait up to 5 seconds for graceful shutdown
+                # Wait up to N seconds for graceful shutdown
                 try:
-                    shutdown_timeout = self.hive.config["orchestration"]["graceful_shutdown_seconds"]
+                    shutdown_timeout = self.hive.config.get("orchestration", {}).get("graceful_shutdown_seconds", 5)
                     process.wait(timeout=shutdown_timeout)
                 except subprocess.TimeoutExpired:
                     # Force kill if not responding
                     process.kill()
-                    print(f"[{self.timestamp()}] Force killed worker for {task_id}")
+                    self.log.info(f"Force killed worker for {task_id}")
                 
                 # Clean up from active workers
                 del self.active_workers[task_id]
                 return True
                 
             except Exception as e:
-                print(f"[{self.timestamp()}] Error killing worker for {task_id}: {e}")
+                self.log.info(f"Error killing worker for {task_id}: {e}")
                 return False
         else:
-            print(f"[{self.timestamp()}] No active worker found for {task_id}")
+            self.log.info(f"No active worker found for {task_id}")
             return False
     
     def restart_worker(self, task_id: str) -> bool:
@@ -216,7 +221,7 @@ class QueenLite:
         # Load and reset task
         task = self.hive.load_task(task_id)
         if not task:
-            print(f"[{self.timestamp()}] Task {task_id} not found")
+            self.log.info(f"Task {task_id} not found")
             return False
         
         # Reset task to queued for fresh start
@@ -229,7 +234,7 @@ class QueenLite:
                 del task[key]
         
         self.hive.save_task(task)
-        print(f"[{self.timestamp()}] Task {task_id} reset to queued for restart")
+        self.log.info(f"Task {task_id} reset to queued for restart")
         return True
     
     def recover_zombie_tasks(self):
@@ -248,9 +253,12 @@ class QueenLite:
                     if started_at:
                         start_time = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
                         age_minutes = (datetime.now(timezone.utc) - start_time).total_seconds() / 60
+                        age_str = f"{age_minutes:.1f} minutes"
+                    else:
+                        age_str = "unknown duration"
                     
                     # Recover zombie tasks immediately (no waiting)
-                    print(f"[{self.timestamp()}] 🔄 Recovering zombie task: {task_id} (stale for {age_minutes:.1f} minutes)")
+                    self.log.info(f"[RECOVER] Recovering zombie task: {task_id} (stale for {age_str})")
                     
                     # Reset to queued for retry
                     task["status"] = "queued"
@@ -264,9 +272,12 @@ class QueenLite:
                     self.hive.save_task(task)
     
     def monitor_workers(self):
-        """Monitor active workers with zombie recovery"""
+        """Monitor active workers with zombie recovery and timeout detection"""
         # First, detect and recover zombie tasks
         self.recover_zombie_tasks()
+        
+        # Check for timed-out workers
+        self._check_worker_timeouts()
         
         completed = []
         
@@ -301,7 +312,7 @@ class QueenLite:
     
     def _handle_worker_failure(self, task_id: str, task: Dict[str, Any], completed: List[str]):
         """Handle worker process failure"""
-        print(f"[{self.timestamp()}] Worker failed for {task_id} - reverting to queued")
+        self.log.info(f"Worker failed for {task_id} - reverting to queued")
         
         # Revert task to queued status for retry
         task["status"] = "queued"
@@ -316,9 +327,11 @@ class QueenLite:
     
     def _handle_worker_success(self, task_id: str, task: Dict[str, Any], metadata: Dict[str, Any], completed: List[str]) -> bool:
         """Handle successful worker completion. Returns True if processing should continue to next worker"""
-        result = self._load_task_result(task_id)
+        result = self.hive.get_latest_result(task_id)
         if not result:
-            return True  # No result file yet, keep monitoring
+            self.log.warning(f"Worker for {task_id} finished successfully but no result file was found.")
+            # Treat as failure to allow for retries
+            return self._handle_task_failure(task_id, task, metadata.get("phase", "apply"), completed)
         
         try:
             status = result.get("status", "failed")
@@ -330,35 +343,18 @@ class QueenLite:
                 return self._handle_task_failure(task_id, task, current_phase, completed)
                 
         except Exception as e:
-            print(f"[{self.timestamp()}] Error processing result for {task_id}: {e}")
+            self.log.info(f"Error processing result for {task_id}: {e}")
             completed.append(task_id)
             return True
     
-    def _load_task_result(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """Load the latest result file for a task"""
-        results_dir = self.hive.results_dir / task_id
-        if not results_dir.exists():
-            return None
-        
-        result_files = list(results_dir.glob("*.json"))
-        if not result_files:
-            return None
-        
-        latest = max(result_files, key=lambda f: f.stat().st_mtime)
-        try:
-            with open(latest, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"[{self.timestamp()}] Error reading result file {latest}: {e}")
-            return None
     
     def _handle_task_success(self, task_id: str, task: Dict[str, Any], current_phase: str, completed: List[str]) -> bool:
         """Handle successful task completion"""
         if current_phase == "apply":
             # Advance to TEST phase
-            print(f"[{self.timestamp()}] ✅ Task {task_id} APPLY succeeded, starting TEST phase")
+            self.log.info(f"✅ Task {task_id} APPLY succeeded, starting TEST phase")
             if self.live_output:
-                print("─" * 70)
+                print("-" * 70)
             worker = task.get("assignee", "backend")
             result = self.spawn_worker(task, worker, Phase.TEST)
             
@@ -370,16 +366,29 @@ class QueenLite:
                     "phase": Phase.TEST.value,
                     "worker_type": worker
                 }
+                # CRITICAL: Update task status for the new phase
+                task["current_phase"] = Phase.TEST.value
+                task["status"] = "in_progress"
+                task["started_at"] = datetime.now(timezone.utc).isoformat()
+                self.hive.save_task(task)
                 return True  # Don't mark as completed yet - TEST phase is running
+            else:
+                # Spawn failed for TEST phase - mark as failed
+                self.log.error(f"Failed to spawn TEST phase for {task_id}")
+                task["status"] = "failed"
+                task["failure_reason"] = "Failed to spawn TEST phase"
+                self.hive.save_task(task)
+                completed.append(task_id)
+                return True
         else:
             # TEST phase completed successfully
             task["status"] = "completed"
-            print(f"[{self.timestamp()}] ✅ Task {task_id} TEST succeeded - COMPLETED")
+            self.log.info(f"✅ Task {task_id} TEST succeeded - COMPLETED")
             if self.live_output:
-                print("─" * 70)
+                print("-" * 70)
+            self.hive.save_task(task)
             completed.append(task_id)
         
-        self.hive.save_task(task)
         return True
     
     def _handle_task_failure(self, task_id: str, task: Dict[str, Any], current_phase: str, completed: List[str]) -> bool:
@@ -389,7 +398,7 @@ class QueenLite:
         
         if retry_count < max_retries:
             # Retry the task
-            print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed - retrying (attempt {retry_count + 1}/{max_retries})")
+            self.log.info(f"Task {task_id} {current_phase} failed - retrying (attempt {retry_count + 1}/{max_retries})")
             task["retry_count"] = retry_count + 1
             task["status"] = "queued"
             task["current_phase"] = "plan"
@@ -401,11 +410,58 @@ class QueenLite:
         else:
             # Max retries reached
             task["status"] = "failed"
-            print(f"[{self.timestamp()}] Task {task_id} {current_phase} failed after {retry_count} retries")
+            self.log.info(f"Task {task_id} {current_phase} failed after {retry_count} retries")
         
         completed.append(task_id)
         self.hive.save_task(task)
         return True
+    
+    def _check_worker_timeouts(self):
+        """Check for timed-out workers and kill them"""
+        current_time = datetime.now(timezone.utc)
+        timeout_minutes = self.hive.config.get("worker_timeout_minutes", 30)
+        timeout_threshold = timeout_minutes * 60  # Convert to seconds
+        
+        for task_id, metadata in list(self.active_workers.items()):
+            # Get task to check start time
+            task = self.hive.load_task(task_id)
+            if not task or "started_at" not in task:
+                continue
+            
+            try:
+                started_at = datetime.fromisoformat(task["started_at"].replace('Z', '+00:00'))
+                elapsed_seconds = (current_time - started_at).total_seconds()
+                
+                if elapsed_seconds > timeout_threshold:
+                    self.log.warning(f"Worker for {task_id} timed out after {elapsed_seconds/60:.1f} minutes")
+                    
+                    # Kill the timed-out worker
+                    process = metadata["process"]
+                    try:
+                        process.terminate()
+                        process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                    except:
+                        pass
+                    
+                    # Reset task to queued for retry
+                    task["status"] = "queued"
+                    task["current_phase"] = "plan"
+                    
+                    # Remove assignment details
+                    for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
+                        if key in task:
+                            del task[key]
+                    
+                    self.hive.save_task(task)
+                    
+                    # Remove from active workers
+                    if task_id in self.active_workers:
+                        del self.active_workers[task_id]
+                        
+            except Exception as e:
+                self.log.error(f"Error checking timeout for {task_id}: {e}")
     
     def _cleanup_completed_workers(self, completed: List[str]):
         """Clean up completed workers from active_workers dict"""
@@ -429,7 +485,7 @@ class QueenLite:
                     queued_workers.append(f"[{worker.upper()}] {task_id}")
         
         # Clean status update
-        print(f"\n👑 [{self.timestamp()}] Q:{stats['queued']} I:{stats['in_progress']} P:{stats['assigned']} C:{stats['completed']} F:{stats['failed']} | Active: {active_count}")
+        self.log.info(f"\n[STATUS] Q:{stats['queued']} I:{stats['in_progress']} P:{stats['assigned']} C:{stats['completed']} F:{stats['failed']} | Active: {active_count}")
         
         # Show active workers
         if self.active_workers:
@@ -452,21 +508,21 @@ class QueenLite:
                 
                 # Handle phase as either string or Enum
                 phase_str = phase.value if hasattr(phase, 'value') else phase
-                print(f"  🔧 [{worker_type.upper()}] {task_id} ({phase_str}, {runtime_str}, PID: {pid})")
+                print(f"  [WORK] [{worker_type.upper()}] {task_id} ({phase_str}, {runtime_str}, PID: {pid})")
         
         # Show queued workers
         if queued_workers:
             queued_str = ', '.join(queued_workers[:3])  # Show max 3
             if len(queued_workers) > 3:
                 queued_str += f"+{len(queued_workers)-3}"
-            print(f"  ⏳ Queued: {queued_str}")
+            print(f"  [QUEUE] Queued: {queued_str}")
         
         # Clear separator for worker output
-        print("─" * 70)
+        print("-" * 70)
     
     def run_forever(self):
         """Main orchestration loop"""
-        print(f"[{self.timestamp()}] QueenLite starting...")
+        self.log.info("QueenLite starting...")
         print("Task-driven workspace management enabled")
         print("="*50)
         
@@ -480,21 +536,21 @@ class QueenLite:
                 stats = self.hive.get_task_stats()
                 if len(self.active_workers) == 0 and stats['queued'] == 0 and stats['assigned'] == 0 and stats['in_progress'] == 0:
                     if stats['completed'] > 0 or stats['failed'] > 0:
-                        print(f"[{self.timestamp()}] All tasks completed. Exiting...")
+                        self.log.info("All tasks completed. Exiting...")
                         break
                 
                 time.sleep(self.hive.config["orchestration"]["status_refresh_seconds"])
                 
         except KeyboardInterrupt:
-            print(f"\n[{self.timestamp()}] QueenLite shutting down...")
+            self.log.info("\nQueenLite shutting down...")
             
             # Terminate workers
             for task_id, metadata in self.active_workers.items():
-                print(f"[{self.timestamp()}] Terminating {task_id}")
+                self.log.info(f"Terminating {task_id}")
                 process = metadata["process"]
                 process.terminate()
             
-            print(f"[{self.timestamp()}] QueenLite stopped")
+            self.log.info("QueenLite stopped")
 
 def main():
     """Main CLI entry point"""

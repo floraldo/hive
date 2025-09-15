@@ -1,0 +1,18 @@
+{
+  "id": "simple-hello",
+  "title": "Create Simple Hello File",
+  "description": "Create a very simple hello world file to test the system",
+  "instruction": "Create a file called hello.txt that contains the text 'Hello from Hive System!'",
+  "priority": "P1",
+  "risk": "low",
+  "status": "in_progress",
+  "tags": [
+    "backend"
+  ],
+  "workspace": "fresh",
+  "assignee": "backend",
+  "assigned_at": "2025-09-15T22:33:09.508467+00:00",
+  "current_phase": "apply",
+  "updated_at": "2025-09-15T22:33:09.858030+00:00",
+  "started_at": "2025-09-15T22:33:09.858030+00:00"
+}
