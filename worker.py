@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import argparse
+import platform
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
@@ -22,9 +23,9 @@ except ImportError:
 
 class WorkerCore:
     """Streamlined worker with preserved path fix"""
-    
-    def __init__(self, worker_id: str, task_id: str = None, run_id: str = None, 
-                 workspace: str = None, phase: str = None, mode: str = None, 
+
+    def __init__(self, worker_id: str, task_id: str = None, run_id: str = None,
+                 workspace: str = None, phase: str = None, mode: str = None,
                  live_output: bool = False):
         self.worker_id = worker_id
         self.task_id = task_id
@@ -32,17 +33,17 @@ class WorkerCore:
         self.phase = phase or "apply"
         self.mode = mode or "fresh"
         self.live_output = live_output
-        
+
         # Initialize logger
         self.log = get_logger(__name__)
-        
+
         # Core paths (deterministic, independent of shell cwd)
         self.root = Path(__file__).resolve().parent  # .../hive
         self.hive_dir = self.root / "hive"
         self.tasks_dir = self.hive_dir / "tasks"
         self.results_dir = self.hive_dir / "results"
         self.logs_dir = self.hive_dir / "logs"
-        
+
         # Workspace creation based on mode
         if workspace:
             # Use provided workspace path - normalize to absolute path
@@ -51,19 +52,19 @@ class WorkerCore:
         else:
             # Create workspace based on mode
             self.workspace = self._create_workspace()
-        
+
         # Ensure process-level cwd is the workspace (safe even if you also set cwd in Popen)
         try:
             os.chdir(self.workspace)
         except Exception as e:
             self.log.warning(f"Could not chdir to workspace: {e}")
-        
+
         # Pre-flight invariant checks to ensure workspace isolation
         self._verify_workspace_isolation()
-        
+
         # Find Claude command
         self.claude_cmd = self.find_claude_cmd()
-        
+
         # Logging
         self.log.info(f"Worker {worker_id} ready")
         if self.task_id:
@@ -72,9 +73,9 @@ class WorkerCore:
             print(f"         [INFO] Phase: {self.phase}")
         print(f"         [INFO] Workspace: {self.workspace}")
         print(f"         [INFO] Claude: {self.claude_cmd or 'SIMULATION MODE'}")
-    
 
-    
+
+
     def _create_workspace(self) -> Path:
         """Create or reuse workspace based on mode (fresh or repo)"""
         # Determine workspace path
@@ -82,7 +83,7 @@ class WorkerCore:
             workspace_path = self.root / ".worktrees" / self.worker_id / self.task_id
         else:
             workspace_path = self.root / ".worktrees" / self.worker_id
-        
+
         if self.mode == "fresh":
             # Fresh mode: always start clean (remove existing, create new)
             if workspace_path.exists():
@@ -96,20 +97,20 @@ class WorkerCore:
             workspace_path.mkdir(parents=True, exist_ok=True)
             self.log.info(f"Created fresh workspace: {workspace_path}")
             return workspace_path
-            
+
         elif self.mode == "repo":
             # Repo mode: create or reuse git worktree
             return self._create_git_worktree(workspace_path)
-        
+
         else:
             raise ValueError(f"Unknown mode: {self.mode}")
-    
+
     def _create_git_worktree(self, workspace_path: Path) -> Path:
         """Create git worktree for repo mode"""
         # Create branch name
         safe_task_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in self.task_id)
         branch = f"agent/{self.worker_id}/{safe_task_id}"
-        
+
         # If worktree already exists and is valid, reuse it
         if workspace_path.exists():
             git_file = workspace_path / ".git"
@@ -124,7 +125,7 @@ class WorkerCore:
                 except PermissionError:
                     # Windows file locking issue - just continue
                     self.log.warning(f"Could not clean non-git directory (file in use), continuing anyway")
-        
+
         # Prune stale worktrees
         subprocess.run(["git", "worktree", "prune"], cwd=str(self.root), capture_output=True, text=True)
 
@@ -154,15 +155,15 @@ class WorkerCore:
             error_message = e.stderr.strip() if e.stderr else str(e)
             self.log.error(f"git worktree add failed: {error_message}")
             raise RuntimeError(f"Could not create or attach git worktree: {error_message}") from e
-            
+
         # Validate that worktree was created properly
         git_file = workspace_path / ".git"
         if not git_file.exists():
             raise RuntimeError(f"Git worktree created but missing .git file: {workspace_path}")
-            
+
         self.log.info(f"Created git worktree: {workspace_path} (branch: {branch})")
         return workspace_path
-    
+
     def find_claude_cmd(self) -> Optional[str]:
         """Find Claude command with fallbacks"""
         # Check environment variable first
@@ -171,7 +172,7 @@ class WorkerCore:
             if claude_path.exists():
                 print(f"[INFO] Using Claude from CLAUDE_BIN: {claude_path}")
                 return str(claude_path)
-        
+
         # Check common paths
         possible_paths = [
             Path.home() / ".npm-global" / "claude.CMD",
@@ -179,12 +180,12 @@ class WorkerCore:
             Path("claude.CMD"),
             Path("claude")
         ]
-        
+
         for path in possible_paths:
             if path.exists():
                 print(f"[INFO] Using Claude from PATH: {path}")
                 return str(path)
-        
+
         # Try which/where command
         try:
             result = subprocess.run(
@@ -197,19 +198,19 @@ class WorkerCore:
                 return claude_path
         except (subprocess.CalledProcessError, FileNotFoundError):
             pass
-        
+
         print("[WARN] Claude command not found - running in simulation mode")
         return None
-    
-    
+
+
     def _verify_workspace_isolation(self):
         """Pre-flight invariant checks to ensure workspace isolation."""
         if os.getenv("HIVE_DEBUG") != "1":
             return
-        
+
         self.log.info("[ISOLATION] Verifying workspace isolation...")
         workspace_resolved = self.workspace.resolve()
-        
+
         # Check 1: Process cwd MUST match the workspace for git to work reliably.
         current_cwd = Path.cwd().resolve()
         if current_cwd == workspace_resolved:
@@ -234,25 +235,25 @@ class WorkerCore:
                 self.log.warning(f"[WARN] Git detection failed in workspace: {e.stderr.strip()}")
         else:
             self.log.info("[OK] Fresh mode - skipping git checks.")
-    
+
     def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Load task definition"""
         task_file = self.tasks_dir / f"{task_id}.json"
         if not task_file.exists():
             return None
-        
+
         try:
             with open(task_file, "r") as f:
                 return json.load(f)
         except Exception as e:
             print(f"[ERROR] Failed to load task {task_id}: {e}")
             return None
-    
+
     def _load_context_from_tasks(self, context_from: List[str]) -> str:
         """Load context from previous task results"""
         if not context_from:
             return ""
-        
+
         context_sections = []
         for prev_task_id in context_from:
             # Load the most recent result for the referenced task
@@ -260,23 +261,23 @@ class WorkerCore:
             if not results_dir.exists():
                 context_sections.append(f"[Context from {prev_task_id}: No results found]")
                 continue
-            
+
             result_files = list(results_dir.glob("*.json"))
             if not result_files:
                 context_sections.append(f"[Context from {prev_task_id}: No results found]")
                 continue
-            
+
             # Get the most recent result
             latest = max(result_files, key=lambda f: f.stat().st_mtime)
             try:
                 with open(latest, "r") as f:
                     result = json.load(f)
-                
+
                 # Extract relevant context
                 context_text = f"CONTEXT FROM TASK '{prev_task_id}':\n"
                 context_text += f"- Status: {result.get('status', 'unknown')}\n"
                 context_text += f"- Notes: {result.get('notes', 'N/A')}\n"
-                
+
                 # Include file information if available
                 files = result.get("files", {})
                 if files.get("created"):
@@ -289,27 +290,27 @@ class WorkerCore:
                     if len(files['modified']) > 5:
                         context_text += f" (+{len(files['modified'])-5} more)"
                     context_text += "\n"
-                
+
                 # Include any additional context hints
                 if "context_hints" in result:
                     context_text += f"- Key insights: {result['context_hints']}\n"
-                
+
                 context_sections.append(context_text)
-                
+
             except Exception as e:
                 context_sections.append(f"[Context from {prev_task_id}: Error loading - {e}]")
-        
+
         if context_sections:
             return "\n".join(context_sections) + "\n"
         return ""
-    
+
     def create_prompt(self, task: Dict[str, Any]) -> str:
         """Create execution prompt for Claude"""
         task_id = task["id"]
         title = task.get("title", task_id)
         description = task.get("description", "")
         instruction = task.get("instruction", "")
-        
+
         # Role mapping
         role_map = {
             "backend": "Backend Developer (Python/Flask/FastAPI specialist)",
@@ -317,21 +318,21 @@ class WorkerCore:
             "infra": "Infrastructure Engineer (Docker/Kubernetes/CI specialist)"
         }
         role = role_map.get(self.worker_id, f"{self.worker_id.title()} Developer")
-        
+
         # Phase-specific instructions (two-phase system)
         phase_instructions = {
             "apply": "Focus on implementation. Create actual working code/configuration with inline planning.",
             "test": "Focus on validation. Write comprehensive tests and verify the implementation works correctly."
         }
-        
+
         phase_focus = phase_instructions.get(self.phase, "Complete the requested task.")
-        
+
         # Load context from referenced tasks
         context_from = task.get("context_from", [])
         context_section = ""
         if context_from:
             context_section = self._load_context_from_tasks(context_from)
-        
+
         prompt = f"""EXECUTE TASK IMMEDIATELY: {title} (ID: {task_id})
 
 COMMAND MODE: Execute now, do not acknowledge or discuss
@@ -362,14 +363,14 @@ CRITICAL PATH CONSTRAINT:
 - All file operations must be relative to your current working directory
 - Do not navigate outside your workspace
 """
-        
+
         return prompt
-    
+
     def _get_workspace_files(self) -> Dict[str, List[str]]:
         """Get list of files created/modified in workspace"""
         created_files = []
         modified_files = []
-        
+
         if self.workspace.exists():
             # For repo mode, use git to track changes
             if self.mode == "repo":
@@ -409,32 +410,32 @@ CRITICAL PATH CONSTRAINT:
                             created_files.append(relative_path)
                 except Exception as e:
                     self.log.warning(f"[WARN] Could not scan workspace files: {e}")
-        
+
         return {
             "created": created_files,
             "modified": modified_files
         }
-    
+
     def _format_live_output(self, line: str) -> Optional[str]:
         """Format line for live output - shows Claude messages, commands, and results with worker ID"""
         if not self.live_output:
             return None
-        
+
         # Worker identification with color coding
         worker_colors = {
             "backend": "\033[94m",    # Blue
-            "frontend": "\033[92m",   # Green  
+            "frontend": "\033[92m",   # Green
             "infra": "\033[93m",      # Yellow
             "test": "\033[95m"        # Magenta
         }
         reset_color = "\033[0m"
         color = worker_colors.get(self.worker_id, "\033[97m")  # White default
         worker_prefix = f"{color}[{self.worker_id.upper()}]{reset_color}"
-        
+
         try:
             # Try to parse as JSON
             data = json.loads(line)
-            
+
             # Claude's text messages
             if data.get("type") == "assistant" and "message" in data:
                 content = data["message"].get("content", [])
@@ -461,7 +462,7 @@ CRITICAL PATH CONSTRAINT:
                                 return f"{worker_prefix} 📖 Read {file_path}"
                             else:
                                 return f"{worker_prefix} 🔧 {tool_name}()"
-            
+
             # Command results and responses
             elif data.get("type") == "user" and "content" in data:
                 content = data["content"]
@@ -470,7 +471,7 @@ CRITICAL PATH CONSTRAINT:
                         if item.get("type") == "tool_result":
                             result = item.get("content", "")
                             is_error = item.get("is_error", False)
-                            
+
                             if is_error:
                                 return f"{worker_prefix} ❌ {result}"
                             else:
@@ -482,21 +483,21 @@ CRITICAL PATH CONSTRAINT:
                                     else:
                                         result = result[:200] + "..."
                                 return f"{worker_prefix} 📤 {result}"
-            
+
         except json.JSONDecodeError:
             # Not JSON - could be system messages or other output
             # Only show if it looks like important output
             line_stripped = line.strip()
             if line_stripped and not line_stripped.startswith('{"type":"system"'):
                 return f"{worker_prefix} {line_stripped}"
-        
+
         return None
-    
+
     def run_claude(self, prompt: str) -> Dict[str, Any]:
         """Execute Claude with workspace-aware path handling"""
         if not self.claude_cmd:
             return {"status": "blocked", "notes": "Claude command not available", "next_state": "blocked"}
-        
+
         # Build base command
         cmd = [
             self.claude_cmd,
@@ -506,13 +507,13 @@ CRITICAL PATH CONSTRAINT:
             "--dangerously-skip-permissions",
             "-p", prompt
         ]
-        
-        
+
+
         self.log.info("[RUNNING] Claude is working...")
         print(f"         [INFO] Workspace: {self.workspace}")
         print(f"         [INFO] Command: {' '.join(cmd)}")
         print(f"         [INFO] Prompt length: {len(prompt)} chars")
-        
+
         # Create log file for this run
         log_file = None
         if self.task_id and self.run_id:
@@ -520,7 +521,7 @@ CRITICAL PATH CONSTRAINT:
             log_dir.mkdir(parents=True, exist_ok=True)
             log_file = log_dir / f"{self.run_id}.log"
             print(f"         [INFO] Logging to: {log_file}")
-        
+
         try:
             # Create isolated environment for workspace
             env = os.environ.copy()
@@ -532,7 +533,7 @@ CRITICAL PATH CONSTRAINT:
                 # Prevent repo-root climbing; treat workspace as the ceiling
                 "GIT_CEILING_DIRECTORIES": str(self.workspace),
             })
-            
+
             # KISS approach: trust git's native worktree detection
             if self.mode == "repo":
                 self.log.info("[INFO] Using standard git context detection within worktree")
@@ -545,7 +546,21 @@ CRITICAL PATH CONSTRAINT:
                     self._baseline_commit = base.stdout.strip()
                 except Exception:
                     self._baseline_commit = None
-            
+
+            # Windows-specific fix: pipes cause Claude CLI to hang due to buffering deadlock
+            # Claude blocks waiting for pipe buffer space, but worker never reads pipes properly
+            # Solution: Let Claude write directly to console/file instead of pipes
+            if platform.system() == "Windows":
+                # On Windows, avoid pipes to prevent Claude CLI deadlock
+                stdout_pipe = subprocess.DEVNULL
+                stderr_pipe = subprocess.DEVNULL
+                self.log.info(f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=DEVNULL")
+            else:
+                # On Unix, pipes work fine and provide better monitoring
+                stdout_pipe = subprocess.PIPE
+                stderr_pipe = subprocess.PIPE
+                self.log.info(f"[DEBUG] Unix detected: using stdout=PIPE, stderr=PIPE")
+
             # Run from workspace directory (Claude will create files here)
             log_fp = open(log_file, "a", encoding="utf-8") if log_file else None
             exit_code = None
@@ -565,8 +580,8 @@ CRITICAL PATH CONSTRAINT:
                     cmd,
                     cwd=str(self.workspace),  # Claude runs from workspace
                     env=env,  # Isolated environment
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
+                    stdout=stdout_pipe,
+                    stderr=stderr_pipe,
                     stdin=subprocess.DEVNULL,  # Prevent hanging on input
                     text=True,
                     bufsize=1
@@ -575,44 +590,74 @@ CRITICAL PATH CONSTRAINT:
                 self.log.info(f"[DEBUG] Process poll status: {process.poll()}")
 
                 # Stream output and analyze Claude's responses
-                while True:
-                    line = process.stdout.readline()
-                    if not line:
-                        # Check if process has exited
+                # Handle both piped (stdout=PIPE) and non-piped (stdout=DEVNULL/None) modes
+                self.log.info(f"[DEBUG] process.stdout = {process.stdout}")
+                self.log.info(f"[DEBUG] process.stdout.name = {getattr(process.stdout, 'name', 'no-name')}")
+
+                # Check if we have a real pipe (not DEVNULL)
+                # DEVNULL shows up as a file descriptor number (like "6")
+                stdout_name = getattr(process.stdout, 'name', None)
+                is_devnull_fd = isinstance(stdout_name, int) or (isinstance(stdout_name, str) and stdout_name.isdigit())
+
+                is_real_pipe = (process.stdout is not None and
+                               hasattr(process.stdout, 'readline') and
+                               not is_devnull_fd and
+                               stdout_name not in [None, '/dev/null', 'nul'])
+
+                self.log.info(f"[DEBUG] stdout_name = {stdout_name}, is_devnull_fd = {is_devnull_fd}")
+                self.log.info(f"[DEBUG] is_real_pipe = {is_real_pipe}")
+
+                if is_real_pipe:
+                    # Piped mode: read output for monitoring and JSON parsing
+                    while True:
+                        line = process.stdout.readline()
+                        if not line:
+                            # Check if process has exited
+                            poll_result = process.poll()
+                            if poll_result is not None:
+                                exit_code = poll_result
+                                self.log.info(f"[DEBUG] Process exited with code: {exit_code}")
+                                break
+                            # No more output but process still running, wait a bit
+                            import time
+                            time.sleep(0.1)
+                            continue
+
+                        output_lines.append(line.rstrip())
+                        if log_fp:
+                            log_fp.write(line)
+                            log_fp.flush()  # Ensure immediate write
+
+                        # Live output to terminal if enabled
+                        if self.live_output:
+                            formatted = self._format_live_output(line)
+                            if formatted:
+                                print(formatted)
+
+                        # Parse JSON messages to track Claude's state
+                        try:
+                            data = json.loads(line)
+                            if data.get("type") == "assistant":
+                                last_assistant_message = data
+                            elif data.get("type") == "result":
+                                claude_completed = True
+                                if data.get("subtype") == "success":
+                                    # Extract the result text as our output
+                                    result_text = data.get("result", "")
+                                    self.log.info(f"[CLAUDE] Completed with result: {result_text[:100]}...")
+                        except json.JSONDecodeError:
+                            pass  # Not JSON, that's fine
+                else:
+                    # Non-piped mode: just wait for process completion
+                    self.log.info(f"[DEBUG] Non-piped mode: monitoring process completion only")
+                    import time
+                    while True:
                         poll_result = process.poll()
                         if poll_result is not None:
                             exit_code = poll_result
                             self.log.info(f"[DEBUG] Process exited with code: {exit_code}")
                             break
-                        # No more output but process still running, wait a bit
-                        import time
-                        time.sleep(0.1)
-                        continue
-
-                    output_lines.append(line.rstrip())
-                    if log_fp:
-                        log_fp.write(line)
-                        log_fp.flush()  # Ensure immediate write
-
-                    # Live output to terminal if enabled
-                    if self.live_output:
-                        formatted = self._format_live_output(line)
-                        if formatted:
-                            print(formatted)
-
-                    # Parse JSON messages to track Claude's state
-                    try:
-                        data = json.loads(line)
-                        if data.get("type") == "assistant":
-                            last_assistant_message = data
-                        elif data.get("type") == "result":
-                            claude_completed = True
-                            if data.get("subtype") == "success":
-                                # Extract the result text as our output
-                                result_text = data.get("result", "")
-                                self.log.info(f"[CLAUDE] Completed with result: {result_text[:100]}...")
-                    except json.JSONDecodeError:
-                        pass  # Not JSON, that's fine
+                        time.sleep(0.5)  # Check every 500ms
 
                 # Process should have already exited in the loop above
                 if exit_code is None:
@@ -643,14 +688,14 @@ CRITICAL PATH CONSTRAINT:
             finally:
                 if log_fp:
                     log_fp.close()
-                
+
                 # Get file changes after execution
                 files_changed = self._get_workspace_files()
-                
+
                 # Determine success based on multiple factors
                 success = False
                 status_notes = ""
-                
+
                 if exit_code == 0 and claude_completed:
                     # Claude completed successfully
                     success = True
@@ -677,7 +722,7 @@ CRITICAL PATH CONSTRAINT:
                     success = False
                     status_notes = f"Claude exit code {exit_code}"
                     self.log.error(f"[ERROR] Claude failed with exit code {exit_code}")
-                
+
                 # Build result from what we observed
                 return {
                     "status": "success" if success else "failed",
@@ -688,17 +733,17 @@ CRITICAL PATH CONSTRAINT:
                     "exit_code": exit_code,
                     "output_lines": len(output_lines)
                 }
-        
+
         except Exception as e:
             self.log.error(f"[ERROR] Claude execution failed: {e}")
             return {"status": "failed", "notes": f"Execution error: {str(e)}", "next_state": "failed"}
-    
+
     def emit_result(self, result: Dict[str, Any]):
         """Save execution result"""
         if not self.task_id or not self.run_id:
             print("[ERROR] Cannot emit result - missing task_id or run_id")
             return
-        
+
         # Prepare result data
         result_data = {
             "task_id": self.task_id,
@@ -709,62 +754,62 @@ CRITICAL PATH CONSTRAINT:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             **result
         }
-        
+
         # Save result to file
         results_dir = self.results_dir / self.task_id
         results_dir.mkdir(parents=True, exist_ok=True)
-        
+
         result_file = results_dir / f"{self.run_id}.json"
         try:
             # Atomic write: write to temp file then rename with retry for Windows
             tmp_file = result_file.with_suffix(".json.tmp")
             with open(tmp_file, "w") as f:
                 json.dump(result_data, f, indent=2)
-            
+
             # Atomic write: temp file then rename
             try:
                 tmp_file.replace(result_file)
             except (PermissionError, OSError) as e:
                 self.log.error(f"Failed to save result: {e}")
                 raise
-            
+
             self.log.info(f"[RESULT] Saved to {result_file}")
-            
+
         except Exception as e:
             self.log.error(f"[ERROR] Failed to save result: {e}")
-    
+
     def execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Execute task with streamlined workflow"""
         task_id = task["id"]
         title = task.get("title", task_id)
-        
+
         self.log.info(f"Executing task: {title}")
-        
+
         # Create prompt
         prompt = self.create_prompt(task)
         print(f"         [INFO] Using inline prompt")
-        
+
         # Run Claude
         result = self.run_claude(prompt)
-        
+
         # Emit result
         self.emit_result(result)
-        
+
         return result
-    
+
     def run_one_shot(self):
         """Run in one-shot mode (called by Queen)"""
         if not self.task_id:
             print("[ERROR] One-shot mode requires task_id")
             return {"status": "failed", "notes": "Missing task_id", "next_state": "failed"}
-        
+
         # Load task
         task = self.load_task(self.task_id)
         if not task:
             error_msg = f"Task {self.task_id} not found"
             print(f"[ERROR] {error_msg}")
             return {"status": "failed", "notes": error_msg, "next_state": "failed"}
-        
+
         # Execute task
         return self.execute_task(task)
 
@@ -773,7 +818,7 @@ def main():
     parser = argparse.ArgumentParser(description="WorkerCore - Streamlined Worker")
     parser.add_argument("worker_id", help="Worker ID (backend, frontend, infra)")
     parser.add_argument("--one-shot", action="store_true", help="One-shot mode for Queen")
-    parser.add_argument("--local", action="store_true", 
+    parser.add_argument("--local", action="store_true",
                        help="Local development mode - run task directly without Queen")
     parser.add_argument("--task-id", help="Task ID (required for one-shot and local modes)")
     parser.add_argument("--run-id", help="Run ID for this execution (auto-generated in local mode)")
@@ -784,14 +829,14 @@ def main():
                        help="Workspace mode: fresh (empty directory) or repo (git worktree)")
     parser.add_argument("--live", action="store_true",
                        help="Enable live streaming output to terminal (shows Claude messages, commands, and results)")
-    
+
     args = parser.parse_args()
-    
+
     # Configure logging based on worker ID and task
     log_name = f"worker-{args.worker_id}"
     if args.task_id:
         log_name += f"-{args.task_id}"
-    
+
     # Make log path absolute + centralized (before any chdir operations)
     repo_root = Path(__file__).resolve().parent
     centralized_log = repo_root / "hive" / "logs" / f"{log_name}.log"
@@ -802,7 +847,7 @@ def main():
         log_file_path=str(centralized_log)
     )
     log = get_logger(__name__)
-    
+
     # Validate local mode arguments
     if args.local:
         if not args.task_id:
@@ -810,12 +855,12 @@ def main():
             print("\nUsage example:")
             print("  python worker.py backend --local --task-id hello_hive --phase apply")
             sys.exit(1)
-        
+
         # Generate run_id if not provided in local mode
         if not args.run_id:
             args.run_id = f"local_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             print(f"[INFO] Generated run_id for local mode: {args.run_id}")
-    
+
     # Create worker
     worker = WorkerCore(
         worker_id=args.worker_id,
@@ -826,13 +871,13 @@ def main():
         mode=args.mode,
         live_output=args.live
     )
-    
+
     if args.one_shot or args.local:
         # One-shot execution for Queen or local development
         if args.local:
             print(f"[INFO] Running in LOCAL DEVELOPMENT MODE")
             print(f"[INFO] Task: {args.task_id}, Phase: {args.phase}")
-        
+
         result = worker.run_one_shot()
         sys.exit(0 if result.get("status") == "success" else 1)
     else:

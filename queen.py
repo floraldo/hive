@@ -85,13 +85,28 @@ class QueenLite:
         env["PYTHONUNBUFFERED"] = "1"
         
         try:
-            # Capture stdout/stderr for proper Windows subprocess monitoring
-            # Without pipes, Windows process.poll() is unreliable
+            # Windows-specific fix: pipes cause Claude CLI to hang due to buffering deadlock
+            # Claude blocks waiting for pipe buffer space, but worker never reads pipes
+            # Solution: Let Claude write directly to console (stdout=None, stderr=None)
+            import platform
+
+            if platform.system() == "Windows":
+                # On Windows, avoid pipes to prevent Claude CLI deadlock
+                # Force no pipe by using subprocess.DEVNULL
+                stdout_pipe = subprocess.DEVNULL
+                stderr_pipe = subprocess.DEVNULL
+                self.log.info(f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=DEVNULL")
+            else:
+                # On Unix, pipes work fine and provide better monitoring
+                stdout_pipe = subprocess.PIPE
+                stderr_pipe = subprocess.PIPE
+                self.log.info(f"[DEBUG] Unix detected: using stdout=PIPE, stderr=PIPE")
+
             process = subprocess.Popen(
                 cmd,
                 stdin=subprocess.DEVNULL,  # Prevent stdin inheritance issues
-                stdout=subprocess.PIPE if not self.live_output else None,
-                stderr=subprocess.PIPE if not self.live_output else None,
+                stdout=stdout_pipe,
+                stderr=stderr_pipe,
                 text=True,
                 env=env
             )
