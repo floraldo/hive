@@ -10,9 +10,9 @@
     "backend"
   ],
   "workspace": "fresh",
-  "updated_at": "2025-09-16T01:13:21.962192+00:00",
-  "current_phase": "apply",
   "assignee": "backend",
-  "assigned_at": "2025-09-16T01:13:21.901452+00:00",
-  "started_at": "2025-09-16T01:13:21.961194+00:00"
+  "assigned_at": "2025-09-16T01:25:59.804627+00:00",
+  "current_phase": "test",
+  "updated_at": "2025-09-16T01:28:40.798208+00:00",
+  "started_at": "2025-09-16T01:26:40.229717+00:00"
 }
