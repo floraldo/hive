@@ -549,12 +549,16 @@ CRITICAL PATH CONSTRAINT:
 
             # Windows-specific fix: pipes cause Claude CLI to hang due to buffering deadlock
             # Claude blocks waiting for pipe buffer space, but worker never reads pipes properly
-            # Solution: Let Claude write directly to console/file instead of pipes
+            # Solution: Let Claude write directly to temporary files instead of pipes
+            claude_output_file = None
             if platform.system() == "Windows":
-                # On Windows, avoid pipes to prevent Claude CLI deadlock
-                stdout_pipe = subprocess.DEVNULL
-                stderr_pipe = subprocess.DEVNULL
-                self.log.info(f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=DEVNULL")
+                # On Windows, redirect Claude output to temporary file to avoid pipe deadlock
+                # while still capturing output for verbose logging
+                import tempfile
+                claude_output_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.claude.log')
+                stdout_pipe = claude_output_file
+                stderr_pipe = claude_output_file  # Combine stdout and stderr
+                self.log.info(f"[DEBUG] Windows detected: redirecting to temp file {claude_output_file.name}")
             else:
                 # On Unix, pipes work fine and provide better monitoring
                 stdout_pipe = subprocess.PIPE
@@ -681,6 +685,27 @@ CRITICAL PATH CONSTRAINT:
                             self.log.error(f"[ERROR] Failed to terminate process: {e}")
                             process.kill()
                             exit_code = -1
+
+                # On Windows, read Claude output from temp file for verbose logging
+                if claude_output_file and platform.system() == "Windows":
+                    try:
+                        claude_output_file.close()  # Close the file handle first
+                        with open(claude_output_file.name, 'r', encoding='utf-8') as f:
+                            claude_content = f.read()
+                            if claude_content.strip():
+                                self.log.info(f"[CLAUDE OUTPUT] Claude conversation:")
+                                # Log Claude output to both console and log file
+                                for line in claude_content.splitlines():
+                                    self.log.info(f"[CLAUDE] {line}")
+                                if log_fp:
+                                    log_fp.write(f"\n=== CLAUDE OUTPUT ===\n{claude_content}\n")
+                            else:
+                                self.log.info("[CLAUDE OUTPUT] No Claude output captured")
+                        # Clean up temp file
+                        os.unlink(claude_output_file.name)
+                        self.log.info(f"[DEBUG] Cleaned up temp file: {claude_output_file.name}")
+                    except Exception as e:
+                        self.log.error(f"[ERROR] Failed to read Claude output file: {e}")
 
                 # Save final status to log
                 if log_fp:

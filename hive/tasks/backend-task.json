@@ -5,14 +5,10 @@
   "instruction": "Create a file called api.py that contains a simple Flask hello world endpoint",
   "priority": "P1",
   "risk": "low",
-  "status": "completed",
+  "status": "queued",
   "tags": [
     "backend"
   ],
   "workspace": "fresh",
-  "assignee": "backend",
-  "assigned_at": "2025-09-16T01:25:59.804627+00:00",
-  "current_phase": "test",
-  "updated_at": "2025-09-16T01:28:40.798208+00:00",
-  "started_at": "2025-09-16T01:26:40.229717+00:00"
+  "assignee": "backend"
 }
