@@ -85,17 +85,21 @@ class WorkerCore:
             workspace_path = self.root / ".worktrees" / self.worker_id
 
         if self.mode == "fresh":
-            # Fresh mode: always start clean (remove existing, create new)
-            if workspace_path.exists():
+            # Fresh mode: clean only on 'apply' phase, preserve for 'test' phase
+            if self.phase == "apply" and workspace_path.exists():
                 import shutil
                 try:
                     shutil.rmtree(workspace_path)
-                    self.log.info(f"Cleaned existing workspace: {workspace_path}")
+                    self.log.info(f"Cleaned existing workspace for apply phase: {workspace_path}")
                 except PermissionError:
                     # Windows file locking issue - just continue, mkdir will handle it
                     self.log.warning(f"Could not clean workspace (file in use), continuing anyway")
+
             workspace_path.mkdir(parents=True, exist_ok=True)
-            self.log.info(f"Created fresh workspace: {workspace_path}")
+            if self.phase == "test" and any(workspace_path.iterdir()):
+                self.log.info(f"Reusing existing workspace for test phase: {workspace_path}")
+            else:
+                self.log.info(f"Created fresh workspace: {workspace_path}")
             return workspace_path
 
         elif self.mode == "repo":
@@ -173,10 +177,12 @@ class WorkerCore:
                 print(f"[INFO] Using Claude from CLAUDE_BIN: {claude_path}")
                 return str(claude_path)
 
-        # Check common paths
+        # Check common paths (case-sensitive on Windows)
         possible_paths = [
-            Path.home() / ".npm-global" / "claude.CMD",
+            Path.home() / ".npm-global" / "claude.cmd",  # lowercase .cmd (actual file)
+            Path.home() / ".npm-global" / "claude.CMD",  # uppercase .CMD (fallback)
             Path.home() / ".npm-global" / "bin" / "claude",
+            Path("claude.cmd"),
             Path("claude.CMD"),
             Path("claude")
         ]
