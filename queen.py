@@ -22,6 +22,13 @@ from enum import Enum
 # Import HiveCore for tight integration
 from hive import HiveCore
 
+# Hive database system
+try:
+    import hive_core_db
+except ImportError:
+    sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
+    import hive_core_db
+
 class Phase(Enum):
     """Task execution phases"""
     PLAN = "plan"
@@ -122,8 +129,8 @@ class QueenLite:
     
     def process_queue(self):
         """Process task queue with hardened status management"""
-        queue = self.hive.load_task_queue()
-        if not queue:
+        queued_tasks = hive_core_db.get_queued_tasks()
+        if not queued_tasks:
             return
         
         # Count active workers per role
@@ -138,21 +145,19 @@ class QueenLite:
         if len(self.active_workers) >= max_parallel:
             return
         
-        for task_id in queue[:]:
-            task = self.hive.load_task(task_id)
-            if not task or task.get("status") != "queued":
-                continue
+        for task in queued_tasks:
+            task_id = task["id"]
             
             # Check dependencies
             depends_on = task.get("depends_on", [])
             if depends_on:
                 dependencies_met = True
                 for dep_id in depends_on:
-                    dep_task = self.hive.load_task(dep_id)
+                    dep_task = hive_core_db.get_task(dep_id)
                     if not dep_task or dep_task.get("status") != "completed":
                         dependencies_met = False
                         break
-                
+
                 if not dependencies_met:
                     continue  # Skip silently - dependencies not met
             
@@ -170,11 +175,11 @@ class QueenLite:
             current_phase = Phase.APPLY
             
             # Set assigned status
-            task["status"] = "assigned"
-            task["assignee"] = worker
-            task["assigned_at"] = datetime.now(timezone.utc).isoformat()
-            task["current_phase"] = current_phase.value
-            self.hive.save_task(task)
+            hive_core_db.update_task_status(task_id, "assigned", {
+                "assignee": worker,
+                "assigned_at": datetime.now(timezone.utc).isoformat(),
+                "current_phase": current_phase.value
+            })
             
             # CRITICAL: Spawn worker with failure handling
             result = self.spawn_worker(task, worker, current_phase)
@@ -186,19 +191,18 @@ class QueenLite:
                     "phase": current_phase.value,
                     "worker_type": worker
                 }
-                task["status"] = "in_progress"
-                task["started_at"] = datetime.now(timezone.utc).isoformat()
-                self.hive.save_task(task)
+                hive_core_db.update_task_status(task_id, "in_progress", {
+                    "started_at": datetime.now(timezone.utc).isoformat()
+                })
                 self.log.info(f"Successfully spawned {worker} for {task_id} (PID: {process.pid})")
             else:
                 # HARDENING: Spawn failed - revert task to queued status
                 self.log.info(f"Failed to spawn {worker} for {task_id} - reverting to queued")
-                task["status"] = "queued"
-                # Remove assignment details to allow reassignment
-                for key in ["assignee", "assigned_at", "current_phase"]:
-                    if key in task:
-                        del task[key]
-                self.hive.save_task(task)
+                hive_core_db.update_task_status(task_id, "queued", {
+                    "assignee": None,
+                    "assigned_at": None,
+                    "current_phase": None
+                })
     
     def kill_worker(self, task_id: str) -> bool:
         """Kill a specific worker by task_id"""
@@ -236,59 +240,56 @@ class QueenLite:
         # First kill if running
         if task_id in self.active_workers:
             self.kill_worker(task_id)
-        
+
         # Load and reset task
-        task = self.hive.load_task(task_id)
+        task = hive_core_db.get_task(task_id)
         if not task:
             self.log.info(f"Task {task_id} not found")
             return False
-        
+
         # Reset task to queued for fresh start
-        task["status"] = "queued"
-        task["current_phase"] = "plan"
-        
-        # Remove assignment details for clean restart
-        for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
-            if key in task:
-                del task[key]
-        
-        self.hive.save_task(task)
+        hive_core_db.update_task_status(task_id, "queued", {
+            "current_phase": "plan",
+            "assignee": None,
+            "assigned_at": None,
+            "started_at": None,
+            "worktree": None,
+            "workspace_type": None
+        })
         self.log.info(f"Task {task_id} reset to queued for restart")
         return True
     
     def recover_zombie_tasks(self):
-        """HARDENING: Detect and recover zombie tasks"""
-        # First, check for tasks stuck in progress without active workers
-        all_tasks = self.hive.load_task_queue()
-        if all_tasks:
-            for task_id in all_tasks:
-                task = self.hive.load_task(task_id)
-                if not task:
-                    continue
-                
-                # Check if task is stuck in progress without active worker
-                if task.get("status") == "in_progress" and task_id not in self.active_workers:
-                    started_at = task.get("started_at")
-                    if started_at:
-                        start_time = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
-                        age_minutes = (datetime.now(timezone.utc) - start_time).total_seconds() / 60
-                        age_str = f"{age_minutes:.1f} minutes"
-                    else:
-                        age_str = "unknown duration"
-                    
-                    # Recover zombie tasks immediately (no waiting)
-                    self.log.info(f"[RECOVER] Recovering zombie task: {task_id} (stale for {age_str})")
-                    
-                    # Reset to queued for retry
-                    task["status"] = "queued"
-                    task["current_phase"] = "plan"
-                    
-                    # Remove assignment details
-                    for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
-                        if key in task:
-                            del task[key]
-                    
-                    self.hive.save_task(task)
+        """HARDENING: Detect and recover zombie tasks using database queries"""
+        # Query database for tasks that are in_progress but not actively managed
+        in_progress_tasks = hive_core_db.get_tasks_by_status("in_progress")
+        if not in_progress_tasks:
+            return
+
+        for task in in_progress_tasks:
+            task_id = task["id"]
+            # Check if task is stuck in progress without active worker
+            if task_id not in self.active_workers:
+                started_at = task.get("started_at")
+                if started_at:
+                    start_time = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+                    age_minutes = (datetime.now(timezone.utc) - start_time).total_seconds() / 60
+                    age_str = f"{age_minutes:.1f} minutes"
+                else:
+                    age_str = "unknown duration"
+
+                # Recover zombie tasks immediately (no waiting)
+                self.log.info(f"[RECOVER] Recovering zombie task: {task_id} (stale for {age_str})")
+
+                # Reset to queued for retry
+                hive_core_db.update_task_status(task_id, "queued", {
+                    "current_phase": "plan",
+                    "assignee": None,
+                    "assigned_at": None,
+                    "started_at": None,
+                    "worktree": None,
+                    "workspace_type": None
+                })
     
     def monitor_workers(self):
         """Monitor active workers with zombie recovery and timeout detection"""
@@ -316,7 +317,7 @@ class QueenLite:
             return True  # Worker still running, continue to next
         
         # Worker finished - load task
-        task = self.hive.load_task(task_id)
+        task = hive_core_db.get_task(task_id)
         if not task:
             completed.append(task_id)
             return True
@@ -332,28 +333,31 @@ class QueenLite:
     def _handle_worker_failure(self, task_id: str, task: Dict[str, Any], completed: List[str]):
         """Handle worker process failure"""
         self.log.info(f"Worker failed for {task_id} - reverting to queued")
-        
+
         # Revert task to queued status for retry
-        task["status"] = "queued"
-        
-        # Remove assignment details to allow reassignment
-        for key in ["assignee", "assigned_at", "current_phase", "started_at"]:
-            if key in task:
-                del task[key]
-        
-        self.hive.save_task(task)
+        hive_core_db.update_task_status(task_id, "queued", {
+            "assignee": None,
+            "assigned_at": None,
+            "current_phase": None,
+            "started_at": None
+        })
         completed.append(task_id)
     
     def _handle_worker_success(self, task_id: str, task: Dict[str, Any], metadata: Dict[str, Any], completed: List[str]) -> bool:
         """Handle successful worker completion. Returns True if processing should continue to next worker"""
-        result = self.hive.get_latest_result(task_id)
-        if not result:
-            self.log.warning(f"Worker for {task_id} finished successfully but no result file was found.")
+        run_id = metadata.get("run_id")
+        if not run_id:
+            self.log.warning(f"Worker for {task_id} finished successfully but no run_id was found.")
+            return self._handle_task_failure(task_id, task, metadata.get("phase", "apply"), completed)
+
+        run_data = hive_core_db.get_run(run_id)
+        if not run_data:
+            self.log.warning(f"Worker for {task_id} finished successfully but no run data was found for run_id: {run_id}")
             # Treat as failure to allow for retries
             return self._handle_task_failure(task_id, task, metadata.get("phase", "apply"), completed)
         
         try:
-            status = result.get("status", "failed")
+            status = run_data.get("result", {}).get("status", "failed")
             current_phase = metadata.get("phase", "apply")
             
             if status == "success":
@@ -386,26 +390,25 @@ class QueenLite:
                     "worker_type": worker
                 }
                 # CRITICAL: Update task status for the new phase
-                task["current_phase"] = Phase.TEST.value
-                task["status"] = "in_progress"
-                task["started_at"] = datetime.now(timezone.utc).isoformat()
-                self.hive.save_task(task)
+                hive_core_db.update_task_status(task_id, "in_progress", {
+                    "current_phase": Phase.TEST.value,
+                    "started_at": datetime.now(timezone.utc).isoformat()
+                })
                 return True  # Don't mark as completed yet - TEST phase is running
             else:
                 # Spawn failed for TEST phase - mark as failed
                 self.log.error(f"Failed to spawn TEST phase for {task_id}")
-                task["status"] = "failed"
-                task["failure_reason"] = "Failed to spawn TEST phase"
-                self.hive.save_task(task)
+                hive_core_db.update_task_status(task_id, "failed", {
+                    "failure_reason": "Failed to spawn TEST phase"
+                })
                 completed.append(task_id)
                 return True
         else:
             # TEST phase completed successfully
-            task["status"] = "completed"
+            hive_core_db.update_task_status(task_id, "completed", {})
             self.log.info(f"✅ Task {task_id} TEST succeeded - COMPLETED")
             if self.live_output:
                 print("-" * 70)
-            self.hive.save_task(task)
             completed.append(task_id)
         
         return True
@@ -418,21 +421,21 @@ class QueenLite:
         if retry_count < max_retries:
             # Retry the task
             self.log.info(f"Task {task_id} {current_phase} failed - retrying (attempt {retry_count + 1}/{max_retries})")
-            task["retry_count"] = retry_count + 1
-            task["status"] = "queued"
-            task["current_phase"] = "plan"
-            
-            # Remove assignment details for clean restart
-            for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
-                if key in task:
-                    del task[key]
+            hive_core_db.update_task_status(task_id, "queued", {
+                "retry_count": retry_count + 1,
+                "current_phase": "plan",
+                "assignee": None,
+                "assigned_at": None,
+                "started_at": None,
+                "worktree": None,
+                "workspace_type": None
+            })
         else:
             # Max retries reached
-            task["status"] = "failed"
+            hive_core_db.update_task_status(task_id, "failed", {})
             self.log.info(f"Task {task_id} {current_phase} failed after {retry_count} retries")
-        
+
         completed.append(task_id)
-        self.hive.save_task(task)
         return True
     
     def _check_worker_timeouts(self):
@@ -443,7 +446,7 @@ class QueenLite:
         
         for task_id, metadata in list(self.active_workers.items()):
             # Get task to check start time
-            task = self.hive.load_task(task_id)
+            task = hive_core_db.get_task(task_id)
             if not task or "started_at" not in task:
                 continue
             
@@ -465,15 +468,14 @@ class QueenLite:
                         pass
                     
                     # Reset task to queued for retry
-                    task["status"] = "queued"
-                    task["current_phase"] = "plan"
-                    
-                    # Remove assignment details
-                    for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
-                        if key in task:
-                            del task[key]
-                    
-                    self.hive.save_task(task)
+                    hive_core_db.update_task_status(task_id, "queued", {
+                        "current_phase": "plan",
+                        "assignee": None,
+                        "assigned_at": None,
+                        "started_at": None,
+                        "worktree": None,
+                        "workspace_type": None
+                    })
                     
                     # Remove from active workers
                     if task_id in self.active_workers:
@@ -494,14 +496,12 @@ class QueenLite:
         active_count = len(self.active_workers)
         
         # Get queued workers for display
-        queue = self.hive.load_task_queue()
+        queued_tasks = hive_core_db.get_queued_tasks()
         queued_workers = []
-        if queue:
-            for task_id in queue:
-                task = self.hive.load_task(task_id)
-                if task and task.get("status") == "queued":
-                    worker = task.get("tags", [None])[0] if task.get("tags") else "backend"
-                    queued_workers.append(f"[{worker.upper()}] {task_id}")
+        for task in queued_tasks:
+            task_id = task["id"]
+            worker = task.get("tags", [None])[0] if task.get("tags") else "backend"
+            queued_workers.append(f"[{worker.upper()}] {task_id}")
         
         # Clean status update
         self.log.info(f"\n[STATUS] Q:{stats['queued']} I:{stats['in_progress']} P:{stats['assigned']} C:{stats['completed']} F:{stats['failed']} | Active: {active_count}")
@@ -514,7 +514,7 @@ class QueenLite:
                 pid = metadata["process"].pid
                 
                 # Simple runtime calc
-                task = self.hive.load_task(task_id)
+                task = hive_core_db.get_task(task_id)
                 if task and "started_at" in task:
                     try:
                         started = datetime.fromisoformat(task["started_at"].replace('Z', '+00:00'))

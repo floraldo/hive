@@ -267,21 +267,53 @@ def get_queued_tasks(limit: int = 10, task_type: Optional[str] = None) -> List[D
     return tasks
 
 
-def update_task_status(task_id: str, status: str, assigned_worker: Optional[str] = None) -> bool:
-    """Update task status and optional worker assignment."""
+def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    """Update task status and optional metadata fields."""
     with transaction() as conn:
-        if assigned_worker:
-            cursor = conn.execute('''
-                UPDATE tasks
-                SET status = ?, assigned_worker = ?, updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-            ''', (status, assigned_worker, task_id))
-        else:
-            cursor = conn.execute('''
-                UPDATE tasks
-                SET status = ?, updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-            ''', (status, task_id))
+        # Start with base fields
+        fields = ['status = ?', 'updated_at = CURRENT_TIMESTAMP']
+        values = [status]
+
+        # Add metadata fields if provided
+        if metadata:
+            for key, value in metadata.items():
+                if key in ['assignee', 'assigned_at', 'current_phase', 'started_at', 'failure_reason', 'retry_count', 'worktree', 'workspace_type']:
+                    fields.append(f'{key} = ?')
+                    values.append(value)
+
+        values.append(task_id)
+
+        # Check if we need to add missing columns
+        cursor = conn.execute("PRAGMA table_info(tasks)")
+        existing_columns = {row[1] for row in cursor.fetchall()}
+
+        # Add missing columns if needed
+        required_columns = {
+            'assignee': 'TEXT',
+            'assigned_at': 'TEXT',
+            'current_phase': 'TEXT',
+            'started_at': 'TEXT',
+            'failure_reason': 'TEXT',
+            'retry_count': 'INTEGER DEFAULT 0',
+            'worktree': 'TEXT',
+            'workspace_type': 'TEXT',
+            'depends_on': 'TEXT'  # JSON array of dependency task IDs
+        }
+
+        for column, column_type in required_columns.items():
+            if column not in existing_columns:
+                try:
+                    conn.execute(f'ALTER TABLE tasks ADD COLUMN {column} {column_type}')
+                    logger.info(f"Added column {column} to tasks table")
+                except sqlite3.OperationalError:
+                    # Column might already exist from concurrent update
+                    pass
+
+        cursor = conn.execute(f'''
+            UPDATE tasks
+            SET {', '.join(fields)}
+            WHERE id = ?
+        ''', values)
 
         success = cursor.rowcount > 0
         if success:
@@ -375,7 +407,16 @@ def get_run(run_id: str) -> Optional[Dict[str, Any]]:
 
     if row:
         run = dict(row)
-        run['result_data'] = json.loads(run['result_data']) if run['result_data'] else None
+        result_data = json.loads(run['result_data']) if run['result_data'] else {}
+
+        # Structure the return to match what Queen expects
+        # Queen looks for run_data.get("result", {}).get("status", "failed")
+        run['result'] = {
+            'status': run.get('status', 'failed'),
+            'data': result_data,
+            'error_message': run.get('error_message'),
+            'output_log': run.get('output_log')
+        }
         return run
 
     return None
@@ -502,3 +543,40 @@ def log_run_result(run_id: str, status: str, result_data: Dict[str, Any], error_
     except Exception as e:
         logger.error(f"Error logging result for run {run_id}: {e}")
         return False
+
+
+def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
+    """
+    Get all tasks with a specific status.
+
+    Args:
+        status: The task status to filter by
+
+    Returns:
+        List of task dictionaries
+    """
+    try:
+        with get_connection() as conn:
+            cursor = conn.execute(
+                'SELECT * FROM tasks WHERE status = ? ORDER BY created_at ASC',
+                (status,)
+            )
+            rows = cursor.fetchall()
+
+            tasks = []
+            for row in rows:
+                task_dict = dict(row)
+                # Parse JSON fields
+                if task_dict.get('tags'):
+                    task_dict['tags'] = json.loads(task_dict['tags'])
+                if task_dict.get('depends_on'):
+                    task_dict['depends_on'] = json.loads(task_dict['depends_on'])
+                if task_dict.get('metadata'):
+                    task_dict['metadata'] = json.loads(task_dict['metadata'])
+                tasks.append(task_dict)
+
+            return tasks
+
+    except Exception as e:
+        logger.error(f"Error getting tasks by status {status}: {e}")
+        return []
