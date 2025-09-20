@@ -6,6 +6,7 @@ Uses the rich library for beautiful terminal UI with live updates.
 """
 
 import time
+import json
 from datetime import datetime
 from typing import List, Dict, Any
 from pathlib import Path
@@ -47,7 +48,9 @@ class HiveDashboard:
         cursor = conn.cursor()
 
         stats = {}
-        statuses = ['queued', 'assigned', 'in_progress', 'completed', 'failed', 'cancelled']
+        statuses = ['queued', 'assigned', 'in_progress', 'review_pending',
+                   'approved', 'rejected', 'rework_needed', 'escalated',
+                   'completed', 'failed', 'cancelled']
 
         for status in statuses:
             cursor.execute("SELECT COUNT(*) FROM tasks WHERE status = ?", (status,))
@@ -82,6 +85,36 @@ class HiveDashboard:
             })
 
         return tasks
+
+    def get_escalated_tasks(self) -> List[Dict[str, Any]]:
+        """Get tasks requiring human review."""
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT id, title, priority, created_at, result_data
+            FROM tasks
+            WHERE status = 'escalated'
+            ORDER BY priority DESC, created_at ASC
+            LIMIT 5
+        """)
+
+        escalated = []
+        for row in cursor.fetchall():
+            # Parse result data to get AI score
+            result_data = json.loads(row[4]) if row[4] else {}
+            review = result_data.get('review', {})
+
+            escalated.append({
+                'id': row[0],
+                'title': row[1],
+                'priority': row[2],
+                'created_at': row[3],
+                'ai_score': review.get('overall_score', 0),
+                'reason': result_data.get('escalation_reason', 'Review needed')
+            })
+
+        return escalated
 
     def get_worker_info(self) -> List[Dict[str, Any]]:
         """Get information about active workers."""
@@ -137,26 +170,95 @@ class HiveDashboard:
 
         return runs
 
+    def create_escalation_panel(self) -> Panel:
+        """Create escalation alert panel for human review tasks."""
+        escalated = self.get_escalated_tasks()
+
+        if not escalated:
+            return None  # Don't show panel if no escalated tasks
+
+        # Create alert content
+        alert_lines = []
+        alert_lines.append("[bold red blink]🚨 ACTION REQUIRED: HUMAN REVIEW NEEDED 🚨[/bold red blink]\n")
+
+        # Create mini table for escalated tasks
+        table = Table(box=box.SIMPLE, show_header=True, header_style="bold yellow")
+        table.add_column("ID", style="cyan", width=12)
+        table.add_column("Title", width=25)
+        table.add_column("Priority", justify="center", width=8)
+        table.add_column("Age", width=8)
+        table.add_column("AI Score", justify="center", width=8)
+
+        for task in escalated:
+            # Calculate age
+            created = datetime.fromisoformat(task['created_at'])
+            age = datetime.now() - created
+            if age.days > 0:
+                age_str = f"{age.days}d"
+                age_color = "red" if age.days > 2 else "yellow"
+            else:
+                hours = age.seconds // 3600
+                age_str = f"{hours}h"
+                age_color = "yellow" if hours > 12 else "white"
+
+            table.add_row(
+                task['id'][:12],
+                task['title'][:25],
+                f"P{task['priority']}",
+                f"[{age_color}]{age_str}[/{age_color}]",
+                f"{task['ai_score']:.0f}" if task['ai_score'] else "N/A"
+            )
+
+        # Create panel with alert styling
+        panel = Panel(
+            table,
+            title=f"[bold red]{len(escalated)} Tasks Escalated for Review[/bold red]",
+            box=box.DOUBLE,
+            border_style="red",
+            padding=(0, 1)
+        )
+
+        return panel
+
     def create_status_table(self) -> Table:
         """Create the status overview table."""
         stats = self.get_task_stats()
 
         table = Table(title="Task Pipeline Status", box=box.ROUNDED)
+
+        # First row - main pipeline
         table.add_column("Queued", style="white", justify="center")
         table.add_column("Assigned", style="cyan", justify="center")
         table.add_column("In Progress", style="yellow", justify="center")
+        table.add_column("Review", style="magenta", justify="center")
         table.add_column("Completed", style="green", justify="center")
         table.add_column("Failed", style="red", justify="center")
-        table.add_column("Cancelled", style="dim", justify="center")
 
         table.add_row(
             str(stats.get('queued', 0)),
             str(stats.get('assigned', 0)),
             str(stats.get('in_progress', 0)),
+            str(stats.get('review_pending', 0)),
             str(stats.get('completed', 0)),
-            str(stats.get('failed', 0)),
-            str(stats.get('cancelled', 0))
+            str(stats.get('failed', 0))
         )
+
+        # Add review status if there are any
+        if any(stats.get(s, 0) > 0 for s in ['approved', 'rejected', 'rework_needed', 'escalated']):
+            review_table = Table(title="AI Review Status", box=box.ROUNDED)
+            review_table.add_column("Approved", style="green", justify="center")
+            review_table.add_column("Rejected", style="red", justify="center")
+            review_table.add_column("Rework", style="yellow", justify="center")
+            review_table.add_column("Escalated", style="red bold", justify="center")
+
+            review_table.add_row(
+                str(stats.get('approved', 0)),
+                str(stats.get('rejected', 0)),
+                str(stats.get('rework_needed', 0)),
+                f"[red bold]{stats.get('escalated', 0)}[/red bold]" if stats.get('escalated', 0) > 0 else "0"
+            )
+
+            return Columns([table, review_table])
 
         return table
 
@@ -285,13 +387,28 @@ class HiveDashboard:
         """Create the full dashboard layout."""
         layout = Layout()
 
-        # Create main sections
-        layout.split_column(
-            Layout(name="header", size=3),
-            Layout(name="status", size=5),
-            Layout(name="main", size=20),
-            Layout(name="footer", size=3)
-        )
+        # Check for escalated tasks
+        escalation_panel = self.create_escalation_panel()
+
+        # Adjust layout based on whether we have escalated tasks
+        if escalation_panel:
+            # With escalation alert - make it prominent
+            layout.split_column(
+                Layout(name="header", size=3),
+                Layout(name="escalation", size=8),  # Prominent alert
+                Layout(name="status", size=5),
+                Layout(name="main", size=18),
+                Layout(name="footer", size=3)
+            )
+            layout["escalation"].update(escalation_panel)
+        else:
+            # Normal layout without escalation
+            layout.split_column(
+                Layout(name="header", size=3),
+                Layout(name="status", size=5),
+                Layout(name="main", size=20),
+                Layout(name="footer", size=3)
+            )
 
         # Header
         header_text = Text.from_markup(

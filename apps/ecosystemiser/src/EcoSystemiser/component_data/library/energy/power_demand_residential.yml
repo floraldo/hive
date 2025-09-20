@@ -1,0 +1,25 @@
+# Residential power demand profile
+component_class: PowerDemand
+category: energy
+manufacturer: Generic
+model: residential_demand
+description: "Typical residential electricity demand profile"
+
+technical:
+  P_max: 10.0  # kW - Maximum power demand
+  profile_name: electricity_demand  # Profile name to load
+  base_load: 0.5  # kW - Constant base load (refrigerator, standby, etc.)
+  demand_response_enabled: false
+  flexibility: 0.0
+
+economic:
+  capex: 0  # EUR - No capital cost for demand
+  opex_fix: 0  # EUR/year
+  opex_var: 0  # EUR/kWh - Cost handled by grid tariffs
+  lifetime: 30  # years
+  discount_rate: 0.05
+
+environmental:
+  co2_embodied: 0  # kg CO2
+  co2_operational: 0  # kg CO2/kWh - Emissions attributed to generation
+  recycling_rate: 0

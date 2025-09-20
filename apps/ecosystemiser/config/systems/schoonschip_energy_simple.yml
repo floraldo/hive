@@ -1,0 +1,58 @@
+# Simple Schoonschip energy system configuration
+system_id: schoonschip_energy_simple
+timesteps: 24
+description: "Simple residential energy system with solar, battery, grid, and demand"
+
+# Component instances
+components:
+  # Grid connection
+  - name: GRID
+    component_id: grid_standard  # References library/energy/grid_standard.yml
+
+  # Battery storage
+  - name: BATTERY
+    component_id: sonnen_eco_10  # References library/energy/sonnen_eco_10.yml
+    params:  # Override specific parameters if needed
+      technical:
+        E_init: 3.0  # Start with 30% charge
+
+  # Solar PV system
+  - name: SOLAR
+    component_id: solar_pv_residential  # References library/energy/solar_pv_residential.yml
+
+  # Power demand
+  - name: DEMAND
+    component_id: power_demand_residential  # References library/energy/power_demand_residential.yml
+
+# System connections
+connections:
+  # Grid can charge/discharge battery (bidirectional)
+  - from: GRID
+    to: BATTERY
+    type: electricity
+    bidirectional: true
+
+  # Solar can charge battery
+  - from: SOLAR
+    to: BATTERY
+    type: electricity
+
+  # Solar can export to grid
+  - from: SOLAR
+    to: GRID
+    type: electricity
+
+  # Solar can directly supply demand
+  - from: SOLAR
+    to: DEMAND
+    type: electricity
+
+  # Battery can supply demand
+  - from: BATTERY
+    to: DEMAND
+    type: electricity
+
+  # Grid can supply demand
+  - from: GRID
+    to: DEMAND
+    type: electricity

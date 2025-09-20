@@ -1,0 +1,25 @@
+# Residential solar PV system
+component_class: SolarPV
+category: energy
+manufacturer: Generic
+model: residential_5kw
+description: "5kW residential rooftop solar PV system"
+
+technical:
+  P_max: 5.0  # kW - Maximum power output
+  efficiency: 0.20  # Panel efficiency (20%)
+  degradation_rate: 0.005  # Annual degradation rate (0.5%)
+  profile_name: solar_generation  # Name of solar profile to use
+
+economic:
+  capex: 6000  # EUR - Installation cost
+  opex_fix: 100  # EUR/year - Maintenance
+  opex_var: 0  # EUR/kWh
+  lifetime: 25  # years
+  discount_rate: 0.05
+  salvage_value: 500  # EUR
+
+environmental:
+  co2_embodied: 2000  # kg CO2 - Manufacturing emissions
+  co2_operational: 0  # kg CO2/kWh - Zero emissions during operation
+  recycling_rate: 0.90  # 90% recyclable

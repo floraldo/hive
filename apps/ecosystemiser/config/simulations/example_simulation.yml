@@ -1,0 +1,35 @@
+# Example simulation configuration
+simulation_id: sim_001_schoonschip
+system_config_path: config/systems/schoonschip_energy_simple.yml
+solver_type: rule_based  # or 'milp' for optimization
+
+# Solver configuration
+solver_config:
+  max_iterations: 1000
+  tolerance: 1e-6
+  verbose: false
+  solver_specific:
+    objective: min_cost  # For MILP solver
+
+# Climate input configuration (optional)
+climate_input:
+  lat: 52.3676  # Amsterdam latitude
+  lon: 4.9041   # Amsterdam longitude
+  start_date: "2024-01-01"
+  end_date: "2024-01-01"
+  variables:
+    - temperature
+    - solar_radiation
+
+# Demand input configuration (optional)
+demand_input:
+  file_path: data/profiles/demand/residential_24h.csv
+  column_mapping:
+    electricity_demand: electricity_demand
+    heat_demand: heat_demand
+
+# Output configuration
+output_config:
+  directory: outputs/simulations
+  format: json  # Options: json, parquet, csv, pickle
+  save_intermediate: false

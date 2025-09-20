@@ -35,6 +35,10 @@ class TaskStatus(Enum):
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
     REVIEW_PENDING = "review_pending"  # Task awaiting intelligent review
+    APPROVED = "approved"              # Passed AI review
+    REJECTED = "rejected"              # Failed AI review
+    REWORK_NEEDED = "rework_needed"    # Needs improvements (AI review)
+    ESCALATED = "escalated"            # Requires human review
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"

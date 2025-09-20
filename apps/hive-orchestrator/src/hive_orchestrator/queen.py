@@ -43,17 +43,38 @@ class QueenLite:
         # Tight integration with HiveCore
         self.hive = hive_core
         self.live_output = live_output
-        
+
         # Initialize logger
         self.log = get_logger(__name__)
-        
+
         # State management
         self.active_workers = {}  # task_id -> {process, run_id, phase}
-        
+
+        # Register Queen as a worker to satisfy foreign key constraints
+        self._register_as_worker()
+
         # Simple mode toggle (optional environment-based simplification)
         self.simple_mode = os.environ.get("HIVE_SIMPLE_MODE", "false").lower() == "true"
         if self.simple_mode:
             self.log.info("Running in HIVE_SIMPLE_MODE - some features may be simplified")
+
+    def _register_as_worker(self):
+        """Register Queen as a worker in the database."""
+        try:
+            hive_core_db.register_worker(
+                worker_id="queen-orchestrator",
+                role="orchestrator",
+                capabilities=["task_orchestration", "workflow_management", "worker_coordination"],
+                metadata={
+                    "version": "2.0.0",
+                    "type": "QueenLite",
+                    "features": ["stateful_workflows", "parallel_execution", "app_tasks"]
+                }
+            )
+            self.log.info("Queen registered as worker: queen-orchestrator")
+        except Exception as e:
+            self.log.warning(f"Failed to register Queen as worker: {e}")
+            # Continue anyway - registration might already exist
 
     def is_app_task(self, task: Dict[str, Any]) -> bool:
         """Check if a task is an app task based on assignee format"""
@@ -954,7 +975,10 @@ def main():
     parser.add_argument("--live", action="store_true",
                        help="Enable live streaming output from workers")
     args = parser.parse_args()
-    
+
+    # Initialize database before anything else
+    hive_core_db.init_db()
+
     # Configure logging for Queen
     setup_logging(
         name="queen",

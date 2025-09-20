@@ -1,0 +1,31 @@
+[app]
+name = "ai-reviewer"
+version = "0.1.0"
+description = "Autonomous AI code review agent that monitors the review_pending queue"
+type = "daemon"
+
+[daemons.default]
+description = "Starts the main autonomous review agent loop"
+command = "python src/ai_reviewer/agent.py"
+restart_on_failure = true
+restart_delay_seconds = 30
+
+[daemons.test-mode]
+description = "Runs agent in test mode with shorter intervals"
+command = "python src/ai_reviewer/agent.py --test-mode"
+restart_on_failure = false
+
+[capabilities]
+review = ["code-quality", "test-coverage", "documentation", "security-scan"]
+decision = ["approve", "reject", "rework", "escalate"]
+autonomous = true
+
+[integration]
+database = "hive-core-db"
+uses_queue = "review_pending"
+updates_status = ["approved", "rejected", "rework_needed", "escalated"]
+
+[monitoring]
+heartbeat_interval = 60
+health_check_endpoint = "/health"
+metrics_enabled = true

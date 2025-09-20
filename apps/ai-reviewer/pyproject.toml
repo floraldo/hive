@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "hive-ai-reviewer"
+version = "0.1.0"
+description = "Autonomous AI code review agent for Hive App Factory"
+authors = ["Hive Team"]
+packages = [{include = "ai_reviewer", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+hive-core-db = {path = "../../packages/hive-core-db", develop = true}
+hive-config = {path = "../../packages/hive-config", develop = true}
+hive-logging = {path = "../../packages/hive-logging", develop = true}
+anthropic = "^0.39.0"
+pydantic = "^2.5.0"
+rich = "^13.7.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.1.0"
+black = "^23.7.0"
+mypy = "^1.5.0"
+ruff = "^0.0.280"
+
+[tool.poetry.scripts]
+ai-reviewer = "ai_reviewer.agent:main"
+ai-reviewer-daemon = "ai_reviewer.agent:run_daemon"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "UP", "S", "B", "A", "C90", "RUF"]
+ignore = ["E501", "S101"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-v --cov=ai_reviewer --cov-report=html --cov-report=term"
+testpaths = ["tests"]

@@ -10,6 +10,7 @@ import os
 import logging
 from pathlib import Path
 from typing import Optional
+from datetime import datetime
 
 from .queen import main as queen_main
 from .worker import main as worker_main
@@ -148,6 +149,254 @@ def status():
     except Exception as e:
         click.echo(f"Error getting status: {e}", err=True)
         logging.error(f"Status command error: {e}")
+        raise click.Exit(1)
+
+
+@cli.command()
+@click.argument('task_id')
+def review_escalated(task_id: str):
+    """Review an escalated task requiring human decision."""
+    try:
+        from hive_core_db.database import get_connection, TaskStatus
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.table import Table
+        from rich.prompt import Prompt
+        from rich import box
+
+        console = Console()
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Fetch the escalated task
+        cursor.execute("""
+            SELECT id, title, description, status, priority, result_data
+            FROM tasks
+            WHERE id = ? AND status = ?
+        """, (task_id, TaskStatus.ESCALATED.value))
+
+        task = cursor.fetchone()
+
+        if not task:
+            click.echo(f"Error: Task {task_id} not found or not escalated", err=True)
+            raise click.Exit(1)
+
+        # Parse result data for AI review information
+        result_data = json.loads(task['result_data']) if task['result_data'] else {}
+        review = result_data.get('review', {})
+
+        # Display task header
+        console.print(Panel.fit(
+            f"[bold red]ESCALATED TASK REVIEW[/bold red]\n"
+            f"[yellow]Task ID:[/yellow] {task['id']}\n"
+            f"[yellow]Title:[/yellow] {task['title']}\n"
+            f"[yellow]Priority:[/yellow] {task['priority']}",
+            title="Human Review Required",
+            box=box.DOUBLE
+        ))
+
+        # Display task description
+        console.print("\n[bold]Task Description:[/bold]")
+        console.print(task['description'])
+
+        # Display AI analysis if available
+        if review:
+            console.print("\n[bold]AI Review Analysis:[/bold]")
+
+            # Quality metrics table
+            metrics_table = Table(title="Quality Metrics", box=box.ROUNDED)
+            metrics_table.add_column("Metric", style="cyan")
+            metrics_table.add_column("Score", style="white")
+
+            metrics = review.get('metrics', {})
+            metrics_table.add_row("Code Quality", f"{metrics.get('code_quality', 0):.0f}")
+            metrics_table.add_row("Test Coverage", f"{metrics.get('test_coverage', 0):.0f}")
+            metrics_table.add_row("Documentation", f"{metrics.get('documentation', 0):.0f}")
+            metrics_table.add_row("Security", f"{metrics.get('security', 0):.0f}")
+            metrics_table.add_row("Architecture", f"{metrics.get('architecture', 0):.0f}")
+            metrics_table.add_row("[bold]Overall[/bold]", f"[bold]{review.get('overall_score', 0):.0f}[/bold]")
+
+            console.print(metrics_table)
+
+            # AI reasoning
+            console.print("\n[bold]AI Decision:[/bold]", review.get('decision', 'unknown'))
+            console.print("[bold]Confidence:[/bold]", f"{review.get('confidence', 0):.0%}")
+            console.print("\n[bold]Summary:[/bold]", review.get('summary', 'No summary available'))
+
+            # Issues found
+            if review.get('issues'):
+                console.print("\n[bold red]Issues Found:[/bold red]")
+                for issue in review['issues']:
+                    console.print(f"  • {issue}")
+
+            # Suggestions
+            if review.get('suggestions'):
+                console.print("\n[bold yellow]AI Suggestions:[/bold yellow]")
+                for suggestion in review['suggestions']:
+                    console.print(f"  • {suggestion}")
+
+            # Escalation reason
+            if 'escalation_reason' in result_data:
+                console.print("\n[bold magenta]Escalation Reason:[/bold magenta]")
+                console.print(result_data['escalation_reason'])
+
+        # Human decision prompt
+        console.print("\n" + "="*60 + "\n")
+        console.print("[bold cyan]HUMAN REVIEW DECISION REQUIRED[/bold cyan]")
+        console.print("\nAvailable actions:")
+        console.print("  [green]approve[/green]  - Override AI concerns and approve")
+        console.print("  [red]reject[/red]   - Confirm rejection")
+        console.print("  [yellow]rework[/yellow]   - Send back for improvements")
+        console.print("  [cyan]defer[/cyan]    - Need more information")
+        console.print("  [dim]cancel[/dim]   - Cancel review")
+
+        # Get human decision
+        decision = Prompt.ask(
+            "\nYour decision",
+            choices=["approve", "reject", "rework", "defer", "cancel"],
+            default="defer"
+        )
+
+        if decision == "cancel":
+            console.print("[yellow]Review cancelled[/yellow]")
+            return
+
+        # Get additional notes
+        notes = Prompt.ask("\nAdditional notes (optional)", default="")
+
+        # Update task status based on decision
+        new_status = {
+            "approve": TaskStatus.APPROVED.value,
+            "reject": TaskStatus.REJECTED.value,
+            "rework": TaskStatus.REWORK_NEEDED.value,
+            "defer": TaskStatus.ESCALATED.value
+        }[decision]
+
+        # Store human review
+        human_review = {
+            "decision": decision,
+            "notes": notes,
+            "timestamp": datetime.now().isoformat(),
+            "reviewer": "human"
+        }
+
+        if not result_data:
+            result_data = {}
+        result_data['human_review'] = human_review
+
+        cursor.execute("""
+            UPDATE tasks
+            SET status = ?, result_data = ?, updated_at = ?
+            WHERE id = ?
+        """, (new_status, json.dumps(result_data), datetime.now().isoformat(), task_id))
+
+        conn.commit()
+
+        console.print(f"\n[green]✓[/green] Task {task_id} updated to status: [bold]{new_status}[/bold]")
+
+        if notes:
+            console.print(f"[dim]Notes recorded: {notes}[/dim]")
+
+    except ImportError as e:
+        click.echo(f"Required module not available: {e}", err=True)
+        raise click.Exit(1)
+    except Exception as e:
+        click.echo(f"Error reviewing task: {e}", err=True)
+        logging.error(f"Review escalated error: {e}")
+        raise click.Exit(1)
+
+
+@cli.command()
+def list_escalated():
+    """List all tasks requiring human review."""
+    try:
+        from hive_core_db.database import get_connection, TaskStatus
+        from rich.console import Console
+        from rich.table import Table
+        from rich import box
+        import json
+
+        console = Console()
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Fetch all escalated tasks
+        cursor.execute("""
+            SELECT id, title, description, priority, created_at, result_data
+            FROM tasks
+            WHERE status = ?
+            ORDER BY priority DESC, created_at ASC
+        """, (TaskStatus.ESCALATED.value,))
+
+        tasks = cursor.fetchall()
+
+        if not tasks:
+            console.print("[green]✓[/green] No escalated tasks requiring review")
+            return
+
+        # Create table
+        table = Table(
+            title=f"[bold red]🚨 {len(tasks)} Tasks Requiring Human Review[/bold red]",
+            box=box.ROUNDED
+        )
+
+        table.add_column("ID", style="cyan", width=12)
+        table.add_column("Title", width=30)
+        table.add_column("Priority", justify="center", width=8)
+        table.add_column("Age", width=10)
+        table.add_column("AI Score", justify="center", width=10)
+        table.add_column("Reason", width=30)
+
+        for task in tasks:
+            # Calculate age
+            created = datetime.fromisoformat(task['created_at'])
+            age = datetime.now() - created
+            age_str = f"{age.days}d {age.seconds//3600}h" if age.days > 0 else f"{age.seconds//3600}h {(age.seconds%3600)//60}m"
+
+            # Get AI score and reason
+            result_data = json.loads(task['result_data']) if task['result_data'] else {}
+            review = result_data.get('review', {})
+            score = review.get('overall_score', 0)
+
+            # Determine escalation reason
+            if review:
+                if score < 40:
+                    reason = "Very low quality score"
+                elif len(review.get('issues', [])) > 5:
+                    reason = f"{len(review['issues'])} issues found"
+                elif review.get('confidence', 1) < 0.5:
+                    reason = "Low AI confidence"
+                else:
+                    reason = result_data.get('escalation_reason', 'Complex decision required')
+            else:
+                reason = result_data.get('reason', 'No AI analysis available')
+
+            # Color code by age
+            if age.days > 2:
+                age_color = "red"
+            elif age.days > 0:
+                age_color = "yellow"
+            else:
+                age_color = "white"
+
+            table.add_row(
+                task['id'][:12],
+                task['title'][:30],
+                str(task['priority']),
+                f"[{age_color}]{age_str}[/{age_color}]",
+                f"{score:.0f}" if score else "N/A",
+                reason[:30]
+            )
+
+        console.print(table)
+        console.print(f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]")
+
+    except ImportError as e:
+        click.echo(f"Required module not available: {e}", err=True)
+        raise click.Exit(1)
+    except Exception as e:
+        click.echo(f"Error listing escalated tasks: {e}", err=True)
+        logging.error(f"List escalated error: {e}")
         raise click.Exit(1)
 
 

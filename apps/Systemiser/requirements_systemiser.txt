@@ -1,0 +1,18 @@
+# Systemiser Requirements
+# Core optimization and scientific computing
+cvxpy>=1.3.0
+numpy>=1.21.0
+pandas>=1.3.0
+
+# Data handling and utilities
+pathlib2>=2.3.0
+
+# Visualization dependencies
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Optional but recommended for better performance
+scipy>=1.7.0
+
+# For logging (already included in the project)
+# Standard library modules used: logging, sys, os, json 

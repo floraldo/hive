@@ -1,0 +1,36 @@
+component_type: Battery
+component_id: battery_lithium_standard
+name: Standard Lithium-Ion Battery
+category: storage
+manufacturer: Generic
+model: LI-STD-10
+
+technical_params:
+  capacity_kwh: 10.0
+  max_charge_kw: 5.0
+  max_discharge_kw: 5.0
+  round_trip_efficiency: 0.92
+  min_soc: 0.1
+  max_soc: 0.9
+  initial_soc: 0.5
+  degradation_rate: 0.02  # 2% per year
+
+financial_params:
+  capex_per_kwh: 600
+  opex_per_kwh_year: 10
+  lifetime_years: 10
+  discount_rate: 0.05
+
+operational_params:
+  cycling_limit_daily: 2
+  ambient_temp_range: [-10, 45]
+  self_discharge_rate: 0.001  # 0.1% per hour
+
+certifications:
+  safety: ["UL 9540", "IEC 62619"]
+  grid_codes: ["IEEE 1547", "VDE-AR-N 4105"]
+
+metadata:
+  created: "2024-01-01"
+  version: "1.0.0"
+  notes: "Standard residential battery system"

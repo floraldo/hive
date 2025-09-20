@@ -1,0 +1,23 @@
+# Standard grid connection
+component_class: Grid
+category: energy
+manufacturer: Utility
+model: standard
+description: "Standard residential grid connection"
+
+technical:
+  P_max: 15.0  # kW - Maximum grid connection capacity
+  feed_in_tariff: 0.08  # EUR/kWh - Feed-in tariff
+  import_tariff: 0.25  # EUR/kWh - Import tariff
+
+economic:
+  capex: 500  # EUR - Connection cost
+  opex_fix: 120  # EUR/year - Fixed connection fees
+  opex_var: 0  # EUR/kWh - Variable costs handled via tariffs
+  lifetime: 30  # years
+  discount_rate: 0.05
+
+environmental:
+  co2_embodied: 50  # kg CO2 - Infrastructure emissions
+  co2_operational: 0.4  # kg CO2/kWh - Grid average emissions
+  recycling_rate: 0.95
