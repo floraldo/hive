@@ -15,9 +15,29 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-# Add hive packages to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "packages" / "hive-logging" / "src"))
+# Add paths for both hive packages and EcoSystemiser modules
+hive_packages_path = str(Path(__file__).parent.parent.parent.parent / "packages" / "hive-logging" / "src")
+ecosystemiser_src_path = str(Path(__file__).parent / "src")
+
+sys.path.insert(0, hive_packages_path)
+sys.path.insert(0, ecosystemiser_src_path)
+
 from hive_logging import setup_logging, get_logger
+
+# Import real EcoSystemiser components for climate service
+try:
+    from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+    from EcoSystemiser.profile_loader.climate.service import ClimateService
+    CLIMATE_SERVICE_AVAILABLE = True
+except Exception as e:
+    CLIMATE_SERVICE_AVAILABLE = False
+    # Check if we can at least import the data models
+    try:
+        from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+        CLIMATE_MODELS_AVAILABLE = True
+    except Exception:
+        CLIMATE_MODELS_AVAILABLE = False
+    print(f"Warning: EcoSystemiser climate service not available: {e}")
 
 
 class EcoSystemiserAdapter:
@@ -45,6 +65,8 @@ class EcoSystemiserAdapter:
         # Route to specific task handlers
         if task_name == "health-check":
             return self.health_check(payload)
+        elif task_name == "fetch-climate-data":
+            return self.fetch_climate_data(payload)
         elif task_name == "analyze-ecosystem":
             return self.analyze_ecosystem(payload)
         elif task_name == "optimize-balance":
@@ -65,14 +87,20 @@ class EcoSystemiserAdapter:
         """
         self.logger.info("Running EcoSystemiser health check")
 
+        capabilities = [
+            "analyze-ecosystem",
+            "optimize-balance",
+            "generate-report"
+        ]
+
+        if CLIMATE_SERVICE_AVAILABLE:
+            capabilities.append("fetch-climate-data")
+
         return {
             "status": "success",
             "message": "EcoSystemiser is operational",
-            "capabilities": [
-                "analyze-ecosystem",
-                "optimize-balance",
-                "generate-report"
-            ],
+            "capabilities": capabilities,
+            "climate_service": "available" if CLIMATE_SERVICE_AVAILABLE else "unavailable",
             "version": "0.1.0",
             "timestamp": datetime.utcnow().isoformat()
         }
@@ -184,6 +212,111 @@ class EcoSystemiserAdapter:
             "results": optimizations,
             "output_file": str(output_file)
         }
+
+    def fetch_climate_data(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Fetch real climate data using EcoSystemiser's climate service
+
+        Args:
+            payload: Contains location, date range, and other parameters
+
+        Returns:
+            Result with status and path to saved climate data
+        """
+        if not CLIMATE_SERVICE_AVAILABLE:
+            return {
+                "status": "error",
+                "message": "Climate service not available. Check EcoSystemiser installation."
+            }
+
+        self.logger.info("Fetching real climate data using EcoSystemiser service")
+
+        try:
+            # Extract and validate parameters
+            location = payload.get("location", "51.5074,-0.1278")  # Default: London
+            start_date = payload.get("start_date", "2023-07-01")
+            end_date = payload.get("end_date", "2023-07-07")
+            source = payload.get("source", "nasa_power")
+            variables = payload.get("variables", ["temp_air", "ghi", "wind_speed"])
+
+            # Parse location string into tuple
+            if isinstance(location, str):
+                parts = location.split(',')
+                if len(parts) == 2:
+                    lat, lon = float(parts[0]), float(parts[1])
+                    location_tuple = (lat, lon)
+                else:
+                    return {
+                        "status": "error",
+                        "message": f"Invalid location format: {location}. Use 'lat,lon'"
+                    }
+            else:
+                location_tuple = location
+
+            self.logger.info(f"Location: {location_tuple}, Period: {start_date} to {end_date}, Source: {source}")
+
+            # Create the climate request
+            climate_request = ClimateRequest(
+                location=location_tuple,
+                variables=variables,
+                source=source,
+                period={
+                    "start": start_date,
+                    "end": end_date
+                },
+                mode="observed",  # Use observed data
+                resolution="1H",  # Hourly resolution
+                timezone="UTC"
+            )
+
+            # Initialize climate service and process request
+            service = ClimateService()
+            self.logger.info("Processing climate request with EcoSystemiser service...")
+
+            # Process the request (synchronous version)
+            ds, response = service.process_request(climate_request)
+
+            # Get the output path from response
+            output_path = response.path_parquet if hasattr(response, 'path_parquet') else None
+
+            self.logger.info(f"Climate data successfully fetched and saved to: {output_path}")
+
+            # Prepare successful response
+            result = {
+                "status": "success",
+                "message": f"Climate data fetched for {location}",
+                "location": location_tuple,
+                "period": {
+                    "start": start_date,
+                    "end": end_date
+                },
+                "source": source,
+                "variables": variables,
+                "shape": response.shape if hasattr(response, 'shape') else None,
+                "output_file": output_path,
+                "stats": response.stats if hasattr(response, 'stats') else None
+            }
+
+            # Also save a copy in our results directory for easy access
+            if output_path and Path(output_path).exists():
+                local_copy = self.results_dir / f"climate_{source}_{start_date}_{end_date}.parquet"
+                import shutil
+                shutil.copy2(output_path, local_copy)
+                result["local_copy"] = str(local_copy)
+                self.logger.info(f"Local copy saved to: {local_copy}")
+
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Error fetching climate data: {e}")
+            import traceback
+            self.logger.debug(traceback.format_exc())
+
+            return {
+                "status": "error",
+                "message": f"Failed to fetch climate data: {str(e)}",
+                "error_type": type(e).__name__
+            }
 
     def generate_report(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """

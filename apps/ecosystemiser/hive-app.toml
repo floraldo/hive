@@ -33,6 +33,19 @@ parameters = [
     { name = "constraints", type = "array", default = [], description = "Constraints for optimization" }
 ]
 
+[tasks.fetch-climate-data]
+description = "Fetch real climate data from external sources using EcoSystemiser's climate service"
+command = "python apps/ecosystemiser/hive_adapter.py --task fetch-climate-data --payload '{payload_json}'"
+timeout = 300  # 5 minutes for network operations
+retry = 1
+parameters = [
+    { name = "location", type = "string", description = "Latitude,longitude like '51.5,-0.1' for London" },
+    { name = "start_date", type = "string", description = "Start date in YYYY-MM-DD format" },
+    { name = "end_date", type = "string", description = "End date in YYYY-MM-DD format" },
+    { name = "source", type = "string", default = "nasa_power", description = "Data source: nasa_power, meteostat, era5, pvgis" },
+    { name = "variables", type = "array", default = ["temp_air", "ghi", "wind_speed"], description = "Climate variables to fetch" }
+]
+
 [tasks.generate-report]
 description = "Generate a comprehensive ecosystem analysis report"
 command = "python apps/ecosystemiser/hive_adapter.py --task generate-report --payload '{report_type}'"
@@ -45,10 +58,11 @@ parameters = [
 
 [capabilities]
 # Define what this app can do for AI task planning
-analysis = ["ecosystem-health", "component-dependencies", "performance-metrics"]
+analysis = ["ecosystem-health", "component-dependencies", "performance-metrics", "climate-analysis"]
 optimization = ["resource-allocation", "load-balancing", "efficiency-tuning"]
-reporting = ["markdown", "json", "dashboard-data"]
+reporting = ["markdown", "json", "dashboard-data", "parquet-export"]
 monitoring = ["real-time", "historical", "predictive"]
+climate = ["nasa-power", "meteostat", "era5", "pvgis", "weather-fetching"]
 
 [requirements]
 python = ">=3.8"

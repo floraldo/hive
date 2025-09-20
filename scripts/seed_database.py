@@ -116,6 +116,31 @@ def setup_sample_tasks():
                 "requirements": ["JWT implementation", "Login endpoint", "Logout endpoint"],
                 "framework": "Flask"
             }
+        },
+        # Real EcoSystemiser climate data fetching task
+        {
+            "title": "Fetch London Climate Data - July 2023",
+            "description": "Fetch real climate data for London using EcoSystemiser's climate service",
+            "task_type": "app",
+            "priority": 1,
+            "max_retries": 1,
+            "tags": ["climate", "ecosystemiser", "data", "london"],
+            "assignee": "app:ecosystemiser:fetch-climate-data",
+            "workflow": {
+                "start": {
+                    "command_template": "python apps/ecosystemiser/hive_adapter.py --task fetch-climate-data --payload '{{\"location\": \"{location}\", \"start_date\": \"{start_date}\", \"end_date\": \"{end_date}\", \"source\": \"{source}\", \"variables\": {variables}}}'",
+                    "next_phase_on_success": "completed",
+                    "next_phase_on_failure": "failed"
+                }
+            },
+            "payload": {
+                "location": "51.5074,-0.1278",  # London coordinates
+                "start_date": "2023-07-01",
+                "end_date": "2023-07-07",
+                "source": "nasa_power",
+                "variables": ["temp_air", "ghi", "dni", "wind_speed", "rel_humidity"],
+                "description": "Fetching real weather data for London from NASA POWER database"
+            }
         }
     ]
 
