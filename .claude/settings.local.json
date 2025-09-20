@@ -31,7 +31,8 @@
       "Bash(echo $CLAUDE_BIN)",
       "Bash(find:*)",
       "Bash(git worktree:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Read(//c/git/SmartHoodsOptimisationTool/apps/EcoSystemiser/**)"
     ],
     "deny": [],
     "ask": []

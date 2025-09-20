@@ -1,0 +1,248 @@
+# EcoSystemiser .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual Environments
+venv/
+venv_*/
+ENV/
+env/
+.venv/
+.env/
+virtualenv/
+.virtualenv/
+*.venv
+*.virtualenv
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.log
+.hypothesis/
+nosetests.xml
+test-results/
+test-reports/
+
+# Data and Cache
+data/
+cache/
+temp/
+tmp/
+*.parquet
+*.nc
+*.netcdf
+*.hdf5
+*.h5
+*.csv
+!test_data/*.csv  # Keep test data CSVs
+*.xlsx
+*.xls
+downloads/
+raw_data/
+processed_data/
+output/
+
+# Climate Data Specific
+*.epw
+*.tmy
+*.tmy3
+climate_cache/
+adapter_cache/
+weather_files/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.postgresql
+*.mongo
+database/
+
+# Configuration (keep templates)
+*.env
+.env.*
+!.env.example
+config.json
+config.yaml
+ecosystemiser.json
+!ecosystemiser.example.json
+secrets/
+credentials/
+
+# API Keys and Secrets
+api_keys.json
+*.key
+*.pem
+*.crt
+*.cer
+.secrets/
+
+# Logs
+logs/
+*.log
+*.log.*
+log/
+logging/
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# Documentation build
+docs/_build/
+docs/.build/
+site/
+mkdocs_build/
+
+# Package Management
+poetry.lock
+Pipfile.lock
+
+# Profiling
+*.prof
+*.lprof
+.prof/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# Pytype
+.pytype/
+
+# Ruff
+.ruff_cache/
+
+# Local Development
+local/
+local_*
+scratch/
+sandbox/
+*.local
+.local/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*.temp
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Results and Reports (keep templates)
+results/
+reports/
+!reports/templates/
+analysis_results/
+*.html
+!templates/*.html
+
+# Machine Learning Models
+models/
+*.pkl
+*.joblib
+*.model
+*.h5
+*.pt
+*.pth
+*.onnx
+checkpoints/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# CI/CD
+.gitlab-ci-local/
+.github/actions/
+
+# Custom
+.todo
+.notes
+NOTES.md
+TODO.md
+!ARCHITECTURE_REVIEW.md
+!PROCESSING_IMPROVEMENTS.md
+sandbox.py
+test_*.py
+!tests/test_*.py
+
+# Keep important files
+!requirements.txt
+!requirements-dev.txt
+!setup.py
+!setup.cfg
+!pyproject.toml
+!README.md
+!LICENSE
+!CHANGELOG.md
+!.gitkeep

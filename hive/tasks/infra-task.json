@@ -5,10 +5,15 @@
   "instruction": "Create a file called Dockerfile that contains a simple Docker configuration for a Node.js app",
   "priority": "P1",
   "risk": "low",
-  "status": "queued",
+  "status": "in_progress",
   "tags": [
     "infra"
   ],
   "workspace": "fresh",
-  "assignee": "infra"
+  "completed_at": "2025-09-19T20:17:00.000000+00:00",
+  "assignee": "infra",
+  "assigned_at": "2025-09-19T21:32:03.036847+00:00",
+  "current_phase": "apply",
+  "updated_at": "2025-09-19T21:32:03.049898+00:00",
+  "started_at": "2025-09-19T21:32:03.049898+00:00"
 }
