@@ -5,9 +5,25 @@ Configuration utilities for Hive applications
 import os
 from typing import Optional, Dict, Any
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables from .env file
-load_dotenv()
+def load_hive_env():
+    """Load Hive environment files in priority order"""
+    hive_root = Path(__file__).parent.parent.parent.parent.parent
+
+    # Load in priority order: shared -> global -> local
+    env_files = [
+        hive_root / '.env.shared',
+        hive_root / '.env.global',
+        hive_root / '.env'
+    ]
+
+    for env_file in env_files:
+        if env_file.exists():
+            load_dotenv(env_file, override=False)
+
+# Load all environment configurations
+load_hive_env()
 
 class Config:
     """Configuration management for Hive applications."""

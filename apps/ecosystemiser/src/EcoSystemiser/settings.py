@@ -11,7 +11,7 @@ from functools import lru_cache
 import os
 
 # Pydantic v2 imports
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -332,11 +332,13 @@ class Settings(BaseSettings):
             burst_size=self.rate_limit.burst_size
         )
     
-    class Config:
-        env_prefix = "ECOSYSTEMISER_"
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = ConfigDict(
+        env_prefix="ECOSYSTEMISER_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"  # Allow extra environment variables
+    )
 
 
 # Singleton instance
