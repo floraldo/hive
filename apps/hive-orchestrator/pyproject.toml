@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "hive-orchestrator"
+version = "1.0.0"
+description = "Hive orchestration engine - Queen and Worker management"
+authors = ["Hive System <hive@example.com>"]
+packages = [{include = "hive_orchestrator", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+hive-core-db = {path = "../../packages/hive-core-db", develop = true}
+hive-logging = {path = "../../packages/hive-logging", develop = true}
+hive-config = {path = "../../packages/hive-config", develop = true}
+hive-deployment = {path = "../../packages/hive-deployment", develop = true}
+asyncio = "^3.4.3"
+colorama = "^0.4.5"
+pydantic = "^2.0.0"
+click = "^8.0.0"
+
+[tool.poetry.scripts]
+hive-queen = "hive_orchestrator.queen:main"
+hive-worker = "hive_orchestrator.worker:main"
+hive-orchestrator = "hive_orchestrator.cli:cli"
+hive-clean = "hive_orchestrator.clean_hive:main"
+hive-status = "hive_orchestrator.hive_status:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

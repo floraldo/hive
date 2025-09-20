@@ -11,28 +11,13 @@ import os
 from pathlib import Path
 
 def setup_environment():
-    """Setup paths and environment for EcoSystemiser"""
-
-    # Get current directory (ecosystemiser app root)
-    app_root = Path(__file__).parent
-
-    # Add Hive root to Python path for accessing Hive utilities
-    hive_root = app_root.parents[1]  # Go up two levels to hive root
-    if str(hive_root) not in sys.path:
-        sys.path.insert(0, str(hive_root))
-
-    # Add app src directory to Python path for local imports
-    src_path = app_root / 'src'
-    if str(src_path) not in sys.path:
-        sys.path.insert(0, str(src_path))
-
-    # Change working directory to app root
-    os.chdir(app_root)
+    """Setup environment for EcoSystemiser - now using proper package installation"""
 
     print(f"🐝 EcoSystemiser starting in Hive ecosystem")
-    print(f"   App root: {app_root}")
-    print(f"   Hive root: {hive_root}")
+    print(f"   Using installed package imports")
     print(f"   Working directory: {os.getcwd()}")
+
+    # No more path manipulation - EcoSystemiser should be properly installed
 
 def run_server():
     """Run the EcoSystemiser FastAPI server"""
@@ -43,12 +28,13 @@ def run_server():
         from EcoSystemiser.hive_env import get_app_config
         import uvicorn
 
-        # Get configuration
-        config = get_app_config()
-        host = config.get('ECOSYSTEMISER_HOST', '0.0.0.0')
-        port = int(config.get('ECOSYSTEMISER_PORT', '8001'))
-        workers = int(config.get('ECOSYSTEMISER_WORKERS', '1'))
-        log_level = config.get('ECOSYSTEMISER_LOG_LEVEL', 'info').lower()
+        # Get configuration using simplified settings
+        from EcoSystemiser.hive_env import get_app_settings
+        settings = get_app_settings()
+        host = settings.get('HOST', '0.0.0.0')
+        port = int(settings.get('PORT', '8001'))
+        workers = int(settings.get('WORKERS', '1'))
+        log_level = settings.get('LOG_LEVEL', 'info').lower()
 
         print(f"🚀 Starting EcoSystemiser server on {host}:{port}")
         print(f"   Workers: {workers}")
@@ -67,8 +53,8 @@ def run_server():
 
     except ImportError as e:
         print(f"❌ Import error: {e}")
-        print("   Make sure all dependencies are installed:")
-        print("   pip install -r requirements.txt")
+        print("   Make sure EcoSystemiser is installed:")
+        print("   pip install -e apps/ecosystemiser")
         sys.exit(1)
 
     except Exception as e:

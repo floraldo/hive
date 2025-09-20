@@ -7,18 +7,18 @@ through Hive's centralized configuration management.
 
 from typing import Dict, Optional, List
 import logging
+import os
 
 try:
     from hive_config.loader import load_config_for_app, get_required_keys
     HIVE_CONFIG_AVAILABLE = True
 except ImportError:
     HIVE_CONFIG_AVAILABLE = False
-    import os
 
 logger = logging.getLogger(__name__)
 
 
-def get_ecosystemiser_config():
+def get_app_config():
     """
     Get EcoSystemiser configuration using secure config service.
 
@@ -93,7 +93,7 @@ def get_app_settings() -> Dict[str, str]:
     Get app-specific settings (non-sensitive configuration).
 
     Returns:
-        Dictionary of app-specific settings
+        Dictionary of app-specific settings with simplified names
     """
     if HIVE_CONFIG_AVAILABLE:
         config = load_config_for_app("ecosystemiser").config
@@ -101,13 +101,23 @@ def get_app_settings() -> Dict[str, str]:
         config = dict(os.environ)
 
     return {
-        'ECOSYSTEMISER_PORT': config.get('ECOSYSTEMISER_PORT', '8001'),
-        'ECOSYSTEMISER_HOST': config.get('ECOSYSTEMISER_HOST', '0.0.0.0'),
-        'ECOSYSTEMISER_CACHE_DIR': config.get('ECOSYSTEMISER_CACHE_DIR', './cache'),
-        'ECOSYSTEMISER_DATA_DIR': config.get('ECOSYSTEMISER_DATA_DIR', './data'),
-        'ECOSYSTEMISER_LOG_LEVEL': config.get('ECOSYSTEMISER_LOG_LEVEL', 'INFO'),
-        'ECOSYSTEMISER_WORKERS': config.get('ECOSYSTEMISER_WORKERS', '4'),
-        'ECOSYSTEMISER_MAX_BATCH_SIZE': config.get('ECOSYSTEMISER_MAX_BATCH_SIZE', '100'),
+        # Server settings with simplified names
+        'PORT': config.get('PORT', '8001'),
+        'HOST': config.get('HOST', '0.0.0.0'),
+        'WORKERS': config.get('WORKERS', '4'),
+        'LOG_LEVEL': config.get('LOG_LEVEL', 'INFO'),
+
+        # Storage paths
+        'CACHE_DIR': config.get('CACHE_DIR', './cache'),
+        'DATA_DIR': config.get('DATA_DIR', './data'),
+        'RESULTS_DIR': config.get('RESULTS_DIR', './ecosystemiser_results'),
+
+        # Processing settings
+        'MAX_BATCH_SIZE': config.get('MAX_BATCH_SIZE', '100'),
+        'ENABLE_CACHING': config.get('ENABLE_CACHING', 'true'),
+        'ENABLE_RATE_LIMITING': config.get('ENABLE_RATE_LIMITING', 'true'),
+        'ENABLE_METRICS': config.get('ENABLE_METRICS', 'true'),
+        'DEBUG': config.get('DEBUG', 'false'),
 
         # Rate limiting settings
         'RATE_LIMIT_NASA_POWER': config.get('RATE_LIMIT_NASA_POWER', '30'),
@@ -115,11 +125,12 @@ def get_app_settings() -> Dict[str, str]:
         'RATE_LIMIT_ERA5': config.get('RATE_LIMIT_ERA5', '10'),
         'RATE_LIMIT_PVGIS': config.get('RATE_LIMIT_PVGIS', '20'),
 
-        # Feature flags
-        'ENABLE_CACHING': config.get('ENABLE_CACHING', 'true'),
-        'ENABLE_RATE_LIMITING': config.get('ENABLE_RATE_LIMITING', 'true'),
-        'ENABLE_METRICS': config.get('ENABLE_METRICS', 'true'),
-        'DEBUG': config.get('DEBUG', 'false'),
+        # Climate adapter settings
+        'NASA_POWER_ENABLED': config.get('NASA_POWER_ENABLED', 'true'),
+        'METEOSTAT_ENABLED': config.get('METEOSTAT_ENABLED', 'true'),
+        'ERA5_ENABLED': config.get('ERA5_ENABLED', 'true'),
+        'PVGIS_ENABLED': config.get('PVGIS_ENABLED', 'true'),
+        'EPW_ENABLED': config.get('EPW_ENABLED', 'true'),
     }
 
 

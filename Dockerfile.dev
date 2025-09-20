@@ -22,7 +22,7 @@ WORKDIR /workspace
 
 # Copy dependency files first (Docker layer caching optimization)
 # This layer only rebuilds when dependencies change
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 
 # Copy all package dependency files
 COPY packages/hive-logging/pyproject.toml packages/hive-logging/
@@ -31,6 +31,7 @@ COPY packages/hive-core-db/pyproject.toml packages/hive-core-db/
 COPY packages/hive-deployment/pyproject.toml packages/hive-deployment/
 COPY packages/hive-config/pyproject.toml packages/hive-config/
 COPY apps/ecosystemiser/pyproject.toml apps/ecosystemiser/
+COPY apps/hive-orchestrator/pyproject.toml apps/hive-orchestrator/
 
 # Configure Poetry for better container experience
 RUN poetry config virtualenvs.in-project true \
@@ -40,14 +41,21 @@ RUN poetry config virtualenvs.in-project true \
 # (needed for editable installs to work)
 COPY . .
 
+# Generate poetry.lock if it doesn't exist or is out of sync
+RUN poetry lock --no-update || poetry lock
+
 # Install dependencies with all workspace packages
 # This is the slow part, but it's cached as much as possible!
-RUN poetry install --with workspace --with dev
+RUN poetry install --with workspace --with dev --no-root
 
 # Set up convenient aliases for common commands
 RUN echo '#!/bin/bash' > /usr/local/bin/queen && \
-    echo 'cd /workspace && poetry run python queen.py "$@"' >> /usr/local/bin/queen && \
+    echo 'cd /workspace && poetry run hive-queen "$@"' >> /usr/local/bin/queen && \
     chmod +x /usr/local/bin/queen
+
+RUN echo '#!/bin/bash' > /usr/local/bin/worker && \
+    echo 'cd /workspace && poetry run hive-worker "$@"' >> /usr/local/bin/worker && \
+    chmod +x /usr/local/bin/worker
 
 RUN echo '#!/bin/bash' > /usr/local/bin/test && \
     echo 'cd /workspace && poetry run pytest "$@"' >> /usr/local/bin/test && \
@@ -73,6 +81,7 @@ RUN echo '#!/bin/bash' > /usr/local/bin/welcome && \
     echo 'echo ""' >> /usr/local/bin/welcome && \
     echo 'echo "Quick commands available:"' >> /usr/local/bin/welcome && \
     echo 'echo "  queen    - Run the Queen orchestrator"' >> /usr/local/bin/welcome && \
+    echo 'echo "  worker   - Run a Hive Worker"' >> /usr/local/bin/welcome && \
     echo 'echo "  test     - Run pytest tests"' >> /usr/local/bin/welcome && \
     echo 'echo "  lint     - Run ruff linter"' >> /usr/local/bin/welcome && \
     echo 'echo "  ecosys   - Run EcoSystemiser adapter"' >> /usr/local/bin/welcome && \

@@ -15,14 +15,13 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-# Add paths for both hive packages and EcoSystemiser modules
-hive_packages_path = str(Path(__file__).parent.parent.parent.parent / "packages" / "hive-logging" / "src")
-ecosystemiser_src_path = str(Path(__file__).parent / "src")
+# Temporary path setup until package installation completes
+import sys
+sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-sys.path.insert(0, hive_packages_path)
-sys.path.insert(0, ecosystemiser_src_path)
-
+# Import from properly installed packages
 from hive_logging import setup_logging, get_logger
+from EcoSystemiser.hive_env import get_app_config, get_app_settings
 
 # Import real EcoSystemiser components for climate service
 try:
@@ -44,9 +43,16 @@ class EcoSystemiserAdapter:
     """Adapter for EcoSystemiser tasks within Hive"""
 
     def __init__(self):
-        """Initialize the adapter"""
+        """Initialize the adapter with proper config service"""
         self.logger = get_logger(__name__)
-        self.results_dir = Path.cwd() / "ecosystemiser_results"
+
+        # Get configuration from hive-config service
+        self.config = get_app_config()
+        self.settings = get_app_settings()
+
+        # Set up results directory from config
+        results_dir = self.settings.get('RESULTS_DIR', './ecosystemiser_results')
+        self.results_dir = Path.cwd() / results_dir
         self.results_dir.mkdir(exist_ok=True)
 
     def execute_task(self, task_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:

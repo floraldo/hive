@@ -34,6 +34,7 @@ hive-core-db = {path = "packages/hive-core-db", develop = true}
 hive-deployment = {path = "packages/hive-deployment", develop = true}
 hive-config = {path = "packages/hive-config", develop = true}
 ecosystemiser = {path = "apps/ecosystemiser", develop = true}
+hive-orchestrator = {path = "apps/hive-orchestrator", develop = true}
 
 # Ruff configuration - fast Python linter
 [tool.ruff]
