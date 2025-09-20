@@ -48,6 +48,7 @@ htmlcov/
 Thumbs.db
 desktop.ini
 # Additional environment files
+.env.old
 .env.global
 .env.shared
 apps/*/.env
@@ -56,3 +57,4 @@ apps/*/.env.local
 # Keep example files
 !.env.*.example
 !apps/*/.env.example
+.env.old
