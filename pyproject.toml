@@ -1,30 +1,36 @@
-[build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "hivemind"
+[tool.poetry]
+name = "hive-workspace"
 version = "1.0.0"
-description = "Hive multi-agent orchestration system core"
-authors = [
-    {name = "Hive System", email = "hive@example.com"}
-]
-dependencies = [
-    "hive-api",
-    "hive-logging",
-    "hive-db",
-    "hive-deployment",
-]
-requires-python = ">=3.10"
+description = "Hive multi-agent orchestration system workspace"
+authors = ["Hive System <hive@example.com>"]
+packages = []
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.3.2",
-    "pytest-cov>=4.1.0",
-    "flask>=3.0.0",
-    "flask-cors>=4.0.0",
-]
+[tool.poetry.dependencies]
+python = "^3.10"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["hivemind*", "orchestrator*"]
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-cov = "^4.1.0"
+pytest-asyncio = "*"
+black = "*"
+isort = "*"
+mypy = "*"
+flask = "^3.0.0"
+flask-cors = "^4.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Define workspace members as optional dependencies for development
+[tool.poetry.group.workspace]
+optional = true
+
+[tool.poetry.group.workspace.dependencies]
+hive-logging = {path = "packages/hive-logging", develop = true}
+hive-api = {path = "packages/hive-api", develop = true}
+hive-db-utils = {path = "packages/hive-db-utils", develop = true}
+hive-core-db = {path = "packages/hive-core-db", develop = true}
+hive-deployment = {path = "packages/hive-deployment", develop = true}
+hive-config = {path = "packages/hive-config", develop = true}
+ecosystemiser = {path = "apps/ecosystemiser", develop = true}

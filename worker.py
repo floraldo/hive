@@ -20,6 +20,13 @@ try:
 except ImportError:
     sys.path.append(str(Path(__file__).resolve().parent.parent / "packages" / "hive-logging" / "src"))
     from hive_logging import setup_logging, get_logger
+# Hive database system
+try:
+    import hive_core_db
+except ImportError:
+    sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
+    import hive_core_db
+
 
 class WorkerCore:
     """Streamlined worker with preserved path fix"""
@@ -786,28 +793,25 @@ CRITICAL PATH CONSTRAINT:
             **result
         }
 
-        # Save result to file
-        results_dir = self.results_dir / self.task_id
-        results_dir.mkdir(parents=True, exist_ok=True)
+        # Save result to database
+        status = result.get('status', 'unknown')
+        error_message = result.get('error') if status == 'failed' else None
 
-        result_file = results_dir / f"{self.run_id}.json"
         try:
-            # Atomic write: write to temp file then rename with retry for Windows
-            tmp_file = result_file.with_suffix(".json.tmp")
-            with open(tmp_file, "w") as f:
-                json.dump(result_data, f, indent=2)
+            success = hive_core_db.log_run_result(
+                run_id=self.run_id,
+                status=status,
+                result_data=result_data,
+                error_message=error_message
+            )
 
-            # Atomic write: temp file then rename
-            try:
-                tmp_file.replace(result_file)
-            except (PermissionError, OSError) as e:
-                self.log.error(f"Failed to save result: {e}")
-                raise
-
-            self.log.info(f"[RESULT] Saved to {result_file}")
+            if success:
+                self.log.info(f"[RESULT] Saved to database: run_id={self.run_id}, status={status}")
+            else:
+                self.log.error(f"[ERROR] Failed to save result to database: run_id={self.run_id}")
 
         except Exception as e:
-            self.log.error(f"[ERROR] Failed to save result: {e}")
+            self.log.error(f"[ERROR] Database save failed: {e}")
 
     def execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Execute task with streamlined workflow"""

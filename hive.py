@@ -16,6 +16,11 @@ from typing import Dict, Any, List, Optional
 # Hive logging system
 from hive_logging import setup_logging, get_logger
 
+# Hive database system
+import sys
+sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
+import hive_core_db
+
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
     
@@ -35,6 +40,10 @@ class HiveCore:
         
         # Load configuration (will be enhanced to load from file)
         self.config = self.load_config()
+
+        # Initialize database system
+        hive_core_db.init_db()
+        self.log.info("Hive database initialized")
         
         
         # Ensure directories exist
@@ -182,92 +191,84 @@ class HiveCore:
 
     
     def load_task_queue(self) -> List[str]:
-        """Load task queue from index.json"""
-        index_file = self.tasks_dir / "index.json"
-        if not index_file.exists():
-            return []
-        
-        try:
-            with open(index_file, "r") as f:
-                data = json.load(f)
-            return data.get("queue", [])
-        except Exception as e:
-            print(f"[{self.timestamp()}] Error loading queue: {e}")
-            return []
+        """Load task queue from database"""
     
-    def save_task_queue(self, queue: List[str]):
-        """Save task queue to index.json atomically"""
-        index_file = self.tasks_dir / "index.json"
-        data = {
-            "queue": queue,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }
-        
         try:
-            # Atomic write: write to temp, then move
-            temp_file = index_file.with_suffix('.tmp')
-            with open(temp_file, "w") as f:
-                json.dump(data, f, indent=2)
-            
-            # Atomic write: temp file then replace
-            try:
-                temp_file.replace(index_file)  # replace() is more robust on Windows
-            except (PermissionError, OSError) as e:
-                self.log.error(f"Failed to update index: {e}")
-                raise
+            tasks = hive_core_db.get_queued_tasks(limit=1000)
+            return [task['id'] for task in tasks]
         except Exception as e:
-            self.log.error(f"Error saving queue: {e}")
+            self.log.error(f"Error loading queue from database: {e}")
+            return []
+    def save_task_queue(self, queue: List[str]):
+        """Save task queue - No-op since database manages queue through task status"""
+        # Database manages queue state through task status - no explicit queue file needed
+        pass
     
     def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """Load task data by ID"""
-        task_file = self.tasks_dir / f"{task_id}.json"
-        if not task_file.exists():
-            return None
-        
+        """Load task data by ID from database"""
         try:
-            with open(task_file, "r") as f:
-                return json.load(f)
+            return hive_core_db.get_task(task_id)
         except Exception as e:
-            print(f"[{self.timestamp()}] Error loading task {task_id}: {e}")
+            self.log.error(f"Error loading task {task_id} from database: {e}")
             return None
     
     def save_task(self, task: Dict[str, Any]):
-        """Save task data atomically"""
+        """Save task data to database"""
         task_id = task.get("id")
         if not task_id:
             self.log.error(f"Task missing ID")
             return
-        
-        task_file = self.tasks_dir / f"{task_id}.json"
-        task["updated_at"] = datetime.now(timezone.utc).isoformat()
-        
+
         try:
-            # Atomic write: write to temp, then move
-            temp_file = task_file.with_suffix('.tmp')
-            with open(temp_file, "w") as f:
-                json.dump(task, f, indent=2)
-            
-            # Atomic write: temp file then replace
-            try:
-                temp_file.replace(task_file)  # replace() is more robust on Windows
-            except (PermissionError, OSError) as e:
-                self.log.error(f"Failed to save task: {e}")
-                raise
+            # Check if task exists in database
+            existing_task = hive_core_db.get_task(task_id)
+
+            if existing_task:
+                # Update existing task status
+                status = task.get("status", existing_task.get("status", "queued"))
+                assigned_worker = task.get("assignee")
+                success = hive_core_db.update_task_status(task_id, status, assigned_worker)
+                if not success:
+                    self.log.error(f"Failed to update task {task_id} status to {status}")
+            else:
+                # Create new task
+                title = task.get("title", task_id)
+                description = task.get("description", "")
+                task_type = task.get("task_type", "general")
+                priority = task.get("priority", 1)
+                max_retries = task.get("max_retries", 3)
+                tags = task.get("tags", [])
+
+                # Extract payload (other task data)
+                payload_keys = {"id", "title", "description", "task_type", "priority", "max_retries", "tags", "status", "assignee"}
+                payload = {k: v for k, v in task.items() if k not in payload_keys}
+
+                new_task_id = hive_core_db.create_task(
+                    title=title,
+                    task_type=task_type,
+                    description=description,
+                    payload=payload,
+                    priority=priority,
+                    max_retries=max_retries,
+                    tags=tags
+                )
+
+                if new_task_id != task_id:
+                    self.log.warning(f"Database assigned different task ID: {new_task_id} vs {task_id}")
+
         except Exception as e:
-            self.log.error(f"Error saving task {task_id}: {e}")
+            self.log.error(f"Error saving task {task_id} to database: {e}")
     
     def get_all_tasks(self) -> List[Dict[str, Any]]:
-        """Get all tasks with their current status"""
-        tasks = []
-        for task_file in self.tasks_dir.glob("*.json"):
-            if task_file.name == "index.json":
-                continue
-            
-            task = self.load_task(task_file.stem)
-            if task:
-                tasks.append(task)
-        
-        return tasks
+        """Get all tasks with their current status from database"""
+        try:
+            # For now, get queued tasks with high limit
+            # TODO: Add get_all_tasks() function to hive-core-db
+            tasks = hive_core_db.get_queued_tasks(limit=10000)
+            return tasks
+        except Exception as e:
+            self.log.error(f"Error getting all tasks from database: {e}")
+            return []
     
     def clean_fresh_environment(self):
         """Clean all state for fresh environment testing"""

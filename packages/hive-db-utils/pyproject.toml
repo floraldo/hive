@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "hive-db-utils"
+version = "1.0.0"
+description = "Generic database utilities and configuration management for Hive applications"
+authors = ["Hive System <hive@example.com>"]
+packages = [{include = "hive_db_utils", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-dotenv = "^1.0.0"
+psycopg2-binary = "^2.9.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

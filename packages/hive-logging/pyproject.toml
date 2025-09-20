@@ -1,25 +1,18 @@
-[build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "hive-logging"
 version = "1.0.0"
 description = "Structured logging utilities for Hive applications"
-authors = [
-    {name = "Hive System", email = "hive@example.com"}
-]
-dependencies = [
-    "python-json-logger>=2.0.0"
-]
-requires-python = ">=3.10"
+authors = ["Hive System <hive@example.com>"]
+packages = [{include = "hive_logging", from = "src"}]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.3.2",
-    "pytest-cov>=4.1.0",
-]
+[tool.poetry.dependencies]
+python = "^3.10"
+python-json-logger = "^2.0.0"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["hive_logging*"]
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

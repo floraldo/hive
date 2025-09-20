@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: hive-db
+Version: 1.0.0
+Summary: Database utilities and configuration management for Hive applications
+Author-email: Hive System <hive@example.com>
+Requires-Python: >=3.10
+Requires-Dist: python-dotenv>=1.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.3.2; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"

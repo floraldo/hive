@@ -1,14 +1,13 @@
 [tool.poetry]
-name = "hive-deployment"
+name = "hive-core-db"
 version = "1.0.0"
-description = "Remote deployment and SSH utilities for Hive applications"
+description = "Internal state management database for Hive orchestration system"
 authors = ["Hive System <hive@example.com>"]
-packages = [{include = "hive_deployment", from = "src"}]
+packages = [{include = "hive_core_db", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-paramiko = "^3.3.0"
-requests = "^2.31.0"
+# No external dependencies - uses built-in sqlite3
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
