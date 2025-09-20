@@ -8,13 +8,18 @@ Updated for database-driven architecture.
 import os
 import shutil
 import subprocess
-import sys
 import argparse
-import sqlite3
 from pathlib import Path
 
-# Add database package to path
-sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
+# Import database functions properly
+try:
+    from hive_core_db import close_connection
+    from hive_core_db.database import get_connection, transaction
+except ImportError:
+    import sys
+    sys.path.insert(0, str(Path(__file__).parents[4] / "packages" / "hive-core-db" / "src"))
+    from hive_core_db import close_connection
+    from hive_core_db.database import get_connection, transaction
 
 def run_command(cmd, description):
     """Run a command and report results"""
@@ -41,42 +46,66 @@ def clean_directory(path, description):
         print(f"[INFO] {description} - directory doesn't exist")
 
 def clean_database():
-    """Clean the database tables"""
+    """Clean the database tables using hive_core_db functions"""
     print("Cleaning database...")
-    db_path = Path("hive/db/hive-internal.db")
-
-    if not db_path.exists():
-        print("[INFO] Database doesn't exist - will be created fresh")
-        return
 
     try:
-        conn = sqlite3.connect(str(db_path))
+        conn = get_connection()
+        if not conn:
+            print("[ERROR] Could not establish database connection")
+            return
+
         cursor = conn.cursor()
 
-        # Get table counts before cleaning
-        cursor.execute("SELECT COUNT(*) FROM tasks")
-        task_count = cursor.fetchone()[0]
+        # Get table counts before cleaning with error handling
+        try:
+            cursor.execute("SELECT COUNT(*) FROM tasks")
+            result = cursor.fetchone()
+            task_count = result[0] if result else 0
+        except Exception as e:
+            print(f"[WARN] Could not count tasks: {e}")
+            task_count = 0
 
-        cursor.execute("SELECT COUNT(*) FROM runs")
-        run_count = cursor.fetchone()[0]
+        try:
+            cursor.execute("SELECT COUNT(*) FROM runs")
+            result = cursor.fetchone()
+            run_count = result[0] if result else 0
+        except Exception as e:
+            print(f"[WARN] Could not count runs: {e}")
+            run_count = 0
 
-        cursor.execute("SELECT COUNT(*) FROM workers")
-        worker_count = cursor.fetchone()[0]
+        try:
+            cursor.execute("SELECT COUNT(*) FROM workers")
+            result = cursor.fetchone()
+            worker_count = result[0] if result else 0
+        except Exception as e:
+            print(f"[WARN] Could not count workers: {e}")
+            worker_count = 0
 
         print(f"  Found: {task_count} tasks, {run_count} runs, {worker_count} workers")
 
-        # Clear all tables
-        cursor.execute("DELETE FROM runs")
-        cursor.execute("DELETE FROM tasks")
-        cursor.execute("DELETE FROM workers")
+        # Clear all tables in transaction with error handling
+        try:
+            with transaction() as conn:
+                # Delete in correct order to respect foreign keys
+                conn.execute("DELETE FROM runs")
+                conn.execute("DELETE FROM workers")
+                conn.execute("DELETE FROM tasks")
+            print(f"[OK] Database cleaned - removed {task_count} tasks, {run_count} runs, {worker_count} workers")
+        except Exception as e:
+            print(f"[ERROR] Failed to delete database records: {e}")
+            return
 
-        conn.commit()
-        conn.close()
-
-        print(f"[OK] Database cleaned - removed {task_count} tasks, {run_count} runs, {worker_count} workers")
-
+    except ImportError as e:
+        print(f"[ERROR] Database module not available: {e}")
+        print("  Make sure hive-core-db package is installed")
     except Exception as e:
         print(f"[ERROR] Database cleanup failed: {e}")
+    finally:
+        try:
+            close_connection()
+        except Exception as e:
+            print(f"[WARN] Error closing database connection: {e}")
 
 def clean_git_branches(preserve=False):
     """Clean up agent git branches unless preserve flag is set"""
@@ -121,95 +150,177 @@ def kill_processes():
     try:
         # Kill Python processes that might be Queen or workers (Windows compatible)
         processes_to_kill = ['queen.py', 'worker.py', 'cc_worker.py']
+        killed_any = False
 
         for process_name in processes_to_kill:
             try:
                 # Windows tasklist and taskkill
                 result = subprocess.run(f'tasklist /FI "IMAGENAME eq python.exe" /FO CSV | findstr "{process_name}"',
-                                      shell=True, capture_output=True, text=True)
+                                      shell=True, capture_output=True, text=True, timeout=10)
                 if result.returncode == 0 and result.stdout.strip():
                     print(f"  Found running {process_name} processes")
                     # Use wmic to kill by command line (more precise)
-                    subprocess.run(f'wmic process where "commandline like \'%{process_name}%\'" delete',
-                                 shell=True, capture_output=True)
-                    print(f"  [OK] Killed {process_name} processes")
+                    kill_result = subprocess.run(f'wmic process where "commandline like \'%{process_name}%\'" delete',
+                                                shell=True, capture_output=True, timeout=10)
+                    if kill_result.returncode == 0:
+                        print(f"  [OK] Killed {process_name} processes")
+                        killed_any = True
+                    else:
+                        print(f"  [WARN] Failed to kill {process_name} processes: {kill_result.stderr}")
+            except subprocess.TimeoutExpired:
+                print(f"  [WARN] Timeout while processing {process_name}")
+            except FileNotFoundError:
+                print(f"  [INFO] Process management commands not available (tasklist/wmic)")
+                break
             except Exception as e:
                 print(f"  [WARN] Could not kill {process_name}: {e}")
 
+        if not killed_any:
+            print("  [INFO] No processes found to kill")
         print("[OK] Process cleanup completed")
     except Exception as e:
-        print(f"[WARN] Process cleanup: {e}")
+        print(f"[WARN] Process cleanup failed: {e}")
 
 def clean_results_and_logs():
     """Clean results and logs directories"""
-    # Clean traditional directories
-    clean_directory(".worktrees", "Clearing worktrees")
-    clean_directory("hive/bus", "Clearing bus logs")
-    clean_directory("hive/results", "Clearing results")
-    clean_directory("hive/operator/hints", "Clearing hints")
-    clean_directory("hive/logs", "Clearing logs")
-
-    # Clean app-specific results
-    clean_directory("apps/ecosystemiser/ecosystemiser_results", "Clearing EcoSystemiser results")
-
-    # Clean any log files
-    print("Cleaning log files...")
     try:
-        for pattern in ["*.log", "events_*.jsonl"]:
-            for file_path in Path(".").rglob(pattern):
+        # Clean traditional directories with error handling
+        directories_to_clean = [
+            (".worktrees", "Clearing worktrees"),
+            ("hive/bus", "Clearing bus logs"),
+            ("hive/results", "Clearing results"),
+            ("hive/operator/hints", "Clearing hints"),
+            ("hive/logs", "Clearing logs"),
+            ("apps/ecosystemiser/ecosystemiser_results", "Clearing EcoSystemiser results")
+        ]
+
+        for directory, description in directories_to_clean:
+            try:
+                clean_directory(directory, description)
+            except Exception as e:
+                print(f"[WARN] Error cleaning {directory}: {e}")
+
+        # Clean any log files with improved error handling
+        print("Cleaning log files...")
+        files_removed = 0
+        try:
+            for pattern in ["*.log", "events_*.jsonl"]:
                 try:
-                    file_path.unlink()
-                    print(f"  [OK] Removed {file_path}")
+                    for file_path in Path(".").rglob(pattern):
+                        try:
+                            # Check if file is not in use
+                            if file_path.exists() and file_path.is_file():
+                                file_path.unlink()
+                                print(f"  [OK] Removed {file_path}")
+                                files_removed += 1
+                        except PermissionError:
+                            print(f"  [WARN] Permission denied: {file_path} (file may be in use)")
+                        except Exception as e:
+                            print(f"  [WARN] Could not remove {file_path}: {e}")
                 except Exception as e:
-                    print(f"  [WARN] Could not remove {file_path}: {e}")
-        print("[OK] Log file cleanup completed")
+                    print(f"  [WARN] Error processing pattern {pattern}: {e}")
+
+            if files_removed > 0:
+                print(f"[OK] Log file cleanup completed - removed {files_removed} files")
+            else:
+                print("[INFO] No log files found to remove")
+        except Exception as e:
+            print(f"[ERROR] Log file cleanup failed: {e}")
     except Exception as e:
-        print(f"[ERROR] Log file cleanup failed: {e}")
+        print(f"[ERROR] Results and logs cleanup failed: {e}")
 
 def main():
-    # Parse arguments
-    parser = argparse.ArgumentParser(description="Clean Hive workspace and database for fresh start")
-    parser.add_argument("--keep-branches", action="store_true",
-                       help="Preserve git branches (don't delete agent/* branches)")
-    parser.add_argument("--db-only", action="store_true",
-                       help="Only clean database, skip files and processes")
-    args = parser.parse_args()
+    try:
+        # Parse arguments
+        parser = argparse.ArgumentParser(description="Clean Hive workspace and database for fresh start")
+        parser.add_argument("--keep-branches", action="store_true",
+                           help="Preserve git branches (don't delete agent/* branches)")
+        parser.add_argument("--db-only", action="store_true",
+                           help="Only clean database, skip files and processes")
+        args = parser.parse_args()
 
-    print("Hive Cleanup Script v2.0 - Database Edition")
-    print("=" * 50)
+        print("Hive Cleanup Script v2.0 - Database Edition")
+        print("=" * 50)
 
-    # Change to hive directory
-    os.chdir(Path(__file__).parent)
-    print(f"Working in: {os.getcwd()}")
+        # Change to hive directory with validation
+        try:
+            target_dir = Path(__file__).parent
+            if target_dir.exists() and target_dir.is_dir():
+                os.chdir(target_dir)
+                print(f"Working in: {os.getcwd()}")
+            else:
+                print(f"[ERROR] Target directory does not exist: {target_dir}")
+                return 1
+        except Exception as e:
+            print(f"[ERROR] Could not change to target directory: {e}")
+            return 1
 
-    if args.db_only:
-        print("[INFO] Database-only cleanup mode")
-        clean_database()
-    else:
-        # Full cleanup
-        # Kill processes first
-        kill_processes()
+        # Track success of operations
+        operations_success = []
 
-        # Clean database
-        clean_database()
+        if args.db_only:
+            print("[INFO] Database-only cleanup mode")
+            try:
+                clean_database()
+                operations_success.append("Database cleanup")
+            except Exception as e:
+                print(f"[ERROR] Database cleanup failed: {e}")
+                return 1
+        else:
+            # Full cleanup with individual error handling
+            try:
+                print("\nStep 1: Kill processes")
+                kill_processes()
+                operations_success.append("Process cleanup")
+            except Exception as e:
+                print(f"[ERROR] Process cleanup failed: {e}")
 
-        # Clean git branches (before removing worktrees)
-        clean_git_branches(preserve=args.keep_branches)
+            try:
+                print("\nStep 2: Clean database")
+                clean_database()
+                operations_success.append("Database cleanup")
+            except Exception as e:
+                print(f"[ERROR] Database cleanup failed: {e}")
 
-        # Clean results and logs
-        clean_results_and_logs()
+            try:
+                print("\nStep 3: Clean git branches")
+                clean_git_branches(preserve=args.keep_branches)
+                operations_success.append("Git branch cleanup")
+            except Exception as e:
+                print(f"[ERROR] Git branch cleanup failed: {e}")
 
-    print("\n[SUCCESS] Hive cleanup completed!")
-    print(" Summary:")
-    if not args.db_only:
-        print("  - Processes terminated")
-        print("  - Git branches cleaned" if not args.keep_branches else "  - Git branches preserved")
-        print("  - Worktrees cleared")
-        print("  - All logs cleared")
-        print("  - Results cleared")
-        print("  - Hints cleared")
-    print("  - Database tables cleared")
-    print("\n[READY] Ready for fresh start!")
+            try:
+                print("\nStep 4: Clean results and logs")
+                clean_results_and_logs()
+                operations_success.append("Files cleanup")
+            except Exception as e:
+                print(f"[ERROR] Files cleanup failed: {e}")
+
+        print("\n[SUCCESS] Hive cleanup completed!")
+        print(" Summary:")
+        if not args.db_only:
+            if "Process cleanup" in operations_success:
+                print("  ✓ Processes terminated")
+            if "Git branch cleanup" in operations_success:
+                print("  ✓ Git branches cleaned" if not args.keep_branches else "  ✓ Git branches preserved")
+            if "Files cleanup" in operations_success:
+                print("  ✓ Worktrees, logs, results, and hints cleared")
+        if "Database cleanup" in operations_success:
+            print("  ✓ Database tables cleared")
+
+        if len(operations_success) > 0:
+            print("\n[READY] Ready for fresh start!")
+            return 0
+        else:
+            print("\n[WARNING] Some operations failed - check messages above")
+            return 1
+
+    except KeyboardInterrupt:
+        print("\n[INFO] Cleanup interrupted by user")
+        return 130
+    except Exception as e:
+        print(f"\n[ERROR] Unexpected error during cleanup: {e}")
+        return 1
 
 if __name__ == "__main__":
     main()

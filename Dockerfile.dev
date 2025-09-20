@@ -26,7 +26,6 @@ COPY pyproject.toml ./
 
 # Copy all package dependency files
 COPY packages/hive-logging/pyproject.toml packages/hive-logging/
-COPY packages/hive-db-utils/pyproject.toml packages/hive-db-utils/
 COPY packages/hive-core-db/pyproject.toml packages/hive-core-db/
 COPY packages/hive-deployment/pyproject.toml packages/hive-deployment/
 COPY packages/hive-config/pyproject.toml packages/hive-config/

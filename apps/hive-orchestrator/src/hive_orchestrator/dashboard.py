@@ -22,22 +22,16 @@ from rich import box
 # Import database functions
 try:
     from hive_core_db import (
-        get_tasks_by_status,
-        get_active_workers,
-        get_task_runs,
-        get_connection,
         close_connection
     )
+    from hive_core_db.database import get_connection
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).parents[4] / "packages" / "hive-core-db" / "src"))
     from hive_core_db import (
-        get_tasks_by_status,
-        get_active_workers,
-        get_task_runs,
-        get_connection,
         close_connection
     )
+    from hive_core_db.database import get_connection
 
 
 class HiveDashboard:
