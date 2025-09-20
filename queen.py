@@ -858,17 +858,11 @@ class QueenLite:
 
         for task in review_tasks:
             task_id = task["id"]
-            self.log.info(f"Task {task_id} is awaiting review - Queen should use review tool")
-
-            # For now, we'll just log this - the AI Queen will handle this
-            # In the future, this is where the AI would call its review_and_decide_next_phase tool
-            # For testing, we can auto-approve after inspection
-
-            # Temporary: auto-advance to test phase
-            hive_core_db.update_task_status(task_id, "queued", {
-                "current_phase": "test"
-            })
-            self.log.info(f"[TEMP] Auto-approved task {task_id}, moving to test phase")
+            self.log.info(f"Task {task_id} is awaiting review")
+            self.log.info(f"  Use: 'hive review-next-task' to see review details")
+            self.log.info(f"  Use: 'hive complete-review {task_id} --decision [approve|reject|rework]' to complete review")
+            # The AI Queen will handle this through the CLI tools
+            # No auto-approval - this is the AI's decision point
 
     def monitor_workflow_processes(self):
         """Monitor running processes and handle completion"""

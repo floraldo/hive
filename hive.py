@@ -598,6 +598,168 @@ def cmd_get_transcript(args, core: HiveCore):
     print("\n=== Claude Conversation ===\n")
     print(transcript)
 
+def cmd_review_next_task(args, core: HiveCore):
+    """Get the next task awaiting review (for AI reviewer)"""
+    # Initialize database
+    hive_core_db.init_db()
+
+    # Find tasks in review_pending status
+    tasks = hive_core_db.get_tasks_by_status("review_pending")
+
+    if not tasks:
+        print("No tasks awaiting review")
+        return
+
+    # Find the first task with runs (FIFO)
+    task = None
+    task_id = None
+    runs = []
+
+    for candidate_task in tasks:
+        candidate_runs = hive_core_db.get_task_runs(candidate_task["id"])
+        if candidate_runs:
+            task = candidate_task
+            task_id = candidate_task["id"]
+            runs = candidate_runs
+            break
+
+    if not task:
+        print("No review tasks have runs to inspect")
+        return
+
+    latest_run = runs[-1]  # Most recent run
+    run_id = latest_run["id"]
+
+    # Get inspection report if available
+    result_data = latest_run.get("result_data")
+    inspection_report = None
+    if result_data:
+        try:
+            if isinstance(result_data, str):
+                result_data = json.loads(result_data)
+            inspection_report = result_data.get("inspection_report")
+        except json.JSONDecodeError:
+            pass
+
+    # Get transcript if available
+    transcript = latest_run.get("transcript", "")
+
+    # Prepare review data
+    if args.format == "json":
+        review_data = {
+            "task_id": task_id,
+            "run_id": run_id,
+            "title": task.get("title", "Unknown"),
+            "description": task.get("description", ""),
+            "current_phase": task.get("current_phase", "unknown"),
+            "workflow": task.get("workflow"),
+            "inspection_report": inspection_report,
+            "transcript_available": bool(transcript),
+            "transcript_length": len(transcript) if transcript else 0
+        }
+        print(json.dumps(review_data, indent=2))
+    else:
+        # Summary format
+        print(f"\n{'='*60}")
+        print(f"TASK AWAITING REVIEW")
+        print(f"{'='*60}")
+        print(f"Task ID: {task_id}")
+        print(f"Title: {task.get('title', 'Unknown')}")
+        print(f"Description: {task.get('description', '')}")
+        print(f"Current Phase: {task.get('current_phase', 'unknown')}")
+        print(f"Run ID: {run_id}")
+
+        if inspection_report:
+            summary = inspection_report.get("summary", {})
+            print(f"\nInspection Results:")
+            print(f"  Quality Score: {summary.get('quality_score', 'N/A')}/100")
+            print(f"  Recommendation: {summary.get('recommendation', 'unknown').upper()}")
+            print(f"  Issues Found: {summary.get('total_issues', 0)}")
+
+            if inspection_report.get("issues"):
+                print(f"\nTop Issues:")
+                for issue in inspection_report["issues"][:3]:
+                    print(f"  - {issue}")
+
+        if transcript:
+            print(f"\nTranscript: {len(transcript)} characters available")
+            print("Use 'hive get-transcript' to view full transcript")
+
+        print(f"\n{'='*60}")
+        print("To complete review, use:")
+        print(f"  hive complete-review {task_id} --decision [approve|reject|rework]")
+        print(f"{'='*60}\n")
+
+def cmd_complete_review(args, core: HiveCore):
+    """Complete review of a task and transition to next phase"""
+    # Initialize database
+    hive_core_db.init_db()
+
+    task_id = args.task_id
+    decision = args.decision
+    reason = args.reason
+    next_phase = args.next_phase
+
+    # Get task
+    task = hive_core_db.get_task(task_id)
+    if not task:
+        print(f"Error: Task {task_id} not found")
+        return
+
+    if task["status"] != "review_pending":
+        print(f"Error: Task {task_id} is not awaiting review (status: {task['status']})")
+        return
+
+    # Get workflow
+    workflow = task.get("workflow")
+    if not workflow:
+        print(f"Error: Task {task_id} has no workflow definition")
+        return
+
+    # Determine next phase based on decision
+    current_phase = task.get("current_phase", "unknown")
+
+    if next_phase:
+        # Use override if provided
+        new_phase = next_phase
+    elif decision == "approve":
+        # Move to test phase or completed
+        if "test" in workflow and current_phase != "test":
+            new_phase = "test"
+        else:
+            new_phase = "completed"
+    elif decision == "reject":
+        # Mark as failed
+        new_phase = "failed"
+    else:  # rework
+        # Go back to apply phase
+        new_phase = "apply" if "apply" in workflow else "start"
+
+    # Update task status and phase
+    new_status = "completed" if new_phase == "completed" else \
+                 "failed" if new_phase == "failed" else \
+                 "queued"
+
+    metadata = {
+        "current_phase": new_phase,
+        "review_decision": decision,
+        "review_reason": reason or "No reason provided",
+        "reviewed_at": datetime.utcnow().isoformat()
+    }
+
+    success = hive_core_db.update_task_status(task_id, new_status, metadata)
+
+    if success:
+        print(f"\nReview completed successfully!")
+        print(f"Task ID: {task_id}")
+        print(f"Decision: {decision.upper()}")
+        print(f"New Phase: {new_phase}")
+        print(f"New Status: {new_status}")
+        if reason:
+            print(f"Reason: {reason}")
+    else:
+        print(f"Error: Failed to update task {task_id}")
+
 def main():
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(description="HiveCore - Streamlined Hive Manager")
@@ -648,6 +810,21 @@ def main():
     transcript_parser = subparsers.add_parser("get-transcript", help="Get transcript for a specific run")
     transcript_parser.add_argument("run_id", help="Run ID to get transcript for")
     transcript_parser.set_defaults(func=cmd_get_transcript)
+
+    # Review next task command (for AI reviewer)
+    review_next_parser = subparsers.add_parser("review-next-task", help="Get the next task awaiting review")
+    review_next_parser.add_argument("--format", choices=["json", "summary"], default="summary",
+                                    help="Output format for review task")
+    review_next_parser.set_defaults(func=cmd_review_next_task)
+
+    # Complete review command (for AI reviewer)
+    complete_review_parser = subparsers.add_parser("complete-review", help="Complete review of a task")
+    complete_review_parser.add_argument("task_id", help="Task ID to complete review for")
+    complete_review_parser.add_argument("--decision", choices=["approve", "reject", "rework"], required=True,
+                                        help="Review decision")
+    complete_review_parser.add_argument("--reason", help="Reason for the decision")
+    complete_review_parser.add_argument("--next-phase", help="Override next phase (optional)")
+    complete_review_parser.set_defaults(func=cmd_complete_review)
 
     args = parser.parse_args()
     

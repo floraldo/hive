@@ -1,28 +1,56 @@
-# The "user manual" for the EcoSystemiser app.
-# This file defines how the Hive system can interact with this application.
+# EcoSystemiser App Contract for Hive
+# This defines the contract between EcoSystemiser and the Hive orchestration system
 
 [app]
-name = "EcoSystemiser"
-description = "Generates reports on ecosystem health and environmental analysis."
-version = "1.0.0"
-
-# Defines runnable tasks that the Hive Queen can trigger.
-[tasks.generate-report]
-description = "Generates a full ecosystem health report for a given region."
-command = "poetry run python -m ecosystemiser.tasks.reporting --region {region} --output {output_file}"
-parameters = ["region", "output_file"]
-
-[tasks.ingest-data]
-description = "Ingests new weather data from a source file."
-command = "poetry run python -m ecosystemiser.tasks.ingestion --source {source_file}"
-parameters = ["source_file"]
-
-[tasks.analyze-climate]
-description = "Performs climate analysis on historical data."
-command = "poetry run python -m ecosystemiser.cli analyze-climate --location {location}"
-parameters = ["location"]
+name = "ecosystemiser"
+version = "0.1.0"
+description = "Ecosystem analysis and optimization AI system"
+author = "Hive Team"
 
 [tasks.health-check]
-description = "Runs a system health check to verify EcoSystemiser functionality."
-command = "python -c \"print('EcoSystemiser health check: OK')\""
-parameters = []
+description = "Verify EcoSystemiser is operational and ready"
+command = "python apps/ecosystemiser/hive_adapter.py --task health-check"
+timeout = 30
+retry = 2
+
+[tasks.analyze-ecosystem]
+description = "Analyze the current state of the software ecosystem"
+command = "python apps/ecosystemiser/hive_adapter.py --task analyze-ecosystem --payload '{ecosystem_type}'"
+timeout = 120
+retry = 1
+parameters = [
+    { name = "ecosystem_type", type = "string", default = "software", description = "Type of ecosystem to analyze" },
+    { name = "components", type = "array", default = [], description = "List of components to analyze" }
+]
+
+[tasks.optimize-balance]
+description = "Optimize the balance and efficiency of the ecosystem"
+command = "python apps/ecosystemiser/hive_adapter.py --task optimize-balance --payload '{target_metrics}'"
+timeout = 180
+retry = 1
+parameters = [
+    { name = "target_metrics", type = "object", default = {}, description = "Target metrics for optimization" },
+    { name = "constraints", type = "array", default = [], description = "Constraints for optimization" }
+]
+
+[tasks.generate-report]
+description = "Generate a comprehensive ecosystem analysis report"
+command = "python apps/ecosystemiser/hive_adapter.py --task generate-report --payload '{report_type}'"
+timeout = 60
+retry = 2
+parameters = [
+    { name = "report_type", type = "string", default = "summary", description = "Type of report to generate" },
+    { name = "include_visualizations", type = "boolean", default = false, description = "Include visualizations in report" }
+]
+
+[capabilities]
+# Define what this app can do for AI task planning
+analysis = ["ecosystem-health", "component-dependencies", "performance-metrics"]
+optimization = ["resource-allocation", "load-balancing", "efficiency-tuning"]
+reporting = ["markdown", "json", "dashboard-data"]
+monitoring = ["real-time", "historical", "predictive"]
+
+[requirements]
+python = ">=3.8"
+memory = "512MB"
+disk = "1GB"
