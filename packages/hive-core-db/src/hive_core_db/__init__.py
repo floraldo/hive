@@ -10,9 +10,11 @@ from .database import (
     create_task,
     get_task,
     get_queued_tasks,
+    get_tasks_by_status,
     update_task_status,
     create_run,
     update_run_status,
+    log_run_result,
     get_run,
     get_task_runs,
     register_worker,
@@ -30,11 +32,13 @@ __all__ = [
     'create_task',
     'get_task',
     'get_queued_tasks',
+    'get_tasks_by_status',
     'update_task_status',
 
     # Run tracking (task executions)
     'create_run',
     'update_run_status',
+    'log_run_result',
     'get_run',
     'get_task_runs',
 

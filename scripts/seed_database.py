@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-logging
 from hive_logging import setup_logging, get_logger
 
 def setup_sample_tasks():
-    """Create sample tasks for testing the Hive system."""
+    """Create sample tasks for testing the Hive system with stateful workflows."""
 
     # Initialize logging
     setup_logging("hive_seeder")
@@ -29,76 +29,92 @@ def setup_sample_tasks():
     hive_core_db.init_db()
     logger.info("Database initialized")
 
-    # Sample tasks representing typical Hive workloads
+    # Sample tasks with workflow definitions
     sample_tasks = [
+        # Complex multi-step task with review
         {
-            "title": "Implement user authentication API",
-            "description": "Create JWT-based authentication system with login/logout endpoints",
+            "title": "Create Simple Hello World Script",
+            "description": "Create a Python script that prints Hello World with proper structure",
             "task_type": "backend",
             "priority": 3,
             "max_retries": 3,
-            "tags": ["api", "auth", "security"],
+            "tags": ["python", "simple", "test"],
+            "workflow": {
+                "start": {
+                    "next_phase_on_success": "apply"
+                },
+                "apply": {
+                    "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase apply --one-shot",
+                    "next_phase_on_success": "inspect"
+                },
+                "inspect": {
+                    "command_template": "python scripts/inspect_run.py --run-id {run_id}",
+                    "next_phase_on_success": "review_pending",
+                    "next_phase_on_failure": "review_pending"
+                },
+                "test": {
+                    "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase test --one-shot",
+                    "next_phase_on_success": "completed",
+                    "next_phase_on_failure": "apply"
+                }
+            },
             "payload": {
-                "requirements": ["JWT tokens", "Password hashing", "Session management"],
-                "endpoints": ["/api/auth/login", "/api/auth/logout", "/api/auth/refresh"],
-                "framework": "Flask",
-                "database": "PostgreSQL"
+                "requirements": ["Create hello.py", "Include main guard", "Add docstring"],
+                "output": "Hello, World!",
+                "framework": "Python"
             }
         },
+        # Simple app task (single-step, no review needed)
         {
-            "title": "Build responsive login form component",
-            "description": "Create accessible React login form with validation and error handling",
-            "task_type": "frontend",
-            "priority": 2,
-            "max_retries": 2,
-            "tags": ["react", "forms", "accessibility"],
-            "payload": {
-                "components": ["LoginForm", "InputField", "ErrorMessage"],
-                "validation": ["email format", "password strength", "required fields"],
-                "accessibility": ["ARIA labels", "keyboard navigation", "screen reader support"],
-                "framework": "React"
-            }
-        },
-        {
-            "title": "Setup CI/CD pipeline with Docker",
-            "description": "Configure automated deployment pipeline with testing and containerization",
-            "task_type": "infra",
+            "title": "Generate EcoSystemiser Health Check",
+            "description": "Run the EcoSystemiser health check task to verify app functionality",
+            "task_type": "app",
             "priority": 1,
-            "max_retries": 3,
-            "tags": ["docker", "ci-cd", "deployment"],
+            "max_retries": 2,
+            "tags": ["ecosystemiser", "health-check", "app"],
+            "assignee": "app:ecosystemiser:health-check",
+            "workflow": {
+                "start": {
+                    "command_template": "python -c \"print('EcoSystemiser health check: OK')\"",
+                    "next_phase_on_success": "completed",
+                    "next_phase_on_failure": "failed"
+                }
+            },
             "payload": {
-                "stages": ["build", "test", "deploy"],
-                "containers": ["backend", "frontend", "database"],
-                "platforms": ["GitHub Actions", "Docker Hub"],
-                "environments": ["staging", "production"]
+                "app_name": "ecosystemiser",
+                "task_name": "health-check"
             }
         },
+        # Standard worker task with full workflow
         {
-            "title": "Implement user profile management",
-            "description": "Full-stack user profile CRUD operations with file upload support",
+            "title": "Implement User Authentication API",
+            "description": "Create JWT-based authentication with proper testing",
             "task_type": "backend",
             "priority": 2,
             "max_retries": 2,
-            "tags": ["crud", "profiles", "file-upload"],
+            "tags": ["api", "auth", "backend"],
+            "workflow": {
+                "start": {
+                    "next_phase_on_success": "apply"
+                },
+                "apply": {
+                    "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase apply --one-shot",
+                    "next_phase_on_success": "inspect"
+                },
+                "inspect": {
+                    "command_template": "python scripts/inspect_run.py --run-id {run_id}",
+                    "next_phase_on_success": "review_pending",
+                    "next_phase_on_failure": "review_pending"
+                },
+                "test": {
+                    "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase test --one-shot",
+                    "next_phase_on_success": "completed",
+                    "next_phase_on_failure": "apply"
+                }
+            },
             "payload": {
-                "operations": ["create", "read", "update", "delete"],
-                "features": ["avatar upload", "profile validation", "privacy settings"],
-                "storage": "AWS S3",
-                "api_endpoints": ["/api/users/profile", "/api/users/avatar"]
-            }
-        },
-        {
-            "title": "Create dashboard analytics component",
-            "description": "Interactive dashboard with charts and real-time data visualization",
-            "task_type": "frontend",
-            "priority": 2,
-            "max_retries": 2,
-            "tags": ["dashboard", "charts", "analytics"],
-            "payload": {
-                "charts": ["line", "bar", "pie", "metrics"],
-                "data_sources": ["REST API", "WebSocket"],
-                "libraries": ["Chart.js", "React"],
-                "features": ["real-time updates", "data filtering", "export options"]
+                "requirements": ["JWT implementation", "Login endpoint", "Logout endpoint"],
+                "framework": "Flask"
             }
         }
     ]
@@ -107,15 +123,31 @@ def setup_sample_tasks():
     created_tasks = []
     for task_data in sample_tasks:
         try:
+            # Extract workflow if present
+            workflow = task_data.get("workflow", None)
+
             task_id = hive_core_db.create_task(
                 title=task_data["title"],
                 task_type=task_data["task_type"],
                 description=task_data["description"],
-                payload=task_data["payload"],
-                priority=task_data["priority"],
-                max_retries=task_data["max_retries"],
-                tags=task_data["tags"]
+                workflow=workflow,  # Pass workflow definition
+                payload=task_data.get("payload"),
+                priority=task_data.get("priority", 1),
+                max_retries=task_data.get("max_retries", 3),
+                tags=task_data.get("tags", []),
+                current_phase="start"  # All tasks start in 'start' phase
             )
+
+            # Handle app tasks that need assignee field set
+            if "assignee" in task_data:
+                success = hive_core_db.update_task_status(task_id, "queued", {
+                    "assignee": task_data["assignee"]
+                })
+                if success:
+                    logger.info(f"Set assignee for app task {task_id}: {task_data['assignee']}")
+                else:
+                    logger.warning(f"Failed to set assignee for task {task_id}")
+
             created_tasks.append(task_id)
             logger.info(f"Created task: {task_id} - {task_data['title']}")
         except Exception as e:

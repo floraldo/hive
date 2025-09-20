@@ -168,25 +168,6 @@ class HiveCore:
             self.log.error(f"Error saving result: {e}")
             return False
     
-    def get_latest_result(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """Get the latest result for a task by checking file modification times."""
-        results_dir = self.results_dir / task_id
-        if not results_dir.exists():
-            return None
-        
-        result_files = list(results_dir.glob("*.json"))
-        if not result_files:
-            return None
-        
-        # Find the most recently modified file
-        latest_file = max(result_files, key=lambda f: f.stat().st_mtime)
-        
-        try:
-            with open(latest_file, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            self.log.warning(f"Error loading latest result for task {task_id}: {e}")
-            return None
     
 
     
@@ -583,6 +564,40 @@ def cmd_reset(args, core: HiveCore):
     core.save_task(task)
     print(f"Task {args.task_id} reset to queued")
 
+def cmd_get_transcript(args, core: HiveCore):
+    """Get transcript for a specific run"""
+    run_id = args.run_id
+
+    # Fetch run from database
+    run = hive_core_db.get_run(run_id)
+
+    if not run:
+        print(f"Run {run_id} not found")
+        return
+
+    transcript = run.get('transcript')
+
+    if not transcript:
+        print(f"No transcript found for run {run_id}")
+        # Suggest checking log files if transcript not in database
+        task_id = run.get('task_id')
+        if task_id:
+            log_file = core.root / "hive" / "logs" / task_id / f"{run_id}.log"
+            if log_file.exists():
+                print(f"Legacy log file exists at: {log_file}")
+                print("Run 'hive logs' command to view legacy logs")
+        return
+
+    # Display transcript
+    print(f"=== Transcript for run {run_id} ===")
+    print(f"Task: {run.get('task_id', 'unknown')}")
+    print(f"Worker: {run.get('worker_id', 'unknown')}")
+    print(f"Status: {run.get('status', 'unknown')}")
+    print(f"Started: {run.get('started_at', 'unknown')}")
+    print(f"Completed: {run.get('completed_at', 'unknown')}")
+    print("\n=== Claude Conversation ===\n")
+    print(transcript)
+
 def main():
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(description="HiveCore - Streamlined Hive Manager")
@@ -628,7 +643,12 @@ def main():
     reset_parser = subparsers.add_parser("reset", help="Reset a task to queued status")
     reset_parser.add_argument("task_id", help="Task ID to reset")
     reset_parser.set_defaults(func=cmd_reset)
-    
+
+    # Get transcript command (retrieve Claude conversation transcript)
+    transcript_parser = subparsers.add_parser("get-transcript", help="Get transcript for a specific run")
+    transcript_parser.add_argument("run_id", help="Run ID to get transcript for")
+    transcript_parser.set_defaults(func=cmd_get_transcript)
+
     args = parser.parse_args()
     
     if not args.command:

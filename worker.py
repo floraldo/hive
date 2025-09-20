@@ -582,6 +582,7 @@ CRITICAL PATH CONSTRAINT:
             log_fp = open(log_file, "a", encoding="utf-8") if log_file else None
             exit_code = None
             output_lines = []
+            transcript_lines = []  # Capture full transcript for database storage
             claude_completed = False
             last_assistant_message = None
 
@@ -641,6 +642,7 @@ CRITICAL PATH CONSTRAINT:
                             continue
 
                         output_lines.append(line.rstrip())
+                        transcript_lines.append(line.rstrip())  # Capture for database
                         if log_fp:
                             log_fp.write(line)
                             log_fp.flush()  # Ensure immediate write
@@ -710,6 +712,7 @@ CRITICAL PATH CONSTRAINT:
                                 # Log Claude output to both console and log file
                                 for line in claude_content.splitlines():
                                     self.log.info(f"[CLAUDE] {line}")
+                                    transcript_lines.append(line)  # Capture for database
                                 if log_fp:
                                     log_fp.write(f"\n=== CLAUDE OUTPUT ===\n{claude_content}\n")
                             else:
@@ -720,9 +723,11 @@ CRITICAL PATH CONSTRAINT:
                     except Exception as e:
                         self.log.error(f"[ERROR] Failed to read Claude output file: {e}")
 
-                # Save final status to log
+                # Save final status to log and transcript
+                exit_status_line = f"\n\n=== EXIT CODE: {exit_code} ==="
+                transcript_lines.append(exit_status_line)
                 if log_fp:
-                    log_fp.write(f"\n\n=== EXIT CODE: {exit_code} ===\n")
+                    log_fp.write(f"{exit_status_line}\n")
             finally:
                 if log_fp:
                     log_fp.close()
@@ -769,7 +774,8 @@ CRITICAL PATH CONSTRAINT:
                     "files": files_changed,
                     "claude_completed": claude_completed,
                     "exit_code": exit_code,
-                    "output_lines": len(output_lines)
+                    "output_lines": len(output_lines),
+                    "transcript": "\n".join(transcript_lines)  # Include full transcript for database
                 }
 
         except Exception as e:
@@ -781,6 +787,9 @@ CRITICAL PATH CONSTRAINT:
         if not self.task_id or not self.run_id:
             print("[ERROR] Cannot emit result - missing task_id or run_id")
             return
+
+        # Extract transcript before adding to result_data
+        transcript = result.pop('transcript', None)  # Remove from result to avoid duplication
 
         # Prepare result data
         result_data = {
@@ -802,7 +811,8 @@ CRITICAL PATH CONSTRAINT:
                 run_id=self.run_id,
                 status=status,
                 result_data=result_data,
-                error_message=error_message
+                error_message=error_message,
+                transcript=transcript  # Pass transcript to database
             )
 
             if success:

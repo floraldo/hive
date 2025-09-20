@@ -33,6 +33,8 @@ class TaskStatus(Enum):
     """Task lifecycle states"""
     QUEUED = "queued"
     ASSIGNED = "assigned"
+    IN_PROGRESS = "in_progress"
+    REVIEW_PENDING = "review_pending"  # Task awaiting intelligent review
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
@@ -111,6 +113,8 @@ def init_db() -> None:
                 task_type TEXT NOT NULL,
                 priority INTEGER DEFAULT 1,
                 status TEXT NOT NULL DEFAULT 'queued',
+                current_phase TEXT NOT NULL DEFAULT 'start',  -- Current state in workflow
+                workflow TEXT,  -- JSON workflow definition (state machine)
                 payload TEXT,  -- JSON data for the task
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -135,6 +139,7 @@ def init_db() -> None:
                 result_data TEXT,  -- JSON result data
                 error_message TEXT,
                 output_log TEXT,  -- execution logs
+                transcript TEXT,  -- full Claude conversation transcript
                 FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE,
                 FOREIGN KEY (worker_id) REFERENCES workers (id),
                 UNIQUE(task_id, run_number)
@@ -173,22 +178,26 @@ def create_task(
     title: str,
     task_type: str,
     description: str = "",
+    workflow: Optional[Dict[str, Any]] = None,
     payload: Optional[Dict[str, Any]] = None,
     priority: int = 1,
     max_retries: int = 3,
-    tags: Optional[List[str]] = None
+    tags: Optional[List[str]] = None,
+    current_phase: str = "start"
 ) -> str:
     """
-    Create a new task.
+    Create a new task with optional workflow definition.
 
     Args:
         title: Human-readable task title
         task_type: Type of task (determines which worker can handle it)
         description: Detailed task description
+        workflow: Workflow definition (state machine as JSON)
         payload: Task-specific data (JSON serializable)
         priority: Task priority (higher numbers = higher priority)
         max_retries: Maximum retry attempts
         tags: List of tags for categorization
+        current_phase: Initial phase of the task (default: "start")
 
     Returns:
         Task ID
@@ -197,14 +206,16 @@ def create_task(
 
     with transaction() as conn:
         conn.execute('''
-            INSERT INTO tasks (id, title, description, task_type, priority, payload, max_retries, tags)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO tasks (id, title, description, task_type, priority, current_phase, workflow, payload, max_retries, tags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             task_id,
             title,
             description,
             task_type,
             priority,
+            current_phase,
+            json.dumps(workflow) if workflow else None,
             json.dumps(payload) if payload else None,
             max_retries,
             json.dumps(tags) if tags else None
@@ -223,6 +234,7 @@ def get_task(task_id: str) -> Optional[Dict[str, Any]]:
     if row:
         task = dict(row)
         task['payload'] = json.loads(task['payload']) if task['payload'] else None
+        task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
         task['tags'] = json.loads(task['tags']) if task['tags'] else []
         return task
 
@@ -261,6 +273,7 @@ def get_queued_tasks(limit: int = 10, task_type: Optional[str] = None) -> List[D
     for row in cursor.fetchall():
         task = dict(row)
         task['payload'] = json.loads(task['payload']) if task['payload'] else None
+        task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
         task['tags'] = json.loads(task['tags']) if task['tags'] else []
         tasks.append(task)
 
@@ -291,7 +304,8 @@ def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, A
         required_columns = {
             'assignee': 'TEXT',
             'assigned_at': 'TEXT',
-            'current_phase': 'TEXT',
+            'current_phase': "TEXT DEFAULT 'start'",
+            'workflow': 'TEXT',  # JSON workflow definition
             'started_at': 'TEXT',
             'failure_reason': 'TEXT',
             'retry_count': 'INTEGER DEFAULT 0',
@@ -358,7 +372,8 @@ def update_run_status(
     phase: Optional[str] = None,
     result_data: Optional[Dict[str, Any]] = None,
     error_message: Optional[str] = None,
-    output_log: Optional[str] = None
+    output_log: Optional[str] = None,
+    transcript: Optional[str] = None
 ) -> bool:
     """Update run status and execution details."""
     with transaction() as conn:
@@ -383,6 +398,10 @@ def update_run_status(
         if output_log:
             fields.append('output_log = ?')
             values.append(output_log)
+
+        if transcript:
+            fields.append('transcript = ?')
+            values.append(transcript)
 
         values.append(run_id)
 
@@ -438,6 +457,34 @@ def get_task_runs(task_id: str) -> List[Dict[str, Any]]:
         runs.append(run)
 
     return runs
+
+
+def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
+    """
+    Get all tasks with a specific status.
+
+    Args:
+        status: Task status to filter by (e.g., 'in_progress', 'queued', 'completed')
+
+    Returns:
+        List of task dictionaries with the specified status
+    """
+    conn = get_connection()
+    cursor = conn.execute('''
+        SELECT * FROM tasks
+        WHERE status = ?
+        ORDER BY created_at ASC
+    ''', (status,))
+
+    tasks = []
+    for row in cursor.fetchall():
+        task = dict(row)
+        task['payload'] = json.loads(task['payload']) if task['payload'] else {}
+        task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
+        task['tags'] = json.loads(task['tags']) if task['tags'] else []
+        tasks.append(task)
+
+    return tasks
 
 
 # Worker Management Functions
@@ -510,7 +557,13 @@ def get_active_workers(role: Optional[str] = None) -> List[Dict[str, Any]]:
     return workers
 
 
-def log_run_result(run_id: str, status: str, result_data: Dict[str, Any], error_message: Optional[str] = None) -> bool:
+def log_run_result(
+    run_id: str,
+    status: str,
+    result_data: Dict[str, Any],
+    error_message: Optional[str] = None,
+    transcript: Optional[str] = None
+) -> bool:
     """
     Log the final result of a worker execution to the database.
 
@@ -521,6 +574,7 @@ def log_run_result(run_id: str, status: str, result_data: Dict[str, Any], error_
         status: Final status ('success', 'failure', 'timeout', 'cancelled')
         result_data: Dictionary containing execution results
         error_message: Optional error message if status is failure
+        transcript: Optional full transcript of Claude execution
 
     Returns:
         True if the result was logged successfully, False otherwise
@@ -530,7 +584,8 @@ def log_run_result(run_id: str, status: str, result_data: Dict[str, Any], error_
             run_id=run_id,
             status=status,
             result_data=result_data,
-            error_message=error_message
+            error_message=error_message,
+            transcript=transcript
         )
 
         if success:

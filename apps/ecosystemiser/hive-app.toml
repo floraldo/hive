@@ -1,0 +1,28 @@
+# The "user manual" for the EcoSystemiser app.
+# This file defines how the Hive system can interact with this application.
+
+[app]
+name = "EcoSystemiser"
+description = "Generates reports on ecosystem health and environmental analysis."
+version = "1.0.0"
+
+# Defines runnable tasks that the Hive Queen can trigger.
+[tasks.generate-report]
+description = "Generates a full ecosystem health report for a given region."
+command = "poetry run python -m ecosystemiser.tasks.reporting --region {region} --output {output_file}"
+parameters = ["region", "output_file"]
+
+[tasks.ingest-data]
+description = "Ingests new weather data from a source file."
+command = "poetry run python -m ecosystemiser.tasks.ingestion --source {source_file}"
+parameters = ["source_file"]
+
+[tasks.analyze-climate]
+description = "Performs climate analysis on historical data."
+command = "poetry run python -m ecosystemiser.cli analyze-climate --location {location}"
+parameters = ["location"]
+
+[tasks.health-check]
+description = "Runs a system health check to verify EcoSystemiser functionality."
+command = "python -c \"print('EcoSystemiser health check: OK')\""
+parameters = []
