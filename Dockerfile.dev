@@ -1,0 +1,90 @@
+# Development container for Hive workspace
+# This is NOT for deployment - it's for creating a perfect dev environment
+FROM python:3.11-slim
+
+# Install system dependencies that might be needed
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    sqlite3 \
+    # For potential future needs
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry (our dependency manager)
+ENV POETRY_HOME=/opt/poetry
+ENV PATH="$POETRY_HOME/bin:$PATH"
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy dependency files first (Docker layer caching optimization)
+# This layer only rebuilds when dependencies change
+COPY pyproject.toml poetry.lock ./
+
+# Copy all package dependency files
+COPY packages/hive-logging/pyproject.toml packages/hive-logging/
+COPY packages/hive-db-utils/pyproject.toml packages/hive-db-utils/
+COPY packages/hive-core-db/pyproject.toml packages/hive-core-db/
+COPY packages/hive-deployment/pyproject.toml packages/hive-deployment/
+COPY packages/hive-config/pyproject.toml packages/hive-config/
+COPY apps/ecosystemiser/pyproject.toml apps/ecosystemiser/
+
+# Configure Poetry for better container experience
+RUN poetry config virtualenvs.in-project true \
+    && poetry config cache-dir /tmp/poetry_cache
+
+# Copy the rest of the source code first
+# (needed for editable installs to work)
+COPY . .
+
+# Install dependencies with all workspace packages
+# This is the slow part, but it's cached as much as possible!
+RUN poetry install --with workspace --with dev
+
+# Set up convenient aliases for common commands
+RUN echo '#!/bin/bash' > /usr/local/bin/queen && \
+    echo 'cd /workspace && poetry run python queen.py "$@"' >> /usr/local/bin/queen && \
+    chmod +x /usr/local/bin/queen
+
+RUN echo '#!/bin/bash' > /usr/local/bin/test && \
+    echo 'cd /workspace && poetry run pytest "$@"' >> /usr/local/bin/test && \
+    chmod +x /usr/local/bin/test
+
+RUN echo '#!/bin/bash' > /usr/local/bin/lint && \
+    echo 'cd /workspace && poetry run ruff check . "$@"' >> /usr/local/bin/lint && \
+    chmod +x /usr/local/bin/lint
+
+RUN echo '#!/bin/bash' > /usr/local/bin/ecosys && \
+    echo 'cd /workspace/apps/ecosystemiser && python hive_adapter.py "$@"' >> /usr/local/bin/ecosys && \
+    chmod +x /usr/local/bin/ecosys
+
+# Set environment variables for better Python behavior in container
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Create a nice welcome message
+RUN echo '#!/bin/bash' > /usr/local/bin/welcome && \
+    echo 'echo "🐝 ========================================="' >> /usr/local/bin/welcome && \
+    echo 'echo "🐝   Welcome to Hive Development Container"' >> /usr/local/bin/welcome && \
+    echo 'echo "🐝 ========================================="' >> /usr/local/bin/welcome && \
+    echo 'echo ""' >> /usr/local/bin/welcome && \
+    echo 'echo "Quick commands available:"' >> /usr/local/bin/welcome && \
+    echo 'echo "  queen    - Run the Queen orchestrator"' >> /usr/local/bin/welcome && \
+    echo 'echo "  test     - Run pytest tests"' >> /usr/local/bin/welcome && \
+    echo 'echo "  lint     - Run ruff linter"' >> /usr/local/bin/welcome && \
+    echo 'echo "  ecosys   - Run EcoSystemiser adapter"' >> /usr/local/bin/welcome && \
+    echo 'echo ""' >> /usr/local/bin/welcome && \
+    echo 'echo "Or use poetry directly:"' >> /usr/local/bin/welcome && \
+    echo 'echo "  poetry run python ..."' >> /usr/local/bin/welcome && \
+    echo 'echo "  poetry run pytest ..."' >> /usr/local/bin/welcome && \
+    echo 'echo ""' >> /usr/local/bin/welcome && \
+    chmod +x /usr/local/bin/welcome
+
+# Show welcome message on container start
+RUN echo "welcome" >> ~/.bashrc
+
+# Default to bash shell
+CMD ["/bin/bash"]

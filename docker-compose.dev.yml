@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  hive-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: hive-dev:latest
+    container_name: hive-dev
+
+    volumes:
+      # Mount entire project directory - changes sync instantly!
+      # You edit on your host machine, run in the container
+      - .:/workspace
+
+      # Preserve Poetry cache between sessions for speed
+      - poetry-cache:/root/.cache/pypoetry
+
+      # Preserve pip cache
+      - pip-cache:/root/.cache/pip
+
+      # Share git config from host (optional - for commits from container)
+      # - ~/.gitconfig:/root/.gitconfig:ro
+      # - ~/.ssh:/root/.ssh:ro
+
+    environment:
+      # Python settings for better container experience
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+
+      # Development mode
+      - ENVIRONMENT=development
+
+      # Pass through any API keys you have set locally (optional)
+      # These will only work if they're set in your host environment
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+
+    # Keep container running for interactive use
+    stdin_open: true
+    tty: true
+
+    # Default command (bash shell)
+    command: /bin/bash
+
+    # Network mode - use host network for easier local service access
+    # Comment this out if you prefer isolated networking
+    network_mode: "host"
+
+    # Working directory
+    working_dir: /workspace
+
+  # Optional: Database service for future use
+  # Uncomment when you need a real database
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: hive-postgres
+  #   environment:
+  #     POSTGRES_DB: hive
+  #     POSTGRES_USER: hive
+  #     POSTGRES_PASSWORD: hive_secret
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+
+  # Optional: Redis for caching/queues
+  # Uncomment when needed
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: hive-redis
+  #   ports:
+  #     - "6379:6379"
+
+volumes:
+  poetry-cache:
+    driver: local
+  pip-cache:
+    driver: local
+  # postgres-data:
+  #   driver: local

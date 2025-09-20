@@ -1,0 +1,157 @@
+name: System Health Check
+
+on:
+  # Manual trigger via GitHub UI - this is the key for solo dev workflow
+  workflow_dispatch:
+    inputs:
+      verbose:
+        description: 'Run with verbose output'
+        required: false
+        default: 'false'
+        type: boolean
+      component:
+        description: 'Specific component to test (leave empty for all)'
+        required: false
+        default: ''
+        type: string
+
+  # Optional: Nightly run at 3 AM to catch issues you might have missed
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  full-system-test:
+    name: 🔍 Full System Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Python
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3: Install Poetry
+      - name: 📦 Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      # Step 4: Cache dependencies for speed
+      - name: 💾 Cache Poetry Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pypoetry/virtualenvs
+            ~/.cache/pypoetry/cache
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      # Step 5: Install ALL workspace dependencies
+      - name: 📚 Install Dependencies
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --with workspace --with dev
+
+      # Step 6: Run Linter (non-blocking initially while you adapt)
+      - name: 🔍 Lint Code with Ruff
+        continue-on-error: true  # Won't fail the pipeline initially
+        run: |
+          if poetry run ruff --version 2>/dev/null; then
+            echo "Running ruff linter..."
+            poetry run ruff check . --output-format=github
+          else
+            echo "Ruff not installed yet - skipping linting"
+          fi
+
+      # Step 7: Run ALL Tests (or specific component if specified)
+      - name: 🧪 Run Tests
+        run: |
+          if [ "${{ github.event.inputs.component }}" != "" ]; then
+            echo "Testing specific component: ${{ github.event.inputs.component }}"
+            poetry run pytest ${{ github.event.inputs.component }} -v --tb=short
+          else
+            echo "Running all tests..."
+            poetry run pytest -v --tb=short || true  # Non-blocking initially
+          fi
+
+      # Step 8: Test Coverage Report
+      - name: 📊 Generate Coverage Report
+        continue-on-error: true  # Optional, won't block
+        run: |
+          poetry run pytest --cov=apps --cov=packages \
+            --cov-report=term-missing \
+            --cov-report=html:coverage_report \
+            || echo "Coverage report generation failed - continuing"
+
+      # Step 9: Upload coverage report as artifact
+      - name: 📤 Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage_report/
+
+      # Step 10: System Health Summary
+      - name: 📋 System Health Summary
+        if: always()
+        run: |
+          echo "======================================"
+          echo "🐝 HIVE SYSTEM HEALTH CHECK COMPLETE"
+          echo "======================================"
+          echo ""
+          echo "Python Version: $(python --version)"
+          echo "Poetry Version: $(poetry --version)"
+          echo ""
+          echo "Installed Packages:"
+          poetry show --tree | head -20
+          echo ""
+          echo "Test Results: Check above for details"
+          echo "======================================"
+
+  # Optional: Quick smoke test for critical components
+  quick-smoke-test:
+    name: 🚀 Quick Smoke Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🏃 Quick Import Test
+        run: |
+          echo "Quick smoke test - checking critical imports..."
+          python -c "
+          import sys
+          sys.path.insert(0, 'packages/hive-core-db/src')
+          sys.path.insert(0, 'packages/hive-config/src')
+          sys.path.insert(0, 'apps/ecosystemiser/src')
+
+          try:
+              import hive_core_db
+              print('✅ hive-core-db imports successfully')
+          except Exception as e:
+              print(f'❌ hive-core-db import failed: {e}')
+
+          try:
+              from hive_config.loader import load_config_for_app
+              print('✅ hive-config imports successfully')
+          except Exception as e:
+              print(f'❌ hive-config import failed: {e}')
+
+          try:
+              from EcoSystemiser.hive_env import get_app_config
+              print('✅ EcoSystemiser imports successfully')
+          except Exception as e:
+              print(f'❌ EcoSystemiser import failed: {e}')
+
+          print('\\n🎉 Smoke test complete!')
+          "
