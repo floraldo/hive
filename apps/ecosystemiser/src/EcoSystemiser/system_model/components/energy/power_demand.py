@@ -1,97 +1,66 @@
-"""Power demand component for electricity consumption."""
+"""Power demand component with MILP optimization support."""
+import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
-from typing import Optional
-from ..shared.component import Component, ComponentParams
+from typing import Optional, List
+import logging
 
-class PowerDemandTechnicalParams(BaseModel):
-    """Technical parameters for power demand."""
-    P_max: float = Field(..., description="Maximum power demand (kW)")
-    profile_name: str = Field(..., description="Name of demand profile to use")
-    base_load: float = Field(0.0, description="Constant base load (kW)")
-    demand_response_enabled: bool = Field(False, description="Enable demand response capability")
-    flexibility: float = Field(0.0, description="Demand flexibility (0-1)")
+logger = logging.getLogger(__name__)
 
-class PowerDemandParams(ComponentParams):
-    """Complete parameter set for PowerDemand component."""
-    technical: PowerDemandTechnicalParams
 
-class PowerDemand(Component):
-    """Power demand component representing electricity consumption."""
+class PowerDemandParams(BaseModel):
+    """Power demand parameters matching original Systemiser."""
+    P_profile: List[float] = Field(..., description="Demand profile [kW]")
+    P_max: float = Field(5.0, description="Maximum power demand [kW]")
 
-    def __init__(self, name: str, params: PowerDemandParams, n: int = 24):
-        """Initialize power demand component.
 
-        Args:
-            name: Demand component identifier
-            params: PowerDemandParams with technical, economic, environmental data
-            n: Number of timesteps
-        """
-        super().__init__(name, params, n)
+class PowerDemand:
+    """Power demand (consumption) component with CVXPY optimization support."""
+
+    def __init__(self, name: str, params: PowerDemandParams):
+        """Initialize power demand matching original Systemiser structure."""
+        self.name = name
         self.type = "consumption"
         self.medium = "electricity"
+        self.params = params
 
-        # Profile will be set by SystemBuilder from loaded profiles
-        self.profile = None
+        # Extract parameters
+        self.P_max = params.P_max
+        self.profile = np.array(params.P_profile)
 
-        # Store base load separately if specified
-        self.base_load = self.technical.base_load
+        # Initialize flows structure
+        self.flows = {
+            'sink': {},    # Demand input
+            'input': {}    # All inputs
+        }
 
-    @property
-    def P_max(self):
-        """Convenience property for maximum power."""
-        return self.technical.P_max
+        # CVXPY variable (created later by add_optimization_vars)
+        self.P_in = None
 
-    def get_demand_at_timestep(self, t: int) -> float:
-        """Get power demand at specific timestep.
+    def add_optimization_vars(self, N: int):
+        """Create CVXPY optimization variables."""
+        # For demand, input is fixed by profile
+        self.P_in = cp.Variable(N, name=f'{self.name}_P_in', nonneg=True)
 
-        Args:
-            t: Timestep index
+        # Add as flow
+        self.flows['sink']['P_in'] = {
+            'type': 'electricity',
+            'value': self.P_in,
+            'profile': self.profile
+        }
 
-        Returns:
-            Power demand in kW
-        """
-        demand = self.base_load
-
-        if self.profile is not None and t < len(self.profile):
-            demand += self.profile[t]
-
-        # Apply maximum limit
-        demand = min(demand, self.technical.P_max)
-
-        return demand
-
-    def set_constraints(self):
-        """Define demand constraints for optimization.
-
-        For consumption components, the main constraint is that
-        input must meet demand (handled by system balance constraints).
-        """
+    def set_constraints(self) -> List:
+        """Set CVXPY constraints for power demand."""
         constraints = []
 
-        # For demand response, could add flexibility constraints here
-        if self.technical.demand_response_enabled:
-            # Future: Add demand response constraints
-            pass
+        if self.P_in is not None:
+            # Demand must be met exactly
+            constraints.append(self.P_in == self.profile * self.P_max)
 
         return constraints
 
-    def get_state_at_timestep(self, t: int) -> dict:
-        """Get demand state at specific timestep.
-
-        Args:
-            t: Timestep index
-
-        Returns:
-            Dictionary with demand state information
-        """
-        state = super().get_state_at_timestep(t)
-
-        # Add demand-specific state
-        state['demand'] = float(self.get_demand_at_timestep(t))
-        state['base_load'] = float(self.base_load)
-
-        if self.technical.demand_response_enabled:
-            state['flexibility'] = float(self.technical.flexibility)
-
-        return state
+    def rule_based_demand(self, t: int) -> float:
+        """Get power demand in rule-based mode."""
+        if t >= len(self.profile):
+            return 0.0
+        return self.profile[t] * self.P_max

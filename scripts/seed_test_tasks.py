@@ -60,7 +60,7 @@ This should be implemented with production-quality code.""",
                     "next_phase_on_success": "inspect"
                 },
                 "inspect": {
-                    "command_template": "python scripts/inspect_run.py --run-id {run_id}",
+                    "command_template": "python ../../../../scripts/inspect_run.py --run-id {run_id}",
                     "next_phase_on_success": "review_pending",
                     "next_phase_on_failure": "review_pending"
                 },
@@ -103,7 +103,7 @@ Implementation should work but may have quality issues that make AI uncertain.""
                     "next_phase_on_success": "inspect"
                 },
                 "inspect": {
-                    "command_template": "python scripts/inspect_run.py --run-id {run_id}",
+                    "command_template": "python ../../../../scripts/inspect_run.py --run-id {run_id}",
                     "next_phase_on_success": "review_pending",
                     "next_phase_on_failure": "review_pending"
                 },

@@ -30,37 +30,35 @@ class MILPSolver(BaseSolver):
         self._connect_flow_variables()
 
     def _connect_flow_variables(self):
-        """Connect component variables to system flows."""
+        """Connect component variables to system flows - matching original Systemiser."""
+        # First create variables for all system flows
         for flow_key, flow_data in self.system.flows.items():
+            # Create a CVXPY variable for this flow
+            flow_var = cp.Variable(
+                self.system.N,
+                nonneg=True,
+                name=flow_key
+            )
+            flow_data['value'] = flow_var
+
+            # Now update the input/output flow references in components
             source_comp = self.system.components.get(flow_data['source'])
             target_comp = self.system.components.get(flow_data['target'])
 
-            # Find matching flow variable in components
-            flow_var = None
+            # Determine prefix
+            var_prefix = 'W' if flow_data['type'] == 'water' else 'P'
 
-            # Check source component output flows
-            if source_comp:
-                for flow_name, flow_info in source_comp.flows.get('source', {}).items():
-                    if isinstance(flow_info.get('value'), cp.Variable):
-                        flow_var = flow_info['value']
-                        break
+            # Update source component's output flow
+            if source_comp and 'output' in source_comp.flows:
+                output_key = f'{var_prefix}_{flow_data["target"]}'
+                if output_key in source_comp.flows['output']:
+                    source_comp.flows['output'][output_key]['value'] = flow_var
 
-            # Check target component input flows
-            if not flow_var and target_comp:
-                for flow_name, flow_info in target_comp.flows.get('sink', {}).items():
-                    if isinstance(flow_info.get('value'), cp.Variable):
-                        flow_var = flow_info['value']
-                        break
-
-            # Create new variable if needed
-            if flow_var is None:
-                flow_var = cp.Variable(
-                    self.system.N,
-                    nonneg=True,
-                    name=flow_key
-                )
-
-            flow_data['value'] = flow_var
+            # Update target component's input flow
+            if target_comp and 'input' in target_comp.flows:
+                input_key = f'{var_prefix}_{flow_data["source"]}'
+                if input_key in target_comp.flows['input']:
+                    target_comp.flows['input'][input_key]['value'] = flow_var
 
     def solve(self) -> SolverResult:
         """Solve the optimization problem."""
@@ -133,65 +131,87 @@ class MILPSolver(BaseSolver):
         return constraints
 
     def _create_balance_constraints(self):
-        """Create energy balance constraints for each timestep."""
+        """Create energy balance constraints for each timestep and energy type."""
         constraints = []
 
         for t in range(self.system.N):
-            # Collect all generation, consumption, and storage flows
-            generation = []
-            consumption = []
-            storage_charge = []
-            storage_discharge = []
-            grid_import = []
-            grid_export = []
+            # Separate flows by energy type
+            flows_by_type = {
+                'electricity': {'generation': [], 'consumption': [], 'storage_charge': [],
+                               'storage_discharge': [], 'import': [], 'export': []},
+                'heat': {'generation': [], 'consumption': [], 'storage_charge': [],
+                        'storage_discharge': [], 'import': [], 'export': []}
+            }
 
             for comp in self.system.components.values():
+                # Get component medium type
+                medium = getattr(comp, 'medium', 'electricity')
+
                 # Generation components
                 if comp.type == "generation":
-                    for flow in comp.flows.get('source', {}).values():
+                    for flow_name, flow in comp.flows.get('source', {}).items():
                         if isinstance(flow.get('value'), cp.Variable):
-                            generation.append(flow['value'][t])
+                            flow_type = flow.get('type', medium)
+                            if flow_type in flows_by_type:
+                                flows_by_type[flow_type]['generation'].append(flow['value'][t])
 
                 # Consumption components
                 elif comp.type == "consumption":
-                    for flow in comp.flows.get('sink', {}).values():
+                    for flow_name, flow in comp.flows.get('sink', {}).items():
                         if isinstance(flow.get('value'), cp.Variable):
-                            consumption.append(flow['value'][t])
+                            flow_type = flow.get('type', medium)
+                            if flow_type in flows_by_type:
+                                flows_by_type[flow_type]['consumption'].append(flow['value'][t])
 
                 # Storage components
                 elif comp.type == "storage":
-                    if hasattr(comp, 'P_cha') and comp.P_cha is not None:
-                        storage_charge.append(comp.P_cha[t])
-                    if hasattr(comp, 'P_dis') and comp.P_dis is not None:
-                        storage_discharge.append(comp.P_dis[t])
+                    # Check for electrical storage
+                    if medium == 'electricity':
+                        if hasattr(comp, 'P_cha') and comp.P_cha is not None:
+                            flows_by_type['electricity']['storage_charge'].append(comp.P_cha[t])
+                        if hasattr(comp, 'P_dis') and comp.P_dis is not None:
+                            flows_by_type['electricity']['storage_discharge'].append(comp.P_dis[t])
+                    # Check for thermal storage
+                    elif medium == 'heat':
+                        if hasattr(comp, 'P_cha') and comp.P_cha is not None:
+                            flows_by_type['heat']['storage_charge'].append(comp.P_cha[t])
+                        if hasattr(comp, 'P_dis') and comp.P_dis is not None:
+                            flows_by_type['heat']['storage_discharge'].append(comp.P_dis[t])
 
-                # Grid components
+                # Grid components (electricity only)
                 elif comp.type == "transmission":
                     if hasattr(comp, 'P_draw') and comp.P_draw is not None:
-                        grid_import.append(comp.P_draw[t])
+                        flows_by_type['electricity']['import'].append(comp.P_draw[t])
                     if hasattr(comp, 'P_feed') and comp.P_feed is not None:
-                        grid_export.append(comp.P_feed[t])
+                        flows_by_type['electricity']['export'].append(comp.P_feed[t])
 
-            # Energy balance: generation + imports + discharge = consumption + exports + charge
-            lhs = []
-            rhs = []
+                # Components that convert between energy types
+                # Heat pumps and boilers consume electricity (sink) and produce heat (source)
+                for flow_name, flow in comp.flows.get('sink', {}).items():
+                    if isinstance(flow.get('value'), cp.Variable):
+                        flow_type = flow.get('type', 'electricity')
+                        if flow_type in flows_by_type and comp.type == "generation":
+                            # This is electricity input to heat generators
+                            flows_by_type[flow_type]['consumption'].append(flow['value'][t])
 
-            if generation:
-                lhs.extend(generation)
-            if grid_import:
-                lhs.extend(grid_import)
-            if storage_discharge:
-                lhs.extend(storage_discharge)
+            # Create balance constraints for each energy type
+            for energy_type, flows in flows_by_type.items():
+                lhs = []
+                rhs = []
 
-            if consumption:
-                rhs.extend(consumption)
-            if grid_export:
-                rhs.extend(grid_export)
-            if storage_charge:
-                rhs.extend(storage_charge)
+                # Left hand side (sources)
+                lhs.extend(flows['generation'])
+                lhs.extend(flows['import'])
+                lhs.extend(flows['storage_discharge'])
 
-            if lhs and rhs:
-                constraints.append(cp.sum(lhs) == cp.sum(rhs))
+                # Right hand side (sinks)
+                rhs.extend(flows['consumption'])
+                rhs.extend(flows['export'])
+                rhs.extend(flows['storage_charge'])
+
+                # Only add constraint if there are flows for this energy type
+                if lhs and rhs:
+                    constraints.append(cp.sum(lhs) == cp.sum(rhs))
 
         return constraints
 

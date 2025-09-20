@@ -250,14 +250,20 @@ class WorkerCore:
             self.log.info("[OK] Fresh mode - skipping git checks.")
 
     def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """Load task definition"""
-        task_file = self.tasks_dir / f"{task_id}.json"
-        if not task_file.exists():
-            return None
-
+        """Load task definition from database"""
         try:
-            with open(task_file, "r") as f:
-                return json.load(f)
+            # Initialize database if not already done
+            hive_core_db.init_db()
+            # Get task from database
+            task = hive_core_db.get_task(task_id)
+            if not task:
+                # Fallback to file system for legacy support
+                task_file = self.tasks_dir / f"{task_id}.json"
+                if task_file.exists():
+                    with open(task_file, "r") as f:
+                        return json.load(f)
+                return None
+            return task
         except Exception as e:
             print(f"[ERROR] Failed to load task {task_id}: {e}")
             return None

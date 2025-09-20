@@ -1,4 +1,4 @@
-"""Battery component with MILP optimization support."""
+"""Heat buffer (thermal storage) component with MILP optimization support."""
 import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
@@ -8,30 +8,31 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BatteryParams(BaseModel):
-    """Battery parameters matching original Systemiser."""
+class HeatBufferParams(BaseModel):
+    """Heat buffer parameters matching original Systemiser."""
     P_max: float = Field(5.0, description="Max charge/discharge power [kW]")
-    E_max: float = Field(10.0, description="Storage capacity [kWh]")
-    E_init: float = Field(5.0, description="Initial energy [kWh]")
-    eta_charge: float = Field(0.95, description="Charge efficiency")
-    eta_discharge: float = Field(0.95, description="Discharge efficiency")
+    E_max: float = Field(20.0, description="Storage capacity [kWh]")
+    E_init: float = Field(10.0, description="Initial energy [kWh]")
+    eta: float = Field(0.90, description="Round-trip efficiency")
 
 
-class Battery:
-    """Battery storage component with CVXPY optimization support."""
+class HeatBuffer:
+    """Heat buffer (thermal storage) component with CVXPY optimization support."""
 
-    def __init__(self, name: str, params: BatteryParams):
-        """Initialize battery matching original Systemiser structure."""
+    def __init__(self, name: str, params: HeatBufferParams):
+        """Initialize heat buffer matching original Systemiser structure."""
         self.name = name
         self.type = "storage"
-        self.medium = "electricity"
+        self.type2 = "heat"  # Secondary type for thermal storage
+        self.medium = "heat"
         self.params = params
 
         # Extract parameters
         self.P_max = params.P_max
         self.E_max = params.E_max
         self.E_init = params.E_init
-        self.eta = params.eta_charge  # Using charge efficiency as base
+        self.eta = params.eta
+        self.capacity = params.E_max
 
         # Initialize flows structure
         self.flows = {
@@ -51,24 +52,27 @@ class Battery:
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""
-        self.E_opt = cp.Variable(N, name=f'{self.name}_E', nonneg=True)
+        self.E_opt = cp.Variable(N, name=f'{self.name}_E')
         self.P_cha = cp.Variable(N, name=f'{self.name}_P_cha', nonneg=True)
         self.P_dis = cp.Variable(N, name=f'{self.name}_P_dis', nonneg=True)
 
+        # Store as E for compatibility
+        self.E = self.E_opt
+
         # Add charge/discharge as flows
         self.flows['sink']['P_cha'] = {
-            'type': 'electricity',
+            'type': 'heat',
             'value': self.P_cha
         }
         self.flows['source']['P_dis'] = {
-            'type': 'electricity',
+            'type': 'heat',
             'value': self.P_dis
         }
 
     def set_constraints(self) -> List:
-        """Set CVXPY constraints for battery operation."""
+        """Set CVXPY constraints for heat buffer operation."""
         constraints = []
-        N = len(self.E_opt) if self.E_opt is not None else 0
+        N = self.E_opt.shape[0] if self.E_opt is not None else 0
 
         if self.E_opt is not None:
             # Initial state
@@ -84,7 +88,7 @@ class Battery:
             if self.P_dis is not None:
                 constraints.append(self.P_dis <= self.P_max)
 
-            # Energy balance dynamics
+            # Energy balance dynamics (matching original Systemiser)
             for t in range(1, N):
                 constraints.append(
                     self.E_opt[t] == self.E_opt[t-1] +
@@ -94,7 +98,7 @@ class Battery:
         return constraints
 
     def rule_based_charge(self, power: float, t: int) -> float:
-        """Charge battery in rule-based mode."""
+        """Charge heat buffer in rule-based mode."""
         if self.E is None:
             return 0.0
 
@@ -111,7 +115,7 @@ class Battery:
         return max_charge
 
     def rule_based_discharge(self, power: float, t: int) -> float:
-        """Discharge battery in rule-based mode."""
+        """Discharge heat buffer in rule-based mode."""
         if self.E is None:
             return 0.0
 

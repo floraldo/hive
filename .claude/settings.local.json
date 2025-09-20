@@ -32,7 +32,8 @@
       "Bash(find:*)",
       "Bash(git worktree:*)",
       "Bash(grep:*)",
-      "Read(//c/git/SmartHoodsOptimisationTool/apps/EcoSystemiser/**)"
+      "Read(//c/git/SmartHoodsOptimisationTool/apps/EcoSystemiser/**)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []

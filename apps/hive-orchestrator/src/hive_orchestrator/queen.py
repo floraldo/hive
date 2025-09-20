@@ -842,7 +842,7 @@ class QueenLite:
             if "worker.py" in command:
                 actual_run_id = hive_core_db.create_run(
                     task_id=task_id,
-                    worker_id="queen-orchestrated",
+                    worker_id="queen-orchestrator",  # Match the registered worker ID
                     phase=current_phase
                 )
                 # Use the actual run_id from database

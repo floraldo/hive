@@ -1,151 +1,128 @@
-"""Battery energy storage component with enhanced parameter handling."""
+"""Battery component with MILP optimization support."""
 import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
-from typing import Optional, Dict
-from ..shared.component import Component, ComponentParams
+from typing import Optional, List
+import logging
 
-class BatteryTechnicalParams(BaseModel):
-    """Technical parameters specific to batteries."""
-    P_max: float = Field(..., description="Maximum charge/discharge power (kW)")
-    E_max: float = Field(..., description="Maximum energy capacity (kWh)")
-    E_init: float = Field(..., description="Initial state of charge (kWh)")
-    eta: float = Field(0.95, description="Round-trip efficiency (0-1)")
-    eta_charge: Optional[float] = None
-    eta_discharge: Optional[float] = None
-    soc_min: float = Field(0.1, description="Minimum SoC (fraction)")
-    soc_max: float = Field(0.9, description="Maximum SoC (fraction)")
-    degradation_rate: float = Field(0.0002, description="Degradation per cycle")
+logger = logging.getLogger(__name__)
 
-class BatteryParams(ComponentParams):
-    """Complete parameter set for Battery component."""
-    technical: BatteryTechnicalParams
 
-class Battery(Component):
-    """Battery energy storage system component with cleaner parameter access."""
+class BatteryParams(BaseModel):
+    """Battery parameters matching original Systemiser."""
+    P_max: float = Field(5.0, description="Max charge/discharge power [kW]")
+    E_max: float = Field(10.0, description="Storage capacity [kWh]")
+    E_init: float = Field(5.0, description="Initial energy [kWh]")
+    eta_charge: float = Field(0.95, description="Charge efficiency")
+    eta_discharge: float = Field(0.95, description="Discharge efficiency")
 
-    def __init__(self, name: str, params: BatteryParams, n: int = 24):
-        """Initialize battery with validated parameters.
 
-        Args:
-            name: Battery identifier
-            params: BatteryParams with technical, economic, environmental data
-            n: Number of timesteps
-        """
-        super().__init__(name, params, n)
+class Battery:
+    """Battery storage component with CVXPY optimization support."""
+
+    def __init__(self, name: str, params: BatteryParams):
+        """Initialize battery matching original Systemiser structure."""
+        self.name = name
         self.type = "storage"
         self.medium = "electricity"
+        self.params = params
 
-        # Now we can access parameters cleanly via self.technical
-        # No need to manually unpack everything
-        # Calculate derived efficiencies if not specified
-        if self.technical.eta_charge is None:
-            self.technical.eta_charge = np.sqrt(self.technical.eta)
-        if self.technical.eta_discharge is None:
-            self.technical.eta_discharge = np.sqrt(self.technical.eta)
+        # Extract parameters
+        self.P_max = params.P_max
+        self.E_max = params.E_max
+        self.E_init = params.E_init
+        self.eta = params.eta_charge  # Using charge efficiency as base
 
-        # Storage level array (numpy for rule-based, cvxpy for optimization)
-        self.E = np.zeros(n)
-        self.E[0] = self.technical.E_init
+        # Initialize flows structure
+        self.flows = {
+            'sink': {},    # Incoming flows (charging)
+            'source': {},  # Outgoing flows (discharging)
+            'input': {},   # All inputs
+            'output': {}   # All outputs
+        }
 
-        # For optimization mode (keeping cvxpy coupling for now per Plan B)
-        self.E_opt = None  # Will be initialized in add_optimization_vars()
+        # Storage array for rule-based solver
+        self.E = None  # Will be initialized by solver
 
-    @property
-    def P_max(self):
-        """Convenience property for maximum power."""
-        return self.technical.P_max
+        # CVXPY variables (created later by add_optimization_vars)
+        self.E_opt = None
+        self.P_cha = None
+        self.P_dis = None
 
-    @property
-    def E_max(self):
-        """Convenience property for maximum energy."""
-        return self.technical.E_max
+    def add_optimization_vars(self, N: int):
+        """Create CVXPY optimization variables."""
+        self.E_opt = cp.Variable(N, name=f'{self.name}_E', nonneg=True)
+        self.P_cha = cp.Variable(N, name=f'{self.name}_P_cha', nonneg=True)
+        self.P_dis = cp.Variable(N, name=f'{self.name}_P_dis', nonneg=True)
 
-    @property
-    def E_init(self):
-        """Convenience property for initial energy."""
-        return self.technical.E_init
+        # Add charge/discharge as flows
+        self.flows['sink']['P_cha'] = {
+            'type': 'electricity',
+            'value': self.P_cha
+        }
+        self.flows['source']['P_dis'] = {
+            'type': 'electricity',
+            'value': self.P_dis
+        }
 
-    @property
-    def eta(self):
-        """Convenience property for round-trip efficiency."""
-        return self.technical.eta
-
-    @property
-    def eta_charge(self):
-        """Convenience property for charge efficiency."""
-        return self.technical.eta_charge
-
-    @property
-    def eta_discharge(self):
-        """Convenience property for discharge efficiency."""
-        return self.technical.eta_discharge
-
-    def add_optimization_vars(self):
-        """Initialize CVXPY variables for optimization mode."""
-        if self.E_opt is None:
-            self.E_opt = cp.Variable(self.N, nonneg=True, name=f'{self.name}_E')
-
-    def set_constraints(self):
-        """Define battery operational constraints for optimization."""
+    def set_constraints(self) -> List:
+        """Set CVXPY constraints for battery operation."""
         constraints = []
+        N = self.E_opt.shape[0] if self.E_opt is not None else 0
 
-        # Only add constraints if optimization variables exist
         if self.E_opt is not None:
-            # Energy capacity constraints
-            constraints.append(self.E_opt >= self.technical.soc_min * self.technical.E_max)
-            constraints.append(self.E_opt <= self.technical.soc_max * self.technical.E_max)
+            # Initial state
+            constraints.append(self.E_opt[0] == self.E_init)
 
-            # Initial state constraint
-            constraints.append(self.E_opt[0] == self.technical.E_init)
+            # Energy bounds
+            constraints.append(self.E_opt >= 0)
+            constraints.append(self.E_opt <= self.E_max)
 
-            # Energy balance constraints for each timestep
-            for t in range(1, self.N):
-                charge_flow = 0
-                discharge_flow = 0
+            # Power limits
+            if self.P_cha is not None:
+                constraints.append(self.P_cha <= self.P_max)
+            if self.P_dis is not None:
+                constraints.append(self.P_dis <= self.P_max)
 
-                # Sum charging flows
-                for flow_name, flow in self.flows.get('input', {}).items():
-                    if isinstance(flow['value'], cp.Variable):
-                        charge_flow += flow['value'][t] * self.technical.eta_charge
-
-                for flow_name, flow in self.flows.get('sink', {}).items():
-                    if isinstance(flow['value'], cp.Variable):
-                        charge_flow += flow['value'][t] * self.technical.eta_charge
-
-                # Sum discharging flows
-                for flow_name, flow in self.flows.get('output', {}).items():
-                    if isinstance(flow['value'], cp.Variable):
-                        discharge_flow += flow['value'][t] / self.technical.eta_discharge
-
-                for flow_name, flow in self.flows.get('source', {}).items():
-                    if isinstance(flow['value'], cp.Variable):
-                        discharge_flow += flow['value'][t] / self.technical.eta_discharge
-
-                # Energy balance: E[t] = E[t-1] + charge - discharge
+            # Energy balance dynamics (matching original Systemiser)
+            for t in range(1, N):
                 constraints.append(
-                    self.E_opt[t] == self.E_opt[t-1] + charge_flow - discharge_flow
+                    self.E_opt[t] == self.E_opt[t-1] +
+                    self.eta * (self.P_cha[t] - self.P_dis[t])
                 )
 
         return constraints
 
-    def get_state_at_timestep(self, t: int) -> Dict[str, float]:
-        """Get battery state at specific timestep.
+    def rule_based_charge(self, power: float, t: int) -> float:
+        """Charge battery in rule-based mode."""
+        if self.E is None:
+            return 0.0
 
-        Args:
-            t: Timestep index
+        # Available capacity
+        available_capacity = self.E_max - self.E[t]
 
-        Returns:
-            Dictionary with battery state information
-        """
-        state = super().get_state_at_timestep(t)
+        # Maximum charge power considering efficiency
+        max_charge = min(power, self.P_max, available_capacity / self.eta)
 
-        # Add battery-specific state
-        if t < len(self.E):
-            state['energy_level'] = float(self.E[t])
-            state['soc'] = float(self.E[t] / self.technical.E_max)
+        # Update state
+        actual_energy = max_charge * self.eta
+        self.E[t+1] = self.E[t] + actual_energy if t < len(self.E)-1 else self.E[t]
 
-        state['max_charge_power'] = float(self.technical.P_max)
-        state['max_discharge_power'] = float(self.technical.P_max)
+        return max_charge
 
-        return state
+    def rule_based_discharge(self, power: float, t: int) -> float:
+        """Discharge battery in rule-based mode."""
+        if self.E is None:
+            return 0.0
+
+        # Available energy
+        available_energy = self.E[t]
+
+        # Maximum discharge power considering efficiency
+        max_discharge = min(power, self.P_max, available_energy * self.eta)
+
+        # Update state
+        actual_energy = max_discharge / self.eta
+        self.E[t+1] = self.E[t] - actual_energy if t < len(self.E)-1 else self.E[t]
+
+        return max_discharge

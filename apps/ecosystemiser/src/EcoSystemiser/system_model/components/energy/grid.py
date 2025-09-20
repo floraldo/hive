@@ -1,49 +1,78 @@
-"""Grid component for electricity transmission."""
+"""Grid component with MILP optimization support."""
 import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
-from typing import Optional
-from ..shared.component import Component, ComponentParams
+from typing import Optional, List
+import logging
 
-class GridTechnicalParams(BaseModel):
-    """Technical parameters for grid connection."""
-    P_max: float = Field(..., description="Maximum grid connection capacity (kW)")
-    feed_in_tariff: float = Field(0.08, description="Feed-in tariff (€/kWh)")
-    import_tariff: float = Field(0.25, description="Import tariff (€/kWh)")
+logger = logging.getLogger(__name__)
 
-class GridParams(ComponentParams):
-    """Complete parameter set for Grid component."""
-    technical: GridTechnicalParams
 
-class Grid(Component):
-    """Grid connection component for electricity import/export."""
+class GridParams(BaseModel):
+    """Grid parameters matching original Systemiser."""
+    P_max: float = Field(100.0, description="Max import/export power [kW]")
+    import_tariff: float = Field(0.25, description="Import electricity price [$/kWh]")
+    feed_in_tariff: float = Field(0.08, description="Export electricity price [$/kWh]")
 
-    def __init__(self, name: str, params: GridParams, n: int = 24):
-        super().__init__(name, params, n)
+
+class Grid:
+    """Grid connection component with CVXPY optimization support."""
+
+    def __init__(self, name: str, params: GridParams):
+        """Initialize grid matching original Systemiser structure."""
+        self.name = name
         self.type = "transmission"
         self.medium = "electricity"
+        self.params = params
 
-        # Extract technical parameters
-        tech = params.technical
-        self.P_max = tech.P_max
-        self.feed_in_tariff = tech.feed_in_tariff
-        self.import_tariff = tech.import_tariff
+        # Extract parameters
+        self.P_max = params.P_max
+        self.import_tariff = params.import_tariff
+        self.feed_in_tariff = params.feed_in_tariff
 
-        # Initialize flow variables for grid
-        # These will be set by system.connect()
-        self.flows['source']['P_draw'] = {'value': np.zeros(n)}  # Draw from grid
-        self.flows['sink']['P_feed'] = {'value': np.zeros(n)}    # Feed to grid
+        # Initialize flows structure
+        self.flows = {
+            'sink': {},    # Export to grid
+            'source': {},  # Import from grid
+            'input': {},   # All inputs
+            'output': {}   # All outputs
+        }
 
-    def set_constraints(self):
-        """Define grid operational constraints."""
+        # CVXPY variables (created later by add_optimization_vars)
+        self.P_draw = None  # Import from grid
+        self.P_feed = None  # Export to grid
+
+    def add_optimization_vars(self, N: int):
+        """Create CVXPY optimization variables."""
+        self.P_draw = cp.Variable(N, name=f'{self.name}_P_draw', nonneg=True)
+        self.P_feed = cp.Variable(N, name=f'{self.name}_P_feed', nonneg=True)
+
+        # Add as flows
+        self.flows['source']['P_draw'] = {
+            'type': 'electricity',
+            'value': self.P_draw
+        }
+        self.flows['sink']['P_feed'] = {
+            'type': 'electricity',
+            'value': self.P_feed
+        }
+
+    def set_constraints(self) -> List:
+        """Set CVXPY constraints for grid connection."""
         constraints = []
 
-        # Grid draw constraint (import limit)
-        if 'P_draw' in self.flows['source'] and isinstance(self.flows['source']['P_draw']['value'], cp.Variable):
-            constraints.append(self.flows['source']['P_draw']['value'] <= self.P_max)
-
-        # Grid feed constraint (export limit)
-        if 'P_feed' in self.flows['sink'] and isinstance(self.flows['sink']['P_feed']['value'], cp.Variable):
-            constraints.append(self.flows['sink']['P_feed']['value'] <= self.P_max)
+        # Power limits
+        if self.P_draw is not None:
+            constraints.append(self.P_draw <= self.P_max)
+        if self.P_feed is not None:
+            constraints.append(self.P_feed <= self.P_max)
 
         return constraints
+
+    def rule_based_import(self, power: float) -> float:
+        """Import power from grid in rule-based mode."""
+        return min(power, self.P_max)
+
+    def rule_based_export(self, power: float) -> float:
+        """Export power to grid in rule-based mode."""
+        return min(power, self.P_max)

@@ -22,8 +22,22 @@ from enum import Enum
 
 logger = logging.getLogger(__name__)
 
-# Database file location (cleaner than root directory)
-DB_PATH = Path("hive/db/hive-internal.db")
+# Database file location - find the repository root
+def find_repo_root():
+    """Find the repository root by looking for .git directory"""
+    current = Path.cwd()
+    while current != current.parent:
+        if (current / ".git").exists():
+            return current
+        if (current / "hive" / "db").exists():
+            # We're already in the repo root
+            return current
+        current = current.parent
+    # Fallback to relative path if we can't find the repo root
+    return Path.cwd()
+
+REPO_ROOT = find_repo_root()
+DB_PATH = REPO_ROOT / "hive" / "db" / "hive-internal.db"
 
 # Global connection for reuse
 _connection = None

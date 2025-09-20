@@ -1,1 +1,0 @@
-"""Component model for EcoSystemiser."""
