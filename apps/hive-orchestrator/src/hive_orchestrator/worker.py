@@ -27,6 +27,16 @@ except ImportError:
     sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
     import hive_core_db
 
+# Hive utilities for path management
+from hive_utils.paths import (
+    PROJECT_ROOT,
+    WORKTREES_DIR,
+    LOGS_DIR,
+    get_worker_workspace_dir,
+    get_task_log_dir,
+    ensure_directory
+)
+
 
 class WorkerCore:
     """Streamlined worker with preserved path fix"""
@@ -44,12 +54,11 @@ class WorkerCore:
         # Initialize logger
         self.log = get_logger(__name__)
 
-        # Core paths (deterministic, independent of shell cwd)
-        self.root = Path(__file__).resolve().parent  # .../hive
-        self.hive_dir = self.root / "hive"
-        self.tasks_dir = self.hive_dir / "tasks"
-        self.results_dir = self.hive_dir / "results"
-        self.logs_dir = self.hive_dir / "logs"
+        # Use authoritative paths from singleton
+        self.project_root = PROJECT_ROOT
+        self.logs_dir = LOGS_DIR
+        self.root = PROJECT_ROOT  # For git operations
+        self.tasks_dir = PROJECT_ROOT / "tasks"  # Legacy fallback
 
         # Workspace creation based on mode
         if workspace:
@@ -85,11 +94,8 @@ class WorkerCore:
 
     def _create_workspace(self) -> Path:
         """Create or reuse workspace based on mode (fresh or repo)"""
-        # Determine workspace path
-        if self.task_id:
-            workspace_path = self.root / ".worktrees" / self.worker_id / self.task_id
-        else:
-            workspace_path = self.root / ".worktrees" / self.worker_id
+        # Use the authoritative workspace path from singleton
+        workspace_path = get_worker_workspace_dir(self.worker_id, self.task_id)
 
         if self.mode == "fresh":
             # Fresh mode: clean only on 'apply' phase, preserve for 'test' phase
@@ -536,8 +542,8 @@ CRITICAL PATH CONSTRAINT:
         # Create log file for this run
         log_file = None
         if self.task_id and self.run_id:
-            log_dir = self.logs_dir / self.task_id
-            log_dir.mkdir(parents=True, exist_ok=True)
+            log_dir = get_task_log_dir(self.task_id)
+            ensure_directory(log_dir)
             log_file = log_dir / f"{self.run_id}.log"
             print(f"         [INFO] Logging to: {log_file}")
 
@@ -889,9 +895,8 @@ def main():
         log_name += f"-{args.task_id}"
 
     # Make log path absolute + centralized (before any chdir operations)
-    repo_root = Path(__file__).resolve().parent
-    centralized_log = repo_root / "hive" / "logs" / f"{log_name}.log"
-    centralized_log = centralized_log.resolve()  # Make fully absolute before chdir
+    centralized_log = LOGS_DIR / f"{log_name}.log"
+    ensure_directory(LOGS_DIR)  # Ensure logs directory exists
     setup_logging(
         name=log_name,
         log_to_file=True,

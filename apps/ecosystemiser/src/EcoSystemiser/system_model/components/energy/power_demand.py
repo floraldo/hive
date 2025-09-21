@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 import logging
 
+from ..shared.registry import register_component
+from ..shared.component import Component
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,25 +17,23 @@ class PowerDemandParams(BaseModel):
     P_max: float = Field(5.0, description="Maximum power demand [kW]")
 
 
-class PowerDemand:
+@register_component("PowerDemand")
+class PowerDemand(Component):
     """Power demand (consumption) component with CVXPY optimization support."""
 
-    def __init__(self, name: str, params: PowerDemandParams):
-        """Initialize power demand matching original Systemiser structure."""
-        self.name = name
+    PARAMS_MODEL = PowerDemandParams
+
+    def _post_init(self):
+        """Initialize power demand-specific attributes after DRY parameter unpacking."""
         self.type = "consumption"
         self.medium = "electricity"
-        self.params = params
 
-        # Extract parameters
-        self.P_max = params.P_max
-        self.profile = np.array(params.P_profile)
+        # DRY pattern eliminates these lines (auto-unpacked):
+        # self.P_max = params.P_max
+        # self.P_profile = params.P_profile
 
-        # Initialize flows structure
-        self.flows = {
-            'sink': {},    # Demand input
-            'input': {}    # All inputs
-        }
+        # Convert profile to numpy array
+        self.profile = np.array(self.P_profile)
 
         # CVXPY variable (created later by add_optimization_vars)
         self.P_in = None

@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "hive-utils"
+version = "0.1.0"
+description = "Core utilities for Hive system path management"
+authors = ["Hive System <hive@example.com>"]
+packages = [{include = "hive_utils", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

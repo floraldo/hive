@@ -23,6 +23,9 @@ from enum import Enum
 # Import HiveCore for tight integration
 from .hive_core import HiveCore
 
+# Hive utilities for path management
+from hive_utils.paths import PROJECT_ROOT, LOGS_DIR, ensure_directory
+
 # Hive database system
 try:
     import hive_core_db
@@ -858,7 +861,7 @@ class QueenLite:
                 process = subprocess.Popen(
                     command,
                     shell=True,
-                    cwd=str(self.hive.root),
+                    cwd=str(PROJECT_ROOT),
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True

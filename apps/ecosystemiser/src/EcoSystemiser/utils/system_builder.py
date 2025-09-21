@@ -1,4 +1,4 @@
-"""System builder for configuration-driven system assembly."""
+"""Dynamic system builder for configuration-driven system assembly."""
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -7,17 +7,18 @@ import logging
 
 from ..system_model.system import System
 from ..component_data.repository import ComponentRepository
+from ..system_model.components.shared.registry import get_component_class, COMPONENT_REGISTRY
+
+# Import all components to ensure they are registered
+from ..system_model.components.energy import *
 
 logger = logging.getLogger(__name__)
 
 class SystemBuilder:
-    """Build System objects from configuration files."""
-
-    # Component class registry - manual for now, can be automated later
-    COMPONENT_CLASSES = {}
+    """Build System objects from configuration files using dynamic registry pattern."""
 
     def __init__(self, config_path: Path, component_repo: ComponentRepository):
-        """Initialize system builder.
+        """Initialize dynamic system builder.
 
         Args:
             config_path: Path to system configuration YAML
@@ -25,31 +26,24 @@ class SystemBuilder:
         """
         self.config_path = Path(config_path)
         self.component_repo = component_repo
-        self._load_component_classes()
 
-    def _load_component_classes(self):
-        """Load component classes dynamically.
+        # Log available components from registry
+        available_components = list(COMPONENT_REGISTRY.keys())
+        logger.info(f"Initialized SystemBuilder with {len(available_components)} registered components: {available_components}")
 
-        Future: This could scan the components directory automatically.
-        For now, we import manually.
+    def list_available_components(self) -> Dict[str, str]:
+        """List all available component types and their descriptions.
+
+        Returns:
+            Dictionary mapping component type to description
         """
-        # Import all component classes
-        try:
-            from ..system_model.components.energy.battery import Battery, BatteryParams
-            from ..system_model.components.energy.grid import Grid, GridParams
-            from ..system_model.components.energy.solar_pv import SolarPV, SolarPVParams
-            from ..system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
+        available = {}
+        for comp_type, comp_class in COMPONENT_REGISTRY.items():
+            # Get component description from docstring or class name
+            desc = comp_class.__doc__.split('\n')[0] if comp_class.__doc__ else f"{comp_type} component"
+            available[comp_type] = desc
 
-            # Register classes with their params models
-            self.COMPONENT_CLASSES.update({
-                'Battery': (Battery, BatteryParams),
-                'Grid': (Grid, GridParams),
-                'SolarPV': (SolarPV, SolarPVParams),
-                'PowerDemand': (PowerDemand, PowerDemandParams),
-                # Add more as they're created
-            })
-        except ImportError as e:
-            logger.warning(f"Could not import some component classes: {e}")
+        return available
 
     def build(self) -> System:
         """Build complete system from configuration.
@@ -140,12 +134,23 @@ class SystemBuilder:
 
             params_dict = comp_config.get('params', {})
 
-        # Get component class and params model
-        if comp_class_name not in self.COMPONENT_CLASSES:
-            available = ', '.join(self.COMPONENT_CLASSES.keys())
-            raise ValueError(f"Unknown component class: {comp_class_name}. Available: {available}")
+        # Get component class from registry (DYNAMIC - NO HARDCODING!)
+        try:
+            ComponentClass = get_component_class(comp_class_name)
+        except ValueError as e:
+            available = list(COMPONENT_REGISTRY.keys())
+            raise ValueError(f"Unknown component class: {comp_class_name}. Available: {available}") from e
 
-        ComponentClass, ParamsModel = self.COMPONENT_CLASSES[comp_class_name]
+        # Get the parameter class from the component
+        if hasattr(ComponentClass, 'PARAMS_MODEL'):
+            ParamsModel = ComponentClass.PARAMS_MODEL
+        else:
+            # Fallback for components that don't have PARAMS_MODEL
+            param_class_name = f"{comp_class_name}Params"
+            module = ComponentClass.__module__
+            import importlib
+            component_module = importlib.import_module(module)
+            ParamsModel = getattr(component_module, param_class_name)
 
         # Create params instance with validation
         try:
@@ -153,7 +158,7 @@ class SystemBuilder:
         except Exception as e:
             raise ValueError(f"Invalid parameters for {comp_class_name} component '{name}': {e}")
 
-        # Create component
+        # Create component using registry pattern
         return ComponentClass(name, params, n)
 
     def assign_profiles(self, system: System, profiles: Dict[str, Any]):
@@ -181,13 +186,58 @@ class SystemBuilder:
 
                     logger.debug(f"Assigned profile '{profile_name}' to component '{comp_name}'")
 
-    @classmethod
-    def register_component_class(cls, name: str, component_class, params_model):
-        """Register a new component class.
+    def create_minimal_test_system(self, N: int = 24) -> System:
+        """Create a minimal test system for validation.
 
         Args:
-            name: Class name identifier
-            component_class: Component class
-            params_model: Pydantic model for parameters
+            N: Number of timesteps
+
+        Returns:
+            Minimal test system with 4 components
         """
-        cls.COMPONENT_CLASSES[name] = (component_class, params_model)
+        import numpy as np
+
+        system = System('minimal_test', N)
+
+        # Create simple profiles
+        solar_profile = np.zeros(N)
+        for t in range(N):
+            if 6 <= t <= 18:  # Daylight hours
+                solar_profile[t] = np.sin((t - 6) * np.pi / 12) * 5.0
+
+        demand_profile = np.ones(N) * 1.0  # 1 kW baseload
+        demand_profile[7:9] = 2.0   # Morning peak
+        demand_profile[18:21] = 2.5  # Evening peak
+
+        # Create components using dynamic registry
+        grid_class = get_component_class('Grid')
+        grid_params = grid_class.PARAMS_MODEL(P_max=100, import_tariff=0.25, feed_in_tariff=0.08)
+        grid = grid_class('Grid', grid_params, N)
+        system.add_component(grid)
+
+        battery_class = get_component_class('Battery')
+        battery_params = battery_class.PARAMS_MODEL(P_max=5, E_max=10, E_init=5, eta_charge=0.95, eta_discharge=0.95)
+        battery = battery_class('Battery', battery_params, N)
+        system.add_component(battery)
+
+        solar_class = get_component_class('SolarPV')
+        solar_params = solar_class.PARAMS_MODEL(P_profile=solar_profile.tolist(), P_max=10)
+        solar = solar_class('SolarPV', solar_params, N)
+        system.add_component(solar)
+
+        demand_class = get_component_class('PowerDemand')
+        demand_params = demand_class.PARAMS_MODEL(P_profile=demand_profile.tolist(), P_max=5)
+        demand = demand_class('PowerDemand', demand_params, N)
+        system.add_component(demand)
+
+        # Create connections
+        system.connect('Grid', 'PowerDemand', 'electricity')
+        system.connect('Grid', 'Battery', 'electricity')
+        system.connect('SolarPV', 'PowerDemand', 'electricity')
+        system.connect('SolarPV', 'Battery', 'electricity')
+        system.connect('SolarPV', 'Grid', 'electricity')
+        system.connect('Battery', 'PowerDemand', 'electricity')
+        system.connect('Battery', 'Grid', 'electricity')
+
+        logger.info("Built minimal test system with 4 components using dynamic registry")
+        return system

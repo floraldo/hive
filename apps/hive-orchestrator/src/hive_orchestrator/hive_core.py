@@ -21,18 +21,21 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
 import hive_core_db
 
+# Hive utilities for path management
+from hive_utils.paths import PROJECT_ROOT, HIVE_DIR, WORKTREES_DIR, LOGS_DIR
+
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
     
     def __init__(self, root_dir: Optional[Path] = None):
-        # Core paths (deterministic: repo root where this file lives)
-        self.root = root_dir or Path(__file__).resolve().parent
-        self.hive_dir = self.root / "hive"
+        # Use authoritative paths from singleton
+        self.root = PROJECT_ROOT
+        self.hive_dir = HIVE_DIR
         self.tasks_dir = self.hive_dir / "tasks"
         self.results_dir = self.hive_dir / "results"
         self.bus_dir = self.hive_dir / "bus"
-        self.worktrees_dir = self.root / ".worktrees"
-        self.logs_dir = self.hive_dir / "logs"
+        self.worktrees_dir = WORKTREES_DIR
+        self.logs_dir = LOGS_DIR
         self.workers_dir = self.hive_dir / "workers"
         
         # Initialize logger

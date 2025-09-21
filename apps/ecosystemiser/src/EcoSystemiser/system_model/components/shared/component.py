@@ -44,7 +44,13 @@ class Component:
         # Constraints list for optimization
         self.constraints = []
 
-        # Make nested parameters directly accessible
+        # DRY PATTERN: Auto-unpack all Pydantic parameters as direct attributes
+        # This eliminates repetitive self.param = params.param in every component
+        for field_name, value in params.dict().items():
+            if value is not None:
+                setattr(self, field_name, value)
+
+        # Make nested parameters directly accessible (for backwards compatibility)
         # This allows self.technical.P_max instead of self.params.technical.P_max
         self.technical = getattr(params, 'technical', None)
         self.economic = getattr(params, 'economic', None)
@@ -52,6 +58,17 @@ class Component:
 
         # Profile placeholder (set by SystemBuilder if needed)
         self.profile = None
+
+        # Call component-specific initialization
+        self._post_init()
+
+    def _post_init(self):
+        """Component-specific initialization after parameter unpacking.
+
+        Override this method in subclasses for component-specific setup.
+        This is called automatically after parameter unpacking is complete.
+        """
+        pass
 
     def add_optimization_vars(self):
         """Placeholder for future cvxpy variable initialization.

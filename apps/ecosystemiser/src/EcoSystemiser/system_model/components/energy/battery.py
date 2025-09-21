@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 import logging
 
+from ..shared.registry import register_component
+from ..shared.component import Component
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,29 +20,26 @@ class BatteryParams(BaseModel):
     eta_discharge: float = Field(0.95, description="Discharge efficiency")
 
 
-class Battery:
+@register_component("Battery")
+class Battery(Component):
     """Battery storage component with CVXPY optimization support."""
 
-    def __init__(self, name: str, params: BatteryParams):
-        """Initialize battery matching original Systemiser structure."""
-        self.name = name
+    PARAMS_MODEL = BatteryParams
+
+    def _post_init(self):
+        """Initialize battery-specific attributes after DRY parameter unpacking."""
         self.type = "storage"
         self.medium = "electricity"
-        self.params = params
 
-        # Extract parameters
-        self.P_max = params.P_max
-        self.E_max = params.E_max
-        self.E_init = params.E_init
-        self.eta = params.eta_charge  # Using charge efficiency as base
+        # DRY pattern eliminates these lines (auto-unpacked from params):
+        # self.P_max = params.P_max
+        # self.E_max = params.E_max
+        # self.E_init = params.E_init
+        # self.eta_charge = params.eta_charge
+        # self.eta_discharge = params.eta_discharge
 
-        # Initialize flows structure
-        self.flows = {
-            'sink': {},    # Incoming flows (charging)
-            'source': {},  # Outgoing flows (discharging)
-            'input': {},   # All inputs
-            'output': {}   # All outputs
-        }
+        # Use charge efficiency as base eta for compatibility
+        self.eta = self.eta_charge
 
         # Storage array for rule-based solver
         self.E = None  # Will be initialized by solver

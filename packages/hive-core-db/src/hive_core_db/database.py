@@ -22,22 +22,8 @@ from enum import Enum
 
 logger = logging.getLogger(__name__)
 
-# Database file location - find the repository root
-def find_repo_root():
-    """Find the repository root by looking for .git directory"""
-    current = Path.cwd()
-    while current != current.parent:
-        if (current / ".git").exists():
-            return current
-        if (current / "hive" / "db").exists():
-            # We're already in the repo root
-            return current
-        current = current.parent
-    # Fallback to relative path if we can't find the repo root
-    return Path.cwd()
-
-REPO_ROOT = find_repo_root()
-DB_PATH = REPO_ROOT / "hive" / "db" / "hive-internal.db"
+# Use the authoritative path singleton
+from hive_utils.paths import DB_PATH, ensure_directory
 
 # Global connection for reuse
 _connection = None
@@ -81,8 +67,8 @@ def get_connection() -> sqlite3.Connection:
     global _connection
 
     if _connection is None:
-        # Ensure database directory exists
-        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        # Ensure database directory exists using the path utility
+        ensure_directory(DB_PATH.parent)
 
         _connection = sqlite3.connect(str(DB_PATH), check_same_thread=False)
         _connection.row_factory = sqlite3.Row

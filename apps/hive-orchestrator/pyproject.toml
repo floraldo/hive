@@ -7,6 +7,7 @@ packages = [{include = "hive_orchestrator", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+hive-utils = {path = "../../packages/hive-utils", develop = true}
 hive-core-db = {path = "../../packages/hive-core-db", develop = true}
 hive-logging = {path = "../../packages/hive-logging", develop = true}
 hive-config = {path = "../../packages/hive-config", develop = true}

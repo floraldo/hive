@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 import logging
 
+from ..shared.registry import register_component
+from ..shared.component import Component
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,25 +17,23 @@ class SolarPVParams(BaseModel):
     P_max: float = Field(10.0, description="Maximum power capacity [kW]")
 
 
-class SolarPV:
+@register_component("SolarPV")
+class SolarPV(Component):
     """Solar PV generation component with CVXPY optimization support."""
 
-    def __init__(self, name: str, params: SolarPVParams):
-        """Initialize solar PV matching original Systemiser structure."""
-        self.name = name
+    PARAMS_MODEL = SolarPVParams
+
+    def _post_init(self):
+        """Initialize solar PV-specific attributes after DRY parameter unpacking."""
         self.type = "generation"
         self.medium = "electricity"
-        self.params = params
 
-        # Extract parameters
-        self.P_max = params.P_max
-        self.profile = np.array(params.P_profile)
+        # DRY pattern eliminates these lines (auto-unpacked):
+        # self.P_max = params.P_max
+        # self.P_profile = params.P_profile
 
-        # Initialize flows structure
-        self.flows = {
-            'source': {},  # Generation output
-            'output': {}   # All outputs
-        }
+        # Convert profile to numpy array
+        self.profile = np.array(self.P_profile)
 
         # CVXPY variable (created later by add_optimization_vars)
         self.P_out = None

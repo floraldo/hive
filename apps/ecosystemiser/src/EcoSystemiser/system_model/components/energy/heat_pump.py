@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 import logging
 
+from ..shared.registry import register_component
+from ..shared.component import Component
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,28 +18,21 @@ class HeatPumpParams(BaseModel):
     P_max: Optional[float] = Field(None, description="Max electrical power input [kW]")
 
 
-class HeatPump:
+@register_component("HeatPump")
+class HeatPump(Component):
     """Heat pump component that converts electricity to heat with COP amplification."""
 
-    def __init__(self, name: str, params: HeatPumpParams):
-        """Initialize heat pump matching original Systemiser structure."""
-        self.name = name
+    PARAMS_MODEL = HeatPumpParams
+
+    def _post_init(self):
+        """Initialize heat pump-specific attributes after DRY parameter unpacking."""
         self.type = "generation"
         self.medium = "heat"
-        self.params = params
 
-        # Extract parameters
-        self.COP = params.COP
-        self.eta = params.eta
-        self.P_max = params.P_max
-
-        # Initialize flows structure
-        self.flows = {
-            'source': {},  # Heat output
-            'sink': {},    # Electricity input
-            'input': {},   # All inputs
-            'output': {}   # All outputs
-        }
+        # DRY pattern eliminates these lines (auto-unpacked):
+        # self.COP = params.COP
+        # self.eta = params.eta
+        # self.P_max = params.P_max
 
         # CVXPY variables (created later by add_optimization_vars)
         self.P_heatsource = None
@@ -71,7 +67,6 @@ class HeatPump:
         if self.P_heatsource is not None:
             for t in range(N):
                 # Calculate input_flows exactly as in original Systemiser
-                # This sums all flows in the 'input' dict
                 input_flows = cp.sum([
                     flow['value'][t] for flow_name, flow in self.flows.get('input', {}).items()
                     if isinstance(flow.get('value'), cp.Variable)
@@ -87,7 +82,6 @@ class HeatPump:
                     input_flows = self.P_elec_default[t]
 
                 # Heat pump produces (COP - 1) times more heat than electricity input
-                # This is the exact equation from original Systemiser
                 constraints.append(
                     self.P_heatsource[t] == (self.COP - 1) * input_flows
                 )
@@ -105,11 +99,7 @@ class HeatPump:
         return constraints
 
     def rule_based_operation(self, heat_demand: float, t: int) -> tuple:
-        """Rule-based heat pump operation.
-
-        Returns:
-            (heat_output, electricity_input)
-        """
+        """Rule-based heat pump operation."""
         if heat_demand <= 0:
             return 0.0, 0.0
 

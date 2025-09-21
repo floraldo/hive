@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 import logging
 
+from ..shared.registry import register_component
+from ..shared.component import Component
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,28 +18,21 @@ class GridParams(BaseModel):
     feed_in_tariff: float = Field(0.08, description="Export electricity price [$/kWh]")
 
 
-class Grid:
+@register_component("Grid")
+class Grid(Component):
     """Grid connection component with CVXPY optimization support."""
 
-    def __init__(self, name: str, params: GridParams):
-        """Initialize grid matching original Systemiser structure."""
-        self.name = name
+    PARAMS_MODEL = GridParams
+
+    def _post_init(self):
+        """Initialize grid-specific attributes after DRY parameter unpacking."""
         self.type = "transmission"
         self.medium = "electricity"
-        self.params = params
 
-        # Extract parameters
-        self.P_max = params.P_max
-        self.import_tariff = params.import_tariff
-        self.feed_in_tariff = params.feed_in_tariff
-
-        # Initialize flows structure
-        self.flows = {
-            'sink': {},    # Export to grid
-            'source': {},  # Import from grid
-            'input': {},   # All inputs
-            'output': {}   # All outputs
-        }
+        # DRY pattern eliminates these lines (auto-unpacked):
+        # self.P_max = params.P_max
+        # self.import_tariff = params.import_tariff
+        # self.feed_in_tariff = params.feed_in_tariff
 
         # CVXPY variables (created later by add_optimization_vars)
         self.P_draw = None  # Import from grid
