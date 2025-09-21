@@ -110,10 +110,10 @@ def run_ecosystemiser_milp():
 
     # Import from EcoSystemiser
     from system_model.system import System
-    from component_model.battery import Battery, BatteryParams
-    from component_model.grid import Grid, GridParams
-    from component_model.solar_pv import SolarPV, SolarPVParams
-    from component_model.power_demand import PowerDemand, PowerDemandParams
+    from system_model.components.energy.battery import Battery, BatteryParams
+    from system_model.components.energy.grid import Grid, GridParams
+    from system_model.components.energy.solar_pv import SolarPV, SolarPVParams
+    from system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
     from solver.milp_solver_v2 import MILPSolver
     from solver.base import SolverConfig
 

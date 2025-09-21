@@ -13,14 +13,14 @@ eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
 sys.path.insert(0, str(eco_path))
 
 from system_model.system import System
-from component_model.battery import Battery, BatteryParams
-from component_model.grid import Grid, GridParams
-from component_model.solar_pv import SolarPV, SolarPVParams
-from component_model.power_demand import PowerDemand, PowerDemandParams
-from component_model.heat_pump import HeatPump, HeatPumpParams
-from component_model.electric_boiler import ElectricBoiler, ElectricBoilerParams
-from component_model.heat_buffer import HeatBuffer, HeatBufferParams
-from component_model.heat_demand import HeatDemand, HeatDemandParams
+from system_model.components.energy.battery import Battery, BatteryParams
+from system_model.components.energy.grid import Grid, GridParams
+from system_model.components.energy.solar_pv import SolarPV, SolarPVParams
+from system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
+from system_model.components.energy.heat_pump import HeatPump, HeatPumpParams
+from system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerParams
+from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams
+from system_model.components.energy.heat_demand import HeatDemand, HeatDemandParams
 from solver.milp_solver_v2 import MILPSolver
 from solver.base import SolverConfig
 
