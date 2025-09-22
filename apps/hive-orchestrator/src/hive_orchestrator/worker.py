@@ -574,16 +574,12 @@ CRITICAL PATH CONSTRAINT:
 
             # Windows-specific fix: pipes cause Claude CLI to hang due to buffering deadlock
             # Claude blocks waiting for pipe buffer space, but worker never reads pipes properly
-            # Solution: Let Claude write directly to temporary files instead of pipes
-            claude_output_file = None
+            # Solution: Let Claude write directly to console/file instead of pipes
             if platform.system() == "Windows":
-                # On Windows, redirect Claude output to temporary file to avoid pipe deadlock
-                # while still capturing output for verbose logging
-                import tempfile
-                claude_output_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.claude.log')
-                stdout_pipe = claude_output_file
-                stderr_pipe = claude_output_file  # Combine stdout and stderr
-                self.log.info(f"[DEBUG] Windows detected: redirecting to temp file {claude_output_file.name}")
+                # On Windows, avoid pipes to prevent Claude CLI deadlock
+                stdout_pipe = subprocess.DEVNULL
+                stderr_pipe = subprocess.DEVNULL
+                self.log.info(f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=DEVNULL")
             else:
                 # On Unix, pipes work fine and provide better monitoring
                 stdout_pipe = subprocess.PIPE
@@ -598,12 +594,52 @@ CRITICAL PATH CONSTRAINT:
             claude_completed = False
             last_assistant_message = None
 
-            # Debug logging
-            self.log.info(f"[DEBUG] About to spawn Claude subprocess")
-            self.log.info(f"[DEBUG] Command: {' '.join(cmd)}")
-            self.log.info(f"[DEBUG] CWD: {self.workspace}")
-            self.log.info(f"[DEBUG] Environment CLAUDE_BIN: {env.get('CLAUDE_BIN', 'not set')}")
-            self.log.info(f"[DEBUG] Environment PATH: {env.get('PATH', 'not set')[:200]}...")
+            # ENHANCED DEBUG LOGGING FOR FINAL BUG HUNT
+            self.log.info("=" * 80)
+            self.log.info("[CLAUDE EXECUTION DEBUG] Starting detailed diagnostics")
+            self.log.info("=" * 80)
+
+            # Log the exact command
+            self.log.info(f"[DEBUG] Full command array:")
+            for i, arg in enumerate(cmd):
+                self.log.info(f"  [{i}] = '{arg}'")
+
+            # Log command as string (what would be executed in shell)
+            cmd_string = ' '.join(cmd)
+            self.log.info(f"[DEBUG] Command string: {cmd_string}")
+
+            # Log working directory
+            self.log.info(f"[DEBUG] Current Working Directory: {self.workspace}")
+            self.log.info(f"[DEBUG] CWD exists: {os.path.exists(self.workspace)}")
+            self.log.info(f"[DEBUG] CWD is directory: {os.path.isdir(self.workspace)}")
+
+            # Log critical environment variables
+            self.log.info(f"[DEBUG] Environment variables:")
+            self.log.info(f"  CLAUDE_BIN = {env.get('CLAUDE_BIN', 'NOT SET')}")
+            self.log.info(f"  CLAUDE_PROJECT_ROOT = {env.get('CLAUDE_PROJECT_ROOT', 'NOT SET')}")
+            self.log.info(f"  CLAUDE_WORKSPACE_ROOT = {env.get('CLAUDE_WORKSPACE_ROOT', 'NOT SET')}")
+            self.log.info(f"  PWD = {env.get('PWD', 'NOT SET')}")
+            self.log.info(f"  WORKSPACE = {env.get('WORKSPACE', 'NOT SET')}")
+            self.log.info(f"  GIT_CEILING_DIRECTORIES = {env.get('GIT_CEILING_DIRECTORIES', 'NOT SET')}")
+
+            # Log PATH (first 500 chars to see more)
+            path_env = env.get('PATH', 'NOT SET')
+            self.log.info(f"[DEBUG] PATH (first 500 chars): {path_env[:500]}")
+
+            # Check if claude command exists and is accessible
+            import shutil
+            claude_path = shutil.which(self.claude_cmd, path=path_env)
+            self.log.info(f"[DEBUG] Claude command resolved to: {claude_path}")
+            if claude_path:
+                self.log.info(f"[DEBUG] Claude exists at resolved path: {os.path.exists(claude_path)}")
+                self.log.info(f"[DEBUG] Claude is file: {os.path.isfile(claude_path)}")
+
+            # Log prompt details
+            self.log.info(f"[DEBUG] Prompt length: {len(prompt)} characters")
+            self.log.info(f"[DEBUG] Prompt preview (first 200 chars):")
+            self.log.info(f"  {prompt[:200]}...")
+
+            self.log.info("=" * 80)
 
             try:
                 process = subprocess.Popen(
@@ -619,26 +655,32 @@ CRITICAL PATH CONSTRAINT:
                 self.log.info(f"[DEBUG] Subprocess started with PID: {process.pid}")
                 self.log.info(f"[DEBUG] Process poll status: {process.poll()}")
 
+                # Give process a moment to fail if it's going to fail immediately
+                import time
+                time.sleep(0.5)
+                initial_poll = process.poll()
+                if initial_poll is not None:
+                    self.log.error(f"[ERROR] Process died immediately with exit code: {initial_poll}")
+                    # Try to capture any error output
+                    if is_real_pipe and process.stderr:
+                        stderr_output = process.stderr.read()
+                        self.log.error(f"[ERROR] Stderr output: {stderr_output}")
+                else:
+                    self.log.info(f"[DEBUG] Process still alive after 0.5s")
+
                 # Stream output and analyze Claude's responses
-                # Handle both piped (stdout=PIPE) and non-piped (stdout=DEVNULL/None) modes
+                # Handle both piped (stdout=PIPE) and non-piped (stdout=DEVNULL) modes
                 self.log.info(f"[DEBUG] process.stdout = {process.stdout}")
-                self.log.info(f"[DEBUG] process.stdout.name = {getattr(process.stdout, 'name', 'no-name')}")
 
                 # Check if we have a real pipe (not DEVNULL)
-                # DEVNULL shows up as a file descriptor number (like "6")
-                stdout_name = getattr(process.stdout, 'name', None)
-                is_devnull_fd = isinstance(stdout_name, int) or (isinstance(stdout_name, str) and stdout_name.isdigit())
-
+                # On Windows, stdout will be None when using DEVNULL
                 is_real_pipe = (process.stdout is not None and
-                               hasattr(process.stdout, 'readline') and
-                               not is_devnull_fd and
-                               stdout_name not in [None, '/dev/null', 'nul'])
+                               hasattr(process.stdout, 'readline'))
 
-                self.log.info(f"[DEBUG] stdout_name = {stdout_name}, is_devnull_fd = {is_devnull_fd}")
                 self.log.info(f"[DEBUG] is_real_pipe = {is_real_pipe}")
 
                 if is_real_pipe:
-                    # Piped mode: read output for monitoring and JSON parsing
+                    # Read output for monitoring and JSON parsing
                     while True:
                         line = process.stdout.readline()
                         if not line:
@@ -679,7 +721,7 @@ CRITICAL PATH CONSTRAINT:
                         except json.JSONDecodeError:
                             pass  # Not JSON, that's fine
                 else:
-                    # Non-piped mode: just wait for process completion
+                    # Non-piped mode (Windows with DEVNULL): just wait for process completion
                     self.log.info(f"[DEBUG] Non-piped mode: monitoring process completion only")
                     import time
                     while True:
@@ -713,27 +755,7 @@ CRITICAL PATH CONSTRAINT:
                             process.kill()
                             exit_code = -1
 
-                # On Windows, read Claude output from temp file for verbose logging
-                if claude_output_file and platform.system() == "Windows":
-                    try:
-                        claude_output_file.close()  # Close the file handle first
-                        with open(claude_output_file.name, 'r', encoding='utf-8') as f:
-                            claude_content = f.read()
-                            if claude_content.strip():
-                                self.log.info(f"[CLAUDE OUTPUT] Claude conversation:")
-                                # Log Claude output to both console and log file
-                                for line in claude_content.splitlines():
-                                    self.log.info(f"[CLAUDE] {line}")
-                                    transcript_lines.append(line)  # Capture for database
-                                if log_fp:
-                                    log_fp.write(f"\n=== CLAUDE OUTPUT ===\n{claude_content}\n")
-                            else:
-                                self.log.info("[CLAUDE OUTPUT] No Claude output captured")
-                        # Clean up temp file
-                        os.unlink(claude_output_file.name)
-                        self.log.info(f"[DEBUG] Cleaned up temp file: {claude_output_file.name}")
-                    except Exception as e:
-                        self.log.error(f"[ERROR] Failed to read Claude output file: {e}")
+                # Temp file handling removed - using pipes now
 
                 # Save final status to log and transcript
                 exit_status_line = f"\n\n=== EXIT CODE: {exit_code} ==="
@@ -872,6 +894,7 @@ CRITICAL PATH CONSTRAINT:
 
 def main():
     """Main CLI entry point"""
+
     parser = argparse.ArgumentParser(description="WorkerCore - Streamlined Worker")
     parser.add_argument("worker_id", help="Worker ID (backend, frontend, infra)")
     parser.add_argument("--one-shot", action="store_true", help="One-shot mode for Queen")
@@ -917,16 +940,25 @@ def main():
             args.run_id = f"local_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             print(f"[INFO] Generated run_id for local mode: {args.run_id}")
 
-    # Create worker
-    worker = WorkerCore(
-        worker_id=args.worker_id,
-        task_id=args.task_id,
-        run_id=args.run_id,
-        workspace=args.workspace,
-        phase=args.phase,
-        mode=args.mode,
-        live_output=args.live
-    )
+    # Create worker with error handling
+    try:
+        worker = WorkerCore(
+            worker_id=args.worker_id,
+            task_id=args.task_id,
+            run_id=args.run_id,
+            workspace=args.workspace,
+            phase=args.phase,
+            mode=args.mode,
+            live_output=args.live
+        )
+        log.info(f"Worker {args.worker_id} initialized successfully for task {args.task_id}")
+    except Exception as e:
+        log.error(f"Failed to initialize worker: {e}")
+        log.error(f"Worker ID: {args.worker_id}, Task ID: {args.task_id}")
+        log.error(f"Mode: {args.mode}, Phase: {args.phase}")
+        import traceback
+        log.error(traceback.format_exc())
+        sys.exit(2)
 
     if args.one_shot or args.local:
         # One-shot execution for Queen or local development

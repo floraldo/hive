@@ -24,9 +24,13 @@ A production-ready multi-agent development system using tmux-based Claude Code a
 ### Prerequisites
 
 - Git and GitHub CLI (`gh`) installed and authenticated
-- Python 3.10+
-- tmux installed
-- Claude Code CLI (`cc`) available
+- Python 3.11+
+- Claude CLI (`claude`) installed via npm
+- Windows 10/11 or Unix-like system
+
+### Windows Users
+
+For Windows-specific setup instructions, see [Windows Setup Guide](docs/WINDOWS_SETUP.md).
 
 ### Setup
 

@@ -22,6 +22,7 @@ from enum import Enum
 
 # Import HiveCore for tight integration
 from .hive_core import HiveCore
+from .config import get_config
 
 # Hive utilities for path management
 from hive_utils.paths import PROJECT_ROOT, LOGS_DIR, ensure_directory
@@ -49,6 +50,9 @@ class QueenLite:
 
         # Initialize logger
         self.log = get_logger(__name__)
+
+        # Load configuration
+        self.config = get_config()
 
         # State management
         self.active_workers = {}  # task_id -> {process, run_id, phase}
@@ -177,10 +181,11 @@ class QueenLite:
         mode = task.get("workspace", "repo")
         self.log.info(f"Task requires '{mode}' workspace mode")
 
-        # Build command - remove the --workspace argument
+        # Build command - use -m flag to run as module for proper import resolution
+        # This ensures the worker has correct package context for imports
         cmd = [
             sys.executable,
-            str(self.hive.root / "worker.py"),
+            "-m", "hive_orchestrator.worker",
             worker,
             "--one-shot",
             "--task-id", task_id,
@@ -193,9 +198,16 @@ class QueenLite:
         if self.live_output:
             cmd.append("--live")
         
-        # Enhanced environment
+        # Enhanced environment with proper Python paths
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
+
+        # Add the src directory to PYTHONPATH so worker module can be found
+        orchestrator_src = (self.hive.root / "apps" / "hive-orchestrator" / "src").as_posix()
+        if "PYTHONPATH" in env:
+            env["PYTHONPATH"] = f"{orchestrator_src}{os.pathsep}{env['PYTHONPATH']}"
+        else:
+            env["PYTHONPATH"] = orchestrator_src
         
         try:
             # Windows-specific fix: pipes cause Claude CLI to hang due to buffering deadlock
@@ -204,11 +216,11 @@ class QueenLite:
             import platform
 
             if platform.system() == "Windows":
-                # On Windows, avoid pipes to prevent Claude CLI deadlock
-                # Force no pipe by using subprocess.DEVNULL
+                # On Windows, use DEVNULL for stdout to prevent pipe deadlocks
+                # But capture stderr briefly to catch initialization errors
                 stdout_pipe = subprocess.DEVNULL
-                stderr_pipe = subprocess.DEVNULL
-                self.log.info(f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=DEVNULL")
+                stderr_pipe = subprocess.PIPE  # Capture errors during startup
+                self.log.info(f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=PIPE for error capture")
             else:
                 # On Unix, pipes work fine and provide better monitoring
                 stdout_pipe = subprocess.PIPE
@@ -552,21 +564,30 @@ class QueenLite:
         """Process a finished worker and return True if processing should continue to next worker"""
         process = metadata["process"]
         poll = process.poll()
-        
+
         if poll is None:
             return True  # Worker still running, continue to next
-        
+
         # Worker finished - load task
         task = hive_core_db.get_task(task_id)
         if not task:
             completed.append(task_id)
             return True
-        
+
         # Handle worker failure (non-zero exit code)
         if poll != 0:
+            # Try to capture error output if available
+            if process.stderr:
+                try:
+                    stderr_output = process.stderr.read()
+                    if stderr_output:
+                        self.log.error(f"Worker {task_id} stderr: {stderr_output[:500]}")
+                except (IOError, OSError) as e:
+                    self.log.debug(f"Could not read stderr for worker {task_id}: {e}")
+
             self._handle_worker_failure(task_id, task, completed)
             return True
-        
+
         # Handle successful worker completion
         return self._handle_worker_success(task_id, task, metadata, completed)
     
