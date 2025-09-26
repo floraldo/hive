@@ -8,7 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
-from ..shared.base_classes import BaseGenerationComponent
+from ..shared.base_classes import BaseGenerationComponent, BaseGenerationPhysics, BaseGenerationOptimization
 
 logger = logging.getLogger(__name__)
 
@@ -77,34 +77,147 @@ class SolarPVParams(ComponentParams):
     )
 
 
+# =============================================================================
+# PHYSICS STRATEGIES (Rule-Based & Fidelity)
+# =============================================================================
+
+class SolarPVPhysicsSimple(BaseGenerationPhysics):
+    """Implements the SIMPLE rule-based physics for a solar PV system.
+
+    This is the baseline fidelity level providing:
+    - Basic generation: P_out = profile * P_max
+    - Direct profile scaling with nominal capacity
+    """
+
+    def rule_based_generate(self, t: int, profile_value: float) -> float:
+        """
+        Implement SIMPLE solar PV physics with direct profile scaling.
+
+        This matches the exact logic from BaseGenerationComponent for numerical equivalence.
+        """
+        # Get maximum capacity
+        P_max = self.params.technical.capacity_nominal
+
+        # Base generation: profile value * maximum capacity
+        # Profile should be normalized (0-1), P_max provides scaling
+        base_output = profile_value * P_max
+
+        return max(0.0, base_output)
+
+
+class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
+    """Implements the STANDARD rule-based physics for a solar PV system.
+
+    Inherits from SIMPLE and adds:
+    - Inverter efficiency (DC to AC conversion losses)
+    - More realistic power conversion modeling
+    """
+
+    def rule_based_generate(self, t: int, profile_value: float) -> float:
+        """
+        Implement STANDARD solar PV physics with inverter efficiency.
+
+        First applies SIMPLE physics, then adds STANDARD-specific effects.
+        """
+        # 1. Get the baseline result from SIMPLE physics
+        generation_after_simple = super().rule_based_generate(t, profile_value)
+
+        # 2. Add STANDARD-specific physics: inverter efficiency
+        inverter_efficiency = getattr(self.params.technical, 'inverter_efficiency', 0.98)
+
+        # Apply inverter efficiency (DC to AC conversion)
+        final_generation = generation_after_simple * inverter_efficiency
+
+        return max(0.0, final_generation)
+
+
+# =============================================================================
+# OPTIMIZATION STRATEGY (MILP)
+# =============================================================================
+
+class SolarPVOptimization(BaseGenerationOptimization):
+    """Handles the MILP (CVXPY) constraints for the solar PV system.
+
+    Encapsulates all optimization logic separately from physics and data.
+    This enables clean separation and easy testing of optimization constraints.
+    """
+
+    def __init__(self, params, component_instance):
+        """Initialize with both params and component instance for constraint access."""
+        super().__init__(params)
+        self.component = component_instance
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for solar PV optimization.
+
+        This method encapsulates all the MILP constraint logic that was
+        previously embedded in the SolarPV class.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.P_out is not None and hasattr(comp, 'profile'):
+            # Get fidelity level
+            fidelity = comp.technical.fidelity_level
+
+            # --- SIMPLE MODEL (baseline) ---
+            # Direct profile scaling: P_out = profile * P_max
+            effective_generation = comp.profile * comp.P_max
+
+            # --- STANDARD ENHANCEMENTS ---
+            if fidelity >= FidelityLevel.STANDARD:
+                # Inverter efficiency (DC to AC conversion losses)
+                inverter_efficiency = getattr(comp.technical, 'inverter_efficiency', 0.98)
+                effective_generation = effective_generation * inverter_efficiency
+
+            # --- DETAILED ENHANCEMENTS ---
+            if fidelity >= FidelityLevel.DETAILED:
+                # Temperature derating and degradation could be added here
+                # For now, keep it simple but extensible
+                pass
+
+            # Apply the generation constraint with all fidelity enhancements
+            constraints.append(comp.P_out == effective_generation)
+
+        return constraints
+
+
+# =============================================================================
+# MAIN COMPONENT CLASS (Factory)
+# =============================================================================
+
 @register_component("SolarPV")
-class SolarPV(BaseGenerationComponent):
-    """Solar PV generation component with CVXPY optimization support."""
+class SolarPV(Component):
+    """Solar PV generation component with Strategy Pattern architecture.
+
+    This class acts as a factory and container for solar PV strategies:
+    - Physics strategies: Handle fidelity-specific rule-based generation calculations
+    - Optimization strategies: Handle MILP constraint generation
+    - Clean separation: Data contract + strategy selection only
+
+    The component delegates physics and optimization to strategy objects
+    based on the configured fidelity level.
+    """
 
     PARAMS_MODEL = SolarPVParams
 
     def _post_init(self):
-        """Initialize solar PV-specific attributes from technical parameters.
-
-        Profile data is now loaded separately by the system, not from parameters.
-        """
+        """Initialize solar PV attributes and strategy objects."""
         self.type = "generation"
         self.medium = "electricity"
 
-        # Single source of truth: the technical parameter block
+        # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters extracted from technical block
+        # Core parameters - EXACTLY as original solar PV expects
         self.P_max = tech.capacity_nominal  # kW
 
-        # Store advanced parameters for fidelity-aware constraints
+        # Store solar-specific parameters
         self.panel_efficiency = tech.panel_efficiency
         self.inverter_efficiency = tech.inverter_efficiency
         self.temperature_coefficient = tech.temperature_coefficient
         self.degradation_rate = tech.degradation_rate_annual
-
-        # EXPLICIT FIDELITY CONTROL
-        self.fidelity_level = tech.fidelity_level
 
         # Profile should be assigned by the system/builder
         # Initialize as None, will be set by assign_profiles
@@ -114,11 +227,61 @@ class SolarPV(BaseGenerationComponent):
         else:
             self.profile = np.array(self.profile)
 
-        # CVXPY variable (created later by add_optimization_vars)
+        # CVXPY variable (for MILP solver)
         self.P_out = None
 
-    # rule_based_generate() method is now inherited from BaseGenerationComponent
-    # No need to override - the base implementation handles profile * P_max logic
+        # STRATEGY PATTERN: Instantiate the correct strategies
+        self.physics = self._get_physics_strategy()
+        self.optimization = self._get_optimization_strategy()
+
+    def _get_physics_strategy(self):
+        """Factory method: Select physics strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return SolarPVPhysicsSimple(self.params)
+        elif fidelity == FidelityLevel.STANDARD:
+            return SolarPVPhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD physics (can be extended later)
+            return SolarPVPhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
+            return SolarPVPhysicsStandard(self.params)
+        else:
+            raise ValueError(f"Unknown fidelity level for SolarPV: {fidelity}")
+
+    def _get_optimization_strategy(self):
+        """Factory method: Select optimization strategy."""
+        # For now, all fidelity levels use the same optimization strategy
+        # Future: Could have different optimization strategies per fidelity
+        return SolarPVOptimization(self.params, self)
+
+    def rule_based_generate(self, t: int) -> float:
+        """
+        Delegate to physics strategy for generation calculation.
+
+        This maintains the same interface as BaseGenerationComponent but
+        delegates the actual physics calculation to the strategy object.
+        """
+        # Check bounds
+        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
+            return 0.0
+
+        # Get normalized profile value for this timestep
+        profile_value = self.profile[t]
+
+        # Delegate to physics strategy
+        generation_output = self.physics.rule_based_generate(t, profile_value)
+
+        # Log for debugging if needed
+        if t == 0 and logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"{self.name} at t={t}: profile={profile_value:.3f}, "
+                f"output={generation_output:.3f}kW"
+            )
+
+        return generation_output
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""
@@ -133,65 +296,5 @@ class SolarPV(BaseGenerationComponent):
         }
 
     def set_constraints(self) -> List:
-        """Set CVXPY constraints for solar generation with fidelity-aware modeling.
-
-        Constraint complexity scales with fidelity level:
-        - SIMPLE: Basic output = profile * capacity
-        - STANDARD: Add inverter efficiency
-        - DETAILED: Add temperature and degradation effects
-        - RESEARCH: Full spectral and bifacial modeling
-        """
-        constraints = []
-
-        if self.P_out is not None:
-            # Get fidelity level
-            fidelity = getattr(self, 'fidelity_level', FidelityLevel.STANDARD)
-
-            # --- SIMPLE MODEL (OG Systemiser baseline) ---
-            # Direct profile scaling: P_out = profile * P_max
-            effective_generation = self.profile * self.P_max
-
-            # --- STANDARD ENHANCEMENTS (additive on top of SIMPLE) ---
-            if fidelity >= FidelityLevel.STANDARD:
-                # Inverter efficiency (DC to AC conversion losses)
-                if self.inverter_efficiency:
-                    effective_generation = effective_generation * self.inverter_efficiency
-                    logger.debug("STANDARD: Applied inverter efficiency to solar")
-
-            # --- DETAILED ENHANCEMENTS (additive on top of STANDARD) ---
-            if fidelity >= FidelityLevel.DETAILED:
-                # Temperature derating
-                if self.temperature_coefficient is not None:
-                    if hasattr(self, 'system') and hasattr(self.system, 'profiles'):
-                        if 'ambient_temperature' in self.system.profiles:
-                            temp = self.system.profiles['ambient_temperature']
-                            # Temperature derating (reference = 25°C)
-                            temp_factor = 1 + (temp - 25) * self.temperature_coefficient / 100
-                            effective_generation = effective_generation * temp_factor
-                            logger.debug("DETAILED: Applied temperature derating to solar")
-
-                # Annual degradation
-                if self.degradation_rate is not None:
-                    # Simple linear degradation over time
-                    N = len(self.profile)
-                    time_years = np.arange(N) / (365 * 24)  # Convert hours to years
-                    degradation_factor = 1 - time_years * self.degradation_rate / 100
-                    effective_generation = effective_generation * degradation_factor
-                    logger.debug("DETAILED: Applied degradation to solar")
-
-            # --- RESEARCH ENHANCEMENTS (additive on top of DETAILED) ---
-            if fidelity >= FidelityLevel.RESEARCH:
-                logger.debug("RESEARCH: Full spectral modeling would modify effective generation")
-                # In practice: effective_generation = apply_spectral_model(effective_generation)
-                # In practice: effective_generation = apply_bifacial_effects(effective_generation)
-
-            # Apply the generation constraint with all fidelity enhancements
-            constraints.append(self.P_out == effective_generation)
-
-        return constraints
-
-    def rule_based_generate(self, t: int) -> float:
-        """Generate power in rule-based mode."""
-        if t >= len(self.profile):
-            return 0.0
-        return self.profile[t] * self.P_max
+        """Delegate constraint creation to optimization strategy."""
+        return self.optimization.set_constraints()

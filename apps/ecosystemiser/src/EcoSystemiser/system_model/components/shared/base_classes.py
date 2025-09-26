@@ -357,3 +357,59 @@ class BaseStorageOptimization:
             list: CVXPY constraint objects
         """
         raise NotImplementedError("Subclasses must implement set_constraints")
+
+
+class BaseGenerationPhysics:
+    """Abstract base class for generation physics strategies.
+
+    This defines the interface contract that all generation physics implementations
+    must follow. Each fidelity level implements this interface.
+
+    The Strategy Pattern allows us to:
+    - Encapsulate generation algorithms
+    - Make fidelity levels interchangeable
+    - Support easy testing and extension
+    """
+
+    def __init__(self, params):
+        """Initialize physics strategy with component parameters."""
+        self.params = params
+
+    def rule_based_generate(self, t: int, profile_value: float) -> float:
+        """
+        Calculate generation output based on physics model.
+
+        This is the core physics method that each strategy must implement.
+
+        Args:
+            t: Current timestep
+            profile_value: Normalized profile value (0-1) for this timestep
+
+        Returns:
+            float: Actual generation output in kW
+        """
+        raise NotImplementedError("Subclasses must implement rule_based_generate")
+
+
+class BaseGenerationOptimization:
+    """Abstract base class for generation optimization strategies.
+
+    This defines the interface contract for MILP optimization implementations.
+    Separates optimization logic from physics and data models.
+    """
+
+    def __init__(self, params):
+        """Initialize optimization strategy with component parameters."""
+        self.params = params
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for this generation component.
+
+        This is the core optimization method that each strategy must implement.
+        Should return all constraints needed for MILP solver.
+
+        Returns:
+            list: CVXPY constraint objects
+        """
+        raise NotImplementedError("Subclasses must implement set_constraints")
