@@ -8,7 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import DemandTechnicalParams, FidelityLevel
-from ..shared.base_classes import BaseDemandComponent
+from ..shared.base_classes import BaseDemandComponent, BaseDemandPhysics, BaseDemandOptimization
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +73,7 @@ class HeatDemandParams(ComponentParams):
     """
     technical: HeatDemandTechnicalParams = Field(
         default_factory=lambda: HeatDemandTechnicalParams(
+            capacity_nominal=5.0,  # Required by base archetype
             peak_demand=5.0,  # Default 5 kW peak heat demand
             load_profile_type="variable",
             fidelity_level=FidelityLevel.STANDARD
@@ -81,28 +82,175 @@ class HeatDemandParams(ComponentParams):
     )
 
 
+# =============================================================================
+# PHYSICS STRATEGIES (Rule-Based & Fidelity)
+# =============================================================================
+
+class HeatDemandPhysicsSimple(BaseDemandPhysics):
+    """Implements the SIMPLE rule-based physics for heat demand.
+
+    This is the baseline fidelity level providing:
+    - Basic demand: demand = profile * peak_demand
+    - Fixed demand pattern with no flexibility
+    """
+
+    def rule_based_demand(self, t: int, profile_value: float) -> float:
+        """
+        Implement SIMPLE heat demand physics with direct profile scaling.
+
+        This matches the exact logic from BaseDemandComponent for numerical equivalence.
+        """
+        # Get peak demand capacity
+        peak_demand = self.params.technical.peak_demand
+
+        # Base demand: profile value * peak demand
+        # Profile should be normalized (0-1), peak_demand provides scaling
+        base_demand = profile_value * peak_demand
+
+        return max(0.0, base_demand)
+
+
+class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
+    """Implements the STANDARD rule-based physics for heat demand.
+
+    Inherits from SIMPLE and adds:
+    - Weather-dependent demand variations
+    - Thermal comfort flexibility
+    """
+
+    def rule_based_demand(self, t: int, profile_value: float) -> float:
+        """
+        Implement STANDARD heat demand physics with weather dependency.
+
+        First applies SIMPLE physics, then adds STANDARD-specific effects.
+        """
+        # 1. Get the baseline result from SIMPLE physics
+        demand_after_simple = super().rule_based_demand(t, profile_value)
+
+        # 2. Add STANDARD-specific physics: weather dependency
+        weather_dependency = getattr(self.params.technical, 'weather_dependency', None)
+        if weather_dependency:
+            # Simplified weather adjustment
+            # In real implementation, would use actual ambient temperature
+            temp_factor = weather_dependency.get('temperature_factor', 0.05)
+            reference_temp = weather_dependency.get('reference_temp', 18)
+            # Assume some temperature deviation for demonstration
+            temp_deviation = 5  # Assume 5°C deviation from reference
+            weather_multiplier = 1 + temp_factor * temp_deviation
+            demand_after_simple = demand_after_simple * max(0.1, weather_multiplier)
+
+        return max(0.0, demand_after_simple)
+
+
+# =============================================================================
+# OPTIMIZATION STRATEGY (MILP)
+# =============================================================================
+
+class HeatDemandOptimization(BaseDemandOptimization):
+    """Handles the MILP (CVXPY) constraints for heat demand.
+
+    Encapsulates all optimization logic separately from physics and data.
+    This enables clean separation and easy testing of optimization constraints.
+    """
+
+    def __init__(self, params, component_instance):
+        """Initialize with both params and component instance for constraint access."""
+        super().__init__(params)
+        self.component = component_instance
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for heat demand optimization.
+
+        This method encapsulates all the MILP constraint logic for demand.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.H_in is not None and hasattr(comp, 'profile'):
+            # Get fidelity level
+            fidelity = comp.technical.fidelity_level
+
+            # Core heat demand constraints
+            N = comp.H_in.shape[0]
+
+            for t in range(N):
+                # Handle profile bounds
+                if t < len(comp.profile):
+                    base_demand_t = comp.profile[t] * comp.H_max
+                else:
+                    base_demand_t = comp.profile[-1] * comp.H_max if len(comp.profile) > 0 else 0
+
+                # --- SIMPLE MODEL (baseline) ---
+                # Fixed heat demand: H_in = profile * H_max (demand must be met exactly)
+                demand_min = base_demand_t
+                demand_max = base_demand_t
+
+                # --- STANDARD ENHANCEMENTS ---
+                if fidelity >= FidelityLevel.STANDARD:
+                    # Thermal comfort bands allow some flexibility
+                    thermal_comfort_band = getattr(comp.technical, 'thermal_comfort_band', None)
+                    if thermal_comfort_band:
+                        comfort_flexibility = 0.1  # 10% flexibility for thermal comfort
+                        demand_min = base_demand_t * (1 - comfort_flexibility)
+                        demand_max = base_demand_t * (1 + comfort_flexibility)
+
+                # --- DETAILED ENHANCEMENTS ---
+                if fidelity >= FidelityLevel.DETAILED:
+                    # Demand response capabilities
+                    demand_response_capability = getattr(comp.technical, 'demand_response_capability', None)
+                    if demand_response_capability:
+                        shift_capacity = demand_response_capability.get('shift_capacity', 0)
+                        shed_capacity = demand_response_capability.get('shed_capacity', 0)
+
+                        # Expand flexibility bounds for demand response
+                        demand_min = base_demand_t * (1 - shed_capacity)
+                        demand_max = base_demand_t * (1 + shift_capacity)
+
+                # Apply heat demand constraints with all fidelity enhancements
+                if demand_min == demand_max:
+                    # Exact demand satisfaction (SIMPLE, or no flexibility parameters)
+                    constraints.append(comp.H_in[t] == demand_max)
+                else:
+                    # Flexible demand bounds (STANDARD+, with flexibility parameters)
+                    constraints.append(comp.H_in[t] >= demand_min)
+                    constraints.append(comp.H_in[t] <= demand_max)
+
+        return constraints
+
+
+# =============================================================================
+# MAIN COMPONENT CLASS (Factory)
+# =============================================================================
+
 @register_component("HeatDemand")
-class HeatDemand(BaseDemandComponent):
-    """Heat demand component representing thermal energy consumption."""
+class HeatDemand(Component):
+    """Heat demand component with Strategy Pattern architecture.
+
+    This class acts as a factory and container for heat demand strategies:
+    - Physics strategies: Handle fidelity-specific rule-based demand calculations
+    - Optimization strategies: Handle MILP constraint generation
+    - Clean separation: Data contract + strategy selection only
+
+    The component delegates physics and optimization to strategy objects
+    based on the configured fidelity level.
+    """
 
     PARAMS_MODEL = HeatDemandParams
 
     def _post_init(self):
-        """Initialize heat demand-specific attributes from technical parameters.
-
-        Profile data is now loaded separately by the system, not from parameters.
-        """
+        """Initialize heat demand attributes and strategy objects."""
         self.type = "consumption"
         self.medium = "heat"
 
-        # Single source of truth: the technical parameter block
+        # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters extracted from technical block
-        self.H_max = tech.peak_demand  # kW
+        # Core parameters - EXACTLY as original heat demand expects
+        self.H_max = tech.peak_demand  # kW peak heat demand
         self.P_max = tech.peak_demand  # Alias for compatibility with BaseDemandComponent
 
-        # Store advanced parameters for fidelity-aware constraints
+        # Store heat demand-specific parameters
         self.demand_type = tech.demand_type
         self.temperature_requirement = tech.temperature_requirement
         self.thermal_comfort_band = tech.thermal_comfort_band
@@ -111,10 +259,8 @@ class HeatDemand(BaseDemandComponent):
         self.occupancy_schedule = tech.occupancy_schedule
         self.demand_response_capability = tech.demand_response_capability
 
-        # EXPLICIT FIDELITY CONTROL
-        self.fidelity_level = tech.fidelity_level
-
         # Profile should be assigned by the system/builder
+        # Initialize as None, will be set by assign_profiles
         if not hasattr(self, 'profile') or self.profile is None:
             logger.warning(f"No heat demand profile assigned to {self.name}. Using zero demand.")
             self.profile = np.zeros(getattr(self, 'N', 24))
@@ -124,8 +270,61 @@ class HeatDemand(BaseDemandComponent):
         # Legacy compatibility: also set H_profile
         self.H_profile = self.profile
 
-        # CVXPY variables (created later by add_optimization_vars)
+        # CVXPY variables (for MILP solver)
         self.H_in = None
+
+        # STRATEGY PATTERN: Instantiate the correct strategies
+        self.physics = self._get_physics_strategy()
+        self.optimization = self._get_optimization_strategy()
+
+    def _get_physics_strategy(self):
+        """Factory method: Select physics strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return HeatDemandPhysicsSimple(self.params)
+        elif fidelity == FidelityLevel.STANDARD:
+            return HeatDemandPhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD physics (can be extended later)
+            return HeatDemandPhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
+            return HeatDemandPhysicsStandard(self.params)
+        else:
+            raise ValueError(f"Unknown fidelity level for HeatDemand: {fidelity}")
+
+    def _get_optimization_strategy(self):
+        """Factory method: Select optimization strategy."""
+        # For now, all fidelity levels use the same optimization strategy
+        # Future: Could have different optimization strategies per fidelity
+        return HeatDemandOptimization(self.params, self)
+
+    def rule_based_demand(self, t: int) -> float:
+        """
+        Delegate to physics strategy for demand calculation.
+
+        This maintains the same interface as BaseDemandComponent but
+        delegates the actual physics calculation to the strategy object.
+        """
+        # Check bounds
+        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
+            return 0.0
+
+        # Get normalized profile value for this timestep
+        profile_value = self.profile[t]
+
+        # Delegate to physics strategy
+        demand_output = self.physics.rule_based_demand(t, profile_value)
+
+        # Log for debugging if needed
+        if t == 0 and logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"{self.name} at t={t}: profile={profile_value:.3f}, "
+                f"demand={demand_output:.3f}kW"
+            )
+
+        return demand_output
 
     def add_optimization_vars(self, N: Optional[int] = None):
         """Create CVXPY optimization variables."""
@@ -141,92 +340,9 @@ class HeatDemand(BaseDemandComponent):
         }
 
     def set_constraints(self) -> List:
-        """Set CVXPY constraints for heat demand with fidelity-aware modeling.
-
-        Constraint complexity scales with fidelity level:
-        - SIMPLE: Demand must be met exactly
-        - STANDARD: Add thermal comfort bands and building inertia
-        - DETAILED: Add weather correlation and demand response
-        - RESEARCH: Full building physics and behavioral modeling
-        """
-        constraints = []
-        N = self.H_in.shape[0] if self.H_in is not None else 0
-
-        if self.H_in is not None:
-            # Get fidelity level
-            fidelity = getattr(self, 'fidelity_level', FidelityLevel.STANDARD)
-
-            # Heat demand constraints with progressive enhancement
-            for t in range(N):
-                # Handle profile bounds
-                if t < len(self.profile):
-                    base_demand_t = self.profile[t] * self.H_max
-                else:
-                    base_demand_t = self.profile[-1] * self.H_max if len(self.profile) > 0 else 0
-
-                # --- SIMPLE MODEL (OG Systemiser baseline) ---
-                # Fixed heat demand: H_in = profile * H_max (demand must be met exactly)
-                demand_min = base_demand_t
-                demand_max = base_demand_t
-
-                # --- STANDARD ENHANCEMENTS (additive on top of SIMPLE) ---
-                if fidelity >= FidelityLevel.STANDARD:
-                    # Thermal comfort bands allow some flexibility
-                    if self.thermal_comfort_band is not None:
-                        comfort_flexibility = 0.1  # 10% flexibility for thermal comfort
-                        demand_min = base_demand_t * (1 - comfort_flexibility)
-                        demand_max = base_demand_t * (1 + comfort_flexibility)
-                        logger.debug("STANDARD: Applied thermal comfort flexibility to heat demand")
-
-                # --- DETAILED ENHANCEMENTS (additive on top of STANDARD) ---
-                if fidelity >= FidelityLevel.DETAILED:
-                    # Demand response capabilities
-                    if self.demand_response_capability is not None:
-                        shift_capacity = self.demand_response_capability.get('shift_capacity', 0)
-                        shed_capacity = self.demand_response_capability.get('shed_capacity', 0)
-
-                        # Expand flexibility bounds for demand response
-                        demand_min = base_demand_t * (1 - shed_capacity)
-                        demand_max = base_demand_t * (1 + shift_capacity)
-                        logger.debug("DETAILED: Added demand response capabilities to heat demand")
-
-                # --- RESEARCH ENHANCEMENTS (additive on top of DETAILED) ---
-                if fidelity >= FidelityLevel.RESEARCH:
-                    logger.debug("RESEARCH: Building physics modeling would modify demand bounds")
-                    # In practice: demand_min/max = apply_building_physics(demand_min, demand_max, weather, occupancy)
-
-                # Apply heat demand constraints with all fidelity enhancements
-                if demand_min == demand_max:
-                    # Exact demand satisfaction (SIMPLE, or no flexibility parameters)
-                    constraints.append(self.H_in[t] == demand_max)
-                else:
-                    # Flexible demand bounds (STANDARD+, with flexibility parameters)
-                    constraints.append(self.H_in[t] >= demand_min)
-                    constraints.append(self.H_in[t] <= demand_max)
-
-            # DETAILED: Building thermal mass constraints (global, not per-timestep)
-            if fidelity >= FidelityLevel.DETAILED and self.building_thermal_mass is not None:
-                logger.debug("DETAILED: Building thermal mass constraints would be added here")
-                # In practice, this would require temperature state variables and thermal dynamics
-
-        return constraints
+        """Delegate constraint creation to optimization strategy."""
+        return self.optimization.set_constraints()
 
     def rule_based_consumption(self, t: int) -> float:
         """Get heat demand at time t for rule-based operation with fidelity awareness."""
-        if t >= len(self.profile):
-            return 0.0
-
-        # Base demand from profile
-        base_demand = self.profile[t] * self.H_max
-
-        # Apply weather dependency if available
-        if self.weather_dependency and hasattr(self, 'system'):
-            if hasattr(self.system, 'profiles') and 'ambient_temperature' in self.system.profiles:
-                temp = self.system.profiles['ambient_temperature'][t] if t < len(self.system.profiles['ambient_temperature']) else 20
-                # Simple weather correlation: higher demand at lower temperatures
-                temp_factor = self.weather_dependency.get('temperature_factor', 0.05)
-                reference_temp = self.weather_dependency.get('reference_temp', 18)
-                weather_multiplier = 1 + temp_factor * (reference_temp - temp)
-                base_demand = base_demand * max(0.1, weather_multiplier)  # Minimum 10% of base
-
-        return base_demand
+        return self.rule_based_demand(t)

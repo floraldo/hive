@@ -485,3 +485,59 @@ class BaseConversionOptimization:
             list: CVXPY constraint objects
         """
         raise NotImplementedError("Subclasses must implement set_constraints")
+
+
+class BaseDemandPhysics:
+    """Abstract base class for demand physics strategies.
+
+    This defines the interface contract that all demand physics implementations
+    must follow. Each fidelity level implements this interface.
+
+    The Strategy Pattern allows us to:
+    - Encapsulate demand algorithms
+    - Make fidelity levels interchangeable
+    - Support easy testing and extension
+    """
+
+    def __init__(self, params):
+        """Initialize physics strategy with component parameters."""
+        self.params = params
+
+    def rule_based_demand(self, t: int, profile_value: float) -> float:
+        """
+        Calculate demand requirement based on physics model.
+
+        This is the core physics method that each strategy must implement.
+
+        Args:
+            t: Current timestep
+            profile_value: Normalized profile value (0-1) for this timestep
+
+        Returns:
+            float: Actual demand requirement in kW
+        """
+        raise NotImplementedError("Subclasses must implement rule_based_demand")
+
+
+class BaseDemandOptimization:
+    """Abstract base class for demand optimization strategies.
+
+    This defines the interface contract for MILP optimization implementations.
+    Separates optimization logic from physics and data models.
+    """
+
+    def __init__(self, params):
+        """Initialize optimization strategy with component parameters."""
+        self.params = params
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for this demand component.
+
+        This is the core optimization method that each strategy must implement.
+        Should return all constraints needed for MILP solver.
+
+        Returns:
+            list: CVXPY constraint objects
+        """
+        raise NotImplementedError("Subclasses must implement set_constraints")
