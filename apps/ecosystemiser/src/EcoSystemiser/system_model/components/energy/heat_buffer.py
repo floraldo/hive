@@ -8,6 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import StorageTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseStorageComponent
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ class HeatBufferParams(ComponentParams):
 
 
 @register_component("HeatBuffer")
-class HeatBuffer(Component):
+class HeatBuffer(BaseStorageComponent):
     """Heat buffer (thermal storage) component with CVXPY optimization support."""
 
     PARAMS_MODEL = HeatBufferParams
@@ -207,36 +208,6 @@ class HeatBuffer(Component):
 
         return constraints
 
-    def rule_based_charge(self, power: float, t: int) -> float:
-        """Charge heat buffer in rule-based mode."""
-        if self.E is None:
-            return 0.0
-
-        # Available capacity
-        available_capacity = self.E_max - self.E[t]
-
-        # Maximum charge power considering efficiency
-        max_charge = min(power, self.P_max, available_capacity / self.eta)
-
-        # Update state
-        actual_energy = max_charge * self.eta
-        self.E[t+1] = self.E[t] + actual_energy if t < len(self.E)-1 else self.E[t]
-
-        return max_charge
-
-    def rule_based_discharge(self, power: float, t: int) -> float:
-        """Discharge heat buffer in rule-based mode."""
-        if self.E is None:
-            return 0.0
-
-        # Available energy
-        available_energy = self.E[t]
-
-        # Maximum discharge power considering efficiency
-        max_discharge = min(power, self.P_max, available_energy * self.eta)
-
-        # Update state
-        actual_energy = max_discharge / self.eta
-        self.E[t+1] = self.E[t] - actual_energy if t < len(self.E)-1 else self.E[t]
-
-        return max_discharge
+    # Legacy rule_based_charge and rule_based_discharge methods removed
+    # Now inherits unified rule_based_update_state() from BaseStorageComponent
+    # This handles both charging and discharging in a single, consistent method

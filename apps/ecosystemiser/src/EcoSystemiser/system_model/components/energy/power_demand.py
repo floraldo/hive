@@ -8,6 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import DemandTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseDemandComponent
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ class PowerDemandParams(ComponentParams):
 
 
 @register_component("PowerDemand")
-class PowerDemand(Component):
+class PowerDemand(BaseDemandComponent):
     """Power demand (consumption) component with CVXPY optimization support."""
 
     PARAMS_MODEL = PowerDemandParams
@@ -110,17 +111,8 @@ class PowerDemand(Component):
             'profile': self.profile
         }
 
-    def rule_based_demand(self, t: int) -> float:
-        """Rule-based demand at timestep t.
-
-        Returns the actual power demand in kW.
-        Profile is normalized (0-1), multiply by P_max for actual demand.
-        """
-        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
-            return 0.0
-
-        # Return normalized profile * P_max
-        return self.profile[t] * self.P_max
+    # rule_based_demand() method is now inherited from BaseDemandComponent
+    # No need to override - the base implementation handles profile * P_max logic
 
     def set_constraints(self) -> List:
         """Set CVXPY constraints for power demand with fidelity-aware modeling.
@@ -179,8 +171,4 @@ class PowerDemand(Component):
 
         return constraints
 
-    def rule_based_demand(self, t: int) -> float:
-        """Get power demand in rule-based mode."""
-        if t >= len(self.profile):
-            return 0.0
-        return self.profile[t] * self.P_max
+    # Second rule_based_demand method removed - now inherited from BaseDemandComponent

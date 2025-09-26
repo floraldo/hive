@@ -205,3 +205,88 @@ class BaseDemandComponent(Component):
         #     pass
 
         return max(0.0, base_demand)
+
+
+class BaseConversionComponent(Component):
+    """Base class for all conversion components with common conversion logic.
+
+    This class provides the SINGLE SOURCE OF TRUTH for conversion physics.
+    All conversion components (HeatPump, ElectricBoiler, etc.) inherit from this.
+
+    The key pattern: Components handle their own conversion efficiency and constraints!
+    """
+
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+        """
+        Calculate conversion capacities for the current timestep.
+
+        This method encapsulates the physics of energy conversion, handling:
+        - Input/output capacity limits
+        - Efficiency relationships between input and output
+        - Fidelity-based enhancements (COP, temperature dependence, etc.)
+
+        Args:
+            t: Current timestep
+            from_medium: Input energy medium (e.g., 'electricity')
+            to_medium: Output energy medium (e.g., 'heat')
+
+        Returns:
+            dict: {'max_input': float, 'max_output': float, 'efficiency': float}
+        """
+        # Default capacity limits - components can override for specific logic
+        P_max_input = getattr(self, 'P_max_input', getattr(self, 'P_max', 0.0))
+        P_max_output = getattr(self, 'P_max_output', getattr(self, 'P_max', 0.0))
+
+        # Default efficiency - components can override for complex efficiency curves
+        efficiency = getattr(self, 'efficiency', getattr(self, 'COP', 1.0))
+
+        # Basic efficiency relationship: output = input * efficiency
+        # For heat pumps: electrical input -> thermal output with COP > 1
+        # For boilers: fuel/electrical input -> thermal output with efficiency < 1
+
+        # Fidelity enhancements can be added here in future
+        # if self.technical.fidelity_level >= FidelityLevel.STANDARD:
+        #     # Add temperature-dependent COP, part-load efficiency curves, etc.
+        #     pass
+
+        return {
+            'max_input': P_max_input,
+            'max_output': P_max_output,
+            'efficiency': efficiency
+        }
+
+    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
+        """
+        Calculate actual input/output for a requested output.
+
+        Args:
+            t: Current timestep
+            requested_output: Desired output power (kW)
+            from_medium: Input energy medium
+            to_medium: Output energy medium
+
+        Returns:
+            dict: {'input_required': float, 'output_delivered': float}
+        """
+        capacity = self.rule_based_conversion_capacity(t, from_medium, to_medium)
+
+        # Limit output to maximum capacity
+        actual_output = min(requested_output, capacity['max_output'])
+
+        # Calculate required input based on efficiency
+        if capacity['efficiency'] > 0:
+            required_input = actual_output / capacity['efficiency']
+        else:
+            required_input = 0.0
+
+        # Ensure input doesn't exceed capacity
+        if required_input > capacity['max_input']:
+            # Scale back both input and output proportionally
+            scale_factor = capacity['max_input'] / required_input
+            required_input = capacity['max_input']
+            actual_output = actual_output * scale_factor
+
+        return {
+            'input_required': required_input,
+            'output_delivered': actual_output
+        }

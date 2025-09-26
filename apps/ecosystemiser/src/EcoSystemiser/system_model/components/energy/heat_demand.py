@@ -8,6 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import DemandTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseDemandComponent
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,7 @@ class HeatDemandParams(ComponentParams):
 
 
 @register_component("HeatDemand")
-class HeatDemand(Component):
+class HeatDemand(BaseDemandComponent):
     """Heat demand component representing thermal energy consumption."""
 
     PARAMS_MODEL = HeatDemandParams
@@ -99,6 +100,7 @@ class HeatDemand(Component):
 
         # Core parameters extracted from technical block
         self.H_max = tech.peak_demand  # kW
+        self.P_max = tech.peak_demand  # Alias for compatibility with BaseDemandComponent
 
         # Store advanced parameters for fidelity-aware constraints
         self.demand_type = tech.demand_type

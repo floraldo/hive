@@ -8,6 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseConversionComponent
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,7 @@ class HeatPumpParams(ComponentParams):
 
 
 @register_component("HeatPump")
-class HeatPump(Component):
+class HeatPump(BaseConversionComponent):
     """Heat pump component that converts electricity to heat with COP amplification."""
 
     PARAMS_MODEL = HeatPumpParams

@@ -78,7 +78,7 @@ class SolarPVParams(ComponentParams):
 
 
 @register_component("SolarPV")
-class SolarPV(Component):
+class SolarPV(BaseGenerationComponent):
     """Solar PV generation component with CVXPY optimization support."""
 
     PARAMS_MODEL = SolarPVParams
@@ -117,17 +117,8 @@ class SolarPV(Component):
         # CVXPY variable (created later by add_optimization_vars)
         self.P_out = None
 
-    def rule_based_generate(self, t: int) -> float:
-        """Rule-based generation at timestep t.
-
-        Returns the actual power generation in kW.
-        Profile is normalized (0-1), multiply by P_max for actual output.
-        """
-        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
-            return 0.0
-
-        # Return normalized profile * P_max
-        return self.profile[t] * self.P_max
+    # rule_based_generate() method is now inherited from BaseGenerationComponent
+    # No need to override - the base implementation handles profile * P_max logic
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""

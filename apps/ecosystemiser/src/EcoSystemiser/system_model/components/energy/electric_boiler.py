@@ -8,6 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseConversionComponent
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ class ElectricBoilerParams(ComponentParams):
 
 
 @register_component("ElectricBoiler")
-class ElectricBoiler(Component):
+class ElectricBoiler(BaseConversionComponent):
     """Electric boiler that converts electricity directly to heat."""
 
     PARAMS_MODEL = ElectricBoilerParams
