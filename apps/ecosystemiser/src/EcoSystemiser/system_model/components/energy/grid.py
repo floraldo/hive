@@ -53,6 +53,7 @@ class GridParams(ComponentParams):
     """Grid parameters using the hierarchical technical parameter system."""
     technical: GridTechnicalParams = Field(
         default_factory=lambda: GridTechnicalParams(
+            capacity_nominal=100.0,  # Default 100 kW capacity
             max_import=100.0,  # Default 100 kW import
             max_export=100.0,  # Default 100 kW export
             import_tariff=0.25,

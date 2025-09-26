@@ -21,6 +21,7 @@ from system_model.components.energy.heat_pump import HeatPump, HeatPumpParams
 from system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerParams
 from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams
 from system_model.components.energy.heat_demand import HeatDemand, HeatDemandParams
+from system_model.components.shared.archetypes import FidelityLevel
 from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
 
@@ -58,45 +59,83 @@ def create_thermal_system():
 
     battery = Battery(
         name='Battery',
-        params=BatteryParams(P_max=5, E_max=10, E_init=5, eta_charge=0.95, eta_discharge=0.95)
+        params=BatteryParams()  # Use defaults, then override
     )
+    # Override technical parameters for this test
+    battery.technical.capacity_nominal = 10.0     # E_max
+    battery.technical.max_charge_rate = 5.0       # P_max
+    battery.technical.max_discharge_rate = 5.0    # P_max
+    battery.technical.efficiency_roundtrip = 0.90 # eta
+    battery.technical.initial_soc_pct = 0.5       # E_init/E_max
+    battery.technical.fidelity_level = FidelityLevel.SIMPLE
     system.add_component(battery)
 
     solar = SolarPV(
         name='SolarPV',
-        params=SolarPVParams(P_profile=solar_profile.tolist(), P_max=12)
+        params=SolarPVParams()  # Use defaults, then override
     )
+    # Override technical parameters for this test
+    solar.technical.capacity_nominal = 12.0  # P_max
+    solar.technical.fidelity_level = FidelityLevel.SIMPLE
+    solar.profile = solar_profile  # Assign profile separately
     system.add_component(solar)
 
     power_load = PowerDemand(
         name='PowerDemand',
-        params=PowerDemandParams(P_profile=power_demand.tolist(), P_max=6)
+        params=PowerDemandParams()  # Use defaults, then override
     )
+    # Override technical parameters for this test
+    power_load.technical.capacity_nominal = 6.0  # P_max
+    power_load.technical.peak_demand = 6.0       # P_max
+    power_load.technical.fidelity_level = FidelityLevel.SIMPLE
+    power_load.profile = power_demand  # Assign profile separately
     system.add_component(power_load)
 
     # ---- Thermal Components ----
+    # NOTE: These will fail until we refactor them to use the new architecture
     heat_pump = HeatPump(
         name='HeatPump',
-        params=HeatPumpParams(COP=3.5, eta=0.90, P_max=3)
+        params=HeatPumpParams()  # Use defaults, then override
     )
+    # Override technical parameters for this test (will fail until HeatPump is refactored)
+    heat_pump.technical.capacity_nominal = 3.0    # P_max
+    heat_pump.technical.cop_nominal = 3.5         # COP
+    heat_pump.technical.efficiency_nominal = 0.90 # eta
+    heat_pump.technical.fidelity_level = FidelityLevel.SIMPLE
     system.add_component(heat_pump)
 
     electric_boiler = ElectricBoiler(
         name='ElectricBoiler',
-        params=ElectricBoilerParams(eta=0.95, P_max=5)
+        params=ElectricBoilerParams()  # Use defaults, then override
     )
+    # Override technical parameters for this test (will fail until ElectricBoiler is refactored)
+    electric_boiler.technical.capacity_nominal = 5.0  # P_max
+    electric_boiler.technical.efficiency_nominal = 0.95 # eta
+    electric_boiler.technical.fidelity_level = FidelityLevel.SIMPLE
     system.add_component(electric_boiler)
 
     heat_buffer = HeatBuffer(
         name='HeatBuffer',
-        params=HeatBufferParams(P_max=4, E_max=20, E_init=10, eta=0.90)
+        params=HeatBufferParams()  # Use defaults, then override
     )
+    # Override technical parameters for this test (will fail until HeatBuffer is refactored)
+    heat_buffer.technical.capacity_nominal = 20.0     # E_max
+    heat_buffer.technical.max_charge_rate = 4.0       # P_max
+    heat_buffer.technical.max_discharge_rate = 4.0    # P_max
+    heat_buffer.technical.efficiency_roundtrip = 0.90 # eta
+    heat_buffer.technical.initial_soc_pct = 0.5       # E_init/E_max
+    heat_buffer.technical.fidelity_level = FidelityLevel.SIMPLE
     system.add_component(heat_buffer)
 
     heat_load = HeatDemand(
         name='HeatDemand',
-        params=HeatDemandParams(H_profile=heat_demand.tolist(), H_max=6)
+        params=HeatDemandParams()  # Use defaults, then override
     )
+    # Override technical parameters for this test (will fail until HeatDemand is refactored)
+    heat_load.technical.capacity_nominal = 6.0  # H_max
+    heat_load.technical.peak_demand = 6.0       # H_max
+    heat_load.technical.fidelity_level = FidelityLevel.SIMPLE
+    heat_load.profile = heat_demand  # Assign profile separately
     system.add_component(heat_load)
 
     # ---- Electrical Connections ----
