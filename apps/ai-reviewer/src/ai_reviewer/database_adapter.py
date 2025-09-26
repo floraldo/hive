@@ -29,6 +29,32 @@ class DatabaseAdapter:
         # Initialize the database
         hive_core_db.init_db()
 
+    def _parse_task_payload(self, task: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Safely parse task payload from string or dict format.
+
+        Args:
+            task: Task dictionary containing payload
+
+        Returns:
+            Parsed payload dictionary or None if parsing fails
+        """
+        if not task.get('payload'):
+            return None
+
+        payload = task['payload']
+        if isinstance(payload, str):
+            try:
+                return json.loads(payload)
+            except (json.JSONDecodeError, TypeError):
+                logger.warning(f"Could not parse payload for task: {payload[:100]}...")
+                return None
+        elif isinstance(payload, dict):
+            return payload
+        else:
+            logger.warning(f"Unexpected payload type: {type(payload)}")
+            return None
+
     def get_pending_reviews(self, limit: int = 10) -> List[Dict[str, Any]]:
         """
         Get tasks pending review
@@ -67,27 +93,21 @@ class DatabaseAdapter:
             code_files = {}
 
             # Check payload for code files
-            payload_str = task.get("payload")
-            if payload_str:
-                try:
-                    payload = json.loads(payload_str) if isinstance(payload_str, str) else payload_str
+            payload = self._parse_task_payload(task)
+            if payload:
+                # Look for code files in various possible locations
+                if "files" in payload:
+                    code_files.update(payload["files"])
 
-                    # Look for code files in various possible locations
-                    if "files" in payload:
-                        code_files.update(payload["files"])
+                if "code" in payload:
+                    if isinstance(payload["code"], dict):
+                        code_files.update(payload["code"])
+                    else:
+                        # Single file scenario
+                        code_files["main.py"] = payload["code"]
 
-                    if "code" in payload:
-                        if isinstance(payload["code"], dict):
-                            code_files.update(payload["code"])
-                        else:
-                            # Single file scenario
-                            code_files["main.py"] = payload["code"]
-
-                    if "generated_files" in payload:
-                        code_files.update(payload["generated_files"])
-
-                except json.JSONDecodeError:
-                    logger.warning(f"Could not parse payload for task {task_id}")
+                if "generated_files" in payload:
+                    code_files.update(payload["generated_files"])
 
             return code_files
 
@@ -111,15 +131,8 @@ class DatabaseAdapter:
                 return None
 
             # Check if test results are in the payload
-            if task.get('payload'):
-                if isinstance(task['payload'], str):
-                    try:
-                        payload = json.loads(task['payload'])
-                    except (json.JSONDecodeError, TypeError):
-                        return None
-                else:
-                    payload = task['payload']
-
+            payload = self._parse_task_payload(task)
+            if payload:
                 # Look for test results in various locations
                 if "test_results" in payload:
                     return payload["test_results"]
@@ -163,15 +176,8 @@ class DatabaseAdapter:
             if not task:
                 return None
 
-            if task.get('payload'):
-                if isinstance(task['payload'], str):
-                    try:
-                        payload = json.loads(task['payload'])
-                    except (json.JSONDecodeError, TypeError):
-                        return None
-                else:
-                    payload = task['payload']
-
+            payload = self._parse_task_payload(task)
+            if payload:
                 # Look for transcript in payload
                 if "transcript" in payload:
                     return payload["transcript"]

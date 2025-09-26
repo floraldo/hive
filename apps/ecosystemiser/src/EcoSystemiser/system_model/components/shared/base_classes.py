@@ -109,3 +109,99 @@ class BaseStorageComponent(Component):
         # Available charge power is limited by remaining capacity and power limit
         remaining_capacity = max_level - current_level
         return min(power_limit, remaining_capacity)
+
+
+class BaseGenerationComponent(Component):
+    """Base class for all generation components with common generation logic.
+
+    This class provides the SINGLE SOURCE OF TRUTH for generation physics.
+    All generation components (SolarPV, WindTurbine, etc.) inherit from this.
+
+    The key pattern: Components handle their own output calculation, not the solver!
+    """
+
+    def rule_based_generate(self, t: int) -> float:
+        """
+        Calculate generation output for the current timestep.
+
+        This method encapsulates the physics of generation, handling:
+        - Profile-based generation (weather, solar irradiance, etc.)
+        - Capacity scaling (P_max)
+        - Fidelity-based enhancements
+
+        Args:
+            t: Current timestep
+
+        Returns:
+            float: Available generation output in kW
+        """
+        # Check if component has a generation profile
+        if not hasattr(self, 'profile') or self.profile is None:
+            return 0.0
+
+        # Ensure timestep is within profile bounds
+        if t >= len(self.profile):
+            return 0.0
+
+        # Get maximum capacity
+        P_max = getattr(self, 'P_max', 0.0)
+
+        # Base generation: profile value * maximum capacity
+        # Profile should be normalized (0-1), P_max provides scaling
+        base_output = self.profile[t] * P_max
+
+        # Fidelity enhancements can be added here in future
+        # if self.technical.fidelity_level >= FidelityLevel.STANDARD:
+        #     # Add weather variations, equipment degradation, etc.
+        #     pass
+
+        return max(0.0, base_output)
+
+
+class BaseDemandComponent(Component):
+    """Base class for all demand components with common demand logic.
+
+    This class provides the SINGLE SOURCE OF TRUTH for demand physics.
+    All demand components (PowerDemand, HeatDemand, etc.) inherit from this.
+
+    The key pattern: Components handle their own demand calculation, not the solver!
+    """
+
+    def rule_based_demand(self, t: int) -> float:
+        """
+        Calculate demand requirement for the current timestep.
+
+        This method encapsulates the physics of demand, handling:
+        - Profile-based demand (occupancy, weather, schedules, etc.)
+        - Capacity scaling (P_max or peak demand)
+        - Fidelity-based enhancements
+
+        Args:
+            t: Current timestep
+
+        Returns:
+            float: Required demand input in kW
+        """
+        # Check if component has a demand profile
+        if not hasattr(self, 'profile') or self.profile is None:
+            return 0.0
+
+        # Ensure timestep is within profile bounds
+        if t >= len(self.profile):
+            return 0.0
+
+        # Get maximum capacity - try P_max first, then peak_demand
+        P_max = getattr(self, 'P_max', None)
+        if P_max is None:
+            P_max = getattr(self, 'peak_demand', 0.0)
+
+        # Base demand: profile value * maximum capacity
+        # Profile should be normalized (0-1), P_max provides scaling
+        base_demand = self.profile[t] * P_max
+
+        # Fidelity enhancements can be added here in future
+        # if self.technical.fidelity_level >= FidelityLevel.STANDARD:
+        #     # Add temperature effects, occupancy variations, etc.
+        #     pass
+
+        return max(0.0, base_demand)

@@ -83,6 +83,31 @@ class QueenLite:
             self.log.warning(f"Failed to register Queen as worker: {e}")
             # Continue anyway - registration might already exist
 
+    def _create_enhanced_environment(self, root_path: Optional[Path] = None) -> Dict[str, str]:
+        """
+        Create enhanced environment with proper Python paths for worker processes.
+
+        Args:
+            root_path: Root path to use (defaults to self.hive.root)
+
+        Returns:
+            Enhanced environment dictionary with PYTHONPATH configured
+        """
+        env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
+
+        # Use provided root path or default to hive root
+        if root_path is None:
+            root_path = self.hive.root
+
+        orchestrator_src = (root_path / "apps" / "hive-orchestrator" / "src").as_posix()
+        if "PYTHONPATH" in env:
+            env["PYTHONPATH"] = f"{orchestrator_src}{os.pathsep}{env['PYTHONPATH']}"
+        else:
+            env["PYTHONPATH"] = orchestrator_src
+
+        return env
+
     def is_app_task(self, task: Dict[str, Any]) -> bool:
         """Check if a task is an app task based on assignee format"""
         assignee = task.get("assignee", "")
@@ -199,15 +224,7 @@ class QueenLite:
             cmd.append("--live")
         
         # Enhanced environment with proper Python paths
-        env = os.environ.copy()
-        env["PYTHONUNBUFFERED"] = "1"
-
-        # Add the src directory to PYTHONPATH so worker module can be found
-        orchestrator_src = (self.hive.root / "apps" / "hive-orchestrator" / "src").as_posix()
-        if "PYTHONPATH" in env:
-            env["PYTHONPATH"] = f"{orchestrator_src}{os.pathsep}{env['PYTHONPATH']}"
-        else:
-            env["PYTHONPATH"] = orchestrator_src
+        env = self._create_enhanced_environment()
         
         try:
             # Windows-specific fix: pipes cause Claude CLI to hang due to buffering deadlock
@@ -880,15 +897,7 @@ class QueenLite:
             # Execute command
             try:
                 # Enhanced environment with proper Python paths (same as spawn_worker)
-                env = os.environ.copy()
-                env["PYTHONUNBUFFERED"] = "1"
-
-                # Add the src directory to PYTHONPATH so worker module can be found
-                orchestrator_src = (PROJECT_ROOT / "apps" / "hive-orchestrator" / "src").as_posix()
-                if "PYTHONPATH" in env:
-                    env["PYTHONPATH"] = f"{orchestrator_src}{os.pathsep}{env['PYTHONPATH']}"
-                else:
-                    env["PYTHONPATH"] = orchestrator_src
+                env = self._create_enhanced_environment(PROJECT_ROOT)
 
                 # Debug logging for command execution
                 self.log.info(f"[DEBUG] Executing workflow command: {command}")
