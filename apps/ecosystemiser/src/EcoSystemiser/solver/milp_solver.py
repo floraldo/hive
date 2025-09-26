@@ -131,16 +131,18 @@ class MILPSolver(BaseSolver):
         return constraints
 
     def _create_balance_constraints(self):
-        """Create energy balance constraints for each timestep and energy type."""
+        """Create balance constraints for each timestep and medium type (electricity, heat, water)."""
         constraints = []
 
         for t in range(self.system.N):
-            # Separate flows by energy type
+            # Separate flows by medium type (electricity, heat, water)
             flows_by_type = {
                 'electricity': {'generation': [], 'consumption': [], 'storage_charge': [],
                                'storage_discharge': [], 'import': [], 'export': []},
                 'heat': {'generation': [], 'consumption': [], 'storage_charge': [],
-                        'storage_discharge': [], 'import': [], 'export': []}
+                        'storage_discharge': [], 'import': [], 'export': []},
+                'water': {'generation': [], 'consumption': [], 'storage_charge': [],
+                         'storage_discharge': [], 'import': [], 'export': []}
             }
 
             for comp in self.system.components.values():
@@ -177,13 +179,25 @@ class MILPSolver(BaseSolver):
                             flows_by_type['heat']['storage_charge'].append(comp.P_cha[t])
                         if hasattr(comp, 'P_dis') and comp.P_dis is not None:
                             flows_by_type['heat']['storage_discharge'].append(comp.P_dis[t])
+                    # Check for water storage
+                    elif medium == 'water':
+                        if hasattr(comp, 'Q_in') and comp.Q_in is not None:
+                            flows_by_type['water']['storage_charge'].append(comp.Q_in[t])
+                        if hasattr(comp, 'Q_out') and comp.Q_out is not None:
+                            flows_by_type['water']['storage_discharge'].append(comp.Q_out[t])
 
-                # Grid components (electricity only)
+                # Grid components (electricity and water)
                 elif comp.type == "transmission":
-                    if hasattr(comp, 'P_draw') and comp.P_draw is not None:
-                        flows_by_type['electricity']['import'].append(comp.P_draw[t])
-                    if hasattr(comp, 'P_feed') and comp.P_feed is not None:
-                        flows_by_type['electricity']['export'].append(comp.P_feed[t])
+                    if medium == 'electricity':
+                        if hasattr(comp, 'P_draw') and comp.P_draw is not None:
+                            flows_by_type['electricity']['import'].append(comp.P_draw[t])
+                        if hasattr(comp, 'P_feed') and comp.P_feed is not None:
+                            flows_by_type['electricity']['export'].append(comp.P_feed[t])
+                    elif medium == 'water':
+                        if hasattr(comp, 'Q_import') and comp.Q_import is not None:
+                            flows_by_type['water']['import'].append(comp.Q_import[t])
+                        if hasattr(comp, 'Q_export') and comp.Q_export is not None:
+                            flows_by_type['water']['export'].append(comp.Q_export[t])
 
                 # Components that convert between energy types
                 # Heat pumps and boilers consume electricity (sink) and produce heat (source)
@@ -194,8 +208,8 @@ class MILPSolver(BaseSolver):
                             # This is electricity input to heat generators
                             flows_by_type[flow_type]['consumption'].append(flow['value'][t])
 
-            # Create balance constraints for each energy type
-            for energy_type, flows in flows_by_type.items():
+            # Create balance constraints for each medium type
+            for medium_type, flows in flows_by_type.items():
                 lhs = []
                 rhs = []
 
@@ -209,7 +223,7 @@ class MILPSolver(BaseSolver):
                 rhs.extend(flows['export'])
                 rhs.extend(flows['storage_charge'])
 
-                # Only add constraint if there are flows for this energy type
+                # Only add constraint if there are flows for this medium type
                 if lhs and rhs:
                     constraints.append(cp.sum(lhs) == cp.sum(rhs))
 

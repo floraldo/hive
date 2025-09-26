@@ -1,247 +1,359 @@
-"""Rainwater harvesting source component with MILP optimization support."""
+"""Rainwater harvesting source component with MILP optimization support and hierarchical fidelity."""
 import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
-from typing import Optional, List, Union
+from typing import Optional, List, Dict, Any
 import logging
 
 from ..shared.registry import register_component
-from ..shared.component import Component
+from ..shared.component import Component, ComponentParams
+from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseGenerationComponent, BaseGenerationPhysics, BaseGenerationOptimization
 
 logger = logging.getLogger(__name__)
 
 
-class RainwaterSourceParams(BaseModel):
-    """Rainwater harvesting system parameters."""
+# =============================================================================
+# RAINWATER SOURCE-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
+# =============================================================================
+
+class RainwaterSourceTechnicalParams(GenerationTechnicalParams):
+    """Rainwater source-specific technical parameters extending generation archetype.
+
+    This model inherits from GenerationTechnicalParams and adds rainwater harvesting-specific
+    parameters for different fidelity levels.
+    """
+    # Rainwater harvesting parameters
     catchment_area_m2: float = Field(100.0, description="Roof/catchment area [m²]")
     runoff_coefficient: float = Field(0.85, description="Runoff coefficient (0-1)")
-    first_flush_mm: float = Field(2.0, description="First flush diversion [mm]")
-    collection_efficiency: float = Field(0.90, description="Collection system efficiency")
-    filtration_efficiency: float = Field(0.95, description="Filtration efficiency")
-    max_collection_rate_m3h: float = Field(5.0, description="Maximum collection rate [m³/h]")
-    water_quality_index: float = Field(0.80, description="Rainwater quality index (0-1)")
-    seasonal_factor: Optional[List[float]] = Field(None, description="Monthly rainfall factors")
+    collection_system_type: str = Field("gravity_fed", description="Type of collection system")
 
+    # STANDARD fidelity additions
+    first_flush_diversion: Optional[float] = Field(
+        None,
+        description="First flush diversion volume [mm]"
+    )
+    filtration_stages: Optional[Dict[str, float]] = Field(
+        None,
+        description="Multi-stage filtration efficiencies"
+    )
+
+    # DETAILED fidelity parameters
+    seasonal_collection_factors: Optional[List[float]] = Field(
+        None,
+        description="Monthly collection efficiency factors"
+    )
+    water_quality_model: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Water quality degradation model"
+    )
+
+    # RESEARCH fidelity parameters
+    weather_dependency_model: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Advanced weather dependency modeling"
+    )
+    contamination_model: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Detailed contamination and treatment modeling"
+    )
+
+
+class RainwaterSourceParams(ComponentParams):
+    """Rainwater source parameters using the hierarchical technical parameter system.
+
+    Rainfall data should be provided separately through the system's
+    profile loading mechanism, not as a component parameter.
+    """
+    technical: RainwaterSourceTechnicalParams = Field(
+        default_factory=lambda: RainwaterSourceTechnicalParams(
+            capacity_nominal=5.0,  # Default 5 m³/h max collection
+            efficiency_nominal=0.90,  # Default 90% collection efficiency
+            fidelity_level=FidelityLevel.STANDARD
+        ),
+        description="Technical parameters following the hierarchical archetype system"
+    )
+
+
+# =============================================================================
+# PHYSICS STRATEGIES (Rule-Based & Fidelity)
+# =============================================================================
+
+class RainwaterSourcePhysicsSimple(BaseGenerationPhysics):
+    """Implements the SIMPLE rule-based physics for rainwater collection.
+
+    This is the baseline fidelity level providing:
+    - Basic collection: collection = rainfall * area * runoff_coeff * efficiency
+    - Fixed collection efficiency with no advanced modeling
+    """
+
+    def rule_based_generate(self, t: int, profile_value: float) -> float:
+        """
+        Implement SIMPLE rainwater collection physics.
+
+        Args:
+            t: Current timestep
+            profile_value: Rainfall intensity [mm/h] for this timestep
+
+        Returns:
+            float: Available water collection in m³/h
+        """
+        # Get component parameters
+        area_m2 = self.params.technical.catchment_area_m2
+        runoff_coeff = self.params.technical.runoff_coefficient
+        efficiency = self.params.technical.efficiency_nominal
+        max_collection = self.params.technical.capacity_nominal
+
+        # Calculate raw collection: rainfall(mm/h) * area(m²) * runoff * efficiency
+        # Convert mm to m: mm/h * m² = mm*m²/h = 0.001*m³/h
+        raw_collection = profile_value * area_m2 * runoff_coeff * efficiency / 1000
+
+        # Limit to maximum collection rate
+        actual_collection = min(raw_collection, max_collection)
+
+        return max(0.0, actual_collection)
+
+
+class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
+    """Implements the STANDARD rule-based physics for rainwater collection.
+
+    Inherits from SIMPLE and adds:
+    - First flush diversion losses
+    - Multi-stage filtration efficiency
+    """
+
+    def rule_based_generate(self, t: int, profile_value: float) -> float:
+        """
+        Implement STANDARD rainwater collection physics with first flush diversion.
+
+        First applies SIMPLE physics, then adds STANDARD-specific effects.
+        """
+        # 1. Get the baseline result from SIMPLE physics
+        collection_after_simple = super().rule_based_generate(t, profile_value)
+
+        # 2. Add STANDARD-specific physics: first flush diversion
+        first_flush = getattr(self.params.technical, 'first_flush_diversion', None)
+        if first_flush and profile_value > 0:
+            # Simplified first flush loss (assumes some rain is diverted)
+            # In practice, this would track cumulative rainfall
+            first_flush_loss_factor = min(0.1, first_flush / profile_value) if profile_value > 0 else 0
+            collection_after_simple = collection_after_simple * (1 - first_flush_loss_factor)
+
+        # 3. Add filtration stage losses
+        filtration_stages = getattr(self.params.technical, 'filtration_stages', None)
+        if filtration_stages:
+            # Apply combined filtration efficiency
+            total_filtration_eff = 1.0
+            for stage, efficiency in filtration_stages.items():
+                total_filtration_eff *= efficiency
+            collection_after_simple = collection_after_simple * total_filtration_eff
+
+        return max(0.0, collection_after_simple)
+
+
+# =============================================================================
+# OPTIMIZATION STRATEGY (MILP)
+# =============================================================================
+
+class RainwaterSourceOptimization(BaseGenerationOptimization):
+    """Handles the MILP (CVXPY) constraints for rainwater source.
+
+    Encapsulates all optimization logic separately from physics and data.
+    This enables clean separation and easy testing of optimization constraints.
+    """
+
+    def __init__(self, params, component_instance):
+        """Initialize with both params and component instance for constraint access."""
+        super().__init__(params)
+        self.component = component_instance
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for rainwater source optimization.
+
+        This method encapsulates all the MILP constraint logic for rainwater collection.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.Q_out is not None and hasattr(comp, 'profile'):
+            # Get fidelity level
+            fidelity = comp.technical.fidelity_level
+
+            # Core rainwater source constraints
+            N = comp.Q_out.shape[0]
+
+            for t in range(N):
+                # Handle profile bounds
+                if t < len(comp.profile):
+                    rainfall_t = comp.profile[t]
+                else:
+                    rainfall_t = comp.profile[-1] if len(comp.profile) > 0 else 0
+
+                # --- SIMPLE MODEL (baseline) ---
+                # Calculate basic collection
+                area_m2 = comp.technical.catchment_area_m2
+                runoff_coeff = comp.technical.runoff_coefficient
+                efficiency = comp.technical.efficiency_nominal
+
+                # Basic collection calculation
+                raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000
+                available_collection = min(raw_collection, comp.technical.capacity_nominal)
+
+                # --- STANDARD ENHANCEMENTS ---
+                if fidelity >= FidelityLevel.STANDARD:
+                    # First flush diversion
+                    first_flush = getattr(comp.technical, 'first_flush_diversion', None)
+                    if first_flush and rainfall_t > 0:
+                        first_flush_loss = min(0.1, first_flush / rainfall_t) if rainfall_t > 0 else 0
+                        available_collection = available_collection * (1 - first_flush_loss)
+
+                    # Multi-stage filtration
+                    filtration_stages = getattr(comp.technical, 'filtration_stages', None)
+                    if filtration_stages:
+                        total_filtration_eff = 1.0
+                        for stage, eff in filtration_stages.items():
+                            total_filtration_eff *= eff
+                        available_collection = available_collection * total_filtration_eff
+
+                # Collection constraint: output = available collection
+                constraints.append(comp.Q_out[t] <= available_collection)
+
+            # Maximum capacity constraint
+            constraints.append(comp.Q_out <= comp.technical.capacity_nominal)
+
+        return constraints
+
+
+# =============================================================================
+# MAIN COMPONENT CLASS (Factory)
+# =============================================================================
 
 @register_component("RainwaterSource")
 class RainwaterSource(Component):
-    """Rainwater harvesting source for sustainable water supply."""
+    """Rainwater harvesting source component with Strategy Pattern architecture.
+
+    This class acts as a factory and container for rainwater source strategies:
+    - Physics strategies: Handle fidelity-specific rule-based collection calculations
+    - Optimization strategies: Handle MILP constraint generation
+    - Clean separation: Data contract + strategy selection only
+
+    The component delegates physics and optimization to strategy objects
+    based on the configured fidelity level.
+    """
 
     PARAMS_MODEL = RainwaterSourceParams
 
     def _post_init(self):
-        """Initialize rainwater source-specific attributes after DRY parameter unpacking."""
+        """Initialize rainwater source attributes and strategy objects."""
         self.type = "generation"
         self.medium = "water"
 
-        # Create default seasonal factors if not provided (temperate climate pattern)
-        if not hasattr(self, 'seasonal_factor') or self.seasonal_factor is None:
-            # Monthly factors: Jan-Dec (Northern Hemisphere temperate)
-            self.seasonal_factor = [
-                0.8, 0.9, 1.0, 1.2, 1.3, 1.1,  # Jan-Jun
-                0.9, 0.8, 1.0, 1.1, 0.9, 0.8   # Jul-Dec
-            ]
+        # Extract parameters from technical block
+        tech = self.technical
 
-        # CVXPY variables (created later by add_optimization_vars)
-        self.Q_collected = None     # Water collected at each timestep
-        self.Q_available = None     # Water available for use
-        self.Q_overflow = None      # Overflow water
+        # Core parameters - EXACTLY as rainwater source expects (m³/h, m²)
+        self.Q_max = tech.capacity_nominal  # m³/h max collection capacity
+        self.catchment_area_m2 = tech.catchment_area_m2
+        self.runoff_coefficient = tech.runoff_coefficient
+        self.collection_efficiency = tech.efficiency_nominal
 
-        # For rule-based operation
-        self.rainfall_profile = None  # mm/h rainfall data
-        self.water_collected = np.zeros(self.N)
-        self.water_available = np.zeros(self.N)
+        # Store rainwater source-specific parameters
+        self.collection_system_type = tech.collection_system_type
+        self.first_flush_diversion = tech.first_flush_diversion
+        self.filtration_stages = tech.filtration_stages
+        self.seasonal_collection_factors = tech.seasonal_collection_factors
+        self.water_quality_model = tech.water_quality_model
 
-    def add_optimization_vars(self):
+        # Profile should be assigned by the system/builder
+        # Initialize as None, will be set by assign_profiles
+        if not hasattr(self, 'profile') or self.profile is None:
+            logger.warning(f"No rainfall profile assigned to {self.name}. Using zero rainfall.")
+            self.profile = np.zeros(getattr(self, 'N', 24))
+        else:
+            self.profile = np.array(self.profile)
+
+        # CVXPY variables (for MILP solver)
+        self.Q_out = None
+
+        # STRATEGY PATTERN: Instantiate the correct strategies
+        self.physics = self._get_physics_strategy()
+        self.optimization = self._get_optimization_strategy()
+
+    def _get_physics_strategy(self):
+        """Factory method: Select physics strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return RainwaterSourcePhysicsSimple(self.params)
+        elif fidelity == FidelityLevel.STANDARD:
+            return RainwaterSourcePhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD physics (can be extended later)
+            return RainwaterSourcePhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
+            return RainwaterSourcePhysicsStandard(self.params)
+        else:
+            raise ValueError(f"Unknown fidelity level for RainwaterSource: {fidelity}")
+
+    def _get_optimization_strategy(self):
+        """Factory method: Select optimization strategy."""
+        # For now, all fidelity levels use the same optimization strategy
+        # Future: Could have different optimization strategies per fidelity
+        return RainwaterSourceOptimization(self.params, self)
+
+    def rule_based_generate(self, t: int) -> float:
+        """
+        Delegate to physics strategy for collection calculation.
+
+        This maintains the same interface as BaseGenerationComponent but
+        delegates the actual physics calculation to the strategy object.
+        """
+        # Check bounds
+        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
+            return 0.0
+
+        # Get rainfall intensity for this timestep (mm/h)
+        rainfall_intensity = self.profile[t]
+
+        # Delegate to physics strategy
+        collection_output = self.physics.rule_based_generate(t, rainfall_intensity)
+
+        # Log for debugging if needed
+        if t == 0 and logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"{self.name} at t={t}: rainfall={rainfall_intensity:.3f}mm/h, "
+                f"collection={collection_output:.3f}m³/h"
+            )
+
+        return collection_output
+
+    def add_optimization_vars(self, N: Optional[int] = None):
         """Create CVXPY optimization variables."""
-        self.Q_collected = cp.Variable(self.N, name=f'{self.name}_collected', nonneg=True)
-        self.Q_available = cp.Variable(self.N, name=f'{self.name}_available', nonneg=True)
-        self.Q_overflow = cp.Variable(self.N, name=f'{self.name}_overflow', nonneg=True)
+        if N is None:
+            N = self.N
 
-        # Add flows
-        self.flows['output']['Q_available'] = {
+        self.Q_out = cp.Variable(N, name=f'{self.name}_Q_out', nonneg=True)
+
+        # Add as flow
+        self.flows['source']['Q_out'] = {
             'type': 'water',
-            'value': self.Q_available,
-            'quality': self.water_quality_index
-        }
-        self.flows['source']['Q_collected'] = {
-            'type': 'water',
-            'value': self.Q_collected,
-            'is_renewable': True
-        }
-        self.flows['sink']['Q_overflow'] = {
-            'type': 'water',
-            'value': self.Q_overflow
+            'value': self.Q_out,
+            'profile': self.profile
         }
 
     def set_constraints(self) -> List:
-        """Set CVXPY constraints for rainwater collection."""
-        constraints = []
-
-        if self.Q_collected is not None and self.rainfall_profile is not None:
-            for t in range(self.N):
-                # Calculate potential collection based on rainfall
-                rainfall_mm = self.rainfall_profile[t]
-
-                # Account for first flush diversion
-                effective_rainfall = max(0, rainfall_mm - self.first_flush_mm / 24)  # Hourly rate
-
-                # Potential collection [m³/h]
-                potential_collection = (
-                    self.catchment_area_m2 *
-                    effective_rainfall / 1000 *  # Convert mm to m
-                    self.runoff_coefficient *
-                    self.collection_efficiency
-                )
-
-                # Collection limited by system capacity
-                constraints.append(
-                    self.Q_collected[t] <= min(potential_collection,
-                                              self.max_collection_rate_m3h)
-                )
-
-                # Available water after filtration
-                constraints.append(
-                    self.Q_available[t] == self.Q_collected[t] * self.filtration_efficiency
-                )
-
-                # Overflow if collection exceeds capacity
-                if potential_collection > self.max_collection_rate_m3h:
-                    constraints.append(
-                        self.Q_overflow[t] == potential_collection - self.max_collection_rate_m3h
-                    )
-
-        return constraints
-
-    def set_rainfall_profile(self, profile: Optional[Union[np.ndarray, List[float]]] = None):
-        """Set or generate rainfall profile.
-
-        Args:
-            profile: Optional rainfall data [mm/h]. If None, generates synthetic profile.
-        """
-        if profile is not None:
-            self.rainfall_profile = np.array(profile[:self.N])
-        else:
-            # Generate synthetic rainfall profile
-            self.rainfall_profile = self.generate_synthetic_rainfall()
-
-    def generate_synthetic_rainfall(self) -> np.ndarray:
-        """Generate synthetic rainfall profile based on seasonal patterns.
-
-        Returns:
-            Hourly rainfall profile [mm/h]
-        """
-        rainfall = np.zeros(self.N)
-
-        for t in range(self.N):
-            hour_of_day = t % 24
-            day_of_year = (t // 24) % 365
-            month = min(11, day_of_year // 30)  # Approximate month
-
-            # Base rainfall probability and intensity
-            rainfall_prob = 0.1  # 10% chance of rain in any hour
-            base_intensity = 2.0  # mm/h when raining
-
-            # Apply seasonal factor
-            seasonal_mult = self.seasonal_factor[month]
-
-            # Simulate rainfall (stochastic in real implementation)
-            # For deterministic testing, use a pattern
-            if (t // 24) % 7 == 0:  # Rain every 7th day
-                if 6 <= hour_of_day <= 18:  # Daytime rain
-                    rainfall[t] = base_intensity * seasonal_mult * (0.5 + 0.5 * np.sin(hour_of_day / 24 * np.pi))
-
-        return rainfall
+        """Delegate constraint creation to optimization strategy."""
+        return self.optimization.set_constraints()
 
     def rule_based_operation(self, t: int) -> float:
-        """Rule-based rainwater collection.
-
-        Args:
-            t: Current timestep
-
-        Returns:
-            Water available from rainwater [m³/h]
-        """
-        if t >= self.N or self.rainfall_profile is None:
-            return 0.0
-
-        # Current rainfall
-        rainfall_mm = self.rainfall_profile[t]
-
-        # Account for first flush
-        effective_rainfall = max(0, rainfall_mm - self.first_flush_mm / 24)
-
-        # Calculate collection
-        collected = (
-            self.catchment_area_m2 *
-            effective_rainfall / 1000 *
-            self.runoff_coefficient *
-            self.collection_efficiency
-        )
-
-        # Apply system capacity limit
-        collected = min(collected, self.max_collection_rate_m3h)
-
-        # Apply filtration
-        available = collected * self.filtration_efficiency
-
-        # Store results
-        self.water_collected[t] = collected
-        self.water_available[t] = available
-
-        return available
-
-    def get_total_collected(self) -> float:
-        """Get total water collected.
-
-        Returns:
-            Total water collected [m³]
-        """
-        return float(np.sum(self.water_collected))
-
-    def get_collection_efficiency_overall(self) -> float:
-        """Calculate overall collection efficiency.
-
-        Returns:
-            Overall efficiency considering all losses (0-1)
-        """
-        return (self.runoff_coefficient *
-                self.collection_efficiency *
-                self.filtration_efficiency)
-
-    def get_water_quality(self) -> float:
-        """Get water quality index.
-
-        Returns:
-            Water quality index (0-1)
-        """
-        return self.water_quality_index
-
-    def estimate_annual_yield(self, annual_rainfall_mm: float) -> float:
-        """Estimate annual water yield.
-
-        Args:
-            annual_rainfall_mm: Annual rainfall [mm]
-
-        Returns:
-            Estimated annual yield [m³]
-        """
-        # Account for first flush losses
-        effective_rainfall = max(0, annual_rainfall_mm - self.first_flush_mm * 365)
-
-        return (self.catchment_area_m2 *
-                effective_rainfall / 1000 *
-                self.get_collection_efficiency_overall())
-
-    def reset(self):
-        """Reset component state."""
-        self.water_collected[:] = 0
-        self.water_available[:] = 0
-        if self.rainfall_profile is None:
-            self.set_rainfall_profile()
+        """Rule-based rainwater collection operation with fidelity-aware performance."""
+        return self.rule_based_generate(t)
 
     def __repr__(self):
         """String representation."""
         return (f"RainwaterSource(name='{self.name}', "
-                f"catchment_area={self.catchment_area_m2}m², "
-                f"efficiency={self.get_collection_efficiency_overall():.1%})")
+                f"area={self.catchment_area_m2}m², "
+                f"max_collection={self.Q_max}m³/h, "
+                f"fidelity={self.technical.fidelity_level.value})")

@@ -8,6 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import StorageTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseStorageComponent, BaseStoragePhysics, BaseStorageOptimization
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,159 @@ class WaterStorageTechnicalParams(StorageTechnicalParams):
     )
 
 
+# =============================================================================
+# PHYSICS STRATEGIES (Rule-Based & Fidelity)
+# =============================================================================
+
+class WaterStoragePhysicsSimple(BaseStoragePhysics):
+    """Implements the SIMPLE rule-based physics for water storage.
+
+    This is the baseline fidelity level providing:
+    - Basic water balance: V_new = V_old + inflow*efficiency - outflow - losses
+    - Simple daily loss rate for evaporation and leakage
+    - Physical bounds enforcement (0 <= V <= V_max)
+    """
+
+    def rule_based_update_state(self, t: int, V_old: float, inflow: float, outflow: float) -> float:
+        """
+        Implement SIMPLE water storage physics with daily loss rate.
+
+        Args:
+            t: Current timestep
+            V_old: Water volume at start of timestep (m³)
+            inflow: Water inflow rate (m³/h)
+            outflow: Water outflow rate (m³/h)
+
+        Returns:
+            float: New water volume after physics update (m³)
+        """
+        # Use component's efficiency parameter
+        efficiency = self.params.technical.efficiency_roundtrip
+
+        # Basic loss rate (convert daily to hourly)
+        hourly_loss_rate = self.params.technical.loss_rate_daily / 24.0
+
+        # Calculate volume changes
+        volume_gained = inflow * efficiency
+        volume_lost = outflow + (V_old * hourly_loss_rate)  # Outflow + evaporation/leakage
+
+        # Net volume change
+        net_change = volume_gained - volume_lost
+
+        # Update state
+        new_volume = V_old + net_change
+
+        return self.apply_bounds(new_volume)
+
+
+class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
+    """Implements the STANDARD rule-based physics for water storage.
+
+    Inherits from SIMPLE and adds:
+    - Temperature-dependent evaporation rates
+    - Mixing model effects on loss rates
+    """
+
+    def rule_based_update_state(self, t: int, V_old: float, inflow: float, outflow: float) -> float:
+        """
+        Implement STANDARD water storage physics with temperature effects.
+
+        First applies SIMPLE physics, then adds STANDARD-specific effects.
+        """
+        # 1. Get the baseline result from SIMPLE physics
+        volume_after_simple = super().rule_based_update_state(t, V_old, inflow, outflow)
+
+        # 2. Add STANDARD-specific physics: temperature-dependent losses
+        temperature_effects = getattr(self.params.technical, 'temperature_effects', None)
+        if temperature_effects:
+            # Simplified temperature adjustment
+            # In real implementation, would use actual ambient temperature
+            temp_factor = temperature_effects.get('evaporation_factor', 0.05)
+            # Assume some temperature deviation for demonstration
+            temp_deviation = 5  # Assume 5°C above reference
+            additional_loss_multiplier = 1 + temp_factor * temp_deviation / 10
+
+            # Apply additional temperature-dependent loss
+            additional_loss = V_old * (self.params.technical.loss_rate_daily / 24.0) * (additional_loss_multiplier - 1)
+            volume_after_standard = volume_after_simple - additional_loss
+
+            return self.apply_bounds(volume_after_standard)
+
+        return volume_after_simple
+
+
+# =============================================================================
+# OPTIMIZATION STRATEGY (MILP)
+# =============================================================================
+
+class WaterStorageOptimization(BaseStorageOptimization):
+    """Handles the MILP (CVXPY) constraints for water storage.
+
+    Encapsulates all optimization logic separately from physics and data.
+    This enables clean separation and easy testing of optimization constraints.
+    """
+
+    def __init__(self, params, component_instance):
+        """Initialize with both params and component instance for constraint access."""
+        super().__init__(params)
+        self.component = component_instance
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for water storage optimization.
+
+        This method encapsulates all the MILP constraint logic for water storage.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.V_water is not None:
+            # Get fidelity level
+            fidelity = comp.technical.fidelity_level
+
+            # Core water storage constraints
+            N = comp.N
+
+            # Initial state
+            constraints.append(comp.V_water[0] == comp.initial_level_m3)
+
+            # Volume bounds
+            constraints.append(comp.V_water >= comp.min_level_m3)
+            constraints.append(comp.V_water <= comp.max_level_m3)
+
+            # Water balance for each timestep
+            for t in range(N):
+                # --- SIMPLE MODEL (baseline) ---
+                # Base loss rate
+                hourly_loss_rate = comp.technical.loss_rate_daily / 24.0
+
+                # --- STANDARD ENHANCEMENTS ---
+                if fidelity >= FidelityLevel.STANDARD:
+                    # Temperature-dependent losses would be added here
+                    temperature_effects = getattr(comp.technical, 'temperature_effects', None)
+                    if temperature_effects:
+                        # For now, keep simple loss rate for MILP compatibility
+                        pass
+
+                # Water balance equation
+                constraints.append(
+                    comp.V_water[t + 1] == comp.V_water[t] +
+                    comp.technical.efficiency_roundtrip * comp.Q_in[t] -
+                    comp.Q_out[t] -
+                    comp.V_water[t] * hourly_loss_rate
+                )
+
+            # Flow constraints
+            constraints.append(comp.Q_in <= comp.technical.max_charge_rate)
+            constraints.append(comp.Q_out <= comp.technical.max_discharge_rate)
+
+        return constraints
+
+
+# =============================================================================
+# MAIN COMPONENT CLASS (Factory)
+# =============================================================================
+
 class WaterStorageParams(ComponentParams):
     """Water storage parameters using the hierarchical technical parameter system.
 
@@ -73,13 +227,13 @@ class WaterStorageParams(ComponentParams):
     """
     technical: WaterStorageTechnicalParams = Field(
         default_factory=lambda: WaterStorageTechnicalParams(
-            capacity_nominal=10.0,  # Default 10 m³ storage
-            max_charge_rate=2.0,    # Default 2 m³/h inflow
-            max_discharge_rate=2.0, # Default 2 m³/h outflow
-            efficiency_roundtrip=0.98,  # Storage efficiency
-            initial_soc=0.5,        # Start at 50% full
-            soc_min=0.05,          # Minimum 5% (emergency reserve)
-            soc_max=1.0,           # Maximum 100%
+            capacity_nominal=10.0,        # Default 10 m³ storage
+            max_charge_rate=2.0,          # Default 2 m³/h inflow
+            max_discharge_rate=2.0,       # Default 2 m³/h outflow
+            efficiency_roundtrip=0.98,    # Storage efficiency
+            initial_soc_pct=0.5,          # Start at 50% full
+            soc_min_pct=0.05,             # Minimum 5% (emergency reserve)
+            soc_max_pct=1.0,              # Maximum 100%
             fidelity_level=FidelityLevel.STANDARD
         ),
         description="Technical parameters following the hierarchical archetype system"
@@ -88,32 +242,38 @@ class WaterStorageParams(ComponentParams):
 
 @register_component("WaterStorage")
 class WaterStorage(Component):
-    """Water storage component for tanks, reservoirs, and cisterns."""
+    """Water storage component with Strategy Pattern architecture.
+
+    This class acts as a factory and container for water storage strategies:
+    - Physics strategies: Handle fidelity-specific rule-based storage calculations
+    - Optimization strategies: Handle MILP constraint generation
+    - Clean separation: Data contract + strategy selection only
+
+    The component delegates physics and optimization to strategy objects
+    based on the configured fidelity level.
+    """
 
     PARAMS_MODEL = WaterStorageParams
 
     def _post_init(self):
-        """Initialize water storage-specific attributes from technical parameters.
-
-        All parameters are now sourced from the technical parameter block,
-        following the single source of truth principle.
-        """
+        """Initialize water storage attributes and strategy objects."""
         self.type = "storage"
         self.medium = "water"
 
-        # Single source of truth: the technical parameter block
+        # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters extracted from technical block (water units: m³, m³/h)
-        self.capacity_m3 = tech.capacity_nominal  # m³
-        self.max_flow_in_m3h = tech.max_charge_rate  # m³/h
-        self.max_flow_out_m3h = tech.max_discharge_rate  # m³/h
+        # Core parameters - EXACTLY as water storage expects (m³, m³/h)
+        self.capacity_m3 = tech.capacity_nominal
+        self.V_max = tech.capacity_nominal  # Alias for compatibility
+        self.max_flow_in_m3h = tech.max_charge_rate
+        self.max_flow_out_m3h = tech.max_discharge_rate
         self.efficiency = tech.efficiency_roundtrip
-        self.initial_level_m3 = tech.initial_soc * tech.capacity_nominal if tech.initial_soc else tech.capacity_nominal * 0.5
-        self.min_level_m3 = tech.soc_min * tech.capacity_nominal if tech.soc_min else 0.0
-        self.max_level_m3 = tech.soc_max * tech.capacity_nominal if tech.soc_max else tech.capacity_nominal
+        self.initial_level_m3 = tech.initial_soc_pct * tech.capacity_nominal
+        self.min_level_m3 = tech.soc_min_pct * tech.capacity_nominal
+        self.max_level_m3 = tech.soc_max_pct * tech.capacity_nominal
 
-        # Store advanced parameters for fidelity-aware constraints
+        # Store water storage-specific parameters
         self.storage_type = tech.storage_type
         self.loss_rate_daily = tech.loss_rate_daily
         self.water_quality_class = tech.water_quality_class
@@ -122,121 +282,95 @@ class WaterStorage(Component):
         self.stratification_model = tech.stratification_model
         self.water_quality_decay = tech.water_quality_decay
 
-        # EXPLICIT FIDELITY CONTROL
-        self.fidelity_level = tech.fidelity_level
-
-        # CVXPY variables (created later by add_optimization_vars)
+        # CVXPY variables (for MILP solver)
         self.V_water = None  # Water volume at each timestep
         self.Q_in = None     # Inflow rate
         self.Q_out = None    # Outflow rate
-        self.Q_loss = None   # Loss rate
 
         # For rule-based operation
         if hasattr(self, 'N'):
             self.water_level = np.zeros(self.N + 1)
             self.water_level[0] = self.initial_level_m3
 
-    def add_optimization_vars(self):
+        # STRATEGY PATTERN: Instantiate the correct strategies
+        self.physics = self._get_physics_strategy()
+        self.optimization = self._get_optimization_strategy()
+
+    def _get_physics_strategy(self):
+        """Factory method: Select physics strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return WaterStoragePhysicsSimple(self.params)
+        elif fidelity == FidelityLevel.STANDARD:
+            return WaterStoragePhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD physics (can be extended later)
+            return WaterStoragePhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
+            return WaterStoragePhysicsStandard(self.params)
+        else:
+            raise ValueError(f"Unknown fidelity level for WaterStorage: {fidelity}")
+
+    def _get_optimization_strategy(self):
+        """Factory method: Select optimization strategy."""
+        # For now, all fidelity levels use the same optimization strategy
+        # Future: Could have different optimization strategies per fidelity
+        return WaterStorageOptimization(self.params, self)
+
+    def rule_based_update_state(self, t: int, inflow: float, outflow: float):
+        """
+        Delegate to physics strategy for state update calculation.
+
+        This maintains the same interface as BaseStorageComponent but
+        delegates the actual physics calculation to the strategy object.
+        """
+        # Check bounds
+        if t >= self.N:
+            return
+
+        # Get current water level
+        current_level = self.water_level[t]
+
+        # Delegate to physics strategy
+        new_level = self.physics.rule_based_update_state(t, current_level, inflow, outflow)
+
+        # Update state
+        self.water_level[t + 1] = new_level
+
+        # Log for debugging if needed
+        if t == 0 and logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, "
+                f"outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
+            )
+
+    def add_optimization_vars(self, N: Optional[int] = None):
         """Create CVXPY optimization variables."""
-        self.V_water = cp.Variable(self.N + 1, name=f'{self.name}_volume', nonneg=True)
-        self.Q_in = cp.Variable(self.N, name=f'{self.name}_inflow', nonneg=True)
-        self.Q_out = cp.Variable(self.N, name=f'{self.name}_outflow', nonneg=True)
-        self.Q_loss = cp.Variable(self.N, name=f'{self.name}_loss', nonneg=True)
+        if N is None:
+            N = self.N
+
+        self.V_water = cp.Variable(N + 1, name=f'{self.name}_volume', nonneg=True)
+        self.Q_in = cp.Variable(N, name=f'{self.name}_inflow', nonneg=True)
+        self.Q_out = cp.Variable(N, name=f'{self.name}_outflow', nonneg=True)
 
         # Add flows
-        self.flows['input']['Q_in'] = {
+        self.flows['sink']['Q_in'] = {
             'type': 'water',
             'value': self.Q_in
         }
-        self.flows['output']['Q_out'] = {
+        self.flows['source']['Q_out'] = {
             'type': 'water',
             'value': self.Q_out
         }
-        self.flows['sink']['Q_loss'] = {
-            'type': 'water',
-            'value': self.Q_loss
-        }
 
     def set_constraints(self) -> List:
-        """Set CVXPY constraints for water storage with fidelity-aware modeling.
-
-        Constraint complexity scales with fidelity level:
-        - SIMPLE: Basic water balance and volume limits
-        - STANDARD: Add temperature-dependent losses and mixing
-        - DETAILED: Add water quality decay and stratification
-        - RESEARCH: Full CFD and biofilm modeling
-        """
-        constraints = []
-
-        if self.V_water is not None:
-            # Get fidelity level
-            fidelity = getattr(self, 'fidelity_level', FidelityLevel.STANDARD)
-            N = len(self.V_water) - 1  # V_water has N+1 elements
-
-            # BASIC CONSTRAINTS (always active)
-            # Initial state
-            constraints.append(self.V_water[0] == self.initial_level_m3)
-
-            # Volume bounds
-            constraints.append(self.V_water >= self.min_level_m3)
-            constraints.append(self.V_water <= self.max_level_m3)
-
-            # Water balance for each timestep
-            for t in range(N):
-                # Base loss rate
-                hourly_loss_rate = self.loss_rate_daily / 24.0
-                effective_loss_rate = hourly_loss_rate
-
-                # STANDARD: Apply temperature effects on losses
-                if fidelity >= FidelityLevel.STANDARD and self.temperature_effects:
-                    if hasattr(self, 'system') and hasattr(self.system, 'profiles'):
-                        if 'ambient_temperature' in self.system.profiles:
-                            temp = self.system.profiles['ambient_temperature'][t] if t < len(self.system.profiles['ambient_temperature']) else 20
-                            # Higher temperature increases evaporation
-                            temp_factor = self.temperature_effects.get('evaporation_factor', 0.05)
-                            temp_multiplier = 1 + temp_factor * (temp - 20) / 10  # Reference 20°C
-                            effective_loss_rate = hourly_loss_rate * max(0.1, temp_multiplier)
-                            logger.debug("STANDARD: Applied temperature-dependent losses to water storage")
-
-                # Water balance equation
-                constraints.append(
-                    self.V_water[t + 1] == self.V_water[t] +
-                    self.efficiency * self.Q_in[t] -
-                    self.Q_out[t] -
-                    self.Q_loss[t]
-                )
-
-                # Loss modeling
-                constraints.append(
-                    self.Q_loss[t] == self.V_water[t] * effective_loss_rate
-                )
-
-                # DETAILED: Add water quality constraints
-                if fidelity >= FidelityLevel.DETAILED and self.water_quality_decay:
-                    logger.debug("DETAILED: Water quality decay constraints would be added here")
-                    # In practice, this would require quality state variables
-
-                # DETAILED: Add stratification effects
-                if fidelity >= FidelityLevel.DETAILED and self.stratification_model:
-                    logger.debug("DETAILED: Thermal stratification constraints would be added here")
-                    # This would require temperature layer variables
-
-            # RESEARCH: Full CFD modeling
-            if fidelity >= FidelityLevel.RESEARCH:
-                logger.info("RESEARCH: Full CFD modeling activated for water storage")
-                # Placeholder for detailed fluid dynamics
-
-        # Flow constraints
-        if self.Q_in is not None:
-            constraints.append(self.Q_in <= self.max_flow_in_m3h)
-
-        if self.Q_out is not None:
-            constraints.append(self.Q_out <= self.max_flow_out_m3h)
-
-        return constraints
+        """Delegate constraint creation to optimization strategy."""
+        return self.optimization.set_constraints()
 
     def rule_based_operation(self, water_demand: float, water_supply: float, t: int) -> tuple:
-        """Rule-based water storage operation.
+        """Rule-based water storage operation with fidelity-aware performance.
 
         Args:
             water_demand: Water demand at timestep t [m³/h]
@@ -252,9 +386,6 @@ class WaterStorage(Component):
         # Current water level
         current_level = self.water_level[t]
 
-        # Calculate losses
-        hourly_loss = current_level * self.loss_rate_daily / 24.0
-
         # Try to meet demand from storage
         available_water = current_level - self.min_level_m3
         max_outflow = min(self.max_flow_out_m3h, available_water)
@@ -263,37 +394,27 @@ class WaterStorage(Component):
         # Store excess supply
         available_capacity = self.max_level_m3 - current_level
         max_inflow = min(self.max_flow_in_m3h, available_capacity)
-        actual_inflow = min(water_supply, max_inflow) * self.efficiency
+        actual_inflow = min(water_supply, max_inflow)
 
-        # Update water level
-        self.water_level[t + 1] = current_level + actual_inflow - actual_outflow - hourly_loss
-
-        # Ensure constraints are met
-        self.water_level[t + 1] = max(self.min_level_m3,
-                                      min(self.max_level_m3, self.water_level[t + 1]))
+        # Use physics strategy to update state
+        self.rule_based_update_state(t, actual_inflow, actual_outflow)
 
         return actual_outflow, actual_inflow
 
     def get_fill_percentage(self, timestep: int) -> float:
-        """Get fill percentage at given timestep.
-
-        Args:
-            timestep: Timestep index
-
-        Returns:
-            Fill percentage (0-100)
-        """
+        """Get fill percentage at given timestep."""
         if 0 <= timestep <= self.N:
             return (self.water_level[timestep] / self.capacity_m3) * 100
         return 0.0
 
     def reset(self):
         """Reset component state."""
-        self.water_level[:] = 0
-        self.water_level[0] = self.initial_level_m3
+        if hasattr(self, 'water_level'):
+            self.water_level[:] = 0
+            self.water_level[0] = self.initial_level_m3
 
     def __repr__(self):
         """String representation."""
         return (f"WaterStorage(name='{self.name}', "
                 f"capacity={self.capacity_m3}m³, "
-                f"initial_level={self.initial_level_m3}m³)")
+                f"fidelity={self.technical.fidelity_level.value})")
