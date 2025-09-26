@@ -15,7 +15,8 @@ sys.path.insert(0, str(project_root / "packages" / "hive-utils" / "src"))
 sys.path.insert(0, str(project_root / "packages" / "hive-logging" / "src"))
 sys.path.insert(0, str(project_root / "packages" / "hive-core-db" / "src"))
 
-# Now import and run Queen
+# Now import HiveCore and Queen
+from hive_orchestrator.hive_core import HiveCore
 from hive_orchestrator.queen import QueenLite
 
 
@@ -35,11 +36,14 @@ def main():
     print(f"Live output: {args.live}")
     print("=" * 70)
 
-    # Create and run Queen
-    queen = QueenLite(live_output=args.live)
+    # Create HiveCore instance (the shared Hive Mind)
+    hive_core = HiveCore()
+
+    # Create and run Queen with HiveCore
+    queen = QueenLite(hive_core, live_output=args.live)
 
     try:
-        queen.run()
+        queen.run_forever()
     except KeyboardInterrupt:
         print("\n[QUEEN] Shutting down gracefully...")
         sys.exit(0)

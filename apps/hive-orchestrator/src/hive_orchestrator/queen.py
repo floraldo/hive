@@ -863,7 +863,7 @@ class QueenLite:
             command = self._format_command(command_template, task, run_id)
 
             # Create run record if it's a worker task
-            if "worker.py" in command:
+            if "hive_orchestrator.worker" in command:
                 actual_run_id = hive_core_db.create_run(
                     task_id=task_id,
                     worker_id="queen-orchestrator",  # Match the registered worker ID
@@ -879,13 +879,30 @@ class QueenLite:
 
             # Execute command
             try:
+                # Enhanced environment with proper Python paths (same as spawn_worker)
+                env = os.environ.copy()
+                env["PYTHONUNBUFFERED"] = "1"
+
+                # Add the src directory to PYTHONPATH so worker module can be found
+                orchestrator_src = (PROJECT_ROOT / "apps" / "hive-orchestrator" / "src").as_posix()
+                if "PYTHONPATH" in env:
+                    env["PYTHONPATH"] = f"{orchestrator_src}{os.pathsep}{env['PYTHONPATH']}"
+                else:
+                    env["PYTHONPATH"] = orchestrator_src
+
+                # Debug logging for command execution
+                self.log.info(f"[DEBUG] Executing workflow command: {command}")
+                self.log.info(f"[DEBUG] Working directory: {PROJECT_ROOT}")
+                self.log.info(f"[DEBUG] PYTHONPATH: {env.get('PYTHONPATH', 'not set')}")
+
                 process = subprocess.Popen(
                     command,
                     shell=True,
                     cwd=str(PROJECT_ROOT),
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
+                    env=env
                 )
 
                 self.active_workers[task_id] = {

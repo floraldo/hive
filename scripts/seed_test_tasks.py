@@ -56,7 +56,7 @@ This should be implemented with production-quality code.""",
                     "next_phase_on_success": "apply"
                 },
                 "apply": {
-                    "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase apply --one-shot",
+                    "command_template": "python -m hive_orchestrator.worker backend --task-id {task_id} --run-id {run_id} --phase apply --one-shot",
                     "next_phase_on_success": "inspect"
                 },
                 "inspect": {
@@ -65,7 +65,7 @@ This should be implemented with production-quality code.""",
                     "next_phase_on_failure": "review_pending"
                 },
                 "test": {
-                    "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase test --one-shot",
+                    "command_template": "python -m hive_orchestrator.worker backend --task-id {task_id} --run-id {run_id} --phase test --one-shot",
                     "next_phase_on_success": "completed",
                     "next_phase_on_failure": "apply"
                 }
@@ -99,7 +99,7 @@ Implementation should work but may have quality issues that make AI uncertain.""
                     "next_phase_on_success": "apply"
                 },
                 "apply": {
-                    "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase apply --one-shot",
+                    "command_template": "python -m hive_orchestrator.worker backend --task-id {task_id} --run-id {run_id} --phase apply --one-shot",
                     "next_phase_on_success": "inspect"
                 },
                 "inspect": {
@@ -108,7 +108,7 @@ Implementation should work but may have quality issues that make AI uncertain.""
                     "next_phase_on_failure": "review_pending"
                 },
                 "test": {
-                    "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase test --one-shot",
+                    "command_template": "python -m hive_orchestrator.worker backend --task-id {task_id} --run-id {run_id} --phase test --one-shot",
                     "next_phase_on_success": "completed",
                     "next_phase_on_failure": "apply"
                 }

@@ -3,11 +3,16 @@ Database adapter for AI Reviewer to interact with Hive Core DB
 """
 
 import json
+import sys
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
 
-from hive_core_db import HiveDatabase, Task, TaskStatus
+# Add paths for Hive packages
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-core-db" / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-logging" / "src"))
+
+import hive_core_db
 from hive_logging import get_logger
 
 
@@ -19,11 +24,12 @@ class DatabaseAdapter:
     Adapter for database operations specific to AI Review functionality
     """
 
-    def __init__(self, db: HiveDatabase):
+    def __init__(self):
         """Initialize with database connection"""
-        self.db = db
+        # Initialize the database
+        hive_core_db.init_db()
 
-    def get_pending_reviews(self, limit: int = 10) -> List[Task]:
+    def get_pending_reviews(self, limit: int = 10) -> List[Dict[str, Any]]:
         """
         Get tasks pending review
 
@@ -34,13 +40,10 @@ class DatabaseAdapter:
             List of tasks with status 'review_pending'
         """
         try:
-            with self.db.get_session() as session:
-                tasks = session.query(Task)\
-                    .filter(Task.status == TaskStatus.REVIEW_PENDING)\
-                    .order_by(Task.created_at)\
-                    .limit(limit)\
-                    .all()
-                return tasks
+            tasks = hive_core_db.get_tasks_by_status("review_pending")
+            # Sort by created_at and limit
+            sorted_tasks = sorted(tasks, key=lambda t: t.get("created_at", ""))
+            return sorted_tasks[:limit]
         except Exception as e:
             logger.error(f"Error fetching pending reviews: {e}")
             return []
@@ -56,40 +59,37 @@ class DatabaseAdapter:
             Dictionary mapping filename to content
         """
         try:
-            with self.db.get_session() as session:
-                task = session.query(Task).filter(Task.id == task_id).first()
-                if not task:
-                    return {}
+            task = hive_core_db.get_task(task_id)
+            if not task:
+                return {}
 
-                # Extract code from result_data
-                result_data = task.result_data or {}
+            # Extract code from payload or other fields
+            code_files = {}
 
-                # Look for code files in various possible locations
-                code_files = {}
+            # Check payload for code files
+            payload_str = task.get("payload")
+            if payload_str:
+                try:
+                    payload = json.loads(payload_str) if isinstance(payload_str, str) else payload_str
 
-                # Direct files field
-                if "files" in result_data:
-                    code_files.update(result_data["files"])
+                    # Look for code files in various possible locations
+                    if "files" in payload:
+                        code_files.update(payload["files"])
 
-                # Code field
-                if "code" in result_data:
-                    if isinstance(result_data["code"], dict):
-                        code_files.update(result_data["code"])
-                    else:
-                        # Single file scenario
-                        code_files["main.py"] = result_data["code"]
+                    if "code" in payload:
+                        if isinstance(payload["code"], dict):
+                            code_files.update(payload["code"])
+                        else:
+                            # Single file scenario
+                            code_files["main.py"] = payload["code"]
 
-                # Generated files field
-                if "generated_files" in result_data:
-                    code_files.update(result_data["generated_files"])
+                    if "generated_files" in payload:
+                        code_files.update(payload["generated_files"])
 
-                # Worker results
-                if "worker_results" in result_data:
-                    for worker, results in result_data["worker_results"].items():
-                        if isinstance(results, dict) and "files" in results:
-                            code_files.update(results["files"])
+                except json.JSONDecodeError:
+                    logger.warning(f"Could not parse payload for task {task_id}")
 
-                return code_files
+            return code_files
 
         except Exception as e:
             logger.error(f"Error fetching code files for task {task_id}: {e}")
@@ -106,27 +106,34 @@ class DatabaseAdapter:
             Test results dictionary or None
         """
         try:
-            with self.db.get_session() as session:
-                task = session.query(Task).filter(Task.id == task_id).first()
-                if not task:
-                    return None
+            task = hive_core_db.get_task(task_id)
+            if not task:
+                return None
 
-                result_data = task.result_data or {}
+            # Check if test results are in the payload
+            if task.get('payload'):
+                if isinstance(task['payload'], str):
+                    try:
+                        payload = json.loads(task['payload'])
+                    except (json.JSONDecodeError, TypeError):
+                        return None
+                else:
+                    payload = task['payload']
 
                 # Look for test results in various locations
-                if "test_results" in result_data:
-                    return result_data["test_results"]
+                if "test_results" in payload:
+                    return payload["test_results"]
 
-                if "tests" in result_data:
-                    return result_data["tests"]
+                if "tests" in payload:
+                    return payload["tests"]
 
                 # Check worker results
-                if "worker_results" in result_data:
-                    for worker, results in result_data["worker_results"].items():
+                if "worker_results" in payload:
+                    for worker, results in payload["worker_results"].items():
                         if isinstance(results, dict) and "test_results" in results:
                             return results["test_results"]
 
-                return None
+            return None
 
         except Exception as e:
             logger.error(f"Error fetching test results for task {task_id}: {e}")
@@ -143,26 +150,35 @@ class DatabaseAdapter:
             Transcript string or None
         """
         try:
-            with self.db.get_session() as session:
-                task = session.query(Task).filter(Task.id == task_id).first()
-                if not task:
-                    return None
+            # Get runs for this task to find transcript
+            runs = hive_core_db.get_task_runs(task_id)
+            if runs:
+                # Get the most recent run
+                for run in runs:
+                    if run.get('transcript'):
+                        return run['transcript']
 
-                result_data = task.result_data or {}
-
-                # Look for transcript
-                if "transcript" in result_data:
-                    return result_data["transcript"]
-
-                if "conversation" in result_data:
-                    return result_data["conversation"]
-
-                # Check metadata
-                metadata = task.metadata or {}
-                if "transcript" in metadata:
-                    return metadata["transcript"]
-
+            # Fall back to checking task payload
+            task = hive_core_db.get_task(task_id)
+            if not task:
                 return None
+
+            if task.get('payload'):
+                if isinstance(task['payload'], str):
+                    try:
+                        payload = json.loads(task['payload'])
+                    except (json.JSONDecodeError, TypeError):
+                        return None
+                else:
+                    payload = task['payload']
+
+                # Look for transcript in payload
+                if "transcript" in payload:
+                    return payload["transcript"]
+                if "conversation" in payload:
+                    return payload["conversation"]
+
+            return None
 
         except Exception as e:
             logger.error(f"Error fetching transcript for task {task_id}: {e}")
@@ -171,7 +187,7 @@ class DatabaseAdapter:
     def update_task_status(
         self,
         task_id: str,
-        new_status: TaskStatus,
+        new_status: str,
         review_data: Dict[str, Any]
     ) -> bool:
         """
@@ -179,50 +195,46 @@ class DatabaseAdapter:
 
         Args:
             task_id: Task identifier
-            new_status: New status to set
+            new_status: New status to set (string)
             review_data: Review results to store
 
         Returns:
             True if successful
         """
         try:
-            with self.db.get_session() as session:
-                task = session.query(Task).filter(Task.id == task_id).first()
-                if not task:
-                    logger.error(f"Task {task_id} not found")
-                    return False
+            # Get current task
+            task = hive_core_db.get_task(task_id)
+            if not task:
+                logger.error(f"Task {task_id} not found")
+                return False
 
-                # Update status
-                task.status = new_status
-                task.updated_at = datetime.utcnow()
+            # Update task status with metadata
+            metadata = {
+                "review": review_data,
+                "review_timestamp": datetime.now().isoformat(),
+                "reviewed_by": "ai-reviewer"
+            }
 
-                # Store review results
-                if not task.result_data:
-                    task.result_data = {}
+            # Store escalation details if present
+            if "escalation_reason" in review_data:
+                metadata["escalation_reason"] = review_data["escalation_reason"]
+            if "confusion_points" in review_data:
+                metadata["confusion_points"] = review_data["confusion_points"]
 
-                task.result_data["review"] = review_data
-                task.result_data["review_timestamp"] = datetime.utcnow().isoformat()
-                task.result_data["reviewed_by"] = "ai-reviewer"
+            # Add tracking info
+            metadata["last_review"] = {
+                "status": new_status,
+                "timestamp": datetime.now().isoformat(),
+                "score": review_data.get("overall_score", 0)
+            }
 
-                # Store escalation details if present
-                if "escalation_reason" in review_data:
-                    task.result_data["escalation_reason"] = review_data["escalation_reason"]
-                if "confusion_points" in review_data:
-                    task.result_data["confusion_points"] = review_data["confusion_points"]
+            success = hive_core_db.update_task_status(task_id, new_status, metadata)
+            if success:
+                logger.info(f"Updated task {task_id} to status {new_status}")
+            else:
+                logger.error(f"Failed to update task {task_id} status")
 
-                # Add to metadata for tracking
-                if not task.metadata:
-                    task.metadata = {}
-
-                task.metadata["last_review"] = {
-                    "status": new_status.value,
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "score": review_data.get("overall_score", 0)
-                }
-
-                session.commit()
-                logger.info(f"Updated task {task_id} to status {new_status.value}")
-                return True
+            return success
 
         except Exception as e:
             logger.error(f"Error updating task {task_id} status: {e}")
