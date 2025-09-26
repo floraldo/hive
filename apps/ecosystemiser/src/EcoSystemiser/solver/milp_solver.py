@@ -1,4 +1,4 @@
-"""MILP optimization solver using CVXPY."""
+"""MILP optimization solver using CVXPY - Version 2 with full implementation."""
 import cvxpy as cp
 import numpy as np
 import time
@@ -6,6 +6,7 @@ import logging
 from .base import BaseSolver, SolverResult
 
 logger = logging.getLogger(__name__)
+
 
 class MILPSolver(BaseSolver):
     """Mixed Integer Linear Programming solver using CVXPY."""
@@ -19,28 +20,45 @@ class MILPSolver(BaseSolver):
         """Initialize CVXPY variables for optimization."""
         logger.info("Preparing system for MILP optimization")
 
-        # Ensure all flows have CVXPY variables
-        for flow_key, flow_data in self.system.flows.items():
-            if not isinstance(flow_data['value'], cp.Variable):
-                flow_data['value'] = cp.Variable(
-                    self.system.N,
-                    nonneg=True,
-                    name=flow_key
-                )
-
-        # Initialize storage variables
+        # Initialize optimization variables for all components
         for comp in self.system.components.values():
-            if comp.type == "storage":
-                # Call the placeholder method for future refactoring
-                comp.add_optimization_vars()
+            if hasattr(comp, 'add_optimization_vars'):
+                comp.add_optimization_vars(self.system.N)
+                logger.debug(f"Added optimization variables for {comp.name}")
 
-                # For now, ensure E is a cvxpy variable
-                if not hasattr(comp, 'E_opt'):
-                    comp.E_opt = cp.Variable(
-                        self.system.N,
-                        nonneg=True,
-                        name=f'{comp.name}_E'
-                    )
+        # Connect flow variables between components
+        self._connect_flow_variables()
+
+    def _connect_flow_variables(self):
+        """Connect component variables to system flows - matching original Systemiser."""
+        # First create variables for all system flows
+        for flow_key, flow_data in self.system.flows.items():
+            # Create a CVXPY variable for this flow
+            flow_var = cp.Variable(
+                self.system.N,
+                nonneg=True,
+                name=flow_key
+            )
+            flow_data['value'] = flow_var
+
+            # Now update the input/output flow references in components
+            source_comp = self.system.components.get(flow_data['source'])
+            target_comp = self.system.components.get(flow_data['target'])
+
+            # Determine prefix
+            var_prefix = 'W' if flow_data['type'] == 'water' else 'P'
+
+            # Update source component's output flow
+            if source_comp and 'output' in source_comp.flows:
+                output_key = f'{var_prefix}_{flow_data["target"]}'
+                if output_key in source_comp.flows['output']:
+                    source_comp.flows['output'][output_key]['value'] = flow_var
+
+            # Update target component's input flow
+            if target_comp and 'input' in target_comp.flows:
+                input_key = f'{var_prefix}_{flow_data["source"]}'
+                if input_key in target_comp.flows['input']:
+                    target_comp.flows['input'][input_key]['value'] = flow_var
 
     def solve(self) -> SolverResult:
         """Solve the optimization problem."""
@@ -59,7 +77,7 @@ class MILPSolver(BaseSolver):
             # Create and solve problem
             self.problem = cp.Problem(objective, constraints)
 
-            # Select solver based on availability
+            # Select solver
             solver = self._select_solver()
             self.problem.solve(solver=solver, verbose=self.config.verbose)
 
@@ -101,57 +119,99 @@ class MILPSolver(BaseSolver):
 
         # Component constraints
         for component in self.system.components.values():
-            comp_constraints = component.set_constraints()
-            constraints.extend(comp_constraints)
+            if hasattr(component, 'set_constraints'):
+                comp_constraints = component.set_constraints()
+                constraints.extend(comp_constraints)
+                logger.debug(f"Added {len(comp_constraints)} constraints for {component.name}")
 
-        # System-level constraints (if any)
-        if hasattr(self.system, 'system_constraints'):
-            constraints.extend(self.system.system_constraints)
+        # Energy balance constraints
+        constraints.extend(self._create_balance_constraints())
 
-        # Energy balance constraints for each timestep
-        for t in range(self.system.N):
-            constraints.extend(self._create_balance_constraints(t))
-
+        logger.info(f"Total constraints: {len(constraints)}")
         return constraints
 
-    def _create_balance_constraints(self, t):
-        """Create energy/water balance constraints for timestep t."""
+    def _create_balance_constraints(self):
+        """Create energy balance constraints for each timestep and energy type."""
         constraints = []
 
-        # Group components by medium
-        media_components = {}
-        for comp in self.system.components.values():
-            if comp.medium not in media_components:
-                media_components[comp.medium] = []
-            media_components[comp.medium].append(comp)
+        for t in range(self.system.N):
+            # Separate flows by energy type
+            flows_by_type = {
+                'electricity': {'generation': [], 'consumption': [], 'storage_charge': [],
+                               'storage_discharge': [], 'import': [], 'export': []},
+                'heat': {'generation': [], 'consumption': [], 'storage_charge': [],
+                        'storage_discharge': [], 'import': [], 'export': []}
+            }
 
-        # Create balance for each medium
-        for medium, components in media_components.items():
-            inflows = []
-            outflows = []
+            for comp in self.system.components.values():
+                # Get component medium type
+                medium = getattr(comp, 'medium', 'electricity')
 
-            for comp in components:
-                # Sum all flows into this component
-                for flow_name, flow in comp.flows.get('input', {}).items():
-                    if flow['type'] == medium and isinstance(flow['value'], cp.Variable):
-                        inflows.append(flow['value'][t])
+                # Generation components
+                if comp.type == "generation":
+                    for flow_name, flow in comp.flows.get('source', {}).items():
+                        if isinstance(flow.get('value'), cp.Variable):
+                            flow_type = flow.get('type', medium)
+                            if flow_type in flows_by_type:
+                                flows_by_type[flow_type]['generation'].append(flow['value'][t])
 
+                # Consumption components
+                elif comp.type == "consumption":
+                    for flow_name, flow in comp.flows.get('sink', {}).items():
+                        if isinstance(flow.get('value'), cp.Variable):
+                            flow_type = flow.get('type', medium)
+                            if flow_type in flows_by_type:
+                                flows_by_type[flow_type]['consumption'].append(flow['value'][t])
+
+                # Storage components
+                elif comp.type == "storage":
+                    # Check for electrical storage
+                    if medium == 'electricity':
+                        if hasattr(comp, 'P_cha') and comp.P_cha is not None:
+                            flows_by_type['electricity']['storage_charge'].append(comp.P_cha[t])
+                        if hasattr(comp, 'P_dis') and comp.P_dis is not None:
+                            flows_by_type['electricity']['storage_discharge'].append(comp.P_dis[t])
+                    # Check for thermal storage
+                    elif medium == 'heat':
+                        if hasattr(comp, 'P_cha') and comp.P_cha is not None:
+                            flows_by_type['heat']['storage_charge'].append(comp.P_cha[t])
+                        if hasattr(comp, 'P_dis') and comp.P_dis is not None:
+                            flows_by_type['heat']['storage_discharge'].append(comp.P_dis[t])
+
+                # Grid components (electricity only)
+                elif comp.type == "transmission":
+                    if hasattr(comp, 'P_draw') and comp.P_draw is not None:
+                        flows_by_type['electricity']['import'].append(comp.P_draw[t])
+                    if hasattr(comp, 'P_feed') and comp.P_feed is not None:
+                        flows_by_type['electricity']['export'].append(comp.P_feed[t])
+
+                # Components that convert between energy types
+                # Heat pumps and boilers consume electricity (sink) and produce heat (source)
                 for flow_name, flow in comp.flows.get('sink', {}).items():
-                    if flow['type'] == medium and isinstance(flow['value'], cp.Variable):
-                        inflows.append(flow['value'][t])
+                    if isinstance(flow.get('value'), cp.Variable):
+                        flow_type = flow.get('type', 'electricity')
+                        if flow_type in flows_by_type and comp.type == "generation":
+                            # This is electricity input to heat generators
+                            flows_by_type[flow_type]['consumption'].append(flow['value'][t])
 
-                # Sum all flows out of this component
-                for flow_name, flow in comp.flows.get('output', {}).items():
-                    if flow['type'] == medium and isinstance(flow['value'], cp.Variable):
-                        outflows.append(flow['value'][t])
+            # Create balance constraints for each energy type
+            for energy_type, flows in flows_by_type.items():
+                lhs = []
+                rhs = []
 
-                for flow_name, flow in comp.flows.get('source', {}).items():
-                    if flow['type'] == medium and isinstance(flow['value'], cp.Variable):
-                        outflows.append(flow['value'][t])
+                # Left hand side (sources)
+                lhs.extend(flows['generation'])
+                lhs.extend(flows['import'])
+                lhs.extend(flows['storage_discharge'])
 
-            # Balance constraint: inflows == outflows
-            if inflows and outflows:
-                constraints.append(cp.sum(inflows) == cp.sum(outflows))
+                # Right hand side (sinks)
+                rhs.extend(flows['consumption'])
+                rhs.extend(flows['export'])
+                rhs.extend(flows['storage_charge'])
+
+                # Only add constraint if there are flows for this energy type
+                if lhs and rhs:
+                    constraints.append(cp.sum(lhs) == cp.sum(rhs))
 
         return constraints
 
@@ -171,20 +231,18 @@ class MILPSolver(BaseSolver):
         """Minimize total operational cost."""
         cost = 0
 
-        # Grid costs
-        for comp_name, comp in self.system.components.items():
-            if comp.type == "transmission" and comp.medium == "electricity":
-                # Import costs
-                if 'P_draw' in comp.flows.get('source', {}):
-                    flow = comp.flows['source']['P_draw']['value']
-                    if isinstance(flow, cp.Variable):
-                        cost += cp.sum(flow) * getattr(comp, 'import_tariff', 0.25)
+        for comp in self.system.components.values():
+            if comp.type == "transmission" and hasattr(comp, 'import_tariff'):
+                # Grid import costs
+                if hasattr(comp, 'P_draw') and comp.P_draw is not None:
+                    cost += cp.sum(comp.P_draw) * comp.import_tariff
 
-                # Export revenue (negative cost)
-                if 'P_feed' in comp.flows.get('sink', {}):
-                    flow = comp.flows['sink']['P_feed']['value']
-                    if isinstance(flow, cp.Variable):
-                        cost -= cp.sum(flow) * getattr(comp, 'feed_in_tariff', 0.08)
+                # Grid export revenue (negative cost)
+                if hasattr(comp, 'P_feed') and comp.P_feed is not None:
+                    cost -= cp.sum(comp.P_feed) * comp.feed_in_tariff
+
+            # Add other operational costs if available
+            # e.g., maintenance, fuel costs, etc.
 
         return cp.Minimize(cost)
 
@@ -192,14 +250,13 @@ class MILPSolver(BaseSolver):
         """Minimize CO2 emissions."""
         co2 = 0
 
+        # Grid emissions (assuming grid has carbon intensity)
+        grid_carbon_intensity = 0.5  # kg CO2/kWh (example value)
+
         for comp in self.system.components.values():
-            if hasattr(comp, 'environmental') and comp.environmental:
-                co2_rate = comp.environmental.co2_operational
-                # Sum all output flows from this component
-                for flow_dict in comp.flows.values():
-                    for flow in flow_dict.values():
-                        if isinstance(flow['value'], cp.Variable):
-                            co2 += cp.sum(flow['value']) * co2_rate
+            if comp.type == "transmission":
+                if hasattr(comp, 'P_draw') and comp.P_draw is not None:
+                    co2 += cp.sum(comp.P_draw) * grid_carbon_intensity
 
         return cp.Minimize(co2)
 
@@ -208,12 +265,11 @@ class MILPSolver(BaseSolver):
         grid_usage = 0
 
         for comp in self.system.components.values():
-            if comp.type == "transmission" and comp.medium == "electricity":
-                # Penalize both import and export
-                for flow_dict in comp.flows.values():
-                    for flow in flow_dict.values():
-                        if isinstance(flow['value'], cp.Variable):
-                            grid_usage += cp.sum(flow['value'])
+            if comp.type == "transmission":
+                if hasattr(comp, 'P_draw') and comp.P_draw is not None:
+                    grid_usage += cp.sum(comp.P_draw)
+                if hasattr(comp, 'P_feed') and comp.P_feed is not None:
+                    grid_usage += cp.sum(comp.P_feed)
 
         return cp.Minimize(grid_usage)
 
@@ -221,14 +277,23 @@ class MILPSolver(BaseSolver):
         """Select appropriate solver based on availability."""
         try:
             # Try GLPK first (open source)
-            return cp.GLPK
+            import cvxpy.settings as s
+            if s.GLPK in cp.installed_solvers():
+                return cp.GLPK
         except:
-            try:
-                # Try CBC (open source)
+            pass
+
+        try:
+            # Try CBC (open source)
+            import cvxpy.settings as s
+            if s.CBC in cp.installed_solvers():
                 return cp.CBC
-            except:
-                # Fall back to default
-                return None
+        except:
+            pass
+
+        # Fall back to default
+        logger.info("Using default CVXPY solver")
+        return None
 
     def extract_results(self):
         """Convert CVXPY variable values to numpy arrays."""
@@ -236,13 +301,44 @@ class MILPSolver(BaseSolver):
             logger.warning(f"Problem not optimal, status: {self.problem.status}")
             return
 
+        logger.info("Extracting optimization results")
+
+        # Extract component variable values
+        for comp in self.system.components.values():
+            # Battery storage levels
+            if comp.type == "storage":
+                if hasattr(comp, 'E_opt') and isinstance(comp.E_opt, cp.Variable):
+                    comp.E = comp.E_opt.value
+                    logger.debug(f"Extracted storage levels for {comp.name}")
+
+                if hasattr(comp, 'P_cha') and isinstance(comp.P_cha, cp.Variable):
+                    comp.P_charge = comp.P_cha.value
+
+                if hasattr(comp, 'P_dis') and isinstance(comp.P_dis, cp.Variable):
+                    comp.P_discharge = comp.P_dis.value
+
+            # Grid flows
+            elif comp.type == "transmission":
+                if hasattr(comp, 'P_draw') and isinstance(comp.P_draw, cp.Variable):
+                    comp.P_import = comp.P_draw.value
+
+                if hasattr(comp, 'P_feed') and isinstance(comp.P_feed, cp.Variable):
+                    comp.P_export = comp.P_feed.value
+
+            # Generation
+            elif comp.type == "generation":
+                if hasattr(comp, 'P_out') and isinstance(comp.P_out, cp.Variable):
+                    comp.P_generation = comp.P_out.value
+
+            # Consumption
+            elif comp.type == "consumption":
+                if hasattr(comp, 'P_in') and isinstance(comp.P_in, cp.Variable):
+                    comp.P_consumption = comp.P_in.value
+
         # Extract flow values
         for flow_key, flow_data in self.system.flows.items():
             if isinstance(flow_data['value'], cp.Variable):
                 flow_data['value'] = flow_data['value'].value
+                logger.debug(f"Extracted flow values for {flow_key}")
 
-        # Extract storage levels
-        for comp in self.system.components.values():
-            if comp.type == "storage":
-                if hasattr(comp, 'E_opt') and isinstance(comp.E_opt, cp.Variable):
-                    comp.E = comp.E_opt.value
+        logger.info("Result extraction complete")

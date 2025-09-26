@@ -1,61 +1,112 @@
-"""Battery component with MILP optimization support."""
+"""Battery storage component with MILP optimization support."""
 import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import logging
 
 from ..shared.registry import register_component
-from ..shared.component import Component
+from ..shared.component import Component, ComponentParams
+from ..shared.archetypes import StorageTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseStorageComponent
 
 logger = logging.getLogger(__name__)
 
 
-class BatteryParams(BaseModel):
-    """Battery parameters matching original Systemiser."""
-    P_max: float = Field(5.0, description="Max charge/discharge power [kW]")
-    E_max: float = Field(10.0, description="Storage capacity [kWh]")
-    E_init: float = Field(5.0, description="Initial energy [kWh]")
-    eta_charge: float = Field(0.95, description="Charge efficiency")
-    eta_discharge: float = Field(0.95, description="Discharge efficiency")
+# =============================================================================
+# BATTERY-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
+# =============================================================================
+
+class BatteryTechnicalParams(StorageTechnicalParams):
+    """Battery-specific technical parameters extending storage archetype."""
+
+    # Battery-specific additions
+    temperature_coefficient_capacity: Optional[float] = Field(
+        None,
+        description="Temperature coefficient for capacity (%/°C)"
+    )
+    temperature_coefficient_charge: Optional[float] = Field(
+        None,
+        description="Temperature coefficient for charging (%/°C)"
+    )
+
+    # STANDARD fidelity additions
+    degradation_model: Optional[Dict[str, float]] = Field(
+        None,
+        description="Battery degradation model parameters"
+    )
+
+    # DETAILED fidelity parameters
+    voltage_curve: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Voltage vs SOC curve for detailed modeling"
+    )
+
+    # RESEARCH fidelity parameters
+    electrochemical_model: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Detailed electrochemical model parameters"
+    )
+
+
+class BatteryParams(ComponentParams):
+    """Battery parameters using the hierarchical technical parameter system."""
+    technical: BatteryTechnicalParams = Field(
+        default_factory=lambda: BatteryTechnicalParams(
+            capacity_nominal=10.0,  # Default 10 kWh
+            max_charge_rate=5.0,    # Default 5 kW charge
+            max_discharge_rate=5.0, # Default 5 kW discharge
+            efficiency_roundtrip=0.95,
+            initial_soc_pct=0.5,
+            fidelity_level=FidelityLevel.STANDARD
+        ),
+        description="Technical parameters following the hierarchical archetype system"
+    )
 
 
 @register_component("Battery")
-class Battery(Component):
-    """Battery storage component with CVXPY optimization support."""
+class Battery(BaseStorageComponent):
+    """Battery storage component with inherited rule-based physics.
+
+    Inherits rule_based_update_state from BaseStorageComponent for
+    proper separation of concerns and DRY principle.
+    """
 
     PARAMS_MODEL = BatteryParams
 
     def _post_init(self):
-        """Initialize battery-specific attributes after DRY parameter unpacking."""
+        """Initialize battery attributes - matching original Systemiser exactly."""
         self.type = "storage"
         self.medium = "electricity"
 
-        # DRY pattern eliminates these lines (auto-unpacked from params):
-        # self.P_max = params.P_max
-        # self.E_max = params.E_max
-        # self.E_init = params.E_init
-        # self.eta_charge = params.eta_charge
-        # self.eta_discharge = params.eta_discharge
+        # Extract parameters from technical block
+        tech = self.technical
 
-        # Use charge efficiency as base eta for compatibility
-        self.eta = self.eta_charge
+        # Core parameters - EXACTLY as original Systemiser expects
+        self.E_max = tech.capacity_nominal  # kWh
+        self.P_max = max(tech.max_charge_rate, tech.max_discharge_rate)  # kW
+        self.eta = tech.efficiency_roundtrip  # Single efficiency value
+        self.E_init = tech.capacity_nominal * tech.initial_soc_pct
 
         # Storage array for rule-based solver
         self.E = None  # Will be initialized by solver
 
-        # CVXPY variables (created later by add_optimization_vars)
+        # CVXPY variables (for MILP solver)
         self.E_opt = None
         self.P_cha = None
         self.P_dis = None
 
-    def add_optimization_vars(self, N: int):
-        """Create CVXPY optimization variables."""
-        self.E_opt = cp.Variable(N, name=f'{self.name}_E', nonneg=True)
-        self.P_cha = cp.Variable(N, name=f'{self.name}_P_cha', nonneg=True)
-        self.P_dis = cp.Variable(N, name=f'{self.name}_P_dis', nonneg=True)
+    # The battery inherits rule_based_update_state from BaseStorageComponent
+    # This provides proper simultaneous charge/discharge capability
+    # while maintaining clean separation of concerns
 
-        # Add charge/discharge as flows
+    def add_optimization_vars(self, N: int):
+        """Create CVXPY optimization variables for MILP solver."""
+        self.E_opt = cp.Variable(N + 1, name=f'{self.name}_energy', nonneg=True)
+        self.P_cha = cp.Variable(N, name=f'{self.name}_charge', nonneg=True)
+        self.P_dis = cp.Variable(N, name=f'{self.name}_discharge', nonneg=True)
+
+        # Add flows
         self.flows['sink']['P_cha'] = {
             'type': 'electricity',
             'value': self.P_cha
@@ -66,9 +117,9 @@ class Battery(Component):
         }
 
     def set_constraints(self) -> List:
-        """Set CVXPY constraints for battery operation."""
+        """Set CVXPY constraints for battery - matching original Systemiser."""
         constraints = []
-        N = self.E_opt.shape[0] if self.E_opt is not None else 0
+        N = self.E_opt.shape[0] - 1 if self.E_opt is not None else 0
 
         if self.E_opt is not None:
             # Initial state
@@ -84,45 +135,11 @@ class Battery(Component):
             if self.P_dis is not None:
                 constraints.append(self.P_dis <= self.P_max)
 
-            # Energy balance dynamics (matching original Systemiser)
-            for t in range(1, N):
+            # Energy balance - EXACTLY as original Systemiser
+            for t in range(N):
                 constraints.append(
-                    self.E_opt[t] == self.E_opt[t-1] +
-                    self.eta * (self.P_cha[t] - self.P_dis[t])
+                    self.E_opt[t + 1] == self.E_opt[t] +
+                    self.eta * self.P_cha[t] - self.P_dis[t] / self.eta
                 )
 
         return constraints
-
-    def rule_based_charge(self, power: float, t: int) -> float:
-        """Charge battery in rule-based mode."""
-        if self.E is None:
-            return 0.0
-
-        # Available capacity
-        available_capacity = self.E_max - self.E[t]
-
-        # Maximum charge power considering efficiency
-        max_charge = min(power, self.P_max, available_capacity / self.eta)
-
-        # Update state
-        actual_energy = max_charge * self.eta
-        self.E[t+1] = self.E[t] + actual_energy if t < len(self.E)-1 else self.E[t]
-
-        return max_charge
-
-    def rule_based_discharge(self, power: float, t: int) -> float:
-        """Discharge battery in rule-based mode."""
-        if self.E is None:
-            return 0.0
-
-        # Available energy
-        available_energy = self.E[t]
-
-        # Maximum discharge power considering efficiency
-        max_discharge = min(power, self.P_max, available_energy * self.eta)
-
-        # Update state
-        actual_energy = max_discharge / self.eta
-        self.E[t+1] = self.E[t] - actual_energy if t < len(self.E)-1 else self.E[t]
-
-        return max_discharge

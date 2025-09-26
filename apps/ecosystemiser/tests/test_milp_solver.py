@@ -13,12 +13,13 @@ eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
 sys.path.insert(0, str(eco_path))
 
 from system_model.system import System
-from system_model.components.energy.battery import Battery, BatteryParams
-from system_model.components.energy.grid import Grid, GridParams
-from system_model.components.energy.solar_pv import SolarPV, SolarPVParams
-from system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
-from solver.milp_solver_v2 import MILPSolver
+from system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
+from system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
+from system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
+from system_model.components.energy.power_demand import PowerDemand, PowerDemandParams, PowerDemandTechnicalParams
+from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
+from system_model.components.shared.archetypes import FidelityLevel
 
 
 def create_test_system():
@@ -41,26 +42,57 @@ def create_test_system():
     # Create components
     grid = Grid(
         name='Grid',
-        params=GridParams(P_max=100, import_tariff=0.25, feed_in_tariff=0.08)
+        params=GridParams(
+            technical=GridTechnicalParams(
+                capacity_nominal=100.0,  # Required by base archetype
+                max_import=100.0,
+                max_export=100.0,
+                import_tariff=0.25,
+                feed_in_tariff=0.08,
+                fidelity_level=FidelityLevel.SIMPLE
+            )
+        )
     )
     system.add_component(grid)
 
     battery = Battery(
         name='Battery',
-        params=BatteryParams(P_max=5, E_max=10, E_init=5, eta_charge=0.95, eta_discharge=0.95)
+        params=BatteryParams(
+            technical=BatteryTechnicalParams(
+                capacity_nominal=10.0,
+                max_charge_rate=5.0,
+                max_discharge_rate=5.0,
+                efficiency_roundtrip=0.90,
+                initial_soc=0.5,
+                fidelity_level=FidelityLevel.SIMPLE
+            )
+        )
     )
     system.add_component(battery)
 
     solar = SolarPV(
         name='SolarPV',
-        params=SolarPVParams(P_profile=solar_profile.tolist(), P_max=10)
+        params=SolarPVParams(
+            technical=SolarPVTechnicalParams(
+                capacity_nominal=10.0,
+                fidelity_level=FidelityLevel.SIMPLE
+            )
+        )
     )
+    solar.profile = solar_profile  # Profile assigned separately
     system.add_component(solar)
 
     demand = PowerDemand(
         name='PowerDemand',
-        params=PowerDemandParams(P_profile=demand_profile.tolist(), P_max=5)
+        params=PowerDemandParams(
+            technical=PowerDemandTechnicalParams(
+                capacity_nominal=5.0,  # Required by base archetype
+                peak_demand=5.0,
+                fidelity_level=FidelityLevel.SIMPLE
+            )
+        )
     )
+    demand.profile = demand_profile  # Profile assigned separately
     system.add_component(demand)
 
     # Create connections (not used directly by MILP but good for structure)

@@ -1,0 +1,74 @@
+# Example Battery Component with Explicit Fidelity Control
+# This demonstrates the hierarchical parameter system with fidelity levels
+
+component_id: "high_fidelity_battery"
+type: "Battery"
+category: "storage"
+manufacturer: "Research Lab"
+model: "LFP-10kWh-Research"
+
+# Technical parameters with explicit fidelity control
+technical:
+  # EXPLICIT FIDELITY CONTROL
+  fidelity_level: "detailed"  # Options: simple, standard, detailed, research
+
+  # Basic parameters (always used)
+  capacity_nominal: 10.0      # kWh
+  lifetime_years: 15
+
+  # STANDARD fidelity parameters
+  efficiency_roundtrip: 0.92
+  soc_min: 0.1                # 10% minimum SOC
+  soc_max: 0.9                # 90% maximum SOC
+  initial_soc_pct: 0.5
+  self_discharge_rate: 0.0001  # 0.01% per hour
+
+  # Battery-specific STANDARD parameters
+  max_charge_rate: 0.5        # 0.5C (2 hours to full)
+  max_discharge_rate: 1.0     # 1C (1 hour to empty)
+
+  # DETAILED fidelity parameters (activated when fidelity_level >= "detailed")
+  temperature_coefficient_capacity: -0.005  # -0.5% per °C
+  temperature_coefficient_charge: -0.003    # -0.3% per °C
+
+  degradation_model:
+    calendar_fade_rate: 0.02   # 2% per year
+    cycle_fade_rate: 0.00003   # Per equivalent full cycle
+    temperature_acceleration: 2.0  # Doubles every 10°C
+
+  # RESEARCH fidelity parameters (only used at highest fidelity)
+  electrochemical_model:
+    anode_material: "graphite"
+    cathode_material: "LFP"
+    electrolyte_type: "liquid_organic"
+    sei_growth_rate: 0.001
+    lithium_plating_threshold: 4.1  # Voltage threshold
+    internal_resistance: 0.002       # Ohms
+
+  thermal_model:
+    thermal_mass: 50.0         # kJ/K
+    heat_transfer_coefficient: 2.0  # W/K
+    heat_generation_model: "I2R_plus_entropy"
+
+# Economic parameters
+economic:
+  capex: 500    # EUR/kWh
+  opex_fixed: 10  # EUR/kWh/year
+  opex_variable: 0.001  # EUR/kWh cycled
+
+# Validation thresholds
+validation:
+  min_roundtrip_efficiency: 0.85
+  max_degradation_rate: 0.05  # 5% per year max
+
+# Usage Notes:
+# - At SIMPLE fidelity: Only basic energy balance, fastest simulation
+# - At STANDARD fidelity: Includes SOC limits and self-discharge
+# - At DETAILED fidelity: Adds temperature effects and degradation
+# - At RESEARCH fidelity: Full electrochemical and thermal modeling
+
+# Performance Impact:
+# - SIMPLE: Adds ~0.01s per timestep
+# - STANDARD: Adds ~0.02s per timestep
+# - DETAILED: Adds ~0.1s per timestep
+# - RESEARCH: Adds ~1s per timestep

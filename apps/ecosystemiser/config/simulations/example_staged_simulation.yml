@@ -1,0 +1,64 @@
+# Example: Staged Simulation for Multi-Domain Energy Systems
+# This demonstrates solving thermal and electrical systems sequentially
+# to manage complexity in coupled energy-water systems
+
+simulation_id: "integrated_energy_water_staged"
+
+# Staged simulation configuration
+stages:
+  # Stage 1: Solve the thermal system first
+  - stage_name: "thermal_optimization"
+    system_config_path: "config/systems/thermal_system.yml"
+    solver_type: "milp"
+
+    # Define outputs from this stage to pass to next stage
+    outputs_to_pass:
+      - component: "HeatPump"
+        attribute: "electricity_consumption"
+        as_profile_name: "heat_pump_electrical_demand"
+
+      - component: "ElectricBoiler"
+        attribute: "electricity_consumption"
+        as_profile_name: "boiler_electrical_demand"
+
+  # Stage 2: Solve the electrical system with thermal loads
+  - stage_name: "electrical_optimization"
+    system_config_path: "config/systems/electrical_system.yml"
+    solver_type: "milp"
+
+    # Use outputs from thermal stage as inputs
+    inputs_from_stage:
+      - from_stage: "thermal_optimization"
+        profile_name: "heat_pump_electrical_demand"
+        assign_to_component: "ThermalLoads"
+
+      - from_stage: "thermal_optimization"
+        profile_name: "boiler_electrical_demand"
+        assign_to_component: "ThermalLoads"
+
+    # Could pass outputs to a third stage (e.g., water pumping)
+    outputs_to_pass:
+      - component: "Battery"
+        attribute: "state_of_charge"
+        as_profile_name: "battery_soc_profile"
+
+# Global configuration applied to all stages
+solver_config:
+  time_horizon: 168  # One week
+  time_step: 60      # Hourly
+
+climate_input:
+  latitude: 52.5
+  longitude: 4.9
+  year: 2023
+
+output_config:
+  directory: "outputs/staged_simulation"
+  format: "json"
+  save_stage_results: true  # Save intermediate results from each stage
+
+# Benefits of Staged Approach:
+# 1. Reduces problem size: Each stage has fewer variables
+# 2. Domain expertise: Different fidelity levels per domain
+# 3. Debugging: Can validate each domain independently
+# 4. Parallelization potential: Some stages could run in parallel

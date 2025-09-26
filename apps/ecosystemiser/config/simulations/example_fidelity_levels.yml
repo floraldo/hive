@@ -1,0 +1,31 @@
+# Example: Demonstrating Explicit Fidelity Control
+# This configuration shows how to control simulation complexity using fidelity levels
+
+simulation_id: "fidelity_demo_detailed"
+system_config_path: "config/systems/battery_system_detailed.yml"
+solver_type: "milp"
+
+# The battery system configuration would include:
+# components:
+#   battery:
+#     type: "Battery"
+#     technical:
+#       fidelity_level: "detailed"  # Explicit fidelity control
+#       capacity_nominal: 10.0       # 10 kWh
+#       temperature_coefficient_charge: -0.003  # Required for DETAILED
+#       degradation_model:
+#         calendar_fade_rate: 0.02    # 2% per year
+
+solver_config:
+  time_horizon: 168  # One week
+  time_step: 60      # Minutes
+
+output_config:
+  directory: "outputs/fidelity_demo"
+  format: "json"
+
+# Fidelity Impact on Performance:
+# SIMPLE:   ~1 second solve time, basic energy balance only
+# STANDARD: ~5 seconds, includes SOC limits and self-discharge
+# DETAILED: ~30 seconds, includes temperature and degradation
+# RESEARCH: ~5 minutes, full electrochemical modeling

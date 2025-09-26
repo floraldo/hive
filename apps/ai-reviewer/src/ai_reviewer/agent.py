@@ -12,16 +12,19 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 from pathlib import Path
 
-from hive_core_db import HiveDatabase, Task, TaskStatus
-from hive_config import HiveConfig
+# Add paths for Hive packages
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-core-db" / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-logging" / "src"))
+
+import hive_core_db
 from hive_logging import get_logger
 from rich.console import Console
 from rich.live import Live
 from rich.table import Table
 from rich.panel import Panel
 
-from .reviewer import ReviewEngine, ReviewDecision
-from .database_adapter import DatabaseAdapter
+from ai_reviewer.reviewer import ReviewEngine, ReviewDecision
+from ai_reviewer.database_adapter import DatabaseAdapter
 
 
 console = Console()
@@ -35,7 +38,6 @@ class ReviewAgent:
 
     def __init__(
         self,
-        db: HiveDatabase,
         review_engine: ReviewEngine,
         polling_interval: int = 30,
         test_mode: bool = False
@@ -44,13 +46,11 @@ class ReviewAgent:
         Initialize the review agent
 
         Args:
-            db: Database connection
             review_engine: AI review engine
             polling_interval: Seconds between queue checks
             test_mode: Run with shorter intervals for testing
         """
-        self.db = db
-        self.adapter = DatabaseAdapter(db)
+        self.adapter = DatabaseAdapter()
         self.review_engine = review_engine
         self.polling_interval = polling_interval if not test_mode else 5
         self.test_mode = test_mode
@@ -116,22 +116,22 @@ class ReviewAgent:
             logger.error(f"Error processing review queue: {e}")
             self.stats["errors"] += 1
 
-    async def _review_task(self, task: Task):
+    async def _review_task(self, task: Dict[str, Any]):
         """Review a single task"""
         try:
-            console.print(f"\n[cyan]Reviewing task {task.id}: {task.description}[/cyan]")
+            console.print(f"\n[cyan]Reviewing task {task['id']}: {task.get('description', 'No description')}[/cyan]")
 
             # Retrieve task artifacts
-            code_files = self.adapter.get_task_code_files(task.id)
-            test_results = self.adapter.get_test_results(task.id)
-            transcript = self.adapter.get_task_transcript(task.id)
+            code_files = self.adapter.get_task_code_files(task['id'])
+            test_results = self.adapter.get_test_results(task['id'])
+            transcript = self.adapter.get_task_transcript(task['id'])
 
             if not code_files:
-                logger.warning(f"No code files found for task {task.id}")
+                logger.warning(f"No code files found for task {task['id']}")
                 # Mark as needing escalation
                 self.adapter.update_task_status(
-                    task.id,
-                    TaskStatus.ESCALATED,
+                    task['id'],
+                    "escalated",
                     {"reason": "No code files found for review"}
                 )
                 self.stats["escalated"] += 1
@@ -139,8 +139,8 @@ class ReviewAgent:
 
             # Perform AI review
             result = self.review_engine.review_task(
-                task_id=task.id,
-                task_description=task.description,
+                task_id=task['id'],
+                task_description=task.get('description', 'No description'),
                 code_files=code_files,
                 test_results=test_results,
                 transcript=transcript
@@ -157,12 +157,12 @@ class ReviewAgent:
             self._update_stats_for_decision(result.decision)
 
         except Exception as e:
-            logger.error(f"Error reviewing task {task.id}: {e}")
+            logger.error(f"Error reviewing task {task['id']}: {e}")
             self.stats["errors"] += 1
             # Mark task as escalated on error
             self.adapter.update_task_status(
-                task.id,
-                TaskStatus.ESCALATED,
+                task['id'],
+                "escalated",
                 {"error": str(e)}
             )
 
@@ -210,7 +210,7 @@ class ReviewAgent:
             for suggestion in result.suggestions:
                 console.print(f"  • {suggestion}")
 
-    async def _execute_decision(self, task: Task, result):
+    async def _execute_decision(self, task: Dict[str, Any], result):
         """Execute the review decision"""
         new_status = {
             ReviewDecision.APPROVE: TaskStatus.APPROVED,
@@ -221,7 +221,7 @@ class ReviewAgent:
 
         # Update task status with review results
         self.adapter.update_task_status(
-            task.id,
+            task['id'],
             new_status,
             result.to_dict()
         )
@@ -230,13 +230,13 @@ class ReviewAgent:
         if result.decision == ReviewDecision.APPROVE:
             await self._trigger_next_phase(task)
 
-        logger.info(f"Task {task.id} review completed: {result.decision.value}")
+        logger.info(f"Task {task['id']} review completed: {result.decision.value}")
 
-    async def _trigger_next_phase(self, task: Task):
+    async def _trigger_next_phase(self, task: Dict[str, Any]):
         """Trigger next phase for approved tasks"""
         # This would integrate with the broader Hive system
         # For now, just log it
-        logger.info(f"Task {task.id} approved, ready for next phase")
+        logger.info(f"Task {task['id']} approved, ready for next phase")
 
     def _update_stats_for_decision(self, decision: ReviewDecision):
         """Update statistics based on decision"""
@@ -311,13 +311,11 @@ def main():
     args = parser.parse_args()
 
     # Initialize components
-    config = HiveConfig()
-    db = HiveDatabase(config.database_url)
-    review_engine = ReviewEngine(api_key=args.api_key or config.anthropic_api_key)
+    # Use mock mode for test mode
+    review_engine = ReviewEngine(mock_mode=args.test_mode)
 
     # Create and run agent
     agent = ReviewAgent(
-        db=db,
         review_engine=review_engine,
         polling_interval=args.polling_interval,
         test_mode=args.test_mode

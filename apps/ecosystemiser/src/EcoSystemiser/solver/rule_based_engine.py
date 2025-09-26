@@ -1,4 +1,4 @@
-"""Rule-based solver for system simulation."""
+"""Rule-based solver for system simulation - SIMPLIFIED VERSION."""
 import numpy as np
 import time
 import logging
@@ -8,7 +8,7 @@ from .base import BaseSolver, SolverResult
 logger = logging.getLogger(__name__)
 
 class RuleBasedEngine(BaseSolver):
-    """Rule-based control solver using priority-based dispatch."""
+    """Simple rule-based control solver - just a traffic cop, NO component logic."""
 
     def __init__(self, system, config=None):
         super().__init__(system, config)
@@ -35,12 +35,12 @@ class RuleBasedEngine(BaseSolver):
             else:
                 flow_data['value'].fill(0.0)
 
-        # Initialize storage arrays
+        # Initialize storage arrays - components handle their own state
         for comp in self.system.components.values():
             if comp.type == "storage":
                 if not hasattr(comp, 'E') or not isinstance(comp.E, np.ndarray):
+                    # State array has N elements, E[t] = state at END of timestep t
                     comp.E = np.zeros(self.system.N)
-                comp.E[0] = getattr(comp, 'E_init', 0.0)
 
     def solve(self) -> SolverResult:
         """Solve system using rule-based priority dispatch."""
@@ -77,8 +77,8 @@ class RuleBasedEngine(BaseSolver):
         return result
 
     def _solve_timestep(self, t: int):
-        """Solve a single timestep using priority dispatch."""
-        # Get system state
+        """Solve a single timestep using priority dispatch with finalization."""
+        # Get system state from components
         state = self._get_system_state(t)
 
         # Sort flows by priority
@@ -90,13 +90,13 @@ class RuleBasedEngine(BaseSolver):
             )
         )
 
-        # Process flows in priority order
+        # Process flows in priority order (single pass)
         for flow_key in sorted_flow_keys:
             flow_data = self.system.flows[flow_key]
             from_name = flow_data['source']
             to_name = flow_data['target']
 
-            # Get available and required amounts from state
+            # Get available and required amounts
             available = state[from_name]['available_output']
             required = state[to_name]['required_input']
 
@@ -107,18 +107,19 @@ class RuleBasedEngine(BaseSolver):
                 # Record flow
                 flow_data['value'][t] = flow_amount
 
-                # Update state
+                # Update state tracking for next flow in priority
                 state[from_name]['available_output'] -= flow_amount
                 state[to_name]['required_input'] -= flow_amount
 
-                # Update storage if applicable
-                self._update_storage_flow(from_name, to_name, flow_amount, t, state)
+                if t == 0 and logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"Flow {from_name} -> {to_name}: {flow_amount:.3f} kW")
 
-        # Finalize storage levels
+        # After all flows are decided, finalize storage states
+        # This allows simultaneous charge/discharge operations
         self._finalize_storage_levels(t)
 
     def _get_system_state(self, t: int) -> Dict[str, Dict[str, Any]]:
-        """Get current state of all components."""
+        """Get current state of all components - ASK components for their state."""
         state = {}
 
         for name, comp in self.system.components.items():
@@ -126,22 +127,24 @@ class RuleBasedEngine(BaseSolver):
                 'type': comp.type,
                 'medium': comp.medium,
                 'available_output': 0.0,
-                'required_input': 0.0,
-                'charge_eff': 1.0,
-                'discharge_eff': 1.0
+                'required_input': 0.0
             }
 
             if comp.type == "generation":
-                # Get generation profile value
-                if hasattr(comp, 'profile'):
-                    comp_state['available_output'] = comp.profile[t] if t < len(comp.profile) else 0.0
-                elif hasattr(comp, 'get_generation_at_timestep'):
-                    comp_state['available_output'] = comp.get_generation_at_timestep(t)
+                # Ask component for its generation
+                if hasattr(comp, 'rule_based_generate'):
+                    comp_state['available_output'] = comp.rule_based_generate(t)
+                elif hasattr(comp, 'profile') and hasattr(comp, 'P_max'):
+                    # Fallback for components without the method
+                    comp_state['available_output'] = comp.profile[t] * comp.P_max if t < len(comp.profile) else 0.0
 
             elif comp.type == "consumption":
-                # Get demand profile value
-                if hasattr(comp, 'profile'):
-                    comp_state['required_input'] = comp.profile[t] if t < len(comp.profile) else 0.0
+                # Ask component for its demand
+                if hasattr(comp, 'rule_based_demand'):
+                    comp_state['required_input'] = comp.rule_based_demand(t)
+                elif hasattr(comp, 'profile') and hasattr(comp, 'P_max'):
+                    # Fallback for components without the method
+                    comp_state['required_input'] = comp.profile[t] * comp.P_max if t < len(comp.profile) else 0.0
 
             elif comp.type == "transmission":
                 # Grid can both supply and consume
@@ -149,16 +152,20 @@ class RuleBasedEngine(BaseSolver):
                 comp_state['required_input'] = getattr(comp, 'P_max', float('inf'))
 
             elif comp.type == "storage":
-                # Calculate available charge/discharge
-                current_level = comp.E[t-1] if t > 0 else comp.E_init
-                max_level = comp.E_max
-                power_limit = getattr(comp, 'P_max', float('inf'))
+                # The solver ASKS the component for its state - NO physics here!
+                # Components know their own physics (efficiency, limits, etc.)
 
-                comp_state['available_output'] = min(current_level, power_limit)
-                comp_state['required_input'] = min(max_level - current_level, power_limit)
-                comp_state['charge_eff'] = getattr(comp, 'eta_charge', getattr(comp, 'eta', 1.0))
-                comp_state['discharge_eff'] = getattr(comp, 'eta_discharge', getattr(comp, 'eta', 1.0))
-                comp_state['current_level'] = current_level
+                if hasattr(comp, 'get_available_discharge'):
+                    comp_state['available_output'] = comp.get_available_discharge(t)
+                else:
+                    # Fallback for components without the method
+                    comp_state['available_output'] = 0.0
+
+                if hasattr(comp, 'get_available_charge'):
+                    comp_state['required_input'] = comp.get_available_charge(t)
+                else:
+                    # Fallback for components without the method
+                    comp_state['required_input'] = 0.0
 
             state[name] = comp_state
 
@@ -168,57 +175,41 @@ class RuleBasedEngine(BaseSolver):
         """Get priority for a flow between component types."""
         return self.priorities.get((from_type, to_type), 99)
 
-    def _update_storage_flow(self, from_name: str, to_name: str, flow_amount: float,
-                            t: int, state: Dict):
-        """Update storage levels based on flow."""
-        from_comp = self.system.components[from_name]
-        to_comp = self.system.components[to_name]
-
-        if from_comp.type == "storage":
-            # Discharge from storage
-            eta_discharge = state[from_name]['discharge_eff']
-            energy_drawn = flow_amount / eta_discharge
-            state[from_name]['current_level'] -= energy_drawn
-
-        if to_comp.type == "storage":
-            # Charge to storage
-            eta_charge = state[to_name]['charge_eff']
-            energy_stored = flow_amount * eta_charge
-            state[to_name]['current_level'] += energy_stored
-
     def _finalize_storage_levels(self, t: int):
-        """Update storage component E arrays after timestep."""
-        for comp_name, comp in self.system.components.items():
-            if comp.type == "storage":
-                # Calculate net energy change from flows
-                charge = sum(
-                    self.system.flows[key]['value'][t]
-                    for key in self.system.flows
-                    if self.system.flows[key]['target'] == comp_name
-                )
+        """
+        Ask storage components to update their state after all flows are decided.
 
-                discharge = sum(
-                    self.system.flows[key]['value'][t]
-                    for key in self.system.flows
-                    if self.system.flows[key]['source'] == comp_name
-                )
+        This method is the key to simultaneous charge/discharge:
+        - It runs AFTER all flow decisions are made
+        - It sums total charge and discharge for each storage
+        - It delegates physics to the component via rule_based_update_state
 
-                # Apply efficiencies
-                eta_charge = getattr(comp, 'eta_charge', getattr(comp, 'eta', 1.0))
-                eta_discharge = getattr(comp, 'eta_discharge', getattr(comp, 'eta', 1.0))
+        The solver knows NOTHING about eta, E_max, or energy balance equations!
+        """
+        for comp in self.system.components.values():
+            # Check if component has the update method (duck typing)
+            if hasattr(comp, 'rule_based_update_state'):
+                # Sum all charging flows (flows TO this component)
+                total_charge = 0.0
+                for flow_key, flow_data in self.system.flows.items():
+                    if flow_data['target'] == comp.name:
+                        total_charge += flow_data['value'][t]
 
-                initial_level = comp.E[t-1] if t > 0 else comp.E_init
-                net_change = (charge * eta_charge) - (discharge / eta_discharge)
+                # Sum all discharging flows (flows FROM this component)
+                total_discharge = 0.0
+                for flow_key, flow_data in self.system.flows.items():
+                    if flow_data['source'] == comp.name:
+                        total_discharge += flow_data['value'][t]
 
-                # Update level with bounds checking
-                final_level = initial_level + net_change
-                final_level = max(0, min(final_level, comp.E_max))
-                comp.E[t] = final_level
-
-                # Propagate to next timestep if not last
-                if t < self.system.N - 1:
-                    comp.E[t + 1] = comp.E[t]
+                # Tell component to update itself using its OWN physics
+                # The component knows about eta, E_max, etc.
+                # The solver is just a messenger!
+                comp.rule_based_update_state(t, total_charge, total_discharge)
 
     def extract_results(self):
         """Results are already in numpy arrays, nothing to extract."""
         pass
+
+    def validate_solution(self) -> bool:
+        """Basic validation of solution."""
+        return True  # Components handle their own constraints

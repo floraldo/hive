@@ -1,0 +1,30 @@
+# Municipal Water Grid Connection
+component_class: WaterGrid
+category: water
+provider: Municipal
+description: "Standard municipal water supply and wastewater discharge connection"
+
+# Grid parameters
+max_supply_m3h: 5.0           # Maximum water supply rate [m³/h]
+max_discharge_m3h: 4.0        # Maximum wastewater discharge [m³/h]
+supply_pressure_bar: 3.5      # Supply water pressure [bar]
+min_pressure_bar: 1.5         # Minimum acceptable pressure [bar]
+water_price_per_m3: 1.80      # Water price [USD/m³]
+wastewater_price_per_m3: 2.50 # Wastewater treatment price [USD/m³]
+connection_fee_monthly: 35.00  # Monthly connection fee [USD]
+supply_reliability: 0.995     # Grid reliability (99.5% uptime)
+water_quality_index: 0.98     # Water quality index (98% quality)
+
+# Economic parameters
+economic:
+  connection_cost: 2000        # USD - One-time connection cost
+  meter_rental: 10            # USD/month - Water meter rental
+  peak_surcharge: 0.50        # USD/m³ - Peak usage surcharge
+  discount_rate: 0.05
+
+# Environmental parameters
+environmental:
+  treatment_emissions: 0.4     # kg CO2/m³ - Treatment plant emissions
+  pumping_emissions: 0.2      # kg CO2/m³ - Distribution pumping
+  leakage_rate: 0.12          # 12% system-wide water losses
+  renewable_energy_share: 0.25 # 25% renewable energy in operations

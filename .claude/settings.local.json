@@ -33,7 +33,12 @@
       "Bash(git worktree:*)",
       "Bash(grep:*)",
       "Read(//c/git/SmartHoodsOptimisationTool/apps/EcoSystemiser/**)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Read(//c//**)",
+      "Bash(PYTHONPATH=src python -m EcoSystemiser.cli simulate validate config/systems/schoonschip_energy_simple.yml)",
+      "Bash(taskkill:*)",
+      "Bash(apps/ai-reviewer/start_reviewer.sh status:*)",
+      "Bash(poetry run:*)"
     ],
     "deny": [],
     "ask": []

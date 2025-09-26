@@ -114,7 +114,7 @@ def run_ecosystemiser_milp():
     from system_model.components.energy.grid import Grid, GridParams
     from system_model.components.energy.solar_pv import SolarPV, SolarPVParams
     from system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
-    from solver.milp_solver_v2 import MILPSolver
+    from solver.milp_solver import MILPSolver
     from solver.base import SolverConfig
 
     N = 24

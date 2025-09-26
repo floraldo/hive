@@ -1,0 +1,32 @@
+# Residential Water Demand Profile
+component_class: WaterDemand
+category: water
+type: residential
+description: "Typical residential water demand profile for a 4-person household"
+
+# Demand parameters
+base_demand_m3h: 0.025        # Base water demand [m³/h] (~600L/day)
+peak_factor: 3.0              # Peak demand multiplier (morning/evening peaks)
+seasonal_variation: 0.15      # Seasonal variation factor (15% variation)
+min_pressure_bar: 2.0         # Minimum required pressure [bar]
+priority_level: 1             # Highest priority for residential supply
+
+# Daily demand pattern (24-hour profile, normalized)
+daily_pattern: [
+  0.4, 0.3, 0.3, 0.3, 0.4, 0.6,    # 00:00-05:00 (night, minimal use)
+  0.9, 1.4, 1.2, 0.9, 0.7, 0.6,    # 06:00-11:00 (morning peak)
+  0.6, 0.6, 0.7, 0.8, 0.9, 1.1,    # 12:00-17:00 (afternoon)
+  1.3, 1.4, 1.2, 0.9, 0.7, 0.5     # 18:00-23:00 (evening peak)
+]
+
+# Economic parameters
+economic:
+  water_cost_per_m3: 1.50     # USD/m³ - Municipal water price
+  wastewater_cost_per_m3: 2.00  # USD/m³ - Wastewater treatment
+  connection_fee_monthly: 25.00  # USD/month - Service connection
+
+# Environmental parameters
+environmental:
+  water_stress_factor: 0.3     # Regional water stress (0=low, 1=high)
+  treatment_emissions: 0.5     # kg CO2/m³ - Water treatment emissions
+  distribution_losses: 0.08    # 8% distribution system losses

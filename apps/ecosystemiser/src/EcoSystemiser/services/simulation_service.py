@@ -5,6 +5,7 @@ from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
 import json
 import yaml
+from typing import List
 
 from ..system_model.system import System
 from ..utils.system_builder import SystemBuilder
@@ -16,15 +17,25 @@ from .results_io import ResultsIO
 
 logger = logging.getLogger(__name__)
 
+class StageConfig(BaseModel):
+    """Configuration for a single stage in staged simulation."""
+    stage_name: str
+    system_config_path: str
+    solver_type: str = "milp"
+    outputs_to_pass: Optional[List[Dict[str, Any]]] = None
+    inputs_from_stage: Optional[List[Dict[str, Any]]] = None
+
 class SimulationConfig(BaseModel):
     """Complete configuration for a simulation run."""
     simulation_id: str
-    system_config_path: str
+    system_config_path: Optional[str] = None  # Optional for staged simulations
     solver_type: str = "rule_based"
     solver_config: Optional[SolverConfig] = None
     climate_input: Optional[Dict[str, Any]] = None
     demand_input: Optional[Dict[str, Any]] = None
     output_config: Dict[str, Any] = Field(default_factory=dict)
+    # Support for staged simulations
+    stages: Optional[List[StageConfig]] = None
 
 class SimulationResult(BaseModel):
     """Result of a simulation run."""
@@ -50,6 +61,8 @@ class SimulationService:
     def run_simulation(self, config: SimulationConfig) -> SimulationResult:
         """Run a complete simulation from configuration.
 
+        Supports both single-run and staged simulations for multi-domain problems.
+
         Args:
             config: Simulation configuration
 
@@ -57,6 +70,10 @@ class SimulationService:
             SimulationResult with status and output paths
         """
         logger.info(f"Starting simulation: {config.simulation_id}")
+
+        # Check if this is a staged simulation
+        if config.stages:
+            return self._run_staged_simulation(config)
 
         try:
             # Load profiles
@@ -88,6 +105,130 @@ class SimulationService:
 
         except Exception as e:
             logger.error(f"Simulation failed: {e}")
+            return SimulationResult(
+                simulation_id=config.simulation_id,
+                status="error",
+                error=str(e)
+            )
+
+    def _run_staged_simulation(self, config: SimulationConfig) -> SimulationResult:
+        """Run a multi-stage simulation for domain decomposition.
+
+        This enables solving complex multi-domain problems (e.g., thermal→electrical)
+        by solving them in stages and passing intermediate results between stages.
+
+        Args:
+            config: Simulation configuration with stages
+
+        Returns:
+            SimulationResult with aggregated results
+        """
+        logger.info(f"Starting staged simulation with {len(config.stages)} stages")
+
+        intermediate_profiles = {}  # Store outputs between stages
+        stage_results = []
+        aggregated_kpis = {}
+
+        try:
+            # Load base profiles once
+            base_profiles = self._load_profiles(config)
+
+            # Execute each stage sequentially
+            for stage_idx, stage in enumerate(config.stages):
+                logger.info(f"Executing stage {stage_idx + 1}/{len(config.stages)}: {stage.stage_name}")
+
+                # Prepare profiles for this stage
+                stage_profiles = base_profiles.copy()
+
+                # Add inputs from previous stages
+                if stage.inputs_from_stage:
+                    for input_spec in stage.inputs_from_stage:
+                        from_stage = input_spec.get('from_stage')
+                        profile_name = input_spec.get('profile_name')
+
+                        if profile_name in intermediate_profiles:
+                            # Assign to the component or as a general profile
+                            assign_to = input_spec.get('assign_to_component')
+                            if assign_to:
+                                stage_profiles[f"{assign_to}_additional_demand"] = intermediate_profiles[profile_name]
+                            else:
+                                stage_profiles[profile_name] = intermediate_profiles[profile_name]
+
+                            logger.info(f"Passed profile '{profile_name}' from {from_stage} to {stage.stage_name}")
+
+                # Build and solve this stage's system
+                stage_config = SimulationConfig(
+                    simulation_id=f"{config.simulation_id}_{stage.stage_name}",
+                    system_config_path=stage.system_config_path,
+                    solver_type=stage.solver_type,
+                    solver_config=config.solver_config,  # Use global solver config
+                    output_config=config.output_config
+                )
+
+                # Build system for this stage
+                stage_system = self._build_system(stage_config, stage_profiles)
+
+                # Run solver for this stage
+                stage_solver_result = self._run_solver(stage_system, stage_config)
+
+                # Extract outputs to pass to next stage
+                if stage.outputs_to_pass:
+                    for output_spec in stage.outputs_to_pass:
+                        component_name = output_spec.get('component')
+                        attribute = output_spec.get('attribute')
+                        as_profile_name = output_spec.get('as_profile_name')
+
+                        # Extract the specified output from the component
+                        if component_name in stage_system.components:
+                            comp = stage_system.components[component_name]
+
+                            # Try to extract the attribute
+                            if hasattr(comp, attribute):
+                                profile_data = getattr(comp, attribute)
+                            elif 'flows' in dir(comp) and attribute in comp.flows.get('sink', {}):
+                                profile_data = comp.flows['sink'][attribute]['value']
+                            elif 'flows' in dir(comp) and attribute in comp.flows.get('source', {}):
+                                profile_data = comp.flows['source'][attribute]['value']
+                            else:
+                                logger.warning(f"Could not find attribute '{attribute}' in component '{component_name}'")
+                                continue
+
+                            intermediate_profiles[as_profile_name] = profile_data
+                            logger.info(f"Extracted '{attribute}' from '{component_name}' as '{as_profile_name}'")
+
+                # Calculate stage KPIs
+                stage_kpis = self._calculate_basic_kpis(stage_system)
+                for key, value in stage_kpis.items():
+                    aggregated_kpis[f"{stage.stage_name}_{key}"] = value
+
+                # Store stage results
+                stage_results.append({
+                    'stage_name': stage.stage_name,
+                    'status': stage_solver_result.status,
+                    'solve_time': stage_solver_result.solve_time
+                })
+
+                # Save stage results
+                self._save_results(stage_system, stage_config, stage_solver_result)
+
+            # Aggregate final results
+            total_solve_time = sum(r['solve_time'] for r in stage_results if r.get('solve_time'))
+            all_success = all(r['status'] == 'optimal' for r in stage_results)
+
+            return SimulationResult(
+                simulation_id=config.simulation_id,
+                status='optimal' if all_success else 'feasible',
+                results_path=Path(config.output_config.get('directory', 'outputs')),
+                kpis=aggregated_kpis,
+                solver_metrics={
+                    'solve_time': total_solve_time,
+                    'stages': stage_results,
+                    'iterations': len(config.stages)
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Staged simulation failed: {e}")
             return SimulationResult(
                 simulation_id=config.simulation_id,
                 status="error",

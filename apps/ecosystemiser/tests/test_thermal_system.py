@@ -21,7 +21,7 @@ from system_model.components.energy.heat_pump import HeatPump, HeatPumpParams
 from system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerParams
 from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams
 from system_model.components.energy.heat_demand import HeatDemand, HeatDemandParams
-from solver.milp_solver_v2 import MILPSolver
+from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
 
 

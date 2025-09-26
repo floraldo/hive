@@ -58,7 +58,7 @@ class TestReviewEngine:
     @pytest.fixture
     def engine(self):
         """Create a review engine instance"""
-        return ReviewEngine(api_key=None)
+        return ReviewEngine(mock_mode=True)
 
     @pytest.fixture
     def sample_code(self):
@@ -320,7 +320,7 @@ class TestReviewWorkflow:
 
     def test_approve_workflow(self):
         """Test approval workflow for high-quality code"""
-        engine = ReviewEngine()
+        engine = ReviewEngine(mock_mode=True)
 
         excellent_code = {
             "calculator.py": '''
@@ -385,7 +385,7 @@ def test_subtract():
 
     def test_reject_workflow(self):
         """Test rejection workflow for poor-quality code"""
-        engine = ReviewEngine()
+        engine = ReviewEngine(mock_mode=True)
 
         poor_code = {
             "hack.py": '''

@@ -6,15 +6,29 @@ model: eco 10
 description: "Sonnen eco 10 residential battery storage system with integrated inverter"
 
 technical:
-  P_max: 5.5  # kW - Maximum charge/discharge power
-  E_max: 10.0  # kWh - Maximum energy capacity
-  E_init: 5.0  # kWh - Initial state of charge
-  eta: 0.95    # Round-trip efficiency
-  eta_charge: 0.975
-  eta_discharge: 0.975
+  # Explicit fidelity control
+  fidelity_level: "standard"  # Options: simple, standard, detailed, research
+
+  # Core parameters (always required)
+  capacity_nominal: 10.0  # kWh - Battery capacity
+  lifetime_years: 15
+
+  # Storage archetype parameters
+  efficiency_roundtrip: 0.95  # 95% round-trip efficiency
   soc_min: 0.1  # Minimum SoC (10%)
   soc_max: 0.9  # Maximum SoC (90%)
-  degradation_rate: 0.0002  # Degradation per cycle
+  initial_soc_pct: 0.5  # Start at 50% SoC
+
+  # Battery-specific parameters
+  technology: "lithium-ion"
+  max_charge_rate: 0.55  # 5.5kW / 10kWh = 0.55C
+  max_discharge_rate: 0.55  # Symmetric charge/discharge
+  self_discharge_rate: 0.00001  # Very low self-discharge for Li-ion
+
+  # Optional detailed parameters (not used at STANDARD fidelity)
+  # degradation_model:
+  #   calendar_fade_rate: 0.02  # 2% per year
+  #   cycle_fade_rate: 0.0002  # Per equivalent full cycle
 
 economic:
   capex: 9500  # EUR - Capital expenditure

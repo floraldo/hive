@@ -1,0 +1,40 @@
+# Rainwater Harvesting System - 100m² Roof
+component_class: RainwaterSource
+category: water
+type: rainwater_harvesting
+description: "Rainwater harvesting system for 100m² roof area with filtration"
+
+# Harvesting parameters
+catchment_area_m2: 100.0      # Roof/catchment area [m²]
+runoff_coefficient: 0.85      # Runoff coefficient (85% for pitched roof)
+first_flush_mm: 2.0           # First flush diversion [mm]
+collection_efficiency: 0.92   # Collection system efficiency
+filtration_efficiency: 0.95   # Filtration efficiency
+max_collection_rate_m3h: 5.0  # Maximum collection rate [m³/h]
+water_quality_index: 0.85     # Rainwater quality after treatment
+
+# Seasonal rainfall factors (monthly, Jan-Dec)
+seasonal_factor: [
+  0.9, 1.0, 1.1, 1.3, 1.4, 1.2,   # Jan-Jun (Spring peak)
+  0.8, 0.7, 0.9, 1.1, 1.0, 0.9    # Jul-Dec (Summer low)
+]
+
+# Economic parameters
+economic:
+  capex: 3500                 # USD - System capital cost
+  installation_cost: 800      # USD - Installation
+  opex_fix: 100              # USD/year - Maintenance & cleaning
+  opex_var: 0.02             # USD/m³ - Filter replacement
+  lifetime: 20               # years
+  discount_rate: 0.05
+  salvage_value: 200         # USD
+  water_savings: 1.80        # USD/m³ - Avoided water purchase
+
+# Environmental parameters
+environmental:
+  co2_embodied: 250          # kg CO2 - System manufacturing
+  co2_operational: 0.05      # kg CO2/m³ - Pumping energy
+  stormwater_reduction: 0.80 # 80% stormwater runoff reduction
+  groundwater_recharge: 0.15 # 15% contributes to recharge
+  material: "PVC/Steel"      # Gutters and piping materials
+  recycling_rate: 0.75       # 75% recyclable components

@@ -1,0 +1,33 @@
+# Example: Rolling Horizon Meta-Solver for Long-Term Optimization
+# This configuration demonstrates the hybrid solving approach for year-long simulations
+
+simulation_id: "annual_optimization_rolling"
+system_config_path: "config/systems/schoonschip_energy_simple.yml"
+solver_type: "rolling_horizon"  # Use the new meta-solver
+
+solver_config:
+  # Rolling horizon specific configuration
+  block_size_hours: 24      # Optimize in daily blocks
+  overlap_hours: 4          # 4-hour overlap for continuity
+  baseline_solver: "rule_based"  # Fast baseline generation
+  optimization_solver: "milp"     # Detailed optimization per block
+  use_warmstart: true       # Use baseline as initial guess
+
+  # General solver parameters
+  time_horizon: 8760        # Full year (365 days * 24 hours)
+  time_step: 60             # Hourly resolution
+
+climate_input:
+  latitude: 52.5
+  longitude: 4.9
+  year: 2023
+
+output_config:
+  directory: "outputs/rolling_horizon"
+  format: "json"
+  save_intermediate: true   # Save results from each block
+
+# Performance Expectations:
+# - Pure MILP for 8760 hours: Would take days or fail to converge
+# - Rolling Horizon: ~2-3 hours total with near-optimal results
+# - Memory usage: Constant (only one block in memory at a time)

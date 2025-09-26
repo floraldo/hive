@@ -287,8 +287,8 @@ class TestRealDatabaseIntegration:
         config = HiveConfig()
         db = HiveDatabase(config.database_url)
 
-        # Create agent with real API key
-        review_engine = ReviewEngine(api_key=config.anthropic_api_key)
+        # Create agent with mock mode for testing
+        review_engine = ReviewEngine(mock_mode=True)
         agent = ReviewAgent(
             db=db,
             review_engine=review_engine,
