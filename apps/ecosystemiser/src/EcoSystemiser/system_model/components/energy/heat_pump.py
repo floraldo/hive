@@ -8,7 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
-from ..shared.base_classes import BaseConversionComponent
+from ..shared.base_classes import BaseConversionComponent, BaseConversionPhysics, BaseConversionOptimization
 
 logger = logging.getLogger(__name__)
 
@@ -79,25 +79,203 @@ class HeatPumpParams(ComponentParams):
     )
 
 
+# =============================================================================
+# PHYSICS STRATEGIES (Rule-Based & Fidelity)
+# =============================================================================
+
+class HeatPumpPhysicsSimple(BaseConversionPhysics):
+    """Implements the SIMPLE rule-based physics for a heat pump.
+
+    This is the baseline fidelity level providing:
+    - Fixed COP operation: heat_output = electrical_input * COP
+    - Basic energy conversion with constant efficiency
+    """
+
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+        """
+        Calculate conversion capacities for SIMPLE heat pump physics.
+
+        For heat pump: electricity → heat with COP amplification
+        """
+        # Get component parameters
+        P_max_heat = self.params.technical.capacity_nominal  # Heat output capacity
+        COP = self.params.technical.cop_nominal
+
+        # Calculate maximum electrical input based on heat capacity and COP
+        P_max_elec = P_max_heat / COP if COP > 0 else 0
+
+        return {
+            'max_input': P_max_elec,     # Maximum electrical input (kW)
+            'max_output': P_max_heat,    # Maximum heat output (kW)
+            'efficiency': COP            # COP (heat out / electrical in)
+        }
+
+    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
+        """
+        Calculate actual input/output for requested heat output.
+
+        Args:
+            t: Current timestep
+            requested_output: Desired heat output (kW)
+            from_medium: 'electricity'
+            to_medium: 'heat'
+
+        Returns:
+            dict: {'input_required': float, 'output_delivered': float}
+        """
+        capacity = self.rule_based_conversion_capacity(t, from_medium, to_medium)
+
+        # Limit output to maximum capacity
+        actual_output = min(requested_output, capacity['max_output'])
+
+        # Calculate required electrical input based on COP
+        if capacity['efficiency'] > 0:
+            required_input = actual_output / capacity['efficiency']
+        else:
+            required_input = 0.0
+
+        # Ensure input doesn't exceed capacity
+        if required_input > capacity['max_input']:
+            # Scale back both input and output proportionally
+            scale_factor = capacity['max_input'] / required_input
+            required_input = capacity['max_input']
+            actual_output = actual_output * scale_factor
+
+        return {
+            'input_required': required_input,
+            'output_delivered': actual_output
+        }
+
+
+class HeatPumpPhysicsStandard(HeatPumpPhysicsSimple):
+    """Implements the STANDARD rule-based physics for a heat pump.
+
+    Inherits from SIMPLE and adds:
+    - Temperature-dependent COP variation
+    - Defrost cycle power penalties
+    """
+
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+        """
+        Calculate conversion capacities with temperature effects.
+
+        First applies SIMPLE physics, then adds STANDARD-specific effects.
+        """
+        # 1. Get the baseline result from SIMPLE physics
+        capacity = super().rule_based_conversion_capacity(t, from_medium, to_medium)
+
+        # 2. Add STANDARD-specific physics: temperature-dependent COP
+        COP_adjusted = capacity['efficiency']
+
+        # Apply temperature variation if available
+        cop_curve = getattr(self.params.technical, 'cop_temperature_curve', None)
+        if cop_curve:
+            # Simplified temperature adjustment
+            # In real implementation, would use actual ambient temperature
+            temp_adjustment = cop_curve.get('slope', 0) * 5  # Assume 5°C deviation
+            COP_adjusted = capacity['efficiency'] * (1 + temp_adjustment)
+
+        # Apply defrost penalty if configured
+        defrost_penalty = getattr(self.params.technical, 'defrost_power_penalty', 0)
+        if defrost_penalty:
+            COP_adjusted = COP_adjusted * (1 - defrost_penalty / 100)
+
+        # Update capacity with adjusted COP
+        capacity['efficiency'] = max(COP_adjusted, 0.5)  # Minimum COP for stability
+
+        # Recalculate max_input with adjusted COP
+        capacity['max_input'] = capacity['max_output'] / capacity['efficiency']
+
+        return capacity
+
+
+# =============================================================================
+# OPTIMIZATION STRATEGY (MILP)
+# =============================================================================
+
+class HeatPumpOptimization(BaseConversionOptimization):
+    """Handles the MILP (CVXPY) constraints for the heat pump.
+
+    Encapsulates all optimization logic separately from physics and data.
+    This enables clean separation and easy testing of optimization constraints.
+    """
+
+    def __init__(self, params, component_instance):
+        """Initialize with both params and component instance for constraint access."""
+        super().__init__(params)
+        self.component = component_instance
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for heat pump optimization.
+
+        This method encapsulates all the MILP constraint logic for conversion.
+        """
+        constraints = []
+        comp = self.component
+
+        if hasattr(comp, 'P_heatsource') and comp.P_heatsource is not None:
+            # Get fidelity level
+            fidelity = comp.technical.fidelity_level
+
+            # Core heat pump constraints
+            N = comp.P_heatsource.shape[0]
+
+            # --- SIMPLE MODEL (baseline) ---
+            # Fixed COP operation
+            COP = comp.COP
+
+            # --- STANDARD ENHANCEMENTS ---
+            if fidelity >= FidelityLevel.STANDARD:
+                # Apply temperature-dependent COP adjustments
+                cop_curve = getattr(comp.technical, 'cop_temperature_curve', None)
+                if cop_curve:
+                    # Simplified adjustment for optimization
+                    temp_factor = cop_curve.get('slope', 0) * 5 + 1
+                    COP = COP * max(temp_factor, 0.5)
+
+            # Energy balance: Heat output = Electrical input * COP
+            for t in range(N):
+                # P_heatsource = (P_loss + P_pump) * COP
+                constraints.append(
+                    comp.P_heatsource[t] == (comp.P_loss[t] + comp.P_pump[t]) * COP
+                )
+
+            # Capacity constraints
+            constraints.append(comp.P_heatsource <= comp.P_max)
+            constraints.append(comp.P_loss + comp.P_pump <= comp.P_max_elec)
+
+        return constraints
+
+
+# =============================================================================
+# MAIN COMPONENT CLASS (Factory)
+# =============================================================================
+
 @register_component("HeatPump")
-class HeatPump(BaseConversionComponent):
-    """Heat pump component that converts electricity to heat with COP amplification."""
+class HeatPump(Component):
+    """Heat pump component with Strategy Pattern architecture.
+
+    This class acts as a factory and container for heat pump strategies:
+    - Physics strategies: Handle fidelity-specific rule-based conversion calculations
+    - Optimization strategies: Handle MILP constraint generation
+    - Clean separation: Data contract + strategy selection only
+
+    The component delegates physics and optimization to strategy objects
+    based on the configured fidelity level.
+    """
 
     PARAMS_MODEL = HeatPumpParams
 
     def _post_init(self):
-        """Initialize heat pump-specific attributes from technical parameters.
-
-        All parameters are now sourced from the technical parameter block,
-        following the single source of truth principle.
-        """
+        """Initialize heat pump attributes and strategy objects."""
         self.type = "generation"
         self.medium = "heat"
 
-        # Single source of truth: the technical parameter block
+        # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters extracted from technical block
+        # Core parameters - EXACTLY as original heat pump expects
         self.P_max = tech.capacity_nominal  # kW heat output capacity
         self.COP = tech.cop_nominal
         self.eta = tech.efficiency_nominal  # Electrical efficiency
@@ -105,7 +283,7 @@ class HeatPump(BaseConversionComponent):
         # Maximum electrical input (derived from heat capacity and COP)
         self.P_max_elec = self.P_max / self.COP if self.COP > 0 else 0
 
-        # Store advanced parameters for fidelity-aware constraints
+        # Store heat pump-specific parameters
         self.technology = tech.technology
         self.cop_temperature_curve = tech.cop_temperature_curve
         self.defrost_power_penalty = tech.defrost_power_penalty
@@ -113,13 +291,55 @@ class HeatPump(BaseConversionComponent):
         self.compressor_map = tech.compressor_map
         self.heat_exchanger_effectiveness = tech.heat_exchanger_effectiveness
 
-        # EXPLICIT FIDELITY CONTROL
-        self.fidelity_level = tech.fidelity_level
-
-        # CVXPY variables (created later by add_optimization_vars)
+        # CVXPY variables (for MILP solver)
         self.P_heatsource = None
         self.P_loss = None
         self.P_pump = None
+
+        # STRATEGY PATTERN: Instantiate the correct strategies
+        self.physics = self._get_physics_strategy()
+        self.optimization = self._get_optimization_strategy()
+
+    def _get_physics_strategy(self):
+        """Factory method: Select physics strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return HeatPumpPhysicsSimple(self.params)
+        elif fidelity == FidelityLevel.STANDARD:
+            return HeatPumpPhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD physics (can be extended later)
+            return HeatPumpPhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
+            return HeatPumpPhysicsStandard(self.params)
+        else:
+            raise ValueError(f"Unknown fidelity level for HeatPump: {fidelity}")
+
+    def _get_optimization_strategy(self):
+        """Factory method: Select optimization strategy."""
+        # For now, all fidelity levels use the same optimization strategy
+        # Future: Could have different optimization strategies per fidelity
+        return HeatPumpOptimization(self.params, self)
+
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+        """
+        Delegate to physics strategy for conversion capacity calculation.
+
+        This maintains the same interface as BaseConversionComponent but
+        delegates the actual physics calculation to the strategy object.
+        """
+        return self.physics.rule_based_conversion_capacity(t, from_medium, to_medium)
+
+    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
+        """
+        Delegate to physics strategy for conversion dispatch calculation.
+
+        This maintains the same interface as BaseConversionComponent but
+        delegates the actual physics calculation to the strategy object.
+        """
+        return self.physics.rule_based_conversion_dispatch(t, requested_output, from_medium, to_medium)
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""
@@ -142,95 +362,8 @@ class HeatPump(BaseConversionComponent):
         }
 
     def set_constraints(self) -> List:
-        """Set CVXPY constraints for heat pump with fidelity-aware modeling.
-
-        Constraint complexity scales with fidelity level:
-        - SIMPLE: Fixed COP, basic energy balance
-        - STANDARD: Temperature-dependent COP, defrost penalties
-        - DETAILED: Compressor maps, heat exchanger modeling
-        - RESEARCH: Full refrigerant cycle modeling
-        """
-        constraints = []
-        N = self.P_heatsource.shape[0] if self.P_heatsource is not None else 0
-
-        if self.P_heatsource is not None:
-            # Get fidelity level
-            fidelity = getattr(self, 'fidelity_level', FidelityLevel.STANDARD)
-
-            for t in range(N):
-                # Calculate input_flows exactly as in original Systemiser
-                input_flows = cp.sum([
-                    flow['value'][t] for flow_name, flow in self.flows.get('input', {}).items()
-                    if isinstance(flow.get('value'), cp.Variable)
-                ])
-
-                # If no input flows exist yet, create a default one
-                if not self.flows.get('input'):
-                    if not hasattr(self, 'P_elec_default'):
-                        self.P_elec_default = cp.Variable(N, name=f'{self.name}_P_elec', nonneg=True)
-                        self.flows['input'] = {
-                            'P_elec': {'type': 'electricity', 'value': self.P_elec_default}
-                        }
-                    input_flows = self.P_elec_default[t]
-
-                # --- SIMPLE MODEL (OG Systemiser baseline) ---
-                # Fixed COP heat pump: P_heat = COP * P_elec
-                effective_cop = self.COP
-
-                # --- STANDARD ENHANCEMENTS (additive on top of SIMPLE) ---
-                if fidelity >= FidelityLevel.STANDARD:
-                    # Temperature-dependent COP curves
-                    if self.cop_temperature_curve and hasattr(self, 'system'):
-                        if hasattr(self.system, 'profiles') and 'ambient_temperature' in self.system.profiles:
-                            temp = self.system.profiles['ambient_temperature'][t] if t < len(self.system.profiles['ambient_temperature']) else 20
-                            # COP = baseline + slope * (T_ambient - T_reference)
-                            slope = self.cop_temperature_curve.get('slope', 0)
-                            # For CVXPY, we need to handle this as a parameter
-                            temp_factor = 1 + slope * (temp - 7) / 100  # Reference temp = 7°C
-                            effective_cop = self.COP * max(0.5, temp_factor)  # Minimum COP = 50%
-                            logger.debug("STANDARD: Applied temperature-dependent COP to heat pump")
-
-                    # Defrost penalties
-                    if self.defrost_power_penalty:
-                        # Simplified defrost model - reduce effective COP
-                        defrost_factor = 1 - self.defrost_power_penalty / 100
-                        effective_cop = effective_cop * defrost_factor
-                        logger.debug("STANDARD: Applied defrost penalty to heat pump")
-
-                # --- DETAILED ENHANCEMENTS (additive on top of STANDARD) ---
-                if fidelity >= FidelityLevel.DETAILED:
-                    # Compressor maps for part-load efficiency
-                    if self.compressor_map is not None:
-                        logger.debug("DETAILED: Compressor map would modify effective COP")
-                        # In practice: effective_cop = apply_compressor_map(effective_cop, input_flows)
-
-                    # Heat exchanger effectiveness
-                    if self.heat_exchanger_effectiveness is not None:
-                        # Heat exchanger losses would reduce effective COP
-                        effective_cop = effective_cop * self.heat_exchanger_effectiveness
-                        logger.debug("DETAILED: Applied heat exchanger effectiveness to heat pump")
-
-                # --- RESEARCH ENHANCEMENTS (additive on top of DETAILED) ---
-                if fidelity >= FidelityLevel.RESEARCH:
-                    logger.debug("RESEARCH: Full refrigerant cycle modeling would modify effective COP")
-                    # In practice: effective_cop = apply_refrigerant_cycle_model(effective_cop, conditions)
-
-                # Heat pump energy balance
-                constraints.append(
-                    self.P_heatsource[t] == effective_cop * input_flows
-                )
-                constraints.append(
-                    self.P_loss[t] == input_flows * (1 - self.eta)
-                )
-                constraints.append(
-                    self.P_pump[t] == input_flows * self.eta
-                )
-
-                # Power limit constraint (electrical input limit)
-                constraints.append(input_flows <= self.P_max_elec)
-
-
-        return constraints
+        """Delegate constraint creation to optimization strategy."""
+        return self.optimization.set_constraints()
 
     def rule_based_operation(self, heat_demand: float, t: int) -> tuple:
         """Rule-based heat pump operation with fidelity-aware performance."""

@@ -413,3 +413,75 @@ class BaseGenerationOptimization:
             list: CVXPY constraint objects
         """
         raise NotImplementedError("Subclasses must implement set_constraints")
+
+
+class BaseConversionPhysics:
+    """Abstract base class for conversion physics strategies.
+
+    This defines the interface contract that all conversion physics implementations
+    must follow. Each fidelity level implements this interface.
+
+    The Strategy Pattern allows us to:
+    - Encapsulate conversion algorithms
+    - Make fidelity levels interchangeable
+    - Support easy testing and extension
+    """
+
+    def __init__(self, params):
+        """Initialize physics strategy with component parameters."""
+        self.params = params
+
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+        """
+        Calculate conversion capacities for the current timestep.
+
+        This is a core physics method that each strategy must implement.
+
+        Args:
+            t: Current timestep
+            from_medium: Input energy medium (e.g., 'electricity')
+            to_medium: Output energy medium (e.g., 'heat')
+
+        Returns:
+            dict: {'max_input': float, 'max_output': float, 'efficiency': float}
+        """
+        raise NotImplementedError("Subclasses must implement rule_based_conversion_capacity")
+
+    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
+        """
+        Calculate actual input/output for a requested output.
+
+        Args:
+            t: Current timestep
+            requested_output: Desired output power (kW)
+            from_medium: Input energy medium
+            to_medium: Output energy medium
+
+        Returns:
+            dict: {'input_required': float, 'output_delivered': float}
+        """
+        raise NotImplementedError("Subclasses must implement rule_based_conversion_dispatch")
+
+
+class BaseConversionOptimization:
+    """Abstract base class for conversion optimization strategies.
+
+    This defines the interface contract for MILP optimization implementations.
+    Separates optimization logic from physics and data models.
+    """
+
+    def __init__(self, params):
+        """Initialize optimization strategy with component parameters."""
+        self.params = params
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for this conversion component.
+
+        This is the core optimization method that each strategy must implement.
+        Should return all constraints needed for MILP solver.
+
+        Returns:
+            list: CVXPY constraint objects
+        """
+        raise NotImplementedError("Subclasses must implement set_constraints")
