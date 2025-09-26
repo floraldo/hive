@@ -15,6 +15,16 @@ from .path_manager import (
     get_current_python_path_info,
     validate_hive_imports
 )
+from .validation import (
+    ValidationError,
+    run_comprehensive_validation,
+    format_validation_report,
+    validate_python_environment,
+    validate_project_structure,
+    validate_database_connectivity,
+    validate_import_system,
+    validate_worker_requirements
+)
 
 __all__ = [
     'load_config_for_app',
@@ -26,7 +36,15 @@ __all__ = [
     'setup_hive_paths_for_app',
     'get_hive_paths',
     'get_current_python_path_info',
-    'validate_hive_imports'
+    'validate_hive_imports',
+    'ValidationError',
+    'run_comprehensive_validation',
+    'format_validation_report',
+    'validate_python_environment',
+    'validate_project_structure',
+    'validate_database_connectivity',
+    'validate_import_system',
+    'validate_worker_requirements'
 ]
 
 __version__ = "1.1.0"

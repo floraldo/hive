@@ -54,6 +54,9 @@ class QueenLite:
         # Load configuration
         self.config = get_config()
 
+        # Validate system configuration on startup
+        self._validate_system_configuration()
+
         # State management
         self.active_workers = {}  # task_id -> {process, run_id, phase}
 
@@ -82,6 +85,51 @@ class QueenLite:
         except Exception as e:
             self.log.warning(f"Failed to register Queen as worker: {e}")
             # Continue anyway - registration might already exist
+
+    def _validate_system_configuration(self):
+        """Validate system configuration and dependencies on startup."""
+        self.log.info("Validating system configuration...")
+
+        try:
+            # Import validation functions (we already have hive-config path setup)
+            from hive_config import (
+                run_comprehensive_validation,
+                format_validation_report,
+                ValidationError
+            )
+
+            # Run validation
+            validation_passed, results = run_comprehensive_validation()
+
+            if validation_passed:
+                self.log.info("System validation: PASSED")
+
+                # Log any warnings
+                if 'warnings' in results:
+                    for warning in results['warnings']:
+                        self.log.warning(f"System recommendation: {warning}")
+
+            else:
+                self.log.error("System validation: FAILED")
+
+                # Log critical failures
+                if 'critical_failures' in results:
+                    for failure in results['critical_failures']:
+                        self.log.error(f"Critical issue: {failure}")
+
+                # Create formatted report for debug
+                report = format_validation_report(results, include_details=True)
+                self.log.debug(f"Detailed validation report:\n{report}")
+
+                # In strict mode, we could raise an exception here
+                # For now, log and continue with degraded functionality
+                self.log.warning("Continuing with degraded functionality due to validation failures")
+
+        except ImportError as e:
+            self.log.warning(f"Could not import validation functions: {e}")
+        except Exception as e:
+            self.log.warning(f"System validation failed unexpectedly: {e}")
+            # Continue anyway - validation is helpful but not critical
 
     def _create_enhanced_environment(self, root_path: Optional[Path] = None) -> Dict[str, str]:
         """
@@ -185,8 +233,17 @@ class QueenLite:
             self.log.info(f"[APP-SPAWN] Started {app_name}:{task_name} for {task_id} (PID: {process.pid})")
             return process, run_id
 
+        except FileNotFoundError as e:
+            self.log.error(f"App task {task_id} failed - file not found: {e}")
+            return None
+        except ValueError as e:
+            self.log.error(f"App task {task_id} failed - invalid configuration: {e}")
+            return None
+        except PermissionError as e:
+            self.log.error(f"App task {task_id} failed - permission denied: {e}")
+            return None
         except Exception as e:
-            self.log.error(f"Failed to execute app task {task_id}: {e}")
+            self.log.error(f"App task {task_id} failed - unexpected error: {type(e).__name__}: {e}")
             return None
     
 
@@ -258,8 +315,19 @@ class QueenLite:
                 print("-" * 70)
             return process, run_id
             
+        except FileNotFoundError as e:
+            self.log.error(f"Worker spawn failed for {task_id} - Python executable not found: {e}")
+            return None
+        except PermissionError as e:
+            self.log.error(f"Worker spawn failed for {task_id} - permission denied: {e}")
+            return None
+        except OSError as e:
+            self.log.error(f"Worker spawn failed for {task_id} - OS error: {e}")
+            return None
         except Exception as e:
-            self.log.info(f"Spawn failed: {e}")
+            self.log.error(f"Worker spawn failed for {task_id} - unexpected error: {type(e).__name__}: {e}")
+            import traceback
+            self.log.debug(f"Spawn failure traceback for {task_id}:\n{traceback.format_exc()}")
             return None
     
     def get_next_command_from_workflow(self, task: Dict[str, Any]) -> Optional[str]:
