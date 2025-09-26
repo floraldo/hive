@@ -10,8 +10,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-core-db" / "src"))
-sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-utils" / "src"))
+# Add packages path first for hive-config
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root / "packages" / "hive-config" / "src"))
+
+# Configure all Hive paths centrally
+from hive_config import setup_hive_paths
+setup_hive_paths()
 
 import hive_core_db
 from hive_utils.paths import DB_PATH

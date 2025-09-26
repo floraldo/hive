@@ -8,12 +8,13 @@ import sys
 import os
 from pathlib import Path
 
-# Add necessary paths for module imports
+# Add packages path first for hive-config
 project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root / "apps" / "hive-orchestrator" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-utils" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-logging" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-core-db" / "src"))
+sys.path.insert(0, str(project_root / "packages" / "hive-config" / "src"))
+
+# Configure all Hive paths centrally
+from hive_config import setup_hive_paths
+setup_hive_paths()
 
 # Now import HiveCore and Queen
 from hive_orchestrator.hive_core import HiveCore

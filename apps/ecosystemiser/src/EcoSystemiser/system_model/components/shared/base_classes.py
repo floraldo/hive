@@ -290,3 +290,70 @@ class BaseConversionComponent(Component):
             'input_required': required_input,
             'output_delivered': actual_output
         }
+
+
+# =============================================================================
+# STRATEGY PATTERN BASE CLASSES
+# =============================================================================
+
+class BaseStoragePhysics:
+    """Abstract base class for storage physics strategies.
+
+    This defines the interface contract that all storage physics implementations
+    must follow. Each fidelity level implements this interface.
+
+    The Strategy Pattern allows us to:
+    - Encapsulate physics algorithms
+    - Make fidelity levels interchangeable
+    - Support easy testing and extension
+    """
+
+    def __init__(self, params):
+        """Initialize physics strategy with component parameters."""
+        self.params = params
+
+    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
+        """
+        Calculate new energy state based on physics model.
+
+        This is the core physics method that each strategy must implement.
+
+        Args:
+            t: Current timestep
+            E_old: Energy level at start of timestep (kWh)
+            charge_power: Total power charging this storage (kW)
+            discharge_power: Total power discharging from this storage (kW)
+
+        Returns:
+            float: New energy level after physics update (kWh)
+        """
+        raise NotImplementedError("Subclasses must implement rule_based_update_state")
+
+    def apply_bounds(self, energy_level: float) -> float:
+        """Apply physical energy bounds (0 <= E <= E_max)."""
+        E_max = self.params.technical.capacity_nominal
+        return max(0.0, min(energy_level, E_max))
+
+
+class BaseStorageOptimization:
+    """Abstract base class for storage optimization strategies.
+
+    This defines the interface contract for MILP optimization implementations.
+    Separates optimization logic from physics and data models.
+    """
+
+    def __init__(self, params):
+        """Initialize optimization strategy with component parameters."""
+        self.params = params
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for this storage component.
+
+        This is the core optimization method that each strategy must implement.
+        Should return all constraints needed for MILP solver.
+
+        Returns:
+            list: CVXPY constraint objects
+        """
+        raise NotImplementedError("Subclasses must implement set_constraints")
