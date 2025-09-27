@@ -106,8 +106,8 @@ class StreamFormat(str, Enum):
     NETCDF = "netcdf"
 
 
-# Job queue is now handled by JobManager with Redis backend
-# No more in-memory dictionaries that break in production!
+# Job management now properly uses Redis-backed JobManager for production
+# All endpoints interact with the distributed job manager
 
 
 # API Endpoints
@@ -321,111 +321,219 @@ async def stream_climate_data(
 async def create_climate_job(
     job_request: JobRequest,
     background_tasks: BackgroundTasks,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID")
+    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    job_manager: JobManager = Depends(get_job_manager)
 ):
     """
     Create async job for heavy climate data processing.
-    
+
     Returns job ID for status polling.
     """
     if not correlation_id:
         correlation_id = str(uuid.uuid4())
-    
-    job_id = str(uuid.uuid4())
-    
-    # Create job entry
-    job = JobResponse(
-        job_id=job_id,
-        status=JobStatus.QUEUED,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
-        progress=0
-    )
-    
-    job_queue[job_id] = job
-    
+
+    # Store the job request data for the worker
+    request_data = {
+        "type": "climate_request",
+        "request": job_request.model_dump(),
+        "correlation_id": correlation_id,
+        "priority": job_request.priority
+    }
+
+    # Create job using the distributed job manager
+    job_id = job_manager.create_job(request_data)
+
     # Queue background processing
     background_tasks.add_task(
         process_job_async,
         job_id,
         job_request,
-        correlation_id
+        correlation_id,
+        job_manager
     )
-    
-    return job
+
+    # Get the created job data
+    job_data = job_manager.get_job(job_id)
+    if not job_data:
+        raise HTTPException(status_code=500, detail="Failed to create job")
+
+    # Convert to API response format
+    return JobResponse(
+        job_id=job_data["id"],
+        status=JobStatus(job_data["status"]),
+        created_at=datetime.fromisoformat(job_data["created_at"]),
+        updated_at=datetime.fromisoformat(job_data["updated_at"]),
+        progress=job_data.get("progress", 0)
+    )
 
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
 async def get_job_status(
     job_id: str,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID")
+    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    job_manager: JobManager = Depends(get_job_manager)
 ):
-    """Get status of async job"""
-    if job_id not in job_queue:
+    """Get status of async job from distributed job manager"""
+    job_data = job_manager.get_job(job_id)
+    if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
-    
-    return job_queue[job_id]
+
+    # Convert to API response format
+    return JobResponse(
+        job_id=job_data["id"],
+        status=JobStatus(job_data["status"]),
+        created_at=datetime.fromisoformat(job_data["created_at"]),
+        updated_at=datetime.fromisoformat(job_data["updated_at"]),
+        progress=job_data.get("progress", 0),
+        result_url=f"/api/v2/climate/jobs/{job_id}/result" if job_data["status"] == "completed" else None,
+        error=job_data.get("error"),
+        eta=datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None
+    )
 
 
 @router.get("/jobs/{job_id}/result")
 async def get_job_result(
     job_id: str,
     format: StreamFormat = Query(StreamFormat.NDJSON),
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID")
+    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    job_manager: JobManager = Depends(get_job_manager)
 ):
     """
-    Get result of completed job.
-    
+    Get result of completed job from distributed storage.
+
     Supports multiple output formats.
     """
-    if job_id not in job_queue:
+    job_data = job_manager.get_job(job_id)
+    if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
-    
-    job = job_queue[job_id]
-    
-    if job.status != JobStatus.COMPLETED:
+
+    if job_data["status"] != "completed":
         raise HTTPException(
             status_code=400,
-            detail=f"Job status is {job.status}, not completed"
+            detail=f"Job status is {job_data['status']}, not completed"
         )
-    
-    if job_id not in job_results:
+
+    if not job_data.get("result"):
         raise HTTPException(status_code=404, detail="Job result not found")
-    
-    result = job_results[job_id]
-    
+
+    result = job_data["result"]
+
     # Format and return result based on requested format
     if format == StreamFormat.NDJSON:
-        return StreamingResponse(
-            stream_as_ndjson(result, chunk_size=1000),
-            media_type="application/x-ndjson"
-        )
-    # ... handle other formats
-    
+        # Convert result to proper format for streaming
+        if isinstance(result, dict) and "data" in result:
+            async def generate_result_stream():
+                # Stream the result data as NDJSON
+                yield json.dumps(result).encode() + b"\n"
+
+            return StreamingResponse(
+                generate_result_stream(),
+                media_type="application/x-ndjson",
+                headers={"X-Correlation-ID": correlation_id or ""}
+            )
+
+    # Return raw result for other formats
     return result
 
 
 @router.delete("/jobs/{job_id}")
 async def cancel_job(
     job_id: str,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID")
+    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    job_manager: JobManager = Depends(get_job_manager)
 ):
-    """Cancel a queued or running job"""
-    if job_id not in job_queue:
+    """Cancel a queued or running job using distributed job manager"""
+    job_data = job_manager.get_job(job_id)
+    if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
-    
-    job = job_queue[job_id]
-    
-    if job.status in [JobStatus.COMPLETED, JobStatus.FAILED]:
+
+    if job_data["status"] in ["completed", "failed"]:
         raise HTTPException(
             status_code=400,
-            detail=f"Cannot cancel job with status {job.status}"
+            detail=f"Cannot cancel job with status {job_data['status']}"
         )
-    
-    job.status = JobStatus.CANCELLED
-    job.updated_at = datetime.utcnow()
-    
+
+    # Update job status to cancelled
+    success = job_manager.update_job_status(
+        job_id,
+        "cancelled",
+        error="Job cancelled by user request"
+    )
+
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to cancel job")
+
     return {"message": f"Job {job_id} cancelled"}
+
+
+@router.get("/jobs")
+async def list_jobs(
+    status: Optional[str] = Query(None, description="Filter by job status"),
+    limit: int = Query(50, ge=1, le=100, description="Maximum number of jobs to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    job_manager: JobManager = Depends(get_job_manager)
+):
+    """
+    List jobs with optional filtering and pagination.
+
+    Supports filtering by status and pagination for production job monitoring.
+    """
+    try:
+        # Get jobs from distributed job manager
+        jobs_data = job_manager.list_jobs(status=status, limit=limit, offset=offset)
+
+        # Convert to API response format
+        jobs = []
+        for job_data in jobs_data:
+            job_response = JobResponse(
+                job_id=job_data["id"],
+                status=JobStatus(job_data["status"]),
+                created_at=datetime.fromisoformat(job_data["created_at"]),
+                updated_at=datetime.fromisoformat(job_data["updated_at"]),
+                progress=job_data.get("progress", 0),
+                result_url=f"/api/v2/climate/jobs/{job_data['id']}/result" if job_data["status"] == "completed" else None,
+                error=job_data.get("error"),
+                eta=datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None
+            )
+            jobs.append(job_response)
+
+        return {
+            "jobs": jobs,
+            "total": len(jobs),
+            "limit": limit,
+            "offset": offset,
+            "filter": {"status": status} if status else None
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to list jobs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve jobs")
+
+
+@router.delete("/jobs/cleanup")
+async def cleanup_old_jobs(
+    days: int = Query(7, ge=1, le=365, description="Delete jobs older than this many days"),
+    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    job_manager: JobManager = Depends(get_job_manager)
+):
+    """
+    Clean up old jobs for maintenance.
+
+    This endpoint helps maintain the job storage by removing old completed/failed jobs.
+    """
+    try:
+        deleted_count = job_manager.cleanup_old_jobs(days=days)
+
+        return {
+            "message": f"Cleaned up {deleted_count} old jobs",
+            "deleted_count": deleted_count,
+            "cutoff_days": days
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to cleanup jobs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to cleanup old jobs")
 
 
 # Helper functions
@@ -536,56 +644,74 @@ def stream_as_netcdf(ds: xr.Dataset) -> bytes:
 async def process_job_async(
     job_id: str,
     job_request: JobRequest,
-    correlation_id: str
+    correlation_id: str,
+    job_manager: JobManager
 ):
     """
-    Process job asynchronously.
-    
-    In production, this would use Celery or similar task queue.
+    Process job asynchronously using distributed job manager.
+
+    This integrates with Redis-backed job storage for production scalability.
     """
-    job = job_queue[job_id]
-    
     try:
-        # Update status
-        job.status = JobStatus.PROCESSING
-        job.updated_at = datetime.utcnow()
-        
-        # Process request
+        # Update status to processing
+        job_manager.update_job_status(job_id, "processing", progress=0)
+
+        # Process request based on type
         if isinstance(job_request.request, ClimateRequest):
+            # Update progress
+            job_manager.update_job_status(job_id, "processing", progress=25)
+
             result = await process_climate_request(
                 job_request.request,
                 dict(correlation_id=correlation_id)
             )
+
+            # Convert result to serializable format
+            serializable_result = {
+                "type": "climate_response",
+                "data": result.model_dump() if hasattr(result, 'model_dump') else result,
+                "correlation_id": correlation_id,
+                "processed_at": datetime.utcnow().isoformat()
+            }
         else:
-            # Batch request
-            # ... process batch
-            result = {"batch": "result"}
-        
-        # Store result
-        job_results[job_id] = result
-        
-        # Update job
-        job.status = JobStatus.COMPLETED
-        job.progress = 100
-        job.updated_at = datetime.utcnow()
-        job.result_url = f"/api/v2/climate/jobs/{job_id}/result"
-        
+            # Batch request processing
+            job_manager.update_job_status(job_id, "processing", progress=25)
+
+            # Process batch (simplified for now)
+            serializable_result = {
+                "type": "batch_response",
+                "data": {"batch": "result", "processed": "placeholder"},
+                "correlation_id": correlation_id,
+                "processed_at": datetime.utcnow().isoformat()
+            }
+
+        # Update job as completed with result
+        job_manager.update_job_status(
+            job_id,
+            "completed",
+            result=serializable_result,
+            progress=100
+        )
+
         # Send notifications if configured
         if job_request.callback_url:
-            # POST to callback URL
-            pass
-        
+            # TODO: Implement callback notification
+            logger.info(f"Job {job_id} completed - callback URL configured: {job_request.callback_url}")
+
         if job_request.notification_email:
-            # Send email notification
-            pass
-            
+            # TODO: Implement email notification
+            logger.info(f"Job {job_id} completed - email notification configured: {job_request.notification_email}")
+
     except Exception as e:
-        # Handle failure
-        job.status = JobStatus.FAILED
-        job.error = {"message": str(e)}
-        job.updated_at = datetime.utcnow()
-        
-        logger.error(f"Job {job_id} failed: {e}")
+        # Handle failure using distributed job manager
+        error_message = str(e)
+        job_manager.update_job_status(
+            job_id,
+            "failed",
+            error=error_message
+        )
+
+        logger.error(f"Job {job_id} failed: {e}", exc_info=True)
 
 
 # ============================================================================
