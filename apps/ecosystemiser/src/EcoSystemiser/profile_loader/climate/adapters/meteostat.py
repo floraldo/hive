@@ -6,12 +6,12 @@ import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
 from EcoSystemiser.hive_logging_adapter import get_logger
-from .base import BaseAdapter
-from .capabilities import (
+from EcoSystemiser.profile_loader.climate.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
     AdapterCapabilities, TemporalCoverage, SpatialCoverage,
     DataFrequency, AuthType, RateLimits, QualityFeatures
 )
-from ..data_models import CANONICAL_VARIABLES
+from EcoSystemiser.profile_loader.data_models import CANONICAL_VARIABLES
 from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError, ErrorCode
 
 logger = get_logger(__name__)
@@ -93,7 +93,7 @@ class MeteostatAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize Meteostat adapter"""
-        from .base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (Meteostat has limits)
         rate_config = RateLimitConfig(
@@ -709,3 +709,67 @@ class MeteostatAdapter(BaseAdapter):
             
             data_products=["Hourly", "Daily", "Monthly", "Normals"]
         )
+
+class MeteostatQCProfile:
+    """QC profile for Meteostat data - co-located with adapter for better cohesion."""
+
+    def __init__(self):
+        self.name = "Meteostat"
+        self.description = "Weather station data aggregated from multiple national weather services"
+        self.known_issues = [
+            "Data gaps common due to station maintenance",
+            "Quality varies by region and station density",
+            "Some stations may have exposure or instrumentation issues",
+            "Interpolation used between stations can introduce artifacts"
+        ]
+        self.recommended_variables = [
+            "temp_air", "rel_humidity", "precip", "wind_speed", "pressure"
+        ]
+        self.temporal_resolution_limits = {
+            "all": "hourly"
+        }
+        self.spatial_accuracy = "Point measurements, station-dependent"
+
+    def validate_source_specific(self, ds: xr.Dataset, report) -> None:
+        """Meteostat specific validation"""
+
+        # Check for excessive data gaps (common with station data)
+        for var_name in ds.data_vars:
+            data = ds[var_name].values
+            gap_length = self._check_consecutive_gaps(data)
+
+            if gap_length > 24:  # Gaps longer than 24 hours
+                severity = "HIGH" if gap_length >= 72 else "MEDIUM"
+                report.warnings.append(
+                    f"Long data gaps in {var_name} (max: {gap_length} consecutive hours) - {severity} severity"
+                )
+
+        # Check for station-specific issues (simplified)
+        if 'wind_speed' in ds:
+            wind_data = ds['wind_speed'].values
+            # Check for suspiciously low wind variability (sheltered station)
+            wind_std = np.nanstd(wind_data)
+            if wind_std < 0.5:  # Very low wind variability
+                report.warnings.append(
+                    f"Very low wind speed variability (std={wind_std:.2f}) suggests sheltered station"
+                )
+
+    def _check_consecutive_gaps(self, data: np.ndarray) -> int:
+        """Find maximum length of consecutive NaN values - helper method moved with the class"""
+        is_nan = np.isnan(data)
+        if not np.any(is_nan):
+            return 0
+
+        # Find consecutive NaN sequences
+        groups = np.split(np.arange(len(is_nan)), np.where(np.diff(is_nan))[0] + 1)
+        max_gap = 0
+
+        for group in groups:
+            if len(group) > 0 and is_nan[group[0]]:
+                max_gap = max(max_gap, len(group))
+
+        return max_gap
+
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
+        """Get source-specific adjusted bounds"""
+        return base_bounds

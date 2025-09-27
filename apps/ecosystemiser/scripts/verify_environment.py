@@ -161,6 +161,39 @@ class EnvironmentVerifier:
 
         return all_good
 
+    def check_import_consistency(self) -> bool:
+        """Verify no relative imports cross module boundaries."""
+        import ast
+
+        src_dir = self.ecosystemiser_dir / 'src' / 'EcoSystemiser'
+        py_files = list(src_dir.rglob('*.py'))
+
+        relative_imports = []
+        for py_file in py_files:
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                tree = ast.parse(content)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.ImportFrom):
+                        if node.level > 0:  # Relative import
+                            # Check if it crosses module boundaries
+                            module_parts = py_file.relative_to(src_dir).parts[:-1]
+                            if node.level > len(module_parts):
+                                relative_imports.append(str(py_file.relative_to(self.ecosystemiser_dir)))
+            except Exception:
+                continue
+
+        if relative_imports:
+            self.errors.append(f"[ERROR] Found {len(relative_imports)} files with boundary-crossing relative imports")
+            for file in relative_imports[:3]:
+                self.errors.append(f"  - {file}")
+            return False
+        else:
+            self.results.append("[OK] No boundary-crossing relative imports found")
+            return True
+
     def check_test_environment(self) -> bool:
         """Verify test environment is set up correctly."""
         try:
@@ -204,6 +237,7 @@ class EnvironmentVerifier:
             ("Editable Install", self.check_editable_install),
             ("Hive Packages", self.check_hive_packages),
             ("Import Cleanliness", self.check_no_sys_path_hacks),
+            ("Import Consistency", self.check_import_consistency),
             ("Logging Integration", self.check_logging_integration),
             ("Configuration", self.check_configuration),
             ("Module Imports", self.check_imports),

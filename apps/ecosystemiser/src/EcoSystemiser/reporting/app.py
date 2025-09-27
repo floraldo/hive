@@ -10,6 +10,7 @@ from datetime import datetime
 from EcoSystemiser.analyser import AnalyserService
 from EcoSystemiser.datavis.plot_factory import PlotFactory
 from EcoSystemiser.hive_logging_adapter import get_logger
+from EcoSystemiser.reporting.generator import HTMLReportGenerator
 
 logger = get_logger(__name__)
 
@@ -180,14 +181,13 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         # Generate plots
         plots = generate_plots(app.plot_factory, raw_results, analysis_results)
 
-        # Render full HTML report
-        html = render_template('report_download.html',
-                             session_id=session_id,
-                             timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                             metadata=analysis_results.get('metadata', {}),
-                             summary=analysis_results.get('summary', {}),
-                             analyses=analysis_results.get('analyses', {}),
-                             plots=plots)
+        # Use centralized generator for standalone reports
+        generator = HTMLReportGenerator()
+        html = generator.generate_standalone_report(
+            analysis_results,
+            plots,
+            f"EcoSystemiser Analysis Report - {session_id}"
+        )
 
         # Save to temporary file and send
         with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as tmp:

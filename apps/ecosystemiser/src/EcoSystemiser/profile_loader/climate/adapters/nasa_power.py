@@ -6,14 +6,14 @@ import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Any, Optional, Tuple
 from EcoSystemiser.hive_logging_adapter import get_logger
-from ..utils.chunking import split_date_range, concatenate_chunked_results, estimate_memory_usage
+from EcoSystemiser.profile_loader.utils.chunking import split_date_range, concatenate_chunked_results, estimate_memory_usage
 
-from .base import BaseAdapter
-from .capabilities import (
+from EcoSystemiser.profile_loader.climate.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
     AdapterCapabilities, TemporalCoverage, SpatialCoverage,
     DataFrequency, AuthType, RateLimits, QualityFeatures
 )
-from ..data_models import CANONICAL_VARIABLES
+from EcoSystemiser.profile_loader.data_models import CANONICAL_VARIABLES
 from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError
 
 logger = get_logger(__name__)
@@ -418,7 +418,7 @@ class NASAPowerAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize NASA POWER adapter"""
-        from .base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (NASA POWER has no strict limits)
         rate_config = RateLimitConfig(
@@ -615,5 +615,65 @@ class NASAPowerAdapter(BaseAdapter):
         # Combine along variable dimension
         combined = xr.merge(datasets)
         logger.info(f"Successfully combined {len(batches)} batches")
-        
+
         return combined
+
+
+class NASAPowerQCProfile:
+    """QC profile for NASA POWER data - co-located with adapter for better cohesion."""
+
+    def __init__(self):
+        self.name = "NASA POWER"
+        self.description = "NASA's Prediction Of Worldwide Energy Resources - satellite-derived with MERRA-2 reanalysis"
+        self.known_issues = [
+            "Solar radiation slightly overestimated in tropical regions",
+            "Temperature may show warm bias in arid regions",
+            "Precipitation estimates less reliable than ground stations",
+            "Limited accuracy for mountainous terrain due to 0.5deg resolution"
+        ]
+        self.recommended_variables = [
+            "temp_air", "ghi", "dni", "dhi", "wind_speed", "pressure"
+        ]
+        self.temporal_resolution_limits = {
+            "all": "hourly"  # NASA POWER provides hourly data
+        }
+        self.spatial_accuracy = "0.5deg x 0.5deg (~50km resolution)"
+
+    def validate_source_specific(self, ds: xr.Dataset, report) -> None:
+        """NASA POWER specific validation"""
+
+        # Check for known solar radiation bias in tropics
+        lat = ds.attrs.get('latitude', 0)
+        if abs(lat) < 23.5 and 'ghi' in ds:  # Tropics
+            ghi_data = ds['ghi'].values
+            if np.nanmean(ghi_data) > 250:  # High average GHI
+                report.warnings.append(
+                    f"NASA POWER may overestimate solar radiation in tropical regions (lat={lat:.2f}, avg_ghi={np.nanmean(ghi_data):.1f})"
+                )
+
+        # Check temperature bias in arid regions (simplified check)
+        if 'temp_air' in ds and 'rel_humidity' in ds:
+            temp_data = ds['temp_air'].values
+            humidity_data = ds['rel_humidity'].values
+
+            # Arid conditions: high temperature, low humidity
+            arid_mask = (temp_data > 30) & (humidity_data < 30)
+            if np.sum(arid_mask & ~np.isnan(temp_data)) > len(temp_data) * 0.3:  # >30% arid conditions
+                report.warnings.append(
+                    "NASA POWER may show warm bias in arid regions - consider local validation"
+                )
+
+        # Check for precipitation data quality warning
+        if 'precip' in ds:
+            precip_data = ds['precip'].values
+            n_precip_events = np.sum(precip_data > 0.1)  # >0.1 mm/h
+
+            if n_precip_events > 0:
+                report.warnings.append(
+                    f"NASA POWER precipitation estimates have lower accuracy than ground stations ({n_precip_events} precip events detected)"
+                )
+
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
+        """Get source-specific adjusted bounds"""
+        # Default: return base bounds unchanged
+        return base_bounds
