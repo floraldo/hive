@@ -146,11 +146,13 @@ class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class HeatDemandOptimization(BaseDemandOptimization):
-    """Handles the MILP (CVXPY) constraints for heat demand.
+class HeatDemandOptimizationSimple(BaseDemandOptimization):
+    """Implements the SIMPLE MILP optimization constraints for heat demand.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Fixed heat demand: H_in = profile * H_max
+    - Demand must be met exactly
+    - No thermal comfort flexibility
     """
 
     def __init__(self, params, component_instance):
@@ -160,17 +162,14 @@ class HeatDemandOptimization(BaseDemandOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for heat demand optimization.
+        Create SIMPLE CVXPY constraints for heat demand optimization.
 
-        This method encapsulates all the MILP constraint logic for demand.
+        Returns constraints for fixed heat demand without flexibility.
         """
         constraints = []
         comp = self.component
 
         if comp.H_in is not None and hasattr(comp, 'profile'):
-            # Get fidelity level
-            fidelity = comp.technical.fidelity_level
-
             # Core heat demand constraints
             N = comp.H_in.shape[0]
 
@@ -181,40 +180,53 @@ class HeatDemandOptimization(BaseDemandOptimization):
                 else:
                     base_demand_t = comp.profile[-1] * comp.H_max if len(comp.profile) > 0 else 0
 
-                # --- SIMPLE MODEL (baseline) ---
-                # Fixed heat demand: H_in = profile * H_max (demand must be met exactly)
-                demand_min = base_demand_t
-                demand_max = base_demand_t
+                # SIMPLE MODEL: Fixed heat demand must be met exactly
+                constraints.append(comp.H_in[t] == base_demand_t)
 
-                # --- STANDARD ENHANCEMENTS ---
-                if fidelity >= FidelityLevel.STANDARD:
-                    # Thermal comfort bands allow some flexibility
-                    thermal_comfort_band = getattr(comp.technical, 'thermal_comfort_band', None)
-                    if thermal_comfort_band:
-                        comfort_flexibility = 0.1  # 10% flexibility for thermal comfort
-                        demand_min = base_demand_t * (1 - comfort_flexibility)
-                        demand_max = base_demand_t * (1 + comfort_flexibility)
+        return constraints
 
-                # --- DETAILED ENHANCEMENTS ---
-                if fidelity >= FidelityLevel.DETAILED:
-                    # Demand response capabilities
-                    demand_response_capability = getattr(comp.technical, 'demand_response_capability', None)
-                    if demand_response_capability:
-                        shift_capacity = demand_response_capability.get('shift_capacity', 0)
-                        shed_capacity = demand_response_capability.get('shed_capacity', 0)
 
-                        # Expand flexibility bounds for demand response
-                        demand_min = base_demand_t * (1 - shed_capacity)
-                        demand_max = base_demand_t * (1 + shift_capacity)
+class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for heat demand.
 
-                # Apply heat demand constraints with all fidelity enhancements
-                if demand_min == demand_max:
-                    # Exact demand satisfaction (SIMPLE, or no flexibility parameters)
-                    constraints.append(comp.H_in[t] == demand_max)
+    Inherits from SIMPLE and adds:
+    - Thermal comfort bands for flexibility
+    - Temperature-dependent demand variation
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for heat demand optimization.
+
+        Adds thermal comfort flexibility to the constraints.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.H_in is not None and hasattr(comp, 'profile'):
+            # Core heat demand constraints
+            N = comp.H_in.shape[0]
+
+            for t in range(N):
+                # Handle profile bounds
+                if t < len(comp.profile):
+                    base_demand_t = comp.profile[t] * comp.H_max
                 else:
-                    # Flexible demand bounds (STANDARD+, with flexibility parameters)
+                    base_demand_t = comp.profile[-1] * comp.H_max if len(comp.profile) > 0 else 0
+
+                # STANDARD: Thermal comfort bands allow some flexibility
+                thermal_comfort_band = getattr(comp.technical, 'thermal_comfort_band', None)
+                if thermal_comfort_band:
+                    comfort_flexibility = 0.1  # 10% flexibility for thermal comfort
+                    demand_min = base_demand_t * (1 - comfort_flexibility)
+                    demand_max = base_demand_t * (1 + comfort_flexibility)
+
+                    # Apply flexible demand bounds
                     constraints.append(comp.H_in[t] >= demand_min)
                     constraints.append(comp.H_in[t] <= demand_max)
+                else:
+                    # If no flexibility specified, use exact demand
+                    constraints.append(comp.H_in[t] == base_demand_t)
 
         return constraints
 
@@ -295,10 +307,21 @@ class HeatDemand(Component):
             raise ValueError(f"Unknown fidelity level for HeatDemand: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return HeatDemandOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return HeatDemandOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return HeatDemandOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return HeatDemandOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return HeatDemandOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for HeatDemand optimization: {fidelity}")
 
     def rule_based_demand(self, t: int) -> float:
         """

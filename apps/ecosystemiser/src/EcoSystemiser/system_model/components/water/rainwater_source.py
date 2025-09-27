@@ -155,11 +155,13 @@ class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class RainwaterSourceOptimization(BaseGenerationOptimization):
-    """Handles the MILP (CVXPY) constraints for rainwater source.
+class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
+    """Implements the SIMPLE MILP optimization constraints for rainwater source.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Basic rainwater collection based on rainfall profile
+    - Simple runoff coefficient and efficiency
+    - No first flush or filtration losses
     """
 
     def __init__(self, params, component_instance):
@@ -169,17 +171,14 @@ class RainwaterSourceOptimization(BaseGenerationOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for rainwater source optimization.
+        Create SIMPLE CVXPY constraints for rainwater source optimization.
 
-        This method encapsulates all the MILP constraint logic for rainwater collection.
+        Returns constraints for basic rainwater collection without losses.
         """
         constraints = []
         comp = self.component
 
         if comp.Q_out is not None and hasattr(comp, 'profile'):
-            # Get fidelity level
-            fidelity = comp.technical.fidelity_level
-
             # Core rainwater source constraints
             N = comp.Q_out.shape[0]
 
@@ -190,8 +189,7 @@ class RainwaterSourceOptimization(BaseGenerationOptimization):
                 else:
                     rainfall_t = comp.profile[-1] if len(comp.profile) > 0 else 0
 
-                # --- SIMPLE MODEL (baseline) ---
-                # Calculate basic collection
+                # SIMPLE MODEL: Basic collection calculation
                 area_m2 = comp.technical.catchment_area_m2
                 runoff_coeff = comp.technical.runoff_coefficient
                 efficiency = comp.technical.efficiency_nominal
@@ -200,23 +198,68 @@ class RainwaterSourceOptimization(BaseGenerationOptimization):
                 raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000
                 available_collection = min(raw_collection, comp.technical.capacity_nominal)
 
-                # --- STANDARD ENHANCEMENTS ---
-                if fidelity >= FidelityLevel.STANDARD:
-                    # First flush diversion
-                    first_flush = getattr(comp.technical, 'first_flush_diversion', None)
-                    if first_flush and rainfall_t > 0:
-                        first_flush_loss = min(0.1, first_flush / rainfall_t) if rainfall_t > 0 else 0
-                        available_collection = available_collection * (1 - first_flush_loss)
-
-                    # Multi-stage filtration
-                    filtration_stages = getattr(comp.technical, 'filtration_stages', None)
-                    if filtration_stages:
-                        total_filtration_eff = 1.0
-                        for stage, eff in filtration_stages.items():
-                            total_filtration_eff *= eff
-                        available_collection = available_collection * total_filtration_eff
-
                 # Collection constraint: output = available collection
+                constraints.append(comp.Q_out[t] <= available_collection)
+
+            # Maximum capacity constraint
+            constraints.append(comp.Q_out <= comp.technical.capacity_nominal)
+
+        return constraints
+
+
+class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for rainwater source.
+
+    Inherits from SIMPLE and adds:
+    - First flush diversion losses
+    - Multi-stage filtration efficiency
+    - More realistic water quality modeling
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for rainwater source optimization.
+
+        Adds first flush and filtration losses to the constraints.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.Q_out is not None and hasattr(comp, 'profile'):
+            # Core rainwater source constraints
+            N = comp.Q_out.shape[0]
+
+            for t in range(N):
+                # Handle profile bounds
+                if t < len(comp.profile):
+                    rainfall_t = comp.profile[t]
+                else:
+                    rainfall_t = comp.profile[-1] if len(comp.profile) > 0 else 0
+
+                # Start with SIMPLE collection calculation
+                area_m2 = comp.technical.catchment_area_m2
+                runoff_coeff = comp.technical.runoff_coefficient
+                efficiency = comp.technical.efficiency_nominal
+
+                # Basic collection calculation
+                raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000
+                available_collection = min(raw_collection, comp.technical.capacity_nominal)
+
+                # STANDARD ENHANCEMENTS: First flush diversion
+                first_flush = getattr(comp.technical, 'first_flush_diversion', None)
+                if first_flush and rainfall_t > 0:
+                    first_flush_loss = min(0.1, first_flush / rainfall_t) if rainfall_t > 0 else 0
+                    available_collection = available_collection * (1 - first_flush_loss)
+
+                # STANDARD ENHANCEMENTS: Multi-stage filtration
+                filtration_stages = getattr(comp.technical, 'filtration_stages', None)
+                if filtration_stages:
+                    total_filtration_eff = 1.0
+                    for stage, eff in filtration_stages.items():
+                        total_filtration_eff *= eff
+                    available_collection = available_collection * total_filtration_eff
+
+                # Collection constraint with enhanced losses
                 constraints.append(comp.Q_out[t] <= available_collection)
 
             # Maximum capacity constraint
@@ -298,10 +341,21 @@ class RainwaterSource(Component):
             raise ValueError(f"Unknown fidelity level for RainwaterSource: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return RainwaterSourceOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return RainwaterSourceOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return RainwaterSourceOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return RainwaterSourceOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return RainwaterSourceOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for RainwaterSource optimization: {fidelity}")
 
     def rule_based_generate(self, t: int) -> float:
         """

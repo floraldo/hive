@@ -139,11 +139,13 @@ class WaterDemandPhysicsStandard(WaterDemandPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class WaterDemandOptimization(BaseDemandOptimization):
-    """Handles the MILP (CVXPY) constraints for water demand.
+class WaterDemandOptimizationSimple(BaseDemandOptimization):
+    """Implements the SIMPLE MILP optimization constraints for water demand.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Fixed water demand: Q_in = profile * Q_max
+    - Demand must be met exactly
+    - No conservation or flexibility
     """
 
     def __init__(self, params, component_instance):
@@ -153,52 +155,58 @@ class WaterDemandOptimization(BaseDemandOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for water demand optimization.
+        Create SIMPLE CVXPY constraints for water demand optimization.
 
-        This method encapsulates all the MILP constraint logic for water demand.
+        Returns constraints for fixed water demand without flexibility.
         """
         constraints = []
         comp = self.component
 
         if comp.Q_in is not None and hasattr(comp, 'profile'):
-            # Get fidelity level
-            fidelity = comp.technical.fidelity_level
+            # SIMPLE MODEL: Fixed water demand must be met exactly
+            # Q_in = profile * Q_max
+            demand_exact = comp.profile * comp.Q_max
 
-            # Core water demand constraints
-            N = comp.Q_in.shape[0]
+            # Apply exact demand constraint
+            constraints.append(comp.Q_in == demand_exact)
 
-            # --- SIMPLE MODEL (baseline) ---
-            # Fixed demand: Q_in = profile * Q_max (demand must be met exactly)
-            demand_min = comp.profile * comp.Q_max
-            demand_max = comp.profile * comp.Q_max
+        return constraints
 
-            # --- STANDARD ENHANCEMENTS ---
-            if fidelity >= FidelityLevel.STANDARD:
-                # Seasonal variations would be handled in profile generation
-                seasonal_variation = getattr(comp.technical, 'seasonal_variation', None)
-                if seasonal_variation:
-                    # For now, STANDARD maintains exact demand satisfaction
-                    # In practice: might adjust for seasonal flexibility
-                    pass
 
-            # --- DETAILED ENHANCEMENTS ---
-            if fidelity >= FidelityLevel.DETAILED:
-                # Conservation measures allow some demand reduction
-                conservation_measures = getattr(comp.technical, 'conservation_measures', None)
-                if conservation_measures:
-                    # Allow demand reduction through conservation
-                    conservation_factor = conservation_measures.get('efficiency_gain', 0.1)
-                    demand_min = comp.profile * comp.Q_max * (1 - conservation_factor)
-                    demand_max = comp.profile * comp.Q_max
+class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for water demand.
 
-            # Apply demand constraints with all fidelity enhancements
-            if np.array_equal(demand_min, demand_max):
-                # Exact demand satisfaction (SIMPLE and STANDARD)
-                constraints.append(comp.Q_in == demand_max)
-            else:
-                # Flexible demand bounds (DETAILED and RESEARCH)
-                constraints.append(comp.Q_in >= demand_min)
-                constraints.append(comp.Q_in <= demand_max)
+    Inherits from SIMPLE and adds:
+    - Seasonal variation acknowledgment
+    - Preparation for conservation measures
+
+    Note: Currently maintains exact demand like SIMPLE, but structure
+    ready for seasonal adjustments.
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for water demand optimization.
+
+        Currently same as SIMPLE but acknowledges seasonal variations.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.Q_in is not None and hasattr(comp, 'profile'):
+            # STANDARD MODEL: Currently maintains exact demand
+            demand_exact = comp.profile * comp.Q_max
+
+            # Acknowledge seasonal variations (handled in profile generation)
+            seasonal_variation = getattr(comp.technical, 'seasonal_variation', None)
+            if seasonal_variation:
+                # Log awareness but maintain exact demand for now
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.debug(f"STANDARD: Seasonal variation acknowledged for {comp.name}")
+
+            # Apply exact demand constraint (same as SIMPLE for now)
+            constraints.append(comp.Q_in == demand_exact)
 
         return constraints
 
@@ -274,10 +282,21 @@ class WaterDemand(Component):
             raise ValueError(f"Unknown fidelity level for WaterDemand: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return WaterDemandOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return WaterDemandOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return WaterDemandOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return WaterDemandOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return WaterDemandOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for WaterDemand optimization: {fidelity}")
 
     def rule_based_demand(self, t: int) -> float:
         """

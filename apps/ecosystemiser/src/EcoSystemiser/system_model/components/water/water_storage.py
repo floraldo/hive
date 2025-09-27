@@ -151,11 +151,13 @@ class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class WaterStorageOptimization(BaseStorageOptimization):
-    """Handles the MILP (CVXPY) constraints for water storage.
+class WaterStorageOptimizationSimple(BaseStorageOptimization):
+    """Implements the SIMPLE MILP optimization constraints for water storage.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Basic water balance with fixed loss rate
+    - Volume bounds and flow constraints
+    - No temperature-dependent effects
     """
 
     def __init__(self, params, component_instance):
@@ -165,17 +167,14 @@ class WaterStorageOptimization(BaseStorageOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for water storage optimization.
+        Create SIMPLE CVXPY constraints for water storage optimization.
 
-        This method encapsulates all the MILP constraint logic for water storage.
+        Returns constraints for basic water storage without enhanced losses.
         """
         constraints = []
         comp = self.component
 
         if comp.V_water is not None:
-            # Get fidelity level
-            fidelity = comp.technical.fidelity_level
-
             # Core water storage constraints
             N = comp.N
 
@@ -186,24 +185,69 @@ class WaterStorageOptimization(BaseStorageOptimization):
             constraints.append(comp.V_water >= comp.min_level_m3)
             constraints.append(comp.V_water <= comp.max_level_m3)
 
+            # SIMPLE MODEL: Basic loss rate
+            hourly_loss_rate = comp.technical.loss_rate_daily / 24.0
+
             # Water balance for each timestep
             for t in range(N):
-                # --- SIMPLE MODEL (baseline) ---
-                # Base loss rate
-                hourly_loss_rate = comp.technical.loss_rate_daily / 24.0
+                # Water balance equation
+                constraints.append(
+                    comp.V_water[t + 1] == comp.V_water[t] +
+                    comp.technical.efficiency_roundtrip * comp.Q_in[t] -
+                    comp.Q_out[t] -
+                    comp.V_water[t] * hourly_loss_rate
+                )
 
-                # --- STANDARD ENHANCEMENTS ---
-                if fidelity >= FidelityLevel.STANDARD:
-                    # Temperature-dependent losses
-                    temperature_effects = getattr(comp.technical, 'temperature_effects', None)
-                    if temperature_effects:
-                        # Apply temperature enhancement to evaporation
-                        evap_factor = temperature_effects.get('evaporation_factor', 0.05)
-                        # Simplified: assume 5°C above reference for demo
-                        temp_deviation = 5
-                        additional_loss_multiplier = 1 + evap_factor * temp_deviation / 10
-                        hourly_loss_rate = hourly_loss_rate * additional_loss_multiplier
+            # Flow constraints
+            constraints.append(comp.Q_in <= comp.technical.max_charge_rate)
+            constraints.append(comp.Q_out <= comp.technical.max_discharge_rate)
 
+        return constraints
+
+
+class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for water storage.
+
+    Inherits from SIMPLE and adds:
+    - Temperature-dependent evaporation losses
+    - More realistic water storage modeling
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for water storage optimization.
+
+        Adds temperature-dependent losses to the constraints.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.V_water is not None:
+            # Core water storage constraints
+            N = comp.N
+
+            # Initial state
+            constraints.append(comp.V_water[0] == comp.initial_level_m3)
+
+            # Volume bounds
+            constraints.append(comp.V_water >= comp.min_level_m3)
+            constraints.append(comp.V_water <= comp.max_level_m3)
+
+            # STANDARD: Enhanced loss rate with temperature effects
+            hourly_loss_rate = comp.technical.loss_rate_daily / 24.0
+
+            # Temperature-dependent losses
+            temperature_effects = getattr(comp.technical, 'temperature_effects', None)
+            if temperature_effects:
+                # Apply temperature enhancement to evaporation
+                evap_factor = temperature_effects.get('evaporation_factor', 0.05)
+                # Simplified: assume 5°C above reference for demo
+                temp_deviation = 5
+                additional_loss_multiplier = 1 + evap_factor * temp_deviation / 10
+                hourly_loss_rate = hourly_loss_rate * additional_loss_multiplier
+
+            # Water balance for each timestep with enhanced losses
+            for t in range(N):
                 # Water balance equation
                 constraints.append(
                     comp.V_water[t + 1] == comp.V_water[t] +
@@ -318,10 +362,21 @@ class WaterStorage(Component):
             raise ValueError(f"Unknown fidelity level for WaterStorage: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return WaterStorageOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return WaterStorageOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return WaterStorageOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return WaterStorageOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return WaterStorageOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for WaterStorage optimization: {fidelity}")
 
     def rule_based_update_state(self, t: int, inflow: float, outflow: float):
         """

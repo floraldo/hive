@@ -139,11 +139,12 @@ class WaterGridPhysicsStandard(WaterGridPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class WaterGridOptimization:
-    """Handles the MILP (CVXPY) constraints for the water grid.
+class WaterGridOptimizationSimple:
+    """Implements the SIMPLE MILP optimization constraints for water grid.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Basic import/export capacity constraints
+    - No reliability or pressure loss considerations
     """
 
     def __init__(self, params, component_instance):
@@ -153,17 +154,14 @@ class WaterGridOptimization:
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for water grid optimization.
+        Create SIMPLE CVXPY constraints for water grid optimization.
 
-        This method encapsulates all the MILP constraint logic for water transmission.
+        Returns constraints for basic water transmission without losses.
         """
         constraints = []
         comp = self.component
 
-        # Get fidelity level
-        fidelity = comp.technical.fidelity_level
-
-        # Basic constraints (all fidelity levels)
+        # SIMPLE MODEL: Basic capacity constraints only
         if comp.Q_import is not None:
             # Import capacity constraints
             constraints.append(comp.Q_import <= comp.max_supply_m3h)
@@ -172,21 +170,32 @@ class WaterGridOptimization:
             # Export capacity constraints
             constraints.append(comp.Q_export <= comp.max_discharge_m3h)
 
-        # STANDARD: Add reliability constraints
-        if fidelity >= FidelityLevel.STANDARD:
-            if comp.Q_import is not None and comp.supply_reliability < 1.0:
-                # Reduce effective capacity by reliability factor
-                effective_supply = comp.max_supply_m3h * comp.supply_reliability
-                constraints.append(comp.Q_import <= effective_supply)
+        return constraints
 
-        # DETAILED: Add pressure-dependent constraints
-        if fidelity >= FidelityLevel.DETAILED:
-            if comp.pressure_losses:
-                # Pressure losses reduce effective capacity
-                pressure_factor = comp.pressure_losses.get('distribution_factor', 0.95)
-                if comp.Q_import is not None:
-                    effective_supply = comp.max_supply_m3h * pressure_factor
-                    constraints.append(comp.Q_import <= effective_supply)
+
+class WaterGridOptimizationStandard(WaterGridOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for water grid.
+
+    Inherits from SIMPLE and adds:
+    - Supply reliability constraints
+    - Preparation for pressure loss modeling
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for water grid optimization.
+
+        Adds supply reliability to the constraints.
+        """
+        # Start with SIMPLE constraints
+        constraints = super().set_constraints()
+        comp = self.component
+
+        # STANDARD: Add reliability constraints
+        if comp.Q_import is not None and comp.supply_reliability < 1.0:
+            # Reduce effective capacity by reliability factor
+            effective_supply = comp.max_supply_m3h * comp.supply_reliability
+            constraints.append(comp.Q_import <= effective_supply)
 
         return constraints
 
@@ -272,10 +281,21 @@ class WaterGrid(Component):
             raise ValueError(f"Unknown fidelity level for WaterGrid: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return WaterGridOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return WaterGridOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return WaterGridOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return WaterGridOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return WaterGridOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for WaterGrid optimization: {fidelity}")
 
     def add_optimization_vars(self, N: Optional[int] = None):
         """Create CVXPY optimization variables."""

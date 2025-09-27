@@ -181,11 +181,13 @@ class ElectricBoilerPhysicsStandard(ElectricBoilerPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class ElectricBoilerOptimization(BaseConversionOptimization):
-    """Handles the MILP (CVXPY) constraints for the electric boiler.
+class ElectricBoilerOptimizationSimple(BaseConversionOptimization):
+    """Implements the SIMPLE MILP optimization constraints for electric boiler.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Direct electric-to-heat conversion with fixed efficiency
+    - Basic capacity constraints
+    - No modulation or heat exchanger effects
     """
 
     def __init__(self, params, component_instance):
@@ -195,30 +197,19 @@ class ElectricBoilerOptimization(BaseConversionOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for electric boiler optimization.
+        Create SIMPLE CVXPY constraints for electric boiler optimization.
 
-        This method encapsulates all the MILP constraint logic for conversion.
+        Returns constraints for basic electric-to-heat conversion.
         """
         constraints = []
         comp = self.component
 
         if hasattr(comp, 'P_heat') and comp.P_heat is not None:
-            # Get fidelity level
-            fidelity = comp.technical.fidelity_level
-
             # Core electric boiler constraints
             N = comp.P_heat.shape[0]
 
-            # --- SIMPLE MODEL (baseline) ---
-            # Direct conversion efficiency
+            # SIMPLE MODEL: Direct conversion efficiency
             efficiency = comp.technical.efficiency_nominal
-
-            # --- STANDARD ENHANCEMENTS ---
-            if fidelity >= FidelityLevel.STANDARD:
-                # Apply heat exchanger effectiveness
-                effectiveness = getattr(comp.technical, 'heat_exchanger_effectiveness', None)
-                if effectiveness:
-                    efficiency = efficiency * effectiveness
 
             # Energy balance: Heat output = Electrical input * efficiency
             for t in range(N):
@@ -230,20 +221,59 @@ class ElectricBoilerOptimization(BaseConversionOptimization):
             constraints.append(comp.P_heat <= comp.P_max)
             constraints.append(comp.P_elec <= comp.P_max_elec)
 
+        return constraints
+
+
+class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for electric boiler.
+
+    Inherits from SIMPLE and adds:
+    - Heat exchanger effectiveness
+    - Modulation constraints with minimum operating power
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for electric boiler optimization.
+
+        Adds heat exchanger and modulation constraints.
+        """
+        constraints = []
+        comp = self.component
+
+        if hasattr(comp, 'P_heat') and comp.P_heat is not None:
+            # Core electric boiler constraints
+            N = comp.P_heat.shape[0]
+
+            # STANDARD: Apply heat exchanger effectiveness
+            efficiency = comp.technical.efficiency_nominal
+            effectiveness = getattr(comp.technical, 'heat_exchanger_effectiveness', None)
+            if effectiveness:
+                efficiency = efficiency * effectiveness
+
+            # Energy balance with adjusted efficiency
+            for t in range(N):
+                constraints.append(
+                    comp.P_heat[t] == efficiency * comp.P_elec[t]
+                )
+
+            # Capacity constraints
+            constraints.append(comp.P_heat <= comp.P_max)
+            constraints.append(comp.P_elec <= comp.P_max_elec)
+
             # STANDARD: Modulation constraints
-            if fidelity >= FidelityLevel.STANDARD:
-                modulation_range = getattr(comp.technical, 'modulation_range', None)
-                if modulation_range:
-                    min_power = modulation_range.get('min_power', 0) * comp.P_max
-                    max_power = modulation_range.get('max_power', 1) * comp.P_max
+            modulation_range = getattr(comp.technical, 'modulation_range', None)
+            if modulation_range:
+                min_power = modulation_range.get('min_power', 0) * comp.P_max
+                max_power = modulation_range.get('max_power', 1) * comp.P_max
 
-                    # Binary variable for on/off state
-                    if not hasattr(comp, '_boiler_state'):
-                        comp._boiler_state = cp.Variable(N, boolean=True, name=f'{comp.name}_state')
+                # Binary variable for on/off state
+                if not hasattr(comp, '_boiler_state'):
+                    comp._boiler_state = cp.Variable(N, boolean=True, name=f'{comp.name}_state')
 
-                    # Modulation constraints
-                    constraints.append(comp.P_heat >= min_power * comp._boiler_state)
-                    constraints.append(comp.P_heat <= max_power * comp._boiler_state)
+                # Modulation constraints
+                constraints.append(comp.P_heat >= min_power * comp._boiler_state)
+                constraints.append(comp.P_heat <= max_power * comp._boiler_state)
 
         return constraints
 
@@ -316,10 +346,21 @@ class ElectricBoiler(Component):
             raise ValueError(f"Unknown fidelity level for ElectricBoiler: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return ElectricBoilerOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return ElectricBoilerOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return ElectricBoilerOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return ElectricBoilerOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return ElectricBoilerOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for ElectricBoiler optimization: {fidelity}")
 
     def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
         """
