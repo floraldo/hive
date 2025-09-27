@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
 from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
 from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryPhysicsSimple, BatteryPhysicsStandard, BatteryOptimizationSimple, BatteryOptimizationStandard
-from EcoSystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferPhysicsSimple, HeatBufferPhysicsStandard, HeatBufferOptimization
-from EcoSystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVPhysicsSimple, SolarPVPhysicsStandard, SolarPVOptimization
-from EcoSystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpPhysicsSimple, HeatPumpPhysicsStandard, HeatPumpOptimization
-from EcoSystemiser.system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerPhysicsSimple, ElectricBoilerPhysicsStandard, ElectricBoilerOptimization
-from EcoSystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandPhysicsSimple, PowerDemandPhysicsStandard, PowerDemandOptimization
-from EcoSystemiser.system_model.components.energy.heat_demand import HeatDemand, HeatDemandPhysicsSimple, HeatDemandPhysicsStandard, HeatDemandOptimization
+from EcoSystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferPhysicsSimple, HeatBufferPhysicsStandard, HeatBufferOptimizationSimple, HeatBufferOptimizationStandard
+from EcoSystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVPhysicsSimple, SolarPVPhysicsStandard, SolarPVOptimizationSimple, SolarPVOptimizationStandard
+from EcoSystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpPhysicsSimple, HeatPumpPhysicsStandard, HeatPumpOptimizationSimple, HeatPumpOptimizationStandard
+from EcoSystemiser.system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerPhysicsSimple, ElectricBoilerPhysicsStandard, ElectricBoilerOptimizationSimple, ElectricBoilerOptimizationStandard
+from EcoSystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandPhysicsSimple, PowerDemandPhysicsStandard, PowerDemandOptimizationSimple, PowerDemandOptimizationStandard
+from EcoSystemiser.system_model.components.energy.heat_demand import HeatDemand, HeatDemandPhysicsSimple, HeatDemandPhysicsStandard, HeatDemandOptimizationSimple, HeatDemandOptimizationStandard
 from EcoSystemiser.system_model.components.energy.grid import Grid, GridPhysicsSimple, GridPhysicsStandard, GridOptimization
 from EcoSystemiser.system_model.components.water.water_storage import WaterStorage, WaterStoragePhysicsSimple, WaterStoragePhysicsStandard, WaterStorageOptimization
 from EcoSystemiser.system_model.components.water.water_grid import WaterGrid, WaterGridPhysicsSimple, WaterGridPhysicsStandard, WaterGridOptimization
@@ -307,7 +307,7 @@ def test_physics_correctness():
     logger.info("="*70)
 
     # Test 1: Battery self-discharge
-    from system_model.components.energy.battery import BatteryParams
+    from EcoSystemiser.system_model.components.energy.battery import BatteryParams
     battery = Battery(name='TestBattery', params=BatteryParams())
     battery.technical.capacity_nominal = 10.0
     battery.technical.self_discharge_rate = 0.01  # 1% per hour
@@ -329,7 +329,7 @@ def test_physics_correctness():
     logger.info(f"  ✅ Correct" if abs(loss - expected_loss) < 0.001 else f"  ❌ Incorrect")
 
     # Test 2: Solar PV inverter efficiency
-    from system_model.components.energy.solar_pv import SolarPVParams
+    from EcoSystemiser.system_model.components.energy.solar_pv import SolarPVParams
     solar = SolarPV(name='TestSolar', params=SolarPVParams())
     solar.technical.capacity_nominal = 10.0
     solar.technical.inverter_efficiency = 0.96
@@ -350,7 +350,7 @@ def test_physics_correctness():
     logger.info(f"  ✅ Correct" if abs(output - expected_output) < 0.001 else f"  ❌ Incorrect")
 
     # Test 3: Power demand does NOT inflate for power factor
-    from system_model.components.energy.power_demand import PowerDemandParams
+    from EcoSystemiser.system_model.components.energy.power_demand import PowerDemandParams
     import numpy as np
     demand = PowerDemand(name='TestDemand', params=PowerDemandParams())
     demand.technical.peak_demand = 10.0
@@ -359,8 +359,8 @@ def test_physics_correctness():
     demand.profile = np.array([1.0])  # Full demand
 
     # Check that STANDARD doesn't inflate demand
-    from system_model.components.energy.power_demand import PowerDemandOptimization
-    opt = PowerDemandOptimization(demand.params, demand)
+    from EcoSystemiser.system_model.components.energy.power_demand import PowerDemandOptimizationStandard
+    opt = PowerDemandOptimizationStandard(demand.params, demand)
 
     # The demand should remain 10 kW, NOT inflated
     logger.info("\nPower Demand Power Factor Test:")

@@ -13,9 +13,9 @@ from pathlib import Path
 # Add parent directories to path for imports
 import sys
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from system_model.system import System
-from system_model.system_builder import SystemBuilder
-from solver.rule_based_engine import RuleBasedEngine
+from EcoSystemiser.system_model.system import System
+from EcoSystemiser.system_model.system_builder import SystemBuilder
+from EcoSystemiser.solver.rule_based_engine import RuleBasedEngine
 
 class TestSystemEquivalence:
     """Test suite for validating EcoSystemiser against Systemiser golden dataset."""

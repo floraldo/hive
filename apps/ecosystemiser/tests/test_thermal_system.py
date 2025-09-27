@@ -10,18 +10,18 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from system_model.system import System
-from system_model.components.energy.battery import Battery, BatteryParams
-from system_model.components.energy.grid import Grid, GridParams
-from system_model.components.energy.solar_pv import SolarPV, SolarPVParams
-from system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
-from system_model.components.energy.heat_pump import HeatPump, HeatPumpParams
-from system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerParams
-from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams
-from system_model.components.energy.heat_demand import HeatDemand, HeatDemandParams
-from system_model.components.shared.archetypes import FidelityLevel
-from solver.milp_solver import MILPSolver
-from solver.base import SolverConfig
+from EcoSystemiser.system_model.system import System
+from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryParams
+from EcoSystemiser.system_model.components.energy.grid import Grid, GridParams
+from EcoSystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams
+from EcoSystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
+from EcoSystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpParams
+from EcoSystemiser.system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerParams
+from EcoSystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams
+from EcoSystemiser.system_model.components.energy.heat_demand import HeatDemand, HeatDemandParams
+from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from EcoSystemiser.solver.milp_solver import MILPSolver
+from EcoSystemiser.solver.base import SolverConfig
 
 def create_thermal_system():
     """Create system with both electrical and thermal components."""

@@ -21,14 +21,14 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from system_model.system import System
-from system_model.components.energy.battery import Battery, BatteryParams
-from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams
-from system_model.components.energy.heat_pump import HeatPump, HeatPumpParams
-from system_model.components.water.water_storage import WaterStorage, WaterStorageParams
-from system_model.components.shared.archetypes import FidelityLevel
-from solver.milp_solver import MILPSolver
-from solver.base import SolverConfig
+from EcoSystemiser.system_model.system import System
+from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryParams
+from EcoSystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams
+from EcoSystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpParams
+from EcoSystemiser.system_model.components.water.water_storage import WaterStorage, WaterStorageParams
+from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from EcoSystemiser.solver.milp_solver import MILPSolver
+from EcoSystemiser.solver.base import SolverConfig
 
 def create_fidelity_test_system(fidelity_level: FidelityLevel):
     """Create a test system with specified fidelity level for all components."""

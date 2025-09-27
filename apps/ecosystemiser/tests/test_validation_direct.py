@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
 # Direct imports
-from system_model.system import System
-from system_model.components.battery import Battery, BatteryParams
-from system_model.components.grid import Grid, GridParams
-from system_model.components.solar_pv import SolarPV, SolarPVParams
-from system_model.components.power_demand import PowerDemand, PowerDemandParams
-from solver.rule_based_engine import RuleBasedEngine
+from EcoSystemiser.system_model.system import System
+from EcoSystemiser.system_model.components.battery import Battery, BatteryParams
+from EcoSystemiser.system_model.components.grid import Grid, GridParams
+from EcoSystemiser.system_model.components.solar_pv import SolarPV, SolarPVParams
+from EcoSystemiser.system_model.components.power_demand import PowerDemand, PowerDemandParams
+from EcoSystemiser.solver.rule_based_engine import RuleBasedEngine
 
 def load_golden_dataset():
     """Load the golden dataset from Systemiser."""

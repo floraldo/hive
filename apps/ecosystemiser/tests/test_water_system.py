@@ -10,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from system_model.system import System
-from system_model.components.water.water_storage import WaterStorage, WaterStorageParams
-from system_model.components.water.water_grid import WaterGrid, WaterGridParams
-from system_model.components.water.rainwater_source import RainwaterSource, RainwaterSourceParams
-from system_model.components.water.water_demand import WaterDemand, WaterDemandParams
-from system_model.components.shared.archetypes import FidelityLevel
-from solver.milp_solver import MILPSolver
-from solver.base import SolverConfig
+from EcoSystemiser.system_model.system import System
+from EcoSystemiser.system_model.components.water.water_storage import WaterStorage, WaterStorageParams
+from EcoSystemiser.system_model.components.water.water_grid import WaterGrid, WaterGridParams
+from EcoSystemiser.system_model.components.water.rainwater_source import RainwaterSource, RainwaterSourceParams
+from EcoSystemiser.system_model.components.water.water_demand import WaterDemand, WaterDemandParams
+from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from EcoSystemiser.solver.milp_solver import MILPSolver
+from EcoSystemiser.solver.base import SolverConfig
 
 def create_water_system():
     """Create system with water components using new hierarchical architecture."""

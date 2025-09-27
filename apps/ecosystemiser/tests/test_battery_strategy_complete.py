@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from system_model.components.shared.archetypes import FidelityLevel
-from system_model.components.energy.battery import (
+from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from EcoSystemiser.system_model.components.energy.battery import (
     Battery, BatteryParams,
     BatteryPhysicsSimple, BatteryPhysicsStandard,
     BatteryOptimizationSimple, BatteryOptimizationStandard

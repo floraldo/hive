@@ -8,6 +8,38 @@ use consistent, absolute paths derived from the project root.
 
 from pathlib import Path
 import functools
+import os
+
+
+def _search_for_root(start_path: Path) -> Path:
+    """
+    Helper function to search for project root from a starting path.
+
+    Args:
+        start_path: Path to start searching from
+
+    Returns:
+        Path to project root if found, None otherwise
+    """
+    current_path = start_path
+
+    # Walk up the directory tree
+    while current_path != current_path.parent:
+        pyproject_path = current_path / "pyproject.toml"
+
+        if pyproject_path.exists():
+            try:
+                content = pyproject_path.read_text(encoding='utf-8')
+                # Look for the workspace root identifier
+                if 'name = "hive-workspace"' in content:
+                    return current_path
+            except Exception:
+                # Continue searching if we can't read the file
+                pass
+
+        current_path = current_path.parent
+
+    return None
 
 
 @functools.lru_cache(maxsize=1)
@@ -24,50 +56,51 @@ def get_project_root() -> Path:
     Raises:
         RuntimeError: If the project root cannot be found
     """
-    import os
+    # First, check environment variable override
+    if env_root := os.environ.get('HIVE_PROJECT_ROOT'):
+        env_path = Path(env_root)
+        if env_path.exists() and (env_path / "pyproject.toml").exists():
+            return env_path
 
-    # First try from current working directory (for scripts running in project)
+    # Second, try from current working directory (for scripts running in project)
     current_path = Path.cwd()
+    if root := _search_for_root(current_path):
+        return root
 
-    # Walk up the directory tree from the current working directory
-    while current_path != current_path.parent:
-        pyproject_path = current_path / "pyproject.toml"
-
-        if pyproject_path.exists():
-            try:
-                content = pyproject_path.read_text(encoding='utf-8')
-                # Look for the workspace root identifier
-                if 'name = "hive-workspace"' in content:
-                    return current_path
-            except Exception:
-                # Continue searching if we can't read the file
-                pass
-
-        current_path = current_path.parent
-
-    # Fallback to searching from this file's location (for installed packages)
+    # Third, fallback to searching from this file's location (for installed packages)
     current_path = Path(__file__).resolve()
+    if root := _search_for_root(current_path):
+        return root
 
-    # Walk up the directory tree from this file's location
-    while current_path != current_path.parent:
-        pyproject_path = current_path / "pyproject.toml"
+    # Fourth, check common development locations for Windows
+    common_dev_paths = [
+        Path("C:/git/hive"),
+        Path("C:/src/hive"),
+        Path("C:/code/hive"),
+        Path("C:/dev/hive"),
+        Path.home() / "git" / "hive",
+        Path.home() / "src" / "hive",
+        Path.home() / "code" / "hive",
+        Path.home() / "dev" / "hive"
+    ]
 
-        if pyproject_path.exists():
+    for dev_path in common_dev_paths:
+        if dev_path.exists() and (dev_path / "pyproject.toml").exists():
             try:
-                content = pyproject_path.read_text(encoding='utf-8')
-                # Look for the workspace root identifier
+                content = (dev_path / "pyproject.toml").read_text(encoding='utf-8')
                 if 'name = "hive-workspace"' in content:
-                    return current_path
+                    # Cache this for future use
+                    os.environ['HIVE_PROJECT_ROOT'] = str(dev_path)
+                    return dev_path
             except Exception:
-                # Continue searching if we can't read the file
-                pass
+                continue
 
-        current_path = current_path.parent
-
-    # If we can't find the workspace root, raise an error
+    # If we can't find the workspace root, raise an error with helpful information
     raise RuntimeError(
         "Could not find the Hive project root. "
-        "Make sure this code is running within the Hive project directory."
+        "Make sure this code is running within the Hive project directory, "
+        "or set the HIVE_PROJECT_ROOT environment variable to the project root path. "
+        f"Searched from: {Path.cwd()}, {Path(__file__).resolve().parent}"
     )
 
 

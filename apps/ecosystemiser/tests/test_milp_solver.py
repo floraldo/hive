@@ -10,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from system_model.system import System
-from system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
-from system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
-from system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
-from system_model.components.energy.power_demand import PowerDemand, PowerDemandParams, PowerDemandTechnicalParams
-from solver.milp_solver import MILPSolver
-from solver.base import SolverConfig
-from system_model.components.shared.archetypes import FidelityLevel
+from EcoSystemiser.system_model.system import System
+from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
+from EcoSystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
+from EcoSystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
+from EcoSystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandParams, PowerDemandTechnicalParams
+from EcoSystemiser.solver.milp_solver import MILPSolver
+from EcoSystemiser.solver.base import SolverConfig
+from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
 
 def create_test_system():
     """Create minimal test system for MILP solver."""
