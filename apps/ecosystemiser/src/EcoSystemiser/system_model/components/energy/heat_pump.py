@@ -193,11 +193,13 @@ class HeatPumpPhysicsStandard(HeatPumpPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class HeatPumpOptimization(BaseConversionOptimization):
-    """Handles the MILP (CVXPY) constraints for the heat pump.
+class HeatPumpOptimizationSimple(BaseConversionOptimization):
+    """Implements the SIMPLE MILP optimization constraints for heat pump.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Fixed COP operation
+    - Basic energy balance: Heat output = Electrical input * COP
+    - Capacity constraints
     """
 
     def __init__(self, params, component_instance):
@@ -207,34 +209,66 @@ class HeatPumpOptimization(BaseConversionOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for heat pump optimization.
+        Create SIMPLE CVXPY constraints for heat pump optimization.
 
-        This method encapsulates all the MILP constraint logic for conversion.
+        Returns constraints for basic heat pump operation with fixed COP.
         """
         constraints = []
         comp = self.component
 
         if hasattr(comp, 'P_heatsource') and comp.P_heatsource is not None:
-            # Get fidelity level
-            fidelity = comp.technical.fidelity_level
-
             # Core heat pump constraints
             N = comp.P_heatsource.shape[0]
 
-            # --- SIMPLE MODEL (baseline) ---
-            # Fixed COP operation
+            # SIMPLE MODEL: Fixed COP operation
             COP = comp.COP
 
-            # --- STANDARD ENHANCEMENTS ---
-            if fidelity >= FidelityLevel.STANDARD:
-                # Apply temperature-dependent COP adjustments
-                cop_curve = getattr(comp.technical, 'cop_temperature_curve', None)
-                if cop_curve:
-                    # Simplified adjustment for optimization
-                    temp_factor = cop_curve.get('slope', 0) * 5 + 1
-                    COP = COP * max(temp_factor, 0.5)
-
             # Energy balance: Heat output = Electrical input * COP
+            for t in range(N):
+                # P_heatsource = (P_loss + P_pump) * COP
+                constraints.append(
+                    comp.P_heatsource[t] == (comp.P_loss[t] + comp.P_pump[t]) * COP
+                )
+
+            # Capacity constraints
+            constraints.append(comp.P_heatsource <= comp.P_max)
+            constraints.append(comp.P_loss + comp.P_pump <= comp.P_max_elec)
+
+        return constraints
+
+
+class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for heat pump.
+
+    Inherits from SIMPLE and adds:
+    - Temperature-dependent COP adjustments
+    - More realistic heat pump modeling
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for heat pump optimization.
+
+        Adds temperature-dependent COP adjustments to the constraints.
+        """
+        constraints = []
+        comp = self.component
+
+        if hasattr(comp, 'P_heatsource') and comp.P_heatsource is not None:
+            # Core heat pump constraints
+            N = comp.P_heatsource.shape[0]
+
+            # Start with SIMPLE COP
+            COP = comp.COP
+
+            # STANDARD enhancement: temperature-dependent COP adjustments
+            cop_curve = getattr(comp.technical, 'cop_temperature_curve', None)
+            if cop_curve:
+                # Simplified adjustment for optimization
+                temp_factor = cop_curve.get('slope', 0) * 5 + 1
+                COP = COP * max(temp_factor, 0.5)
+
+            # Energy balance with adjusted COP
             for t in range(N):
                 # P_heatsource = (P_loss + P_pump) * COP
                 constraints.append(
@@ -318,10 +352,21 @@ class HeatPump(Component):
             raise ValueError(f"Unknown fidelity level for HeatPump: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return HeatPumpOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return HeatPumpOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return HeatPumpOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return HeatPumpOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return HeatPumpOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for HeatPump optimization: {fidelity}")
 
     def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
         """

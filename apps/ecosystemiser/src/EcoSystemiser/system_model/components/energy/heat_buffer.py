@@ -144,11 +144,14 @@ class HeatBufferPhysicsStandard(HeatBufferPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class HeatBufferOptimization(BaseStorageOptimization):
-    """Handles the MILP (CVXPY) constraints for the heat buffer.
+class HeatBufferOptimizationSimple(BaseStorageOptimization):
+    """Implements the SIMPLE MILP optimization constraints for heat buffer.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Basic thermal energy balance with roundtrip efficiency
+    - Power limits for charge/discharge
+    - Thermal capacity bounds
+    - No thermal losses
     """
 
     def __init__(self, params, component_instance):
@@ -158,10 +161,9 @@ class HeatBufferOptimization(BaseStorageOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for heat buffer optimization.
+        Create SIMPLE CVXPY constraints for heat buffer optimization.
 
-        This method encapsulates all the MILP constraint logic that was
-        previously embedded in the HeatBuffer class.
+        Returns constraints for basic thermal storage without losses.
         """
         constraints = []
         comp = self.component
@@ -183,21 +185,60 @@ class HeatBufferOptimization(BaseStorageOptimization):
             if comp.P_dis is not None:
                 constraints.append(comp.P_dis <= comp.P_max_discharge)
 
-            # Energy balance constraints - thermal storage specific
+            # Energy balance constraints - SIMPLE thermal physics only
             for t in range(1, N):
                 # Base thermal energy balance with efficiency
                 energy_balance = comp.E_opt[t-1] + comp.eta * (comp.P_cha[t] - comp.P_dis[t])
 
-                # Add fidelity-specific enhancements
-                fidelity = comp.technical.fidelity_level
+                constraints.append(comp.E_opt[t] == energy_balance)
+
+        return constraints
+
+
+class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for heat buffer.
+
+    Inherits from SIMPLE and adds:
+    - Thermal losses to ambient in energy balance
+    - More realistic heat storage modeling
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for heat buffer optimization.
+
+        Adds thermal loss terms to the energy balance constraints.
+        """
+        constraints = []
+        comp = self.component
+
+        # Get optimization variables from component
+        N = comp.E_opt.shape[0] if comp.E_opt is not None else 0
+
+        if comp.E_opt is not None:
+            # Initial state constraint
+            constraints.append(comp.E_opt[0] == comp.E_init)
+
+            # Energy bounds constraints
+            constraints.append(comp.E_opt >= 0)
+            constraints.append(comp.E_opt <= comp.E_max)
+
+            # Power limits constraints with separate charge/discharge rates
+            if comp.P_cha is not None:
+                constraints.append(comp.P_cha <= comp.P_max_charge)
+            if comp.P_dis is not None:
+                constraints.append(comp.P_dis <= comp.P_max_discharge)
+
+            # Energy balance constraints with STANDARD thermal losses
+            for t in range(1, N):
+                # Base thermal energy balance with efficiency
+                energy_balance = comp.E_opt[t-1] + comp.eta * (comp.P_cha[t] - comp.P_dis[t])
 
                 # STANDARD: Add thermal losses
-                if fidelity >= FidelityLevel.STANDARD:
-                    heat_loss_coeff = getattr(comp.technical, 'heat_loss_coefficient', 0.001)
-                    thermal_loss = comp.E_opt[t-1] * heat_loss_coeff
-                    energy_balance = energy_balance - thermal_loss
+                heat_loss_coeff = getattr(comp.technical, 'heat_loss_coefficient', 0.001)
+                thermal_loss = comp.E_opt[t-1] * heat_loss_coeff
+                energy_balance = energy_balance - thermal_loss
 
-                # Apply the energy balance constraint
                 constraints.append(comp.E_opt[t] == energy_balance)
 
         return constraints
@@ -278,10 +319,21 @@ class HeatBuffer(Component):
             raise ValueError(f"Unknown fidelity level for HeatBuffer: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return HeatBufferOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return HeatBufferOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return HeatBufferOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return HeatBufferOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return HeatBufferOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for HeatBuffer optimization: {fidelity}")
 
     def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float):
         """

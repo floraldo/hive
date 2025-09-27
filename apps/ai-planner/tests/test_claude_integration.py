@@ -74,7 +74,7 @@ class TestClaudeIntegration:
         assert "estimated_duration" in sub_task
         assert "complexity" in sub_task
 
-        print("✅ Mock plan generation validation")
+        print("OK Mock plan generation validation")
 
     def test_fallback_plan_generation(self):
         """Test fallback plan generation when Claude is unavailable"""
@@ -97,7 +97,7 @@ class TestClaudeIntegration:
         assert len(plan["sub_tasks"]) == 3  # Standard fallback has 3 tasks
         assert plan["metrics"]["confidence_score"] == 0.6  # Lower confidence for fallback
 
-        print("✅ Fallback plan generation validation")
+        print("OK Fallback plan generation validation")
 
     def test_json_response_validation(self):
         """Test Pydantic model validation for Claude responses"""
@@ -149,7 +149,7 @@ class TestClaudeIntegration:
         assert len(response.sub_tasks) == 1
         assert response.metrics.confidence_score == 0.9
 
-        print("✅ JSON response validation")
+        print("OK JSON response validation")
 
     def test_ai_planner_claude_integration(self):
         """Test full AI Planner integration with Claude bridge"""
@@ -209,7 +209,7 @@ class TestClaudeIntegration:
         agent.db_connection.commit()
         agent.db_connection.close()
 
-        print("✅ Full AI Planner Claude integration")
+        print("OK Full AI Planner Claude integration")
 
     def test_complex_task_end_to_end(self):
         """Test end-to-end processing of a complex task"""
@@ -272,7 +272,7 @@ class TestClaudeIntegration:
         conn.close()
         agent.db_connection.close()
 
-        print("✅ Complex task end-to-end processing")
+        print("OK Complex task end-to-end processing")
 
     def test_error_handling_and_resilience(self):
         """Test error handling and system resilience"""
@@ -304,7 +304,7 @@ class TestClaudeIntegration:
         })
         assert save_result == False  # Should fail gracefully
 
-        print("✅ Error handling and resilience")
+        print("OK Error handling and resilience")
 
     def test_performance_metrics(self):
         """Test performance and timing metrics"""
@@ -327,7 +327,7 @@ class TestClaudeIntegration:
         assert plan is not None
         assert plan['metrics']['confidence_score'] > 0.8
 
-        print(f"✅ Performance metrics - Generation time: {generation_time:.3f}s")
+        print(f"OK Performance metrics - Generation time: {generation_time:.3f}s")
 
 
 def run_tests():
@@ -357,17 +357,17 @@ def run_tests():
             test_method()
             passed += 1
         except Exception as e:
-            print(f"❌ {test_method.__name__} FAILED: {e}")
+            print(f"FAIL {test_method.__name__} FAILED: {e}")
             failed += 1
 
     print("=" * 60)
-    print(f"🎯 Test Results: {passed} passed, {failed} failed")
+    print(f"Test Results: {passed} passed, {failed} failed")
 
     if failed == 0:
-        print("🎉 ALL TESTS PASSED - Phase 2 Claude Integration Complete!")
+        print("ALL TESTS PASSED - Phase 2 Claude Integration Complete!")
         return True
     else:
-        print("⚠️  Some tests failed - review and fix issues")
+        print("WARNING: Some tests failed - review and fix issues")
         return False
 
 

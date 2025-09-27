@@ -122,11 +122,13 @@ class PowerDemandPhysicsStandard(PowerDemandPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class PowerDemandOptimization(BaseDemandOptimization):
-    """Handles the MILP (CVXPY) constraints for power demand.
+class PowerDemandOptimizationSimple(BaseDemandOptimization):
+    """Implements the SIMPLE MILP optimization constraints for power demand.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Fixed demand: P_in = profile * P_max
+    - Demand must be met exactly
+    - No flexibility or power factor consideration
     """
 
     def __init__(self, params, component_instance):
@@ -136,56 +138,57 @@ class PowerDemandOptimization(BaseDemandOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for power demand optimization.
+        Create SIMPLE CVXPY constraints for power demand optimization.
 
-        This method encapsulates all the MILP constraint logic for electrical demand.
+        Returns constraints for fixed power demand without flexibility.
         """
         constraints = []
         comp = self.component
 
         if comp.P_in is not None and hasattr(comp, 'profile'):
-            # Get fidelity level
-            fidelity = comp.technical.fidelity_level
+            # SIMPLE MODEL: Fixed demand must be met exactly
+            # P_in = profile * P_max
+            demand_exact = comp.profile * comp.P_max
 
-            # Core power demand constraints
-            N = comp.P_in.shape[0]
+            # Apply exact demand constraint
+            constraints.append(comp.P_in == demand_exact)
 
-            # --- SIMPLE MODEL (baseline) ---
-            # Fixed demand: P_in = profile * P_max (demand must be met exactly)
-            demand_min = comp.profile * comp.P_max
-            demand_max = comp.profile * comp.P_max
+        return constraints
 
-            # --- STANDARD ENHANCEMENTS ---
-            if fidelity >= FidelityLevel.STANDARD:
-                # A true power factor model would require adding reactive power variables
-                # and constraints to the system, which is a DETAILED/RESEARCH feature.
-                # For now, we note its existence but do not modify the real power demand.
-                power_factor = getattr(comp.technical, 'power_factor', 1.0)
-                if power_factor < 1.0:
-                    logger.debug(f"STANDARD fidelity: Acknowledging power factor of {power_factor}, "
-                                 f"but not modifying real power constraints.")
 
-            # --- DETAILED ENHANCEMENTS ---
-            if fidelity >= FidelityLevel.DETAILED:
-                # Demand response flexibility
-                demand_flexibility = getattr(comp.technical, 'demand_flexibility', None)
-                if demand_flexibility:
-                    # Allow demand response within limits
-                    shift_cap = demand_flexibility.get('shift_capacity_kw', 0)
-                    shed_cap = demand_flexibility.get('shed_capacity_kw', 0)
+class PowerDemandOptimizationStandard(PowerDemandOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for power demand.
 
-                    # Modify demand bounds to allow flexibility
-                    demand_min = comp.profile * comp.P_max - shed_cap
-                    demand_max = comp.profile * comp.P_max + shift_cap
+    Inherits from SIMPLE and adds:
+    - Power factor acknowledgment (for logging/monitoring)
+    - Preparation for reactive power modeling (future enhancement)
 
-            # Apply demand constraints with all fidelity enhancements
-            if np.array_equal(demand_min, demand_max):
-                # Exact demand satisfaction (SIMPLE and STANDARD)
-                constraints.append(comp.P_in == demand_max)
-            else:
-                # Flexible demand bounds (DETAILED and RESEARCH)
-                constraints.append(comp.P_in >= demand_min)
-                constraints.append(comp.P_in <= demand_max)
+    Note: Actual power factor implementation requires reactive power variables
+    which is a DETAILED/RESEARCH feature.
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for power demand optimization.
+
+        Currently same as SIMPLE but logs power factor for awareness.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.P_in is not None and hasattr(comp, 'profile'):
+            # STANDARD MODEL: Same as SIMPLE for real power
+            # but acknowledges power factor for future enhancements
+            demand_exact = comp.profile * comp.P_max
+
+            # Log power factor awareness (but don't modify constraints)
+            power_factor = getattr(comp.technical, 'power_factor', 1.0)
+            if power_factor < 1.0:
+                logger.debug(f"STANDARD fidelity: Acknowledging power factor of {power_factor}, "
+                           f"but not modifying real power constraints.")
+
+            # Apply exact demand constraint (same as SIMPLE)
+            constraints.append(comp.P_in == demand_exact)
 
         return constraints
 
@@ -259,10 +262,21 @@ class PowerDemand(Component):
             raise ValueError(f"Unknown fidelity level for PowerDemand: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return PowerDemandOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return PowerDemandOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return PowerDemandOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return PowerDemandOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return PowerDemandOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for PowerDemand optimization: {fidelity}")
 
     def rule_based_demand(self, t: int) -> float:
         """

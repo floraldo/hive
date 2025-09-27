@@ -349,10 +349,10 @@ class AIPlanner:
                             title=sub_task['title'],
                             task_type='planned_subtask',
                             description=sub_task['description'],
-                            assignee=sub_task['assignee'],
-                            metadata={
+                            payload={
                                 'parent_plan_id': plan['plan_id'],
                                 'subtask_id': sub_task['id'],
+                                'assignee': sub_task['assignee'],
                                 'complexity': sub_task['complexity'],
                                 'estimated_duration': sub_task['estimated_duration'],
                                 'workflow_phase': sub_task['workflow_phase'],

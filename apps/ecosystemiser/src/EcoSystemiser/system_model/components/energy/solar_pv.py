@@ -135,11 +135,12 @@ class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class SolarPVOptimization(BaseGenerationOptimization):
-    """Handles the MILP (CVXPY) constraints for the solar PV system.
+class SolarPVOptimizationSimple(BaseGenerationOptimization):
+    """Implements the SIMPLE MILP optimization constraints for solar PV.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Direct profile scaling: P_out = profile * P_max
+    - No efficiency losses or degradation
     """
 
     def __init__(self, params, component_instance):
@@ -149,35 +150,50 @@ class SolarPVOptimization(BaseGenerationOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for solar PV optimization.
+        Create SIMPLE CVXPY constraints for solar PV optimization.
 
-        This method encapsulates all the MILP constraint logic that was
-        previously embedded in the SolarPV class.
+        Returns constraints for basic solar generation without losses.
         """
         constraints = []
         comp = self.component
 
         if comp.P_out is not None and hasattr(comp, 'profile'):
-            # Get fidelity level
-            fidelity = comp.technical.fidelity_level
-
-            # --- SIMPLE MODEL (baseline) ---
-            # Direct profile scaling: P_out = profile * P_max
+            # SIMPLE MODEL: Direct profile scaling
+            # P_out = profile * P_max
             effective_generation = comp.profile * comp.P_max
 
-            # --- STANDARD ENHANCEMENTS ---
-            if fidelity >= FidelityLevel.STANDARD:
-                # Inverter efficiency (DC to AC conversion losses)
-                inverter_efficiency = getattr(comp.technical, 'inverter_efficiency', 0.98)
-                effective_generation = effective_generation * inverter_efficiency
+            # Apply the generation constraint
+            constraints.append(comp.P_out == effective_generation)
 
-            # --- DETAILED ENHANCEMENTS ---
-            if fidelity >= FidelityLevel.DETAILED:
-                # Temperature derating and degradation could be added here
-                # For now, keep it simple but extensible
-                pass
+        return constraints
 
-            # Apply the generation constraint with all fidelity enhancements
+
+class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for solar PV.
+
+    Inherits from SIMPLE and adds:
+    - Inverter efficiency (DC to AC conversion losses)
+    - More realistic power conversion modeling
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for solar PV optimization.
+
+        Adds inverter efficiency to the generation constraints.
+        """
+        constraints = []
+        comp = self.component
+
+        if comp.P_out is not None and hasattr(comp, 'profile'):
+            # Start with SIMPLE model: profile * P_max
+            effective_generation = comp.profile * comp.P_max
+
+            # STANDARD enhancement: add inverter efficiency
+            inverter_efficiency = getattr(comp.technical, 'inverter_efficiency', 0.98)
+            effective_generation = effective_generation * inverter_efficiency
+
+            # Apply the generation constraint with efficiency losses
             constraints.append(comp.P_out == effective_generation)
 
         return constraints
@@ -252,10 +268,21 @@ class SolarPV(Component):
             raise ValueError(f"Unknown fidelity level for SolarPV: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return SolarPVOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return SolarPVOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return SolarPVOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return SolarPVOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return SolarPVOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for SolarPV optimization: {fidelity}")
 
     def rule_based_generate(self, t: int) -> float:
         """

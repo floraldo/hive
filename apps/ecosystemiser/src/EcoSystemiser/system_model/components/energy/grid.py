@@ -126,11 +126,12 @@ class GridPhysicsStandard(GridPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class GridOptimization:
-    """Handles the MILP (CVXPY) constraints for the grid.
+class GridOptimizationSimple:
+    """Implements the SIMPLE MILP optimization constraints for grid.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Basic import/export capacity constraints
+    - No grid losses or power quality considerations
     """
 
     def __init__(self, params, component_instance):
@@ -140,45 +141,46 @@ class GridOptimization:
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for grid optimization.
+        Create SIMPLE CVXPY constraints for grid optimization.
 
-        This method encapsulates all the MILP constraint logic for grid transmission.
+        Returns constraints for basic grid operation without losses.
         """
         constraints = []
         comp = self.component
 
-        # Get fidelity level
-        fidelity = comp.technical.fidelity_level
-
-        # BASIC CONSTRAINTS (always active)
+        # SIMPLE MODEL: Basic capacity constraints only
         if comp.P_draw is not None:
             constraints.append(comp.P_draw <= comp.P_max_import)
         if comp.P_feed is not None:
             constraints.append(comp.P_feed <= comp.P_max_export)
 
-        # STANDARD: Add grid losses
-        if fidelity >= FidelityLevel.STANDARD:
-            grid_losses = getattr(comp.technical, 'grid_losses', None)
-            if grid_losses and grid_losses > 0 and comp.P_draw is not None:
-                # Account for transmission losses on import
-                # This could be modeled as an efficiency factor in the energy balance
-                logger.debug(f"STANDARD: Grid losses of {grid_losses*100:.1f}% acknowledged")
-                # Note: Actual loss implementation would be in system-level energy balance
+        return constraints
 
-        # DETAILED: Add power quality constraints
-        if fidelity >= FidelityLevel.DETAILED:
-            if comp.voltage_limits is not None:
-                logger.debug("DETAILED: Voltage limit constraints would be added here")
-                # In practice, this would require voltage variables
 
-            if comp.power_factor_limits is not None:
-                logger.debug("DETAILED: Power factor constraints would be added here")
-                # This would require reactive power modeling
+class GridOptimizationStandard(GridOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for grid.
 
-        # RESEARCH: Full grid modeling
-        if fidelity >= FidelityLevel.RESEARCH:
-            logger.debug("RESEARCH: Full grid impedance modeling would be added here")
-            # Placeholder for detailed grid modeling
+    Inherits from SIMPLE and adds:
+    - Grid loss acknowledgment (for future system-level implementation)
+    - Preparation for power quality constraints
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for grid optimization.
+
+        Adds grid loss awareness to the constraints.
+        """
+        # Start with SIMPLE constraints
+        constraints = super().set_constraints()
+        comp = self.component
+
+        # STANDARD: Acknowledge grid losses (actual implementation would be in energy balance)
+        grid_losses = getattr(comp.technical, 'grid_losses', None)
+        if grid_losses and grid_losses > 0 and comp.P_draw is not None:
+            logger.debug(f"STANDARD: Grid losses of {grid_losses*100:.1f}% acknowledged")
+            # Note: Actual loss implementation would be in system-level energy balance
+            # Could add: constraints.append(comp.P_draw_effective == comp.P_draw * (1 - grid_losses))
 
         return constraints
 
@@ -266,10 +268,21 @@ class Grid(Component):
             raise ValueError(f"Unknown fidelity level for Grid: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return GridOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return GridOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return GridOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return GridOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return GridOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for Grid optimization: {fidelity}")
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""

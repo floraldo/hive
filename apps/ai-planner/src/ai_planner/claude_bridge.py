@@ -81,29 +81,43 @@ class RobustClaudePlannerBridge:
             mock_mode: If True, use mock responses instead of calling Claude
         """
         self.mock_mode = mock_mode
-        self.claude_cmd = self._detect_claude_cli()
+        if mock_mode:
+            logger.info("Running in mock mode - will not call Claude CLI")
+            self.claude_cmd = "mock"
+        else:
+            self.claude_cmd = self._find_claude_cmd()
+            if not self.claude_cmd:
+                logger.warning("Claude CLI not found - planning will use fallback mode")
 
-        logger.info(f"Claude Planning Bridge initialized (mock_mode={mock_mode})")
-        if not self.mock_mode and not self.claude_cmd:
-            logger.warning("Claude CLI not detected - will use fallback responses")
+    def _find_claude_cmd(self) -> Optional[str]:
+        """Find Claude CLI command - same implementation as AI reviewer"""
+        # Check common locations
+        possible_paths = [
+            Path.home() / ".npm-global" / "claude.cmd",
+            Path.home() / ".npm-global" / "claude",
+            Path("claude.cmd"),
+            Path("claude")
+        ]
 
-    def _detect_claude_cli(self) -> Optional[str]:
-        """Detect available Claude CLI command"""
-        commands_to_try = ["claude", "./claude", "claude.exe"]
+        for path in possible_paths:
+            if path.exists():
+                logger.info(f"Using Claude from: {path}")
+                return str(path)
 
-        for cmd in commands_to_try:
-            try:
-                result = subprocess.run(
-                    [cmd, "--version"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                if result.returncode == 0:
-                    logger.info(f"Claude CLI detected: {cmd}")
-                    return cmd
-            except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
-                continue
+        # Try system PATH
+        claude_path = subprocess.run(
+            ["where" if os.name == "nt" else "which", "claude"],
+            capture_output=True,
+            text=True
+        ).stdout.strip().split('\n')[0] if subprocess.run(
+            ["where" if os.name == "nt" else "which", "claude"],
+            capture_output=True,
+            text=True
+        ).returncode == 0 else None
+
+        if claude_path:
+            logger.info(f"Using Claude from PATH: {claude_path}")
+            return claude_path
 
         return None
 
@@ -426,13 +440,15 @@ Generate the execution plan now:"""
                 requestor
             )
 
-            # Execute Claude CLI
+            # Execute Claude CLI with --print flag to ensure it exits after responding
+            # Add --dangerously-skip-permissions for automated environments
             logger.info(f"Calling Claude for planning: {task_description[:100]}...")
             result = subprocess.run(
-                [self.claude_cmd, "--", prompt],
+                [self.claude_cmd, '--print', '--dangerously-skip-permissions', prompt],
                 capture_output=True,
                 text=True,
-                timeout=120  # 2 minute timeout for complex planning
+                timeout=120,  # 2 minute timeout for complex planning
+                shell=True if os.name == 'nt' else False
             )
 
             if result.returncode != 0:
