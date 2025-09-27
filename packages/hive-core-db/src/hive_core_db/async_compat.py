@@ -201,31 +201,23 @@ def get_sync_async_connection():
             return _loop_manager.run_async(_fetchmany())
 
     # Simplified sync wrapper for async connection
-    async def _get_sync_connection():
-        return get_async_connection()
+    async def _get_and_enter():
+        async_cm = get_async_connection()
+        conn = await async_cm.__aenter__()
+        return async_cm, conn
 
-    # Get the async context manager and run it synchronously
-    async_context = _loop_manager.run_async(_get_sync_connection())
+    # Get the async context manager and connection
+    async_cm, conn = _loop_manager.run_async(_get_and_enter())
+    wrapped_conn = AsyncConnectionWrapper(conn)
 
-    class SyncContextWrapper:
-        def __init__(self, async_context_manager):
-            self.async_cm = async_context_manager
+    try:
+        yield wrapped_conn
+    finally:
+        # Clean up the async context manager
+        async def _exit():
+            await async_cm.__aexit__(None, None, None)
 
-        def __enter__(self):
-            async def _enter():
-                return await self.async_cm.__aenter__()
-
-            conn = _loop_manager.run_async(_enter())
-            self.wrapped_conn = AsyncConnectionWrapper(conn)
-            return self.wrapped_conn
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            async def _exit():
-                return await self.async_cm.__aexit__(exc_type, exc_val, exc_tb)
-
-            return _loop_manager.run_async(_exit())
-
-    yield SyncContextWrapper(async_context)
+        _loop_manager.run_async(_exit())
 
 
 class AsyncToSyncAdapter:

@@ -1871,7 +1871,7 @@ def main():
     parser = argparse.ArgumentParser(description="QueenLite - Streamlined Queen Orchestrator")
     parser.add_argument("--live", action="store_true",
                        help="Enable live streaming output from workers")
-    parser.add_argument("--async", action="store_true",
+    parser.add_argument("--async", action="store_true", dest="async_mode",
                        help="Enable high-performance async mode (Phase 4.1) for 3-5x better throughput")
     args = parser.parse_args()
 
@@ -1891,17 +1891,17 @@ def main():
     queen = QueenLite(hive_core, live_output=args.live)
 
     # Choose execution mode based on availability and user preference
-    if args.async and ASYNC_ENABLED:
-        log.info("🚀 Starting QueenLite in high-performance async mode (Phase 4.1)")
+    if args.async_mode and ASYNC_ENABLED:
+        log.info("Starting QueenLite in high-performance async mode (Phase 4.1)")
         import asyncio
         asyncio.run(queen.run_forever_async())
-    elif args.async and not ASYNC_ENABLED:
-        log.warning("⚠️ Async mode requested but not available. Falling back to sync mode.")
+    elif args.async_mode and not ASYNC_ENABLED:
+        log.warning("Async mode requested but not available. Falling back to sync mode.")
         log.info("To enable async mode, ensure all async dependencies are installed.")
         queen.run_forever()
     else:
         if ASYNC_ENABLED:
-            log.info("💡 Tip: Use --async flag for 3-5x better performance!")
+            log.info("Tip: Use --async flag for 3-5x better performance!")
         log.info("Starting QueenLite in standard mode")
         queen.run_forever()
 
