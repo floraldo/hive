@@ -21,9 +21,9 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    "hive-core-db>=3.0.0",
-    "hive-errors>=3.0.0",
-    "hive-db-utils>=3.0.0",
+    "hive-core-db>=1.0.0",
+    "hive-errors>=1.0.0",
+    "hive-db-utils>=1.0.0",
 ]
 requires-python = ">=3.9"
 

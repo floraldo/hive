@@ -28,6 +28,15 @@ from hive_utils.paths import DB_PATH, ensure_directory
 # Import connection pool for proper connection management
 from .connection_pool import get_pooled_connection, close_pool
 
+# Import async functionality for Phase 4.1
+try:
+    from .async_connection_pool import get_async_connection, close_async_pool, get_async_pool_stats
+    from .async_compat import sync_wrapper, get_sync_async_connection, async_database_enabled
+    ASYNC_AVAILABLE = True
+except ImportError:
+    ASYNC_AVAILABLE = False
+    logger.warning("Async database support not available - install aiosqlite for Phase 4.1 features")
+
 
 class TaskStatus(Enum):
     """Task lifecycle states"""
@@ -700,3 +709,266 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Error getting tasks by status {status}: {e}")
         return []
+
+
+# ================================================================================
+# ASYNC DATABASE OPERATIONS - Phase 4.1 Implementation
+# ================================================================================
+
+if ASYNC_AVAILABLE:
+    async def create_task_async(
+        description: str,
+        title: str = None,
+        assignee: str = None,
+        priority: int = None,
+        tags: List[str] = None,
+        context_data: Dict[str, Any] = None,
+        depends_on: List[str] = None,
+        workspace: str = "repo",
+        task_type: str = "user_request",
+        requestor: str = "unknown",
+        metadata: Dict[str, Any] = None
+    ) -> str:
+        """
+        Async version of create_task for Phase 4.1 performance improvement.
+
+        Args:
+            task_description: Human-readable task description
+            assignee: Worker/agent assigned to task (optional)
+            priority: Task priority (1-10, higher = more important)
+            tags: List of tags for categorization
+            context_data: Additional context for task execution
+            depends_on: List of task IDs this task depends on
+            workspace: Workspace type ("repo", "isolated", "temp")
+            task_type: Type of task ("user_request", "planned_subtask", etc.)
+            requestor: Who requested the task
+            metadata: Additional metadata
+
+        Returns:
+            Task ID of created task
+        """
+        task_id = str(uuid.uuid4())
+        created_at = datetime.now(timezone.utc).isoformat()
+
+        # Set defaults
+        priority = priority or 5
+        tags = tags or []
+        context_data = context_data or {}
+        depends_on = depends_on or []
+        metadata = metadata or {}
+
+        async with get_async_connection() as conn:
+            await conn.execute('''
+                INSERT INTO tasks (
+                    id, title, description, assignee, priority, status, tags,
+                    payload, workspace_type, task_type, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                task_id, title or description[:50], description, assignee, priority, TaskStatus.QUEUED.value,
+                json.dumps(tags), json.dumps({
+                    "context_data": context_data,
+                    "depends_on": depends_on,
+                    "metadata": metadata,
+                    "requestor": requestor
+                }),
+                workspace, task_type, created_at, created_at
+            ))
+            await conn.commit()
+
+        logger.info(f"Created async task {task_id}: {description[:100]}...")
+        return task_id
+
+    async def get_task_async(task_id: str) -> Optional[Dict[str, Any]]:
+        """Async version of get_task."""
+        async with get_async_connection() as conn:
+            cursor = await conn.execute(
+                'SELECT * FROM tasks WHERE id = ?', (task_id,)
+            )
+            row = await cursor.fetchone()
+
+            if row:
+                task_dict = dict(row)
+                # Parse JSON fields
+                if task_dict.get('tags'):
+                    task_dict['tags'] = json.loads(task_dict['tags'])
+                if task_dict.get('context_data'):
+                    task_dict['context_data'] = json.loads(task_dict['context_data'])
+                if task_dict.get('depends_on'):
+                    task_dict['depends_on'] = json.loads(task_dict['depends_on'])
+                if task_dict.get('metadata'):
+                    task_dict['metadata'] = json.loads(task_dict['metadata'])
+                return task_dict
+
+            return None
+
+    async def get_queued_tasks_async(limit: int = 10, task_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Async version of get_queued_tasks for high-performance task retrieval.
+
+        Args:
+            limit: Maximum number of tasks to return
+            task_type: Optional filter by task type
+
+        Returns:
+            List of queued task dictionaries
+        """
+        async with get_async_connection() as conn:
+            if task_type:
+                cursor = await conn.execute('''
+                    SELECT * FROM tasks
+                    WHERE status = ? AND task_type = ?
+                    ORDER BY priority DESC, created_at ASC
+                    LIMIT ?
+                ''', (TaskStatus.QUEUED.value, task_type, limit))
+            else:
+                cursor = await conn.execute('''
+                    SELECT * FROM tasks
+                    WHERE status = ?
+                    ORDER BY priority DESC, created_at ASC
+                    LIMIT ?
+                ''', (TaskStatus.QUEUED.value, limit))
+
+            rows = await cursor.fetchall()
+            tasks = []
+
+            for row in rows:
+                task_dict = dict(row)
+                # Parse JSON fields
+                if task_dict.get('tags'):
+                    task_dict['tags'] = json.loads(task_dict['tags'])
+                if task_dict.get('context_data'):
+                    task_dict['context_data'] = json.loads(task_dict['context_data'])
+                if task_dict.get('depends_on'):
+                    task_dict['depends_on'] = json.loads(task_dict['depends_on'])
+                if task_dict.get('metadata'):
+                    task_dict['metadata'] = json.loads(task_dict['metadata'])
+                tasks.append(task_dict)
+
+            return tasks
+
+    async def update_task_status_async(task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+        """
+        Async version of update_task_status for non-blocking updates.
+
+        Args:
+            task_id: Task identifier
+            status: New status
+            metadata: Optional metadata to merge with existing
+
+        Returns:
+            True if update successful, False otherwise
+        """
+        try:
+            updated_at = datetime.now(timezone.utc).isoformat()
+
+            async with get_async_connection() as conn:
+                if metadata:
+                    # Get existing metadata and merge
+                    cursor = await conn.execute(
+                        'SELECT metadata FROM tasks WHERE id = ?', (task_id,)
+                    )
+                    row = await cursor.fetchone()
+
+                    if row:
+                        existing_metadata = json.loads(row['metadata'] or '{}')
+                        existing_metadata.update(metadata)
+                        merged_metadata = json.dumps(existing_metadata)
+                    else:
+                        merged_metadata = json.dumps(metadata)
+
+                    await conn.execute('''
+                        UPDATE tasks
+                        SET status = ?, metadata = ?, updated_at = ?
+                        WHERE id = ?
+                    ''', (status, merged_metadata, updated_at, task_id))
+                else:
+                    await conn.execute('''
+                        UPDATE tasks
+                        SET status = ?, updated_at = ?
+                        WHERE id = ?
+                    ''', (status, updated_at, task_id))
+
+                await conn.commit()
+
+            logger.debug(f"Updated async task {task_id} status to {status}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error updating async task {task_id} status: {e}")
+            return False
+
+    async def get_tasks_by_status_async(status: str) -> List[Dict[str, Any]]:
+        """Async version of get_tasks_by_status."""
+        try:
+            async with get_async_connection() as conn:
+                cursor = await conn.execute(
+                    'SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC',
+                    (status,)
+                )
+                rows = await cursor.fetchall()
+
+                tasks = []
+                for row in rows:
+                    task_dict = dict(row)
+                    # Parse JSON fields
+                    if task_dict.get('tags'):
+                        task_dict['tags'] = json.loads(task_dict['tags'])
+                    if task_dict.get('context_data'):
+                        task_dict['context_data'] = json.loads(task_dict['context_data'])
+                    if task_dict.get('depends_on'):
+                        task_dict['depends_on'] = json.loads(task_dict['depends_on'])
+                    if task_dict.get('metadata'):
+                        task_dict['metadata'] = json.loads(task_dict['metadata'])
+                    tasks.append(task_dict)
+
+                return tasks
+
+        except Exception as e:
+            logger.error(f"Error getting async tasks by status {status}: {e}")
+            return []
+
+    async def create_run_async(task_id: str, worker_id: str, phase: str = "init") -> str:
+        """
+        Async version of create_run for non-blocking run creation.
+
+        Args:
+            task_id: Associated task ID
+            worker_id: Worker performing the run
+            phase: Execution phase
+
+        Returns:
+            Run ID
+        """
+        run_id = str(uuid.uuid4())
+        created_at = datetime.now(timezone.utc).isoformat()
+
+        async with get_async_connection() as conn:
+            await conn.execute('''
+                INSERT INTO runs (
+                    id, task_id, worker_id, phase, status, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                run_id, task_id, worker_id, phase, RunStatus.PENDING.value,
+                created_at, created_at
+            ))
+            await conn.commit()
+
+        logger.debug(f"Created async run {run_id} for task {task_id}")
+        return run_id
+
+    # Provide sync wrappers for backward compatibility
+    def create_task_sync_wrapper(*args, **kwargs) -> str:
+        """Sync wrapper for async create_task."""
+        return sync_wrapper(create_task_async)(*args, **kwargs)
+
+    def get_task_sync_wrapper(*args, **kwargs) -> Optional[Dict[str, Any]]:
+        """Sync wrapper for async get_task."""
+        return sync_wrapper(get_task_async)(*args, **kwargs)
+
+    def get_queued_tasks_sync_wrapper(*args, **kwargs) -> List[Dict[str, Any]]:
+        """Sync wrapper for async get_queued_tasks."""
+        return sync_wrapper(get_queued_tasks_async)(*args, **kwargs)
+
+    def update_task_status_sync_wrapper(*args, **kwargs) -> bool:
+        """Sync wrapper for async update_task_status."""
+        return sync_wrapper(update_task_status_async)(*args, **kwargs)

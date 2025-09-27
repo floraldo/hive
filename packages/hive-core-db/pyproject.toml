@@ -8,7 +8,8 @@ packages = [{include = "hive_core_db", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 hive-utils = {path = "../hive-utils", develop = true}
-# No external dependencies - uses built-in sqlite3
+aiosqlite = "^0.20.0"  # Async SQLite support for Phase 4.1
+# No other external dependencies - uses built-in sqlite3 for sync operations
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

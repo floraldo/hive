@@ -18,6 +18,14 @@ from hive_core_db.connection_pool import get_pooled_connection
 from hive_db_utils.config import get_config
 from hive_errors import EventBusError, EventPublishError, EventSubscribeError
 
+# Async imports for Phase 4.1
+try:
+    import asyncio
+    from hive_core_db.async_connection_pool import get_async_connection
+    ASYNC_AVAILABLE = True
+except ImportError:
+    ASYNC_AVAILABLE = False
+
 from .events import Event, TaskEvent, AgentEvent, WorkflowEvent
 from .subscribers import EventSubscriber
 
@@ -295,6 +303,183 @@ class EventBus:
         """Get all events for a correlation ID (workflow trace)"""
         return self.get_events(correlation_id=correlation_id, limit=limit)
 
+    # ================================================================================
+    # ASYNC EVENT BUS OPERATIONS - Phase 4.1 Implementation
+    # ================================================================================
+
+    if ASYNC_AVAILABLE:
+        async def publish_async(self, event: Event, correlation_id: str = None) -> str:
+            """
+            Async version of publish for high-performance event publishing.
+
+            Args:
+                event: Event to publish
+                correlation_id: Optional correlation ID for workflow tracking
+
+            Returns:
+                Event ID of published event
+            """
+            try:
+                # Set correlation ID if provided
+                if correlation_id:
+                    event.correlation_id = correlation_id
+
+                # Store event in database asynchronously
+                async with get_async_connection() as conn:
+                    await conn.execute("""
+                        INSERT INTO events (
+                            event_id, event_type, timestamp, source_agent,
+                            correlation_id, payload, metadata
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        event.event_id,
+                        event.event_type,
+                        event.timestamp.isoformat(),
+                        event.source_agent,
+                        event.correlation_id,
+                        json.dumps(event.payload),
+                        json.dumps(event.metadata)
+                    ))
+                    await conn.commit()
+
+                # Notify subscribers asynchronously
+                await self._notify_subscribers_async(event)
+
+                logger.debug(f"Published async event {event.event_id}: {event.event_type}")
+                return event.event_id
+
+            except Exception as e:
+                logger.error(f"Failed to publish async event {event.event_type}: {e}")
+                raise EventPublishError(f"Async event publishing failed: {e}") from e
+
+        async def get_events_async(self,
+                                 event_type: str = None,
+                                 correlation_id: str = None,
+                                 source_agent: str = None,
+                                 limit: int = 100) -> List[Event]:
+            """
+            Async version of get_events for high-performance event retrieval.
+
+            Args:
+                event_type: Filter by event type
+                correlation_id: Filter by correlation ID
+                source_agent: Filter by source agent
+                limit: Maximum number of events to return
+
+            Returns:
+                List of matching events
+            """
+            try:
+                # Build dynamic query
+                where_clauses = []
+                params = []
+
+                if event_type:
+                    where_clauses.append("event_type = ?")
+                    params.append(event_type)
+
+                if correlation_id:
+                    where_clauses.append("correlation_id = ?")
+                    params.append(correlation_id)
+
+                if source_agent:
+                    where_clauses.append("source_agent = ?")
+                    params.append(source_agent)
+
+                where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
+                params.append(limit)
+
+                async with get_async_connection() as conn:
+                    cursor = await conn.execute(f"""
+                        SELECT * FROM events
+                        WHERE {where_sql}
+                        ORDER BY timestamp DESC
+                        LIMIT ?
+                    """, params)
+
+                    rows = await cursor.fetchall()
+
+                events = []
+                for row in rows:
+                    event_data = dict(row)
+                    event_data['payload'] = json.loads(event_data['payload'])
+                    event_data['metadata'] = json.loads(event_data['metadata'])
+                    events.append(Event.from_dict(event_data))
+
+                return events
+
+            except Exception as e:
+                logger.error(f"Failed to get async events: {e}")
+                return []
+
+        async def get_event_history_async(self, correlation_id: str) -> List[Event]:
+            """
+            Async version of get_event_history for workflow tracing.
+
+            Args:
+                correlation_id: Correlation ID to trace
+
+            Returns:
+                List of events in chronological order
+            """
+            try:
+                async with get_async_connection() as conn:
+                    cursor = await conn.execute("""
+                        SELECT * FROM events
+                        WHERE correlation_id = ?
+                        ORDER BY timestamp ASC
+                    """, (correlation_id,))
+
+                    rows = await cursor.fetchall()
+
+                events = []
+                for row in rows:
+                    event_data = dict(row)
+                    event_data['payload'] = json.loads(event_data['payload'])
+                    event_data['metadata'] = json.loads(event_data['metadata'])
+                    events.append(Event.from_dict(event_data))
+
+                return events
+
+            except Exception as e:
+                logger.error(f"Failed to get async event history for {correlation_id}: {e}")
+                return []
+
+        async def _notify_subscribers_async(self, event: Event):
+            """Notify subscribers asynchronously."""
+            try:
+                # Get matching subscribers
+                matching_subscribers = []
+                with self._subscriber_lock:
+                    for pattern, subscribers in self._subscribers.items():
+                        if self._pattern_matches(pattern, event.event_type):
+                            matching_subscribers.extend(subscribers)
+
+                # Notify subscribers concurrently
+                if matching_subscribers:
+                    notification_tasks = [
+                        self._notify_single_subscriber_async(subscriber, event)
+                        for subscriber in matching_subscribers
+                    ]
+                    await asyncio.gather(*notification_tasks, return_exceptions=True)
+
+            except Exception as e:
+                logger.error(f"Error in async subscriber notification: {e}")
+
+        async def _notify_single_subscriber_async(self, subscriber: EventSubscriber, event: Event):
+            """Notify a single subscriber asynchronously."""
+            try:
+                # Check if callback is async
+                if asyncio.iscoroutinefunction(subscriber.callback):
+                    await subscriber.callback(event)
+                else:
+                    # Run sync callback in thread pool to avoid blocking
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(None, subscriber.callback, event)
+
+            except Exception as e:
+                logger.error(f"Error notifying async subscriber {subscriber.subscriber_name}: {e}")
+
     def clear_old_events(self, days_to_keep: int = 30):
         """Clean up old events to prevent database growth"""
         cutoff_date = datetime.now(timezone.utc).replace(
@@ -337,3 +522,25 @@ def reset_event_bus():
     """Reset the global event bus (for testing)"""
     global _event_bus
     _event_bus = None
+
+
+# Async support for Phase 4.1
+if ASYNC_AVAILABLE:
+    async def get_async_event_bus() -> EventBus:
+        """Get the global event bus instance for async operations"""
+        return get_event_bus()  # Same instance, just async access pattern
+
+    async def publish_event_async(event: Event, correlation_id: str = None) -> str:
+        """Convenience function for async event publishing"""
+        bus = await get_async_event_bus()
+        return await bus.publish_async(event, correlation_id)
+
+    async def get_events_async(**kwargs) -> List[Event]:
+        """Convenience function for async event retrieval"""
+        bus = await get_async_event_bus()
+        return await bus.get_events_async(**kwargs)
+
+    async def get_event_history_async(correlation_id: str) -> List[Event]:
+        """Convenience function for async event history retrieval"""
+        bus = await get_async_event_bus()
+        return await bus.get_event_history_async(correlation_id)
