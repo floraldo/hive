@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional, List
 import numpy as np
 import pandas as pd
 
-from .base import BaseAnalysis
+from EcoSystemiser.analyser.base import BaseAnalysis
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)

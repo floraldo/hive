@@ -6,8 +6,8 @@ This module provides functions for the arq worker to process climate jobs.
 
 from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Any, Dict
-from ..profile_loader.climate.service import get_enhanced_climate_service
-from ..profile_loader.climate.data_models import ClimateRequest
+from EcoSystemiser.profile_loader.climate.service import get_enhanced_climate_service
+from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest
 
 logger = get_logger(__name__)
 
@@ -101,7 +101,7 @@ async def startup(ctx: Dict[str, Any]) -> None:
     logger.info("Climate worker starting...")
     
     # Initialize any shared resources
-    from ..settings import get_settings
+    from EcoSystemiser.settings import get_settings
     ctx['settings'] = get_settings()
     
     logger.info("Climate worker started successfully")

@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 from EcoSystemiser.settings import get_settings
-from .logging_config import setup_logging, get_logger
+from EcoSystemiser.profile_loader.logging_config import setup_logging, get_logger
 from EcoSystemiser.observability import init_observability, shutdown_observability
 
 # Initialize logging first
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
         logger.info("Observability initialized")
     
     # Initialize job service
-    from .services.job_service import JobService
+    from EcoSystemiser.profile_loader.services.job_service import JobService
     job_service = JobService()
     await job_service.initialize()
     logger.info("Job service initialized")
@@ -108,8 +108,8 @@ def create_app() -> FastAPI:
     @app.middleware("http")
     async def correlation_id_middleware(request, call_next):
         """Add correlation ID to requests"""
-        from ...errors import CorrelationIDMiddleware
-        from .logging_config import set_correlation_id, clear_context
+        from EcoSystemiser.errors import CorrelationIDMiddleware
+        from EcoSystemiser.profile_loader.logging_config import set_correlation_id, clear_context
         
         # Get or create correlation ID
         correlation_id = CorrelationIDMiddleware.get_or_create_correlation_id(

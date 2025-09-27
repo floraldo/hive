@@ -10,7 +10,7 @@ from scipy import stats
 from scipy.stats import gaussian_kde
 import itertools
 
-from .base import BaseOptimizationAlgorithm, OptimizationConfig, OptimizationResult, OptimizationStatus
+from EcoSystemiser.discovery.base import BaseOptimizationAlgorithm, OptimizationConfig, OptimizationResult, OptimizationStatus
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)

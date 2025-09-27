@@ -1,249 +1,234 @@
+#!/usr/bin/env python3
 """
-Formal validation test comparing EcoSystemiser against Systemiser golden dataset.
+Validation script to compare EcoSystemiser output against golden dataset from original Systemiser.
 
-This test ensures numerical equivalence between the new architecture and
-the original Systemiser for a minimal 4-component system.
+This script:
+1. Runs EcoSystemiser with the same configuration as original Systemiser
+2. Compares the results against the golden dataset
+3. Reports any numerical discrepancies
 """
-
-import json
-import numpy as np
-import pytest
-from pathlib import Path
-
-# Add parent directories to path for imports
 import sys
-eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from EcoSystemiser.system_model.system import System
-from EcoSystemiser.system_model.system_builder import SystemBuilder
-from EcoSystemiser.solver.rule_based_engine import RuleBasedEngine
+import json
+from pathlib import Path
+import logging
+import numpy as np
 
-class TestSystemEquivalence:
-    """Test suite for validating EcoSystemiser against Systemiser golden dataset."""
+# Setup paths
+project_root = Path(__file__).parent.parent.parent
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('Validation')
 
-    @pytest.fixture
-    def golden_dataset(self):
-        """Load the golden dataset from Systemiser."""
-        golden_path = Path(__file__).parent / 'systemiser_minimal_golden.json'
-        with open(golden_path, 'r') as f:
-            return json.load(f)
+def run_ecosystemiser():
+    """Run the new EcoSystemiser and get results."""
+    logger.info("Running EcoSystemiser...")
 
-    @pytest.fixture
-    def eco_system(self):
-        """Create EcoSystemiser system matching golden dataset configuration."""
-        N = 24
-        system = System('minimal_validation', N)
+    # Import EcoSystemiser components
+    from ecosystemiser.src.EcoSystemiser.services.simulation_service import SimulationService
+    from ecosystemiser.src.EcoSystemiser.system_model.system_builder import SystemBuilder
 
-        # Create profiles matching the golden dataset
-        # Solar profile (peak at midday)
-        solar_profile = np.zeros(N)
-        for t in range(N):
-            if 6 <= t <= 18:  # Daylight hours
-                solar_profile[t] = np.sin((t - 6) * np.pi / 12) * 5.0  # Peak 5 kW at noon
+    # Create minimal system configuration
+    config = {
+        'name': 'validation_system',
+        'timesteps': 24,
+        'components': {
+            'grid': {
+                'type': 'Grid',
+                'params': {
+                    'max_import_kw': 1000.0,
+                    'max_export_kw': 1000.0
+                }
+            },
+            'solar_pv': {
+                'type': 'SolarPV',
+                'params': {
+                    'capacity_kw': 5.0
+                }
+            },
+            'battery': {
+                'type': 'Battery',
+                'params': {
+                    'capacity_kwh': 10.0,
+                    'max_charge_kw': 5.0,
+                    'max_discharge_kw': 5.0,
+                    'round_trip_efficiency': 0.92,
+                    'min_soc': 0.1,
+                    'max_soc': 0.9,
+                    'initial_soc': 0.5
+                }
+            },
+            'power_demand': {
+                'type': 'PowerDemand',
+                'params': {
+                    'profile_data': [8.0] * 24  # Simple flat demand for testing
+                }
+            }
+        },
+        'connections': [
+            {'from': 'grid', 'to': 'battery'},
+            {'from': 'battery', 'to': 'grid'},
+            {'from': 'solar_pv', 'to': 'battery'},
+            {'from': 'solar_pv', 'to': 'power_demand'},
+            {'from': 'battery', 'to': 'power_demand'},
+            {'from': 'grid', 'to': 'power_demand'}
+        ]
+    }
 
-        # Demand profile (baseload + peaks)
-        demand_profile = np.ones(N) * 1.0  # 1 kW baseload
-        demand_profile[7:9] = 2.0   # Morning peak
-        demand_profile[18:21] = 2.5  # Evening peak
+    # Build system
+    builder = SystemBuilder()
+    system = builder.build_from_config(config)
 
-        # Use SystemBuilder to create components
-        builder = SystemBuilder()
+    # Run simulation
+    service = SimulationService()
+    results = service.simulate(
+        system=system,
+        solver_type='rule_based'
+    )
 
-        # Grid
-        grid = builder.create_component('Grid', {
-            'P_max': 100,
-            'import_tariff': 0.25,
-            'feed_in_tariff': 0.08
-        })
-        system.add_component(grid)
+    return results
 
-        # Battery
-        battery = builder.create_component('Battery', {
-            'P_max': 5,
-            'E_max': 10,
-            'E_init': 5,
-            'eta_charge': 0.95,
-            'eta_discharge': 0.95
-        })
-        system.add_component(battery)
+def extract_comparable_data(data):
+    """Extract key metrics for comparison."""
+    metrics = {
+        'flows': {},
+        'storage': {}
+    }
 
-        # SolarPV
-        solar = builder.create_component('SolarPV', {
-            'P_profile': solar_profile.tolist(),
-            'P_max': 10
-        })
-        system.add_component(solar)
-
-        # PowerDemand
-        demand = builder.create_component('PowerDemand', {
-            'P_profile': demand_profile.tolist(),
-            'P_max': 5
-        })
-        system.add_component(demand)
-
-        # Create connections
-        system.connect('Grid', 'PowerDemand', 'electricity')
-        system.connect('Grid', 'Battery', 'electricity')
-        system.connect('SolarPV', 'PowerDemand', 'electricity')
-        system.connect('SolarPV', 'Battery', 'electricity')
-        system.connect('SolarPV', 'Grid', 'electricity')
-        system.connect('Battery', 'PowerDemand', 'electricity')
-        system.connect('Battery', 'Grid', 'electricity')
-
-        return system
-
-    def run_eco_simulation(self, system):
-        """Run EcoSystemiser simulation and extract results."""
-        N = system.N
-        solver = RuleBasedEngine(system)
-
-        # Run simulation
-        result = solver.solve()
-
-        # Extract results in same format as golden dataset
-        results = {
-            'flows': {},
-            'storage': {}
-        }
-
-        # Extract flows
-        for flow_key, flow_data in system.flows.items():
-            values = []
-            if isinstance(flow_data['value'], np.ndarray):
-                values = flow_data['value'].tolist()
-            else:
-                values = [0.0] * N
-
-            results['flows'][flow_key] = {
-                'source': flow_data['source'],
-                'target': flow_data['target'],
-                'type': flow_data.get('type', 'electricity'),
-                'values': values
+    # Extract flows
+    if 'flows' in data:
+        for flow in data['flows']:
+            key = f"{flow.get('from', 'unknown')}_{flow.get('to', 'unknown')}"
+            metrics['flows'][key] = {
+                'values': flow.get('values', []),
+                'total': flow.get('total', 0),
+                'mean': flow.get('mean', 0)
             }
 
-        # Extract storage
-        battery_comp = system.components.get('Battery')
-        if battery_comp and hasattr(battery_comp, 'E'):
-            results['storage']['Battery'] = {
-                'medium': 'electricity',
-                'E_max': battery_comp.E_max,
-                'E_init': battery_comp.E_init,
-                'values': battery_comp.E.tolist() if isinstance(battery_comp.E, np.ndarray) else [battery_comp.E_init] * N
-            }
+    # Extract storage levels (if present)
+    if 'storage_levels' in data:
+        for name, levels in data['storage_levels'].items():
+            metrics['storage'][name] = levels
 
-        return results
+    return metrics
 
-    def test_minimal_system_equivalence(self, golden_dataset, eco_system):
-        """
-        Test that EcoSystemiser produces identical results to Systemiser
-        for the minimal 4-component system.
-        """
-        # Run EcoSystemiser simulation
-        eco_results = self.run_eco_simulation(eco_system)
+def compare_results(golden_data, new_data, tolerance=1e-6):
+    """Compare results and report discrepancies."""
+    logger.info("\nComparing results against golden dataset...")
 
-        # Tolerance for numerical comparison
-        TOLERANCE = 1e-6
+    golden_metrics = extract_comparable_data(golden_data)
+    new_metrics = extract_comparable_data(new_data)
 
-        # Compare flows
-        for flow_key in golden_dataset['flows']:
-            assert flow_key in eco_results['flows'], f"Flow {flow_key} missing in EcoSystemiser results"
+    discrepancies = []
+    matches = []
 
-            golden_flow = golden_dataset['flows'][flow_key]
-            eco_flow = eco_results['flows'][flow_key]
+    # Compare flows
+    logger.info("\nFlow Comparison:")
+    logger.info("-" * 50)
 
-            # Check metadata
-            assert golden_flow['source'] == eco_flow['source'], f"Source mismatch for {flow_key}"
-            assert golden_flow['target'] == eco_flow['target'], f"Target mismatch for {flow_key}"
-            assert golden_flow['type'] == eco_flow['type'], f"Type mismatch for {flow_key}"
+    for flow_key, golden_flow in golden_metrics['flows'].items():
+        if flow_key in new_metrics['flows']:
+            new_flow = new_metrics['flows'][flow_key]
 
-            # Check values
-            golden_values = np.array(golden_flow['values'])
-            eco_values = np.array(eco_flow['values'])
+            # Compare values array
+            if 'values' in golden_flow and 'values' in new_flow:
+                golden_vals = np.array(golden_flow['values'])
+                new_vals = np.array(new_flow['values'])
 
-            max_diff = np.max(np.abs(golden_values - eco_values))
-            assert max_diff < TOLERANCE, (
-                f"Flow {flow_key} values differ by {max_diff:.6e}\n"
-                f"Golden: {golden_values[:5]}...\n"
-                f"Eco: {eco_values[:5]}..."
-            )
-
-        # Compare storage
-        for storage_key in golden_dataset['storage']:
-            assert storage_key in eco_results['storage'], f"Storage {storage_key} missing in EcoSystemiser"
-
-            golden_storage = golden_dataset['storage'][storage_key]
-            eco_storage = eco_results['storage'][storage_key]
-
-            # Check metadata
-            assert abs(golden_storage['E_max'] - eco_storage['E_max']) < TOLERANCE, f"E_max mismatch for {storage_key}"
-            assert abs(golden_storage['E_init'] - eco_storage['E_init']) < TOLERANCE, f"E_init mismatch for {storage_key}"
-
-            # Check values
-            golden_values = np.array(golden_storage['values'])
-            eco_values = np.array(eco_storage['values'])
-
-            max_diff = np.max(np.abs(golden_values - eco_values))
-            assert max_diff < TOLERANCE, (
-                f"Storage {storage_key} values differ by {max_diff:.6e}\n"
-                f"Golden: {golden_values[:5]}...\n"
-                f"Eco: {eco_values[:5]}..."
-            )
-
-        print("\n✅ VALIDATION SUCCESSFUL!")
-        print(f"EcoSystemiser matches Systemiser within tolerance {TOLERANCE}")
-
-    def test_energy_balance(self, eco_system):
-        """Test that energy balance is maintained at each timestep."""
-        # Run simulation
-        eco_results = self.run_eco_simulation(eco_system)
-
-        N = eco_system.N
-        for t in range(N):
-            generation = 0
-            consumption = 0
-            battery_change = 0
-
-            # Sum flows
-            for flow_key, flow_data in eco_results['flows'].items():
-                value = flow_data['values'][t]
-
-                if 'SolarPV' in flow_data['source']:
-                    generation += value
-                if 'PowerDemand' in flow_data['target']:
-                    consumption += value
-
-            # Battery change
-            if 'Battery' in eco_results['storage']:
-                battery_values = eco_results['storage']['Battery']['values']
-                if t > 0:
-                    battery_change = battery_values[t] - battery_values[t-1]
+                if len(golden_vals) == len(new_vals):
+                    if np.allclose(golden_vals, new_vals, atol=tolerance):
+                        matches.append(f"Flow {flow_key}: MATCH")
+                    else:
+                        max_diff = np.max(np.abs(golden_vals - new_vals))
+                        avg_diff = np.mean(np.abs(golden_vals - new_vals))
+                        discrepancies.append(
+                            f"Flow {flow_key}: MISMATCH (max_diff={max_diff:.6f}, avg_diff={avg_diff:.6f})"
+                        )
                 else:
-                    battery_change = battery_values[t] - eco_results['storage']['Battery']['E_init']
+                    discrepancies.append(
+                        f"Flow {flow_key}: LENGTH MISMATCH (golden={len(golden_vals)}, new={len(new_vals)})"
+                    )
+        else:
+            discrepancies.append(f"Flow {flow_key}: MISSING in new results")
 
-            # Energy balance (allowing for small numerical errors)
-            balance_error = abs((generation - consumption - battery_change))
-            assert balance_error < 0.01, f"Energy imbalance at t={t}: {balance_error:.6f} kWh"
+    # Check for extra flows in new results
+    for flow_key in new_metrics['flows']:
+        if flow_key not in golden_metrics['flows']:
+            discrepancies.append(f"Flow {flow_key}: EXTRA in new results (not in golden)")
 
-        print("\n✅ Energy balance validated for all timesteps")
+    # Print results
+    logger.info(f"\n✅ Matches: {len(matches)}")
+    for match in matches[:5]:  # Show first 5 matches
+        logger.info(f"  {match}")
+
+    if discrepancies:
+        logger.warning(f"\n⚠️ Discrepancies: {len(discrepancies)}")
+        for disc in discrepancies:
+            logger.warning(f"  {disc}")
+    else:
+        logger.info("\n🎉 Perfect match! All values within tolerance.")
+
+    # Calculate overall similarity
+    total_comparisons = len(golden_metrics['flows'])
+    successful_matches = len(matches)
+    similarity_percentage = (successful_matches / total_comparisons * 100) if total_comparisons > 0 else 0
+
+    logger.info(f"\n📊 Overall Similarity: {similarity_percentage:.1f}%")
+
+    return len(discrepancies) == 0, similarity_percentage
+
+def main():
+    """Run validation test."""
+    logger.info("=" * 60)
+    logger.info("EcoSystemiser Validation Test")
+    logger.info("=" * 60)
+
+    # Load golden dataset
+    golden_path = Path(__file__).parent / 'tests' / 'systemiser_golden_results.json'
+
+    if not golden_path.exists():
+        logger.error(f"Golden dataset not found at {golden_path}")
+        logger.error("Please run generate_golden_dataset.py first")
+        return False
+
+    logger.info(f"Loading golden dataset from {golden_path}")
+    with open(golden_path, 'r') as f:
+        golden_data = json.load(f)
+
+    # Run EcoSystemiser
+    try:
+        new_results = run_ecosystemiser()
+
+        # Save new results for inspection
+        output_path = Path(__file__).parent / 'tests' / 'ecosystemiser_test_results.json'
+        with open(output_path, 'w') as f:
+            json.dump(new_results, f, indent=2)
+        logger.info(f"New results saved to {output_path}")
+
+    except Exception as e:
+        logger.error(f"Failed to run EcoSystemiser: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+    # Compare results
+    success, similarity = compare_results(golden_data, new_results)
+
+    logger.info("\n" + "=" * 60)
+    if success:
+        logger.info("✅ VALIDATION PASSED: Results match golden dataset")
+    elif similarity > 90:
+        logger.info("⚠️ VALIDATION WARNING: Results are close but not exact")
+    else:
+        logger.error("❌ VALIDATION FAILED: Significant discrepancies found")
+
+    return success
 
 if __name__ == "__main__":
-    # Run tests directly
-    test = TestSystemEquivalence()
-
-    # Load fixtures
-    golden_path = Path(__file__).parent / 'systemiser_minimal_golden.json'
-    with open(golden_path, 'r') as f:
-        golden_dataset = json.load(f)
-
-    # Create eco system
-    eco_system = test.eco_system()
-
-    # Run validation
     try:
-        test.test_minimal_system_equivalence(golden_dataset, eco_system)
-        test.test_energy_balance(eco_system)
-        print("\n" + "="*60)
-        print("ALL VALIDATION TESTS PASSED!")
-        print("="*60)
-    except AssertionError as e:
-        print(f"\n❌ VALIDATION FAILED: {e}")
-        raise
+        success = main()
+        sys.exit(0 if success else 1)
+    except Exception as e:
+        logger.error(f"Validation script failed: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

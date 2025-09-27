@@ -4,7 +4,7 @@ import cvxpy as cp
 import numpy as np
 import time
 from EcoSystemiser.hive_logging_adapter import get_logger
-from .base import BaseSolver, SolverResult
+from EcoSystemiser.base import BaseSolver, SolverResult
 
 logger = get_logger(__name__)
 

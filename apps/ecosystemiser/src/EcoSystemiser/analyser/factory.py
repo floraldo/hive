@@ -1,10 +1,10 @@
 """Factory for creating analysis strategies dynamically."""
 
 from typing import Dict, Any, Type, Optional
-from .strategies import BaseAnalysis
-from .strategies.technical_kpi import TechnicalKPIAnalysis
-from .strategies.economic import EconomicAnalysis
-from .strategies.sensitivity import SensitivityAnalysis
+from EcoSystemiser.strategies import BaseAnalysis
+from EcoSystemiser.strategies.technical_kpi import TechnicalKPIAnalysis
+from EcoSystemiser.strategies.economic import EconomicAnalysis
+from EcoSystemiser.strategies.sensitivity import SensitivityAnalysis
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)

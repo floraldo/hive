@@ -1,5 +1,5 @@
 """Data visualization module for EcoSystemiser."""
 
-from .plot_factory import PlotFactory
+from EcoSystemiser.plot_factory import PlotFactory
 
 __all__ = ['PlotFactory']

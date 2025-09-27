@@ -5,9 +5,9 @@ import numpy as np
 import cvxpy as cp
 from datetime import datetime, timedelta
 
-from .base import BaseSolver, SolverConfig, SolverResult
-from .milp_solver import MILPSolver
-from ..system_model.system import System
+from EcoSystemiser.base import BaseSolver, SolverConfig, SolverResult
+from EcoSystemiser.milp_solver import MILPSolver
+from EcoSystemiser.system_model.system import System
 
 logger = get_logger(__name__)
 

@@ -1,5 +1,5 @@
 """Component data repository module."""
 
-from .repository import ComponentRepository
+from EcoSystemiser.repository import ComponentRepository
 
 __all__ = ['ComponentRepository']

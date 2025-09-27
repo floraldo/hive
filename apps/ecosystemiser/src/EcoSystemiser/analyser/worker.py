@@ -23,7 +23,7 @@ from EcoSystemiser.events import (
     AnalysisEvent
 )
 from EcoSystemiser.errors import ProcessingError, ErrorCode
-from .service import AnalyserService
+from EcoSystemiser.service import AnalyserService
 
 logger = get_logger(__name__)
 

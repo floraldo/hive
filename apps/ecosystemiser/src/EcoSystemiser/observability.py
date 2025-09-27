@@ -34,8 +34,8 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Status, StatusCode
 
-from .settings import get_settings
-from .hive_logging_adapter import get_logger
+from EcoSystemiser.settings import get_settings
+from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
 

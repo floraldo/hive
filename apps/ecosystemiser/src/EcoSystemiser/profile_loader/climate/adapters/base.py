@@ -34,7 +34,7 @@ from tenacity import (
 # Import centralized settings
 from EcoSystemiser.settings import get_settings, Settings
 # Import config models from centralized location to avoid circular dependency
-from ..config_models import HTTPConfig, RateLimitConfig, CacheConfig, RateLimitStrategy
+from EcoSystemiser.profile_loader.config_models import HTTPConfig, RateLimitConfig, CacheConfig, RateLimitStrategy
 
 logger = get_logger(__name__)
 

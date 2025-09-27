@@ -5,10 +5,10 @@ demand, grid connection, and renewable sources.
 """
 
 # Import all water components and their parameter models to register them
-from .water_storage import WaterStorage, WaterStorageParams
-from .water_demand import WaterDemand, WaterDemandParams
-from .water_grid import WaterGrid, WaterGridParams
-from .rainwater_source import RainwaterSource, RainwaterSourceParams
+from EcoSystemiser.system_model.components.water_storage import WaterStorage, WaterStorageParams
+from EcoSystemiser.system_model.components.water_demand import WaterDemand, WaterDemandParams
+from EcoSystemiser.system_model.components.water_grid import WaterGrid, WaterGridParams
+from EcoSystemiser.system_model.components.rainwater_source import RainwaterSource, RainwaterSourceParams
 
 __all__ = [
     'WaterStorage', 'WaterStorageParams',

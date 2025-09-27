@@ -10,7 +10,7 @@ from datetime import datetime
 from EcoSystemiser.hive_logging_adapter import get_logger
 from EcoSystemiser.event_bus import EcoSystemiserEventBus, sync_event_publisher
 from EcoSystemiser.events import EcoSystemiserEventType, create_analysis_event
-from .strategies import (
+from EcoSystemiser.strategies import BaseAnalysis, TechnicalKPIAnalysis, EconomicAnalysis, SensitivityAnalysis
     BaseAnalysis,
     TechnicalKPIAnalysis,
     EconomicAnalysis,

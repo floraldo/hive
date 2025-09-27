@@ -3,8 +3,8 @@ import cvxpy as cp
 import numpy as np
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
-from .economic_params import EconomicParamsModel
-from .environmental_params import EnvironmentalParamsModel
+from EcoSystemiser.system_model.components.economic_params import EconomicParamsModel
+from EcoSystemiser.system_model.components.environmental_params import EnvironmentalParamsModel
 
 class ComponentParams(BaseModel):
     """Base parameters for all components."""

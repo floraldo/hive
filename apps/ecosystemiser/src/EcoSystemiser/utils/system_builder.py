@@ -4,12 +4,12 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import numpy as np
 from EcoSystemiser.hive_logging_adapter import get_logger
-from ..system_model.system import System
-from ..component_data.repository import ComponentRepository
-from ..system_model.components.shared.registry import get_component_class, COMPONENT_REGISTRY
+from EcoSystemiser.system_model.system import System
+from EcoSystemiser.component_data.repository import ComponentRepository
+from EcoSystemiser.system_model.components.shared.registry import get_component_class, COMPONENT_REGISTRY
 
 # Import all components to ensure they are registered
-from ..system_model.components.energy import *
+from EcoSystemiser.system_model.components.energy import *
 
 logger = get_logger(__name__)
 

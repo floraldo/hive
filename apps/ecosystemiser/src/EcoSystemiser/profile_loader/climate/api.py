@@ -28,8 +28,8 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 
-from .data_models import ClimateRequest, ClimateResponse, Mode, Resolution
-from .job_manager import JobManager, JobStatus as JobStatusEnum, get_job_manager
+from EcoSystemiser.profile_loader.data_models import ClimateRequest, ClimateResponse, Mode, Resolution
+from EcoSystemiser.profile_loader.job_manager import JobManager, JobStatus, get_job_manager
 from EcoSystemiser.errors import (
     ClimateError,
     ValidationError,
@@ -528,7 +528,7 @@ async def process_climate_request(
     Process single climate request using the actual climate service.
     """
     # Get the enhanced climate service
-    from .service import get_enhanced_climate_service
+    from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
     
     service = get_enhanced_climate_service()
     
@@ -737,10 +737,10 @@ async def analyze_climate_data(
     
     try:
         # Import processing modules
-        from .analysis.statistics import calculate_statistics
-        from .analysis.extremes import analyze_extremes
-        from .analysis.building_science import derive_building_variables, calculate_design_conditions
-        from .service import get_enhanced_climate_service
+        from EcoSystemiser.profile_loader.analysis.statistics import calculate_statistics
+        from EcoSystemiser.profile_loader.analysis.extremes import analyze_extremes
+        from EcoSystemiser.profile_loader.analysis.building_science import derive_building_variables, calculate_design_conditions
+        from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
         
         # Get data using climate service (will be preprocessed)
         service = get_enhanced_climate_service()
@@ -829,7 +829,7 @@ async def get_climate_profile(
         correlation_id = str(uuid.uuid4())
     
     try:
-        from .service import get_enhanced_climate_service
+        from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
         
         # Configure service with processing options
         service = get_enhanced_climate_service()

@@ -10,8 +10,8 @@ import os
 from io import StringIO
 import urllib.request
 
-from .base import BaseAdapter
-from .capabilities import (
+from EcoSystemiser.profile_loader.climate.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
     AdapterCapabilities, TemporalCoverage, SpatialCoverage,
     DataFrequency, AuthType, RateLimits, QualityFeatures
 )
@@ -175,7 +175,7 @@ class FileEPWAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize EPW file adapter"""
-        from .base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure minimal settings (file-based, no HTTP rate limits needed)
         rate_config = RateLimitConfig(
@@ -678,3 +678,52 @@ class FileEPWAdapter(BaseAdapter):
 
 # Alias for compatibility
 EPWAdapter = FileEPWAdapter
+
+class EPWQCProfile:
+    """QC profile for EPW (EnergyPlus Weather) files - co-located with adapter for better cohesion."""
+
+    def __init__(self):
+        self.name = "EPW"
+        self.description = "EnergyPlus Weather file format - processed for building simulation"
+        self.known_issues = [
+            "May be based on older TMY data",
+            "Processing for building simulation may alter original measurements",
+            "Limited temporal coverage (typical meteorological year)",
+            "Variable quality depending on data source and processing"
+        ]
+        self.recommended_variables = [
+            "temp_air", "dewpoint", "rel_humidity", "wind_speed", "wind_dir",
+            "ghi", "dni", "dhi", "pressure", "cloud_cover"
+        ]
+        self.temporal_resolution_limits = {
+            "all": "hourly"
+        }
+        self.spatial_accuracy = "Point data, location-dependent"
+
+    def validate_source_specific(self, ds: xr.Dataset, report) -> None:
+        """EPW specific validation"""
+
+        # Check for TMY-style processing artifacts
+        if 'temp_air' in ds:
+            temp_data = ds['temp_air'].values
+
+            # EPW files often show suspiciously smooth temperature profiles
+            if len(temp_data) > 100:
+                # Check for unrealistic smoothness
+                temp_gradient = np.abs(np.diff(temp_data))
+                small_changes = np.sum(temp_gradient < 0.1) / len(temp_gradient)
+
+                if small_changes > 0.7:  # 70% of changes < 0.1degC
+                    report.warnings.append(
+                        f"Temperature profile appears over-processed (small_changes={small_changes:.2f}) - typical of some EPW files"
+                    )
+
+        # Check for temporal coverage (EPW should be full year)
+        if len(ds.time) < 8000:  # Less than ~11 months of hourly data
+            report.warnings.append(
+                f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)"
+            )
+
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
+        """Get source-specific adjusted bounds"""
+        return base_bounds

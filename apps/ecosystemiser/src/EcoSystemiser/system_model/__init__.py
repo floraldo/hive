@@ -1,5 +1,5 @@
 """System model module for EcoSystemiser."""
 
-from .system import System
+from EcoSystemiser.system import System
 
 __all__ = ['System']

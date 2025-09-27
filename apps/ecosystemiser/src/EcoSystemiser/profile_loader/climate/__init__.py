@@ -3,8 +3,8 @@ EcoSystemiser Climate Profiles Module - Public API
 This is the main, user-facing entry point for accessing climate data.
 """
 import asyncio
-from .service import ClimateService
-from .data_models import ClimateRequest, ClimateResponse
+from EcoSystemiser.profile_loader.service import ClimateService
+from EcoSystemiser.profile_loader.data_models import ClimateRequest, ClimateResponse
 
 _service_instance = None
 
