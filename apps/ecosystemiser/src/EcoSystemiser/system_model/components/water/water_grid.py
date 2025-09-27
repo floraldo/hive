@@ -8,7 +8,6 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import TransmissionTechnicalParams, FidelityLevel
-from ..shared.base_classes import BaseOptimization
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +139,7 @@ class WaterGridPhysicsStandard(WaterGridPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class WaterGridOptimization(BaseOptimization):
+class WaterGridOptimization:
     """Handles the MILP (CVXPY) constraints for the water grid.
 
     Encapsulates all optimization logic separately from physics and data.
@@ -149,7 +148,7 @@ class WaterGridOptimization(BaseOptimization):
 
     def __init__(self, params, component_instance):
         """Initialize with both params and component instance for constraint access."""
-        super().__init__(params)
+        self.params = params
         self.component = component_instance
 
     def set_constraints(self) -> list:

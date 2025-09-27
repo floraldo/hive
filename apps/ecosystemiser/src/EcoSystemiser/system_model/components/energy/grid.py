@@ -8,7 +8,6 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import TransmissionTechnicalParams, FidelityLevel
-from ..shared.base_classes import BaseOptimization
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +126,7 @@ class GridPhysicsStandard(GridPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class GridOptimization(BaseOptimization):
+class GridOptimization:
     """Handles the MILP (CVXPY) constraints for the grid.
 
     Encapsulates all optimization logic separately from physics and data.
@@ -136,7 +135,7 @@ class GridOptimization(BaseOptimization):
 
     def __init__(self, params, component_instance):
         """Initialize with both params and component instance for constraint access."""
-        super().__init__(params)
+        self.params = params
         self.component = component_instance
 
     def set_constraints(self) -> list:
