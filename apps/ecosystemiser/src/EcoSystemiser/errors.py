@@ -1,8 +1,8 @@
 """
-Standardized error handling for the climate data platform.
+EcoSystemiser-specific error handling that inherits from Hive native error system.
 
-Provides structured error types, error envelopes for API responses,
-and correlation ID tracking for distributed tracing.
+Provides domain-specific error types for climate and energy system simulation,
+while maintaining consistency with the broader Hive ecosystem.
 """
 
 import uuid
@@ -12,7 +12,10 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 import json
+
+from hive_errors import HiveError, HiveValidationError, HiveAPIError, HiveTimeoutError
 from EcoSystemiser.hive_logging_adapter import get_logger
+
 logger = get_logger(__name__)
 
 class ErrorSeverity(Enum):
@@ -90,48 +93,78 @@ class ErrorContext:
     trace_id: Optional[str] = None
     span_id: Optional[str] = None
 
-@dataclass
-class ClimateError(Exception):
+class ClimateError(HiveError):
     """
     Base exception for climate platform errors.
-    
-    Provides structured error information for API responses
-    and logging.
+
+    Inherits from HiveError to maintain consistency with Hive ecosystem
+    while providing climate-specific error handling capabilities.
     """
-    
-    code: ErrorCode
-    message: str
-    severity: ErrorSeverity = ErrorSeverity.ERROR
-    context: Optional[ErrorContext] = None
-    cause: Optional[Exception] = None
-    retriable: bool = False
-    suggested_action: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
-    
-    def __post_init__(self):
-        """Initialize context if not provided"""
-        if self.context is None:
-            self.context = ErrorContext()
-        
+
+    def __init__(
+        self,
+        message: str,
+        code: Optional[ErrorCode] = None,
+        severity: ErrorSeverity = ErrorSeverity.ERROR,
+        context: Optional[ErrorContext] = None,
+        cause: Optional[Exception] = None,
+        retriable: bool = False,
+        suggested_action: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ):
+        # Initialize context if not provided
+        if context is None:
+            context = ErrorContext()
+
         # Ensure code is an ErrorCode enum
-        if isinstance(self.code, str):
-            # Try to convert string to ErrorCode
+        if code is None:
+            code = ErrorCode.INTERNAL_ERROR
+        elif isinstance(code, str):
             try:
-                self.code = ErrorCode(self.code)
+                code = ErrorCode(code)
             except (ValueError, KeyError):
-                # If string doesn't match any ErrorCode value, use a default
-                self.code = ErrorCode.INTERNAL_ERROR
-        
-        # Log the error
+                code = ErrorCode.INTERNAL_ERROR
+
+        # Prepare details dictionary for HiveError
+        hive_details = details or {}
+        hive_details.update({
+            'code': code.value,
+            'severity': severity.value,
+            'retriable': retriable,
+            'correlation_id': context.correlation_id,
+            'timestamp': context.timestamp
+        })
+
+        if suggested_action:
+            hive_details['suggested_action'] = suggested_action
+        if context.source:
+            hive_details['source'] = context.source
+
+        # Initialize HiveError with climate-specific context
+        super().__init__(
+            message=message,
+            component="ecosystemiser",
+            operation=kwargs.get('operation', 'unknown'),
+            details=hive_details,
+            recovery_suggestions=[suggested_action] if suggested_action else None
+        )
+
+        # Store climate-specific attributes
+        self.code = code
+        self.severity = severity
+        self.context = context
+        self.cause = cause
+        self.retriable = retriable
+        self.suggested_action = suggested_action
+
+        # Log the error with appropriate level
         self._log_error()
-    
+
     def _log_error(self):
         """Log error with appropriate level"""
-        log_message = (
-            f"[{self.context.correlation_id}] "
-            f"Error {self.code.value}: {self.message}"
-        )
-        
+        log_message = f"[{self.context.correlation_id}] Error {self.code.value}: {self.message}"
+
         if self.severity == ErrorSeverity.CRITICAL:
             logger.critical(log_message, exc_info=self.cause)
         elif self.severity == ErrorSeverity.ERROR:
@@ -140,38 +173,46 @@ class ClimateError(Exception):
             logger.warning(log_message)
         else:
             logger.info(log_message)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert error to dictionary for JSON serialization"""
-        error_dict = {
+        base_dict = super().to_dict()
+
+        # Add climate-specific error information
+        climate_dict = {
             'error': {
                 'code': self.code.value,
                 'message': self.message,
                 'severity': self.severity.value,
                 'retriable': self.retriable,
                 'correlation_id': self.context.correlation_id,
-                'timestamp': self.context.timestamp
+                'timestamp': self.context.timestamp,
+                'hive_component': base_dict.get('component', 'ecosystemiser'),
+                'hive_operation': base_dict.get('operation', 'unknown')
             }
         }
-        
+
         if self.suggested_action:
-            error_dict['error']['suggested_action'] = self.suggested_action
-        
-        if self.details:
-            error_dict['error']['details'] = self.details
-        
+            climate_dict['error']['suggested_action'] = self.suggested_action
+
+        if hasattr(self, 'details') and self.details:
+            climate_dict['error']['details'] = {
+                k: v for k, v in self.details.items()
+                if k not in ['code', 'severity', 'retriable', 'correlation_id', 'timestamp']
+            }
+
         if self.context.source:
-            error_dict['error']['source'] = self.context.source
-        
+            climate_dict['error']['source'] = self.context.source
+
         if self.cause:
-            error_dict['error']['cause'] = str(self.cause)
-        
-        return error_dict
-    
+            climate_dict['error']['cause'] = str(self.cause)
+
+        return climate_dict
+
     def to_json(self) -> str:
         """Convert error to JSON string"""
         return json.dumps(self.to_dict(), indent=2)
-    
+
     def __str__(self):
         return f"[{self.code.value}] {self.message} (correlation_id: {self.context.correlation_id})"
 

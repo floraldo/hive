@@ -2,6 +2,8 @@
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import yaml
+import json
+from hive_db_utils import get_sqlite_connection, sqlite_transaction, create_table_if_not_exists
 from EcoSystemiser.hive_logging_adapter import get_logger
 logger = get_logger(__name__)
 
@@ -12,13 +14,13 @@ class ComponentRepository:
         """Initialize component repository.
 
         Args:
-            data_source: Source type ('file' or future: 'database')
+            data_source: Source type ('file' or 'database')
             base_path: Base path for file-based loading
         """
         self.data_source = data_source
         self.loaders = {
             "file": FileLoader(base_path),
-            # Future: "database": DatabaseLoader()
+            "database": SQLiteLoader()
         }
         self._cache = {}
 
@@ -135,3 +137,195 @@ class FileLoader:
                     components.append(yaml_file.stem)
 
         return sorted(components)
+
+
+class SQLiteLoader:
+    """Load component data from SQLite database using Hive native connectors."""
+
+    def __init__(self, db_path: Optional[str] = None):
+        """Initialize SQLite loader.
+
+        Args:
+            db_path: Path to SQLite database file. Defaults to data/components.db
+        """
+        if db_path is None:
+            db_path = Path(__file__).parent.parent.parent.parent / "data" / "components.db"
+        self.db_path = str(db_path)
+        self._ensure_tables()
+
+    def _ensure_tables(self):
+        """Create component tables if they don't exist."""
+        try:
+            with sqlite_transaction(self.db_path) as conn:
+                # Create components table
+                components_schema = """
+                    id TEXT PRIMARY KEY,
+                    category TEXT NOT NULL,
+                    component_class TEXT NOT NULL,
+                    technical_data TEXT NOT NULL,
+                    economic_data TEXT,
+                    metadata TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                """
+                create_table_if_not_exists(conn, "components", components_schema)
+
+                # Create indexes for performance
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_class ON components(component_class)")
+
+                logger.debug("Component database tables ensured")
+
+        except Exception as e:
+            logger.error(f"Failed to ensure database tables: {e}")
+            raise
+
+    def load(self, component_id: str) -> Dict[str, Any]:
+        """Load component data from SQLite database.
+
+        Args:
+            component_id: Component identifier
+
+        Returns:
+            Dictionary with component data
+
+        Raises:
+            FileNotFoundError: If component not found in database
+            ValueError: If component data is malformed
+        """
+        try:
+            with sqlite_transaction(self.db_path) as conn:
+                cursor = conn.execute(
+                    "SELECT * FROM components WHERE id = ?",
+                    (component_id,)
+                )
+                row = cursor.fetchone()
+
+                if not row:
+                    raise FileNotFoundError(f"Component data not found in database: {component_id}")
+
+                # Reconstruct component data structure
+                data = {
+                    "component_class": row["component_class"],
+                    "technical": json.loads(row["technical_data"]),
+                    "category": row["category"]
+                }
+
+                # Add optional fields if present
+                if row["economic_data"]:
+                    data["economic"] = json.loads(row["economic_data"])
+
+                if row["metadata"]:
+                    metadata = json.loads(row["metadata"])
+                    data.update(metadata)
+
+                logger.debug(f"Loaded component from database: {component_id}")
+                return data
+
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON data for component {component_id}: {e}")
+        except Exception as e:
+            logger.error(f"Failed to load component {component_id} from database: {e}")
+            raise
+
+    def list_components(self, category: Optional[str] = None) -> List[str]:
+        """List available components in the database.
+
+        Args:
+            category: Optional category filter
+
+        Returns:
+            List of component IDs
+        """
+        try:
+            with sqlite_transaction(self.db_path) as conn:
+                if category:
+                    cursor = conn.execute(
+                        "SELECT id FROM components WHERE category = ? ORDER BY id",
+                        (category,)
+                    )
+                else:
+                    cursor = conn.execute("SELECT id FROM components ORDER BY id")
+
+                components = [row["id"] for row in cursor.fetchall()]
+                logger.debug(f"Listed {len(components)} components from database")
+                return components
+
+        except Exception as e:
+            logger.error(f"Failed to list components from database: {e}")
+            return []
+
+    def save_component(self, component_id: str, data: Dict[str, Any]) -> None:
+        """Save component data to SQLite database.
+
+        Args:
+            component_id: Component identifier
+            data: Component data dictionary
+
+        Raises:
+            ValueError: If component data is invalid
+        """
+        try:
+            # Validate required fields
+            if "component_class" not in data:
+                raise ValueError(f"Missing 'component_class' in component data")
+            if "technical" not in data:
+                raise ValueError(f"Missing 'technical' parameters in component data")
+
+            # Extract and serialize data
+            component_class = data["component_class"]
+            category = data.get("category", "unknown")
+            technical_data = json.dumps(data["technical"])
+            economic_data = json.dumps(data.get("economic", {})) if "economic" in data else None
+
+            # Extract metadata (everything except known fields)
+            metadata = {k: v for k, v in data.items()
+                       if k not in ["component_class", "technical", "economic", "category"]}
+            metadata_json = json.dumps(metadata) if metadata else None
+
+            with sqlite_transaction(self.db_path) as conn:
+                # Insert or update component
+                conn.execute("""
+                    INSERT OR REPLACE INTO components
+                    (id, category, component_class, technical_data, economic_data, metadata, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """, (component_id, category, component_class, technical_data, economic_data, metadata_json))
+
+                logger.info(f"Saved component to database: {component_id}")
+
+        except json.JSONEncodeError as e:
+            raise ValueError(f"Failed to serialize component data: {e}")
+        except Exception as e:
+            logger.error(f"Failed to save component {component_id} to database: {e}")
+            raise
+
+    def migrate_from_files(self, file_loader: 'FileLoader') -> int:
+        """Migrate component data from YAML files to SQLite database.
+
+        Args:
+            file_loader: FileLoader instance to migrate from
+
+        Returns:
+            Number of components migrated
+        """
+        migrated_count = 0
+        try:
+            # Get all components from file loader
+            all_components = file_loader.list_components()
+
+            for component_id in all_components:
+                try:
+                    # Load from file
+                    data = file_loader.load(component_id)
+                    # Save to database
+                    self.save_component(component_id, data)
+                    migrated_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to migrate component {component_id}: {e}")
+
+            logger.info(f"Successfully migrated {migrated_count} components to database")
+            return migrated_count
+
+        except Exception as e:
+            logger.error(f"Migration failed: {e}")
+            raise

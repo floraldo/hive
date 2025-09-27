@@ -7,6 +7,7 @@ the Strategy Pattern for extensible analysis capabilities.
 
 from .service import AnalyserService
 from .factory import AnalyserFactory
+from .worker import AnalyserWorker, AnalyserWorkerPool
 from .strategies import (
     BaseAnalysis,
     TechnicalKPIAnalysis,
@@ -17,6 +18,8 @@ from .strategies import (
 __all__ = [
     'AnalyserService',
     'AnalyserFactory',
+    'AnalyserWorker',
+    'AnalyserWorkerPool',
     'BaseAnalysis',
     'TechnicalKPIAnalysis',
     'EconomicAnalysis',

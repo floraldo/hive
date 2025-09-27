@@ -1,0 +1,8 @@
+hive-core-db>=1.0.0
+hive-errors>=1.0.0
+hive-db-utils>=1.0.0
+
+[dev]
+pytest>=7.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0

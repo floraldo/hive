@@ -18,6 +18,14 @@ from ..discovery.algorithms.monte_carlo import MonteCarloEngine, UncertaintyAnal
 from ..discovery.encoders.parameter_encoder import SystemConfigEncoder, ParameterSpec, EncodingSpec
 from ..discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
 
+# EcoSystemiser Event Bus integration
+from ..event_bus import EcoSystemiserEventBus, sync_event_publisher
+from ..events import (
+    EcoSystemiserEventType,
+    create_study_event,
+    create_simulation_event
+)
+
 logger = get_logger(__name__)
 
 class ParameterSweepSpec(BaseModel):
@@ -94,6 +102,7 @@ class StudyService:
             simulation_service: Optional simulation service, creates default if None
         """
         self.simulation_service = simulation_service or SimulationService()
+        self.event_bus = EcoSystemiserEventBus()
 
     def run_study(self, config: StudyConfig) -> StudyResult:
         """Run a complete study based on configuration.
@@ -108,32 +117,79 @@ class StudyService:
 
         start_time = datetime.now()
 
-        # Generate simulation configurations based on study type
-        if config.study_type == "parametric":
-            simulation_configs = self._generate_parametric_configs(config)
-        elif config.study_type == "fidelity":
-            simulation_configs = self._generate_fidelity_configs(config)
-        elif config.study_type == "optimization":
-            return self._run_optimization_study(config)
-        elif config.study_type == "genetic_algorithm":
-            return self._run_genetic_algorithm_study(config)
-        elif config.study_type == "monte_carlo":
-            return self._run_monte_carlo_study(config)
-        else:
-            raise ValueError(f"Unknown study type: {config.study_type}")
+        # Publish study started event
+        study_started_event = create_study_event(
+            event_type=EcoSystemiserEventType.STUDY_STARTED,
+            study_id=config.study_id,
+            source_agent="StudyService",
+            study_type=config.study_type,
+            results_path=str(config.output_dir) if config.output_dir else None
+        )
+        # Publish study started event using sync publisher
+        success = sync_event_publisher.try_publish_study_event(study_started_event)
+        if not success:
+            logger.debug("Could not publish study started event from sync context")
 
-        # Run simulations
-        results = self._run_simulations(simulation_configs, config)
+        try:
+            # Generate simulation configurations based on study type
+            if config.study_type == "parametric":
+                simulation_configs = self._generate_parametric_configs(config)
+            elif config.study_type == "fidelity":
+                simulation_configs = self._generate_fidelity_configs(config)
+            elif config.study_type == "optimization":
+                return self._run_optimization_study(config)
+            elif config.study_type == "genetic_algorithm":
+                return self._run_genetic_algorithm_study(config)
+            elif config.study_type == "monte_carlo":
+                return self._run_monte_carlo_study(config)
+            else:
+                raise ValueError(f"Unknown study type: {config.study_type}")
 
-        # Process results
-        study_result = self._process_results(results, config)
+            # Run simulations
+            results = self._run_simulations(simulation_configs, config)
 
-        # Add execution time
-        study_result.execution_time = (datetime.now() - start_time).total_seconds()
+            # Process results
+            study_result = self._process_results(results, config)
 
-        logger.info(f"Study completed: {study_result.successful_simulations}/{study_result.num_simulations} successful")
+            # Add execution time
+            study_result.execution_time = (datetime.now() - start_time).total_seconds()
 
-        return study_result
+            logger.info(f"Study completed: {study_result.successful_simulations}/{study_result.num_simulations} successful")
+
+            # Publish study completed event
+            study_completed_event = create_study_event(
+                event_type=EcoSystemiserEventType.STUDY_COMPLETED,
+                study_id=config.study_id,
+                source_agent="StudyService",
+                study_type=config.study_type,
+                results_path=str(config.output_dir) if config.output_dir else None,
+                total_simulations=study_result.num_simulations,
+                completed_simulations=study_result.successful_simulations,
+                duration_seconds=study_result.execution_time
+            )
+            success = sync_event_publisher.try_publish_study_event(study_completed_event)
+            if not success:
+                logger.debug("Could not publish study completed event from sync context")
+
+            return study_result
+
+        except Exception as e:
+            # Publish study failed event
+            execution_time = (datetime.now() - start_time).total_seconds()
+            study_failed_event = create_study_event(
+                event_type=EcoSystemiserEventType.STUDY_FAILED,
+                study_id=config.study_id,
+                source_agent="StudyService",
+                study_type=config.study_type,
+                results_path=str(config.output_dir) if config.output_dir else None,
+                duration_seconds=execution_time
+            )
+            success = sync_event_publisher.try_publish_study_event(study_failed_event)
+            if not success:
+                logger.debug("Could not publish study failed event from sync context")
+
+            logger.error(f"Study failed: {config.study_id} - {str(e)}")
+            raise
 
     def _generate_parametric_configs(self, config: StudyConfig) -> List[SimulationConfig]:
         """Generate simulation configurations for parametric sweep.

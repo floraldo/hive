@@ -1,11 +1,15 @@
 """Analyser Service - Orchestrator for analysis strategies."""
 
 import json
+import uuid
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import pandas as pd
+from datetime import datetime
 
 from EcoSystemiser.hive_logging_adapter import get_logger
+from EcoSystemiser.event_bus import EcoSystemiserEventBus, sync_event_publisher
+from EcoSystemiser.events import EcoSystemiserEventType, create_analysis_event
 from .strategies import (
     BaseAnalysis,
     TechnicalKPIAnalysis,
@@ -25,9 +29,14 @@ class AnalyserService:
     producing only data (JSON) without any visualization or side effects.
     """
 
-    def __init__(self):
-        """Initialize the AnalyserService with available strategies."""
+    def __init__(self, event_bus: Optional[EcoSystemiserEventBus] = None):
+        """Initialize the AnalyserService with available strategies.
+
+        Args:
+            event_bus: Optional EcoSystemiser event bus for publishing events
+        """
         self.strategies: Dict[str, BaseAnalysis] = {}
+        self.event_bus = event_bus or EcoSystemiserEventBus()
         self._register_default_strategies()
 
     def _register_default_strategies(self):
@@ -68,40 +77,82 @@ class AnalyserService:
             FileNotFoundError: If results file doesn't exist
             ValueError: If requested strategy doesn't exist
         """
+        # Generate analysis ID and start time
+        analysis_id = f"analysis_{uuid.uuid4().hex[:8]}"
+        start_time = datetime.now()
+
         # Load simulation results
         results_data = self._load_results(results_path)
 
         # Determine which strategies to run
         strategies_to_run = self._get_strategies_to_run(strategies)
 
-        # Execute analysis strategies
-        analysis_results = {
-            'metadata': {
-                'results_path': str(results_path),
-                'strategies_executed': strategies_to_run,
-                'analysis_timestamp': pd.Timestamp.now().isoformat()
-            },
-            'analyses': {}
-        }
+        # Publish analysis started event
+        self._publish_analysis_event(
+            event_type=EcoSystemiserEventType.ANALYSIS_STARTED,
+            analysis_id=analysis_id,
+            source_results_path=results_path,
+            strategies_executed=strategies_to_run
+        )
 
-        for strategy_name in strategies_to_run:
-            logger.info(f"Executing strategy: {strategy_name}")
-            try:
-                strategy = self.strategies[strategy_name]
-                strategy_results = strategy.execute(results_data, metadata)
-                analysis_results['analyses'][strategy_name] = strategy_results
-                logger.info(f"Successfully executed strategy: {strategy_name}")
-            except Exception as e:
-                logger.error(f"Error executing strategy {strategy_name}: {e}")
-                analysis_results['analyses'][strategy_name] = {
-                    'error': str(e),
-                    'status': 'failed'
-                }
+        try:
+            # Execute analysis strategies
+            analysis_results = {
+                'metadata': {
+                    'analysis_id': analysis_id,
+                    'results_path': str(results_path),
+                    'strategies_executed': strategies_to_run,
+                    'analysis_timestamp': pd.Timestamp.now().isoformat()
+                },
+                'analyses': {}
+            }
 
-        # Add summary
-        analysis_results['summary'] = self._create_summary(analysis_results['analyses'])
+            for strategy_name in strategies_to_run:
+                logger.info(f"Executing strategy: {strategy_name}")
+                try:
+                    strategy = self.strategies[strategy_name]
+                    strategy_results = strategy.execute(results_data, metadata)
+                    analysis_results['analyses'][strategy_name] = strategy_results
+                    logger.info(f"Successfully executed strategy: {strategy_name}")
+                except Exception as e:
+                    logger.error(f"Error executing strategy {strategy_name}: {e}")
+                    analysis_results['analyses'][strategy_name] = {
+                        'error': str(e),
+                        'status': 'failed'
+                    }
 
-        return analysis_results
+            # Add summary
+            analysis_results['summary'] = self._create_summary(analysis_results['analyses'])
+
+            # Calculate execution time
+            execution_time = (datetime.now() - start_time).total_seconds()
+            analysis_results['metadata']['execution_time_seconds'] = execution_time
+
+            # Publish analysis completed event
+            self._publish_analysis_event(
+                event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
+                analysis_id=analysis_id,
+                source_results_path=results_path,
+                strategies_executed=strategies_to_run,
+                duration_seconds=execution_time
+            )
+
+            return analysis_results
+
+        except Exception as e:
+            execution_time = (datetime.now() - start_time).total_seconds()
+
+            # Publish analysis failed event
+            self._publish_analysis_event(
+                event_type=EcoSystemiserEventType.ANALYSIS_FAILED,
+                analysis_id=analysis_id,
+                source_results_path=results_path,
+                strategies_executed=strategies_to_run,
+                duration_seconds=execution_time
+            )
+
+            logger.error(f"Analysis {analysis_id} failed: {e}")
+            raise
 
     def analyse_parametric_study(self, study_results_path: str,
                                  metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -235,3 +286,53 @@ class AnalyserService:
             json.dump(analysis_results, f, indent=2, default=str)
 
         logger.info(f"Saved analysis results to {output_path}")
+
+        # If analysis metadata includes analysis_id, publish a save completion event
+        metadata = analysis_results.get('metadata', {})
+        if 'analysis_id' in metadata:
+            self._publish_analysis_event(
+                event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
+                analysis_id=metadata['analysis_id'],
+                source_results_path=metadata.get('results_path', ''),
+                strategies_executed=metadata.get('strategies_executed', []),
+                analysis_results_path=output_path,
+                duration_seconds=metadata.get('execution_time_seconds')
+            )
+
+    def _publish_analysis_event(self,
+                              event_type: str,
+                              analysis_id: str,
+                              source_results_path: str,
+                              strategies_executed: List[str],
+                              analysis_results_path: Optional[str] = None,
+                              duration_seconds: Optional[float] = None):
+        """Helper method to publish analysis events.
+
+        Args:
+            event_type: Type of analysis event
+            analysis_id: Analysis identifier
+            source_results_path: Path to source simulation results
+            strategies_executed: List of strategies that were executed
+            analysis_results_path: Optional path to analysis results
+            duration_seconds: Optional execution duration
+        """
+        import asyncio
+
+        try:
+            analysis_event = create_analysis_event(
+                event_type=event_type,
+                analysis_id=analysis_id,
+                source_agent="AnalyserService",
+                source_results_path=source_results_path,
+                analysis_results_path=analysis_results_path,
+                strategies_executed=strategies_executed,
+                duration_seconds=duration_seconds
+            )
+
+            # Publish event using sync publisher
+            success = sync_event_publisher.try_publish_analysis_event(analysis_event)
+            if not success:
+                logger.debug(f"Could not publish {event_type} event from sync context")
+
+        except Exception as e:
+            logger.warning(f"Failed to publish analysis event {event_type}: {e}")

@@ -35,6 +35,9 @@ requests = "^2.26.0"
 # Hive workspace dependencies
 hive-logging = {path = "../../packages/hive-logging", develop = true}
 hive-config = {path = "../../packages/hive-config", develop = true}
+hive-errors = {path = "../../packages/hive-errors", develop = true}
+hive-bus = {path = "../../packages/hive-bus", develop = true}
+hive-db-utils = {path = "../../packages/hive-db-utils", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"
