@@ -8,7 +8,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from .inspector_bridge import InspectorBridge
-from .robust_claude_bridge import RobustClaudeBridge
+from hive_claude_bridge import ClaudeReviewerBridge, ClaudeBridgeConfig
 
 
 class ReviewDecision(Enum):
@@ -91,7 +91,8 @@ class ReviewEngine:
         Args:
             mock_mode: If True, use mock responses for testing
         """
-        self.robust_claude = RobustClaudeBridge(mock_mode=mock_mode)
+        config = ClaudeBridgeConfig(mock_mode=mock_mode)
+        self.robust_claude = ClaudeReviewerBridge(config=config)
         self.inspector = InspectorBridge()
 
         # Review thresholds

@@ -18,7 +18,7 @@ import signal
 import sys
 
 from hive_core_db.database import get_connection, create_task
-from .claude_bridge import RobustClaudePlannerBridge
+from hive_claude_bridge import ClaudePlannerBridge, ClaudeBridgeConfig
 
 # Configure logging
 logging.basicConfig(
@@ -49,7 +49,8 @@ class AIPlanner:
         self.mock_mode = mock_mode
 
         # Initialize Claude bridge for intelligent planning
-        self.claude_bridge = RobustClaudePlannerBridge(mock_mode=mock_mode)
+        config = ClaudeBridgeConfig(mock_mode=mock_mode)
+        self.claude_bridge = ClaudePlannerBridge(config=config)
 
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)

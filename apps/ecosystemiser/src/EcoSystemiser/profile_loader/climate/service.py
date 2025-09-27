@@ -19,8 +19,8 @@ import re
 
 from .data_models import ClimateRequest, ClimateResponse, CANONICAL_VARIABLES
 from EcoSystemiser.errors import (
-    ClimateError, AdapterError, ValidationError, 
-    ProcessingError, TemporalError, LocationError
+    ClimateError, AdapterError, ValidationError,
+    ProcessingError, TemporalError, LocationError, ErrorCode
 )
 from .processing.resampling import resample_dataset
 from .processing.validation import apply_quality_control
@@ -592,7 +592,6 @@ class ClimateService(BaseProfileService):
                     continue
         
         # If we get here, all adapters have failed
-        from ...errors import ErrorCode
         raise AdapterError(
             code=ErrorCode.ADAPTER_ERROR,
             message="All available adapters failed to fetch data",
@@ -686,7 +685,6 @@ class ClimateService(BaseProfileService):
 
         except Exception as e:
             logger.error(f"Data processing failed: {e}", exc_info=True)
-            from EcoSystemiser.errors import ProcessingError, ErrorCode
             raise ProcessingError(
                 code=ErrorCode.PROCESSING_FAILED,
                 message=f"Failed to process data: {str(e)}"

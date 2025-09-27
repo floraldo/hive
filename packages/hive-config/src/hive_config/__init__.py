@@ -47,4 +47,15 @@ __all__ = [
     'validate_worker_requirements'
 ]
 
-__version__ = "1.1.0"
+__version__ = "1.1.0"from .unified_config import (
+    HiveConfig,
+    DatabaseConfig,
+    ClaudeConfig,
+    OrchestrationConfig,
+    WorkerConfig,
+    AIConfig,
+    LoggingConfig,
+    load_config,
+    get_config,
+    reset_config
+)

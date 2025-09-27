@@ -79,7 +79,7 @@ class ClimateRequest(BaseProfileRequest):
 
 class ClimateResponse(BaseProfileResponse):
     manifest: Dict[str, Any]
-    path_parquet: str
+    path_parquet: Optional[str] = None  # Made optional for cases where caching is disabled
     shape: Tuple[int, int]
     stats: Optional[Dict[str, Any]] = None  # Changed to Any to handle nested dicts
 

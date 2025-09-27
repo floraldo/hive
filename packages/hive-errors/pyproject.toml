@@ -1,0 +1,22 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hive-errors"
+version = "1.0.0"
+description = "Standardized error handling for Hive system"
+authors = ["Hive Team"]
+readme = "README.md"
+packages = [{include = "hive_errors", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+pytest-mock = "^3.0.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

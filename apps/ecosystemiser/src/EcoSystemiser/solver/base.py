@@ -13,6 +13,11 @@ class SolverConfig(BaseModel):
     verbose: bool = False
     solver_specific: Dict[str, Any] = {}
 
+    # Multi-objective configuration
+    objective_weights: Optional[Dict[str, float]] = None  # e.g., {"cost": 0.7, "emissions": 0.3}
+    normalize_objectives: bool = True  # Normalize objectives before combining
+    pareto_mode: bool = False  # Generate Pareto frontier instead of single solution
+
 class SolverResult(BaseModel):
     """Result structure from solver execution."""
     status: str  # "optimal", "infeasible", "error"

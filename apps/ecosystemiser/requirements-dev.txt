@@ -1,0 +1,41 @@
+# Development and Testing Requirements for EcoSystemiser
+# Install with: pip install -r requirements-dev.txt
+
+# Core application dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+httpx>=0.25.0
+pydantic>=2.0.0
+redis>=5.0.0
+
+# Scientific computing
+numpy>=1.24.0
+pandas>=2.0.0
+xarray>=2023.1.0
+cvxpy>=1.4.0
+scipy>=1.11.0
+
+# Climate data adapters
+tenacity>=8.2.0
+aiohttp>=3.8.0
+requests>=2.31.0
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.11.0
+
+# Development tools
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+ipython>=8.14.0
+
+# Documentation
+sphinx>=7.0.0
+sphinx-rtd-theme>=1.3.0
+
+# Optional but recommended
+python-dotenv>=1.0.0
+watchdog>=3.0.0

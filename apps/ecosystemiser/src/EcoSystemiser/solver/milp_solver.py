@@ -344,9 +344,8 @@ class MILPSolver(BaseSolver):
     def _aggregate_multi_objective_contributions(self, contributions: Dict[str, Any]):
         """Aggregate multiple objectives with weighted combination.
 
-        Examples:
-            "multi_cost_co2_50_50" -> 50% cost + 50% emissions
-            "multi_cost_grid_70_30" -> 70% cost + 30% grid usage
+        Uses configured weights from config.objective_weights or parses from
+        objective type name as fallback for backward compatibility.
 
         Args:
             contributions: Component contributions from system
@@ -354,31 +353,59 @@ class MILPSolver(BaseSolver):
         Returns:
             CVXPY Minimize objective with weighted combination
         """
-        # Parse objective type: multi_obj1_obj2_weight1_weight2
-        parts = self.objective_type.split('_')
-        if len(parts) < 5:
-            logger.error(f"Invalid multi-objective format: {self.objective_type}")
-            return self._aggregate_cost_contributions(contributions)
+        # First check if we have configured weights
+        if self.config.objective_weights:
+            # Use configured weights (preferred method)
+            weights = self.config.objective_weights
 
-        obj1, obj2 = parts[1], parts[2]
-        try:
-            weight1, weight2 = float(parts[3]), float(parts[4])
-            # Normalize weights
-            total_weight = weight1 + weight2
-            weight1, weight2 = weight1/total_weight, weight2/total_weight
-        except (ValueError, ZeroDivisionError):
-            logger.error(f"Invalid weights in multi-objective: {self.objective_type}")
-            weight1, weight2 = 0.5, 0.5
+            # Validate weights
+            if not weights or sum(weights.values()) == 0:
+                logger.error("Invalid objective weights configuration")
+                return self._aggregate_cost_contributions(contributions)
 
-        # Get individual objective values
-        obj1_value = self._get_single_objective_value(obj1, contributions)
-        obj2_value = self._get_single_objective_value(obj2, contributions)
+            # Normalize weights if requested
+            if self.config.normalize_objectives:
+                total_weight = sum(weights.values())
+                weights = {k: v/total_weight for k, v in weights.items()}
 
-        # Weighted combination
-        combined_objective = weight1 * obj1_value + weight2 * obj2_value
+            # Build combined objective
+            combined_objective = 0
+            for obj_type, weight in weights.items():
+                if weight > 0:
+                    obj_value = self._get_single_objective_value(obj_type, contributions)
+                    combined_objective += weight * obj_value
+                    logger.debug(f"Added {weight:.1%} of {obj_type} to objective")
 
-        logger.info(f"Multi-objective: {weight1:.1%} {obj1} + {weight2:.1%} {obj2}")
-        return cp.Minimize(combined_objective)
+            logger.info(f"Multi-objective with configured weights: {weights}")
+            return cp.Minimize(combined_objective)
+
+        else:
+            # Fallback: Parse from objective type name for backward compatibility
+            parts = self.objective_type.split('_')
+            if len(parts) < 5:
+                logger.error(f"Invalid multi-objective format: {self.objective_type}")
+                logger.info("Use config.objective_weights to specify weights properly")
+                return self._aggregate_cost_contributions(contributions)
+
+            obj1, obj2 = parts[1], parts[2]
+            try:
+                weight1, weight2 = float(parts[3]), float(parts[4])
+                # Normalize weights
+                total_weight = weight1 + weight2
+                weight1, weight2 = weight1/total_weight, weight2/total_weight
+            except (ValueError, ZeroDivisionError):
+                logger.error(f"Invalid weights in multi-objective: {self.objective_type}")
+                weight1, weight2 = 0.5, 0.5
+
+            # Get individual objective values
+            obj1_value = self._get_single_objective_value(obj1, contributions)
+            obj2_value = self._get_single_objective_value(obj2, contributions)
+
+            # Weighted combination
+            combined_objective = weight1 * obj1_value + weight2 * obj2_value
+
+            logger.info(f"Multi-objective (legacy format): {weight1:.1%} {obj1} + {weight2:.1%} {obj2}")
+            return cp.Minimize(combined_objective)
 
     def _get_single_objective_value(self, objective_type: str, contributions: Dict[str, Any]):
         """Get objective value for single objective type."""
