@@ -12,6 +12,18 @@ Architecture:
 """
 
 from .event_bus import EventBus, get_event_bus
+
+# Async functions - conditionally imported
+try:
+    from .event_bus import (
+        get_async_event_bus,
+        publish_event_async,
+        get_events_async,
+        get_event_history_async
+    )
+    ASYNC_FUNCTIONS_AVAILABLE = True
+except ImportError:
+    ASYNC_FUNCTIONS_AVAILABLE = False
 from .events import (
     Event,
     TaskEvent,
@@ -20,7 +32,10 @@ from .events import (
     EventType,
     TaskEventType,
     AgentEventType,
-    WorkflowEventType
+    WorkflowEventType,
+    create_task_event,
+    create_agent_event,
+    create_workflow_event
 )
 from .subscribers import EventSubscriber, AsyncEventSubscriber
 from .exceptions import EventBusError, EventPublishError, EventSubscribeError
@@ -42,6 +57,11 @@ __all__ = [
     "AgentEventType",
     "WorkflowEventType",
 
+    # Event factory functions
+    "create_task_event",
+    "create_agent_event",
+    "create_workflow_event",
+
     # Subscribers
     "EventSubscriber",
     "AsyncEventSubscriber",
@@ -51,3 +71,12 @@ __all__ = [
     "EventPublishError",
     "EventSubscribeError",
 ]
+
+# Add async functions to __all__ if available
+if ASYNC_FUNCTIONS_AVAILABLE:
+    __all__.extend([
+        "get_async_event_bus",
+        "publish_event_async",
+        "get_events_async",
+        "get_event_history_async",
+    ])

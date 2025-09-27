@@ -13,7 +13,10 @@ from .exceptions import (
     HiveTimeoutError,
     HiveValidationError,
     HiveResourceError,
-    HiveStateError
+    HiveStateError,
+    EventBusError,
+    EventPublishError,
+    EventSubscribeError
 )
 from .error_reporter import ErrorReporter, ErrorContext
 from .recovery import RecoveryStrategy, RecoveryAction
@@ -31,6 +34,9 @@ __all__ = [
     "HiveValidationError",
     "HiveResourceError",
     "HiveStateError",
+    "EventBusError",
+    "EventPublishError",
+    "EventSubscribeError",
     "ErrorReporter",
     "ErrorContext",
     "RecoveryStrategy",

@@ -306,3 +306,60 @@ class HiveStateError(HiveError):
             "Reset to known good state if needed",
             "Review state machine logic"
         ]
+
+
+class EventBusError(HiveError):
+    """Base event bus errors"""
+
+    def __init__(self, message: str, **kwargs):
+        super().__init__(message, component="event_bus", **kwargs)
+        self.recovery_suggestions = [
+            "Check event bus connection and configuration",
+            "Verify event bus service is running",
+            "Review event format and structure",
+            "Check database connectivity for persistent events"
+        ]
+
+
+class EventPublishError(EventBusError):
+    """Event publishing errors"""
+
+    def __init__(
+        self,
+        message: str,
+        event_type: Optional[str] = None,
+        event_id: Optional[str] = None,
+        **kwargs
+    ):
+        super().__init__(message, operation="publish", **kwargs)
+        self.details["event_type"] = event_type
+        self.details["event_id"] = event_id
+
+        self.recovery_suggestions = [
+            "Check event data format and serialization",
+            "Verify database connection for persistent events",
+            "Check event bus capacity and queue status",
+            "Retry with exponential backoff"
+        ]
+
+
+class EventSubscribeError(EventBusError):
+    """Event subscription errors"""
+
+    def __init__(
+        self,
+        message: str,
+        pattern: Optional[str] = None,
+        subscriber_name: Optional[str] = None,
+        **kwargs
+    ):
+        super().__init__(message, operation="subscribe", **kwargs)
+        self.details["pattern"] = pattern
+        self.details["subscriber_name"] = subscriber_name
+
+        self.recovery_suggestions = [
+            "Check subscription pattern syntax",
+            "Verify subscriber callback function",
+            "Check event bus subscription limits",
+            "Review subscription permissions"
+        ]

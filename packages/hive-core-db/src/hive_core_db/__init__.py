@@ -34,6 +34,22 @@ from .database_enhanced import (
     create_planned_subtasks_from_plan
 )
 
+# Import async functions for Phase 4.1
+try:
+    from .database import (
+        create_task_async,
+        get_task_async,
+        get_queued_tasks_async,
+        update_task_status_async,
+        get_tasks_by_status_async,
+        create_run_async,
+        ASYNC_AVAILABLE
+    )
+    ASYNC_FUNCTIONS_AVAILABLE = True
+except ImportError:
+    ASYNC_FUNCTIONS_AVAILABLE = False
+    ASYNC_AVAILABLE = False
+
 __all__ = [
     # Database management
     'init_db',
@@ -67,3 +83,15 @@ __all__ = [
     'update_worker_heartbeat',
     'get_active_workers'
 ]
+
+# Add async functions to __all__ if available
+if ASYNC_FUNCTIONS_AVAILABLE:
+    __all__.extend([
+        'create_task_async',
+        'get_task_async',
+        'get_queued_tasks_async',
+        'update_task_status_async',
+        'get_tasks_by_status_async',
+        'create_run_async',
+        'ASYNC_AVAILABLE'
+    ])
