@@ -7,6 +7,7 @@ worker management, and execution tracking. It is NOT for general application use
 
 from .database import (
     init_db,
+    get_connection,
     create_task,
     get_task,
     get_queued_tasks,
@@ -23,9 +24,20 @@ from .database import (
     close_connection
 )
 
+# Import enhanced functions for AI Planner integration
+from .database_enhanced import (
+    get_queued_tasks_with_planning,
+    check_subtask_dependencies,
+    get_execution_plan_status,
+    mark_plan_execution_started,
+    get_next_planned_subtask,
+    create_planned_subtasks_from_plan
+)
+
 __all__ = [
     # Database management
     'init_db',
+    'get_connection',
     'close_connection',
 
     # Task management
@@ -34,6 +46,14 @@ __all__ = [
     'get_queued_tasks',
     'get_tasks_by_status',
     'update_task_status',
+
+    # Enhanced task management for AI Planner integration
+    'get_queued_tasks_with_planning',
+    'check_subtask_dependencies',
+    'get_execution_plan_status',
+    'mark_plan_execution_started',
+    'get_next_planned_subtask',
+    'create_planned_subtasks_from_plan',
 
     # Run tracking (task executions)
     'create_run',

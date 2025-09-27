@@ -416,7 +416,13 @@ class QueenLite:
             return  # No capacity for new tasks
 
         # Get multiple queued tasks up to available capacity
-        queued_tasks = hive_core_db.get_queued_tasks(limit=slots_free)
+        # Use enhanced function that also picks up AI Planner-generated sub-tasks
+        try:
+            queued_tasks = hive_core_db.get_queued_tasks_with_planning(limit=slots_free)
+        except AttributeError:
+            # Fall back to regular function if enhanced version not available
+            queued_tasks = hive_core_db.get_queued_tasks(limit=slots_free)
+
         if not queued_tasks:
             return
 
@@ -427,8 +433,13 @@ class QueenLite:
             if worker_type in active_per_role:
                 active_per_role[worker_type] += 1
 
-        self.log.info(f"[PARALLEL] Processing {len(queued_tasks)} legacy tasks with {slots_free} free slots")
-        
+        # Log details about AI Planner tasks
+        planner_tasks = [t for t in queued_tasks if t.get("task_type") == "planned_subtask"]
+        if planner_tasks:
+            self.log.info(f"[AI-PLANNER] Found {len(planner_tasks)} planner-generated sub-tasks ready for execution")
+
+        self.log.info(f"[PARALLEL] Processing {len(queued_tasks)} tasks ({len(planner_tasks)} from planner) with {slots_free} free slots")
+
         for task in queued_tasks:
             task_id = task["id"]
             
@@ -914,7 +925,13 @@ class QueenLite:
             return  # No capacity for new tasks
 
         # Get multiple queued tasks up to available capacity
-        queued_tasks = hive_core_db.get_queued_tasks(limit=slots_free)
+        # Use enhanced function that also picks up AI Planner-generated sub-tasks
+        try:
+            queued_tasks = hive_core_db.get_queued_tasks_with_planning(limit=slots_free)
+        except AttributeError:
+            # Fall back to regular function if enhanced version not available
+            queued_tasks = hive_core_db.get_queued_tasks(limit=slots_free)
+
         if not queued_tasks:
             return
 

@@ -66,7 +66,19 @@ def get_connection() -> sqlite3.Connection:
     """Get or create database connection."""
     global _connection
 
+    # Check if connection is None or closed
     if _connection is None:
+        need_new_connection = True
+    else:
+        # Check if the connection is still valid
+        try:
+            _connection.execute('SELECT 1')
+            need_new_connection = False
+        except sqlite3.ProgrammingError:
+            # Connection is closed, need a new one
+            need_new_connection = True
+
+    if need_new_connection:
         # Ensure database directory exists using the path utility
         ensure_directory(DB_PATH.parent)
 
@@ -165,6 +177,61 @@ def init_db() -> None:
             )
         ''')
 
+        # AI Planning tables - for intelligent task planning and workflow generation
+
+        # Planning queue - incoming requests for intelligent planning
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS planning_queue (
+                id TEXT PRIMARY KEY,
+                task_description TEXT NOT NULL,
+                priority INTEGER DEFAULT 50,
+                requestor TEXT,
+                context_data TEXT,  -- JSON context and requirements
+                status TEXT DEFAULT 'pending',
+                complexity_estimate TEXT,  -- simple|medium|complex
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                assigned_at TIMESTAMP NULL,
+                completed_at TIMESTAMP NULL,
+                assigned_agent TEXT  -- which ai-planner instance is handling this
+            )
+        ''')
+
+        # Generated execution plans - AI-generated plans for complex tasks
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS execution_plans (
+                id TEXT PRIMARY KEY,
+                planning_task_id TEXT NOT NULL,
+                plan_data TEXT NOT NULL,  -- JSON plan structure with subtasks and dependencies
+                estimated_duration INTEGER,  -- estimated minutes to complete
+                estimated_complexity TEXT DEFAULT 'medium',
+                generated_workflow TEXT,  -- Generated Hive workflow JSON
+                subtask_count INTEGER DEFAULT 0,
+                dependency_count INTEGER DEFAULT 0,
+                generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status TEXT DEFAULT 'draft',  -- draft|approved|executing|completed|failed
+                FOREIGN KEY (planning_task_id) REFERENCES planning_queue (id) ON DELETE CASCADE
+            )
+        ''')
+
+        # Plan execution monitoring - track progress of plan execution
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS plan_execution (
+                id TEXT PRIMARY KEY,
+                plan_id TEXT NOT NULL,
+                current_phase TEXT,
+                progress_percent INTEGER DEFAULT 0,
+                active_subtasks TEXT,  -- JSON array of currently executing subtasks
+                completed_subtasks TEXT,  -- JSON array of completed subtasks
+                failed_subtasks TEXT,  -- JSON array of failed subtasks
+                blocked_subtasks TEXT,  -- JSON array of blocked subtasks
+                execution_notes TEXT,  -- JSON array of execution notes and adjustments
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP NULL,
+                FOREIGN KEY (plan_id) REFERENCES execution_plans (id) ON DELETE CASCADE
+            )
+        ''')
+
         # Indexes for performance
         conn.execute('CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (status)')
         conn.execute('CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks (priority DESC)')
@@ -172,6 +239,13 @@ def init_db() -> None:
         conn.execute('CREATE INDEX IF NOT EXISTS idx_runs_worker_id ON runs (worker_id)')
         conn.execute('CREATE INDEX IF NOT EXISTS idx_workers_status ON workers (status)')
         conn.execute('CREATE INDEX IF NOT EXISTS idx_workers_role ON workers (role)')
+
+        # AI Planning indexes for performance
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_planning_queue_status ON planning_queue (status)')
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_planning_queue_priority ON planning_queue (priority DESC)')
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_execution_plans_planning_task_id ON execution_plans (planning_task_id)')
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_execution_plans_status ON execution_plans (status)')
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_plan_execution_plan_id ON plan_execution (plan_id)')
 
         logger.info("Hive internal database initialized successfully")
 

@@ -8,6 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import TransmissionTechnicalParams, FidelityLevel
+from ..shared.base_classes import BaseOptimization
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,135 @@ class WaterGridTechnicalParams(TransmissionTechnicalParams):
     )
 
 
+# =============================================================================
+# PHYSICS STRATEGIES (Rule-Based & Fidelity)
+# =============================================================================
+
+class WaterGridPhysicsSimple:
+    """Implements the SIMPLE rule-based physics for water grid transmission.
+
+    This is the baseline fidelity level providing:
+    - Basic import/export with flow limits
+    - No pressure losses or reliability issues
+    - Direct water transfer
+    """
+
+    def __init__(self, params):
+        """Initialize with component parameters."""
+        self.params = params
+
+    def rule_based_import(self, water_demand: float, max_supply: float) -> float:
+        """
+        Calculate actual water import in SIMPLE mode.
+
+        Args:
+            water_demand: Water requested from grid [m³/h]
+            max_supply: Maximum supply capacity [m³/h]
+
+        Returns:
+            Actual water imported [m³/h]
+        """
+        # Simple clipping to max supply
+        return min(water_demand, max_supply)
+
+    def rule_based_export(self, wastewater: float, max_discharge: float) -> float:
+        """
+        Calculate actual wastewater export in SIMPLE mode.
+
+        Args:
+            wastewater: Wastewater available for export [m³/h]
+            max_discharge: Maximum discharge capacity [m³/h]
+
+        Returns:
+            Actual wastewater exported [m³/h]
+        """
+        # Simple clipping to max discharge
+        return min(wastewater, max_discharge)
+
+
+class WaterGridPhysicsStandard(WaterGridPhysicsSimple):
+    """Implements the STANDARD rule-based physics for water grid transmission.
+
+    Inherits from SIMPLE and adds:
+    - Supply reliability constraints
+    - Pressure loss considerations
+    """
+
+    def rule_based_import(self, water_demand: float, max_supply: float) -> float:
+        """
+        Calculate actual water import with reliability and pressure losses.
+
+        First applies SIMPLE physics, then adds STANDARD-specific effects.
+        """
+        # 1. Get the baseline result from SIMPLE physics
+        water_from_grid = super().rule_based_import(water_demand, max_supply)
+
+        # 2. Add STANDARD-specific physics: reliability factor
+        supply_reliability = getattr(self.params.technical, 'supply_reliability', 0.99)
+        if supply_reliability < 1.0:
+            # Reduce effective capacity by reliability factor
+            effective_supply = water_from_grid * supply_reliability
+            return effective_supply
+
+        return water_from_grid
+
+
+# =============================================================================
+# OPTIMIZATION STRATEGY (MILP)
+# =============================================================================
+
+class WaterGridOptimization(BaseOptimization):
+    """Handles the MILP (CVXPY) constraints for the water grid.
+
+    Encapsulates all optimization logic separately from physics and data.
+    This enables clean separation and easy testing of optimization constraints.
+    """
+
+    def __init__(self, params, component_instance):
+        """Initialize with both params and component instance for constraint access."""
+        super().__init__(params)
+        self.component = component_instance
+
+    def set_constraints(self) -> list:
+        """
+        Create CVXPY constraints for water grid optimization.
+
+        This method encapsulates all the MILP constraint logic for water transmission.
+        """
+        constraints = []
+        comp = self.component
+
+        # Get fidelity level
+        fidelity = comp.technical.fidelity_level
+
+        # Basic constraints (all fidelity levels)
+        if comp.Q_import is not None:
+            # Import capacity constraints
+            constraints.append(comp.Q_import <= comp.max_supply_m3h)
+
+        if comp.Q_export is not None:
+            # Export capacity constraints
+            constraints.append(comp.Q_export <= comp.max_discharge_m3h)
+
+        # STANDARD: Add reliability constraints
+        if fidelity >= FidelityLevel.STANDARD:
+            if comp.Q_import is not None and comp.supply_reliability < 1.0:
+                # Reduce effective capacity by reliability factor
+                effective_supply = comp.max_supply_m3h * comp.supply_reliability
+                constraints.append(comp.Q_import <= effective_supply)
+
+        # DETAILED: Add pressure-dependent constraints
+        if fidelity >= FidelityLevel.DETAILED:
+            if comp.pressure_losses:
+                # Pressure losses reduce effective capacity
+                pressure_factor = comp.pressure_losses.get('distribution_factor', 0.95)
+                if comp.Q_import is not None:
+                    effective_supply = comp.max_supply_m3h * pressure_factor
+                    constraints.append(comp.Q_import <= effective_supply)
+
+        return constraints
+
+
 class WaterGridParams(ComponentParams):
     """Water grid parameters using the hierarchical technical parameter system."""
     technical: WaterGridTechnicalParams = Field(
@@ -77,25 +207,34 @@ class WaterGridParams(ComponentParams):
     )
 
 
+# =============================================================================
+# MAIN COMPONENT CLASS (Factory)
+# =============================================================================
+
 @register_component("WaterGrid")
 class WaterGrid(Component):
-    """Water grid component for municipal water supply and wastewater discharge.
+    """Water grid component with Strategy Pattern architecture.
 
-    This component follows the same pattern as the electrical Grid component
-    but handles water flows instead of electrical power flows.
+    This class acts as a factory and container for water grid strategies:
+    - Physics strategies: Handle fidelity-specific water transmission calculations
+    - Optimization strategies: Handle MILP constraint generation
+    - Clean separation: Data contract + strategy selection only
+
+    The component delegates physics and optimization to strategy objects
+    based on the configured fidelity level.
     """
 
     PARAMS_MODEL = WaterGridParams
 
     def _post_init(self):
-        """Initialize water grid-specific attributes from technical parameters."""
+        """Initialize water grid attributes and strategy objects."""
         self.type = "transmission"
         self.medium = "water"
 
-        # Single source of truth: the technical parameter block
+        # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters extracted from technical block (m³/h)
+        # Core parameters - EXACTLY as original WaterGrid expects (m³/h)
         self.max_supply_m3h = tech.max_import     # Maximum supply rate
         self.max_discharge_m3h = tech.max_export  # Maximum discharge rate
         self.water_price_per_m3 = tech.water_tariff
@@ -111,6 +250,33 @@ class WaterGrid(Component):
         # CVXPY variables (for MILP solver)
         self.Q_import = None    # Water imported from grid
         self.Q_export = None    # Water exported to grid (wastewater)
+
+        # STRATEGY PATTERN: Instantiate the correct strategies
+        self.physics = self._get_physics_strategy()
+        self.optimization = self._get_optimization_strategy()
+
+    def _get_physics_strategy(self):
+        """Factory method: Select physics strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return WaterGridPhysicsSimple(self.params)
+        elif fidelity == FidelityLevel.STANDARD:
+            return WaterGridPhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD physics (can be extended later)
+            return WaterGridPhysicsStandard(self.params)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
+            return WaterGridPhysicsStandard(self.params)
+        else:
+            raise ValueError(f"Unknown fidelity level for WaterGrid: {fidelity}")
+
+    def _get_optimization_strategy(self):
+        """Factory method: Select optimization strategy."""
+        # For now, all fidelity levels use the same optimization strategy
+        # Future: Could have different optimization strategies per fidelity
+        return WaterGridOptimization(self.params, self)
 
     def add_optimization_vars(self, N: Optional[int] = None):
         """Create CVXPY optimization variables."""
@@ -131,38 +297,8 @@ class WaterGrid(Component):
         }
 
     def set_constraints(self) -> List:
-        """Set CVXPY constraints for water grid with fidelity-aware modeling."""
-        constraints = []
-
-        # Get fidelity level
-        fidelity = self.technical.fidelity_level
-
-        # Basic constraints (all fidelity levels)
-        if self.Q_import is not None:
-            # Import capacity constraints
-            constraints.append(self.Q_import <= self.max_supply_m3h)
-
-        if self.Q_export is not None:
-            # Export capacity constraints
-            constraints.append(self.Q_export <= self.max_discharge_m3h)
-
-        # STANDARD: Add reliability constraints
-        if fidelity >= FidelityLevel.STANDARD:
-            if self.Q_import is not None and self.supply_reliability < 1.0:
-                # Reduce effective capacity by reliability factor
-                effective_supply = self.max_supply_m3h * self.supply_reliability
-                constraints.append(self.Q_import <= effective_supply)
-
-        # DETAILED: Add pressure-dependent constraints
-        if fidelity >= FidelityLevel.DETAILED:
-            if self.pressure_losses:
-                # Pressure losses reduce effective capacity
-                pressure_factor = self.pressure_losses.get('distribution_factor', 0.95)
-                if self.Q_import is not None:
-                    effective_supply = self.max_supply_m3h * pressure_factor
-                    constraints.append(self.Q_import <= effective_supply)
-
-        return constraints
+        """Delegate constraint creation to optimization strategy."""
+        return self.optimization.set_constraints()
 
     def get_operating_cost(self, timestep: int) -> float:
         """Calculate operating cost for water grid at given timestep.
@@ -206,31 +342,17 @@ class WaterGrid(Component):
         return total_cost
 
     def rule_based_operation(self, water_demand: float, wastewater_production: float, t: int) -> tuple:
-        """Rule-based water grid operation with fidelity-aware performance.
-
-        Args:
-            water_demand: Required water import [m³/h]
-            wastewater_production: Wastewater for export [m³/h]
-            t: Current timestep
-
-        Returns:
-            Tuple of (actual_import, actual_export) [m³/h]
         """
-        # Apply reliability factor for STANDARD+ fidelity
-        effective_supply_capacity = self.max_supply_m3h
-        if self.technical.fidelity_level >= FidelityLevel.STANDARD:
-            effective_supply_capacity *= self.supply_reliability
+        Delegate to physics strategy for water grid operation.
 
-        # Apply pressure losses for DETAILED+ fidelity
-        if self.technical.fidelity_level >= FidelityLevel.DETAILED and self.pressure_losses:
-            pressure_factor = self.pressure_losses.get('distribution_factor', 0.95)
-            effective_supply_capacity *= pressure_factor
+        This maintains the same interface but delegates the actual
+        physics calculation to the strategy object.
+        """
+        # Delegate import calculation to physics strategy
+        actual_import = self.physics.rule_based_import(water_demand, self.max_supply_m3h)
 
-        # Meet water demand up to capacity
-        actual_import = min(water_demand, effective_supply_capacity)
-
-        # Handle wastewater export up to capacity
-        actual_export = min(wastewater_production, self.max_discharge_m3h)
+        # Delegate export calculation to physics strategy
+        actual_export = self.physics.rule_based_export(wastewater_production, self.max_discharge_m3h)
 
         return actual_import, actual_export
 

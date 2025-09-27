@@ -1,0 +1,42 @@
+[app]
+name = "ai-planner"
+version = "1.0.0"
+description = "Intelligent task planning and workflow generation agent"
+type = "daemon"
+
+[daemons.default]
+description = "Main AI planning agent with workflow generation"
+command = "python src/ai_planner/agent.py"
+restart_on_failure = true
+restart_delay_seconds = 30
+
+[daemons.debug]
+description = "AI planner in debug mode with verbose logging"
+command = "python src/ai_planner/agent.py --debug"
+restart_on_failure = false
+
+[capabilities]
+planning = ["task-decomposition", "workflow-generation", "dependency-mapping"]
+analysis = ["intent-parsing", "complexity-estimation", "resource-planning"]
+monitoring = ["progress-tracking", "error-detection", "plan-adjustment"]
+autonomous = true
+
+[integration]
+database = "hive-core-db"
+uses_queue = "planning_queue"
+creates_workflows = true
+integrates_with = ["hive-orchestrator"]
+updates_status = ["planned", "executing", "completed", "failed", "adjusted"]
+
+[ai_config]
+model_provider = "anthropic"  # Default to Anthropic Claude
+max_subtasks = 20
+max_planning_time = 300  # 5 minutes max planning time
+complexity_threshold = "medium"
+planning_temperature = 0.1  # Low temperature for consistent planning
+
+[monitoring]
+heartbeat_interval = 60
+health_check_endpoint = "/health"
+metrics_enabled = true
+planning_metrics = ["tasks_planned", "success_rate", "avg_planning_time"]

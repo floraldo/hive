@@ -157,12 +157,13 @@ class PowerDemandOptimization(BaseDemandOptimization):
 
             # --- STANDARD ENHANCEMENTS ---
             if fidelity >= FidelityLevel.STANDARD:
-                # Power factor considerations would be added here
-                power_factor = getattr(comp.technical, 'power_factor', None)
-                if power_factor:
-                    # For now, STANDARD maintains exact demand satisfaction
-                    # In practice: might adjust for reactive power considerations
-                    pass
+                # A true power factor model would require adding reactive power variables
+                # and constraints to the system, which is a DETAILED/RESEARCH feature.
+                # For now, we note its existence but do not modify the real power demand.
+                power_factor = getattr(comp.technical, 'power_factor', 1.0)
+                if power_factor < 1.0:
+                    logger.debug(f"STANDARD fidelity: Acknowledging power factor of {power_factor}, "
+                                 f"but not modifying real power constraints.")
 
             # --- DETAILED ENHANCEMENTS ---
             if fidelity >= FidelityLevel.DETAILED:
