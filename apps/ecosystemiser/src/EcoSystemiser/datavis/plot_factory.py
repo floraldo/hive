@@ -390,3 +390,336 @@ class PlotFactory:
             f.write(html_content)
 
         logger.info(f"Exported {len(figures)} plots to {output_path}")
+
+    def create_economic_summary_plot(self, economic_data: Dict[str, Any]) -> Dict:
+        """Create economic summary visualization.
+
+        Args:
+            economic_data: Economic analysis results
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        # Create subplots for different economic metrics
+        fig = make_subplots(
+            rows=2, cols=2,
+            subplot_titles=(
+                "Cost Breakdown", "Component Costs",
+                "Cash Flow Analysis", "Economic Indicators"
+            ),
+            specs=[
+                [{'type': 'pie'}, {'type': 'bar'}],
+                [{'type': 'scatter'}, {'type': 'indicator'}]
+            ]
+        )
+
+        # Cost breakdown pie chart
+        if 'capex_total' in economic_data and 'opex_total' in economic_data:
+            labels = ['CAPEX', 'OPEX']
+            values = [economic_data['capex_total'], economic_data['opex_total']]
+            fig.add_trace(
+                go.Pie(labels=labels, values=values, hole=0.3),
+                row=1, col=1
+            )
+
+        # Component costs bar chart
+        if 'component_costs' in economic_data:
+            comp_names = list(economic_data['component_costs'].keys())
+            capex_values = [c.get('capex', 0) for c in economic_data['component_costs'].values()]
+            opex_values = [c.get('opex_annual', 0) for c in economic_data['component_costs'].values()]
+
+            fig.add_trace(
+                go.Bar(name='CAPEX', x=comp_names, y=capex_values),
+                row=1, col=2
+            )
+            fig.add_trace(
+                go.Bar(name='OPEX', x=comp_names, y=opex_values),
+                row=1, col=2
+            )
+
+        # NPV cash flow over time (simplified projection)
+        if 'npv' in economic_data and 'payback_period_years' in economic_data:
+            years = list(range(21))  # 20-year project
+            npv = economic_data['npv']
+            payback = economic_data.get('payback_period_years', 10)
+
+            # Simple linear approximation for visualization
+            cash_flows = [-economic_data.get('capex_total', 0)]
+            annual_benefit = economic_data.get('capex_total', 0) / max(payback, 1)
+            for year in years[1:]:
+                cash_flows.append(cash_flows[-1] + annual_benefit)
+
+            fig.add_trace(
+                go.Scatter(
+                    x=years, y=cash_flows,
+                    mode='lines+markers',
+                    name='Cumulative Cash Flow',
+                    line=dict(width=2)
+                ),
+                row=2, col=1
+            )
+            fig.add_hline(y=0, line_dash="dash", line_color="red", row=2, col=1)
+
+        # Key economic indicators
+        if 'lcoe' in economic_data:
+            fig.add_trace(
+                go.Indicator(
+                    mode="number+delta",
+                    value=economic_data['lcoe'],
+                    title={'text': "LCOE ($/kWh)"},
+                    delta={'reference': 0.15},  # Reference grid price
+                    domain={'x': [0, 1], 'y': [0, 1]}
+                ),
+                row=2, col=2
+            )
+
+        fig.update_layout(
+            title="Economic Analysis Summary",
+            height=700,
+            showlegend=True,
+            **self.default_layout
+        )
+
+        return fig.to_dict()
+
+    def create_sensitivity_heatmap(self, sensitivity_data: Dict[str, Any]) -> Dict:
+        """Create sensitivity analysis heatmap.
+
+        Args:
+            sensitivity_data: Sensitivity analysis results
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        if 'parameter_sensitivities' not in sensitivity_data:
+            return {}
+
+        # Extract sensitivity matrix
+        param_sensitivities = sensitivity_data['parameter_sensitivities']
+
+        # Create matrix for heatmap
+        params = list(param_sensitivities.keys())
+        kpis = set()
+        for param_data in param_sensitivities.values():
+            kpis.update(param_data.keys())
+        kpis = sorted(list(kpis))
+
+        # Build sensitivity matrix
+        matrix = []
+        for param in params:
+            row = []
+            for kpi in kpis:
+                value = param_sensitivities[param].get(kpi, 0)
+                row.append(value)
+            matrix.append(row)
+
+        # Create heatmap
+        fig = go.Figure(data=go.Heatmap(
+            z=matrix,
+            x=kpis,
+            y=params,
+            colorscale='RdBu',
+            zmid=0,
+            text=[[f"{v:.3f}" for v in row] for row in matrix],
+            texttemplate="%{text}",
+            textfont={"size": 10}
+        ))
+
+        fig.update_layout(
+            title="Parameter Sensitivity Analysis",
+            xaxis_title="KPIs",
+            yaxis_title="Parameters",
+            height=max(400, len(params) * 30),
+            **self.default_layout
+        )
+
+        return fig.to_dict()
+
+    def create_pareto_frontier_plot(self, sensitivity_data: Dict[str, Any]) -> Dict:
+        """Create Pareto frontier visualization for trade-off analysis.
+
+        Args:
+            sensitivity_data: Sensitivity analysis results with trade-off data
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        trade_offs = sensitivity_data.get('trade_off_analysis', {})
+        pareto_points = trade_offs.get('pareto_frontier', [])
+
+        if not pareto_points:
+            return {}
+
+        # Extract cost and renewable values
+        costs = [p['cost'] for p in pareto_points]
+        renewables = [p['renewable'] for p in pareto_points]
+
+        # Create scatter plot
+        fig = go.Figure()
+
+        # Add Pareto frontier points
+        fig.add_trace(go.Scatter(
+            x=costs,
+            y=renewables,
+            mode='markers+lines',
+            name='Pareto Frontier',
+            marker=dict(size=10, color='red'),
+            line=dict(color='red', dash='dash'),
+            text=[f"Cost: ${c:,.0f}<br>Renewable: {r:.2%}"
+                  for c, r in zip(costs, renewables)],
+            hovertemplate="%{text}<extra></extra>"
+        ))
+
+        # Add annotation for trade-off
+        if 'cost_renewable_correlation' in trade_offs:
+            correlation = trade_offs['cost_renewable_correlation']
+            fig.add_annotation(
+                text=f"Correlation: {correlation:.3f}",
+                xref="paper", yref="paper",
+                x=0.02, y=0.98,
+                showarrow=False,
+                font=dict(size=12),
+                bgcolor="white",
+                bordercolor="gray",
+                borderwidth=1
+            )
+
+        fig.update_layout(
+            title="Cost vs Renewable Fraction Trade-off",
+            xaxis_title="Total Cost ($)",
+            yaxis_title="Renewable Fraction",
+            yaxis_tickformat='.0%',
+            height=500,
+            **self.default_layout
+        )
+
+        return fig.to_dict()
+
+    def create_technical_kpi_gauges(self, kpi_data: Dict[str, float]) -> Dict:
+        """Create gauge charts for technical KPIs.
+
+        Args:
+            kpi_data: Technical KPI analysis results
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        # Define KPIs to display as gauges
+        gauge_kpis = [
+            ('grid_self_sufficiency', 'Grid Self-Sufficiency', 0, 1, 0.7),
+            ('renewable_fraction', 'Renewable Fraction', 0, 1, 0.5),
+            ('battery_efficiency', 'Battery Efficiency', 0, 1, 0.85),
+            ('load_factor', 'Load Factor', 0, 1, 0.6)
+        ]
+
+        # Filter available KPIs
+        available_gauges = [(k, n, mi, ma, t) for k, n, mi, ma, t in gauge_kpis
+                           if k in kpi_data]
+
+        if not available_gauges:
+            return {}
+
+        # Create subplots
+        cols = min(len(available_gauges), 2)
+        rows = (len(available_gauges) + 1) // 2
+
+        fig = make_subplots(
+            rows=rows, cols=cols,
+            subplot_titles=[g[1] for g in available_gauges],
+            specs=[[{'type': 'indicator'} for _ in range(cols)] for _ in range(rows)]
+        )
+
+        # Add gauge charts
+        for idx, (key, name, min_val, max_val, threshold) in enumerate(available_gauges):
+            row = idx // cols + 1
+            col = idx % cols + 1
+
+            value = kpi_data[key]
+
+            # Determine color based on threshold
+            if value >= threshold:
+                bar_color = "green"
+            elif value >= threshold * 0.7:
+                bar_color = "yellow"
+            else:
+                bar_color = "red"
+
+            fig.add_trace(
+                go.Indicator(
+                    mode="gauge+number",
+                    value=value,
+                    gauge={
+                        'axis': {'range': [min_val, max_val]},
+                        'bar': {'color': bar_color},
+                        'threshold': {
+                            'line': {'color': "black", 'width': 2},
+                            'thickness': 0.75,
+                            'value': threshold
+                        }
+                    },
+                    number={'valueformat': '.1%' if max_val == 1 else '.2f'}
+                ),
+                row=row, col=col
+            )
+
+        fig.update_layout(
+            title="Technical Performance Indicators",
+            height=300 * rows,
+            **self.default_layout
+        )
+
+        return fig.to_dict()
+
+    def create_optimization_convergence_plot(self, solver_metrics: Dict[str, Any]) -> Dict:
+        """Create optimization convergence visualization.
+
+        Args:
+            solver_metrics: Solver metrics including convergence data
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        # This would be enhanced if we had iteration data from the solver
+        # For now, create a simple status indicator
+
+        fig = go.Figure()
+
+        status = solver_metrics.get('status', 'unknown')
+        solve_time = solver_metrics.get('solve_time', 0)
+        objective_value = solver_metrics.get('objective_value', 0)
+
+        # Create status indicator
+        status_color = {
+            'optimal': 'green',
+            'feasible': 'yellow',
+            'infeasible': 'red',
+            'unknown': 'gray'
+        }.get(status, 'gray')
+
+        fig.add_trace(go.Indicator(
+            mode="number+delta+gauge",
+            value=objective_value,
+            title={'text': f"Optimization Status: {status.upper()}"},
+            gauge={
+                'axis': {'visible': False},
+                'bar': {'color': status_color}
+            },
+            domain={'x': [0.25, 0.75], 'y': [0.3, 0.7]}
+        ))
+
+        # Add solve time annotation
+        fig.add_annotation(
+            text=f"Solve Time: {solve_time:.2f}s",
+            xref="paper", yref="paper",
+            x=0.5, y=0.15,
+            showarrow=False,
+            font=dict(size=14)
+        )
+
+        fig.update_layout(
+            title="Optimization Results",
+            height=400,
+            **self.default_layout
+        )
+
+        return fig.to_dict()

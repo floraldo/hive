@@ -98,8 +98,8 @@ class HiveCore:
                         worker_data = json.load(f)
                     if "config" in worker_data and key in worker_data["config"]:
                         return worker_data["config"][key]
-                except:
-                    pass
+                except (json.JSONDecodeError, KeyError, IOError) as e:
+                    logger.debug(f"Could not load worker config from {worker_config_file}: {e}")
         
         # Return default from main config
         return self.config.get(key)

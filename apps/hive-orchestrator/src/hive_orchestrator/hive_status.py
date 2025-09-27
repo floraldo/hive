@@ -72,7 +72,8 @@ class HiveStatus:
                 with open(task_file, "r") as f:
                     task = json.load(f)
                     tasks[task["id"]] = task
-            except:
+            except (json.JSONDecodeError, KeyError, IOError) as e:
+                # Silently skip corrupted task files
                 pass
         
         return tasks
@@ -85,7 +86,8 @@ class HiveStatus:
                 with open(index_file, "r") as f:
                     data = json.load(f)
                     return data.get("queue", [])
-            except:
+            except (json.JSONDecodeError, IOError) as e:
+                # Silently skip if queue file not readable
                 pass
         return []
     
@@ -102,7 +104,8 @@ class HiveStatus:
             try:
                 with open(result_files[-1], "r") as f:
                     return json.load(f)
-            except:
+            except (json.JSONDecodeError, IOError, IndexError) as e:
+                # Silently skip if result file not readable
                 pass
         
         return None
@@ -126,10 +129,12 @@ class HiveStatus:
                 for line in f:
                     try:
                         events.append(json.loads(line))
-                    except:
+                    except (json.JSONDecodeError, ValueError) as e:
+                        # Skip malformed event lines
                         pass
                 self.last_event_pos = f.tell()
-        except:
+        except (IOError, OSError) as e:
+            # Event file not accessible
             pass
         
         return events
@@ -149,7 +154,7 @@ class HiveStatus:
                 return f"{delta.seconds // 60}m"
             else:
                 return f"{delta.seconds}s"
-        except:
+        except (ValueError, TypeError, AttributeError) as e:
             return "?"
     
     def format_duration(self, ms: int) -> str:

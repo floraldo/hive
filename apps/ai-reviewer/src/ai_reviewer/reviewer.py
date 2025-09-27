@@ -8,7 +8,19 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from .inspector_bridge import InspectorBridge
-from hive_claude_bridge import ClaudeReviewerBridge, ClaudeBridgeConfig
+from hive_claude_bridge import (
+    get_claude_service,
+    ClaudeService,
+    RateLimitConfig,
+    ClaudeBridgeConfig
+)
+from hive_errors import (
+    ReviewError,
+    ReviewValidationError,
+    ErrorReporter,
+    RetryStrategy,
+    with_recovery
+)
 
 
 class ReviewDecision(Enum):
@@ -91,9 +103,17 @@ class ReviewEngine:
         Args:
             mock_mode: If True, use mock responses for testing
         """
+        # Initialize Claude service with rate limiting
         config = ClaudeBridgeConfig(mock_mode=mock_mode)
-        self.robust_claude = ClaudeReviewerBridge(config=config)
+        rate_config = RateLimitConfig(
+            max_calls_per_minute=15,  # Reviews are more intensive
+            max_calls_per_hour=300
+        )
+        self.claude_service = get_claude_service(config=config, rate_config=rate_config)
         self.inspector = InspectorBridge()
+
+        # Initialize error reporter
+        self.error_reporter = ErrorReporter(component_name="ai-reviewer")
 
         # Review thresholds
         self.thresholds = {
@@ -125,23 +145,54 @@ class ReviewEngine:
             ReviewResult with decision and metrics
         """
         # Step 1: Run objective analysis using inspect_run.py
-        objective_analysis = self.inspector.inspect_task_run(task_id)
+        try:
+            objective_analysis = self.inspector.inspect_task_run(task_id)
+        except Exception as e:
+            error = ReviewError(
+                message=f"Failed to run objective analysis for task {task_id}",
+                original_error=e
+            )
+            self.error_reporter.report_error(error)
+            objective_analysis = None
 
-        # Step 2: Use Robust Claude for comprehensive review
-        claude_result = self.robust_claude.review_code(
-            task_id=task_id,
-            task_description=task_description,
-            code_files=code_files,
-            test_results=test_results,
-            objective_analysis=objective_analysis,
-            transcript=transcript
-        )
+        # Step 2: Use Claude service for comprehensive review
+        try:
+            claude_result = self.claude_service.review_code(
+                task_id=task_id,
+                task_description=task_description,
+                code_files=code_files,
+                test_results=test_results,
+                objective_analysis=objective_analysis,
+                transcript=transcript,
+                use_cache=False  # Don't cache reviews as code changes frequently
+            )
+        except Exception as e:
+            error = ReviewError(
+                message=f"Failed to get Claude review for task {task_id}",
+                original_error=e
+            )
+            self.error_reporter.report_error(error)
+            # Create fallback result
+            claude_result = {
+                "decision": "escalate",
+                "summary": f"Review failed: {str(e)}",
+                "issues": ["Review process encountered an error"],
+                "suggestions": ["Manual review required"],
+                "confidence": 0.0,
+                "escalation_reason": f"Claude review failed: {str(e)}"
+            }
 
         # Step 3: Extract validated results
         decision_str = claude_result.get("decision", "escalate")
         try:
             decision = ReviewDecision(decision_str)
         except ValueError:
+            error = ReviewValidationError(
+                message=f"Invalid review decision: {decision_str}",
+                field="decision",
+                value=decision_str
+            )
+            self.error_reporter.report_error(error, severity="WARNING")
             decision = ReviewDecision.ESCALATE
 
         # Extract metrics from validated response

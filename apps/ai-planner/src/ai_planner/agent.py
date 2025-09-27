@@ -18,7 +18,22 @@ import signal
 import sys
 
 from hive_core_db.database import get_connection, create_task
-from hive_claude_bridge import ClaudePlannerBridge, ClaudeBridgeConfig
+from hive_claude_bridge import (
+    get_claude_service,
+    ClaudeService,
+    RateLimitConfig,
+    ClaudeBridgeConfig
+)
+from hive_errors import (
+    PlannerError,
+    DatabaseConnectionError,
+    TaskProcessingError,
+    PlanGenerationError,
+    ErrorReporter,
+    RetryStrategy,
+    ExponentialBackoffStrategy,
+    with_recovery
+)
 
 # Configure logging
 logging.basicConfig(
@@ -48,9 +63,27 @@ class AIPlanner:
         self.max_planning_time = 300  # 5 minutes max per task
         self.mock_mode = mock_mode
 
-        # Initialize Claude bridge for intelligent planning
+        # Initialize error reporter
+        self.error_reporter = ErrorReporter(component_name="ai-planner")
+
+        # Initialize recovery strategies
+        self.db_retry_strategy = ExponentialBackoffStrategy(
+            max_retries=3,
+            base_delay=1.0,
+            max_delay=10.0
+        )
+        self.claude_retry_strategy = RetryStrategy(
+            max_retries=2,
+            delay=2.0
+        )
+
+        # Initialize Claude service for intelligent planning
         config = ClaudeBridgeConfig(mock_mode=mock_mode)
-        self.claude_bridge = ClaudePlannerBridge(config=config)
+        rate_config = RateLimitConfig(
+            max_calls_per_minute=20,
+            max_calls_per_hour=500
+        )
+        self.claude_service = get_claude_service(config=config, rate_config=rate_config)
 
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -66,11 +99,24 @@ class AIPlanner:
     def connect_database(self) -> bool:
         """Establish database connection with retry logic"""
         try:
-            self.db_connection = get_connection()
+            def _connect():
+                self.db_connection = get_connection()
+                return self.db_connection
+
+            # Use recovery strategy for database connection
+            self.db_connection = with_recovery(
+                self.db_retry_strategy,
+                _connect
+            )
             logger.info("Database connection established")
             return True
         except Exception as e:
-            logger.error(f"Failed to connect to database: {e}")
+            error = DatabaseConnectionError(
+                message="Failed to establish database connection",
+                original_error=e,
+                retry_count=self.db_retry_strategy.max_retries
+            )
+            self.error_reporter.report_error(error)
             return False
 
     def get_next_task(self) -> Optional[Dict[str, Any]]:
@@ -122,7 +168,13 @@ class AIPlanner:
             }
 
         except Exception as e:
-            logger.error(f"Error fetching next task: {e}")
+            error = TaskProcessingError(
+                message=f"Error fetching next task from planning queue",
+                task_id=None,
+                phase="task_retrieval",
+                original_error=e
+            )
+            self.error_reporter.report_error(error)
             return None
 
     def analyze_task_complexity(self, task_description: str, context_data: Dict) -> str:
@@ -181,16 +233,23 @@ class AIPlanner:
         try:
             logger.info(f"Generating Claude-powered plan for task: {task['id']}")
 
-            # Use Claude bridge for intelligent planning
-            claude_response = self.claude_bridge.generate_execution_plan(
+            # Use Claude service for intelligent planning with caching
+            claude_response = self.claude_service.generate_execution_plan(
                 task_description=task['task_description'],
                 context_data=task['context_data'],
                 priority=task['priority'],
-                requestor=task['requestor']
+                requestor=task['requestor'],
+                use_cache=True  # Enable caching for similar planning requests
             )
 
             if not claude_response:
-                logger.error(f"Claude bridge returned empty response for task {task['id']}")
+                error = PlanGenerationError(
+                    message=f"Claude bridge returned empty response",
+                    task_id=task['id'],
+                    task_description=task['task_description'],
+                    original_error=None
+                )
+                self.error_reporter.report_error(error)
                 return None
 
             # Enhance the Claude response with additional metadata
@@ -213,7 +272,13 @@ class AIPlanner:
             return enhanced_plan
 
         except Exception as e:
-            logger.error(f"Error generating execution plan for task {task['id']}: {e}")
+            error = PlanGenerationError(
+                message="Failed to generate execution plan",
+                task_id=task['id'],
+                task_description=task['task_description'],
+                original_error=e
+            )
+            self.error_reporter.report_error(error)
             return None
 
     def _estimate_duration(self, complexity: str) -> int:
@@ -364,7 +429,13 @@ class AIPlanner:
                         )
                         logger.debug(f"Created sub-task: {task_id} for {sub_task['title']}")
                     except Exception as sub_task_error:
-                        logger.warning(f"Failed to create sub-task {sub_task['id']}: {sub_task_error}")
+                        error = TaskProcessingError(
+                            message=f"Failed to create sub-task",
+                            task_id=sub_task['id'],
+                            phase="sub_task_creation",
+                            original_error=sub_task_error
+                        )
+                        self.error_reporter.report_error(error, severity="WARNING")
                         # Continue with other sub-tasks rather than failing the entire operation
 
             # Commit all changes
@@ -377,9 +448,15 @@ class AIPlanner:
             if self.db_connection:
                 try:
                     self.db_connection.rollback()
-                except:
-                    pass  # Ignore rollback errors
-            logger.error(f"Error saving execution plan: {e}")
+                except Exception as rollback_error:
+                    logger.debug(f"Rollback failed: {rollback_error}")
+
+            error = DatabaseConnectionError(
+                message="Failed to save execution plan to database",
+                original_error=e,
+                retry_count=0
+            )
+            self.error_reporter.report_error(error)
             return False
 
     def update_task_status(self, task_id: str, status: str, completion_data: Optional[Dict] = None) -> bool:
@@ -418,7 +495,12 @@ class AIPlanner:
             return True
 
         except Exception as e:
-            logger.error(f"Error updating task status: {e}")
+            error = DatabaseConnectionError(
+                message=f"Failed to update task status to {status}",
+                original_error=e,
+                retry_count=0
+            )
+            self.error_reporter.report_error(error)
             return False
 
     def process_task(self, task: Dict[str, Any]) -> bool:
@@ -454,7 +536,13 @@ class AIPlanner:
             return True
 
         except Exception as e:
-            logger.error(f"Error processing task {task['id']}: {e}")
+            error = TaskProcessingError(
+                message="Unexpected error during task processing",
+                task_id=task['id'],
+                phase="processing",
+                original_error=e
+            )
+            self.error_reporter.report_error(error)
             self.update_task_status(task['id'], 'failed')
             return False
 
@@ -489,7 +577,11 @@ class AIPlanner:
                 logger.info("Received keyboard interrupt, shutting down...")
                 break
             except Exception as e:
-                logger.error(f"Unexpected error in main loop: {e}")
+                error = PlannerError(
+                    message="Unexpected error in main processing loop",
+                    original_error=e
+                )
+                self.error_reporter.report_error(error)
                 time.sleep(self.poll_interval)
 
         # Cleanup

@@ -26,3 +26,23 @@ class ClaudeResponseError(ClaudeError):
 class ClaudeValidationError(ClaudeError):
     """Raised when Claude response fails validation"""
     pass
+
+
+class ClaudeRateLimitError(ClaudeError):
+    """Raised when rate limit is exceeded"""
+    pass
+
+
+class ClaudeServiceError(ClaudeError):
+    """General Claude service error"""
+    def __init__(self, message: str, operation: str, original_error: Exception = None):
+        super().__init__(message)
+        self.operation = operation
+        self.original_error = original_error
+
+
+class ClaudeBridgeError(ClaudeError):
+    """Base exception for bridge-specific errors"""
+    def __init__(self, message: str, original_error: Exception = None):
+        super().__init__(message)
+        self.original_error = original_error

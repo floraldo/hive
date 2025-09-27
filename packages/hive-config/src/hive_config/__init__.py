@@ -27,16 +27,20 @@ from .validation import (
 )
 
 __all__ = [
+    # Loader exports
     'load_config_for_app',
     'get_required_keys',
     'AppConfig',
-    'ConfigSources',
     'find_project_root',
+    # Model exports
+    'ConfigSources',
+    # Path manager exports
     'setup_hive_paths',
     'setup_hive_paths_for_app',
     'get_hive_paths',
     'get_current_python_path_info',
     'validate_hive_imports',
+    # Validation exports
     'ValidationError',
     'run_comprehensive_validation',
     'format_validation_report',
@@ -44,10 +48,23 @@ __all__ = [
     'validate_project_structure',
     'validate_database_connectivity',
     'validate_import_system',
-    'validate_worker_requirements'
+    'validate_worker_requirements',
+    # Unified config exports
+    'HiveConfig',
+    'DatabaseConfig',
+    'ClaudeConfig',
+    'OrchestrationConfig',
+    'WorkerConfig',
+    'AIConfig',
+    'LoggingConfig',
+    'load_config',
+    'get_config',
+    'reset_config'
 ]
 
-__version__ = "1.1.0"from .unified_config import (
+__version__ = "1.1.0"
+
+from .unified_config import (
     HiveConfig,
     DatabaseConfig,
     ClaudeConfig,

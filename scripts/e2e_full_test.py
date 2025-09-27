@@ -200,20 +200,24 @@ class E2ETestRunner:
     def get_task_states(self) -> Dict[str, str]:
         """Query database for current task states"""
         states = {}
+        conn = None
         try:
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.execute("SELECT id, status FROM tasks")
             for row in cursor.fetchall():
                 states[row[0]] = row[1]
-            conn.close()
         except Exception as e:
             self.log(f"Error querying database: {e}", "ERROR")
+        finally:
+            if conn:
+                conn.close()
         return states
 
     def validate_database(self) -> bool:
         """Validate database states"""
         self.log("=== PHASE 4: Database Validation ===", "TEST")
 
+        conn = None
         try:
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
@@ -262,12 +266,14 @@ class E2ETestRunner:
                         self.test_results[name] = "FAILED"
                         self.log(f"{name}: Expected completed, got {status}", "ERROR")
 
-            conn.close()
             return all(r == "PASSED" for r in self.test_results.values())
 
         except Exception as e:
             self.log(f"Database validation error: {e}", "ERROR")
             return False
+        finally:
+            if conn:
+                conn.close()
 
     def validate_worktrees(self) -> bool:
         """Validate worktree contents"""

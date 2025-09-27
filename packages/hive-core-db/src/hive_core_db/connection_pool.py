@@ -13,9 +13,10 @@ import logging
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional, Dict, Any
-from queue import Queue, Empty
+from queue import Queue, Empty, Full
 
 from .database import DB_PATH, ensure_directory
+from hive_db_utils.config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -33,22 +34,26 @@ class ConnectionPool:
     """
 
     def __init__(self,
-                 min_connections: int = 2,
-                 max_connections: int = 10,
-                 connection_timeout: float = 5.0):
+                 min_connections: int = None,
+                 max_connections: int = None,
+                 connection_timeout: float = None):
         """
         Initialize connection pool.
 
         Args:
-            min_connections: Minimum connections to maintain
-            max_connections: Maximum connections allowed
-            connection_timeout: Timeout for acquiring connections
+            min_connections: Minimum connections to maintain (defaults to config)
+            max_connections: Maximum connections allowed (defaults to config)
+            connection_timeout: Timeout for acquiring connections (defaults to config)
         """
-        self.min_connections = min_connections
-        self.max_connections = max_connections
-        self.connection_timeout = connection_timeout
+        # Get centralized configuration
+        config = get_config()
+        db_config = config.get_database_config()
 
-        self._pool = Queue(maxsize=max_connections)
+        self.min_connections = min_connections if min_connections is not None else 2
+        self.max_connections = max_connections if max_connections is not None else db_config["max_connections"]
+        self.connection_timeout = connection_timeout if connection_timeout is not None else db_config["connection_timeout"]
+
+        self._pool = Queue(maxsize=self.max_connections)
         self._connections_created = 0
         self._lock = threading.RLock()
 
@@ -97,7 +102,8 @@ class ConnectionPool:
         try:
             conn.execute('SELECT 1')
             return True
-        except:
+        except (sqlite3.Error, sqlite3.ProgrammingError, AttributeError) as e:
+            logger.debug(f"Connection validation failed: {e}")
             return False
 
     @contextmanager
@@ -140,12 +146,13 @@ class ConnectionPool:
                     # Reset connection state
                     conn.rollback()
                     self._pool.put(conn)
-                except:
+                except (Full, sqlite3.Error) as e:
                     # Connection corrupted, close it
+                    logger.warning(f"Failed to return connection to pool: {e}")
                     try:
                         conn.close()
-                    except:
-                        pass
+                    except (sqlite3.Error, AttributeError) as close_error:
+                        logger.debug(f"Failed to close corrupted connection: {close_error}")
                     with self._lock:
                         self._connections_created -= 1
 
@@ -155,8 +162,10 @@ class ConnectionPool:
             try:
                 conn = self._pool.get_nowait()
                 conn.close()
-            except:
-                pass
+            except Empty:
+                break
+            except (sqlite3.Error, AttributeError) as e:
+                logger.debug(f"Error closing connection during pool shutdown: {e}")
 
         with self._lock:
             self._connections_created = 0

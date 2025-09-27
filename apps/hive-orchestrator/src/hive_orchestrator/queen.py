@@ -840,8 +840,8 @@ class QueenLite:
                         process.wait(timeout=5)
                     except subprocess.TimeoutExpired:
                         process.kill()
-                    except:
-                        pass
+                    except (OSError, ProcessLookupError, AttributeError) as e:
+                        logger.debug(f"Process already terminated or error during cleanup: {e}")
                     
                     # Reset task to queued for retry
                     hive_core_db.update_task_status(task_id, "queued", {
@@ -896,7 +896,8 @@ class QueenLite:
                         started = datetime.fromisoformat(task["started_at"].replace('Z', '+00:00'))
                         runtime_sec = int((datetime.now(timezone.utc) - started).total_seconds())
                         runtime_str = f"{runtime_sec//60}m {runtime_sec%60}s"
-                    except:
+                    except (ValueError, TypeError, AttributeError) as e:
+                        logger.debug(f"Could not calculate runtime for task {task_id}: {e}")
                         runtime_str = "?"
                 else:
                     runtime_str = "?"

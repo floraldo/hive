@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 # Use the authoritative path singleton
 from hive_utils.paths import DB_PATH, ensure_directory
 
-# Global connection for reuse
-_connection = None
+# Import connection pool for proper connection management
+from .connection_pool import get_connection as get_pooled_connection, initialize_pool, close_pool
 
 
 class TaskStatus(Enum):
@@ -62,59 +62,51 @@ class WorkerStatus(Enum):
     ERROR = "error"
 
 
-def get_connection() -> sqlite3.Connection:
-    """Get or create database connection."""
-    global _connection
+@contextmanager
+def get_connection():
+    """Get a database connection from the pool.
 
-    # Check if connection is None or closed
-    if _connection is None:
-        need_new_connection = True
-    else:
-        # Check if the connection is still valid
-        try:
-            _connection.execute('SELECT 1')
-            need_new_connection = False
-        except sqlite3.ProgrammingError:
-            # Connection is closed, need a new one
-            need_new_connection = True
+    This is a context manager that properly handles connection
+    checkout and checkin from the connection pool.
 
-    if need_new_connection:
-        # Ensure database directory exists using the path utility
-        ensure_directory(DB_PATH.parent)
+    Usage:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(...)
 
-        _connection = sqlite3.connect(str(DB_PATH), check_same_thread=False)
-        _connection.row_factory = sqlite3.Row
+    Yields:
+        sqlite3.Connection: A database connection from the pool
+    """
+    # Initialize pool if needed (happens once)
+    initialize_pool()
 
-        # Enable WAL mode for better concurrency
-        _connection.execute('PRAGMA journal_mode=WAL')
-        _connection.execute('PRAGMA foreign_keys=ON')
-
-        logger.info(f"Hive internal database connected: {DB_PATH}")
-
-    return _connection
+    # Use the connection pool
+    with get_pooled_connection() as conn:
+        yield conn
 
 
 def close_connection():
-    """Close database connection."""
-    global _connection
-    if _connection:
-        _connection.close()
-        _connection = None
-        logger.info("Hive internal database connection closed")
+    """Close database connection pool.
+
+    This closes all connections in the pool and shuts down
+    the pool maintenance thread.
+    """
+    close_pool()
+    logger.info("Hive internal database connection pool closed")
 
 
 @contextmanager
 def transaction():
     """Database transaction context manager."""
-    conn = get_connection()
-    try:
-        conn.execute('BEGIN')
-        yield conn
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        logger.error(f"Database transaction rolled back: {e}")
-        raise
+    with get_connection() as conn:
+        try:
+            conn.execute('BEGIN')
+            yield conn
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Database transaction rolled back: {e}")
+            raise
 
 
 def init_db() -> None:
@@ -305,18 +297,18 @@ def create_task(
 
 def get_task(task_id: str) -> Optional[Dict[str, Any]]:
     """Get task by ID."""
-    conn = get_connection()
-    cursor = conn.execute('SELECT * FROM tasks WHERE id = ?', (task_id,))
-    row = cursor.fetchone()
+    with get_connection() as conn:
+        cursor = conn.execute('SELECT * FROM tasks WHERE id = ?', (task_id,))
+        row = cursor.fetchone()
 
-    if row:
-        task = dict(row)
-        task['payload'] = json.loads(task['payload']) if task['payload'] else None
-        task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
-        task['tags'] = json.loads(task['tags']) if task['tags'] else []
-        return task
+        if row:
+            task = dict(row)
+            task['payload'] = json.loads(task['payload']) if task['payload'] else None
+            task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
+            task['tags'] = json.loads(task['tags']) if task['tags'] else []
+            return task
 
-    return None
+        return None
 
 
 def get_queued_tasks(limit: int = 10, task_type: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -330,32 +322,31 @@ def get_queued_tasks(limit: int = 10, task_type: Optional[str] = None) -> List[D
     Returns:
         List of task dictionaries
     """
-    conn = get_connection()
+    with get_connection() as conn:
+        if task_type:
+            cursor = conn.execute('''
+                SELECT * FROM tasks
+                WHERE status = 'queued' AND task_type = ?
+                ORDER BY priority DESC, created_at ASC
+                LIMIT ?
+            ''', (task_type, limit))
+        else:
+            cursor = conn.execute('''
+                SELECT * FROM tasks
+                WHERE status = 'queued'
+                ORDER BY priority DESC, created_at ASC
+                LIMIT ?
+            ''', (limit,))
 
-    if task_type:
-        cursor = conn.execute('''
-            SELECT * FROM tasks
-            WHERE status = 'queued' AND task_type = ?
-            ORDER BY priority DESC, created_at ASC
-            LIMIT ?
-        ''', (task_type, limit))
-    else:
-        cursor = conn.execute('''
-            SELECT * FROM tasks
-            WHERE status = 'queued'
-            ORDER BY priority DESC, created_at ASC
-            LIMIT ?
-        ''', (limit,))
+        tasks = []
+        for row in cursor.fetchall():
+            task = dict(row)
+            task['payload'] = json.loads(task['payload']) if task['payload'] else None
+            task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
+            task['tags'] = json.loads(task['tags']) if task['tags'] else []
+            tasks.append(task)
 
-    tasks = []
-    for row in cursor.fetchall():
-        task = dict(row)
-        task['payload'] = json.loads(task['payload']) if task['payload'] else None
-        task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
-        task['tags'] = json.loads(task['tags']) if task['tags'] else []
-        tasks.append(task)
-
-    return tasks
+        return tasks
 
 
 def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
@@ -498,43 +489,43 @@ def update_run_status(
 
 def get_run(run_id: str) -> Optional[Dict[str, Any]]:
     """Get run by ID."""
-    conn = get_connection()
-    cursor = conn.execute('SELECT * FROM runs WHERE id = ?', (run_id,))
-    row = cursor.fetchone()
+    with get_connection() as conn:
+        cursor = conn.execute('SELECT * FROM runs WHERE id = ?', (run_id,))
+        row = cursor.fetchone()
 
-    if row:
-        run = dict(row)
-        result_data = json.loads(run['result_data']) if run['result_data'] else {}
+        if row:
+            run = dict(row)
+            result_data = json.loads(run['result_data']) if run['result_data'] else {}
 
-        # Structure the return to match what Queen expects
-        # Queen looks for run_data.get("result", {}).get("status", "failed")
-        run['result'] = {
-            'status': run.get('status', 'failed'),
-            'data': result_data,
-            'error_message': run.get('error_message'),
-            'output_log': run.get('output_log')
-        }
-        return run
+            # Structure the return to match what Queen expects
+            # Queen looks for run_data.get("result", {}).get("status", "failed")
+            run['result'] = {
+                'status': run.get('status', 'failed'),
+                'data': result_data,
+                'error_message': run.get('error_message'),
+                'output_log': run.get('output_log')
+            }
+            return run
 
-    return None
+        return None
 
 
 def get_task_runs(task_id: str) -> List[Dict[str, Any]]:
     """Get all runs for a task, ordered by run number."""
-    conn = get_connection()
-    cursor = conn.execute('''
-        SELECT * FROM runs
-        WHERE task_id = ?
-        ORDER BY run_number ASC
-    ''', (task_id,))
+    with get_connection() as conn:
+        cursor = conn.execute('''
+            SELECT * FROM runs
+            WHERE task_id = ?
+            ORDER BY run_number ASC
+        ''', (task_id,))
 
-    runs = []
-    for row in cursor.fetchall():
-        run = dict(row)
-        run['result_data'] = json.loads(run['result_data']) if run['result_data'] else None
-        runs.append(run)
+        runs = []
+        for row in cursor.fetchall():
+            run = dict(row)
+            run['result_data'] = json.loads(run['result_data']) if run['result_data'] else None
+            runs.append(run)
 
-    return runs
+        return runs
 
 
 def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
@@ -547,22 +538,22 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
     Returns:
         List of task dictionaries with the specified status
     """
-    conn = get_connection()
-    cursor = conn.execute('''
-        SELECT * FROM tasks
-        WHERE status = ?
-        ORDER BY created_at ASC
-    ''', (status,))
+    with get_connection() as conn:
+        cursor = conn.execute('''
+            SELECT * FROM tasks
+            WHERE status = ?
+            ORDER BY created_at ASC
+        ''', (status,))
 
-    tasks = []
-    for row in cursor.fetchall():
-        task = dict(row)
-        task['payload'] = json.loads(task['payload']) if task['payload'] else {}
-        task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
-        task['tags'] = json.loads(task['tags']) if task['tags'] else []
-        tasks.append(task)
+        tasks = []
+        for row in cursor.fetchall():
+            task = dict(row)
+            task['payload'] = json.loads(task['payload']) if task['payload'] else {}
+            task['workflow'] = json.loads(task['workflow']) if task['workflow'] else None
+            task['tags'] = json.loads(task['tags']) if task['tags'] else []
+            tasks.append(task)
 
-    return tasks
+        return tasks
 
 
 # Worker Management Functions
@@ -610,29 +601,28 @@ def update_worker_heartbeat(worker_id: str, status: Optional[str] = None) -> boo
 
 def get_active_workers(role: Optional[str] = None) -> List[Dict[str, Any]]:
     """Get active workers, optionally filtered by role."""
-    conn = get_connection()
+    with get_connection() as conn:
+        if role:
+            cursor = conn.execute('''
+                SELECT * FROM workers
+                WHERE role = ? AND status = 'active'
+                ORDER BY last_heartbeat DESC
+            ''', (role,))
+        else:
+            cursor = conn.execute('''
+                SELECT * FROM workers
+                WHERE status = 'active'
+                ORDER BY last_heartbeat DESC
+            ''')
 
-    if role:
-        cursor = conn.execute('''
-            SELECT * FROM workers
-            WHERE role = ? AND status = 'active'
-            ORDER BY last_heartbeat DESC
-        ''', (role,))
-    else:
-        cursor = conn.execute('''
-            SELECT * FROM workers
-            WHERE status = 'active'
-            ORDER BY last_heartbeat DESC
-        ''')
+        workers = []
+        for row in cursor.fetchall():
+            worker = dict(row)
+            worker['capabilities'] = json.loads(worker['capabilities']) if worker['capabilities'] else []
+            worker['metadata'] = json.loads(worker['metadata']) if worker['metadata'] else {}
+            workers.append(worker)
 
-    workers = []
-    for row in cursor.fetchall():
-        worker = dict(row)
-        worker['capabilities'] = json.loads(worker['capabilities']) if worker['capabilities'] else []
-        worker['metadata'] = json.loads(worker['metadata']) if worker['metadata'] else {}
-        workers.append(worker)
-
-    return workers
+        return workers
 
 
 def log_run_result(

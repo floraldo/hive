@@ -13,12 +13,23 @@ from .exceptions import (
     ClaudeNotFoundError,
     ClaudeTimeoutError,
     ClaudeResponseError,
-    ClaudeValidationError
+    ClaudeValidationError,
+    ClaudeRateLimitError,
+    ClaudeServiceError,
+    ClaudeBridgeError
+)
+from .claude_service import (
+    ClaudeService,
+    ClaudeMetrics,
+    RateLimitConfig,
+    get_claude_service,
+    reset_claude_service
 )
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 __all__ = [
+    # Bridge classes
     "BaseClaludeBridge",
     "ClaudeBridgeConfig",
     "JsonExtractor",
@@ -28,9 +39,19 @@ __all__ = [
     "ClaudePlanningResponse",
     "ClaudeReviewerBridge",
     "ClaudeReviewResponse",
+    # Service
+    "ClaudeService",
+    "ClaudeMetrics",
+    "RateLimitConfig",
+    "get_claude_service",
+    "reset_claude_service",
+    # Exceptions
     "ClaudeError",
     "ClaudeNotFoundError",
     "ClaudeTimeoutError",
     "ClaudeResponseError",
-    "ClaudeValidationError"
+    "ClaudeValidationError",
+    "ClaudeRateLimitError",
+    "ClaudeServiceError",
+    "ClaudeBridgeError"
 ]

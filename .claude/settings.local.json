@@ -39,7 +39,8 @@
       "Bash(taskkill:*)",
       "Bash(apps/ai-reviewer/start_reviewer.sh status:*)",
       "Bash(poetry run:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git -C /c/git/hive ls-files)"
     ],
     "deny": [],
     "ask": []

@@ -314,6 +314,11 @@ def results():
     """Results management commands"""
     pass
 
+@cli.group()
+def report():
+    """Report generation and server commands"""
+    pass
+
 @results.command()
 @click.argument('results_file', type=click.Path(exists=True))
 @click.option('--format', '-f', type=click.Choice(['summary', 'detailed', 'kpi']),
@@ -373,6 +378,224 @@ def show(results_file, format):
     except Exception as e:
         click.echo(f"Error displaying results: {e}", err=True)
         sys.exit(1)
+
+@report.command()
+@click.argument('results_file', type=click.Path(exists=True))
+@click.option('--output', '-o', type=click.Path(),
+              help='Output directory for report files')
+@click.option('--strategies', '-s', multiple=True,
+              help='Analysis strategies to run (default: all)')
+@click.option('--format', 'output_format', type=click.Choice(['json', 'html']),
+              default='json', help='Output format')
+def analyze(results_file, output, strategies, output_format):
+    """Analyze simulation results and generate report data."""
+    from EcoSystemiser.analyser import AnalyserService
+
+    try:
+        # Initialize analyser
+        analyser = AnalyserService()
+
+        # Run analysis
+        strategies_list = list(strategies) if strategies else None
+        analysis_results = analyser.analyse(results_file, strategies_list)
+
+        # Determine output path
+        if output:
+            output_dir = Path(output)
+        else:
+            output_dir = Path(results_file).parent / 'analysis_output'
+
+        output_dir.mkdir(exist_ok=True)
+
+        if output_format == 'json':
+            # Save JSON results
+            output_file = output_dir / 'analysis_results.json'
+            analyser.save_analysis(analysis_results, str(output_file))
+            click.echo(f"Analysis saved to: {output_file}")
+        else:
+            click.echo("HTML format requires Flask server. Use 'report server' command.")
+
+        # Print summary
+        summary = analysis_results.get('summary', {})
+        click.echo(f"\nAnalysis Summary:")
+        click.echo(f"  Successful analyses: {summary.get('successful_analyses', 0)}")
+        click.echo(f"  Failed analyses: {summary.get('failed_analyses', 0)}")
+
+    except Exception as e:
+        logger.error(f"Analysis failed: {e}")
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+@report.command()
+@click.option('--host', default='127.0.0.1', help='Host to bind to')
+@click.option('--port', default=5000, help='Port to bind to')
+@click.option('--debug', is_flag=True, help='Enable debug mode')
+def server(host, port, debug):
+    """Start the reporting web server."""
+    from EcoSystemiser.reporting import run_server
+
+    click.echo(f"Starting EcoSystemiser Reporting Server...")
+    click.echo(f"Server will be available at: http://{host}:{port}")
+    click.echo(f"Upload your simulation results to generate reports.")
+    click.echo(f"Press Ctrl+C to stop the server.")
+
+    try:
+        run_server(host=host, port=port, debug=debug)
+    except KeyboardInterrupt:
+        click.echo("\nShutting down server...")
+    except Exception as e:
+        logger.error(f"Server error: {e}")
+        click.echo(f"Server error: {e}", err=True)
+        sys.exit(1)
+
+@report.command()
+@click.argument('results_file', type=click.Path(exists=True))
+@click.option('--output', '-o', type=click.Path(), default='report.html',
+              help='Output HTML file path')
+def generate(results_file, output):
+    """Generate a standalone HTML report."""
+    from EcoSystemiser.analyser import AnalyserService
+    from EcoSystemiser.datavis.plot_factory import PlotFactory
+
+    try:
+        # Run analysis
+        analyser = AnalyserService()
+        analysis_results = analyser.analyse(results_file)
+
+        # Load raw results
+        with open(results_file, 'r') as f:
+            raw_results = json.load(f)
+
+        # Generate plots
+        plot_factory = PlotFactory()
+        plots = {}
+        analyses = analysis_results.get('analyses', {})
+
+        # Generate relevant plots
+        if 'technical_kpi' in analyses:
+            plots['kpi_gauges'] = plot_factory.create_technical_kpi_gauges(analyses['technical_kpi'])
+
+        if 'economic' in analyses:
+            plots['economic_summary'] = plot_factory.create_economic_summary_plot(analyses['economic'])
+
+        # Create basic HTML report
+        html_content = _create_standalone_html_report(analysis_results, plots)
+
+        # Save report
+        output_path = Path(output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(output_path, 'w') as f:
+            f.write(html_content)
+
+        click.echo(f"HTML report generated: {output_path}")
+
+        # Print summary
+        summary = analysis_results.get('summary', {})
+        click.echo(f"Report includes {summary.get('successful_analyses', 0)} successful analyses")
+
+    except Exception as e:
+        logger.error(f"Report generation failed: {e}")
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+def _create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
+    """Create a basic standalone HTML report."""
+    summary = analysis_results.get('summary', {})
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>EcoSystemiser Analysis Report</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 40px; }}
+            .metric {{ display: inline-block; margin: 20px; text-align: center; }}
+            .metric-value {{ font-size: 2em; font-weight: bold; color: #2E7D32; }}
+            .metric-label {{ color: #666; }}
+            .plot {{ margin: 30px 0; }}
+            table {{ border-collapse: collapse; width: 100%; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+            th {{ background-color: #f2f2f2; }}
+        </style>
+    </head>
+    <body>
+        <h1>EcoSystemiser Analysis Report</h1>
+
+        <h2>Summary</h2>
+        <div class="metric">
+            <div class="metric-value">{summary.get('successful_analyses', 0)}</div>
+            <div class="metric-label">Successful Analyses</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{summary.get('failed_analyses', 0)}</div>
+            <div class="metric-label">Failed Analyses</div>
+        </div>
+    """
+
+    # Add key metrics if available
+    key_metrics = summary.get('key_metrics', {})
+    if key_metrics:
+        if 'grid_self_sufficiency' in key_metrics:
+            html += f"""
+        <div class="metric">
+            <div class="metric-value">{key_metrics['grid_self_sufficiency']:.1%}</div>
+            <div class="metric-label">Grid Self-Sufficiency</div>
+        </div>
+            """
+        if 'renewable_fraction' in key_metrics:
+            html += f"""
+        <div class="metric">
+            <div class="metric-value">{key_metrics['renewable_fraction']:.1%}</div>
+            <div class="metric-label">Renewable Fraction</div>
+        </div>
+            """
+
+    # Add plots
+    html += '<h2>Visualizations</h2>'
+    for plot_name in plots.keys():
+        html += f'<div id="{plot_name}" class="plot"></div>'
+
+    # Add analysis results in tables
+    analyses = analysis_results.get('analyses', {})
+    if analyses:
+        html += '<h2>Detailed Results</h2>'
+
+        for analysis_name, analysis_data in analyses.items():
+            if 'error' not in analysis_data:
+                html += f'<h3>{analysis_name.replace("_", " ").title()}</h3>'
+                html += '<table>'
+
+                for key, value in analysis_data.items():
+                    if key not in ['analysis_type', 'analysis_version']:
+                        if isinstance(value, (int, float)):
+                            if 0 <= value <= 1:
+                                formatted_value = f"{value:.1%}"
+                            else:
+                                formatted_value = f"{value:.2f}"
+                        else:
+                            formatted_value = str(value)[:100]  # Truncate long values
+
+                        html += f'<tr><td>{key.replace("_", " ").title()}</td><td>{formatted_value}</td></tr>'
+
+                html += '</table>'
+
+    # Add script to render plots
+    html += f"""
+        <script>
+        const plots = {json.dumps(plots)};
+        Object.keys(plots).forEach(key => {{
+            if (plots[key] && document.getElementById(key)) {{
+                Plotly.newPlot(key, plots[key], {{}}, {{responsive: true}});
+            }}
+        }});
+        </script>
+    </body>
+    </html>
+    """
+
+    return html
 
 if __name__ == '__main__':
     cli()

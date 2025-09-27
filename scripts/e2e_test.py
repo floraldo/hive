@@ -58,12 +58,12 @@ def verify_pre_execution():
     """Pre-Execution Verification: Confirm task is queued"""
     print("[VERIFY-PRE] Checking initial task status...")
 
+    conn = None
     try:
         conn = sqlite3.connect(str(DB_PATH))
         # Get the first available task for testing
         cursor = conn.execute("SELECT id, status FROM tasks ORDER BY created_at LIMIT 1")
         row = cursor.fetchone()
-        conn.close()
 
         if not row:
             print("[ERROR] No test tasks found in database")
@@ -79,6 +79,9 @@ def verify_pre_execution():
     except Exception as e:
         print(f"[ERROR] Database verification failed: {e}")
         sys.exit(1)
+    finally:
+        if conn:
+            conn.close()
 
 def execute_queen():
     """Execution Phase: Run Queen orchestration for limited time"""
@@ -109,31 +112,33 @@ def verify_post_execution():
     """Post-Execution Verification: Confirm task completion and results"""
     print("[VERIFY-POST] Checking final task status and results...")
 
-    conn = sqlite3.connect(str(DB_PATH))
+    conn = None
+    try:
+        conn = sqlite3.connect(str(DB_PATH))
 
-    # Check task status using the test task ID
-    cursor = conn.execute("SELECT status FROM tasks WHERE id = ?", (test_task_id,))
-    task_row = cursor.fetchone()
+        # Check task status using the test task ID
+        cursor = conn.execute("SELECT status FROM tasks WHERE id = ?", (test_task_id,))
+        task_row = cursor.fetchone()
 
-    if not task_row:
-        print(f"[ERROR] Test task {test_task_id[:8]}... not found after execution")
-        conn.close()
-        sys.exit(1)
+        if not task_row:
+            print(f"[ERROR] Test task {test_task_id[:8]}... not found after execution")
+            sys.exit(1)
 
-    task_status = task_row[0]
-    print(f"[VERIFY-POST] Task status: {task_status}")
+        task_status = task_row[0]
+        print(f"[VERIFY-POST] Task status: {task_status}")
 
-    # Check run records
-    cursor = conn.execute("""
-        SELECT status, result_data
-        FROM runs
-        WHERE task_id = ?
-        ORDER BY run_number DESC
-        LIMIT 1
-    """, (test_task_id,))
-    run_row = cursor.fetchone()
-
-    conn.close()
+        # Check run records
+        cursor = conn.execute("""
+            SELECT status, result_data
+            FROM runs
+            WHERE task_id = ?
+            ORDER BY run_number DESC
+            LIMIT 1
+        """, (test_task_id,))
+        run_row = cursor.fetchone()
+    finally:
+        if conn:
+            conn.close()
 
     run_status = None
     result_data = None

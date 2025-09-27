@@ -133,16 +133,19 @@ class CertificationTestConductor:
 
     def query_task_state(self, task_id: int) -> Optional[str]:
         """Query the database for task state."""
+        conn = None
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             cursor.execute("SELECT state FROM tasks WHERE id = ?", (task_id,))
             result = cursor.fetchone()
-            conn.close()
             return result[0] if result else None
         except Exception as e:
             self.log(f"Database query error: {e}", "ERROR")
             return None
+        finally:
+            if conn:
+                conn.close()
 
     def wait_for_state(self, task_id: int, target_state: str, timeout: int = 120) -> bool:
         """Wait for a task to reach a target state."""
@@ -279,17 +282,20 @@ class CertificationTestConductor:
 
         # Database state
         self.log("\nFinal Database State:", "REPORT")
+        conn = None
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             cursor.execute("SELECT id, title, state, application FROM tasks ORDER BY id")
             tasks = cursor.fetchall()
-            conn.close()
 
             for task in tasks:
                 self.log(f"  Task {task[0]} ({task[1]}): {task[2]} [{task[3]}]", "REPORT")
         except Exception as e:
             self.log(f"  Error querying database: {e}", "ERROR")
+        finally:
+            if conn:
+                conn.close()
 
         return all_passed
 
