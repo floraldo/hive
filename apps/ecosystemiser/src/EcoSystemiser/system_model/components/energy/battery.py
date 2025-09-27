@@ -182,11 +182,19 @@ class BatteryOptimization(BaseStorageOptimization):
             if comp.P_dis is not None:
                 constraints.append(comp.P_dis <= comp.P_max)
 
-            # Energy balance constraints - EXACTLY as original Systemiser
+            # Energy balance constraints
             for t in range(N):
+                # SIMPLE physics: basic charge/discharge with efficiency
+                energy_change = comp.eta * comp.P_cha[t] - comp.P_dis[t] / comp.eta
+
+                # STANDARD enhancement: add self-discharge if configured
+                if comp.technical.fidelity_level >= FidelityLevel.STANDARD:
+                    self_discharge_rate = getattr(comp.technical, 'self_discharge_rate', 0.0001)
+                    # Self-discharge based on energy at start of timestep
+                    energy_change -= comp.E_opt[t] * self_discharge_rate
+
                 constraints.append(
-                    comp.E_opt[t + 1] == comp.E_opt[t] +
-                    comp.eta * comp.P_cha[t] - comp.P_dis[t] / comp.eta
+                    comp.E_opt[t + 1] == comp.E_opt[t] + energy_change
                 )
 
         return constraints

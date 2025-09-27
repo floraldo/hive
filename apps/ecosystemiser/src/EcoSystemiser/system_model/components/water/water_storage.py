@@ -194,11 +194,15 @@ class WaterStorageOptimization(BaseStorageOptimization):
 
                 # --- STANDARD ENHANCEMENTS ---
                 if fidelity >= FidelityLevel.STANDARD:
-                    # Temperature-dependent losses would be added here
+                    # Temperature-dependent losses
                     temperature_effects = getattr(comp.technical, 'temperature_effects', None)
                     if temperature_effects:
-                        # For now, keep simple loss rate for MILP compatibility
-                        pass
+                        # Apply temperature enhancement to evaporation
+                        evap_factor = temperature_effects.get('evaporation_factor', 0.05)
+                        # Simplified: assume 5°C above reference for demo
+                        temp_deviation = 5
+                        additional_loss_multiplier = 1 + evap_factor * temp_deviation / 10
+                        hourly_loss_rate = hourly_loss_rate * additional_loss_multiplier
 
                 # Water balance equation
                 constraints.append(
