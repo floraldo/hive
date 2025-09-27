@@ -143,11 +143,14 @@ class BatteryPhysicsStandard(BatteryPhysicsSimple):
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
 
-class BatteryOptimization(BaseStorageOptimization):
-    """Handles the MILP (CVXPY) constraints for the battery.
+class BatteryOptimizationSimple(BaseStorageOptimization):
+    """Implements the SIMPLE MILP optimization constraints for battery.
 
-    Encapsulates all optimization logic separately from physics and data.
-    This enables clean separation and easy testing of optimization constraints.
+    This is the baseline optimization strategy providing:
+    - Basic energy balance with roundtrip efficiency
+    - Power limits for charge/discharge
+    - Energy capacity bounds
+    - No losses or degradation
     """
 
     def __init__(self, params, component_instance):
@@ -157,10 +160,9 @@ class BatteryOptimization(BaseStorageOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create CVXPY constraints for battery optimization.
+        Create SIMPLE CVXPY constraints for battery optimization.
 
-        This method encapsulates all the MILP constraint logic that was
-        previously embedded in the Battery class.
+        Returns constraints for basic battery operation without losses.
         """
         constraints = []
         comp = self.component
@@ -182,16 +184,62 @@ class BatteryOptimization(BaseStorageOptimization):
             if comp.P_dis is not None:
                 constraints.append(comp.P_dis <= comp.P_max)
 
-            # Energy balance constraints
+            # Energy balance constraints - SIMPLE physics only
             for t in range(N):
-                # SIMPLE physics: basic charge/discharge with efficiency
+                # Basic charge/discharge with efficiency
                 energy_change = comp.eta * comp.P_cha[t] - comp.P_dis[t] / comp.eta
 
-                # STANDARD enhancement: add self-discharge if configured
-                if comp.technical.fidelity_level >= FidelityLevel.STANDARD:
-                    self_discharge_rate = getattr(comp.technical, 'self_discharge_rate', 0.0001)
-                    # Self-discharge based on energy at start of timestep
-                    energy_change -= comp.E_opt[t] * self_discharge_rate
+                constraints.append(
+                    comp.E_opt[t + 1] == comp.E_opt[t] + energy_change
+                )
+
+        return constraints
+
+
+class BatteryOptimizationStandard(BatteryOptimizationSimple):
+    """Implements the STANDARD MILP optimization constraints for battery.
+
+    Inherits from SIMPLE and adds:
+    - Self-discharge losses in energy balance
+    - More realistic battery modeling
+    """
+
+    def set_constraints(self) -> list:
+        """
+        Create STANDARD CVXPY constraints for battery optimization.
+
+        First gets SIMPLE constraints, then modifies energy balance
+        to include self-discharge losses.
+        """
+        constraints = []
+        comp = self.component
+
+        # Get optimization variables from component
+        N = comp.E_opt.shape[0] - 1 if comp.E_opt is not None else 0
+
+        if comp.E_opt is not None:
+            # Initial state constraint
+            constraints.append(comp.E_opt[0] == comp.E_init)
+
+            # Energy bounds constraints
+            constraints.append(comp.E_opt >= 0)
+            constraints.append(comp.E_opt <= comp.E_max)
+
+            # Power limits constraints
+            if comp.P_cha is not None:
+                constraints.append(comp.P_cha <= comp.P_max)
+            if comp.P_dis is not None:
+                constraints.append(comp.P_dis <= comp.P_max)
+
+            # Energy balance constraints with STANDARD enhancements
+            for t in range(N):
+                # Basic charge/discharge with efficiency
+                energy_change = comp.eta * comp.P_cha[t] - comp.P_dis[t] / comp.eta
+
+                # STANDARD enhancement: add self-discharge
+                self_discharge_rate = getattr(comp.technical, 'self_discharge_rate', 0.0001)
+                # Self-discharge based on energy at start of timestep
+                energy_change -= comp.E_opt[t] * self_discharge_rate
 
                 constraints.append(
                     comp.E_opt[t + 1] == comp.E_opt[t] + energy_change
@@ -263,10 +311,21 @@ class Battery(Component):
             raise ValueError(f"Unknown fidelity level for Battery: {fidelity}")
 
     def _get_optimization_strategy(self):
-        """Factory method: Select optimization strategy."""
-        # For now, all fidelity levels use the same optimization strategy
-        # Future: Could have different optimization strategies per fidelity
-        return BatteryOptimization(self.params, self)
+        """Factory method: Select optimization strategy based on fidelity level."""
+        fidelity = self.technical.fidelity_level
+
+        if fidelity == FidelityLevel.SIMPLE:
+            return BatteryOptimizationSimple(self.params, self)
+        elif fidelity == FidelityLevel.STANDARD:
+            return BatteryOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.DETAILED:
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            return BatteryOptimizationStandard(self.params, self)
+        elif fidelity == FidelityLevel.RESEARCH:
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            return BatteryOptimizationStandard(self.params, self)
+        else:
+            raise ValueError(f"Unknown fidelity level for Battery optimization: {fidelity}")
 
     def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float):
         """
