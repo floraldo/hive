@@ -13,15 +13,12 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.components.shared.archetypes import FidelityLevel
 from system_model.components.energy.battery import (
     Battery, BatteryParams,
     BatteryPhysicsSimple, BatteryPhysicsStandard,
     BatteryOptimizationSimple, BatteryOptimizationStandard
 )
-
 
 def test_battery_complete_strategy():
     """Test that Battery has complete strategy pattern implementation."""
@@ -128,7 +125,6 @@ def test_battery_complete_strategy():
     logger.info("="*70)
 
     return True
-
 
 if __name__ == "__main__":
     success = test_battery_complete_strategy()

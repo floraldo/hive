@@ -15,8 +15,6 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.system import System
 from system_model.components.energy.battery import Battery, BatteryParams
 from system_model.components.energy.solar_pv import SolarPV, SolarPVParams
@@ -28,7 +26,6 @@ from system_model.components.energy.heat_demand import HeatDemand, HeatDemandPar
 from system_model.components.shared.archetypes import FidelityLevel
 from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
-
 
 def create_milp_test_system(fidelity_level: FidelityLevel):
     """Create an energy system with specified fidelity level."""
@@ -155,7 +152,6 @@ def create_milp_test_system(fidelity_level: FidelityLevel):
 
     return system
 
-
 def test_milp_fidelity_comparison():
     """Test MILP optimization with SIMPLE vs STANDARD fidelity."""
     logger.info("="*60)
@@ -244,7 +240,6 @@ def test_milp_fidelity_comparison():
     logger.info("\n✅ SUCCESS: STANDARD fidelity produces different (more realistic) optimization!")
     return True
 
-
 def main():
     """Main test runner for MILP fidelity validation."""
     logger.info("🚀 PHASE 2B: MILP STANDARD CONSTRAINT ENHANCEMENTS")
@@ -272,7 +267,6 @@ def main():
         logger.error("\n❌ MILP fidelity test failed - optimization may not be accounting for losses")
 
     return success
-
 
 if __name__ == "__main__":
     import sys

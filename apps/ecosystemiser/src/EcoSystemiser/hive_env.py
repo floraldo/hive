@@ -6,7 +6,7 @@ through Hive's centralized configuration management.
 """
 
 from typing import Dict, Optional, List
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 import os
 
 try:
@@ -15,8 +15,7 @@ try:
 except ImportError:
     HIVE_CONFIG_AVAILABLE = False
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 def get_app_config():
     """
@@ -36,7 +35,6 @@ def get_app_config():
     # Fallback to direct environment access
     logger.info("Using fallback environment configuration")
     return dict(os.environ)
-
 
 def get_required_api_keys() -> Dict[str, str]:
     """
@@ -87,7 +85,6 @@ def get_required_api_keys() -> Dict[str, str]:
 
     return result
 
-
 def get_app_settings() -> Dict[str, str]:
     """
     Get app-specific settings (non-sensitive configuration).
@@ -133,7 +130,6 @@ def get_app_settings() -> Dict[str, str]:
         'EPW_ENABLED': config.get('EPW_ENABLED', 'true'),
     }
 
-
 def is_hive_environment() -> bool:
     """
     Check if we're running within the Hive environment.
@@ -142,7 +138,6 @@ def is_hive_environment() -> bool:
         True if running in Hive with config service, False if standalone
     """
     return HIVE_CONFIG_AVAILABLE
-
 
 # Export main functions
 __all__ = [

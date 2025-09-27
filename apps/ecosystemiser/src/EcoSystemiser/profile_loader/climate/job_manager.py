@@ -6,12 +6,11 @@ multiple worker processes, replacing the broken in-memory dictionaries.
 """
 
 import json
-import os
 import uuid
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
+from EcoSystemiser.hive_env import get_app_settings
 try:
     import redis
     from redis import Redis
@@ -20,8 +19,7 @@ except ImportError:
     REDIS_AVAILABLE = False
     Redis = None
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class JobStatus:
     """Job status constants."""
@@ -30,7 +28,6 @@ class JobStatus:
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
-
 
 class JobManager:
     """
@@ -56,8 +53,9 @@ class JobManager:
             self._memory_store = {}  # Fallback for development only
             return
         
-        # Get Redis URL from environment or use default
-        redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        # Get Redis URL from centralized configuration
+        settings = get_app_settings()
+        redis_url = redis_url or settings.get("REDIS_URL", "redis://localhost:6379/0")
         
         try:
             self.redis = Redis.from_url(redis_url, decode_responses=True)
@@ -300,10 +298,8 @@ class JobManager:
         
         return deleted_count
 
-
 # Singleton instance for dependency injection
 _job_manager_instance = None
-
 
 def get_job_manager() -> JobManager:
     """

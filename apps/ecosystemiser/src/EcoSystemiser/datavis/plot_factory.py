@@ -6,9 +6,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import json
-import logging
-
-logger = logging.getLogger(__name__)
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 class PlotFactory:
     """Factory for creating various plot types from simulation data."""

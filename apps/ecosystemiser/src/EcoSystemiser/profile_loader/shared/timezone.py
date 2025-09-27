@@ -8,8 +8,7 @@ fixes DST edge cases, and provides standardized UTC conversion.
 import sys
 from datetime import datetime, timezone
 from typing import Optional, Union, List
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 import pandas as pd
 import numpy as np
 import xarray as xr
@@ -26,8 +25,7 @@ else:
             "Install with: pip install backports.zoneinfo"
         )
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class TimezoneHandler:
     """
@@ -420,7 +418,6 @@ class TimezoneHandler:
         
         return issues
 
-
 # Convenience functions
 
 def to_utc(
@@ -439,7 +436,6 @@ def to_utc(
     """
     return TimezoneHandler.normalize_to_utc(timestamp, source_tz)
 
-
 def from_utc(
     timestamp: Union[datetime, pd.Timestamp, pd.DatetimeIndex],
     target_tz: str
@@ -456,7 +452,6 @@ def from_utc(
     """
     return TimezoneHandler.localize_from_utc(timestamp, target_tz)
 
-
 def ensure_utc(ds: xr.Dataset) -> xr.Dataset:
     """
     Ensure dataset uses UTC timestamps.
@@ -468,7 +463,6 @@ def ensure_utc(ds: xr.Dataset) -> xr.Dataset:
         Dataset with UTC timestamps
     """
     return TimezoneHandler.ensure_utc_dataset(ds)
-
 
 def get_timezone_for_location(lat: float, lon: float) -> str:
     """

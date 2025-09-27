@@ -10,8 +10,6 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.system import System
 from system_model.components.energy.battery import Battery, BatteryParams
 from system_model.components.energy.grid import Grid, GridParams
@@ -24,7 +22,6 @@ from system_model.components.energy.heat_demand import HeatDemand, HeatDemandPar
 from system_model.components.shared.archetypes import FidelityLevel
 from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
-
 
 def create_thermal_system():
     """Create system with both electrical and thermal components."""
@@ -162,7 +159,6 @@ def create_thermal_system():
 
     return system
 
-
 def test_thermal_system_milp():
     """Test MILP optimization with thermal components."""
     logger.info("="*60)
@@ -255,12 +251,10 @@ def test_thermal_system_milp():
 
     return result.status == 'optimal'
 
-
 def main():
     """Main test runner."""
     success = test_thermal_system_milp()
     return 0 if success else 1
-
 
 if __name__ == "__main__":
     import sys

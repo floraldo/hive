@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import StorageTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseStoragePhysics, BaseStorageOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # HEAT BUFFER-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -53,7 +51,6 @@ class HeatBufferTechnicalParams(StorageTechnicalParams):
         description="Detailed thermal dynamics model"
     )
 
-
 class HeatBufferParams(ComponentParams):
     """Heat buffer parameters using the hierarchical technical parameter system.
 
@@ -70,7 +67,6 @@ class HeatBufferParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -110,7 +106,6 @@ class HeatBufferPhysicsSimple(BaseStoragePhysics):
         # Enforce physical bounds
         return self.apply_bounds(next_state)
 
-
 class HeatBufferPhysicsStandard(HeatBufferPhysicsSimple):
     """Implements the STANDARD rule-based physics for a heat buffer.
 
@@ -138,7 +133,6 @@ class HeatBufferPhysicsStandard(HeatBufferPhysicsSimple):
 
         # 4. Enforce bounds again after thermal losses
         return self.apply_bounds(final_energy)
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -194,7 +188,6 @@ class HeatBufferOptimizationSimple(BaseStorageOptimization):
 
         return constraints
 
-
 class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for heat buffer.
 
@@ -242,7 +235,6 @@ class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
                 constraints.append(comp.E_opt[t] == energy_balance)
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

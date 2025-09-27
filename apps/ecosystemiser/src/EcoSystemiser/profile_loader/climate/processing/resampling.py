@@ -4,12 +4,11 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 from typing import Dict, Literal
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..data_models import CANONICAL_VARIABLES
 from EcoSystemiser.profile_loader.shared.timeseries import zero_night_irradiance
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 def get_aggregation_policy(var_type: Literal["state", "flux"]) -> str:
     """
@@ -102,7 +101,6 @@ def resample_dataset(
         ds_resampled = zero_night_irradiance(ds_resampled, 'dhi')
     
     return ds_resampled
-
 
 def upsample_dataset(ds: xr.Dataset, target_resolution: str) -> xr.Dataset:
     """

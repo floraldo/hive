@@ -6,16 +6,12 @@ centralized logging infrastructure while maintaining backward compatibility.
 """
 
 import sys
+import logging
 from pathlib import Path
 from typing import Optional
 
 # Try to import from Hive's centralized logging
 try:
-    # Add Hive to path if not already there
-    hive_path = Path(__file__).parents[4]  # Go up to hive root
-    if str(hive_path) not in sys.path:
-        sys.path.insert(0, str(hive_path))
-
     from packages.hive_logging.src.hive_logging import get_logger, setup_logging
     USING_HIVE_LOGGING = True
 
@@ -26,8 +22,6 @@ except ImportError:
         USING_HIVE_LOGGING = False
     except ImportError:
         # Last resort: basic Python logging
-        import logging
-
         def get_logger(name: str) -> logging.Logger:
             """Get a basic logger"""
             return logging.getLogger(name)
@@ -46,7 +40,6 @@ except ImportError:
             )
 
         USING_HIVE_LOGGING = False
-
 
 def initialize_ecosystemiser_logging(
     app_name: str = "ecosystemiser",
@@ -79,7 +72,6 @@ def initialize_ecosystemiser_logging(
         setup_logging(level, 'console' if not json_format else 'json')
         logger = get_logger(__name__)
         logger.info(f"EcoSystemiser logging initialized using local logging")
-
 
 # Export the main functions
 __all__ = ['get_logger', 'setup_logging', 'initialize_ecosystemiser_logging', 'USING_HIVE_LOGGING']

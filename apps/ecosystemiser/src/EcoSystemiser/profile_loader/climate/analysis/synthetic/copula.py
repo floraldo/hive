@@ -6,11 +6,11 @@ import pandas as pd
 from typing import Optional, Literal, Dict, Tuple, List
 from scipy import stats
 from scipy.stats import norm
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from dataclasses import dataclass
 from enum import Enum
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class CopulaType(Enum):
     """Supported copula types"""
@@ -387,7 +387,6 @@ class CopulaSyntheticGenerator:
         })
         
         return synthetic_ds
-
 
 def copula_synthetic_generation(
     ds_hist: xr.Dataset,

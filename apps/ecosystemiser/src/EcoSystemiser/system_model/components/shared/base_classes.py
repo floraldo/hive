@@ -1,10 +1,6 @@
 """Strategy Pattern base classes for component physics and optimization."""
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 # =============================================================================
 # STRATEGY PATTERN BASE CLASSES
@@ -48,7 +44,6 @@ class BaseStoragePhysics:
         E_max = self.params.technical.capacity_nominal
         return max(0.0, min(energy_level, E_max))
 
-
 class BaseStorageOptimization:
     """Abstract base class for storage optimization strategies.
 
@@ -71,7 +66,6 @@ class BaseStorageOptimization:
             list: CVXPY constraint objects
         """
         raise NotImplementedError("Subclasses must implement set_constraints")
-
 
 class BaseGenerationPhysics:
     """Abstract base class for generation physics strategies.
@@ -104,7 +98,6 @@ class BaseGenerationPhysics:
         """
         raise NotImplementedError("Subclasses must implement rule_based_generate")
 
-
 class BaseGenerationOptimization:
     """Abstract base class for generation optimization strategies.
 
@@ -127,7 +120,6 @@ class BaseGenerationOptimization:
             list: CVXPY constraint objects
         """
         raise NotImplementedError("Subclasses must implement set_constraints")
-
 
 class BaseConversionPhysics:
     """Abstract base class for conversion physics strategies.
@@ -176,7 +168,6 @@ class BaseConversionPhysics:
         """
         raise NotImplementedError("Subclasses must implement rule_based_conversion_dispatch")
 
-
 class BaseConversionOptimization:
     """Abstract base class for conversion optimization strategies.
 
@@ -199,7 +190,6 @@ class BaseConversionOptimization:
             list: CVXPY constraint objects
         """
         raise NotImplementedError("Subclasses must implement set_constraints")
-
 
 class BaseDemandPhysics:
     """Abstract base class for demand physics strategies.
@@ -231,7 +221,6 @@ class BaseDemandPhysics:
             float: Actual demand requirement in kW
         """
         raise NotImplementedError("Subclasses must implement rule_based_demand")
-
 
 class BaseDemandOptimization:
     """Abstract base class for demand optimization strategies.

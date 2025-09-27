@@ -5,10 +5,10 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import numpy as np
 import pandas as pd
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from datetime import datetime
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class ResultsIO:
     """Service for handling simulation results persistence."""

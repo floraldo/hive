@@ -12,15 +12,12 @@ import pytest
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.system import System
 from system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
 from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams, HeatBufferTechnicalParams
 from system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
 from system_model.components.energy.heat_pump import HeatPump, HeatPumpParams, HeatPumpTechnicalParams
 from system_model.components.shared.archetypes import FidelityLevel
-
 
 class TestOGSystemiserPreservation:
     """Test that SIMPLE fidelity preserves the elegant OG Systemiser equations."""
@@ -240,7 +237,6 @@ class TestOGSystemiserPreservation:
             assert constraint_counts[i] >= constraint_counts[i-1], \
                 f"Constraint count should not decrease with higher fidelity: {constraint_counts}"
 
-
 def test_og_systemiser_baseline_validation():
     """Main validation test that our fixes preserve OG Systemiser elegance."""
     test_class = TestOGSystemiserPreservation()
@@ -257,7 +253,6 @@ def test_og_systemiser_baseline_validation():
     print("\n✅ SUCCESS: SIMPLE fidelity preserves OG Systemiser baseline behavior")
     print("✅ SUCCESS: STANDARD+ levels add complexity through progressive enhancement")
     print("✅ SUCCESS: Golden Rule of fidelity logic is restored!")
-
 
 if __name__ == "__main__":
     test_og_systemiser_baseline_validation()

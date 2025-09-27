@@ -14,7 +14,6 @@ from fastapi.responses import JSONResponse
 import uvicorn
 from contextlib import asynccontextmanager
 import sys
-from pathlib import Path
 
 from .settings import get_settings
 from .observability import init_observability, get_logger
@@ -23,7 +22,6 @@ from .errors import ClimateError
 # Get settings and logger
 settings = get_settings()
 logger = get_logger(__name__)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,7 +40,6 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down EcoSystemiser Platform")
     # Future: Cleanup module connections
 
-
 # Create FastAPI app
 app = FastAPI(
     title=settings.api.title,
@@ -59,7 +56,6 @@ app.add_middleware(
     allow_headers=settings.api.cors_headers,
     allow_credentials=True,
 )
-
 
 # Root router
 @app.get("/")
@@ -88,16 +84,13 @@ async def root():
         }
     }
 
-
 @app.get("/health")
 async def health():
     """Health check endpoint"""
     return {"status": "healthy", "platform": "EcoSystemiser"}
 
-
 # API Version routers
 api_v3 = APIRouter(prefix="/api/v3")
-
 
 # Profile Loader endpoints
 profile_router = APIRouter(prefix="/profile", tags=["Profile Loader"])
@@ -116,7 +109,6 @@ except ImportError as e:
 
 api_v3.include_router(profile_router)
 
-
 # Solver endpoints (future)
 solver_router = APIRouter(prefix="/solver", tags=["Solver"])
 
@@ -126,7 +118,6 @@ async def solver_status():
     return {"module": "solver", "status": "not_implemented"}
 
 api_v3.include_router(solver_router)
-
 
 # Analyser endpoints (future)
 analyser_router = APIRouter(prefix="/analyser", tags=["Analyser"])
@@ -138,7 +129,6 @@ async def analyser_status():
 
 api_v3.include_router(analyser_router)
 
-
 # Reporting endpoints (future)
 reporting_router = APIRouter(prefix="/reporting", tags=["Reporting"])
 
@@ -148,7 +138,6 @@ async def reporting_status():
     return {"module": "reporting", "status": "not_implemented"}
 
 api_v3.include_router(reporting_router)
-
 
 # Mount API versions
 app.include_router(api_v3)
@@ -161,7 +150,6 @@ async def legacy_v2_redirect(path: str):
         status_code=301,
         content={"message": "API v2 deprecated, please use v3", "redirect": f"/api/v3/{path}"}
     )
-
 
 # Error handlers
 @app.exception_handler(ClimateError)
@@ -176,7 +164,6 @@ async def climate_error_handler(request, exc: ClimateError):
         }
     )
 
-
 @app.exception_handler(Exception)
 async def general_error_handler(request, exc: Exception):
     """Handle unexpected errors"""
@@ -188,7 +175,6 @@ async def general_error_handler(request, exc: Exception):
             "message": "An unexpected error occurred"
         }
     )
-
 
 if __name__ == "__main__":
     # Run the application

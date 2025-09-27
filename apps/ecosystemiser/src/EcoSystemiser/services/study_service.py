@@ -1,5 +1,5 @@
 """Multi-simulation orchestration service for parametric studies and optimization workflows."""
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Union
 from pydantic import BaseModel, Field
@@ -13,15 +13,13 @@ import itertools
 from .simulation_service import SimulationService, SimulationConfig, SimulationResult
 from ..system_model.components.shared.archetypes import FidelityLevel
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class ParameterSweepSpec(BaseModel):
     """Specification for a parameter sweep."""
     component_name: str
     parameter_path: str  # dot notation e.g., "technical.capacity_nominal"
     values: List[Union[float, int, str]]
-
 
 class FidelitySweepSpec(BaseModel):
     """Specification for fidelity level sweep."""
@@ -37,7 +35,6 @@ class FidelitySweepSpec(BaseModel):
         default=None,
         description="Pre-defined mixed fidelity configurations as {component: fidelity_level}"
     )
-
 
 class StudyConfig(BaseModel):
     """Configuration for a multi-simulation study."""
@@ -61,7 +58,6 @@ class StudyConfig(BaseModel):
     save_all_results: bool = False
     output_directory: Path = Field(default_factory=lambda: Path("studies"))
 
-
 class StudyResult(BaseModel):
     """Result of a multi-simulation study."""
     study_id: str
@@ -73,7 +69,6 @@ class StudyResult(BaseModel):
     all_results: Optional[List[Dict[str, Any]]] = None
     summary_statistics: Optional[Dict[str, Any]] = None
     execution_time: float
-
 
 class StudyService:
     """Service for orchestrating multi-simulation studies."""

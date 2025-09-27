@@ -2,9 +2,8 @@
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import yaml
-import logging
-
-logger = logging.getLogger(__name__)
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 class ComponentRepository:
     """Repository for component data definitions."""
@@ -65,7 +64,6 @@ class ComponentRepository:
         """Clear the component cache."""
         self._cache.clear()
         logger.debug("Component cache cleared")
-
 
 class FileLoader:
     """Load component data from YAML files."""

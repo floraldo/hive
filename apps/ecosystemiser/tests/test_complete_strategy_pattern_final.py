@@ -13,10 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.components.shared.archetypes import FidelityLevel
-
 
 def test_complete_strategy_pattern():
     """Test that all components have complete Strategy Pattern implementation."""
@@ -128,7 +125,6 @@ def test_complete_strategy_pattern():
 
     return len(complete) == len(components_to_check)
 
-
 def test_factory_methods():
     """Test that factory methods correctly select strategies based on fidelity."""
 
@@ -188,7 +184,6 @@ def test_factory_methods():
         logger.warning("\nFactory methods: SOME TESTS FAILED")
 
     return all_good
-
 
 if __name__ == "__main__":
     # Run tests

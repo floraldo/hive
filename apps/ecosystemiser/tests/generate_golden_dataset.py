@@ -14,12 +14,8 @@ import logging
 
 # Add path to apps directory to import Systemiser
 apps_path = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(apps_path))
-
 # Add Systemiser directory to path to import directly from submodules
 systemiser_path = apps_path / 'Systemiser'
-sys.path.insert(0, str(systemiser_path))
-
 # Import directly from Systemiser submodules (bypassing broken __init__.py)
 from utils.system_setup import create_system
 from solver.rule_based_solver import ComponentBasedRuleEngine
@@ -27,7 +23,6 @@ from utils.logger import setup_logging
 
 # Setup logging for this script
 logger = setup_logging("GoldenDatasetGenerator", level=logging.INFO)
-
 
 def create_minimal_system(N=24):
     """
@@ -78,7 +73,6 @@ def create_minimal_system(N=24):
     logger.info(f"Remaining flows: {list(system.flows.keys())}")
 
     return system, components
-
 
 def run_original_simulation(system, components, N=24):
     """
@@ -164,7 +158,6 @@ def run_original_simulation(system, components, N=24):
 
     return results
 
-
 def calculate_summary(results):
     """Calculate summary statistics for validation."""
     summary = {}
@@ -218,7 +211,6 @@ def calculate_summary(results):
 
     return summary
 
-
 def save_golden_dataset(results, filepath):
     """Save the golden dataset to JSON file."""
     filepath = Path(filepath)
@@ -252,7 +244,6 @@ def save_golden_dataset(results, filepath):
         logger.info(f"{key}: {value:.4f}")
     logger.info("="*60)
 
-
 def main():
     """Main function to generate the golden dataset."""
     logger.info("="*60)
@@ -283,7 +274,6 @@ def main():
     except Exception as e:
         logger.error(f"❌ Failed to generate golden dataset: {e}")
         raise
-
 
 if __name__ == "__main__":
     main()

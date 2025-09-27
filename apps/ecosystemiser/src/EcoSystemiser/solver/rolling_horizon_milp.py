@@ -1,6 +1,5 @@
 """Rolling horizon MILP solver for large-scale optimization problems."""
-import logging
-from pathlib import Path
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Any, Optional, List
 import numpy as np
 import cvxpy as cp
@@ -10,8 +9,7 @@ from .base import BaseSolver, SolverConfig, SolverResult
 from .milp_solver import MILPSolver
 from ..system_model.system import System
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class RollingHorizonConfig(SolverConfig):
     """Configuration for rolling horizon MILP solver."""
@@ -22,14 +20,12 @@ class RollingHorizonConfig(SolverConfig):
     parallel_windows: bool = False  # Parallel processing of windows
     storage_continuity: bool = True  # Enforce storage state continuity between windows
 
-
 class RollingHorizonResult(SolverResult):
     """Result from rolling horizon MILP solver."""
     num_windows: int = 0
     window_results: List[Dict[str, Any]] = []
     storage_violations: List[Dict[str, Any]] = []
     forecast_accuracy: Optional[Dict[str, float]] = None
-
 
 class RollingHorizonMILPSolver(BaseSolver):
     """Rolling horizon solver for large-scale MILP optimization.

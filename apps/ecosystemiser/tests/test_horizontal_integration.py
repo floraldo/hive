@@ -14,8 +14,6 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.system import System
 from system_model.components.energy.battery import Battery, BatteryParams
 from system_model.components.energy.solar_pv import SolarPV, SolarPVParams
@@ -32,7 +30,6 @@ from system_model.components.water.water_grid import WaterGrid, WaterGridParams
 from system_model.components.shared.archetypes import FidelityLevel
 from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
-
 
 def create_comprehensive_system():
     """Create a system with ALL available components."""
@@ -184,7 +181,6 @@ def create_comprehensive_system():
 
     return system
 
-
 def test_component_inventory():
     """Test that all components are properly registered and instantiable."""
     logger.info("="*60)
@@ -268,7 +264,6 @@ def test_component_inventory():
 
     return True
 
-
 def test_comprehensive_optimization():
     """Test MILP optimization with ALL components working together."""
     logger.info("\n" + "="*60)
@@ -316,7 +311,6 @@ def test_comprehensive_optimization():
         logger.error(f"Optimization failed: {result.status}")
         return False
 
-
 def test_fidelity_coverage():
     """Test that fidelity system works across all component types."""
     logger.info("\n" + "="*60)
@@ -361,7 +355,6 @@ def test_fidelity_coverage():
     logger.info(f"Components with STANDARD: {len(components_with_standard)}/{total_components}")
 
     return coverage > 50  # Pass if more than 50% have STANDARD
-
 
 def main():
     """Main test runner for horizontal integration validation."""
@@ -410,7 +403,6 @@ def main():
         logger.info("• Grid components need Strategy Pattern refactoring")
         logger.info("• Some components lack STANDARD fidelity")
         return False
-
 
 if __name__ == "__main__":
     import sys

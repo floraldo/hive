@@ -2,9 +2,8 @@
 import numpy as np
 import cvxpy as cp
 from typing import Dict, Any, Optional, List
-import logging
-
-logger = logging.getLogger(__name__)
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 class System:
     """Container class for system components and their connections."""

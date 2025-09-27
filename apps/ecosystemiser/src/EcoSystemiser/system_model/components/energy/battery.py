@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import StorageTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseStoragePhysics, BaseStorageOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # BATTERY-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -55,7 +53,6 @@ class BatteryTechnicalParams(StorageTechnicalParams):
         description="Detailed electrochemical model parameters"
     )
 
-
 class BatteryParams(ComponentParams):
     """Battery parameters using the hierarchical technical parameter system."""
     technical: BatteryTechnicalParams = Field(
@@ -69,7 +66,6 @@ class BatteryParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -109,7 +105,6 @@ class BatteryPhysicsSimple(BaseStoragePhysics):
         # Enforce physical bounds
         return self.apply_bounds(next_state)
 
-
 class BatteryPhysicsStandard(BatteryPhysicsSimple):
     """Implements the STANDARD rule-based physics for a battery.
 
@@ -137,7 +132,6 @@ class BatteryPhysicsStandard(BatteryPhysicsSimple):
 
         # 4. Enforce bounds again after self-discharge
         return self.apply_bounds(final_energy)
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -195,7 +189,6 @@ class BatteryOptimizationSimple(BaseStorageOptimization):
 
         return constraints
 
-
 class BatteryOptimizationStandard(BatteryOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for battery.
 
@@ -246,7 +239,6 @@ class BatteryOptimizationStandard(BatteryOptimizationSimple):
                 )
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

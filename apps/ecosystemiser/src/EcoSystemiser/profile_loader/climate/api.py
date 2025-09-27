@@ -18,8 +18,7 @@ from datetime import datetime
 from enum import Enum
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Union, AsyncIterator, Tuple
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Header, Response, Depends
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,7 +37,7 @@ from EcoSystemiser.errors import (
 )
 from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Create APIRouter
 router = APIRouter(
@@ -47,7 +46,6 @@ router = APIRouter(
 )
 
 # Middleware will be handled by main FastAPI app
-
 
 # Enhanced request/response models
 
@@ -68,7 +66,6 @@ class BatchClimateRequest(BaseModel):
         description="Return partial results if some requests fail"
     )
 
-
 class JobStatus(str, Enum):
     """Job status enumeration"""
     QUEUED = "queued"
@@ -77,14 +74,12 @@ class JobStatus(str, Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
 
-
 class JobRequest(BaseModel):
     """Async job request"""
     request: Union[ClimateRequest, BatchClimateRequest]
     priority: int = Field(default=5, ge=1, le=10)
     callback_url: Optional[str] = None
     notification_email: Optional[str] = None
-
 
 class JobResponse(BaseModel):
     """Job status response"""
@@ -97,7 +92,6 @@ class JobResponse(BaseModel):
     error: Optional[Dict[str, Any]] = None
     eta: Optional[datetime] = None
 
-
 class StreamFormat(str, Enum):
     """Streaming response formats"""
     NDJSON = "ndjson"
@@ -105,10 +99,8 @@ class StreamFormat(str, Enum):
     PARQUET = "parquet"
     NETCDF = "netcdf"
 
-
 # Job management now properly uses Redis-backed JobManager for production
 # All endpoints interact with the distributed job manager
-
 
 # API Endpoints
 
@@ -120,7 +112,6 @@ async def health_check():
         "timestamp": datetime.utcnow().isoformat(),
         "version": "2.0.0"
     }
-
 
 @router.post("/single", response_model=ClimateResponse)
 async def get_climate_single(
@@ -172,7 +163,6 @@ async def get_climate_single(
             status_code=500,
             headers={"X-Correlation-ID": correlation_id}
         )
-
 
 @router.post("/batch")
 async def get_climate_batch(
@@ -248,7 +238,6 @@ async def get_climate_batch(
         "errors": errors if errors else None
     }
 
-
 @router.post("/stream")
 async def stream_climate_data(
     request: ClimateRequest,
@@ -316,7 +305,6 @@ async def stream_climate_data(
         }
     )
 
-
 @router.post("/jobs", response_model=JobResponse)
 async def create_climate_job(
     job_request: JobRequest,
@@ -366,7 +354,6 @@ async def create_climate_job(
         progress=job_data.get("progress", 0)
     )
 
-
 @router.get("/jobs/{job_id}", response_model=JobResponse)
 async def get_job_status(
     job_id: str,
@@ -389,7 +376,6 @@ async def get_job_status(
         error=job_data.get("error"),
         eta=datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None
     )
-
 
 @router.get("/jobs/{job_id}/result")
 async def get_job_result(
@@ -435,7 +421,6 @@ async def get_job_result(
     # Return raw result for other formats
     return result
 
-
 @router.delete("/jobs/{job_id}")
 async def cancel_job(
     job_id: str,
@@ -464,7 +449,6 @@ async def cancel_job(
         raise HTTPException(status_code=500, detail="Failed to cancel job")
 
     return {"message": f"Job {job_id} cancelled"}
-
 
 @router.get("/jobs")
 async def list_jobs(
@@ -510,7 +494,6 @@ async def list_jobs(
         logger.error(f"Failed to list jobs: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve jobs")
 
-
 @router.delete("/jobs/cleanup")
 async def cleanup_old_jobs(
     days: int = Query(7, ge=1, le=365, description="Delete jobs older than this many days"),
@@ -535,7 +518,6 @@ async def cleanup_old_jobs(
         logger.error(f"Failed to cleanup jobs: {e}")
         raise HTTPException(status_code=500, detail="Failed to cleanup old jobs")
 
-
 # Helper functions
 
 async def process_climate_request(
@@ -554,7 +536,6 @@ async def process_climate_request(
     response = service.get_climate(request)
     
     return response
-
 
 async def fetch_climate_data(
     request: ClimateRequest,
@@ -577,7 +558,6 @@ async def fetch_climate_data(
     
     return ds
 
-
 async def stream_as_ndjson(
     ds: xr.Dataset,
     chunk_size: int
@@ -599,7 +579,6 @@ async def stream_as_ndjson(
         for _, row in chunk_df.iterrows():
             json_line = row.to_json() + "\n"
             yield json_line.encode()
-
 
 async def stream_as_csv(
     ds: xr.Dataset,
@@ -625,7 +604,6 @@ async def stream_as_csv(
         csv_chunk = chunk_df.to_csv(index=False, header=False)
         yield csv_chunk.encode()
 
-
 def stream_as_parquet(ds: xr.Dataset) -> bytes:
     """Convert dataset to Parquet bytes"""
     df = ds.to_dataframe()
@@ -633,13 +611,11 @@ def stream_as_parquet(ds: xr.Dataset) -> bytes:
     df.to_parquet(buffer, engine='pyarrow', compression='snappy')
     return buffer.getvalue()
 
-
 def stream_as_netcdf(ds: xr.Dataset) -> bytes:
     """Convert dataset to NetCDF bytes"""
     buffer = BytesIO()
     ds.to_netcdf(buffer, engine='h5netcdf')
     return buffer.getvalue()
-
 
 async def process_job_async(
     job_id: str,
@@ -713,7 +689,6 @@ async def process_job_async(
 
         logger.error(f"Job {job_id} failed: {e}", exc_info=True)
 
-
 # ============================================================================
 # Analytics Endpoints (Postprocessing)
 # ============================================================================
@@ -745,7 +720,6 @@ class ProcessingOptions(BaseModel):
 class ExtendedClimateRequest(ClimateRequest):
     """Extended climate request with processing options"""
     processing_options: ProcessingOptions = Field(default_factory=ProcessingOptions)
-
 
 @router.post("/analyze")
 async def analyze_climate_data(
@@ -840,7 +814,6 @@ async def analyze_climate_data(
             detail=f"Analytics processing failed: {str(e)}"
         )
 
-
 @router.post("/profile")
 async def get_climate_profile(
     request: ExtendedClimateRequest,
@@ -879,7 +852,6 @@ async def get_climate_profile(
             status_code=500,
             detail=f"Climate profile processing failed: {str(e)}"
         )
-
 
 @router.get("/processing/options")
 async def get_processing_options():
@@ -946,6 +918,5 @@ async def get_processing_options():
             }
         }
     }
-
 
 # This router is now included in the main FastAPI app in main.py

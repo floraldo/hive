@@ -1,8 +1,6 @@
 """Test water components integration with registry pattern."""
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
 import pytest
 import numpy as np
 from EcoSystemiser.system_model.components.shared.registry import (
@@ -14,7 +12,6 @@ from EcoSystemiser.system_model.components.water import (
     WaterGrid, WaterGridParams,
     RainwaterSource, RainwaterSourceParams
 )
-
 
 def test_water_components_registered():
     """Test that all water components are registered."""
@@ -31,7 +28,6 @@ def test_water_components_registered():
     assert get_component_class("WaterDemand") == WaterDemand
     assert get_component_class("WaterGrid") == WaterGrid
     assert get_component_class("RainwaterSource") == RainwaterSource
-
 
 def test_water_storage_initialization():
     """Test WaterStorage component initialization."""
@@ -52,7 +48,6 @@ def test_water_storage_initialization():
     assert storage.initial_level_m3 == 10.0
     assert storage.water_level[0] == 10.0
 
-
 def test_water_demand_initialization():
     """Test WaterDemand component initialization."""
     params = WaterDemandParams(
@@ -69,7 +64,6 @@ def test_water_demand_initialization():
     assert demand.base_demand_m3h == 0.5
     assert demand.priority_level == 1
     assert len(demand.daily_pattern) == 24  # Default pattern created
-
 
 def test_water_grid_initialization():
     """Test WaterGrid component initialization."""
@@ -88,7 +82,6 @@ def test_water_grid_initialization():
     assert grid.water_price_per_m3 == 1.5
     assert grid.supply_reliability == 0.99
 
-
 def test_rainwater_source_initialization():
     """Test RainwaterSource component initialization."""
     params = RainwaterSourceParams(
@@ -105,7 +98,6 @@ def test_rainwater_source_initialization():
     assert rain.catchment_area_m2 == 150.0
     assert rain.runoff_coefficient == 0.85
     assert len(rain.seasonal_factor) == 12  # Monthly factors
-
 
 def test_water_storage_operation():
     """Test WaterStorage rule-based operation."""
@@ -139,7 +131,6 @@ def test_water_storage_operation():
     assert outflow > 0  # Should supply from storage
     assert inflow == 0.0  # No supply to store
 
-
 def test_water_demand_profile():
     """Test WaterDemand profile generation."""
     params = WaterDemandParams(
@@ -154,7 +145,6 @@ def test_water_demand_profile():
     assert len(demand.demand_profile) == 48
     assert np.all(demand.demand_profile >= 0)  # All positive
     assert np.max(demand.demand_profile) > demand.base_demand_m3h  # Has peaks
-
 
 def test_rainwater_collection():
     """Test RainwaterSource collection calculation."""
@@ -177,7 +167,6 @@ def test_rainwater_collection():
     expected = 100 * 5 * 0.85 * 0.90 * 0.95 / 1000
     assert abs(available - expected) < 0.01  # Close to expected
 
-
 def test_registry_pattern_with_params_model():
     """Test that PARAMS_MODEL attribute works correctly."""
     # Get class from registry
@@ -192,7 +181,6 @@ def test_registry_pattern_with_params_model():
     instance = WaterStorageClass("test", params)
 
     assert instance.capacity_m3 == 15.0
-
 
 if __name__ == "__main__":
     # Run basic tests

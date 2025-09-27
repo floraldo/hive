@@ -10,7 +10,7 @@ This is the new service implementation that leverages:
 
 import asyncio
 import xarray as xr
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Tuple, Optional, Dict, Any, List
 from datetime import datetime
 from pathlib import Path
@@ -42,8 +42,7 @@ from ..shared.models import BaseProfileRequest
 # Compatibility aliases
 get_config = get_settings
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class LocationResolver:
     """Centralized location resolution and geocoding service.
@@ -287,7 +286,6 @@ class LocationResolver:
             return best_score
 
         return 0.5  # Default if no specific coverage info
-
 
 class ClimateService(BaseProfileService):
     """
@@ -982,10 +980,8 @@ class ClimateService(BaseProfileService):
         from .adapters.factory import cleanup
         cleanup()
 
-
 # Global service instance
 _global_service: Optional[ClimateService] = None
-
 
 def get_enhanced_climate_service() -> ClimateService:
     """Get the global enhanced climate service instance"""

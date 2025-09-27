@@ -16,8 +16,6 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 # Direct imports
 from system_model.system import System
 from system_model.components.battery import Battery, BatteryParams
@@ -26,13 +24,11 @@ from system_model.components.solar_pv import SolarPV, SolarPVParams
 from system_model.components.power_demand import PowerDemand, PowerDemandParams
 from solver.rule_based_engine import RuleBasedEngine
 
-
 def load_golden_dataset():
     """Load the golden dataset from Systemiser."""
     golden_path = Path(__file__).parent / 'systemiser_minimal_golden.json'
     with open(golden_path, 'r') as f:
         return json.load(f)
-
 
 def create_eco_system():
     """Create EcoSystemiser system matching golden dataset configuration."""
@@ -86,7 +82,6 @@ def create_eco_system():
     system.connect('Battery', 'Grid', 'electricity')
 
     return system
-
 
 def run_eco_simulation(system):
     """Run EcoSystemiser simulation and extract results."""
@@ -143,7 +138,6 @@ def run_eco_simulation(system):
     results['summary']['total_consumption'] = total_consumption
 
     return results
-
 
 def validate_results(golden_dataset, eco_results):
     """Validate EcoSystemiser results against golden dataset."""
@@ -208,7 +202,6 @@ def validate_results(golden_dataset, eco_results):
 
     return errors
 
-
 def main():
     """Main validation function."""
     logger.info("="*60)
@@ -258,7 +251,6 @@ def main():
         import traceback
         traceback.print_exc()
         return False
-
 
 if __name__ == "__main__":
     success = main()

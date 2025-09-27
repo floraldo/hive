@@ -16,20 +16,18 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Literal
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from enum import Enum
 from dataclasses import dataclass
 from scipy import stats
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class TMYMethod(Enum):
     """TMY generation methods"""
     TMY3 = "tmy3"           # Standard TMY3 methodology (NREL)
     SIMPLIFIED = "simplified" # Simplified selection based on temperature only
     CUSTOM = "custom"        # Custom weighting factors
-
 
 @dataclass
 class MonthQuality:
@@ -39,7 +37,6 @@ class MonthQuality:
     extremes_score: float  # Score for extreme events handling
     continuity_score: float  # Month boundary continuity
     overall_score: float  # Combined quality score
-
 
 class TMYMetrics:
     """Statistical metrics for TMY generation"""
@@ -315,7 +312,6 @@ class TMYMetrics:
         correlation_matrix = np.nan_to_num(correlation_matrix, nan=0.0)
         
         return correlation_matrix
-
 
 class TMYSelector:
     """Advanced TMY month selection with quality assessment"""
@@ -664,7 +660,6 @@ class TMYSelector:
         
         logger.debug("Continuity optimization not yet implemented")
         return selected_months
-
 
 class TMYGenerator:
     """
@@ -1049,7 +1044,6 @@ class TMYGenerator:
         
         return dataset
 
-
 # Convenience functions for backward compatibility and ease of use
 
 def generate_tmy(
@@ -1071,7 +1065,6 @@ def generate_tmy(
     method_enum = TMYMethod(method.lower())
     generator = TMYGenerator(method=method_enum)
     return generator.generate(historical_data, **kwargs)
-
 
 def calculate_tmy_metrics(
     data: xr.Dataset,

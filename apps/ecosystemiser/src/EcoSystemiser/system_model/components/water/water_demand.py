@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import DemandTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # WATER DEMAND-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -60,7 +58,6 @@ class WaterDemandTechnicalParams(DemandTechnicalParams):
         description="Stochastic demand model parameters"
     )
 
-
 class WaterDemandParams(ComponentParams):
     """Water demand parameters using the hierarchical technical parameter system.
 
@@ -76,7 +73,6 @@ class WaterDemandParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -105,7 +101,6 @@ class WaterDemandPhysicsSimple(BaseDemandPhysics):
 
         return max(0.0, base_demand)
 
-
 class WaterDemandPhysicsStandard(WaterDemandPhysicsSimple):
     """Implements the STANDARD rule-based physics for water demand.
 
@@ -133,7 +128,6 @@ class WaterDemandPhysicsStandard(WaterDemandPhysicsSimple):
             demand_after_simple = demand_after_simple * max(0.1, seasonal_factor)
 
         return max(0.0, demand_after_simple)
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -172,7 +166,6 @@ class WaterDemandOptimizationSimple(BaseDemandOptimization):
 
         return constraints
 
-
 class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for water demand.
 
@@ -202,14 +195,13 @@ class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
             if seasonal_variation:
                 # Log awareness but maintain exact demand for now
                 import logging
-                logger = logging.getLogger(__name__)
+                logger = get_logger(__name__)
                 logger.debug(f"STANDARD: Seasonal variation acknowledged for {comp.name}")
 
             # Apply exact demand constraint (same as SIMPLE for now)
             constraints.append(comp.Q_in == demand_exact)
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

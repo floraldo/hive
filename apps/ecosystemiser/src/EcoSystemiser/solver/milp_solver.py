@@ -3,11 +3,10 @@ from typing import Dict, Any
 import cvxpy as cp
 import numpy as np
 import time
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from .base import BaseSolver, SolverResult
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class MILPSolver(BaseSolver):
     """Mixed Integer Linear Programming solver using CVXPY."""

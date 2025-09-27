@@ -9,16 +9,14 @@ pandas best practices and performance optimizations.
 import warnings
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 import numpy as np
 import pandas as pd
 import xarray as xr
 
 from .timezone import TimezoneHandler, to_utc, ensure_utc
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class DateTimeProcessor:
     """
@@ -561,7 +559,6 @@ class DateTimeProcessor:
 
         return time_index
 
-
 # Convenience functions for common operations
 
 def create_time_range(
@@ -573,7 +570,6 @@ def create_time_range(
     """Create optimized time range."""
     return DateTimeProcessor.create_time_index(start, end, freq, timezone)
 
-
 def resample_data(
     data: Union[pd.DataFrame, pd.Series, xr.Dataset],
     target_freq: str,
@@ -582,14 +578,12 @@ def resample_data(
     """Resample data with metadata preservation."""
     return DateTimeProcessor.resample_with_metadata(data, target_freq, method)
 
-
 def align_datasets(
     *datasets: Union[pd.DataFrame, pd.Series, xr.Dataset],
     method: str = "outer"
 ) -> List[Union[pd.DataFrame, pd.Series, xr.Dataset]]:
     """Align multiple datasets to common time index."""
     return DateTimeProcessor.align_time_series(*datasets, method=method)
-
 
 def validate_time_data(
     data: Union[pd.DataFrame, pd.Series, xr.Dataset],
@@ -598,11 +592,9 @@ def validate_time_data(
     """Validate temporal consistency."""
     return DateTimeProcessor.validate_temporal_consistency(data, expected_freq)
 
-
 def normalize_period_spec(period: Dict[str, Any]) -> Dict[str, pd.Timestamp]:
     """Normalize period specification."""
     return DateTimeProcessor.normalize_period(period)
-
 
 def detect_time_gaps(
     time_index: pd.DatetimeIndex,

@@ -3,10 +3,10 @@
 import xarray as xr
 import numpy as np
 import pandas as pd
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Optional, Tuple
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 def calculate_clearness_index(ghi: xr.DataArray, 
                               latitude: float,

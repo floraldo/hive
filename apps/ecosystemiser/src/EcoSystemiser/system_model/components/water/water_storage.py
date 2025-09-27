@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import StorageTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseStoragePhysics, BaseStorageOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # WATER STORAGE-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -65,7 +63,6 @@ class WaterStorageTechnicalParams(StorageTechnicalParams):
         description="Biofilm growth and water quality modeling"
     )
 
-
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
@@ -110,7 +107,6 @@ class WaterStoragePhysicsSimple(BaseStoragePhysics):
 
         return self.apply_bounds(new_volume)
 
-
 class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
     """Implements the STANDARD rule-based physics for water storage.
 
@@ -145,7 +141,6 @@ class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
             return self.apply_bounds(volume_after_standard)
 
         return volume_after_simple
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -204,7 +199,6 @@ class WaterStorageOptimizationSimple(BaseStorageOptimization):
 
         return constraints
 
-
 class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for water storage.
 
@@ -262,7 +256,6 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
 
         return constraints
 
-
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
 # =============================================================================
@@ -286,7 +279,6 @@ class WaterStorageParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 @register_component("WaterStorage")
 class WaterStorage(Component):

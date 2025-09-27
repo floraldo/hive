@@ -3,8 +3,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
 import numpy as np
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..system_model.system import System
 from ..component_data.repository import ComponentRepository
 from ..system_model.components.shared.registry import get_component_class, COMPONENT_REGISTRY
@@ -12,7 +11,7 @@ from ..system_model.components.shared.registry import get_component_class, COMPO
 # Import all components to ensure they are registered
 from ..system_model.components.energy import *
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class SystemBuilder:
     """Build System objects from configuration files using dynamic registry pattern."""

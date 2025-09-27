@@ -15,8 +15,6 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.components.shared.archetypes import FidelityLevel
 from system_model.components.energy.battery import Battery, BatteryPhysicsSimple, BatteryPhysicsStandard, BatteryOptimizationSimple, BatteryOptimizationStandard
 from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferPhysicsSimple, HeatBufferPhysicsStandard, HeatBufferOptimization
@@ -30,7 +28,6 @@ from system_model.components.water.water_storage import WaterStorage, WaterStora
 from system_model.components.water.water_grid import WaterGrid, WaterGridPhysicsSimple, WaterGridPhysicsStandard, WaterGridOptimization
 from system_model.components.water.water_demand import WaterDemand, WaterDemandPhysicsSimple, WaterDemandPhysicsStandard, WaterDemandOptimization
 from system_model.components.water.rainwater_source import RainwaterSource, RainwaterSourcePhysicsSimple, RainwaterSourcePhysicsStandard, RainwaterSourceOptimization
-
 
 # Define expected architecture for each component
 COMPONENT_ARCHITECTURE = {
@@ -133,7 +130,6 @@ COMPONENT_ARCHITECTURE = {
     }
 }
 
-
 def validate_component_architecture(component_name: str, specs: dict) -> dict:
     """Validate a single component's architecture."""
     results = {
@@ -222,7 +218,6 @@ def validate_component_architecture(component_name: str, specs: dict) -> dict:
 
     return results
 
-
 def test_architecture_compliance():
     """Test that all components comply with the Strategy Pattern architecture."""
     logger.info("="*70)
@@ -305,7 +300,6 @@ def test_architecture_compliance():
 
     return compliance_rate == 100
 
-
 def test_physics_correctness():
     """Test that physics implementations produce realistic results."""
     logger.info("\n" + "="*70)
@@ -382,7 +376,6 @@ def test_physics_correctness():
 
     return True
 
-
 def main():
     """Run all architectural validation tests."""
     logger.info("🔍 COMPREHENSIVE ARCHITECTURAL REVIEW")
@@ -418,7 +411,6 @@ def main():
         logger.error("Review failed components and fix issues")
 
     return architecture_passed and physics_passed
-
 
 if __name__ == "__main__":
     import sys

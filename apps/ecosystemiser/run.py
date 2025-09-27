@@ -8,7 +8,6 @@ as a standalone application within the Hive ecosystem.
 
 import sys
 import os
-from pathlib import Path
 
 def setup_environment():
     """Setup environment for EcoSystemiser - now using proper package installation"""

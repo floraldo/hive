@@ -7,11 +7,10 @@ Preserves diurnal and seasonal patterns for building energy modeling.
 import xarray as xr
 import numpy as np
 import pandas as pd
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Optional, Tuple, List
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class GapFiller:
     """Smart gap filling with pattern preservation."""
@@ -417,7 +416,6 @@ class GapFiller:
         
         filled.values = values
         return filled
-
 
 def smart_fill_gaps(ds: xr.Dataset, **kwargs) -> Tuple[xr.Dataset, Dict]:
     """

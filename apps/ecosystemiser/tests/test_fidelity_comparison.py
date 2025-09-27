@@ -21,8 +21,6 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.system import System
 from system_model.components.energy.battery import Battery, BatteryParams
 from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams
@@ -31,7 +29,6 @@ from system_model.components.water.water_storage import WaterStorage, WaterStora
 from system_model.components.shared.archetypes import FidelityLevel
 from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
-
 
 def create_fidelity_test_system(fidelity_level: FidelityLevel):
     """Create a test system with specified fidelity level for all components."""
@@ -113,7 +110,6 @@ def create_fidelity_test_system(fidelity_level: FidelityLevel):
     system.add_component(water_storage)
 
     return system
-
 
 def test_rule_based_fidelity_comparison():
     """Test rule-based physics comparison between SIMPLE and STANDARD fidelity."""
@@ -203,7 +199,6 @@ def test_rule_based_fidelity_comparison():
         'water_loss': simple_water_final - standard_water_final
     }
 
-
 def test_optimization_fidelity_comparison():
     """Test MILP optimization comparison between SIMPLE and STANDARD fidelity."""
     logger.info("\n\nTest 2: MILP Optimization Fidelity Comparison")
@@ -240,7 +235,6 @@ def test_optimization_fidelity_comparison():
         'simple_cost': simple_result.objective_value if simple_result.status == 'optimal' else None,
         'standard_cost': standard_result.objective_value if standard_result.status == 'optimal' else None
     }
-
 
 def main():
     """Main test runner demonstrating fidelity system capabilities."""
@@ -279,7 +273,6 @@ def main():
     logger.info("="*60)
 
     return True
-
 
 if __name__ == "__main__":
     import sys

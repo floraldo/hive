@@ -19,8 +19,6 @@ log = logging.getLogger(__name__)
 
 # Add the app root to path
 app_root = Path(__file__).parent
-sys.path.insert(0, str(app_root))
-
 # Import directly with absolute imports
 from profile_loader.climate.data_models import ClimateRequest, CANONICAL_VARIABLES
 from profile_loader.climate.adapters.base import BaseAdapter
@@ -29,7 +27,6 @@ from profile_loader.climate.adapters.capabilities import (
     DataFrequency, AuthType, RateLimits, QualityFeatures
 )
 from errors import DataFetchError, DataParseError, ValidationError
-
 
 def test_direct_adapter():
     """Test creating a simple mock adapter directly."""
@@ -208,7 +205,6 @@ def test_direct_adapter():
         traceback.print_exc()
         return False
 
-
 def test_service_with_mock():
     """Test the service layer with a mock adapter."""
     
@@ -247,7 +243,6 @@ def test_service_with_mock():
     except Exception as e:
         log.error(f"Service test failed: {e}")
         return False
-
 
 if __name__ == "__main__":
     log.info("Starting EcoSystemiser Simple Test")

@@ -4,9 +4,8 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 from typing import Optional, Literal
-import logging
-
-logger = logging.getLogger(__name__)
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 def multivariate_block_bootstrap(
     ds_hist: xr.Dataset,

@@ -2,7 +2,6 @@
 
 import pytest
 import numpy as np
-from pathlib import Path
 
 from src.EcoSystemiser.system_model.components.shared.archetypes import (
     FidelityLevel,
@@ -15,7 +14,6 @@ from src.EcoSystemiser.system_model.components.energy.battery import (
     BatteryTechnicalParams,  # Now imported from battery.py (co-location principle)
 )
 from src.EcoSystemiser.system_model.system import System
-
 
 class TestFidelityLevels:
     """Test the FidelityLevel enum and comparison operations."""
@@ -39,7 +37,6 @@ class TestFidelityLevels:
         assert simple <= detailed
         assert detailed >= simple
         assert simple != detailed
-
 
 class TestArchetypeParameters:
     """Test the hierarchical parameter archetypes."""
@@ -83,7 +80,6 @@ class TestArchetypeParameters:
             efficiency_roundtrip=0.90
         )
         assert params.efficiency_roundtrip == 0.90
-
 
 class TestBatteryFidelityConstraints:
     """Test that Battery component applies constraints based on fidelity level."""
@@ -212,7 +208,6 @@ class TestBatteryFidelityConstraints:
         # The temperature coefficient is ignored in STANDARD mode
         assert len(detailed_constraints) >= len(standard_constraints)
 
-
 class TestFidelityPerformance:
     """Test performance characteristics at different fidelity levels."""
 
@@ -271,7 +266,6 @@ class TestFidelityPerformance:
         # Note: Time difference might be small for constraint generation
         # The real performance impact is in the solver phase
 
-
 def test_no_backward_compatibility():
     """Test that old-style parameters are no longer supported.
 
@@ -308,7 +302,6 @@ def test_no_backward_compatibility():
     battery = Battery("modern", correct_params, system)
     assert battery.E_max == 10.0
     assert battery.fidelity_level == FidelityLevel.STANDARD
-
 
 if __name__ == "__main__":
     # Run specific test for development

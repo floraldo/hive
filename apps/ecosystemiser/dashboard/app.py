@@ -17,13 +17,9 @@ from pathlib import Path
 import os
 parent_dir = str(Path(__file__).parent.parent / "src")
 if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
-
 # Also add parent for direct imports
 parent_parent_dir = str(Path(__file__).parent.parent.parent)
 if parent_parent_dir not in sys.path:
-    sys.path.insert(0, parent_parent_dir)
-
 # Now try imports with better path
 try:
     # Try relative import first

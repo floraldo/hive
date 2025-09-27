@@ -6,8 +6,7 @@ This module provides a single entry point for all profile services
 """
 
 from typing import Dict, Type, Optional, Any, List
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from .shared.service import BaseProfileService
 from .shared.models import BaseProfileRequest, BaseProfileResponse
 from .climate.service import ClimateService
@@ -15,8 +14,7 @@ from .climate.data_models import ClimateRequest
 from .demand.service import DemandService
 from .demand.models import DemandRequest
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class UnifiedProfileService:
     """
@@ -182,10 +180,8 @@ class UnifiedProfileService:
             except Exception as e:
                 logger.warning(f"Error shutting down {service_type} service: {e}")
 
-
 # Global unified service instance
 _unified_service: Optional[UnifiedProfileService] = None
-
 
 def get_unified_profile_service() -> UnifiedProfileService:
     """Get the global unified profile service instance."""
@@ -196,25 +192,21 @@ def get_unified_profile_service() -> UnifiedProfileService:
 
     return _unified_service
 
-
 # Convenience functions for direct access
 async def process_climate_request(request: ClimateRequest):
     """Process climate request directly."""
     service = get_unified_profile_service()
     return await service.get_service("climate").process_request_async(request)
 
-
 async def process_demand_request(request: DemandRequest):
     """Process demand request directly."""
     service = get_unified_profile_service()
     return await service.get_service("demand").process_request_async(request)
 
-
 def get_climate_service() -> ClimateService:
     """Get climate service directly."""
     service = get_unified_profile_service()
     return service.get_service("climate")
-
 
 def get_demand_service() -> DemandService:
     """Get demand service directly."""

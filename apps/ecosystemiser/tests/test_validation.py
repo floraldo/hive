@@ -13,12 +13,9 @@ from pathlib import Path
 # Add parent directories to path for imports
 import sys
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.system import System
 from system_model.system_builder import SystemBuilder
 from solver.rule_based_engine import RuleBasedEngine
-
 
 class TestSystemEquivalence:
     """Test suite for validating EcoSystemiser against Systemiser golden dataset."""
@@ -227,7 +224,6 @@ class TestSystemEquivalence:
             assert balance_error < 0.01, f"Energy imbalance at t={t}: {balance_error:.6f} kWh"
 
         print("\n✅ Energy balance validated for all timesteps")
-
 
 if __name__ == "__main__":
     # Run tests directly

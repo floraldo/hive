@@ -13,7 +13,7 @@ The strategy:
 
 import numpy as np
 import time
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
@@ -21,8 +21,7 @@ from .base import BaseSolver, SolverResult, SolverConfig
 from .rule_based_engine import RuleBasedEngine
 from .milp_solver import MILPSolver
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 @dataclass
 class RollingHorizonConfig(SolverConfig):
@@ -33,7 +32,6 @@ class RollingHorizonConfig(SolverConfig):
     parallel_blocks: bool = False  # Run blocks in parallel (future enhancement)
     max_iterations: int = 3      # Maximum refinement iterations
     convergence_tolerance: float = 0.01  # Convergence criterion
-
 
 class RollingHorizonMILPSolver(BaseSolver):
     """Meta-solver that orchestrates hybrid rule-based and MILP optimization.

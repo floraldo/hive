@@ -2,11 +2,9 @@
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, Optional, List
-from pathlib import Path
 import json
-import logging
-
-logger = logging.getLogger(__name__)
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 class KPICalculator:
     """Calculate key performance indicators from simulation results."""

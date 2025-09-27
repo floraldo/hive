@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseGenerationPhysics, BaseGenerationOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # RAINWATER SOURCE-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -58,7 +56,6 @@ class RainwaterSourceTechnicalParams(GenerationTechnicalParams):
         description="Detailed contamination and treatment modeling"
     )
 
-
 class RainwaterSourceParams(ComponentParams):
     """Rainwater source parameters using the hierarchical technical parameter system.
 
@@ -73,7 +70,6 @@ class RainwaterSourceParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -113,7 +109,6 @@ class RainwaterSourcePhysicsSimple(BaseGenerationPhysics):
 
         return max(0.0, actual_collection)
 
-
 class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
     """Implements the STANDARD rule-based physics for rainwater collection.
 
@@ -149,7 +144,6 @@ class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
             collection_after_simple = collection_after_simple * total_filtration_eff
 
         return max(0.0, collection_after_simple)
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -205,7 +199,6 @@ class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
             constraints.append(comp.Q_out <= comp.technical.capacity_nominal)
 
         return constraints
-
 
 class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for rainwater source.
@@ -266,7 +259,6 @@ class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
             constraints.append(comp.Q_out <= comp.technical.capacity_nominal)
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

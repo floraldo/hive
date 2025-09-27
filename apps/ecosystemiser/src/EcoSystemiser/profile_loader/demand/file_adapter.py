@@ -3,9 +3,8 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from typing import Dict, Any
-import logging
-
-logger = logging.getLogger(__name__)
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 class DemandFileAdapter:
     """Adapter for loading demand profiles from files."""

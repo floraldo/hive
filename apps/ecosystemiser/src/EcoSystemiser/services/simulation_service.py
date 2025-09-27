@@ -1,5 +1,5 @@
 """Main simulation service orchestrator."""
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from pathlib import Path
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
@@ -15,7 +15,7 @@ from ..solver.base import SolverConfig
 from ..profile_loader import get_profile_sync, ClimateRequest
 from .results_io import ResultsIO
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class StageConfig(BaseModel):
     """Configuration for a single stage in staged simulation."""

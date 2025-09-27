@@ -7,14 +7,13 @@ import click
 import json
 import sys
 from pathlib import Path
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 import yaml
 from typing import Dict, Any
 
 from EcoSystemiser.profile_loader.climate import get_profile_sync, ClimateRequest
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 @click.group()
 def cli():

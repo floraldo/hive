@@ -9,21 +9,20 @@ with support for:
 - Resource pooling and cleanup
 """
 
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Type, Optional, Any
 
 from EcoSystemiser.settings import get_settings
 from .base import BaseAdapter
 from ..config_models import HTTPConfig, RateLimitConfig, CacheConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Global adapter registry for dynamic registration
 _adapter_registry: Dict[str, Type[BaseAdapter]] = {}
 
 # Singleton adapter instances
 _adapter_instances: Dict[str, BaseAdapter] = {}
-
 
 def register_adapter(name: str):
     """
@@ -40,7 +39,6 @@ def register_adapter(name: str):
         return cls
     
     return decorator
-
 
 def get_adapter(
     adapter_name: str,
@@ -118,7 +116,6 @@ def get_adapter(
         logger.error(f"Failed to create adapter '{adapter_name}': {e}")
         raise
 
-
 def list_available_adapters() -> list[str]:
     """List all registered adapters."""
     # Auto-register if empty
@@ -126,7 +123,6 @@ def list_available_adapters() -> list[str]:
         _auto_register_adapters()
     
     return list(_adapter_registry.keys())
-
 
 def get_enabled_adapters() -> list[str]:
     """List all enabled adapters based on configuration."""
@@ -139,7 +135,6 @@ def get_enabled_adapters() -> list[str]:
     
     return enabled
 
-
 def cleanup():
     """Clean up all adapter instances and resources."""
     for adapter_name, adapter in _adapter_instances.items():
@@ -151,7 +146,6 @@ def cleanup():
             logger.error(f"Error cleaning up adapter '{adapter_name}': {e}")
     
     _adapter_instances.clear()
-
 
 def _auto_register_adapters():
     """Auto-register built-in adapters if not already registered."""
@@ -180,7 +174,6 @@ def _auto_register_adapters():
             
     except ImportError as e:
         logger.warning(f"Could not auto-register adapters: {e}")
-
 
 # Export main functions
 __all__ = [

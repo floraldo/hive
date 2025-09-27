@@ -10,8 +10,6 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.system import System
 from system_model.components.water.water_storage import WaterStorage, WaterStorageParams
 from system_model.components.water.water_grid import WaterGrid, WaterGridParams
@@ -20,7 +18,6 @@ from system_model.components.water.water_demand import WaterDemand, WaterDemandP
 from system_model.components.shared.archetypes import FidelityLevel
 from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
-
 
 def create_water_system():
     """Create system with water components using new hierarchical architecture."""
@@ -98,7 +95,6 @@ def create_water_system():
     system.connect('WaterStorage', 'WaterDemand', 'water')
 
     return system
-
 
 def test_water_system_milp():
     """Test MILP optimization with water components using new architecture."""
@@ -183,12 +179,10 @@ def test_water_system_milp():
 
     return result.status == 'optimal'
 
-
 def main():
     """Main test runner."""
     success = test_water_system_milp()
     return 0 if success else 1
-
 
 if __name__ == "__main__":
     import sys

@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Any, Optional, Tuple
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..utils.chunking import split_date_range, concatenate_chunked_results, estimate_memory_usage
 
 from .base import BaseAdapter
@@ -16,7 +16,7 @@ from .capabilities import (
 from ..data_models import CANONICAL_VARIABLES
 from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class NASAPowerAdapter(BaseAdapter):
     """Adapter for NASA POWER climate data API"""

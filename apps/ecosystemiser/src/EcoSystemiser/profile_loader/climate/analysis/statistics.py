@@ -4,9 +4,8 @@ import xarray as xr
 import numpy as np
 from scipy import stats
 from typing import Dict, Tuple, List
-import logging
-
-logger = logging.getLogger(__name__)
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 def describe(
     ds: xr.Dataset,

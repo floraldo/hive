@@ -11,8 +11,6 @@ from pathlib import Path
 
 # Add src directory to path so EcoSystemiser package can be imported
 src_path = Path(__file__).parent / "src"
-sys.path.insert(0, str(src_path))
-
 # Now run pytest
 import pytest
 

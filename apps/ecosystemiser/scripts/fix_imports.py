@@ -1,87 +1,115 @@
 #!/usr/bin/env python3
 """
-Fix import issues in EcoSystemiser modules.
+Fix import issues and remove sys.path hacks in EcoSystemiser.
 
-This script fixes the relative import issues that cause ImportError
-when running the application from different contexts.
+This script removes all sys.path manipulations and ensures the application
+works properly with Hive's editable install mechanism.
 """
 
 import os
 import re
 from pathlib import Path
+from typing import List, Tuple, Set
 
-def fix_imports_in_file(file_path):
-    """Fix imports in a single file."""
-    
+def remove_sys_path_hacks(file_path: Path) -> bool:
+    """Remove sys.path hacks from a Python file."""
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    
+
     original_content = content
-    
-    # Define import replacements
-    replacements = [
-        # Fix triple-dot imports to absolute imports
-        (r'from \.\.\.errors import', 'from errors import'),
-        (r'from \.\.\.settings import', 'from settings import'),
-        (r'from \.\.\.observability import', 'from observability import'),
-        
-        # Fix quad-dot imports 
-        (r'from \.\.\.\.errors import', 'from errors import'),
-        (r'from \.\.\.\.settings import', 'from settings import'),
-        (r'from \.\.\.\.observability import', 'from observability import'),
-        
-        # Fix five-dot imports
-        (r'from \.\.\.\.\.settings import', 'from settings import'),
-        
-        # Fix shared module imports
-        (r'from \.\.shared\.', 'from profile_loader.shared.'),
-        (r'from \.\.\.shared\.', 'from profile_loader.shared.'),
-    ]
-    
-    for pattern, replacement in replacements:
-        content = re.sub(pattern, replacement, content)
-    
-    if content != original_content:
+    lines = content.split('\n')
+
+    # Find lines to remove
+    lines_to_remove: Set[int] = set()
+
+    for i, line in enumerate(lines):
+        # Check for sys.path manipulation
+        if re.search(r'sys\.path\.(insert|append)', line):
+            lines_to_remove.add(i)
+
+            # Also remove related comments before the sys.path line
+            if i > 0:
+                prev_line = lines[i-1].strip()
+                if prev_line.startswith('#') and any(word in prev_line.lower() for word in ['add', 'path', 'src', 'temporary']):
+                    lines_to_remove.add(i-1)
+
+            # Remove empty line after if present
+            if i < len(lines) - 1 and lines[i+1].strip() == '':
+                lines_to_remove.add(i+1)
+
+    # Also check for unnecessary Path imports (only used for sys.path)
+    for i, line in enumerate(lines):
+        if 'from pathlib import Path' in line:
+            # Check if Path is used for anything other than sys.path
+            path_used_elsewhere = False
+            for j, other_line in enumerate(lines):
+                if j != i and j not in lines_to_remove:
+                    # Check if Path is used in non-sys.path context
+                    if 'Path(' in other_line and not re.search(r'sys\.path', other_line):
+                        path_used_elsewhere = True
+                        break
+
+            if not path_used_elsewhere:
+                lines_to_remove.add(i)
+
+    # Remove marked lines
+    if lines_to_remove:
+        new_lines = [line for i, line in enumerate(lines) if i not in lines_to_remove]
+        new_content = '\n'.join(new_lines)
+
+        # Clean up multiple blank lines
+        while '\n\n\n' in new_content:
+            new_content = new_content.replace('\n\n\n', '\n\n')
+
+        # Save the fixed file
         with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(content)
+            f.write(new_content)
         return True
+
     return False
 
-def main():
-    """Fix imports in all Python files."""
-    
-    root_dir = Path(__file__).parent
+def scan_and_fix_directory(directory: Path) -> Tuple[List[Path], int]:
+    """Scan directory for Python files with sys.path hacks and fix them."""
     fixed_files = []
-    
-    # Files to fix
-    files_to_fix = [
-        'profile_loader/climate/service.py',
-        'profile_loader/climate/api.py',
-        'profile_loader/climate/main.py',
-        'profile_loader/climate/logging_config.py',
-        'profile_loader/climate/adapters/factory.py',
-        'profile_loader/climate/adapters/base.py',
-        'profile_loader/climate/adapters/meteostat.py',
-        'profile_loader/climate/adapters/era5.py',
-        'profile_loader/climate/adapters/nasa_power.py',
-        'profile_loader/climate/processing/resampling.py',
-    ]
-    
-    for file_path in files_to_fix:
-        full_path = root_dir / file_path
-        if full_path.exists():
-            if fix_imports_in_file(full_path):
-                fixed_files.append(file_path)
-                print(f"Fixed: {file_path}")
-        else:
-            print(f"Not found: {file_path}")
-    
-    print(f"\nFixed {len(fixed_files)} files")
-    
+    total_scanned = 0
+
+    for py_file in directory.rglob('*.py'):
+        total_scanned += 1
+        if remove_sys_path_hacks(py_file):
+            fixed_files.append(py_file)
+
+    return fixed_files, total_scanned
+
+def main():
+    """Main execution to fix all import issues."""
+    ecosystemiser_dir = Path(__file__).parent.parent
+
+    print("EcoSystemiser Hive Integration - Import Fix")
+    print("=" * 60)
+    print(f"Working directory: {ecosystemiser_dir}")
+    print()
+
+    # Process all Python files
+    print("Scanning for sys.path hacks...")
+    fixed_files, total_scanned = scan_and_fix_directory(ecosystemiser_dir)
+
+    print(f"\nScanned {total_scanned} Python files")
+    print(f"Fixed {len(fixed_files)} files with sys.path hacks")
+
     if fixed_files:
-        print("\nFiles modified:")
-        for f in fixed_files:
-            print(f"  - {f}")
+        print("\nFiles fixed:")
+        for f in sorted(fixed_files):
+            rel_path = f.relative_to(ecosystemiser_dir)
+            print(f"  - {rel_path}")
+
+    print("\nImport standardization complete!")
+    print("All files now use proper imports compatible with Hive's editable installs.")
+
+    # Provide next steps
+    print("\nNext steps:")
+    print("1. Run tests to verify imports still work: python -m pytest")
+    print("2. Check that the application starts properly")
+    print("3. Continue with Phase 2: Logging consolidation")
 
 if __name__ == "__main__":
     main()

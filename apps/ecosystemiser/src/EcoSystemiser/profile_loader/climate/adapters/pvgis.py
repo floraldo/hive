@@ -7,15 +7,14 @@ import requests
 import json
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from .base import BaseAdapter
 from .capabilities import (
     AdapterCapabilities, TemporalCoverage, SpatialCoverage,
     DataFrequency, AuthType, RateLimits, QualityFeatures
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class PVGISAdapter(BaseAdapter):
     """Adapter for PVGIS solar radiation data API"""

@@ -18,9 +18,6 @@ logger = logging.getLogger(__name__)
 # Add paths for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
 systemiser_path = Path(__file__).parent.parent.parent / 'Systemiser'
-sys.path.insert(0, str(eco_path))
-sys.path.insert(0, str(systemiser_path))
-
 
 def run_original_systemiser_milp():
     """Run MILP optimization with original Systemiser."""
@@ -103,7 +100,6 @@ def run_original_systemiser_milp():
 
     return results
 
-
 def run_ecosystemiser_milp():
     """Run MILP optimization with EcoSystemiser."""
     logger.info("Running EcoSystemiser MILP...")
@@ -182,7 +178,6 @@ def run_ecosystemiser_milp():
 
     return results
 
-
 def compare_results(orig_results, eco_results):
     """Compare results from both systems."""
     logger.info("\n" + "="*60)
@@ -254,7 +249,6 @@ def compare_results(orig_results, eco_results):
 
     return match
 
-
 def main():
     """Main comparison test."""
     logger.info("="*60)
@@ -286,7 +280,6 @@ def main():
     else:
         logger.error("Could not complete comparison due to failures")
         return False
-
 
 if __name__ == "__main__":
     success = main()

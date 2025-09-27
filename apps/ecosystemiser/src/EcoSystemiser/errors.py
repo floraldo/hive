@@ -12,10 +12,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 import json
-import logging
-
-logger = logging.getLogger(__name__)
-
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 class ErrorSeverity(Enum):
     """Error severity levels"""
@@ -23,7 +21,6 @@ class ErrorSeverity(Enum):
     WARNING = "warning"
     ERROR = "error"
     CRITICAL = "critical"
-
 
 class ErrorCode(Enum):
     """Standardized error codes for the platform"""
@@ -79,7 +76,6 @@ class ErrorCode(Enum):
     DATA_NOT_FOUND = "7005"
     SYSTEM_ERROR = "7006"
 
-
 @dataclass
 class ErrorContext:
     """Context information for an error"""
@@ -93,7 +89,6 @@ class ErrorContext:
     request_id: Optional[str] = None
     trace_id: Optional[str] = None
     span_id: Optional[str] = None
-
 
 @dataclass
 class ClimateError(Exception):
@@ -180,7 +175,6 @@ class ClimateError(Exception):
     def __str__(self):
         return f"[{self.code.value}] {self.message} (correlation_id: {self.context.correlation_id})"
 
-
 # Specific error types
 
 class DataSourceError(ClimateError):
@@ -208,7 +202,6 @@ class DataSourceError(ClimateError):
             **kwargs
         )
 
-
 class ValidationError(ClimateError):
     """Errors related to data validation"""
     
@@ -226,7 +219,6 @@ class ValidationError(ClimateError):
             **kwargs
         )
 
-
 class ProcessingError(ClimateError):
     """Errors during data processing"""
     
@@ -242,7 +234,6 @@ class ProcessingError(ClimateError):
             retriable=False,
             **kwargs
         )
-
 
 class RateLimitError(DataSourceError):
     """Rate limit exceeded error"""
@@ -270,7 +261,6 @@ class RateLimitError(DataSourceError):
             **kwargs
         )
 
-
 class InvalidLocationError(ValidationError):
     """Invalid geographic coordinates"""
     
@@ -289,7 +279,6 @@ class InvalidLocationError(ValidationError):
             suggested_action="Ensure latitude is between -90 and 90, longitude between -180 and 180",
             **kwargs
         )
-
 
 class InvalidPeriodError(ValidationError):
     """Invalid time period"""
@@ -310,7 +299,6 @@ class InvalidPeriodError(ValidationError):
             **kwargs
         )
 
-
 class TemporalError(ValidationError):
     """Temporal validation error"""
     
@@ -324,7 +312,6 @@ class TemporalError(ValidationError):
             code=ErrorCode.INVALID_TIME_PERIOD,
             **kwargs
         )
-
 
 class LocationError(ValidationError):
     """Location resolution or validation error"""
@@ -346,7 +333,6 @@ class LocationError(ValidationError):
             **kwargs
         )
 
-
 @dataclass
 class AdapterError(ClimateError):
     """Base exception for adapter-related errors"""
@@ -358,7 +344,6 @@ class AdapterError(ClimateError):
         if self.details is None:
             self.details = {}
         self.details['adapter'] = self.adapter_name
-
 
 @dataclass
 class DataFetchError(AdapterError):
@@ -374,7 +359,6 @@ class DataFetchError(AdapterError):
         if self.status_code:
             self.details['status_code'] = self.status_code
 
-
 @dataclass
 class DataParseError(AdapterError):
     """Error parsing data from external source"""
@@ -385,7 +369,6 @@ class DataParseError(AdapterError):
         super().__post_init__()
         if self.field_name:
             self.details['field'] = self.field_name
-
 
 class AuthenticationError(AdapterError):
     """Error with adapter authentication"""
@@ -400,7 +383,6 @@ class AuthenticationError(AdapterError):
             **{k: v for k, v in kwargs.items() if k not in ['suggested_action']}
         )
 
-
 class DataNotAvailableError(AdapterError):
     """Data not available for requested parameters"""
     
@@ -413,7 +395,6 @@ class DataNotAvailableError(AdapterError):
             suggested_action=kwargs.get('suggested_action', "Try a different time period or location"),
             **{k: v for k, v in kwargs.items() if k not in ['suggested_action']}
         )
-
 
 class ErrorHandler:
     """
@@ -540,7 +521,6 @@ class ErrorHandler:
             raise climate_error
         
         return climate_error
-
 
 # Correlation ID management
 

@@ -12,14 +12,14 @@ This module provides the foundation for all climate data adapters with:
 import asyncio
 import hashlib
 import json
+import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 import httpx
 import xarray as xr
 import numpy as np
@@ -36,8 +36,7 @@ from EcoSystemiser.settings import get_settings, Settings
 # Import config models from centralized location to avoid circular dependency
 from ..config_models import HTTPConfig, RateLimitConfig, CacheConfig, RateLimitStrategy
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class CacheLevel(Enum):
     """Cache tier levels"""
@@ -45,9 +44,7 @@ class CacheLevel(Enum):
     DISK = "disk"
     REDIS = "redis"
 
-
 # Config dataclasses are now imported from config_models.py
-
 
 class RateLimiter:
     """Token bucket rate limiter implementation"""
@@ -94,7 +91,6 @@ class RateLimiter:
                 self.tokens + int(new_tokens)
             )
             self.last_refill = now
-
 
 class LayeredCache:
     """Three-tier caching system: memory -> disk -> redis"""
@@ -224,7 +220,6 @@ class LayeredCache:
             self._cache_order.remove(key)
         self._cache_order.append(key)
 
-
 class SharedHTTPClient:
     """Shared async HTTP client with retry and rate limiting"""
     
@@ -312,7 +307,6 @@ class SharedHTTPClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
-
 class BaseAdapter(ABC):
     """
     Base adapter with shared functionality for all climate data sources.
@@ -333,7 +327,7 @@ class BaseAdapter(ABC):
         cache_config: Optional[CacheConfig] = None
     ):
         self.name = name
-        self.logger = logging.getLogger(f"{__name__}.{name}")
+        self.logger = get_logger(f"{__name__}.{name}")
         
         # Initialize configurations with defaults
         self.http_config = http_config or HTTPConfig()

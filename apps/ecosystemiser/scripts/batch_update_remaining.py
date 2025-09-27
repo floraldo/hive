@@ -4,7 +4,6 @@ Complete Strategy Pattern implementation for the remaining 6 components.
 """
 
 import sys
-from pathlib import Path
 
 # Components to update with their details
 COMPONENTS = [

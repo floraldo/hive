@@ -22,10 +22,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 import json
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # ============================================================================
 # QUALITY CONTROL SEVERITY AND REPORTING
@@ -37,7 +37,6 @@ class QCSeverity(Enum):
     MEDIUM = "medium"     # Moderate issues, may affect analysis  
     HIGH = "high"         # Serious issues, data quality compromised
     CRITICAL = "critical" # Critical issues, data unreliable
-
 
 @dataclass
 class QCIssue:
@@ -63,7 +62,6 @@ class QCIssue:
             'metadata': self.metadata,
             'suggested_action': self.suggested_action
         }
-
 
 @dataclass  
 class QCReport:
@@ -238,7 +236,6 @@ class QCReport:
                 self.metadata = {}
             self.metadata.update(other.metadata)
 
-
 # Helper functions for creating QC issues
 def create_consistency_issue(
     message: str,
@@ -254,7 +251,6 @@ def create_consistency_issue(
         affected_variables=affected_variables,
         **kwargs
     )
-
 
 def create_bounds_issue(
     variable: str,
@@ -276,7 +272,6 @@ def create_bounds_issue(
         **kwargs
     )
 
-
 def create_temporal_issue(
     message: str,
     affected_variables: List[str],
@@ -293,7 +288,6 @@ def create_temporal_issue(
         affected_time_range=time_range,
         **kwargs
     )
-
 
 # ============================================================================
 # SOURCE-SPECIFIC QC PROFILES
@@ -319,7 +313,6 @@ class QCProfile(ABC):
         """Get source-specific adjusted bounds"""
         # Default: return base bounds unchanged
         return base_bounds
-
 
 class NASAPowerQCProfile(QCProfile):
     """QC profile for NASA POWER data"""
@@ -396,7 +389,6 @@ class NASAPowerQCProfile(QCProfile):
                 
         report.passed_checks.append("nasa_power_specific_validation")
 
-
 class MeteostatQCProfile(QCProfile):
     """QC profile for Meteostat data"""
     
@@ -472,7 +464,6 @@ class MeteostatQCProfile(QCProfile):
                 
         return max_gap
 
-
 class ERA5QCProfile(QCProfile):
     """QC profile for ERA5 reanalysis data"""
     
@@ -536,7 +527,6 @@ class ERA5QCProfile(QCProfile):
             
         report.passed_checks.append("era5_specific_validation")
 
-
 class PVGISQCProfile(QCProfile):
     """QC profile for PVGIS solar data"""
     
@@ -596,7 +586,6 @@ class PVGISQCProfile(QCProfile):
             report.add_issue(issue)
             
         report.passed_checks.append("pvgis_specific_validation")
-
 
 class EPWQCProfile(QCProfile):
     """QC profile for EPW (EnergyPlus Weather) files"""
@@ -660,7 +649,6 @@ class EPWQCProfile(QCProfile):
             
         report.passed_checks.append("epw_specific_validation")
 
-
 # Registry of available QC profiles
 QC_PROFILES = {
     'nasa_power': NASAPowerQCProfile,
@@ -670,7 +658,6 @@ QC_PROFILES = {
     'epw': EPWQCProfile,
     'file_epw': EPWQCProfile,  # Alias
 }
-
 
 def get_source_profile(source: str) -> QCProfile:
     """
@@ -690,7 +677,6 @@ def get_source_profile(source: str) -> QCProfile:
         raise ValueError(f"Unknown data source: {source}. Available: {available}")
         
     return QC_PROFILES[source]()
-
 
 # ============================================================================
 # METEOROLOGICAL VALIDATION
@@ -717,7 +703,6 @@ class ValidationProcessor:
         validator = MeteorologicalValidator()
         validator._check_time_gaps(ds, report, expected_freq)
         return report.issues
-
 
 class MeteorologicalValidator:
     """
@@ -1455,7 +1440,6 @@ class MeteorologicalValidator:
         logger.info(f"Batch validation complete: {len(reports)} reports generated")
         return reports
 
-
 # ============================================================================
 # VALIDATION ORCHESTRATOR
 # ============================================================================
@@ -1529,7 +1513,6 @@ def validate_complete(
     logger.info(f"Validation complete: {len(report.issues)} issues found")
     return report
 
-
 def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
     """Validate basic dataset structure and metadata."""
     
@@ -1571,7 +1554,6 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
             report.add_issue(issue)
     
     report.passed_checks.append("structural_validation")
-
 
 def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> None:
     """Apply source-specific validation using QC profiles."""
@@ -1616,12 +1598,9 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
         )
         report.add_issue(issue)
 
-
 # Note: _validate_statistical function was removed as it's duplicate of MeteorologicalValidator._validate_statistical
 
-
 # Note: _generate_summary function was removed as it's duplicate of MeteorologicalValidator._generate_summary
-
 
 # ============================================================================
 # MAIN VALIDATION INTERFACE
@@ -1641,7 +1620,6 @@ PHYSICAL_BOUNDS = {
     'pressure': (800, 1100),    # hPa
     'cloud_cover': (0, 100),    # %
 }
-
 
 def apply_quality_control(
     ds: xr.Dataset,
@@ -1682,7 +1660,6 @@ def apply_quality_control(
     ds_qc = apply_corrections(ds, report, bounds=bounds, spike_filter=spike_filter, gap_fill=gap_fill)
     
     return ds_qc, report
-
 
 def apply_corrections(
     ds: xr.Dataset,
@@ -1742,13 +1719,6 @@ def apply_corrections(
     logger.info("Quality control corrections applied")
     return ds_corrected
 
-
-
-
-
-
-
-
 def validate_dataset_comprehensive(
     ds: xr.Dataset, 
     source: str = None,
@@ -1767,7 +1737,6 @@ def validate_dataset_comprehensive(
     """
     validator = MeteorologicalValidator(strict_mode=strict_mode)
     return validator.validate_dataset(ds, source=source)
-
 
 def clip_physical_bounds(
     ds: xr.Dataset,
@@ -1811,10 +1780,8 @@ def clip_physical_bounds(
     
     return ds_clipped, report
 
-
 # Import the superior solar-position-based implementation from shared utilities
 from EcoSystemiser.profile_loader.shared.timeseries import zero_night_irradiance
-
 
 def filter_spikes(
     ds: xr.Dataset,
@@ -1871,7 +1838,6 @@ def filter_spikes(
             )
     
     return ds_filtered, report
-
 
 def fill_gaps(
     ds: xr.Dataset,
@@ -1942,7 +1908,6 @@ def fill_gaps(
             )
     
     return ds_filled, report
-
 
 # Convenience function for quick validation
 def validate_climate_data(

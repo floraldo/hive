@@ -6,8 +6,7 @@ This service handles loading and processing of energy demand profiles
 """
 
 import asyncio
-import logging
-from pathlib import Path
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
@@ -18,8 +17,7 @@ from ..shared.models import BaseProfileRequest, ProfileMode
 from .models import DemandRequest, DemandResponse, DEMAND_VARIABLES
 from .file_adapter import DemandFileAdapter
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class DemandService(BaseProfileService):
     """

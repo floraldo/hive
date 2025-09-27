@@ -17,8 +17,6 @@ from typing import Dict, Any, List, Optional
 
 # Temporary path setup until package installation completes
 import sys
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
 # Import from properly installed packages
 from hive_logging import setup_logging, get_logger
 from EcoSystemiser.hive_env import get_app_config, get_app_settings
@@ -37,7 +35,6 @@ except Exception as e:
     except Exception:
         CLIMATE_MODELS_AVAILABLE = False
     print(f"Warning: EcoSystemiser climate service not available: {e}")
-
 
 class EcoSystemiserAdapter:
     """Adapter for EcoSystemiser tasks within Hive"""
@@ -395,7 +392,6 @@ class EcoSystemiserAdapter:
             }
         }
 
-
 def main():
     """Main entry point for the adapter"""
     parser = argparse.ArgumentParser(description="EcoSystemiser Hive Adapter")
@@ -427,7 +423,6 @@ def main():
 
     # Exit with appropriate code
     sys.exit(0 if result["status"] == "success" else 1)
-
 
 if __name__ == "__main__":
     main()

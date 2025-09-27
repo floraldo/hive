@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseGenerationPhysics, BaseGenerationOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # SOLAR PV-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -60,7 +58,6 @@ class SolarPVTechnicalParams(GenerationTechnicalParams):
         description="Bifacial module gain factor"
     )
 
-
 class SolarPVParams(ComponentParams):
     """Solar PV parameters using the hierarchical technical parameter system.
 
@@ -75,7 +72,6 @@ class SolarPVParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -104,7 +100,6 @@ class SolarPVPhysicsSimple(BaseGenerationPhysics):
 
         return max(0.0, base_output)
 
-
 class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
     """Implements the STANDARD rule-based physics for a solar PV system.
 
@@ -129,7 +124,6 @@ class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
         final_generation = generation_after_simple * inverter_efficiency
 
         return max(0.0, final_generation)
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -167,7 +161,6 @@ class SolarPVOptimizationSimple(BaseGenerationOptimization):
 
         return constraints
 
-
 class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for solar PV.
 
@@ -197,7 +190,6 @@ class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
             constraints.append(comp.P_out == effective_generation)
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

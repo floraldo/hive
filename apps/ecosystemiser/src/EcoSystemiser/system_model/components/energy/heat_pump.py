@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseConversionPhysics, BaseConversionOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # HEAT PUMP-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -61,7 +59,6 @@ class HeatPumpTechnicalParams(GenerationTechnicalParams):
         description="Advanced control algorithm parameters"
     )
 
-
 class HeatPumpParams(ComponentParams):
     """Heat pump parameters using the hierarchical technical parameter system.
 
@@ -77,7 +74,6 @@ class HeatPumpParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -146,7 +142,6 @@ class HeatPumpPhysicsSimple(BaseConversionPhysics):
             'output_delivered': actual_output
         }
 
-
 class HeatPumpPhysicsStandard(HeatPumpPhysicsSimple):
     """Implements the STANDARD rule-based physics for a heat pump.
 
@@ -187,7 +182,6 @@ class HeatPumpPhysicsStandard(HeatPumpPhysicsSimple):
         capacity['max_input'] = capacity['max_output'] / capacity['efficiency']
 
         return capacity
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -236,7 +230,6 @@ class HeatPumpOptimizationSimple(BaseConversionOptimization):
 
         return constraints
 
-
 class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for heat pump.
 
@@ -280,7 +273,6 @@ class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
             constraints.append(comp.P_loss + comp.P_pump <= comp.P_max_elec)
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

@@ -14,8 +14,6 @@ import json
 
 # Add the src directory to the Python path
 src_root = Path(__file__).resolve().parent / "src"
-sys.path.insert(0, str(src_root))
-
 # Now we can import from the EcoSystemiser package
 from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
 from EcoSystemiser.profile_loader.climate.service import ClimateService

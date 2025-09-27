@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, date
 from typing import List, Dict, Optional, Union, Tuple, Any
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 import os
 from io import StringIO
 import urllib.request
@@ -17,7 +17,7 @@ from .capabilities import (
 )
 from EcoSystemiser.errors import DataParseError, ErrorCode
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class FileEPWAdapter(BaseAdapter):
     """Adapter for EPW (EnergyPlus Weather) file import"""
@@ -675,7 +675,6 @@ class FileEPWAdapter(BaseAdapter):
             
             data_products=["TMY", "AMY", "Design Days", "Climate Zones"]
         )
-
 
 # Alias for compatibility
 EPWAdapter = FileEPWAdapter

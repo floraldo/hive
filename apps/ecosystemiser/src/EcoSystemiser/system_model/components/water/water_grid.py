@@ -3,14 +3,12 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import TransmissionTechnicalParams, FidelityLevel
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # WATER GRID-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -61,7 +59,6 @@ class WaterGridTechnicalParams(TransmissionTechnicalParams):
         description="Water contamination tracking model"
     )
 
-
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
@@ -107,7 +104,6 @@ class WaterGridPhysicsSimple:
         # Simple clipping to max discharge
         return min(wastewater, max_discharge)
 
-
 class WaterGridPhysicsStandard(WaterGridPhysicsSimple):
     """Implements the STANDARD rule-based physics for water grid transmission.
 
@@ -133,7 +129,6 @@ class WaterGridPhysicsStandard(WaterGridPhysicsSimple):
             return effective_supply
 
         return water_from_grid
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -172,7 +167,6 @@ class WaterGridOptimizationSimple:
 
         return constraints
 
-
 class WaterGridOptimizationStandard(WaterGridOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for water grid.
 
@@ -199,7 +193,6 @@ class WaterGridOptimizationStandard(WaterGridOptimizationSimple):
 
         return constraints
 
-
 class WaterGridParams(ComponentParams):
     """Water grid parameters using the hierarchical technical parameter system."""
     technical: WaterGridTechnicalParams = Field(
@@ -213,7 +206,6 @@ class WaterGridParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

@@ -5,10 +5,6 @@ Verify that all production fixes have been implemented correctly.
 
 import sys
 import os
-from pathlib import Path
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
 def test_climate_response_validation():
     """Test that ClimateResponse includes all required base fields."""
@@ -59,7 +55,6 @@ def test_climate_response_validation():
         print(f"[FAIL] ClimateResponse validation test FAILED: {e}")
         return False
 
-
 def test_job_manager():
     """Test the production-ready job manager."""
     print("\nTesting JobManager...")
@@ -99,7 +94,6 @@ def test_job_manager():
     print("[PASS] JobManager test PASSED")
     return True
 
-
 def test_epw_error_handling():
     """Test EPW file parser error handling."""
     print("\nTesting EPW error handling...")
@@ -133,7 +127,6 @@ def test_epw_error_handling():
     
     print("[PASS] EPW error handling test PASSED")
     return True
-
 
 def test_time_gap_detection():
     """Test improved time gap detection with explicit frequency."""
@@ -175,7 +168,6 @@ def test_time_gap_detection():
     print("[PASS] Time gap detection test PASSED")
     return True
 
-
 def test_factory_no_sys_path():
     """Test that factory doesn't manipulate sys.path."""
     print("\nTesting factory sys.path cleanup...")
@@ -197,7 +189,6 @@ def test_factory_no_sys_path():
     
     print("[PASS] Factory sys.path test PASSED")
     return True
-
 
 def main():
     """Run all verification tests."""
@@ -234,7 +225,6 @@ def main():
     else:
         print(f"\nWARNING:  {total - passed} tests failed. Please review the failures above.")
         return 1
-
 
 if __name__ == "__main__":
     sys.exit(main())

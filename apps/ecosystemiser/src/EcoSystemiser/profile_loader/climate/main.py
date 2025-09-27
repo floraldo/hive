@@ -27,7 +27,6 @@ logger = get_logger(__name__)
 # Get settings
 settings = get_settings()
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -72,7 +71,6 @@ async def lifespan(app: FastAPI):
     shutdown_observability()
     
     logger.info("Application shutdown complete")
-
 
 def create_app() -> FastAPI:
     """
@@ -159,10 +157,8 @@ def create_app() -> FastAPI:
     
     return app
 
-
 # Create application instance
 app = create_app()
-
 
 if __name__ == "__main__":
     """Run the application with uvicorn"""

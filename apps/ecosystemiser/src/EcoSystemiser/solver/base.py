@@ -2,9 +2,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
-import logging
-
-logger = logging.getLogger(__name__)
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 class SolverConfig(BaseModel):
     """Configuration for solver behavior."""

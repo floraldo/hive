@@ -8,11 +8,10 @@ building-specific derived variables for comprehensive building energy analysis.
 import xarray as xr
 import numpy as np
 import pandas as pd
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Optional, Tuple, List
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 def analyze_building_loads(ds: xr.Dataset) -> Dict:
     """
@@ -104,7 +103,6 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
     
     return analysis
 
-
 def get_design_conditions(ds: xr.Dataset, 
                          percentiles: List[float] = [0.4, 1, 2, 99, 99.6]) -> Dict:
     """
@@ -176,7 +174,6 @@ def get_design_conditions(ds: xr.Dataset,
     
     return design
 
-
 def calculate_peak_periods(ds: xr.Dataset, 
                           window: str = '1D',
                           variables: Optional[List[str]] = None) -> Dict:
@@ -246,7 +243,6 @@ def calculate_peak_periods(ds: xr.Dataset,
     
     return peaks
 
-
 def analyze_diurnal_profiles(ds: xr.Dataset,
                             variables: Optional[List[str]] = None,
                             by_month: bool = True) -> Dict:
@@ -308,7 +304,6 @@ def analyze_diurnal_profiles(ds: xr.Dataset,
     
     return profiles
 
-
 def calculate_simultaneity(ds: xr.Dataset) -> Dict:
     """
     Calculate simultaneity factors between different loads.
@@ -356,7 +351,6 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
         )
     
     return simultaneity
-
 
 def derive_building_variables(ds: xr.Dataset, config: Optional[Dict] = None) -> xr.Dataset:
     """
@@ -437,7 +431,6 @@ def derive_building_variables(ds: xr.Dataset, config: Optional[Dict] = None) -> 
     
     return ds_building
 
-
 def calculate_wetbulb(temp_air: xr.DataArray, 
                      rel_humidity: xr.DataArray,
                      pressure: xr.DataArray | float) -> xr.DataArray:
@@ -465,7 +458,6 @@ def calculate_wetbulb(temp_air: xr.DataArray,
          4.686035
     
     return tw
-
 
 def calculate_heat_index(temp_air: xr.DataArray, 
                          rel_humidity: xr.DataArray) -> xr.DataArray:
@@ -510,7 +502,6 @@ def calculate_heat_index(temp_air: xr.DataArray,
     HI_C = (HI_F - 32) * 5/9
     
     return HI_C
-
 
 def calculate_degree_days(temp_air: xr.DataArray,
                           base_heat: float = 18.0,
@@ -566,7 +557,6 @@ def calculate_degree_days(temp_air: xr.DataArray,
     else:
         logger.warning("Cannot calculate degree days without time dimension")
         return {}
-
 
 def calculate_wind_power_density(wind_speed: xr.DataArray,
                                  temp_air: Optional[xr.DataArray] = None,

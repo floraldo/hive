@@ -1,11 +1,11 @@
 """Rule-based solver for system simulation - SIMPLIFIED VERSION."""
 import numpy as np
 import time
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Any
 from .base import BaseSolver, SolverResult
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class RuleBasedEngine(BaseSolver):
     """Simple rule-based control solver - just a traffic cop, NO component logic."""

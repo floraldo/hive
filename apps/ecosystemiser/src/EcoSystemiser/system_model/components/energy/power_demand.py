@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import DemandTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # POWER DEMAND-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -45,7 +43,6 @@ class PowerDemandTechnicalParams(DemandTechnicalParams):
         description="Coupling to occupancy patterns"
     )
 
-
 class PowerDemandParams(ComponentParams):
     """Power demand parameters using the hierarchical technical parameter system.
 
@@ -61,7 +58,6 @@ class PowerDemandParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -90,7 +86,6 @@ class PowerDemandPhysicsSimple(BaseDemandPhysics):
 
         return max(0.0, base_demand)
 
-
 class PowerDemandPhysicsStandard(PowerDemandPhysicsSimple):
     """Implements the STANDARD rule-based physics for power demand.
 
@@ -116,7 +111,6 @@ class PowerDemandPhysicsStandard(PowerDemandPhysicsSimple):
             pass
 
         return max(0.0, demand_after_simple)
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -155,7 +149,6 @@ class PowerDemandOptimizationSimple(BaseDemandOptimization):
 
         return constraints
 
-
 class PowerDemandOptimizationStandard(PowerDemandOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for power demand.
 
@@ -191,7 +184,6 @@ class PowerDemandOptimizationStandard(PowerDemandOptimizationSimple):
             constraints.append(comp.P_in == demand_exact)
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

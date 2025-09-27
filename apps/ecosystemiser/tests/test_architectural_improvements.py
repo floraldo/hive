@@ -19,11 +19,7 @@ import xarray as xr
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import json
-from pathlib import Path
 import sys
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from EcoSystemiser.solver.base import SolverConfig
 from EcoSystemiser.solver.milp_solver import MILPSolver
@@ -56,7 +52,6 @@ try:
     FASTAPI_AVAILABLE = True
 except ImportError:
     FASTAPI_AVAILABLE = False
-
 
 class TestMultiObjectiveOptimization:
     """Test multi-objective optimization with configurable weights."""
@@ -148,7 +143,6 @@ class TestMultiObjectiveOptimization:
 
         # Verify Minimize was called
         mock_minimize.assert_called_once()
-
 
 class TestRollingHorizonSolver:
     """Test Rolling Horizon MILP Solver implementation."""
@@ -268,7 +262,6 @@ class TestRollingHorizonSolver:
         assert result.num_windows > 0
         assert isinstance(result.window_results, list)
 
-
 class TestMixedFidelitySimulation:
     """Test mixed-fidelity simulation capabilities in StudyService."""
 
@@ -354,7 +347,6 @@ class TestMixedFidelitySimulation:
         assert configs[0].output_config["mixed_fidelity_config"]["battery"] == "SIMPLE"
         assert configs[1].output_config["mixed_fidelity_config"]["battery"] == "STANDARD"
         assert configs[2].output_config["mixed_fidelity_config"]["battery"] == "DETAILED"
-
 
 class TestJobManagerIntegration:
     """Test Redis-backed JobManager integration."""
@@ -453,7 +445,6 @@ class TestJobManagerIntegration:
             success = manager.update_job_status("non-existent-id", JobStatus.COMPLETED)
             assert success is False
 
-
 class TestLocationResolver:
     """Test centralized location resolution."""
 
@@ -516,7 +507,6 @@ class TestLocationResolver:
         paris2 = resolver.resolve_location("paris")
         assert paris1 == paris2
 
-
 @pytest.mark.skipif(not FASTAPI_AVAILABLE, reason="FastAPI not installed")
 class TestAPIIntegration:
     """Test API-level integration with architectural improvements."""
@@ -548,7 +538,6 @@ class TestAPIIntegration:
         assert "/jobs" in paths
         assert "/jobs/{job_id}" in paths
         assert "/jobs/{job_id}/result" in paths
-
 
 class TestAllImprovements:
     """Integration test for all improvements."""
@@ -650,7 +639,6 @@ class TestAllImprovements:
 
         # All must pass
         assert all("✅" in item for item in checklist), "Not all components are production ready"
-
 
 if __name__ == "__main__":
     # Run with detailed output

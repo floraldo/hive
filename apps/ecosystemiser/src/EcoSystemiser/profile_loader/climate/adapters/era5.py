@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 import os
 
 from .base import BaseAdapter
@@ -15,7 +15,7 @@ from .capabilities import (
 )
 from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class ERA5Adapter(BaseAdapter):
     """Adapter for ERA5 reanalysis climate data"""

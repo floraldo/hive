@@ -13,8 +13,6 @@ import numpy as np
 
 # Add path for imports
 eco_path = Path(__file__).parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 # Import EcoSystemiser components
 from system_model.system import System
 from system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
@@ -24,13 +22,11 @@ from system_model.components.energy.power_demand import PowerDemand, PowerDemand
 from system_model.components.shared.archetypes import FidelityLevel
 from solver.rule_based_engine import RuleBasedEngine
 
-
 def load_golden_dataset():
     """Load the golden dataset from the Systemiser baseline."""
     golden_path = Path(__file__).parent / 'tests' / 'systemiser_minimal_golden.json'
     with open(golden_path, 'r') as f:
         return json.load(f)
-
 
 def create_minimal_ecosystemiser():
     """Create the minimal 4-component system matching the golden dataset configuration."""
@@ -128,7 +124,6 @@ def create_minimal_ecosystemiser():
 
     return system
 
-
 def extract_ecosystemiser_results(system):
     """Extract results from EcoSystemiser in the same format as golden dataset."""
 
@@ -173,7 +168,6 @@ def extract_ecosystemiser_results(system):
         }
 
     return results
-
 
 def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
     """Compare EcoSystemiser results against golden dataset with strict tolerance."""
@@ -221,7 +215,6 @@ def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
         total_comparisons += 1
 
     return failures, total_comparisons
-
 
 def main():
     """Main validation function."""
@@ -286,7 +279,6 @@ def main():
         print(f"\nVALIDATION ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
-
 
 if __name__ == "__main__":
     main()

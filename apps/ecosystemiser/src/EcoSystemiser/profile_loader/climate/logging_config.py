@@ -8,7 +8,7 @@ Provides consistent, structured logging across the platform with:
 - Error context preservation
 """
 
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 import sys
 from typing import Any, Dict, Optional
 from contextvars import ContextVar
@@ -21,7 +21,6 @@ from EcoSystemiser.settings import get_settings
 # Context variable for correlation ID
 correlation_id_var: ContextVar[Optional[str]] = ContextVar('correlation_id', default=None)
 request_id_var: ContextVar[Optional[str]] = ContextVar('request_id', default=None)
-
 
 class CorrelationIDProcessor:
     """Add correlation ID to all log entries"""
@@ -37,7 +36,6 @@ class CorrelationIDProcessor:
             event_dict['request_id'] = request_id
         
         return event_dict
-
 
 class PerformanceProcessor:
     """Add performance metrics to log entries"""
@@ -55,7 +53,6 @@ class PerformanceProcessor:
                 pass  # psutil not installed
         
         return event_dict
-
 
 class ErrorContextProcessor:
     """Enhanced error context for debugging"""
@@ -80,7 +77,6 @@ class ErrorContextProcessor:
         
         return event_dict
 
-
 class AdapterContextProcessor:
     """Add adapter context to logs"""
     
@@ -96,7 +92,6 @@ class AdapterContextProcessor:
                     break
         
         return event_dict
-
 
 def setup_logging(
     log_level: Optional[str] = None,
@@ -116,8 +111,7 @@ def setup_logging(
     format_type = log_format or settings.observability.log_format
     
     # Set up stdlib logging
-    logging.basicConfig(
-        format="%(message)s",
+    s",
         stream=sys.stdout,
         level=getattr(logging, level.upper())
     )
@@ -177,7 +171,6 @@ def setup_logging(
         cache_logger_on_first_use=True,
     )
 
-
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:
     """
     Get a configured logger instance.
@@ -190,22 +183,18 @@ def get_logger(name: str) -> structlog.stdlib.BoundLogger:
     """
     return structlog.get_logger(name)
 
-
 def set_correlation_id(correlation_id: str) -> None:
     """Set correlation ID for current context"""
     correlation_id_var.set(correlation_id)
-
 
 def set_request_id(request_id: str) -> None:
     """Set request ID for current context"""
     request_id_var.set(request_id)
 
-
 def clear_context() -> None:
     """Clear logging context variables"""
     correlation_id_var.set(None)
     request_id_var.set(None)
-
 
 class LoggingContext:
     """Context manager for scoped logging context"""
@@ -237,7 +226,6 @@ class LoggingContext:
         """Reset logging context"""
         for var, token in self.tokens:
             var.reset(token)
-
 
 # Convenience function for logging with context
 def log_with_context(

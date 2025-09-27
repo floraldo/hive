@@ -3,14 +3,12 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import TransmissionTechnicalParams, FidelityLevel
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # GRID-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -47,7 +45,6 @@ class GridTechnicalParams(TransmissionTechnicalParams):
         None,
         description="Detailed grid impedance model"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -94,7 +91,6 @@ class GridPhysicsSimple:
         # Simple clipping to max export
         return min(power_available, max_export)
 
-
 class GridPhysicsStandard(GridPhysicsSimple):
     """Implements the STANDARD rule-based physics for grid transmission.
 
@@ -120,7 +116,6 @@ class GridPhysicsStandard(GridPhysicsSimple):
             return power_delivered
 
         return power_from_grid
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -156,7 +151,6 @@ class GridOptimizationSimple:
 
         return constraints
 
-
 class GridOptimizationStandard(GridOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for grid.
 
@@ -184,7 +178,6 @@ class GridOptimizationStandard(GridOptimizationSimple):
 
         return constraints
 
-
 class GridParams(ComponentParams):
     """Grid parameters using the hierarchical technical parameter system."""
     technical: GridTechnicalParams = Field(
@@ -198,7 +191,6 @@ class GridParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

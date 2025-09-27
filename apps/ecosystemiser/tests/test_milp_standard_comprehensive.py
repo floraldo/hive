@@ -15,8 +15,6 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-sys.path.insert(0, str(eco_path))
-
 from system_model.system import System
 from system_model.components.energy.battery import Battery, BatteryParams
 from system_model.components.energy.solar_pv import SolarPV, SolarPVParams
@@ -33,7 +31,6 @@ from system_model.components.water.rainwater_source import RainwaterSource, Rain
 from system_model.components.shared.archetypes import FidelityLevel
 from solver.milp_solver import MILPSolver
 from solver.base import SolverConfig
-
 
 def create_comprehensive_test_system(fidelity_level: FidelityLevel):
     """Create a comprehensive energy system with all component types."""
@@ -245,7 +242,6 @@ def create_comprehensive_test_system(fidelity_level: FidelityLevel):
 
     return system
 
-
 def analyze_component_differences(simple_system, standard_system):
     """Analyze differences in component behavior between fidelity levels."""
     differences = {}
@@ -349,7 +345,6 @@ def analyze_component_differences(simple_system, standard_system):
 
     return differences
 
-
 def test_comprehensive_milp_standard():
     """Test MILP optimization with STANDARD fidelity across all components."""
     logger.info("="*70)
@@ -442,7 +437,6 @@ def test_comprehensive_milp_standard():
         logger.warning("More components should implement meaningful STANDARD constraints.")
         return False
 
-
 def main():
     """Main test runner for comprehensive MILP STANDARD validation."""
     logger.info("🚀 COMPREHENSIVE MILP STANDARD FIDELITY VALIDATION")
@@ -473,7 +467,6 @@ def main():
         logger.error("Some components may need additional STANDARD constraints")
 
     return success
-
 
 if __name__ == "__main__":
     import sys

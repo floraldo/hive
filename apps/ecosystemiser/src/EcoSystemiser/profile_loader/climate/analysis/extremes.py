@@ -5,11 +5,10 @@ Extreme event analysis for climate data.
 import xarray as xr
 import numpy as np
 import pandas as pd
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Dict, List, Optional, Tuple
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 def find_extreme_events(ds: xr.Dataset,
                         variable: str = 'temp_air',
@@ -87,7 +86,6 @@ def find_extreme_events(ds: xr.Dataset,
     logger.info(f"Found {len(events)} extreme events for {variable}")
     return events
 
-
 def identify_heat_waves(ds: xr.Dataset,
                         temp_threshold: float = 32,
                         min_duration_days: int = 3,
@@ -157,7 +155,6 @@ def identify_heat_waves(ds: xr.Dataset,
     
     return heat_waves
 
-
 def identify_cold_snaps(ds: xr.Dataset,
                         temp_threshold: float = -5,
                         min_duration_days: int = 3) -> List[Dict]:
@@ -216,7 +213,6 @@ def identify_cold_snaps(ds: xr.Dataset,
     
     return cold_snaps
 
-
 def calculate_percentiles(ds: xr.Dataset,
                          variables: Optional[List[str]] = None,
                          percentiles: List[float] = [1, 5, 25, 50, 75, 95, 99]) -> Dict:
@@ -254,7 +250,6 @@ def calculate_percentiles(ds: xr.Dataset,
             results[var]['range'] = float(valid_data.max() - valid_data.min())
     
     return results
-
 
 def calculate_return_periods(ds: xr.Dataset,
                             variable: str,
@@ -330,7 +325,6 @@ def calculate_return_periods(ds: xr.Dataset,
     }
     
     return results
-
 
 def summarize_extremes(ds: xr.Dataset) -> Dict:
     """

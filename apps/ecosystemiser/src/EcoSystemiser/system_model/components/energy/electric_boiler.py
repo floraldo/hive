@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseConversionPhysics, BaseConversionOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # ELECTRIC BOILER-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -60,7 +58,6 @@ class ElectricBoilerTechnicalParams(GenerationTechnicalParams):
         description="Detailed emissions modeling"
     )
 
-
 class ElectricBoilerParams(ComponentParams):
     """Electric boiler parameters using the hierarchical technical parameter system.
 
@@ -75,7 +72,6 @@ class ElectricBoilerParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -144,7 +140,6 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
             'output_delivered': actual_output
         }
 
-
 class ElectricBoilerPhysicsStandard(ElectricBoilerPhysicsSimple):
     """Implements the STANDARD rule-based physics for an electric boiler.
 
@@ -175,7 +170,6 @@ class ElectricBoilerPhysicsStandard(ElectricBoilerPhysicsSimple):
             capacity['max_input'] = 0.0
 
         return capacity
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -222,7 +216,6 @@ class ElectricBoilerOptimizationSimple(BaseConversionOptimization):
             constraints.append(comp.P_elec <= comp.P_max_elec)
 
         return constraints
-
 
 class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for electric boiler.
@@ -276,7 +269,6 @@ class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
                 constraints.append(comp.P_heat <= max_power * comp._boiler_state)
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

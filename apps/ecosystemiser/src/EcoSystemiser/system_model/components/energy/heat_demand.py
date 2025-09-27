@@ -3,15 +3,13 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
-import logging
-
+from EcoSystemiser.hive_logging_adapter import get_logger
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import DemandTechnicalParams, FidelityLevel
 from ..shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 # =============================================================================
 # HEAT DEMAND-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
@@ -64,7 +62,6 @@ class HeatDemandTechnicalParams(DemandTechnicalParams):
         description="Occupant behavior modeling parameters"
     )
 
-
 class HeatDemandParams(ComponentParams):
     """Heat demand parameters using the hierarchical technical parameter system.
 
@@ -80,7 +77,6 @@ class HeatDemandParams(ComponentParams):
         ),
         description="Technical parameters following the hierarchical archetype system"
     )
-
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
@@ -108,7 +104,6 @@ class HeatDemandPhysicsSimple(BaseDemandPhysics):
         base_demand = profile_value * peak_demand
 
         return max(0.0, base_demand)
-
 
 class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
     """Implements the STANDARD rule-based physics for heat demand.
@@ -140,7 +135,6 @@ class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
             demand_after_simple = demand_after_simple * max(0.1, weather_multiplier)
 
         return max(0.0, demand_after_simple)
-
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
@@ -185,7 +179,6 @@ class HeatDemandOptimizationSimple(BaseDemandOptimization):
 
         return constraints
 
-
 class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for heat demand.
 
@@ -229,7 +222,6 @@ class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
                     constraints.append(comp.H_in[t] == base_demand_t)
 
         return constraints
-
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)

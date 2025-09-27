@@ -17,8 +17,6 @@ logger = logging.getLogger(__name__)
 
 # Add Systemiser path
 systemiser_path = Path(__file__).parent.parent.parent / 'Systemiser'
-sys.path.insert(0, str(systemiser_path))
-
 # Import core components directly
 from system.system import System
 from system.battery import Battery
@@ -26,7 +24,6 @@ from system.grid import Grid
 from system.solar_pv import SolarPV
 from system.power_demand import PowerDemand
 from solver.rule_based_solver import ComponentBasedRuleEngine
-
 
 def create_minimal_system_direct(N=24):
     """Create minimal 4-component system directly."""
@@ -78,7 +75,6 @@ def create_minimal_system_direct(N=24):
 
     return system, components
 
-
 def run_simulation(system, components, N=24):
     """Run the Systemiser rule-based engine."""
     logger.info("Running Systemiser rule-based simulation...")
@@ -98,7 +94,6 @@ def run_simulation(system, components, N=24):
     logger.info("Simulation complete!")
 
     return extract_results(system, components, N)
-
 
 def extract_results(system, components, N):
     """Extract results in standardized format."""
@@ -153,7 +148,6 @@ def extract_results(system, components, N):
 
     return results
 
-
 def calculate_summary(results):
     """Calculate summary statistics."""
     summary = {}
@@ -196,7 +190,6 @@ def calculate_summary(results):
 
     return summary
 
-
 def save_results(results, filepath):
     """Save results to JSON."""
     filepath = Path(filepath)
@@ -214,7 +207,6 @@ def save_results(results, filepath):
     for key, value in results['summary'].items():
         logger.info(f"{key}: {value:.4f}")
     logger.info("="*60)
-
 
 def main():
     """Main function."""
@@ -242,7 +234,6 @@ def main():
         import traceback
         traceback.print_exc()
         raise
-
 
 if __name__ == "__main__":
     main()

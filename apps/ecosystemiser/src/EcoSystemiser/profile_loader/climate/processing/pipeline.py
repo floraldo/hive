@@ -6,7 +6,7 @@ with configurable steps and proper error handling.
 """
 
 import xarray as xr
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import List, Callable, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
@@ -16,14 +16,12 @@ from EcoSystemiser.settings import get_settings
 # Compatibility alias
 get_config = get_settings
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class PipelineStage(Enum):
     """Pipeline stage enumeration"""
     PREPROCESSING = "preprocessing"
     POSTPROCESSING = "postprocessing"
-
 
 @dataclass
 class ProcessingStep:
@@ -85,7 +83,6 @@ class ProcessingStep:
                 raise RuntimeError(error_msg)
             else:
                 return ds, {"error": error_msg, "step": self.name}
-
 
 class ProcessingPipeline:
     """

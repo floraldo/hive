@@ -12,9 +12,6 @@ import logging
 
 # Setup paths
 project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / 'apps'))  # Add apps directory for Systemiser
-
 # Import original Systemiser
 from Systemiser.solver.rule_based_solver import ComponentBasedRuleEngine
 from Systemiser.utils.system_setup import create_system

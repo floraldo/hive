@@ -4,13 +4,12 @@ Job service for processing climate data requests asynchronously.
 This module provides functions for the arq worker to process climate jobs.
 """
 
-import logging
+from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Any, Dict
 from ..profile_loader.climate.service import get_enhanced_climate_service
 from ..profile_loader.climate.data_models import ClimateRequest
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 async def process_climate_job(ctx: Dict[str, Any], job_data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -51,7 +50,6 @@ async def process_climate_job(ctx: Dict[str, Any], job_data: Dict[str, Any]) -> 
             'job_id': job_data.get('job_id')
         }
 
-
 async def cleanup_old_jobs(ctx: Dict[str, Any]) -> None:
     """
     Clean up old job results and cached data.
@@ -71,7 +69,6 @@ async def cleanup_old_jobs(ctx: Dict[str, Any]) -> None:
         
     except Exception as e:
         logger.error(f"Cleanup failed: {str(e)}")
-
 
 async def collect_metrics(ctx: Dict[str, Any]) -> None:
     """
@@ -94,7 +91,6 @@ async def collect_metrics(ctx: Dict[str, Any]) -> None:
     except Exception as e:
         logger.error(f"Metrics collection failed: {str(e)}")
 
-
 async def startup(ctx: Dict[str, Any]) -> None:
     """
     Worker startup hook.
@@ -109,7 +105,6 @@ async def startup(ctx: Dict[str, Any]) -> None:
     ctx['settings'] = get_settings()
     
     logger.info("Climate worker started successfully")
-
 
 async def shutdown(ctx: Dict[str, Any]) -> None:
     """

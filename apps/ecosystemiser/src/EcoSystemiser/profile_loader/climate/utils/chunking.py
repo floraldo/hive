@@ -7,10 +7,8 @@ import pandas as pd
 import numpy as np
 from typing import List, Dict, Tuple, Optional, Generator
 from datetime import datetime, timedelta
-import logging
-
-logger = logging.getLogger(__name__)
-
+from EcoSystemiser.hive_logging_adapter import get_logger
+logger = get_logger(__name__)
 
 def split_date_range(
     start_date: datetime, 
@@ -40,7 +38,6 @@ def split_date_range(
         current_start = chunk_end + timedelta(days=1)
     
     return chunks
-
 
 def process_in_chunks(
     ds: xr.Dataset,
@@ -72,7 +69,6 @@ def process_in_chunks(
         return ds_chunked
     
     return ds
-
 
 def concatenate_chunked_results(
     chunks: List[xr.Dataset],
@@ -107,7 +103,6 @@ def concatenate_chunked_results(
             result = xr.concat([result, chunk], dim=dim)
         return result
 
-
 def estimate_memory_usage(ds: xr.Dataset) -> float:
     """
     Estimate memory usage of a dataset in MB.
@@ -128,7 +123,6 @@ def estimate_memory_usage(ds: xr.Dataset) -> float:
     
     # Convert to MB
     return total_size / (1024 * 1024)
-
 
 def create_time_chunks_generator(
     ds: xr.Dataset,
@@ -159,7 +153,6 @@ def create_time_chunks_generator(
             chunk = ds.isel(time=mask)
             logger.debug(f"Yielding chunk: {chunk_start} to {chunk_end}")
             yield chunk
-
 
 def apply_chunked_operation(
     ds: xr.Dataset,

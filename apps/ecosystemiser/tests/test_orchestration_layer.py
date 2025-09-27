@@ -9,8 +9,6 @@ from unittest.mock import Mock, patch
 
 import sys
 eco_path = Path(__file__).parent.parent / 'src'
-sys.path.insert(0, str(eco_path))
-
 from EcoSystemiser.services.simulation_service import (
     SimulationService, SimulationConfig, SimulationResult
 )
@@ -23,7 +21,6 @@ from EcoSystemiser.solver.rolling_horizon_milp import (
 from EcoSystemiser.system_model.system import System
 from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryParams
 from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
-
 
 class TestSimulationService:
     """Test suite for SimulationService orchestration."""
@@ -101,7 +98,6 @@ class TestSimulationService:
 
         finally:
             Path(config_path).unlink()
-
 
 class TestStudyService:
     """Test suite for StudyService multi-simulation orchestration."""
@@ -295,7 +291,6 @@ class TestStudyService:
         assert "cost_mean" in stats
         assert stats["cost_mean"] == 110.0  # (100 + 120) / 2
 
-
 class TestRollingHorizonMILPSolver:
     """Test suite for RollingHorizonMILPSolver."""
 
@@ -435,7 +430,6 @@ class TestRollingHorizonMILPSolver:
         assert validation['storage_continuity_violations'] == 1
         assert validation['success_rate'] == 2/3
 
-
 class TestOrchestrationIntegration:
     """Integration tests for the complete orchestration layer."""
 
@@ -529,7 +523,6 @@ class TestOrchestrationIntegration:
         finally:
             # Clean up the temporary file
             Path(config_path).unlink(missing_ok=True)
-
 
 if __name__ == "__main__":
     # Run tests with pytest
