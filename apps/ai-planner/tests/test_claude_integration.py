@@ -177,6 +177,23 @@ class TestClaudeIntegration:
             }
         }
 
+        # CRITICAL FIX: Insert test task into planning_queue BEFORE trying to save execution plan
+        # This satisfies the foreign key constraint: planning_task_id REFERENCES planning_queue(id)
+        cursor = agent.db_connection.cursor()
+        cursor.execute("""
+            INSERT INTO planning_queue
+            (id, task_description, priority, requestor, context_data, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            test_task['id'],
+            test_task['task_description'],
+            test_task['priority'],
+            test_task['requestor'],
+            json.dumps(test_task['context_data']),
+            'pending'
+        ))
+        agent.db_connection.commit()
+
         # Generate execution plan using Claude
         plan = agent.generate_execution_plan(test_task)
 
@@ -203,8 +220,9 @@ class TestClaudeIntegration:
         subtask_count = cursor.fetchone()[0]
         assert subtask_count >= len(plan['sub_tasks'])
 
-        # Cleanup
+        # Cleanup - correct order to respect foreign keys
         cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task['id'],))
+        cursor.execute("DELETE FROM planning_queue WHERE id = ?", (test_task['id'],))
         cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
         agent.db_connection.commit()
         agent.db_connection.close()
@@ -255,7 +273,9 @@ class TestClaudeIntegration:
         assert final_status == 'planned'
 
         cursor.execute("SELECT plan_data FROM execution_plans WHERE planning_task_id = ?", (test_task_id,))
-        plan_json = cursor.fetchone()[0]
+        plan_result = cursor.fetchone()
+        assert plan_result is not None, f"No execution plan found for task {test_task_id}. Check if plan was saved properly."
+        plan_json = plan_result[0]
         plan_data = json.loads(plan_json)
 
         # Validate complex plan structure
