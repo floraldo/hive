@@ -291,63 +291,17 @@ class SystemConfigEncoder(ParameterEncoder):
     parameters from system configurations.
     """
 
-    # Predefined parameter specifications for common components
-    COMPONENT_PARAMETERS = {
-        'battery': [
-            ParameterSpec(
-                name='battery_capacity',
-                component='battery',
-                parameter_path='technical.capacity_nominal',
-                bounds=(0, 1000),
-                units='kWh',
-                description='Battery storage capacity'
-            ),
-            ParameterSpec(
-                name='battery_power',
-                component='battery',
-                parameter_path='technical.power_nominal',
-                bounds=(0, 500),
-                units='kW',
-                description='Battery power rating'
-            )
-        ],
-        'solar_pv': [
-            ParameterSpec(
-                name='solar_capacity',
-                component='solar_pv',
-                parameter_path='technical.capacity_nominal',
-                bounds=(0, 2000),
-                units='kW',
-                description='Solar PV capacity'
-            )
-        ],
-        'wind': [
-            ParameterSpec(
-                name='wind_capacity',
-                component='wind',
-                parameter_path='technical.capacity_nominal',
-                bounds=(0, 1000),
-                units='kW',
-                description='Wind turbine capacity'
-            )
-        ],
-        'heat_pump': [
-            ParameterSpec(
-                name='heat_pump_capacity',
-                component='heat_pump',
-                parameter_path='technical.capacity_nominal',
-                bounds=(0, 100),
-                units='kW',
-                description='Heat pump capacity'
-            )
-        ]
-    }
+    # Component parameters are now dynamically discovered from component configurations
+    # No hardcoded component knowledge - maintains architectural gravity toward co-location
 
     @classmethod
     def from_config(cls, config_path: Union[str, Path],
                    component_selection: Optional[List[str]] = None,
                    custom_bounds: Optional[Dict[str, Tuple[float, float]]] = None) -> 'SystemConfigEncoder':
         """Create encoder from system configuration file.
+
+        This method dynamically discovers optimizable parameters from component
+        configurations themselves, maintaining proper architectural gravity.
 
         Args:
             config_path: Path to system configuration YAML file
@@ -366,28 +320,103 @@ class SystemConfigEncoder(ParameterEncoder):
         if 'components' in config:
             available_components = set(config['components'].keys())
 
-        # Build parameter list
+        # Build parameter list by introspecting component configurations
         parameters = []
-        for component, param_specs in cls.COMPONENT_PARAMETERS.items():
-            if component in available_components:
-                if component_selection is None or component in component_selection:
-                    for param_spec in param_specs:
-                        # Apply custom bounds if provided
-                        if custom_bounds and param_spec.name in custom_bounds:
-                            param_spec = dataclass.replace(
-                                param_spec,
-                                bounds=custom_bounds[param_spec.name]
-                            )
-                        parameters.append(param_spec)
+
+        for component_name in available_components:
+            if component_selection is None or component_name in component_selection:
+                component_config = config['components'][component_name]
+
+                # Look for optimizable_parameters in component's technical section
+                optimizable_params = cls._extract_optimizable_parameters(
+                    component_name, component_config
+                )
+
+                for param_spec in optimizable_params:
+                    # Apply custom bounds if provided
+                    if custom_bounds and param_spec.name in custom_bounds:
+                        param_spec = dataclass.replace(
+                            param_spec,
+                            bounds=custom_bounds[param_spec.name]
+                        )
+                    parameters.append(param_spec)
 
         if not parameters:
-            raise ValueError("No optimizable parameters found in configuration")
+            raise ValueError(
+                "No optimizable parameters found in configuration. "
+                "Components must define 'optimizable_parameters' in their technical section."
+            )
 
         logger.info(f"Created encoder with {len(parameters)} parameters: "
                    f"{[p.name for p in parameters]}")
 
         encoding_spec = EncodingSpec(parameters=parameters)
         return cls(encoding_spec)
+
+    @classmethod
+    def _extract_optimizable_parameters(cls, component_name: str,
+                                      component_config: Dict[str, Any]) -> List[ParameterSpec]:
+        """Extract optimizable parameters from component configuration.
+
+        This method implements the architectural principle of co-location:
+        component-specific knowledge lives with the component, not in generic engines.
+
+        Args:
+            component_name: Name of the component
+            component_config: Component configuration dictionary
+
+        Returns:
+            List of ParameterSpec objects for this component
+        """
+        parameters = []
+
+        # Look for optimizable_parameters in component's technical section
+        technical_config = component_config.get('technical', {})
+        optimizable_config = technical_config.get('optimizable_parameters', {})
+
+        if not optimizable_config:
+            logger.debug(f"No optimizable parameters defined for component {component_name}")
+            return parameters
+
+        # Convert each optimizable parameter to ParameterSpec
+        for param_name, param_config in optimizable_config.items():
+            try:
+                # Extract required fields
+                parameter_path = param_config.get('parameter_path')
+                bounds = param_config.get('bounds')
+
+                if not parameter_path or not bounds:
+                    logger.warning(f"Incomplete parameter definition for {component_name}.{param_name}: "
+                                 f"missing parameter_path or bounds")
+                    continue
+
+                # Convert bounds to tuple if it's a list
+                if isinstance(bounds, list) and len(bounds) == 2:
+                    bounds = tuple(bounds)
+                elif not isinstance(bounds, tuple) or len(bounds) != 2:
+                    logger.warning(f"Invalid bounds format for {component_name}.{param_name}: {bounds}")
+                    continue
+
+                # Create ParameterSpec
+                param_spec = ParameterSpec(
+                    name=f"{component_name}_{param_name}",
+                    component=component_name,
+                    parameter_path=parameter_path,
+                    bounds=bounds,
+                    parameter_type=param_config.get('parameter_type', 'continuous'),
+                    units=param_config.get('units'),
+                    description=param_config.get('description', f'{param_name} for {component_name}'),
+                    scaling=param_config.get('scaling', 'linear')
+                )
+
+                parameters.append(param_spec)
+                logger.debug(f"Extracted optimizable parameter: {param_spec.name}")
+
+            except Exception as e:
+                logger.warning(f"Failed to process parameter {component_name}.{param_name}: {e}")
+                continue
+
+        return parameters
 
     @classmethod
     def from_parameter_list(cls, parameter_definitions: List[Dict[str, Any]]) -> 'SystemConfigEncoder':

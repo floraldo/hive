@@ -35,6 +35,14 @@ from hive_errors import (
     with_recovery
 )
 
+# Event bus imports for explicit agent communication
+try:
+    from hive_bus import get_event_bus, create_workflow_event, WorkflowEventType, create_task_event, TaskEventType
+except ImportError:
+    # Fallback for development environments
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "packages" / "hive-bus" / "src"))
+    from hive_bus import get_event_bus, create_workflow_event, WorkflowEventType, create_task_event, TaskEventType
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -77,6 +85,14 @@ class AIPlanner:
             delay=2.0
         )
 
+        # Initialize event bus for explicit agent communication
+        try:
+            self.event_bus = get_event_bus()
+            logger.info("Event bus initialized for explicit agent communication")
+        except Exception as e:
+            logger.warning(f"Event bus initialization failed: {e} - continuing without events")
+            self.event_bus = None
+
         # Initialize Claude service for intelligent planning
         config = ClaudeBridgeConfig(mock_mode=mock_mode)
         rate_config = RateLimitConfig(
@@ -90,6 +106,44 @@ class AIPlanner:
         signal.signal(signal.SIGTERM, self._signal_handler)
 
         logger.info(f"AI Planner Agent initialized: {self.agent_id} (mock_mode={mock_mode})")
+
+    def _publish_workflow_event(self, event_type: WorkflowEventType, task_id: str,
+                               workflow_id: str = None, correlation_id: str = None,
+                               **additional_payload) -> str:
+        """Publish workflow events for explicit agent communication
+
+        Args:
+            event_type: Type of workflow event
+            task_id: Associated task ID
+            workflow_id: Workflow identifier (auto-generated if not provided)
+            correlation_id: Correlation ID for workflow tracking
+            **additional_payload: Additional event data
+
+        Returns:
+            Published event ID or empty string if publishing failed
+        """
+        if not self.event_bus:
+            return ""
+
+        try:
+            if not workflow_id:
+                workflow_id = f"plan_{task_id}"
+
+            event = create_workflow_event(
+                event_type=event_type,
+                workflow_id=workflow_id,
+                task_id=task_id,
+                source_agent="ai-planner",
+                **additional_payload
+            )
+
+            event_id = self.event_bus.publish(event, correlation_id=correlation_id)
+            logger.debug(f"Published workflow event {event_type} for task {task_id}: {event_id}")
+            return event_id
+
+        except Exception as e:
+            logger.warning(f"Failed to publish workflow event {event_type} for task {task_id}: {e}")
+            return ""
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""
@@ -250,6 +304,17 @@ class AIPlanner:
                     original_error=None
                 )
                 self.error_reporter.report_error(error)
+
+                # Publish plan generation failure event
+                self._publish_workflow_event(
+                    WorkflowEventType.BLOCKED,
+                    task['id'],
+                    workflow_id=f"plan_{task['id']}",
+                    correlation_id=task.get('correlation_id'),
+                    failure_reason="Claude bridge returned empty response",
+                    error_type="EmptyClaudeResponse"
+                )
+
                 return None
 
             # Enhance the Claude response with additional metadata
@@ -269,6 +334,18 @@ class AIPlanner:
             logger.info(f"Claude plan generated: {enhanced_plan['plan_name']}")
             logger.info(f"Sub-tasks: {len(enhanced_plan['sub_tasks'])}, Duration: {enhanced_plan['metrics']['total_estimated_duration']}min")
 
+            # Publish plan generation success event
+            self._publish_workflow_event(
+                WorkflowEventType.PLAN_GENERATED,
+                task['id'],
+                workflow_id=f"plan_{task['id']}",
+                correlation_id=task.get('correlation_id'),
+                plan_name=enhanced_plan.get('plan_name'),
+                subtask_count=len(enhanced_plan.get('sub_tasks', [])),
+                estimated_duration=enhanced_plan.get('metrics', {}).get('total_estimated_duration', 0),
+                confidence_score=enhanced_plan.get('metadata', {}).get('claude_confidence', 0.0)
+            )
+
             return enhanced_plan
 
         except Exception as e:
@@ -279,6 +356,17 @@ class AIPlanner:
                 original_error=e
             )
             self.error_reporter.report_error(error)
+
+            # Publish plan generation failure event
+            self._publish_workflow_event(
+                WorkflowEventType.BLOCKED,
+                task['id'],
+                workflow_id=f"plan_{task['id']}",
+                correlation_id=task.get('correlation_id'),
+                failure_reason=str(e),
+                error_type=type(e).__name__
+            )
+
             return None
 
     def _estimate_duration(self, complexity: str) -> int:
@@ -516,6 +604,16 @@ class AIPlanner:
         try:
             logger.info(f"Processing task: {task['id']} - {task['task_description'][:100]}...")
 
+            # Publish planning started event
+            self._publish_workflow_event(
+                WorkflowEventType.PHASE_STARTED,
+                task['id'],
+                workflow_id=f"plan_{task['id']}",
+                correlation_id=task.get('correlation_id'),
+                phase="planning",
+                task_description=task['task_description'][:100]
+            )
+
             # Generate execution plan
             plan = self.generate_execution_plan(task)
             if not plan:
@@ -532,6 +630,17 @@ class AIPlanner:
             # Mark task as planned
             self.update_task_status(task['id'], 'planned')
 
+            # Publish planning completion event
+            self._publish_workflow_event(
+                WorkflowEventType.PHASE_COMPLETED,
+                task['id'],
+                workflow_id=f"plan_{task['id']}",
+                correlation_id=task.get('correlation_id'),
+                phase="planning",
+                plan_id=plan['plan_id'],
+                plan_name=plan.get('plan_name', 'Unknown Plan')
+            )
+
             logger.info(f"Successfully planned task: {task['id']} with plan: {plan['plan_id']}")
             return True
 
@@ -544,6 +653,18 @@ class AIPlanner:
             )
             self.error_reporter.report_error(error)
             self.update_task_status(task['id'], 'failed')
+
+            # Publish planning failure event
+            self._publish_workflow_event(
+                WorkflowEventType.BLOCKED,
+                task['id'],
+                workflow_id=f"plan_{task['id']}",
+                correlation_id=task.get('correlation_id'),
+                phase="planning",
+                failure_reason=str(e),
+                error_type=type(e).__name__
+            )
+
             return False
 
     def run(self):

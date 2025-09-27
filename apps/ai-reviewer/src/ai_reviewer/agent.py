@@ -15,6 +15,7 @@ from pathlib import Path
 # Add paths for Hive packages
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-core-db" / "src"))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-logging" / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-bus" / "src"))
 
 import hive_core_db
 from hive_logging import get_logger
@@ -25,6 +26,15 @@ from rich.panel import Panel
 
 from ai_reviewer.reviewer import ReviewEngine, ReviewDecision
 from ai_reviewer.database_adapter import DatabaseAdapter
+
+# Event bus imports for explicit agent communication
+try:
+    from hive_bus import get_event_bus, create_task_event, TaskEventType
+except ImportError as e:
+    logger.warning(f"Event bus not available: {e} - continuing without events")
+    get_event_bus = None
+    create_task_event = None
+    TaskEventType = None
 
 
 console = Console()
@@ -64,6 +74,47 @@ class ReviewAgent:
             "errors": 0,
             "start_time": None
         }
+
+        # Initialize event bus for explicit agent communication
+        try:
+            self.event_bus = get_event_bus() if get_event_bus else None
+            if self.event_bus:
+                logger.info("Event bus initialized for explicit agent communication")
+        except Exception as e:
+            logger.warning(f"Event bus initialization failed: {e} - continuing without events")
+            self.event_bus = None
+
+    def _publish_task_event(self, event_type: 'TaskEventType', task_id: str,
+                           correlation_id: str = None, **additional_payload) -> str:
+        """Publish task events for explicit agent communication
+
+        Args:
+            event_type: Type of task event
+            task_id: Associated task ID
+            correlation_id: Correlation ID for workflow tracking
+            **additional_payload: Additional event data
+
+        Returns:
+            Published event ID or empty string if publishing failed
+        """
+        if not self.event_bus or not create_task_event or not TaskEventType:
+            return ""
+
+        try:
+            event = create_task_event(
+                event_type=event_type,
+                task_id=task_id,
+                source_agent="ai-reviewer",
+                **additional_payload
+            )
+
+            event_id = self.event_bus.publish(event, correlation_id=correlation_id)
+            logger.debug(f"Published task event {event_type} for task {task_id}: {event_id}")
+            return event_id
+
+        except Exception as e:
+            logger.warning(f"Failed to publish task event {event_type} for task {task_id}: {e}")
+            return ""
 
     async def run(self):
         """Main autonomous loop"""
@@ -135,6 +186,16 @@ class ReviewAgent:
                     {"reason": "No code files found for review"}
                 )
                 self.stats["escalated"] += 1
+
+                # Publish escalation event
+                if TaskEventType:
+                    self._publish_task_event(
+                        TaskEventType.ESCALATED,
+                        task['id'],
+                        correlation_id=task.get('correlation_id'),
+                        escalation_reason="No code files found for review",
+                        escalated_by="ai-reviewer"
+                    )
                 return
 
             # Perform AI review
@@ -165,6 +226,17 @@ class ReviewAgent:
                 "escalated",
                 {"error": str(e)}
             )
+
+            # Publish escalation event for error
+            if TaskEventType:
+                self._publish_task_event(
+                    TaskEventType.ESCALATED,
+                    task['id'],
+                    correlation_id=task.get('correlation_id'),
+                    escalation_reason=f"Review error: {str(e)}",
+                    escalated_by="ai-reviewer",
+                    error_type=type(e).__name__
+                )
 
     def _display_review_result(self, result):
         """Display review results in a nice format"""
@@ -225,6 +297,25 @@ class ReviewAgent:
             new_status,
             result.to_dict()
         )
+
+        # Publish review completion event with decision details
+        if TaskEventType:
+            event_type = {
+                ReviewDecision.APPROVE: TaskEventType.REVIEW_COMPLETED,
+                ReviewDecision.REJECT: TaskEventType.FAILED,
+                ReviewDecision.REWORK: TaskEventType.REVIEW_COMPLETED,
+                ReviewDecision.ESCALATE: TaskEventType.ESCALATED
+            }.get(result.decision, TaskEventType.REVIEW_COMPLETED)
+
+            self._publish_task_event(
+                event_type,
+                task['id'],
+                correlation_id=task.get('correlation_id'),
+                review_decision=result.decision.value,
+                review_score=getattr(result, 'score', None),
+                review_summary=getattr(result, 'summary', None),
+                new_status=new_status
+            )
 
         # If approved, potentially trigger next phase
         if result.decision == ReviewDecision.APPROVE:

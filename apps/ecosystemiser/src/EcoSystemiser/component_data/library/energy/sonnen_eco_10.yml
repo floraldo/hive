@@ -25,6 +25,23 @@ technical:
   max_discharge_rate: 0.55  # Symmetric charge/discharge
   self_discharge_rate: 0.00001  # Very low self-discharge for Li-ion
 
+  # Optimizable parameters for system optimization
+  optimizable_parameters:
+    capacity:
+      parameter_path: "technical.capacity_nominal"
+      bounds: [5.0, 50.0]
+      units: "kWh"
+      description: "Battery storage capacity"
+      parameter_type: "continuous"
+      scaling: "linear"
+    power:
+      parameter_path: "technical.max_charge_rate"
+      bounds: [0.2, 2.0]
+      units: "C-rate"
+      description: "Battery maximum charge/discharge rate"
+      parameter_type: "continuous"
+      scaling: "linear"
+
   # Optional detailed parameters (not used at STANDARD fidelity)
   # degradation_model:
   #   calendar_fade_rate: 0.02  # 2% per year

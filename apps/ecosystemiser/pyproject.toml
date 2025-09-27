@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "ecosystemiser"
-version = "0.1.0"
-description = "Climate and ecosystem analysis platform"
-authors = ["Hive System <hive@example.com>"]
+version = "2.0.0"
+description = "Energy ecosystem optimization and simulation platform"
+authors = ["Hive Platform Team <hive@example.com>"]
 packages = [{include = "EcoSystemiser", from = "src"}]
 
 [tool.poetry.dependencies]
@@ -23,11 +23,14 @@ python-dateutil = "^2.8.0"
 pytz = "*"
 timezonefinder = "^6.2.0"
 structlog = "*"
-tenacity = "*"
+tenacity = "^8.0.0"
 diskcache = "*"
 meteostat = "*"
 cdsapi = "*"
 pvlib = "*"
+# Optimization dependencies (from setup.py consolidation)
+cvxpy = "^1.2.0"
+requests = "^2.26.0"
 
 # Hive workspace dependencies
 hive-logging = {path = "../../packages/hive-logging", develop = true}

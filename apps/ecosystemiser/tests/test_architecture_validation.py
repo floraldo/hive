@@ -15,19 +15,19 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from system_model.components.shared.archetypes import FidelityLevel
-from system_model.components.energy.battery import Battery, BatteryPhysicsSimple, BatteryPhysicsStandard, BatteryOptimizationSimple, BatteryOptimizationStandard
-from system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferPhysicsSimple, HeatBufferPhysicsStandard, HeatBufferOptimization
-from system_model.components.energy.solar_pv import SolarPV, SolarPVPhysicsSimple, SolarPVPhysicsStandard, SolarPVOptimization
-from system_model.components.energy.heat_pump import HeatPump, HeatPumpPhysicsSimple, HeatPumpPhysicsStandard, HeatPumpOptimization
-from system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerPhysicsSimple, ElectricBoilerPhysicsStandard, ElectricBoilerOptimization
-from system_model.components.energy.power_demand import PowerDemand, PowerDemandPhysicsSimple, PowerDemandPhysicsStandard, PowerDemandOptimization
-from system_model.components.energy.heat_demand import HeatDemand, HeatDemandPhysicsSimple, HeatDemandPhysicsStandard, HeatDemandOptimization
-from system_model.components.energy.grid import Grid, GridPhysicsSimple, GridPhysicsStandard, GridOptimization
-from system_model.components.water.water_storage import WaterStorage, WaterStoragePhysicsSimple, WaterStoragePhysicsStandard, WaterStorageOptimization
-from system_model.components.water.water_grid import WaterGrid, WaterGridPhysicsSimple, WaterGridPhysicsStandard, WaterGridOptimization
-from system_model.components.water.water_demand import WaterDemand, WaterDemandPhysicsSimple, WaterDemandPhysicsStandard, WaterDemandOptimization
-from system_model.components.water.rainwater_source import RainwaterSource, RainwaterSourcePhysicsSimple, RainwaterSourcePhysicsStandard, RainwaterSourceOptimization
+from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryPhysicsSimple, BatteryPhysicsStandard, BatteryOptimizationSimple, BatteryOptimizationStandard
+from EcoSystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferPhysicsSimple, HeatBufferPhysicsStandard, HeatBufferOptimization
+from EcoSystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVPhysicsSimple, SolarPVPhysicsStandard, SolarPVOptimization
+from EcoSystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpPhysicsSimple, HeatPumpPhysicsStandard, HeatPumpOptimization
+from EcoSystemiser.system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerPhysicsSimple, ElectricBoilerPhysicsStandard, ElectricBoilerOptimization
+from EcoSystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandPhysicsSimple, PowerDemandPhysicsStandard, PowerDemandOptimization
+from EcoSystemiser.system_model.components.energy.heat_demand import HeatDemand, HeatDemandPhysicsSimple, HeatDemandPhysicsStandard, HeatDemandOptimization
+from EcoSystemiser.system_model.components.energy.grid import Grid, GridPhysicsSimple, GridPhysicsStandard, GridOptimization
+from EcoSystemiser.system_model.components.water.water_storage import WaterStorage, WaterStoragePhysicsSimple, WaterStoragePhysicsStandard, WaterStorageOptimization
+from EcoSystemiser.system_model.components.water.water_grid import WaterGrid, WaterGridPhysicsSimple, WaterGridPhysicsStandard, WaterGridOptimization
+from EcoSystemiser.system_model.components.water.water_demand import WaterDemand, WaterDemandPhysicsSimple, WaterDemandPhysicsStandard, WaterDemandOptimization
+from EcoSystemiser.system_model.components.water.rainwater_source import RainwaterSource, RainwaterSourcePhysicsSimple, RainwaterSourcePhysicsStandard, RainwaterSourceOptimization
 
 # Define expected architecture for each component
 COMPONENT_ARCHITECTURE = {

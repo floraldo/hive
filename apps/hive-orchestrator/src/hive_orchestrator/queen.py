@@ -34,6 +34,13 @@ except ImportError:
     sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
     import hive_core_db
 
+# Hive event bus for explicit communication
+try:
+    from hive_bus import get_event_bus, create_task_event, TaskEventType, create_workflow_event, WorkflowEventType
+except ImportError:
+    sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-bus" / "src"))
+    from hive_bus import get_event_bus, create_task_event, TaskEventType, create_workflow_event, WorkflowEventType
+
 class Phase(Enum):
     """Task execution phases"""
     PLAN = "plan"
@@ -78,6 +85,13 @@ class QueenLite:
 
         # Load centralized configuration
         self.config = get_config()
+
+        # Initialize event bus for explicit agent communication
+        self.event_bus = get_event_bus()
+        self.log.info("Event bus initialized for explicit agent communication")
+
+        # Subscribe to key events for cross-agent choreography
+        self._setup_event_subscriptions()
 
         # Validate system configuration on startup
         self._validate_system_configuration()
@@ -180,6 +194,148 @@ class QueenLite:
             env["PYTHONPATH"] = orchestrator_src
 
         return env
+
+    # ================================================================================
+    # EVENT-DRIVEN COMMUNICATION (Explicit Agent Coordination)
+    # ================================================================================
+
+    def _publish_task_event(self, event_type: TaskEventType, task_id: str, task: Dict[str, Any],
+                           correlation_id: Optional[str] = None, **additional_payload) -> str:
+        """
+        Publish task state transition events for explicit agent communication
+
+        Args:
+            event_type: Type of task event (assigned, started, completed, etc.)
+            task_id: Task identifier
+            task: Task data dictionary
+            correlation_id: Optional correlation ID for workflow tracking
+            **additional_payload: Additional event payload data
+
+        Returns:
+            Event ID of published event
+        """
+        try:
+            # Create task event with Queen as source
+            event = create_task_event(
+                event_type=event_type,
+                task_id=task_id,
+                source_agent="queen",
+                task_status=task.get("status"),
+                assignee=task.get("assignee"),
+                correlation_id=correlation_id or f"workflow_{task_id}",
+                # Add additional context
+                phase=task.get("current_phase"),
+                description=task.get("task_description", "")[:100],  # Truncated for events
+                **additional_payload
+            )
+
+            # Publish event to bus
+            event_id = self.event_bus.publish(event)
+            self.log.debug(f"Published {event_type} event for task {task_id}: {event_id}")
+            return event_id
+
+        except Exception as e:
+            self.log.error(f"Failed to publish {event_type} event for task {task_id}: {e}")
+            # Don't fail the operation if event publishing fails
+            return ""
+
+    def _setup_event_subscriptions(self):
+        """Set up cross-agent event subscriptions for choreographed workflow"""
+        try:
+            # Subscribe to AI Planner events to trigger task scheduling
+            self.event_bus.subscribe(
+                "workflow.plan_generated",
+                self._handle_plan_generated_event,
+                "queen-plan-listener"
+            )
+
+            # Subscribe to AI Reviewer events to advance approved tasks
+            self.event_bus.subscribe(
+                "task.review_completed",
+                self._handle_review_completed_event,
+                "queen-review-listener"
+            )
+
+            # Subscribe to task failure events for escalation handling
+            self.event_bus.subscribe(
+                "task.escalated",
+                self._handle_task_escalated_event,
+                "queen-escalation-listener"
+            )
+
+            self.log.info("Cross-agent event subscriptions established for choreographed workflow")
+
+        except Exception as e:
+            self.log.error(f"Failed to setup event subscriptions: {e}")
+
+    def _handle_plan_generated_event(self, event):
+        """Handle plan generation completion from AI Planner"""
+        try:
+            payload = event.payload
+            task_id = payload.get("task_id")
+            plan_name = payload.get("plan_name")
+
+            if task_id:
+                self.log.info(f"🎯 Received plan completion for task {task_id}: {plan_name}")
+
+                # Trigger immediate processing of planned task
+                # This creates choreographed workflow where planning automatically triggers execution
+                task = hive_core_db.get_task(task_id)
+                if task and task.get("status") == "planned":
+                    self.log.info(f"Auto-triggering execution for planned task {task_id}")
+                    hive_core_db.update_task_status(task_id, "queued", {
+                        "auto_triggered": True,
+                        "triggered_by": "plan_completion_event"
+                    })
+
+        except Exception as e:
+            self.log.error(f"Error handling plan generated event: {e}")
+
+    def _handle_review_completed_event(self, event):
+        """Handle review completion from AI Reviewer"""
+        try:
+            payload = event.payload
+            task_id = payload.get("task_id")
+            review_decision = payload.get("review_decision")
+
+            if task_id and review_decision:
+                self.log.info(f"🔍 Received review decision for task {task_id}: {review_decision}")
+
+                # Handle approved tasks by advancing them automatically
+                if review_decision == "approve":
+                    task = hive_core_db.get_task(task_id)
+                    if task:
+                        # Advance task to next phase or mark complete
+                        next_phase = self._advance_task_phase(task, success=True)
+                        self.log.info(f"Auto-advanced approved task {task_id} to phase: {next_phase}")
+
+                # Handle rejected tasks by marking for rework
+                elif review_decision in ["reject", "rework"]:
+                    self.log.info(f"Task {task_id} requires rework - updating status")
+                    hive_core_db.update_task_status(task_id, "queued", {
+                        "current_phase": "rework",
+                        "review_feedback": payload.get("review_summary", "")
+                    })
+
+        except Exception as e:
+            self.log.error(f"Error handling review completed event: {e}")
+
+    def _handle_task_escalated_event(self, event):
+        """Handle task escalation events for administrative attention"""
+        try:
+            payload = event.payload
+            task_id = payload.get("task_id")
+            escalation_reason = payload.get("escalation_reason")
+
+            if task_id:
+                self.log.warning(f"⚠️ Task {task_id} escalated: {escalation_reason}")
+
+                # Add escalation to system notifications (future enhancement point)
+                # For now, just ensure proper logging for human attention
+                self.log.warning(f"ESCALATION ALERT: Task {task_id} requires human intervention")
+
+        except Exception as e:
+            self.log.error(f"Error handling task escalated event: {e}")
 
     # ================================================================================
     # APP TASK SYSTEM (Complex Application Deployments)
@@ -431,15 +587,39 @@ class QueenLite:
         if next_phase == "completed":
             hive_core_db.update_task_status(task["id"], "completed", {})
             self.log.info(f"Task {task['id']} completed successfully")
+            # Publish task completion event
+            self._publish_task_event(
+                TaskEventType.COMPLETED,
+                task["id"],
+                task,
+                correlation_id=task.get("correlation_id"),
+                current_phase=current_phase
+            )
         elif next_phase == "failed":
             hive_core_db.update_task_status(task["id"], "failed", {})
             self.log.info(f"Task {task['id']} failed")
+            # Publish task failure event
+            self._publish_task_event(
+                TaskEventType.FAILED,
+                task["id"],
+                task,
+                correlation_id=task.get("correlation_id"),
+                current_phase=current_phase
+            )
         elif next_phase == "review_pending":
             # Special status for tasks awaiting intelligent review
             hive_core_db.update_task_status(task["id"], "review_pending", {
                 "current_phase": current_phase
             })
             self.log.info(f"Task {task['id']} moved to review_pending for AI inspection")
+            # Publish review requested event
+            self._publish_task_event(
+                TaskEventType.REVIEW_REQUESTED,
+                task["id"],
+                task,
+                correlation_id=task.get("correlation_id"),
+                current_phase=current_phase
+            )
         else:
             # Move to next phase and back to queued for processing
             hive_core_db.update_task_status(task["id"], "queued", {
@@ -515,6 +695,15 @@ class QueenLite:
                     "current_phase": "execute"
                 })
 
+                # Publish task assignment event
+                self._publish_task_event(
+                    TaskEventType.ASSIGNED,
+                    task_id,
+                    task,
+                    assignee=assignee,
+                    phase="execute"
+                )
+
                 # Execute app task
                 result = self.execute_app_task(task)
                 if result:
@@ -528,6 +717,16 @@ class QueenLite:
                     hive_core_db.update_task_status(task_id, "in_progress", {
                         "started_at": datetime.now(timezone.utc).isoformat()
                     })
+
+                    # Publish task started event
+                    self._publish_task_event(
+                        TaskEventType.STARTED,
+                        task_id,
+                        task,
+                        phase="execute",
+                        process_id=process.pid
+                    )
+
                     self.log.info(f"Successfully spawned app task for {task_id} (PID: {process.pid})")
                 else:
                     # App task spawn failed - revert to queued
@@ -560,6 +759,15 @@ class QueenLite:
                 "current_phase": current_phase.value
             })
 
+            # Publish task assignment event
+            self._publish_task_event(
+                TaskEventType.ASSIGNED,
+                task_id,
+                task,
+                assignee=worker,
+                phase=current_phase.value
+            )
+
             # CRITICAL: Spawn worker with failure handling
             result = self.spawn_worker(task, worker, current_phase)
             if result:
@@ -573,6 +781,16 @@ class QueenLite:
                 hive_core_db.update_task_status(task_id, "in_progress", {
                     "started_at": datetime.now(timezone.utc).isoformat()
                 })
+
+                # Publish task started event
+                self._publish_task_event(
+                    TaskEventType.STARTED,
+                    task_id,
+                    task,
+                    phase=current_phase.value,
+                    process_id=process.pid
+                )
+
                 self.log.info(f"Successfully spawned {worker} for {task_id} (PID: {process.pid})")
             else:
                 # HARDENING: Spawn failed - revert task to queued status
@@ -790,6 +1008,15 @@ class QueenLite:
             # App tasks are completed directly without phases
             hive_core_db.update_task_status(task_id, "completed", {})
             self.log.info(f"✅ App task {task_id} COMPLETED successfully")
+            # Publish task completion event
+            self._publish_task_event(
+                TaskEventType.COMPLETED,
+                task_id,
+                task,
+                correlation_id=task.get("correlation_id"),
+                current_phase=current_phase,
+                task_type="app_task"
+            )
             if self.live_output:
                 print("-" * 70)
             completed.append(task_id)
@@ -824,12 +1051,29 @@ class QueenLite:
                 hive_core_db.update_task_status(task_id, "failed", {
                     "failure_reason": "Failed to spawn TEST phase"
                 })
+                # Publish task failure event
+                self._publish_task_event(
+                    TaskEventType.FAILED,
+                    task_id,
+                    task,
+                    correlation_id=task.get("correlation_id"),
+                    current_phase="TEST",
+                    failure_reason="Failed to spawn TEST phase"
+                )
                 completed.append(task_id)
                 return True
         else:
             # TEST phase completed successfully
             hive_core_db.update_task_status(task_id, "completed", {})
             self.log.info(f"✅ Task {task_id} TEST succeeded - COMPLETED")
+            # Publish task completion event
+            self._publish_task_event(
+                TaskEventType.COMPLETED,
+                task_id,
+                task,
+                correlation_id=task.get("correlation_id"),
+                current_phase="TEST"
+            )
             if self.live_output:
                 print("-" * 70)
             completed.append(task_id)
@@ -857,6 +1101,15 @@ class QueenLite:
             # Max retries reached
             hive_core_db.update_task_status(task_id, "failed", {})
             self.log.info(f"Task {task_id} {current_phase} failed after {retry_count} retries")
+            # Publish task failure event
+            self._publish_task_event(
+                TaskEventType.FAILED,
+                task_id,
+                task,
+                correlation_id=task.get("correlation_id"),
+                current_phase=current_phase,
+                failure_reason=f"Max retries reached after {retry_count} attempts"
+            )
 
         completed.append(task_id)
         return True
@@ -1068,6 +1321,15 @@ class QueenLite:
                 hive_core_db.update_task_status(task_id, "failed", {
                     "failure_reason": str(e)
                 })
+                # Publish task failure event
+                self._publish_task_event(
+                    TaskEventType.FAILED,
+                    task_id,
+                    task,
+                    correlation_id=task.get("correlation_id"),
+                    current_phase=current_phase,
+                    failure_reason=str(e)
+                )
 
             # Check capacity again
             if len(self.active_workers) >= max_parallel:

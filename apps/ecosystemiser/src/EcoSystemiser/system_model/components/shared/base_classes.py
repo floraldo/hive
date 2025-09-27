@@ -1,4 +1,5 @@
 """Strategy Pattern base classes for component physics and optimization."""
+from abc import ABC, abstractmethod
 from EcoSystemiser.hive_logging_adapter import get_logger
 logger = get_logger(__name__)
 
@@ -6,7 +7,7 @@ logger = get_logger(__name__)
 # STRATEGY PATTERN BASE CLASSES
 # =============================================================================
 
-class BaseStoragePhysics:
+class BaseStoragePhysics(ABC):
     """Abstract base class for storage physics strategies.
 
     This defines the interface contract that all storage physics implementations
@@ -22,6 +23,7 @@ class BaseStoragePhysics:
         """Initialize physics strategy with component parameters."""
         self.params = params
 
+    @abstractmethod
     def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
         """
         Calculate new energy state based on physics model.
@@ -37,14 +39,25 @@ class BaseStoragePhysics:
         Returns:
             float: New energy level after physics update (kWh)
         """
-        raise NotImplementedError("Subclasses must implement rule_based_update_state")
+        pass
 
+    @abstractmethod
     def apply_bounds(self, energy_level: float) -> float:
-        """Apply physical energy bounds (0 <= E <= E_max)."""
-        E_max = self.params.technical.capacity_nominal
-        return max(0.0, min(energy_level, E_max))
+        """
+        Apply physical energy bounds (0 <= E <= E_max).
 
-class BaseStorageOptimization:
+        This method is now abstract - each strategy must implement its own bounds logic.
+        This maintains architectural gravity toward implementing logic in strategies, not base classes.
+
+        Args:
+            energy_level: Energy level to bound
+
+        Returns:
+            float: Bounded energy level
+        """
+        pass
+
+class BaseStorageOptimization(ABC):
     """Abstract base class for storage optimization strategies.
 
     This defines the interface contract for MILP optimization implementations.
@@ -55,6 +68,7 @@ class BaseStorageOptimization:
         """Initialize optimization strategy with component parameters."""
         self.params = params
 
+    @abstractmethod
     def set_constraints(self) -> list:
         """
         Create CVXPY constraints for this storage component.
@@ -65,9 +79,9 @@ class BaseStorageOptimization:
         Returns:
             list: CVXPY constraint objects
         """
-        raise NotImplementedError("Subclasses must implement set_constraints")
+        pass
 
-class BaseGenerationPhysics:
+class BaseGenerationPhysics(ABC):
     """Abstract base class for generation physics strategies.
 
     This defines the interface contract that all generation physics implementations
@@ -83,6 +97,7 @@ class BaseGenerationPhysics:
         """Initialize physics strategy with component parameters."""
         self.params = params
 
+    @abstractmethod
     def rule_based_generate(self, t: int, profile_value: float) -> float:
         """
         Calculate generation output based on physics model.
@@ -96,9 +111,9 @@ class BaseGenerationPhysics:
         Returns:
             float: Actual generation output in kW
         """
-        raise NotImplementedError("Subclasses must implement rule_based_generate")
+        pass
 
-class BaseGenerationOptimization:
+class BaseGenerationOptimization(ABC):
     """Abstract base class for generation optimization strategies.
 
     This defines the interface contract for MILP optimization implementations.
@@ -109,6 +124,7 @@ class BaseGenerationOptimization:
         """Initialize optimization strategy with component parameters."""
         self.params = params
 
+    @abstractmethod
     def set_constraints(self) -> list:
         """
         Create CVXPY constraints for this generation component.
@@ -119,9 +135,9 @@ class BaseGenerationOptimization:
         Returns:
             list: CVXPY constraint objects
         """
-        raise NotImplementedError("Subclasses must implement set_constraints")
+        pass
 
-class BaseConversionPhysics:
+class BaseConversionPhysics(ABC):
     """Abstract base class for conversion physics strategies.
 
     This defines the interface contract that all conversion physics implementations
@@ -137,6 +153,7 @@ class BaseConversionPhysics:
         """Initialize physics strategy with component parameters."""
         self.params = params
 
+    @abstractmethod
     def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
         """
         Calculate conversion capacities for the current timestep.
@@ -151,8 +168,9 @@ class BaseConversionPhysics:
         Returns:
             dict: {'max_input': float, 'max_output': float, 'efficiency': float}
         """
-        raise NotImplementedError("Subclasses must implement rule_based_conversion_capacity")
+        pass
 
+    @abstractmethod
     def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
         """
         Calculate actual input/output for a requested output.
@@ -166,9 +184,9 @@ class BaseConversionPhysics:
         Returns:
             dict: {'input_required': float, 'output_delivered': float}
         """
-        raise NotImplementedError("Subclasses must implement rule_based_conversion_dispatch")
+        pass
 
-class BaseConversionOptimization:
+class BaseConversionOptimization(ABC):
     """Abstract base class for conversion optimization strategies.
 
     This defines the interface contract for MILP optimization implementations.
@@ -179,6 +197,7 @@ class BaseConversionOptimization:
         """Initialize optimization strategy with component parameters."""
         self.params = params
 
+    @abstractmethod
     def set_constraints(self) -> list:
         """
         Create CVXPY constraints for this conversion component.
@@ -189,9 +208,9 @@ class BaseConversionOptimization:
         Returns:
             list: CVXPY constraint objects
         """
-        raise NotImplementedError("Subclasses must implement set_constraints")
+        pass
 
-class BaseDemandPhysics:
+class BaseDemandPhysics(ABC):
     """Abstract base class for demand physics strategies.
 
     This defines the interface contract that all demand physics implementations
@@ -207,6 +226,7 @@ class BaseDemandPhysics:
         """Initialize physics strategy with component parameters."""
         self.params = params
 
+    @abstractmethod
     def rule_based_demand(self, t: int, profile_value: float) -> float:
         """
         Calculate demand requirement based on physics model.
@@ -220,9 +240,9 @@ class BaseDemandPhysics:
         Returns:
             float: Actual demand requirement in kW
         """
-        raise NotImplementedError("Subclasses must implement rule_based_demand")
+        pass
 
-class BaseDemandOptimization:
+class BaseDemandOptimization(ABC):
     """Abstract base class for demand optimization strategies.
 
     This defines the interface contract for MILP optimization implementations.
@@ -233,6 +253,7 @@ class BaseDemandOptimization:
         """Initialize optimization strategy with component parameters."""
         self.params = params
 
+    @abstractmethod
     def set_constraints(self) -> list:
         """
         Create CVXPY constraints for this demand component.
@@ -243,4 +264,4 @@ class BaseDemandOptimization:
         Returns:
             list: CVXPY constraint objects
         """
-        raise NotImplementedError("Subclasses must implement set_constraints")
+        pass

@@ -3,7 +3,7 @@ from typing import Optional, Dict, Type
 from .base import BaseSolver, SolverConfig
 from .rule_based_engine import RuleBasedEngine
 from .milp_solver import MILPSolver
-from .rolling_horizon_solver import RollingHorizonMILPSolver
+from .rolling_horizon_milp import RollingHorizonMILPSolver
 
 class SolverFactory:
     """Factory for creating solver instances based on type."""

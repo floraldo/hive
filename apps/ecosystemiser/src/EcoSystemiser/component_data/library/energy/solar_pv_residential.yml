@@ -11,6 +11,16 @@ technical:
   degradation_rate: 0.005  # Annual degradation rate (0.5%)
   profile_name: solar_generation  # Name of solar profile to use
 
+  # Optimizable parameters for system optimization
+  optimizable_parameters:
+    capacity:
+      parameter_path: "technical.P_max"
+      bounds: [1.0, 20.0]
+      units: "kW"
+      description: "Solar PV maximum power capacity"
+      parameter_type: "continuous"
+      scaling: "linear"
+
 economic:
   capex: 6000  # EUR - Installation cost
   opex_fix: 100  # EUR/year - Maintenance
