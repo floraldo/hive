@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from queue import Queue, Empty, Full
 
-from .database import DB_PATH, ensure_directory
+from hive_utils.paths import DB_PATH, ensure_directory
 from hive_db_utils.config import get_config
 
 logger = logging.getLogger(__name__)

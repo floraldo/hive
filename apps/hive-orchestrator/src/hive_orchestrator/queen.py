@@ -41,9 +41,34 @@ class Phase(Enum):
     TEST = "test"
 
 class QueenLite:
-    """Streamlined orchestrator with preserved hardening"""
-    
+    """
+    Streamlined orchestrator with preserved hardening
+
+    Architecture:
+    - Initialization & Configuration Management
+    - App Task System (for complex application deployments)
+    - Worker Lifecycle Management (spawn, monitor, cleanup)
+    - Task Processing Engine (queue processing, phase advancement)
+    - Workflow Management (multi-step task orchestration)
+    - Status Monitoring & Recovery (health checks, zombie recovery)
+    - Main Orchestration Loop
+    """
+
+    # ================================================================================
+    # INITIALIZATION & CONFIGURATION MANAGEMENT
+    # ================================================================================
+
     def __init__(self, hive_core: HiveCore, live_output: bool = False):
+        """
+        Initialize QueenLite orchestrator
+
+        Args:
+            hive_core: HiveCore instance for task management and database operations
+            live_output: Whether to show live output from workers (default: False)
+
+        Raises:
+            SystemExit: If system configuration validation fails
+        """
         # Tight integration with HiveCore
         self.hive = hive_core
         self.live_output = live_output
@@ -51,14 +76,14 @@ class QueenLite:
         # Initialize logger
         self.log = get_logger(__name__)
 
-        # Load configuration
+        # Load centralized configuration
         self.config = get_config()
 
         # Validate system configuration on startup
         self._validate_system_configuration()
 
-        # State management
-        self.active_workers = {}  # task_id -> {process, run_id, phase}
+        # State management: track active worker processes
+        self.active_workers: Dict[str, Dict[str, Any]] = {}  # task_id -> {process, run_id, phase}
 
         # Register Queen as a worker to satisfy foreign key constraints
         self._register_as_worker()
@@ -156,6 +181,10 @@ class QueenLite:
 
         return env
 
+    # ================================================================================
+    # APP TASK SYSTEM (Complex Application Deployments)
+    # ================================================================================
+
     def is_app_task(self, task: Dict[str, Any]) -> bool:
         """Check if a task is an app task based on assignee format"""
         assignee = task.get("assignee", "")
@@ -245,13 +274,27 @@ class QueenLite:
         except Exception as e:
             self.log.error(f"App task {task_id} failed - unexpected error: {type(e).__name__}: {e}")
             return None
-    
 
-    
-    
-    
+    # ================================================================================
+    # WORKER LIFECYCLE MANAGEMENT (Spawn, Monitor, Cleanup)
+    # ================================================================================
+
     def spawn_worker(self, task: Dict[str, Any], worker: str, phase: Phase) -> Optional[Tuple[subprocess.Popen, str]]:
-        """Spawn worker and let it manage its own workspace."""
+        """
+        Spawn a worker process for task execution
+
+        Args:
+            task: Task dictionary with id, description, and metadata
+            worker: Worker type (backend, frontend, infra)
+            phase: Execution phase (plan, apply, test)
+
+        Returns:
+            Tuple of (process, run_id) if successful, None if failed
+
+        Note:
+            Workers manage their own workspace and file operations.
+            The orchestrator only tracks process lifecycle.
+        """
         task_id = task["id"]
         run_id = f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{phase.value}"
         
@@ -405,6 +448,10 @@ class QueenLite:
             self.log.info(f"Task {task['id']} advanced to phase '{next_phase}'")
 
         return next_phase
+
+    # ================================================================================
+    # TASK PROCESSING ENGINE (Queue Processing, Phase Advancement)
+    # ================================================================================
 
     def process_queued_tasks(self):
         """Process tasks in queued status by starting their workflows with PARALLEL execution"""
@@ -865,7 +912,11 @@ class QueenLite:
         for task_id in completed:
             if task_id in self.active_workers:
                 del self.active_workers[task_id]
-    
+
+    # ================================================================================
+    # STATUS MONITORING & RECOVERY (Health Checks, Zombie Recovery)
+    # ================================================================================
+
     def print_status(self):
         """Print clean status update with clear separation"""
         stats = self.hive.get_task_stats()
@@ -915,7 +966,11 @@ class QueenLite:
         
         # Clear separator for worker output
         print("-" * 70)
-    
+
+    # ================================================================================
+    # WORKFLOW MANAGEMENT (Multi-step Task Orchestration)
+    # ================================================================================
+
     def process_workflow_tasks(self):
         """Process queued tasks using workflow definitions with PARALLEL execution"""
         # Calculate available slots for parallel execution
@@ -1059,6 +1114,10 @@ class QueenLite:
         for task_id in completed:
             if task_id in self.active_workers:
                 del self.active_workers[task_id]
+
+    # ================================================================================
+    # MAIN ORCHESTRATION LOOP
+    # ================================================================================
 
     def run_forever(self):
         """Main orchestration loop - event-driven state machine"""

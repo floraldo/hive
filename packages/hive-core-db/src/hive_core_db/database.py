@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 from hive_utils.paths import DB_PATH, ensure_directory
 
 # Import connection pool for proper connection management
-from .connection_pool import get_connection as get_pooled_connection, initialize_pool, close_pool
+from .connection_pool import get_pooled_connection, close_pool
 
 
 class TaskStatus(Enum):
@@ -77,10 +77,7 @@ def get_connection():
     Yields:
         sqlite3.Connection: A database connection from the pool
     """
-    # Initialize pool if needed (happens once)
-    initialize_pool()
-
-    # Use the connection pool
+    # Use the connection pool (auto-initializes on first use)
     with get_pooled_connection() as conn:
         yield conn
 

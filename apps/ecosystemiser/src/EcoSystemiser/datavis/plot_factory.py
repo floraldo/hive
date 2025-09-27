@@ -723,3 +723,415 @@ class PlotFactory:
         )
 
         return fig.to_dict()
+
+    def create_ga_pareto_front_plot(self, ga_result: Dict[str, Any]) -> Dict:
+        """Create Pareto front visualization for multi-objective GA results.
+
+        Args:
+            ga_result: Genetic algorithm optimization result
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        if not ga_result.get('pareto_front') or not ga_result.get('pareto_objectives'):
+            return {}
+
+        pareto_objectives = ga_result['pareto_objectives']
+        if not pareto_objectives or len(pareto_objectives[0]) < 2:
+            return {}
+
+        # Extract objectives (assuming 2D for now)
+        obj1 = [obj[0] for obj in pareto_objectives]
+        obj2 = [obj[1] for obj in pareto_objectives]
+
+        fig = go.Figure()
+
+        # Add Pareto front points
+        fig.add_trace(go.Scatter(
+            x=obj1,
+            y=obj2,
+            mode='markers+lines',
+            name='Pareto Front',
+            marker=dict(
+                size=10,
+                color=np.arange(len(obj1)),
+                colorscale='Viridis',
+                showscale=True,
+                colorbar=dict(title='Solution Index')
+            ),
+            line=dict(color='rgba(0,0,0,0.3)', width=1),
+            text=[f"Solution {i}<br>Obj1: {o1:.4f}<br>Obj2: {o2:.4f}"
+                  for i, (o1, o2) in enumerate(zip(obj1, obj2))],
+            hovertemplate="%{text}<extra></extra>"
+        ))
+
+        # Add best compromise solution if available
+        if ga_result.get('best_solution'):
+            best_obj = ga_result.get('best_objectives', [])
+            if len(best_obj) >= 2:
+                fig.add_trace(go.Scatter(
+                    x=[best_obj[0]],
+                    y=[best_obj[1]],
+                    mode='markers',
+                    name='Best Compromise',
+                    marker=dict(size=15, color='red', symbol='star'),
+                    text=f"Best Compromise<br>Obj1: {best_obj[0]:.4f}<br>Obj2: {best_obj[1]:.4f}",
+                    hovertemplate="%{text}<extra></extra>"
+                ))
+
+        fig.update_layout(
+            title="Multi-Objective Optimization: Pareto Front",
+            xaxis_title="Objective 1 (minimize)",
+            yaxis_title="Objective 2 (minimize)",
+            height=500,
+            **self.default_layout
+        )
+
+        return fig.to_dict()
+
+    def create_ga_convergence_plot(self, ga_result: Dict[str, Any]) -> Dict:
+        """Create convergence visualization for genetic algorithm.
+
+        Args:
+            ga_result: Genetic algorithm optimization result
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        convergence_history = ga_result.get('convergence_history', [])
+        if not convergence_history:
+            return {}
+
+        generations = list(range(len(convergence_history)))
+
+        fig = go.Figure()
+
+        # Add convergence line
+        fig.add_trace(go.Scatter(
+            x=generations,
+            y=convergence_history,
+            mode='lines+markers',
+            name='Best Fitness',
+            line=dict(color='blue', width=2),
+            marker=dict(size=6)
+        ))
+
+        # Add final value annotation
+        final_fitness = convergence_history[-1]
+        fig.add_annotation(
+            x=generations[-1],
+            y=final_fitness,
+            text=f"Final: {final_fitness:.4f}",
+            showarrow=True,
+            arrowhead=2,
+            bgcolor="white",
+            bordercolor="blue",
+            borderwidth=1
+        )
+
+        fig.update_layout(
+            title="Genetic Algorithm Convergence",
+            xaxis_title="Generation",
+            yaxis_title="Best Fitness",
+            height=400,
+            **self.default_layout
+        )
+
+        return fig.to_dict()
+
+    def create_parameter_space_heatmap(self, mc_result: Dict[str, Any],
+                                     param_names: List[str] = None) -> Dict:
+        """Create parameter space exploration heatmap.
+
+        Args:
+            mc_result: Monte Carlo analysis result
+            param_names: Names of parameters for labeling
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        uncertainty_analysis = mc_result.get('uncertainty_analysis', {})
+        sensitivity_data = uncertainty_analysis.get('sensitivity', {})
+
+        if not sensitivity_data:
+            return {}
+
+        # Extract sensitivity indices for the first objective
+        first_obj = list(sensitivity_data.keys())[0]
+        param_sensitivities = sensitivity_data[first_obj]
+
+        if not param_sensitivities:
+            return {}
+
+        # Prepare data for heatmap
+        params = list(param_sensitivities.keys())
+        sensitivities = [param_sensitivities[p].get('sensitivity_index', 0) for p in params]
+
+        # Use provided names or default parameter names
+        if param_names and len(param_names) >= len(params):
+            display_names = param_names[:len(params)]
+        else:
+            display_names = [p.replace('param_', 'Parameter ') for p in params]
+
+        # Sort by sensitivity
+        sorted_data = sorted(zip(display_names, sensitivities), key=lambda x: abs(x[1]), reverse=True)
+        sorted_names, sorted_sens = zip(*sorted_data)
+
+        fig = go.Figure()
+
+        # Create horizontal bar chart
+        fig.add_trace(go.Bar(
+            y=sorted_names,
+            x=sorted_sens,
+            orientation='h',
+            marker=dict(
+                color=sorted_sens,
+                colorscale='RdBu',
+                showscale=True,
+                colorbar=dict(title='Sensitivity Index')
+            ),
+            text=[f"{s:.3f}" for s in sorted_sens],
+            textposition='outside'
+        ))
+
+        fig.update_layout(
+            title="Parameter Sensitivity Analysis",
+            xaxis_title="Sensitivity Index",
+            yaxis_title="Parameters",
+            height=max(400, len(params) * 30),
+            **self.default_layout
+        )
+
+        return fig.to_dict()
+
+    def create_uncertainty_distribution_plot(self, mc_result: Dict[str, Any]) -> Dict:
+        """Create uncertainty distribution plots for Monte Carlo results.
+
+        Args:
+            mc_result: Monte Carlo analysis result
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        uncertainty_analysis = mc_result.get('uncertainty_analysis', {})
+        statistics = uncertainty_analysis.get('statistics', {})
+
+        if not statistics:
+            return {}
+
+        # Create subplots for each objective
+        objectives = list(statistics.keys())
+        n_objectives = len(objectives)
+
+        if n_objectives == 0:
+            return {}
+
+        # Create subplot configuration
+        if n_objectives == 1:
+            fig = go.Figure()
+            single_plot = True
+        else:
+            cols = min(n_objectives, 2)
+            rows = (n_objectives + 1) // 2
+            fig = make_subplots(
+                rows=rows, cols=cols,
+                subplot_titles=objectives,
+                vertical_spacing=0.1
+            )
+            single_plot = False
+
+        for idx, (obj_name, obj_stats) in enumerate(statistics.items()):
+            mean = obj_stats.get('mean', 0)
+            std = obj_stats.get('std', 1)
+            min_val = obj_stats.get('min', mean - 3*std)
+            max_val = obj_stats.get('max', mean + 3*std)
+
+            # Generate normal distribution for comparison
+            x_range = np.linspace(min_val, max_val, 100)
+            normal_dist = (1/(std * np.sqrt(2*np.pi))) * np.exp(-0.5*((x_range - mean)/std)**2)
+
+            if single_plot:
+                # Single histogram
+                fig.add_trace(go.Histogram(
+                    x=np.random.normal(mean, std, 1000),  # Simulated data for visualization
+                    nbinsx=30,
+                    name=f'{obj_name} Distribution',
+                    opacity=0.7,
+                    histnorm='probability density'
+                ))
+
+                # Add normal distribution overlay
+                fig.add_trace(go.Scatter(
+                    x=x_range,
+                    y=normal_dist,
+                    mode='lines',
+                    name='Normal Fit',
+                    line=dict(color='red', width=2)
+                ))
+
+                # Add statistics
+                fig.add_vline(x=mean, line_dash="dash", line_color="green",
+                             annotation_text=f"Mean: {mean:.3f}")
+                fig.add_vline(x=mean + std, line_dash="dot", line_color="orange",
+                             annotation_text=f"+1σ: {mean+std:.3f}")
+                fig.add_vline(x=mean - std, line_dash="dot", line_color="orange",
+                             annotation_text=f"-1σ: {mean-std:.3f}")
+            else:
+                # Multiple subplots
+                row = idx // cols + 1
+                col = idx % cols + 1
+
+                fig.add_trace(go.Histogram(
+                    x=np.random.normal(mean, std, 1000),
+                    nbinsx=20,
+                    name=obj_name,
+                    opacity=0.7,
+                    histnorm='probability density'
+                ), row=row, col=col)
+
+                fig.add_trace(go.Scatter(
+                    x=x_range,
+                    y=normal_dist,
+                    mode='lines',
+                    name=f'{obj_name} Normal Fit',
+                    line=dict(color='red', width=2),
+                    showlegend=False
+                ), row=row, col=col)
+
+        title = "Output Uncertainty Distributions" if n_objectives > 1 else f"{objectives[0]} Uncertainty Distribution"
+
+        fig.update_layout(
+            title=title,
+            height=400 if single_plot else 300 * rows,
+            **self.default_layout
+        )
+
+        if single_plot:
+            fig.update_xaxis(title=objectives[0])
+            fig.update_yaxis(title="Probability Density")
+
+        return fig.to_dict()
+
+    def create_risk_analysis_plot(self, mc_result: Dict[str, Any]) -> Dict:
+        """Create risk analysis visualization with VaR and CVaR.
+
+        Args:
+            mc_result: Monte Carlo analysis result
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        uncertainty_analysis = mc_result.get('uncertainty_analysis', {})
+        risk_metrics = uncertainty_analysis.get('risk', {})
+
+        if not risk_metrics:
+            return {}
+
+        # Take the first objective for risk analysis
+        first_obj = list(risk_metrics.keys())[0]
+        risk_data = risk_metrics[first_obj]
+
+        # Create risk metrics chart
+        fig = go.Figure()
+
+        # Risk metrics
+        var_95 = risk_data.get('var_95', 0)
+        cvar_95 = risk_data.get('cvar_95', 0)
+        mean_val = mc_result.get('uncertainty_analysis', {}).get('statistics', {}).get(first_obj, {}).get('mean', 0)
+
+        # Create risk indicator
+        fig.add_trace(go.Indicator(
+            mode="number+gauge",
+            value=var_95,
+            title={'text': "Value at Risk (95%)"},
+            gauge={
+                'axis': {'range': [None, max(var_95, cvar_95) * 1.2]},
+                'bar': {'color': "darkred"},
+                'steps': [
+                    {'range': [0, mean_val], 'color': "lightgray"},
+                    {'range': [mean_val, var_95], 'color': "yellow"},
+                    {'range': [var_95, max(var_95, cvar_95) * 1.2], 'color': "red"}
+                ],
+                'threshold': {
+                    'line': {'color': "red", 'width': 4},
+                    'thickness': 0.75,
+                    'value': var_95
+                }
+            },
+            domain={'x': [0, 0.5], 'y': [0, 1]}
+        ))
+
+        fig.add_trace(go.Indicator(
+            mode="number+gauge",
+            value=cvar_95,
+            title={'text': "Conditional VaR (95%)"},
+            gauge={
+                'axis': {'range': [None, max(var_95, cvar_95) * 1.2]},
+                'bar': {'color': "darkred"},
+                'steps': [
+                    {'range': [0, mean_val], 'color': "lightgray"},
+                    {'range': [mean_val, cvar_95], 'color': "orange"},
+                    {'range': [cvar_95, max(var_95, cvar_95) * 1.2], 'color': "red"}
+                ],
+                'threshold': {
+                    'line': {'color': "red", 'width': 4},
+                    'thickness': 0.75,
+                    'value': cvar_95
+                }
+            },
+            domain={'x': [0.5, 1], 'y': [0, 1]}
+        ))
+
+        fig.update_layout(
+            title=f"Risk Analysis: {first_obj}",
+            height=400,
+            **self.default_layout
+        )
+
+        return fig.to_dict()
+
+    def create_scenario_comparison_plot(self, mc_result: Dict[str, Any]) -> Dict:
+        """Create scenario comparison visualization.
+
+        Args:
+            mc_result: Monte Carlo analysis result
+
+        Returns:
+            Plotly figure as dictionary
+        """
+        uncertainty_analysis = mc_result.get('uncertainty_analysis', {})
+        scenarios = uncertainty_analysis.get('scenarios', {})
+
+        if not scenarios:
+            return {}
+
+        # Take first objective for scenario analysis
+        first_obj = list(scenarios.keys())[0]
+        scenario_data = scenarios[first_obj]
+
+        scenario_names = list(scenario_data.keys())
+        scenario_means = [scenario_data[s].get('mean_objective', 0) for s in scenario_names]
+
+        fig = go.Figure()
+
+        # Create bar chart for scenarios
+        fig.add_trace(go.Bar(
+            x=scenario_names,
+            y=scenario_means,
+            marker=dict(
+                color=['green', 'yellow', 'red'][:len(scenario_names)],
+                line=dict(color='black', width=1)
+            ),
+            text=[f"{m:.3f}" for m in scenario_means],
+            textposition='auto'
+        ))
+
+        fig.update_layout(
+            title=f"Scenario Analysis: {first_obj}",
+            xaxis_title="Scenario",
+            yaxis_title=first_obj,
+            height=400,
+            **self.default_layout
+        )
+
+        return fig.to_dict()

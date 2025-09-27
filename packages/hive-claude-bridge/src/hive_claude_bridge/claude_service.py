@@ -19,6 +19,7 @@ from .planner_bridge import ClaudePlannerBridge
 from .reviewer_bridge import ClaudeReviewerBridge
 from .exceptions import ClaudeRateLimitError, ClaudeServiceError
 from hive_errors import ErrorReporter
+from hive_db_utils.config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -174,25 +175,44 @@ class ClaudeService:
         self,
         config: Optional[ClaudeBridgeConfig] = None,
         rate_config: Optional[RateLimitConfig] = None,
-        cache_ttl: int = 300  # 5 minutes
+        cache_ttl: Optional[int] = None
     ):
         """Initialize Claude service
 
         Args:
-            config: Bridge configuration
-            rate_config: Rate limiting configuration
-            cache_ttl: Cache TTL in seconds
+            config: Bridge configuration (defaults to centralized config)
+            rate_config: Rate limiting configuration (defaults to centralized config)
+            cache_ttl: Cache TTL in seconds (defaults to centralized config)
         """
         # Only initialize once
         if hasattr(self, '_initialized'):
             return
 
-        self.config = config or ClaudeBridgeConfig()
-        self.rate_limiter = RateLimiter(rate_config or RateLimitConfig())
+        # Get centralized configuration
+        global_config = get_config()
+        claude_config = global_config.get_claude_config()
+
+        # Use centralized config with overrides
+        if config is None:
+            config = ClaudeBridgeConfig(
+                mock_mode=claude_config["mock_mode"],
+                timeout=claude_config["timeout"],
+                max_retries=claude_config["max_retries"]
+            )
+
+        if rate_config is None:
+            rate_config = RateLimitConfig(
+                max_calls_per_minute=claude_config["rate_limit_per_minute"],
+                max_calls_per_hour=claude_config["rate_limit_per_hour"],
+                burst_size=claude_config["burst_size"]
+            )
+
+        self.config = config
+        self.rate_limiter = RateLimiter(rate_config)
         self.cache: Dict[str, CacheEntry] = {}
-        self.cache_ttl = cache_ttl
+        self.cache_ttl = cache_ttl if cache_ttl is not None else claude_config["cache_ttl"]
         self.metrics = ClaudeMetrics()
-        self.error_reporter = ErrorReporter(component_name="claude-service")
+        self.error_reporter = ErrorReporter()
 
         # Initialize bridges
         self.planner_bridge = ClaudePlannerBridge(config=self.config)

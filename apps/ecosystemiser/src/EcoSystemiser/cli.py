@@ -315,6 +315,465 @@ def results():
     pass
 
 @cli.group()
+def discover():
+    """Design space exploration and optimization commands"""
+    pass
+
+@discover.command()
+@click.argument('config', type=click.Path(exists=True))
+@click.option('--objectives', '-obj', default='minimize_cost',
+              help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")')
+@click.option('--population', '-p', default=50, type=int,
+              help='Population size for genetic algorithm')
+@click.option('--generations', '-g', default=100, type=int,
+              help='Maximum number of generations')
+@click.option('--variables', '-v', type=click.Path(exists=True),
+              help='JSON file defining optimization variables (optional)')
+@click.option('--multi-objective', is_flag=True,
+              help='Use NSGA-II for multi-objective optimization')
+@click.option('--mutation-rate', default=0.1, type=float,
+              help='Mutation rate (0.0-1.0)')
+@click.option('--crossover-rate', default=0.9, type=float,
+              help='Crossover rate (0.0-1.0)')
+@click.option('--output', '-o', help='Output directory for results')
+@click.option('--workers', '-w', default=4, type=int,
+              help='Number of parallel workers')
+@click.option('--verbose', is_flag=True, help='Verbose output')
+def optimize(config, objectives, population, generations, variables, multi_objective,
+            mutation_rate, crossover_rate, output, workers, verbose):
+    """
+    Run genetic algorithm optimization to find optimal system configurations.
+
+    This command uses genetic algorithms (GA) or NSGA-II for multi-objective optimization
+    to explore the design space and find optimal component sizing and configurations.
+
+    Examples:
+        # Single-objective cost minimization
+        ecosys discover optimize config.yaml
+
+        # Multi-objective optimization
+        ecosys discover optimize config.yaml --objectives "minimize_cost,maximize_renewable" --multi-objective
+
+        # Custom GA parameters
+        ecosys discover optimize config.yaml --population 100 --generations 200 --mutation-rate 0.15
+
+        # With custom variables definition
+        ecosys discover optimize config.yaml --variables variables.json --output results/
+    """
+    from EcoSystemiser.services.study_service import StudyService
+    import json
+
+    try:
+        click.echo(f"[INFO] Starting genetic algorithm optimization")
+        click.echo(f"  Configuration: {config}")
+        click.echo(f"  Objectives: {objectives}")
+        click.echo(f"  Algorithm: {'NSGA-II' if multi_objective else 'Single-objective GA'}")
+        click.echo(f"  Population: {population}, Generations: {generations}")
+
+        # Load optimization variables if provided
+        optimization_variables = None
+        if variables:
+            with open(variables, 'r') as f:
+                optimization_variables = json.load(f)
+            click.echo(f"  Variables: Loaded {len(optimization_variables)} custom variables")
+
+        # Create study service
+        study_service = StudyService()
+
+        # Configure GA parameters
+        ga_config = {
+            'population_size': population,
+            'max_generations': generations,
+            'mutation_rate': mutation_rate,
+            'crossover_rate': crossover_rate
+        }
+
+        # Run optimization
+        result = study_service.run_genetic_algorithm_optimization(
+            base_config_path=Path(config),
+            optimization_variables=optimization_variables or [],
+            objectives=objectives,
+            multi_objective=multi_objective,
+            **ga_config
+        )
+
+        # Display results
+        click.echo(f"\n[SUCCESS] Optimization completed!")
+        click.echo(f"  Status: {result.summary_statistics.get('convergence_status', 'unknown')}")
+        click.echo(f"  Total evaluations: {result.num_simulations}")
+        click.echo(f"  Execution time: {result.execution_time:.2f}s")
+
+        if result.best_result:
+            best = result.best_result
+            if best.get('best_fitness'):
+                click.echo(f"  Best fitness: {best['best_fitness']:.4f}")
+
+            if best.get('pareto_front'):
+                pareto_size = len(best['pareto_front'])
+                click.echo(f"  Pareto front size: {pareto_size} solutions")
+
+        # Save results
+        if output:
+            output_dir = Path(output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            results_file = output_dir / f"ga_optimization_{result.study_id}.json"
+            with open(results_file, 'w') as f:
+                json.dump({
+                    'study_result': result.dict(),
+                    'configuration': {
+                        'objectives': objectives,
+                        'multi_objective': multi_objective,
+                        'ga_config': ga_config
+                    }
+                }, f, indent=2, default=str)
+
+            click.echo(f"  Results saved to: {results_file}")
+        else:
+            click.echo(f"  Study ID: {result.study_id}")
+
+        # Show recommendations
+        if result.best_result and result.best_result.get('best_solution'):
+            click.echo(f"\n[RECOMMENDATIONS] Best solution found:")
+            best_solution = result.best_result['best_solution']
+            if optimization_variables:
+                for i, var in enumerate(optimization_variables):
+                    if i < len(best_solution):
+                        click.echo(f"  {var.get('name', f'param_{i}')}: {best_solution[i]:.3f}")
+            else:
+                click.echo(f"  Solution vector: {[f'{x:.3f}' for x in best_solution[:5]]}")
+                if len(best_solution) > 5:
+                    click.echo(f"  ... and {len(best_solution) - 5} more parameters")
+
+    except FileNotFoundError as e:
+        click.echo(f"Error: File not found: {e}", err=True)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        click.echo(f"Error parsing variables JSON: {e}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Error running optimization: {e}", err=True)
+        if verbose:
+            logger.exception("Failed to run genetic algorithm optimization")
+        sys.exit(1)
+
+@discover.command()
+@click.argument('config', type=click.Path(exists=True))
+@click.option('--objectives', '-obj', default='total_cost',
+              help='Comma-separated objectives to analyze (e.g., "total_cost,renewable_fraction")')
+@click.option('--samples', '-n', default=1000, type=int,
+              help='Number of Monte Carlo samples')
+@click.option('--uncertainties', '-u', type=click.Path(exists=True),
+              help='JSON file defining uncertain parameters (required)')
+@click.option('--sampling', '-s', default='lhs',
+              type=click.Choice(['lhs', 'random', 'sobol', 'halton']),
+              help='Sampling method')
+@click.option('--confidence', default='0.05,0.25,0.50,0.75,0.95',
+              help='Comma-separated confidence levels (e.g., "0.05,0.95")')
+@click.option('--sensitivity', is_flag=True, default=True,
+              help='Perform sensitivity analysis')
+@click.option('--risk', is_flag=True, default=True,
+              help='Perform risk analysis')
+@click.option('--output', '-o', help='Output directory for results')
+@click.option('--workers', '-w', default=4, type=int,
+              help='Number of parallel workers')
+@click.option('--verbose', is_flag=True, help='Verbose output')
+def uncertainty(config, objectives, samples, uncertainties, sampling, confidence,
+               sensitivity, risk, output, workers, verbose):
+    """
+    Run Monte Carlo uncertainty analysis to quantify system performance under uncertainty.
+
+    This command uses Monte Carlo sampling to propagate parameter uncertainties through
+    the system model and analyze the resulting distribution of key outputs.
+
+    Examples:
+        # Basic uncertainty analysis
+        ecosys discover uncertainty config.yaml --uncertainties uncertain_params.json
+
+        # Custom sampling configuration
+        ecosys discover uncertainty config.yaml -u params.json --samples 5000 --sampling sobol
+
+        # Focus on specific outputs
+        ecosys discover uncertainty config.yaml -u params.json --objectives "lcoe,emissions"
+
+        # Comprehensive analysis with risk metrics
+        ecosys discover uncertainty config.yaml -u params.json --sensitivity --risk --output results/
+    """
+    from EcoSystemiser.services.study_service import StudyService
+    import json
+
+    try:
+        click.echo(f"[INFO] Starting Monte Carlo uncertainty analysis")
+        click.echo(f"  Configuration: {config}")
+        click.echo(f"  Objectives: {objectives}")
+        click.echo(f"  Samples: {samples}")
+        click.echo(f"  Sampling method: {sampling}")
+
+        # Load uncertainty definitions (required)
+        if not uncertainties:
+            click.echo("Error: Uncertainty definitions file is required (--uncertainties)", err=True)
+            sys.exit(1)
+
+        with open(uncertainties, 'r') as f:
+            uncertainty_variables = json.load(f)
+        click.echo(f"  Uncertainties: Loaded {len(uncertainty_variables)} uncertain parameters")
+
+        # Parse confidence levels
+        confidence_levels = [float(x.strip()) for x in confidence.split(',')]
+
+        # Create study service
+        study_service = StudyService()
+
+        # Configure MC parameters
+        mc_config = {
+            'n_samples': samples,
+            'sampling_method': sampling,
+            'confidence_levels': confidence_levels,
+            'sensitivity_analysis': sensitivity,
+            'risk_analysis': risk
+        }
+
+        # Run uncertainty analysis
+        result = study_service.run_monte_carlo_uncertainty(
+            base_config_path=Path(config),
+            uncertainty_variables=uncertainty_variables,
+            objectives=objectives,
+            **mc_config
+        )
+
+        # Display results
+        click.echo(f"\n[SUCCESS] Uncertainty analysis completed!")
+        click.echo(f"  Total samples: {result.num_simulations}")
+        click.echo(f"  Execution time: {result.execution_time:.2f}s")
+
+        # Show statistical summary
+        if result.summary_statistics:
+            stats = result.summary_statistics
+
+            if 'statistics' in stats:
+                click.echo(f"\n[STATISTICS] Output distributions:")
+                for obj_name, obj_stats in stats['statistics'].items():
+                    click.echo(f"  {obj_name}:")
+                    click.echo(f"    Mean: {obj_stats.get('mean', 0):.4f}")
+                    click.echo(f"    Std:  {obj_stats.get('std', 0):.4f}")
+                    click.echo(f"    Range: [{obj_stats.get('min', 0):.4f}, {obj_stats.get('max', 0):.4f}]")
+
+            if 'confidence_intervals' in stats:
+                click.echo(f"\n[CONFIDENCE] Confidence intervals:")
+                conf_data = stats['confidence_intervals']
+                for obj_name, intervals in conf_data.items():
+                    click.echo(f"  {obj_name}:")
+                    for level, bounds in intervals.items():
+                        click.echo(f"    {level}: [{bounds.get('lower', 0):.4f}, {bounds.get('upper', 0):.4f}]")
+
+            if sensitivity and 'sensitivity_indices' in stats:
+                click.echo(f"\n[SENSITIVITY] Most influential parameters:")
+                sens_data = stats['sensitivity_indices']
+                for obj_name, param_sens in sens_data.items():
+                    if param_sens:
+                        # Sort by sensitivity index
+                        sorted_params = sorted(param_sens.items(),
+                                             key=lambda x: abs(x[1].get('sensitivity_index', 0)),
+                                             reverse=True)
+                        click.echo(f"  {obj_name}:")
+                        for param_name, sens_info in sorted_params[:5]:  # Top 5
+                            sens_idx = sens_info.get('sensitivity_index', 0)
+                            click.echo(f"    {param_name}: {sens_idx:.3f}")
+
+            if risk and 'risk_metrics' in stats:
+                click.echo(f"\n[RISK] Risk metrics:")
+                risk_data = stats['risk_metrics']
+                for obj_name, risk_info in risk_data.items():
+                    click.echo(f"  {obj_name}:")
+                    click.echo(f"    VaR 95%: {risk_info.get('var_95', 0):.4f}")
+                    click.echo(f"    CVaR 95%: {risk_info.get('cvar_95', 0):.4f}")
+                    click.echo(f"    Risk ratio: {risk_info.get('risk_ratio', 0):.3f}")
+
+        # Save results
+        if output:
+            output_dir = Path(output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            results_file = output_dir / f"mc_uncertainty_{result.study_id}.json"
+            with open(results_file, 'w') as f:
+                json.dump({
+                    'study_result': result.dict(),
+                    'configuration': {
+                        'objectives': objectives,
+                        'uncertainty_variables': uncertainty_variables,
+                        'mc_config': mc_config
+                    }
+                }, f, indent=2, default=str)
+
+            click.echo(f"\n  Results saved to: {results_file}")
+
+            # Also save summary CSV
+            if result.summary_statistics and 'statistics' in result.summary_statistics:
+                import pandas as pd
+                stats_data = []
+                for obj_name, obj_stats in result.summary_statistics['statistics'].items():
+                    stats_data.append({
+                        'objective': obj_name,
+                        'mean': obj_stats.get('mean', 0),
+                        'std': obj_stats.get('std', 0),
+                        'min': obj_stats.get('min', 0),
+                        'max': obj_stats.get('max', 0)
+                    })
+
+                if stats_data:
+                    df = pd.DataFrame(stats_data)
+                    csv_file = output_dir / f"mc_summary_{result.study_id}.csv"
+                    df.to_csv(csv_file, index=False)
+                    click.echo(f"  Summary saved to: {csv_file}")
+        else:
+            click.echo(f"  Study ID: {result.study_id}")
+
+    except FileNotFoundError as e:
+        click.echo(f"Error: File not found: {e}", err=True)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        click.echo(f"Error parsing JSON file: {e}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Error running uncertainty analysis: {e}", err=True)
+        if verbose:
+            logger.exception("Failed to run Monte Carlo uncertainty analysis")
+        sys.exit(1)
+
+@discover.command()
+@click.argument('config', type=click.Path(exists=True))
+@click.option('--variables', '-v', type=click.Path(exists=True), required=True,
+              help='JSON file defining design variables (required)')
+@click.option('--objectives', '-obj', default='minimize_cost,maximize_renewable',
+              help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")')
+@click.option('--method', '-m', default='nsga2',
+              type=click.Choice(['nsga2', 'monte_carlo']),
+              help='Exploration method')
+@click.option('--samples', '-n', default=100, type=int,
+              help='Number of samples/population size')
+@click.option('--output', '-o', help='Output directory for results')
+@click.option('--workers', '-w', default=4, type=int,
+              help='Number of parallel workers')
+@click.option('--verbose', is_flag=True, help='Verbose output')
+def explore(config, variables, objectives, method, samples, output, workers, verbose):
+    """
+    Comprehensive design space exploration for multi-objective optimization.
+
+    This command provides a unified interface for exploring the design space using
+    either genetic algorithms (NSGA-II) or Monte Carlo sampling. It automatically
+    configures the chosen method for multi-objective design space exploration.
+
+    Examples:
+        # NSGA-II design space exploration
+        ecosys discover explore config.yaml --variables design_vars.json
+
+        # Monte Carlo design space exploration
+        ecosys discover explore config.yaml -v vars.json --method monte_carlo --samples 5000
+
+        # Custom objectives and output
+        ecosys discover explore config.yaml -v vars.json --objectives "cost,emissions,efficiency" -o results/
+    """
+    from EcoSystemiser.services.study_service import StudyService
+    import json
+
+    try:
+        click.echo(f"[INFO] Starting design space exploration")
+        click.echo(f"  Configuration: {config}")
+        click.echo(f"  Objectives: {objectives}")
+        click.echo(f"  Method: {method}")
+        click.echo(f"  Samples/Population: {samples}")
+
+        # Load design variables
+        with open(variables, 'r') as f:
+            design_variables = json.load(f)
+        click.echo(f"  Variables: Loaded {len(design_variables)} design variables")
+
+        # Create study service
+        study_service = StudyService()
+
+        # Run design space exploration
+        result = study_service.run_design_space_exploration(
+            base_config_path=Path(config),
+            design_variables=design_variables,
+            objectives=objectives,
+            exploration_method=method,
+            population_size=samples if method == 'nsga2' else None,
+            max_generations=100 if method == 'nsga2' else None,
+            n_samples=samples if method == 'monte_carlo' else None,
+            sampling_method='lhs' if method == 'monte_carlo' else None
+        )
+
+        # Display results
+        click.echo(f"\n[SUCCESS] Design space exploration completed!")
+        click.echo(f"  Method: {method}")
+        click.echo(f"  Total evaluations: {result.num_simulations}")
+        click.echo(f"  Execution time: {result.execution_time:.2f}s")
+
+        if method == 'nsga2' and result.best_result:
+            best = result.best_result
+            if best.get('pareto_front'):
+                pareto_size = len(best['pareto_front'])
+                click.echo(f"  Pareto front size: {pareto_size} solutions")
+
+        if method == 'monte_carlo' and result.summary_statistics:
+            stats = result.summary_statistics
+            if 'statistics' in stats:
+                click.echo(f"\n[DESIGN SPACE] Variable ranges explored:")
+                for var in design_variables:
+                    var_name = var.get('name', 'unknown')
+                    bounds = var.get('bounds', (0, 1))
+                    click.echo(f"  {var_name}: [{bounds[0]:.3f}, {bounds[1]:.3f}]")
+
+        # Save results
+        if output:
+            output_dir = Path(output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            results_file = output_dir / f"exploration_{method}_{result.study_id}.json"
+            with open(results_file, 'w') as f:
+                json.dump({
+                    'study_result': result.dict(),
+                    'configuration': {
+                        'method': method,
+                        'objectives': objectives,
+                        'design_variables': design_variables,
+                        'samples': samples
+                    }
+                }, f, indent=2, default=str)
+
+            click.echo(f"\n  Results saved to: {results_file}")
+
+            # Save design variables for reference
+            vars_file = output_dir / f"design_variables_{result.study_id}.json"
+            with open(vars_file, 'w') as f:
+                json.dump(design_variables, f, indent=2)
+            click.echo(f"  Variables saved to: {vars_file}")
+
+        else:
+            click.echo(f"  Study ID: {result.study_id}")
+
+        # Provide next steps guidance
+        click.echo(f"\n[NEXT STEPS] To visualize results:")
+        if method == 'nsga2':
+            click.echo(f"  - Use Pareto front visualization for trade-off analysis")
+            click.echo(f"  - Examine convergence history for algorithm performance")
+        else:
+            click.echo(f"  - Plot uncertainty distributions for key outputs")
+            click.echo(f"  - Review sensitivity analysis for design insights")
+
+    except FileNotFoundError as e:
+        click.echo(f"Error: File not found: {e}", err=True)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        click.echo(f"Error parsing variables JSON: {e}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Error running design space exploration: {e}", err=True)
+        if verbose:
+            logger.exception("Failed to run design space exploration")
+        sys.exit(1)
+
+@cli.group()
 def report():
     """Report generation and server commands"""
     pass

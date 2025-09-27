@@ -9,9 +9,14 @@ import numpy as np
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 import itertools
+from typing import Callable
 
 from .simulation_service import SimulationService, SimulationConfig, SimulationResult
 from ..system_model.components.shared.archetypes import FidelityLevel
+from ..discovery.algorithms.genetic_algorithm import GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
+from ..discovery.algorithms.monte_carlo import MonteCarloEngine, UncertaintyAnalyzer, MonteCarloConfig
+from ..discovery.encoders.parameter_encoder import SystemConfigEncoder, ParameterSpec, EncodingSpec
+from ..discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
 
 logger = get_logger(__name__)
 
@@ -39,7 +44,7 @@ class FidelitySweepSpec(BaseModel):
 class StudyConfig(BaseModel):
     """Configuration for a multi-simulation study."""
     study_id: str
-    study_type: str = "parametric"  # parametric, fidelity, optimization, monte_carlo
+    study_type: str = "parametric"  # parametric, fidelity, optimization, monte_carlo, genetic_algorithm
     base_config: SimulationConfig
 
     # For parametric studies
@@ -51,6 +56,15 @@ class StudyConfig(BaseModel):
     # For optimization studies
     optimization_objective: Optional[str] = None  # e.g., "minimize_cost", "maximize_renewable"
     optimization_constraints: Optional[List[Dict[str, Any]]] = None
+    optimization_variables: Optional[List[Dict[str, Any]]] = None  # Parameter definitions for optimization
+
+    # For genetic algorithm studies
+    ga_config: Optional[Dict[str, Any]] = None  # GA-specific parameters
+    multi_objective: bool = False  # Use NSGA-II for multi-objective optimization
+
+    # For Monte Carlo studies
+    mc_config: Optional[Dict[str, Any]] = None  # MC-specific parameters
+    uncertainty_variables: Optional[Dict[str, Dict[str, Any]]] = None
 
     # Execution settings
     parallel_execution: bool = True
@@ -101,8 +115,10 @@ class StudyService:
             simulation_configs = self._generate_fidelity_configs(config)
         elif config.study_type == "optimization":
             return self._run_optimization_study(config)
+        elif config.study_type == "genetic_algorithm":
+            return self._run_genetic_algorithm_study(config)
         elif config.study_type == "monte_carlo":
-            simulation_configs = self._generate_monte_carlo_configs(config)
+            return self._run_monte_carlo_study(config)
         else:
             raise ValueError(f"Unknown study type: {config.study_type}")
 
@@ -311,20 +327,6 @@ class StudyService:
 
         return configs
 
-    def _generate_monte_carlo_configs(self, config: StudyConfig) -> List[SimulationConfig]:
-        """Generate simulation configurations for Monte Carlo analysis.
-
-        Args:
-            config: Study configuration
-
-        Returns:
-            List of simulation configurations
-        """
-        # This would generate configs with stochastic variations
-        # For now, return base config
-        logger.warning("Monte Carlo studies not yet fully implemented")
-        return [config.base_config]
-
     def _run_optimization_study(self, config: StudyConfig) -> StudyResult:
         """Run an optimization study using iterative simulation.
 
@@ -346,6 +348,337 @@ class StudyService:
             failed_simulations=0,
             execution_time=0.0
         )
+
+    def _run_genetic_algorithm_study(self, config: StudyConfig) -> StudyResult:
+        """Run a genetic algorithm optimization study.
+
+        Args:
+            config: Study configuration
+
+        Returns:
+            StudyResult with optimization results
+        """
+        logger.info(f"Starting genetic algorithm study: {config.study_id}")
+        start_time = datetime.now()
+
+        try:
+            # Create parameter encoder
+            encoder = self._create_parameter_encoder(config)
+
+            # Create fitness function
+            fitness_function = self._create_fitness_function(config, encoder)
+
+            # Create constraint handler
+            constraint_handler = self._create_constraint_handler(config, encoder)
+
+            # Configure genetic algorithm
+            ga_config_data = config.ga_config or {}
+
+            ga_config = GeneticAlgorithmConfig(
+                dimensions=encoder.spec.dimensions,
+                bounds=encoder.spec.bounds,
+                objectives=config.optimization_objective.split(',') if config.optimization_objective else ['total_cost'],
+                population_size=ga_config_data.get('population_size', 50),
+                max_generations=ga_config_data.get('max_generations', 100),
+                mutation_rate=ga_config_data.get('mutation_rate', 0.1),
+                crossover_rate=ga_config_data.get('crossover_rate', 0.9),
+                parallel_evaluation=config.parallel_execution,
+                max_workers=config.max_workers,
+                verbose=True
+            )
+
+            # Choose algorithm based on objectives
+            if config.multi_objective or len(ga_config.objectives) > 1:
+                algorithm = NSGAIIOptimizer(ga_config)
+                logger.info("Using NSGA-II for multi-objective optimization")
+            else:
+                algorithm = GeneticAlgorithm(ga_config)
+                logger.info("Using single-objective genetic algorithm")
+
+            # Run optimization
+            result = algorithm.optimize(fitness_function)
+
+            # Convert result to StudyResult
+            execution_time = (datetime.now() - start_time).total_seconds()
+
+            return StudyResult(
+                study_id=config.study_id,
+                study_type="genetic_algorithm",
+                num_simulations=result.evaluations,
+                successful_simulations=result.evaluations,  # Assuming all evaluations are valid
+                failed_simulations=0,
+                best_result={
+                    'best_solution': result.best_solution.tolist() if result.best_solution is not None else None,
+                    'best_fitness': result.best_fitness,
+                    'best_objectives': result.best_objectives,
+                    'pareto_front': [sol.tolist() for sol in result.pareto_front] if result.pareto_front else None,
+                    'pareto_objectives': result.pareto_objectives,
+                    'convergence_history': result.convergence_history,
+                    'algorithm_metadata': result.metadata
+                },
+                summary_statistics={
+                    'final_generation': result.iterations,
+                    'total_evaluations': result.evaluations,
+                    'convergence_status': result.status.value,
+                    'pareto_front_size': len(result.pareto_front) if result.pareto_front else 1
+                },
+                execution_time=execution_time
+            )
+
+        except Exception as e:
+            logger.error(f"Genetic algorithm study failed: {e}")
+            execution_time = (datetime.now() - start_time).total_seconds()
+
+            return StudyResult(
+                study_id=config.study_id,
+                study_type="genetic_algorithm",
+                num_simulations=0,
+                successful_simulations=0,
+                failed_simulations=1,
+                execution_time=execution_time,
+                summary_statistics={'error': str(e)}
+            )
+
+    def _run_monte_carlo_study(self, config: StudyConfig) -> StudyResult:
+        """Run a Monte Carlo uncertainty analysis study.
+
+        Args:
+            config: Study configuration
+
+        Returns:
+            StudyResult with uncertainty analysis results
+        """
+        logger.info(f"Starting Monte Carlo study: {config.study_id}")
+        start_time = datetime.now()
+
+        try:
+            # Create parameter encoder
+            encoder = self._create_parameter_encoder(config)
+
+            # Create fitness function
+            fitness_function = self._create_fitness_function(config, encoder)
+
+            # Configure Monte Carlo
+            mc_config_data = config.mc_config or {}
+
+            mc_config = MonteCarloConfig(
+                dimensions=encoder.spec.dimensions,
+                bounds=encoder.spec.bounds,
+                objectives=config.optimization_objective.split(',') if config.optimization_objective else ['total_cost'],
+                max_evaluations=mc_config_data.get('n_samples', 1000),
+                sampling_method=mc_config_data.get('sampling_method', 'lhs'),
+                uncertainty_variables=config.uncertainty_variables or {},
+                confidence_levels=mc_config_data.get('confidence_levels', [0.05, 0.25, 0.50, 0.75, 0.95]),
+                sensitivity_analysis=mc_config_data.get('sensitivity_analysis', True),
+                risk_analysis=mc_config_data.get('risk_analysis', True),
+                parallel_evaluation=config.parallel_execution,
+                max_workers=config.max_workers,
+                save_all_samples=config.save_all_results,
+                sample_storage_path=str(config.output_directory / "monte_carlo_samples") if config.save_all_results else None
+            )
+
+            # Run uncertainty analysis
+            if config.uncertainty_variables:
+                analyzer = UncertaintyAnalyzer(mc_config)
+                result = analyzer.run_uncertainty_analysis(fitness_function, config.uncertainty_variables)
+                uncertainty_analysis = result['uncertainty_analysis']
+                opt_result = result['optimization_result']
+            else:
+                engine = MonteCarloEngine(mc_config)
+                opt_result = engine.optimize(fitness_function)
+                uncertainty_analysis = opt_result.metadata
+
+            # Convert result to StudyResult
+            execution_time = (datetime.now() - start_time).total_seconds()
+
+            return StudyResult(
+                study_id=config.study_id,
+                study_type="monte_carlo",
+                num_simulations=mc_config.max_evaluations,
+                successful_simulations=mc_config.max_evaluations,  # Assuming all evaluations are valid
+                failed_simulations=0,
+                best_result={
+                    'best_solution': opt_result.best_solution.tolist() if opt_result.best_solution is not None else None,
+                    'best_fitness': opt_result.best_fitness,
+                    'best_objectives': opt_result.best_objectives,
+                    'uncertainty_analysis': uncertainty_analysis
+                },
+                summary_statistics={
+                    'sampling_method': mc_config.sampling_method,
+                    'total_samples': mc_config.max_evaluations,
+                    'statistics': uncertainty_analysis.get('statistics', {}),
+                    'confidence_intervals': uncertainty_analysis.get('confidence_intervals', {}),
+                    'sensitivity_indices': uncertainty_analysis.get('sensitivity', {}),
+                    'risk_metrics': uncertainty_analysis.get('risk', {})
+                },
+                execution_time=execution_time
+            )
+
+        except Exception as e:
+            logger.error(f"Monte Carlo study failed: {e}")
+            execution_time = (datetime.now() - start_time).total_seconds()
+
+            return StudyResult(
+                study_id=config.study_id,
+                study_type="monte_carlo",
+                num_simulations=0,
+                successful_simulations=0,
+                failed_simulations=1,
+                execution_time=execution_time,
+                summary_statistics={'error': str(e)}
+            )
+
+    def _create_parameter_encoder(self, config: StudyConfig) -> SystemConfigEncoder:
+        """Create parameter encoder for optimization studies.
+
+        Args:
+            config: Study configuration
+
+        Returns:
+            SystemConfigEncoder instance
+        """
+        if config.optimization_variables:
+            # Use custom parameter definitions
+            return SystemConfigEncoder.from_parameter_list(config.optimization_variables)
+        else:
+            # Auto-detect from system configuration
+            return SystemConfigEncoder.from_config(
+                config.base_config.system_config_path,
+                component_selection=None  # Optimize all available components
+            )
+
+    def _create_fitness_function(self, config: StudyConfig, encoder: SystemConfigEncoder) -> Callable:
+        """Create fitness function for optimization studies.
+
+        Args:
+            config: Study configuration
+            encoder: Parameter encoder
+
+        Returns:
+            Fitness function that evaluates parameter vectors
+        """
+        def fitness_function(parameter_vector: np.ndarray) -> Dict[str, Any]:
+            try:
+                # Load base system configuration
+                with open(config.base_config.system_config_path, 'r') as f:
+                    base_system_config = yaml.safe_load(f)
+
+                # Decode parameter vector to system configuration
+                modified_config = encoder.decode(parameter_vector, base_system_config)
+
+                # Create temporary config file
+                temp_config_path = config.output_directory / f"temp_config_{hash(tuple(parameter_vector))}.yml"
+                temp_config_path.parent.mkdir(parents=True, exist_ok=True)
+
+                with open(temp_config_path, 'w') as f:
+                    yaml.dump(modified_config, f)
+
+                # Create simulation configuration
+                sim_config = config.base_config.model_copy(deep=True)
+                sim_config.system_config_path = str(temp_config_path)
+                sim_config.simulation_id = f"opt_{hash(tuple(parameter_vector))}"
+
+                # Run simulation
+                sim_service = SimulationService()
+                result = sim_service.run_simulation(sim_config)
+
+                # Clean up temporary file
+                temp_config_path.unlink(missing_ok=True)
+
+                # Extract objectives
+                if result.status in ["optimal", "feasible"]:
+                    objectives = []
+
+                    # Extract objective values based on configuration
+                    if config.optimization_objective:
+                        objective_names = config.optimization_objective.split(',')
+                        for obj_name in objective_names:
+                            obj_name = obj_name.strip()
+                            if obj_name in result.kpis:
+                                objectives.append(result.kpis[obj_name])
+                            elif obj_name == 'total_cost' and result.solver_metrics:
+                                objectives.append(result.solver_metrics.get('objective_value', float('inf')))
+                            else:
+                                logger.warning(f"Objective {obj_name} not found in results")
+                                objectives.append(float('inf'))
+                    else:
+                        # Default to total cost
+                        if result.solver_metrics:
+                            objectives.append(result.solver_metrics.get('objective_value', float('inf')))
+                        else:
+                            objectives.append(float('inf'))
+
+                    return {
+                        'objectives': objectives,
+                        'fitness': objectives[0] if len(objectives) == 1 else sum(objectives),
+                        'valid': True,
+                        'simulation_result': {
+                            'status': result.status,
+                            'kpis': result.kpis,
+                            'solver_metrics': result.solver_metrics
+                        }
+                    }
+                else:
+                    # Simulation failed
+                    return {
+                        'objectives': [float('inf')] * (len(config.optimization_objective.split(',')) if config.optimization_objective else 1),
+                        'fitness': float('inf'),
+                        'valid': False,
+                        'error': result.error or 'Simulation failed'
+                    }
+
+            except Exception as e:
+                logger.error(f"Fitness evaluation failed: {e}")
+                return {
+                    'objectives': [float('inf')] * (len(config.optimization_objective.split(',')) if config.optimization_objective else 1),
+                    'fitness': float('inf'),
+                    'valid': False,
+                    'error': str(e)
+                }
+
+        return fitness_function
+
+    def _create_constraint_handler(self, config: StudyConfig, encoder: SystemConfigEncoder) -> ConstraintHandler:
+        """Create constraint handler for optimization studies.
+
+        Args:
+            config: Study configuration
+            encoder: Parameter encoder
+
+        Returns:
+            ConstraintHandler instance
+        """
+        if config.optimization_constraints:
+            # Create custom constraints
+            handler = ConstraintHandler()
+
+            for constraint_def in config.optimization_constraints:
+                constraint_type = constraint_def.get('type', 'inequality')
+                constraint_name = constraint_def.get('name', 'custom_constraint')
+
+                # This would need to be expanded based on constraint definitions
+                # For now, create simple parameter bounds constraints
+                if constraint_type == 'bounds':
+                    param_name = constraint_def.get('parameter')
+                    min_val = constraint_def.get('min', 0)
+                    max_val = constraint_def.get('max', 1000)
+
+                    def bounds_constraint(x: np.ndarray) -> float:
+                        # Find parameter index
+                        for i, param in enumerate(encoder.spec.parameters):
+                            if param.name == param_name:
+                                return max(0, min_val - x[i]) + max(0, x[i] - max_val)
+                        return 0.0
+
+                    handler.add_inequality_constraint(constraint_name, bounds_constraint)
+
+            return handler
+        else:
+            # Use standard technical constraints
+            constraint_config = {
+                'max_budget': config.ga_config.get('max_budget') if config.ga_config else None
+            }
+            return TechnicalConstraintValidator.create_standard_constraints(encoder, constraint_config)
 
     def _run_simulations(self, configs: List[SimulationConfig],
                         study_config: StudyConfig) -> List[SimulationResult]:
@@ -619,3 +952,128 @@ class StudyService:
         )
 
         return self.run_study(study_config)
+
+    def run_genetic_algorithm_optimization(self, base_config_path: Path,
+                                         optimization_variables: List[Dict[str, Any]],
+                                         objectives: str = "minimize_cost",
+                                         multi_objective: bool = False,
+                                         **ga_kwargs) -> StudyResult:
+        """Convenience method to run genetic algorithm optimization.
+
+        Args:
+            base_config_path: Path to base system configuration
+            optimization_variables: List of parameter definitions for optimization
+            objectives: Comma-separated list of objectives to optimize
+            multi_objective: Use NSGA-II for multi-objective optimization
+            **ga_kwargs: Additional GA configuration parameters
+
+        Returns:
+            StudyResult with optimization results
+        """
+        # Create base simulation config
+        base_sim_config = SimulationConfig(
+            simulation_id="ga_optimization",
+            system_config_path=str(base_config_path),
+            solver_type="milp",
+            output_config={"directory": "ga_optimization"}
+        )
+
+        # Create study config
+        study_config = StudyConfig(
+            study_id=f"ga_optimization_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            study_type="genetic_algorithm",
+            base_config=base_sim_config,
+            optimization_objective=objectives,
+            optimization_variables=optimization_variables,
+            multi_objective=multi_objective,
+            ga_config=ga_kwargs,
+            parallel_execution=True,
+            save_all_results=True
+        )
+
+        return self.run_study(study_config)
+
+    def run_monte_carlo_uncertainty(self, base_config_path: Path,
+                                  uncertainty_variables: Dict[str, Dict[str, Any]],
+                                  objectives: str = "total_cost",
+                                  n_samples: int = 1000,
+                                  **mc_kwargs) -> StudyResult:
+        """Convenience method to run Monte Carlo uncertainty analysis.
+
+        Args:
+            base_config_path: Path to base system configuration
+            uncertainty_variables: Dictionary of uncertain parameter definitions
+            objectives: Comma-separated list of objectives to analyze
+            n_samples: Number of Monte Carlo samples
+            **mc_kwargs: Additional MC configuration parameters
+
+        Returns:
+            StudyResult with uncertainty analysis results
+        """
+        # Create base simulation config
+        base_sim_config = SimulationConfig(
+            simulation_id="mc_uncertainty",
+            system_config_path=str(base_config_path),
+            solver_type="milp",
+            output_config={"directory": "mc_uncertainty"}
+        )
+
+        # Create study config
+        study_config = StudyConfig(
+            study_id=f"mc_uncertainty_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            study_type="monte_carlo",
+            base_config=base_sim_config,
+            optimization_objective=objectives,
+            uncertainty_variables=uncertainty_variables,
+            mc_config={"n_samples": n_samples, **mc_kwargs},
+            parallel_execution=True,
+            save_all_results=True
+        )
+
+        return self.run_study(study_config)
+
+    def run_design_space_exploration(self, base_config_path: Path,
+                                   design_variables: List[Dict[str, Any]],
+                                   objectives: str = "minimize_cost,maximize_renewable",
+                                   exploration_method: str = "nsga2",
+                                   **kwargs) -> StudyResult:
+        """Convenience method for comprehensive design space exploration.
+
+        Args:
+            base_config_path: Path to base system configuration
+            design_variables: List of design variable definitions
+            objectives: Multi-objective optimization targets
+            exploration_method: Method to use (nsga2, monte_carlo)
+            **kwargs: Method-specific configuration
+
+        Returns:
+            StudyResult with design space exploration results
+        """
+        if exploration_method.lower() == "nsga2":
+            return self.run_genetic_algorithm_optimization(
+                base_config_path=base_config_path,
+                optimization_variables=design_variables,
+                objectives=objectives,
+                multi_objective=True,
+                **kwargs
+            )
+        elif exploration_method.lower() == "monte_carlo":
+            # Convert design variables to uncertainty variables
+            uncertainty_vars = {}
+            for var in design_variables:
+                var_name = var['name']
+                bounds = var.get('bounds', (0, 100))
+                uncertainty_vars[var_name] = {
+                    'distribution': 'uniform',
+                    'parameters': {'a': bounds[0], 'b': bounds[1]},
+                    'bounds': bounds
+                }
+
+            return self.run_monte_carlo_uncertainty(
+                base_config_path=base_config_path,
+                uncertainty_variables=uncertainty_vars,
+                objectives=objectives,
+                **kwargs
+            )
+        else:
+            raise ValueError(f"Unknown exploration method: {exploration_method}")
