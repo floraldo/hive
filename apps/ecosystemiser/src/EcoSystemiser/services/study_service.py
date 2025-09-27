@@ -33,6 +33,10 @@ class FidelitySweepSpec(BaseModel):
         default_factory=lambda: ["SIMPLE", "STANDARD"],
         description="Fidelity levels to test"
     )
+    mixed_fidelity_configs: Optional[List[Dict[str, str]]] = Field(
+        default=None,
+        description="Pre-defined mixed fidelity configurations as {component: fidelity_level}"
+    )
 
 
 class StudyConfig(BaseModel):
@@ -165,34 +169,151 @@ class StudyService:
     def _generate_fidelity_configs(self, config: StudyConfig) -> List[SimulationConfig]:
         """Generate simulation configurations for fidelity sweep.
 
+        This method now supports true mixed-fidelity studies where different
+        components can have different fidelity levels within the same simulation.
+
         Args:
             config: Study configuration
 
         Returns:
-            List of simulation configurations
+            List of simulation configurations with mixed-fidelity settings
         """
         configs = []
 
         if not config.fidelity_sweep:
             return [config.base_config]
 
-        # For each fidelity level, create a configuration
-        for fidelity_idx, fidelity in enumerate(config.fidelity_sweep.fidelity_levels):
-            # Create a copy of base config
-            sim_config = config.base_config.model_copy(deep=True)
-            sim_config.simulation_id = f"{config.study_id}_fidelity_{fidelity}"
+        # Check if we have pre-defined mixed fidelity configurations
+        if config.fidelity_sweep.mixed_fidelity_configs:
+            # Use pre-defined mixed fidelity configurations
+            for mix_idx, mixed_config in enumerate(config.fidelity_sweep.mixed_fidelity_configs):
+                sim_config = config.base_config.model_copy(deep=True)
+                sim_config.simulation_id = f"{config.study_id}_mixed_fidelity_{mix_idx}"
 
-            # Store fidelity settings
-            sim_config.output_config["fidelity_level"] = fidelity
-            sim_config.output_config["fidelity_index"] = fidelity_idx
+                # Store the mixed fidelity configuration
+                sim_config.output_config["mixed_fidelity_config"] = mixed_config
+                sim_config.output_config["config_index"] = mix_idx
 
-            # If specific components specified, store them
-            if config.fidelity_sweep.component_names:
-                sim_config.output_config["fidelity_components"] = config.fidelity_sweep.component_names
+                # Create component-specific fidelity overrides
+                component_fidelity_overrides = {}
+                for component_name, fidelity_level in mixed_config.items():
+                    component_fidelity_overrides[component_name] = {
+                        "fidelity_level": fidelity_level
+                    }
 
-            configs.append(sim_config)
+                sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
+                configs.append(sim_config)
 
-        logger.info(f"Generated {len(configs)} fidelity configurations")
+        else:
+            # Generate mixed fidelity configurations automatically
+            target_components = config.fidelity_sweep.component_names
+            fidelity_levels = config.fidelity_sweep.fidelity_levels
+
+            if not target_components:
+                logger.warning("No components specified for fidelity sweep, using uniform fidelity")
+                # Fall back to uniform fidelity for each level
+                for fidelity_idx, fidelity in enumerate(fidelity_levels):
+                    sim_config = config.base_config.model_copy(deep=True)
+                    sim_config.simulation_id = f"{config.study_id}_uniform_fidelity_{fidelity}"
+
+                    sim_config.output_config["uniform_fidelity_level"] = fidelity
+                    sim_config.output_config["fidelity_index"] = fidelity_idx
+                    configs.append(sim_config)
+            else:
+                # Generate all combinations of fidelity levels for specified components
+                if len(target_components) == 1:
+                    # Single component sweep - test each fidelity level
+                    component = target_components[0]
+                    for fidelity_idx, fidelity in enumerate(fidelity_levels):
+                        sim_config = config.base_config.model_copy(deep=True)
+                        sim_config.simulation_id = f"{config.study_id}_{component}_fidelity_{fidelity}"
+
+                        mixed_config = {component: fidelity}
+                        sim_config.output_config["mixed_fidelity_config"] = mixed_config
+                        sim_config.output_config["fidelity_index"] = fidelity_idx
+
+                        component_fidelity_overrides = {
+                            component: {"fidelity_level": fidelity}
+                        }
+                        sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
+                        configs.append(sim_config)
+
+                elif len(target_components) <= 4:  # Reasonable limit for full combinatorics
+                    # Multiple components - generate key combinations
+                    # 1. All at lowest fidelity
+                    lowest_fidelity = fidelity_levels[0]
+                    sim_config = config.base_config.model_copy(deep=True)
+                    sim_config.simulation_id = f"{config.study_id}_all_{lowest_fidelity}"
+
+                    mixed_config = {comp: lowest_fidelity for comp in target_components}
+                    sim_config.output_config["mixed_fidelity_config"] = mixed_config
+                    component_fidelity_overrides = {
+                        comp: {"fidelity_level": lowest_fidelity} for comp in target_components
+                    }
+                    sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
+                    configs.append(sim_config)
+
+                    # 2. All at highest fidelity
+                    if len(fidelity_levels) > 1:
+                        highest_fidelity = fidelity_levels[-1]
+                        sim_config = config.base_config.model_copy(deep=True)
+                        sim_config.simulation_id = f"{config.study_id}_all_{highest_fidelity}"
+
+                        mixed_config = {comp: highest_fidelity for comp in target_components}
+                        sim_config.output_config["mixed_fidelity_config"] = mixed_config
+                        component_fidelity_overrides = {
+                            comp: {"fidelity_level": highest_fidelity} for comp in target_components
+                        }
+                        sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
+                        configs.append(sim_config)
+
+                    # 3. Mixed configurations - one component at high fidelity, others at low
+                    if len(fidelity_levels) > 1 and len(target_components) > 1:
+                        for focus_component in target_components:
+                            sim_config = config.base_config.model_copy(deep=True)
+                            sim_config.simulation_id = f"{config.study_id}_{focus_component}_high_others_low"
+
+                            mixed_config = {}
+                            for comp in target_components:
+                                mixed_config[comp] = highest_fidelity if comp == focus_component else lowest_fidelity
+
+                            sim_config.output_config["mixed_fidelity_config"] = mixed_config
+                            component_fidelity_overrides = {
+                                comp: {"fidelity_level": fidelity} for comp, fidelity in mixed_config.items()
+                            }
+                            sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
+                            configs.append(sim_config)
+
+                else:
+                    # Too many components for full exploration - use sampling
+                    logger.info(f"Too many components ({len(target_components)}) for full fidelity exploration, using sampling")
+
+                    # Sample representative configurations
+                    import random
+                    random.seed(42)  # Reproducible sampling
+
+                    for sample_idx in range(min(10, len(fidelity_levels) * 3)):  # Max 10 samples
+                        sim_config = config.base_config.model_copy(deep=True)
+                        sim_config.simulation_id = f"{config.study_id}_sample_{sample_idx}"
+
+                        # Randomly assign fidelity levels
+                        mixed_config = {}
+                        for comp in target_components:
+                            mixed_config[comp] = random.choice(fidelity_levels)
+
+                        sim_config.output_config["mixed_fidelity_config"] = mixed_config
+                        sim_config.output_config["sample_index"] = sample_idx
+                        component_fidelity_overrides = {
+                            comp: {"fidelity_level": fidelity} for comp, fidelity in mixed_config.items()
+                        }
+                        sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
+                        configs.append(sim_config)
+
+        logger.info(f"Generated {len(configs)} mixed-fidelity configurations")
+        for i, cfg in enumerate(configs):
+            mixed_config = cfg.output_config.get("mixed_fidelity_config", {})
+            logger.debug(f"Config {i}: {mixed_config}")
+
         return configs
 
     def _generate_monte_carlo_configs(self, config: StudyConfig) -> List[SimulationConfig]:
@@ -327,8 +448,26 @@ class StudyService:
                 else:
                     best_result = successful[0]  # Fallback to first result
             elif config.study_type == "fidelity":
-                # Compare fidelity levels
-                best_result = successful[-1]  # Highest fidelity tested
+                # For mixed-fidelity studies, find the configuration with the best trade-off
+                # between accuracy and computational cost
+                if successful:
+                    # Score each result based on accuracy and efficiency
+                    scored_results = []
+                    for result in successful:
+                        # Get solve time and objective value
+                        solve_time = result.solver_metrics.get("solve_time", float('inf')) if result.solver_metrics else float('inf')
+                        objective_value = result.solver_metrics.get("objective_value", float('inf')) if result.solver_metrics else float('inf')
+
+                        # Calculate efficiency score (lower is better)
+                        efficiency_score = solve_time / max(objective_value, 1e-6)  # Avoid division by zero
+
+                        scored_results.append((result, efficiency_score))
+
+                    # Sort by efficiency score (best trade-off)
+                    scored_results.sort(key=lambda x: x[1])
+                    best_result = scored_results[0][0]  # Best efficiency
+                else:
+                    best_result = None
 
         # Calculate summary statistics
         summary_stats = self._calculate_summary_statistics(successful, config)
@@ -393,12 +532,14 @@ class StudyService:
         return stats
 
     def run_fidelity_comparison(self, base_config_path: Path,
-                               components: Optional[List[str]] = None) -> StudyResult:
+                               components: Optional[List[str]] = None,
+                               mixed_fidelity_configs: Optional[List[Dict[str, str]]] = None) -> StudyResult:
         """Convenience method to run a fidelity comparison study.
 
         Args:
             base_config_path: Path to base system configuration
             components: Optional list of components to vary fidelity
+            mixed_fidelity_configs: Optional pre-defined mixed fidelity configurations
 
         Returns:
             StudyResult with fidelity comparison
@@ -415,20 +556,38 @@ class StudyService:
             output_config={"directory": "fidelity_study"}
         )
 
-        # Create study config
+        # Create study config with mixed-fidelity support
         study_config = StudyConfig(
             study_id=f"fidelity_comparison_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             study_type="fidelity",
             base_config=base_sim_config,
             fidelity_sweep=FidelitySweepSpec(
                 component_names=components or [],
-                fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"]
+                fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"],
+                mixed_fidelity_configs=mixed_fidelity_configs
             ),
             parallel_execution=True,
             save_all_results=True
         )
 
         return self.run_study(study_config)
+
+    def run_mixed_fidelity_study(self, base_config_path: Path,
+                                 mixed_configs: List[Dict[str, str]]) -> StudyResult:
+        """Convenience method to run a mixed-fidelity study with specific configurations.
+
+        Args:
+            base_config_path: Path to base system configuration
+            mixed_configs: List of mixed fidelity configurations
+                          Example: [{"battery": "RESEARCH", "solar_pv": "STANDARD"}]
+
+        Returns:
+            StudyResult with mixed-fidelity comparison
+        """
+        return self.run_fidelity_comparison(
+            base_config_path=base_config_path,
+            mixed_fidelity_configs=mixed_configs
+        )
 
     def run_parameter_sensitivity(self, base_config_path: Path,
                                  parameter_specs: List[Dict[str, Any]]) -> StudyResult:

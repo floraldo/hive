@@ -4,24 +4,78 @@ from typing import Dict, List, Literal, Optional, Tuple, Any
 from pydantic import BaseModel, Field
 from ..shared.models import BaseProfileRequest, BaseProfileResponse, ProfileMode
 
-Mode = Literal["observed", "tmy", "average", "synthetic"]
-Resolution = Literal["15min", "30min", "1H", "3H", "1D"]
+# Climate-specific types for validation
+ClimateSource = Literal["nasa_power", "meteostat", "pvgis", "era5", "file_epw"]
+ClimateResolution = Literal["15min", "30min", "1H", "3H", "1D"]
 
 class ClimateRequest(BaseProfileRequest):
-    location: Tuple[float, float] | str
+    """
+    Climate data request extending the unified profile interface.
+
+    Uses BaseProfileRequest for common fields and adds climate-specific parameters.
+    """
+
+    # Override base defaults with climate-specific values
     variables: List[str] = Field(
-        default_factory=lambda: ["temp_air", "ghi", "dni", "dhi", "wind_speed", "rel_humidity", "precip", "cloud_cover"]
+        default_factory=lambda: ["temp_air", "ghi", "dni", "dhi", "wind_speed", "rel_humidity", "precip", "cloud_cover"],
+        description="Climate variables to fetch"
     )
-    source: Literal["nasa_power", "meteostat", "pvgis", "era5", "file_epw"] = "nasa_power"
-    period: Dict[str, int | str]  # {"year": 2019} or {"start":"1991-01-01","end":"2020-12-31"}
-    mode: Mode = "observed"
-    resolution: Resolution = "1H"
-    timezone: Literal["UTC", "local"] = "UTC"
-    subset: Optional[Dict[str, str]] = None  # {"month":"07"} or {"start":"07-10","end":"07-24"}
-    synthetic_options: Dict[str, Any] = Field(default_factory=dict)
-    seed: Optional[int] = None
-    baseline_period: Optional[Tuple[str, str]] = None  # nonstationarity handling (later)
-    p_selection: Optional[int] = None  # P50/P90 representative year (later)
+    source: Optional[ClimateSource] = Field(
+        default="nasa_power",
+        description="Climate data source preference"
+    )
+    resolution: Optional[ClimateResolution] = Field(
+        default="1H",
+        description="Data temporal resolution"
+    )
+
+    # Climate-specific extensions
+    subset: Optional[Dict[str, str]] = Field(
+        default=None,
+        description="Time subset specification: {'month':'07'} or {'start':'07-10','end':'07-24'}"
+    )
+    synthetic_options: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Options for synthetic data generation"
+    )
+    seed: Optional[int] = Field(
+        default=None,
+        description="Random seed for reproducible synthetic generation"
+    )
+    baseline_period: Optional[Tuple[str, str]] = Field(
+        default=None,
+        description="Baseline period for nonstationarity handling"
+    )
+    p_selection: Optional[int] = Field(
+        default=None,
+        description="Percentile selection for representative year (P50, P90, etc.)"
+    )
+
+    @property
+    def mode_legacy(self) -> str:
+        """Legacy mode field for backward compatibility."""
+        if self.mode == ProfileMode.OBSERVED:
+            return "observed"
+        elif self.mode == ProfileMode.TYPICAL:
+            return "tmy"
+        elif self.mode == ProfileMode.AVERAGE:
+            return "average"
+        elif self.mode == ProfileMode.SYNTHETIC:
+            return "synthetic"
+        else:
+            return "observed"
+
+    @classmethod
+    def from_legacy_mode(cls, mode_str: str, **kwargs):
+        """Create ClimateRequest from legacy mode string."""
+        mode_mapping = {
+            "observed": ProfileMode.OBSERVED,
+            "tmy": ProfileMode.TYPICAL,
+            "average": ProfileMode.AVERAGE,
+            "synthetic": ProfileMode.SYNTHETIC
+        }
+        kwargs["mode"] = mode_mapping.get(mode_str, ProfileMode.OBSERVED)
+        return cls(**kwargs)
 
 class ClimateResponse(BaseProfileResponse):
     manifest: Dict[str, Any]

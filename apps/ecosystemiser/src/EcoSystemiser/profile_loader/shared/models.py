@@ -8,7 +8,8 @@ by specific profile types (climate, demand, etc.).
 from typing import Any, Dict, List, Optional, Tuple, Union
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+import pandas as pd
 
 
 class ProfileMode(Enum):
@@ -71,6 +72,37 @@ class BaseProfileRequest(BaseModel):
     use_cache: bool = True
     cache_ttl: Optional[int] = None  # seconds
     
+    @validator('period')
+    def validate_period(cls, v):
+        """Validate and normalize period specification."""
+        if not isinstance(v, dict):
+            raise ValueError("Period must be a dictionary")
+
+        # Import here to avoid circular imports
+        from .datetime_utils import DateTimeProcessor
+
+        try:
+            # Validate by attempting to normalize
+            normalized = DateTimeProcessor.normalize_period(v)
+            return v  # Return original for now, normalization happens at processing time
+        except Exception as e:
+            raise ValueError(f"Invalid period specification: {e}")
+
+    @validator('resolution')
+    def validate_resolution(cls, v):
+        """Validate resolution string."""
+        if v is None:
+            return v
+
+        # Import here to avoid circular imports
+        from .datetime_utils import DateTimeProcessor
+
+        try:
+            normalized = DateTimeProcessor.normalize_frequency(v)
+            return v  # Return original, normalization happens at processing time
+        except Exception as e:
+            raise ValueError(f"Invalid resolution specification: {e}")
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert request to dictionary."""
         return {
@@ -86,6 +118,16 @@ class BaseProfileRequest(BaseModel):
             "use_cache": self.use_cache,
             "cache_ttl": self.cache_ttl
         }
+
+    def get_normalized_period(self) -> Dict[str, pd.Timestamp]:
+        """Get normalized period with pandas Timestamps."""
+        from .datetime_utils import DateTimeProcessor
+        return DateTimeProcessor.normalize_period(self.period)
+
+    def get_normalized_frequency(self) -> str:
+        """Get normalized frequency string."""
+        from .datetime_utils import DateTimeProcessor
+        return DateTimeProcessor.normalize_frequency(self.resolution)
 
 
 class BaseProfileResponse(BaseModel):

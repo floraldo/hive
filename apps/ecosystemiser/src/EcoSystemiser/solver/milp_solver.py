@@ -1,4 +1,5 @@
 """MILP optimization solver using CVXPY - Version 2 with full implementation."""
+from typing import Dict, Any
 import cvxpy as cp
 import numpy as np
 import time
@@ -230,62 +231,200 @@ class MILPSolver(BaseSolver):
         return constraints
 
     def _create_objective(self):
-        """Create optimization objective based on configuration."""
+        """Create optimization objective based on system contributions.
+
+        The MILPSolver now aggregates component contributions from the System
+        instead of implementing its own objective logic. This maintains clear
+        separation of concerns.
+        """
+        # Validate that system has contributions for this objective
+        warnings = self.system.validate_objective_contributions(self.objective_type)
+        if warnings:
+            for warning in warnings:
+                logger.warning(warning)
+
+        # Get component contributions from system
+        contributions = self.system.get_objective_contributions(self.objective_type)
+
+        if not contributions:
+            logger.warning(f"No contributions for {self.objective_type}, creating zero objective")
+            return cp.Minimize(0)
+
+        # Aggregate contributions based on objective type
         if self.objective_type == "min_cost":
-            return self._objective_min_cost()
+            return self._aggregate_cost_contributions(contributions)
         elif self.objective_type == "min_co2":
-            return self._objective_min_co2()
+            return self._aggregate_emission_contributions(contributions)
         elif self.objective_type == "min_grid":
-            return self._objective_min_grid()
+            return self._aggregate_grid_contributions(contributions)
+        elif self.objective_type.startswith("multi_"):
+            return self._aggregate_multi_objective_contributions(contributions)
         else:
             logger.warning(f"Unknown objective type: {self.objective_type}, using min_cost")
-            return self._objective_min_cost()
+            return self._aggregate_cost_contributions(contributions)
 
-    def _objective_min_cost(self):
-        """Minimize total operational cost."""
-        cost = 0
+    def _aggregate_cost_contributions(self, contributions: Dict[str, Any]):
+        """Aggregate cost contributions from all components.
 
-        for comp in self.system.components.values():
-            if comp.type == "transmission" and hasattr(comp, 'import_tariff'):
-                # Grid import costs
-                if hasattr(comp, 'P_draw') and comp.P_draw is not None:
-                    cost += cp.sum(comp.P_draw) * comp.import_tariff
+        Args:
+            contributions: Component cost contributions from system
 
-                # Grid export revenue (negative cost)
-                if hasattr(comp, 'P_feed') and comp.P_feed is not None:
-                    cost -= cp.sum(comp.P_feed) * comp.feed_in_tariff
+        Returns:
+            CVXPY Minimize objective
+        """
+        total_cost = 0
 
-            # Add other operational costs if available
-            # e.g., maintenance, fuel costs, etc.
+        for comp_name, comp_costs in contributions.items():
+            for cost_type, cost_data in comp_costs.items():
+                rate = cost_data.get('rate', 0)
+                variable = cost_data.get('variable')
 
-        return cp.Minimize(cost)
+                if variable is not None and rate != 0:
+                    # Add cost contribution: rate * sum(variable)
+                    if hasattr(variable, '__len__'):  # Array-like
+                        total_cost += cp.sum(variable) * rate
+                    else:  # Scalar
+                        total_cost += variable * rate
 
-    def _objective_min_co2(self):
-        """Minimize CO2 emissions."""
-        co2 = 0
+                    logger.debug(f"Added {cost_type} from {comp_name}: rate={rate}")
 
-        # Grid emissions (assuming grid has carbon intensity)
-        grid_carbon_intensity = 0.5  # kg CO2/kWh (example value)
+        return cp.Minimize(total_cost)
 
-        for comp in self.system.components.values():
-            if comp.type == "transmission":
-                if hasattr(comp, 'P_draw') and comp.P_draw is not None:
-                    co2 += cp.sum(comp.P_draw) * grid_carbon_intensity
+    def _aggregate_emission_contributions(self, contributions: Dict[str, Any]):
+        """Aggregate emission contributions from all components.
 
-        return cp.Minimize(co2)
+        Args:
+            contributions: Component emission contributions from system
 
-    def _objective_min_grid(self):
-        """Minimize grid usage (both import and export)."""
-        grid_usage = 0
+        Returns:
+            CVXPY Minimize objective
+        """
+        total_emissions = 0
 
-        for comp in self.system.components.values():
-            if comp.type == "transmission":
-                if hasattr(comp, 'P_draw') and comp.P_draw is not None:
-                    grid_usage += cp.sum(comp.P_draw)
-                if hasattr(comp, 'P_feed') and comp.P_feed is not None:
-                    grid_usage += cp.sum(comp.P_feed)
+        for comp_name, comp_emissions in contributions.items():
+            for emission_type, emission_data in comp_emissions.items():
+                factor = emission_data.get('factor', 0)
+                variable = emission_data.get('variable')
 
-        return cp.Minimize(grid_usage)
+                if variable is not None and factor > 0:
+                    # Add emission contribution: factor * sum(variable)
+                    if hasattr(variable, '__len__'):  # Array-like
+                        total_emissions += cp.sum(variable) * factor
+                    else:  # Scalar
+                        total_emissions += variable * factor
+
+                    logger.debug(f"Added {emission_type} from {comp_name}: factor={factor} kg CO2/kWh")
+
+        return cp.Minimize(total_emissions)
+
+    def _aggregate_grid_contributions(self, contributions: Dict[str, Any]):
+        """Aggregate grid usage contributions from transmission components.
+
+        Args:
+            contributions: Component grid usage contributions from system
+
+        Returns:
+            CVXPY Minimize objective
+        """
+        total_grid_usage = 0
+
+        for comp_name, comp_usage in contributions.items():
+            for usage_type, variable in comp_usage.items():
+                if variable is not None:
+                    # Add grid usage: sum(variable)
+                    if hasattr(variable, '__len__'):  # Array-like
+                        total_grid_usage += cp.sum(variable)
+                    else:  # Scalar
+                        total_grid_usage += variable
+
+                    logger.debug(f"Added {usage_type} grid usage from {comp_name}")
+
+        return cp.Minimize(total_grid_usage)
+
+    def _aggregate_multi_objective_contributions(self, contributions: Dict[str, Any]):
+        """Aggregate multiple objectives with weighted combination.
+
+        Examples:
+            "multi_cost_co2_50_50" -> 50% cost + 50% emissions
+            "multi_cost_grid_70_30" -> 70% cost + 30% grid usage
+
+        Args:
+            contributions: Component contributions from system
+
+        Returns:
+            CVXPY Minimize objective with weighted combination
+        """
+        # Parse objective type: multi_obj1_obj2_weight1_weight2
+        parts = self.objective_type.split('_')
+        if len(parts) < 5:
+            logger.error(f"Invalid multi-objective format: {self.objective_type}")
+            return self._aggregate_cost_contributions(contributions)
+
+        obj1, obj2 = parts[1], parts[2]
+        try:
+            weight1, weight2 = float(parts[3]), float(parts[4])
+            # Normalize weights
+            total_weight = weight1 + weight2
+            weight1, weight2 = weight1/total_weight, weight2/total_weight
+        except (ValueError, ZeroDivisionError):
+            logger.error(f"Invalid weights in multi-objective: {self.objective_type}")
+            weight1, weight2 = 0.5, 0.5
+
+        # Get individual objective values
+        obj1_value = self._get_single_objective_value(obj1, contributions)
+        obj2_value = self._get_single_objective_value(obj2, contributions)
+
+        # Weighted combination
+        combined_objective = weight1 * obj1_value + weight2 * obj2_value
+
+        logger.info(f"Multi-objective: {weight1:.1%} {obj1} + {weight2:.1%} {obj2}")
+        return cp.Minimize(combined_objective)
+
+    def _get_single_objective_value(self, objective_type: str, contributions: Dict[str, Any]):
+        """Get objective value for single objective type."""
+        if objective_type == "cost":
+            cost_contribs = self.system.get_component_cost_contributions()
+            total = 0
+            for comp_costs in cost_contribs.values():
+                for cost_data in comp_costs.values():
+                    rate = cost_data.get('rate', 0)
+                    variable = cost_data.get('variable')
+                    if variable is not None and rate != 0:
+                        if hasattr(variable, '__len__'):
+                            total += cp.sum(variable) * rate
+                        else:
+                            total += variable * rate
+            return total
+
+        elif objective_type == "co2":
+            emission_contribs = self.system.get_component_emission_contributions()
+            total = 0
+            for comp_emissions in emission_contribs.values():
+                for emission_data in comp_emissions.values():
+                    factor = emission_data.get('factor', 0)
+                    variable = emission_data.get('variable')
+                    if variable is not None and factor > 0:
+                        if hasattr(variable, '__len__'):
+                            total += cp.sum(variable) * factor
+                        else:
+                            total += variable * factor
+            return total
+
+        elif objective_type == "grid":
+            grid_usage = self.system.get_component_grid_usage()
+            total = 0
+            for comp_usage in grid_usage.values():
+                for variable in comp_usage.values():
+                    if variable is not None:
+                        if hasattr(variable, '__len__'):
+                            total += cp.sum(variable)
+                        else:
+                            total += variable
+            return total
+
+        else:
+            logger.warning(f"Unknown single objective type: {objective_type}")
+            return 0
 
     def _select_solver(self):
         """Select appropriate solver based on availability."""

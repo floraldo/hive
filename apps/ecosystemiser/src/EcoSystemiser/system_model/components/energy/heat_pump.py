@@ -8,7 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import GenerationTechnicalParams, FidelityLevel
-from ..shared.base_classes import BaseConversionComponent, BaseConversionPhysics, BaseConversionOptimization
+from ..shared.base_classes import BaseConversionPhysics, BaseConversionOptimization
 
 logger = logging.getLogger(__name__)
 

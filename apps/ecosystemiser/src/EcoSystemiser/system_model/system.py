@@ -258,62 +258,184 @@ class System:
         self.constraints = constraints
         return constraints
 
-    def set_objective(self, objective_type: str):
-        """Set the optimization objective.
+    def get_objective_contributions(self, objective_type: str) -> Dict[str, Any]:
+        """Get objective function contributions based on objective type.
+
+        This is the main interface for solvers to get component contributions
+        for aggregation into the overall objective function. This maintains
+        clear separation: System knows component costs, Solver aggregates them.
 
         Args:
             objective_type: Type of objective ('min_cost', 'min_co2', 'min_grid')
+
+        Returns:
+            Dictionary of component contributions to the objective
         """
         if objective_type == "min_cost":
-            self.objective = self._create_cost_objective()
+            return self.get_component_cost_contributions()
         elif objective_type == "min_co2":
-            self.objective = self._create_co2_objective()
+            return self.get_component_emission_contributions()
         elif objective_type == "min_grid":
-            self.objective = self._create_grid_objective()
+            return self.get_component_grid_usage()
         else:
             raise ValueError(f"Unknown objective type: {objective_type}")
 
-    def _create_cost_objective(self):
-        """Create cost minimization objective."""
-        cost = 0
+    def get_component_cost_contributions(self, timestep: Optional[int] = None) -> Dict[str, Any]:
+        """Get cost contributions from all components.
 
-        # Add operational costs from all flows
-        for component in self.components.values():
+        The System exposes component cost contributions for the solver to aggregate.
+        This maintains clear separation: System knows component costs, Solver aggregates them.
+
+        Args:
+            timestep: Specific timestep to get costs for, None for all timesteps
+
+        Returns:
+            Dictionary of component cost contributions
+        """
+        cost_contributions = {}
+
+        for comp_name, component in self.components.items():
+            comp_costs = {}
+
+            # Operational costs
             if hasattr(component, 'economic') and component.economic:
-                # Variable costs based on flows
-                for flow_dict in component.flows.values():
-                    for flow in flow_dict.values():
-                        if isinstance(flow['value'], cp.Variable):
-                            cost += cp.sum(flow['value']) * component.economic.opex_var
+                # Import costs for transmission components
+                if component.type == "transmission" and hasattr(component, 'import_tariff'):
+                    comp_costs['import_cost'] = {
+                        'rate': component.import_tariff,
+                        'variable': getattr(component, 'P_import', None)
+                    }
 
-        return cp.Minimize(cost)
+                # Export revenues for transmission components
+                if component.type == "transmission" and hasattr(component, 'export_tariff'):
+                    comp_costs['export_revenue'] = {
+                        'rate': -component.export_tariff,  # Negative cost (revenue)
+                        'variable': getattr(component, 'P_export', None)
+                    }
 
-    def _create_co2_objective(self):
-        """Create CO2 minimization objective."""
-        co2 = 0
+                # Generation costs
+                if component.type == "generation" and hasattr(component, 'operating_cost'):
+                    comp_costs['generation_cost'] = {
+                        'rate': component.operating_cost,
+                        'variable': getattr(component, 'P_gen', None)
+                    }
 
-        for component in self.components.values():
+                # Storage degradation costs
+                if component.type == "storage" and hasattr(component, 'degradation_cost'):
+                    comp_costs['degradation_cost'] = {
+                        'rate': component.degradation_cost,
+                        'variable': getattr(component, 'P_cha', None)  # Cost per charge cycle
+                    }
+
+                # Variable operational costs for all flows
+                if hasattr(component.economic, 'opex_var') and component.economic.opex_var > 0:
+                    for flow_dict in component.flows.values():
+                        for flow_name, flow in flow_dict.items():
+                            if 'value' in flow and flow['value'] is not None:
+                                comp_costs[f'{flow_name}_variable'] = {
+                                    'rate': component.economic.opex_var,
+                                    'variable': flow['value']
+                                }
+
+            if comp_costs:
+                cost_contributions[comp_name] = comp_costs
+
+        return cost_contributions
+
+    def get_component_emission_contributions(self, timestep: Optional[int] = None) -> Dict[str, Any]:
+        """Get emission contributions from all components.
+
+        Args:
+            timestep: Specific timestep to get emissions for, None for all timesteps
+
+        Returns:
+            Dictionary of component emission contributions
+        """
+        emission_contributions = {}
+
+        for comp_name, component in self.components.items():
+            comp_emissions = {}
+
             if hasattr(component, 'environmental') and component.environmental:
-                # CO2 from operations
-                for flow_dict in component.flows.values():
-                    for flow in flow_dict.values():
-                        if isinstance(flow['value'], cp.Variable):
-                            co2 += cp.sum(flow['value']) * component.environmental.co2_operational
+                # Grid import emissions
+                if component.type == "transmission" and hasattr(component, 'grid_emission_factor'):
+                    comp_emissions['grid_emissions'] = {
+                        'factor': component.grid_emission_factor,  # kg CO2/kWh
+                        'variable': getattr(component, 'P_import', None)
+                    }
 
-        return cp.Minimize(co2)
+                # Generation emissions
+                if component.type == "generation" and hasattr(component, 'emission_factor'):
+                    comp_emissions['generation_emissions'] = {
+                        'factor': component.emission_factor,
+                        'variable': getattr(component, 'P_gen', None)
+                    }
 
-    def _create_grid_objective(self):
-        """Create grid usage minimization objective."""
-        grid_usage = 0
+                # Operational emissions for all flows
+                if hasattr(component.environmental, 'co2_operational') and component.environmental.co2_operational > 0:
+                    for flow_dict in component.flows.values():
+                        for flow_name, flow in flow_dict.items():
+                            if 'value' in flow and flow['value'] is not None:
+                                comp_emissions[f'{flow_name}_operational'] = {
+                                    'factor': component.environmental.co2_operational,
+                                    'variable': flow['value']
+                                }
 
-        for component in self.components.values():
+            if comp_emissions:
+                emission_contributions[comp_name] = comp_emissions
+
+        return emission_contributions
+
+    def get_component_grid_usage(self) -> Dict[str, Any]:
+        """Get grid usage from transmission components.
+
+        Returns:
+            Dictionary of grid usage variables for minimization
+        """
+        grid_usage = {}
+
+        for comp_name, component in self.components.items():
             if component.type == "transmission" and component.medium == "electricity":
-                for flow_dict in component.flows.values():
-                    for flow in flow_dict.values():
-                        if isinstance(flow['value'], cp.Variable):
-                            grid_usage += cp.sum(flow['value'])
+                comp_usage = {}
 
-        return cp.Minimize(grid_usage)
+                if hasattr(component, 'P_import'):
+                    comp_usage['import'] = getattr(component, 'P_import', None)
+                if hasattr(component, 'P_export'):
+                    comp_usage['export'] = getattr(component, 'P_export', None)
+
+                # Include all electricity flows for grid components
+                for flow_dict in component.flows.values():
+                    for flow_name, flow in flow_dict.items():
+                        if 'value' in flow and flow['value'] is not None:
+                            comp_usage[flow_name] = flow['value']
+
+                if comp_usage:
+                    grid_usage[comp_name] = comp_usage
+
+        return grid_usage
+
+    def validate_objective_contributions(self, objective_type: str) -> List[str]:
+        """Validate that components have necessary data for the specified objective.
+
+        Args:
+            objective_type: Type of objective to validate
+
+        Returns:
+            List of validation warnings
+        """
+        warnings = []
+        contributions = self.get_objective_contributions(objective_type)
+
+        if not contributions:
+            warnings.append(f"No components contribute to {objective_type} objective")
+
+        # Check for missing data
+        for comp_name, comp_data in contributions.items():
+            for contrib_type, contrib_data in comp_data.items():
+                if contrib_data.get('variable') is None:
+                    warnings.append(f"Component {comp_name} {contrib_type} has no optimization variable")
+
+        return warnings
 
     def __repr__(self):
         """String representation of system."""

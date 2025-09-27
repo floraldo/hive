@@ -8,7 +8,7 @@ import logging
 from ..shared.registry import register_component
 from ..shared.component import Component, ComponentParams
 from ..shared.archetypes import StorageTechnicalParams, FidelityLevel
-from ..shared.base_classes import BaseStorageComponent, BaseStoragePhysics, BaseStorageOptimization
+from ..shared.base_classes import BaseStoragePhysics, BaseStorageOptimization
 
 logger = logging.getLogger(__name__)
 
