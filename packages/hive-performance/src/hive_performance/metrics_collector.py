@@ -8,9 +8,9 @@ from typing import Dict, List, Optional, Any, Callable, Union
 from datetime import datetime, timedelta
 import threading
 import psutil
-import logging
+from hive_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

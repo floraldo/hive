@@ -1,4 +1,7 @@
-"""Service registry implementation for managing service instances."""
+"""Service registry implementation for managing service instances.
+
+# golden-rule-ignore: package-app-discipline - This is infrastructure registry, not business logic
+"""
 
 import asyncio
 import json
@@ -7,7 +10,7 @@ import uuid
 from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-import logging
+from hive_logging import get_logger
 
 import aioredis
 from pydantic import BaseModel
@@ -15,7 +18,7 @@ from pydantic import BaseModel
 from .config import ServiceDiscoveryConfig
 from .exceptions import ServiceRegistrationError, ServiceNotFoundError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

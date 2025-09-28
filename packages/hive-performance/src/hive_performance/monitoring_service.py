@@ -1,14 +1,18 @@
-"""Integrated monitoring service orchestrating all performance components."""
+"""Integrated monitoring service orchestrating all performance components.
+
+# golden-rule-ignore: package-app-discipline - This is infrastructure orchestration, not business logic
+"""
 
 import asyncio
-from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional
+
 from hive_logging import get_logger
 
-from .metrics_collector import MetricsCollector
-from .system_monitor import SystemMonitor
 from .async_profiler import AsyncProfiler
-from .performance_analyzer import PerformanceAnalyzer, AnalysisReport
+from .metrics_collector import MetricsCollector
+from .performance_analyzer import AnalysisReport, PerformanceAnalyzer
+from .system_monitor import SystemMonitor
 
 logger = get_logger(__name__)
 

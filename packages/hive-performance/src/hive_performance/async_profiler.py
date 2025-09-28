@@ -8,9 +8,9 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Set, Tuple, Callable
 from datetime import datetime, timedelta
 import weakref
-import logging
+from hive_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

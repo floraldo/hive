@@ -3,13 +3,13 @@
 import hashlib
 import time
 from typing import Any, Dict, List, Optional, Callable, Union
-import logging
+from hive_logging import get_logger
 
 from .cache_client import HiveCacheClient, get_cache_client
 from .config import CacheConfig
 from .exceptions import CacheError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ClaudeAPICache:

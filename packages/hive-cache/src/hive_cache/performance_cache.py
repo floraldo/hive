@@ -4,14 +4,14 @@ import asyncio
 import inspect
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-import logging
+from hive_logging import get_logger
 import hashlib
 
 from .cache_client import HiveCacheClient, get_cache_client
 from .config import CacheConfig
 from .exceptions import CacheError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class PerformanceCache:

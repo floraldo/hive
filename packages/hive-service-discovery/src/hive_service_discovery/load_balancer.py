@@ -7,12 +7,12 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-import logging
+from hive_logging import get_logger
 
 from .service_registry import ServiceInfo
 from .exceptions import LoadBalancerError, ServiceNotFoundError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class LoadBalancingStrategy(Enum):

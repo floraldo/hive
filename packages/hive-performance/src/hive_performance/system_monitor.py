@@ -7,9 +7,9 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
 from collections import deque
-import logging
+from hive_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

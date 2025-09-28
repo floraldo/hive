@@ -1,5 +1,6 @@
 """Water storage component with MILP optimization support and hierarchical fidelity."""
 
+import logging
 from typing import Any, Dict, List, Optional
 
 import cvxpy as cp
@@ -41,6 +42,10 @@ class WaterStorageTechnicalParams(StorageTechnicalParams):
         None,
         description="Water quality classification (potable, greywater, blackwater)",
     )
+
+    # Flow rate parameters
+    max_charge_rate: float = Field(2.0, description="Maximum inflow rate [m³/h]")
+    max_discharge_rate: float = Field(2.0, description="Maximum outflow rate [m³/h]")
 
     # STANDARD fidelity additions
     temperature_effects: Optional[Dict[str, float]] = Field(None, description="Temperature-dependent loss rates")
@@ -100,6 +105,19 @@ class WaterStoragePhysicsSimple(BaseStoragePhysics):
         new_volume = V_old + net_change
 
         return self.apply_bounds(new_volume)
+
+    def apply_bounds(self, volume_level: float) -> float:
+        """
+        Apply physical volume bounds (0 <= V <= V_max) for water storage.
+
+        Args:
+            volume_level: Volume level to bound
+
+        Returns:
+            float: Bounded volume level
+        """
+        V_max = self.params.technical.capacity_nominal
+        return max(0.0, min(volume_level, V_max))
 
 
 class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):

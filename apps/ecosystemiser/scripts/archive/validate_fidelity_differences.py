@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
+# golden-rule-ignore: no-syspath-hacks - Legacy archive script for validation
 # Add path for imports
 eco_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(eco_path))

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Debug flow creation and naming in the system."""
+"""Debug flow creation and naming in the system.
+
+# golden-rule-ignore: no-syspath-hacks - Legacy archive script for debugging
+"""
 
 import sys
 from pathlib import Path

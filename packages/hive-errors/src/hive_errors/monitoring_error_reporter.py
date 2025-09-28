@@ -6,12 +6,12 @@ from collections import defaultdict, deque
 from dataclasses import asdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Callable
-import logging
+from hive_logging import get_logger
 
 from .base_exceptions import BaseError
 from .error_reporter import BaseErrorReporter
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MonitoringErrorReporter(BaseErrorReporter):

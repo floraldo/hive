@@ -1,7 +1,7 @@
 """Service discovery client for finding and connecting to services."""
 
 import asyncio
-import logging
+from hive_logging import get_logger
 from typing import Dict, List, Optional, Any, Callable
 import time
 
@@ -11,7 +11,7 @@ from .health_monitor import HealthMonitor
 from .config import ServiceDiscoveryConfig
 from .exceptions import ServiceNotFoundError, ServiceDiscoveryError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DiscoveryClient:

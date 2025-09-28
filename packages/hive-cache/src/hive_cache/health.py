@@ -5,13 +5,13 @@ import time
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-import logging
+from hive_logging import get_logger
 
 from .cache_client import HiveCacheClient
 from .config import CacheConfig
 from .exceptions import CacheError, CacheConnectionError
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

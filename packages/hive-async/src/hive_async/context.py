@@ -57,6 +57,23 @@ class AsyncResourceManager:
         """Get a registered resource."""
         return self.resources.get(name)
 
+    async def acquire_async(self, name: str, factory, *args, **kwargs):
+        """Acquire a resource using a factory function."""
+        if name in self.resources:
+            return self.resources[name]
+
+        if asyncio.iscoroutinefunction(factory):
+            resource = await factory(*args, **kwargs)
+        else:
+            resource = factory(*args, **kwargs)
+
+        self.resources[name] = resource
+        return resource
+
+    def add_cleanup_async(self, cleanup_callback):
+        """Add a cleanup callback."""
+        self._cleanup_callbacks[f"callback_{len(self._cleanup_callbacks)}"] = cleanup_callback
+
 
 @asynccontextmanager
 async def async_context_async(*resources: AsyncContextManager):
@@ -78,3 +95,20 @@ async def async_context_async(*resources: AsyncContextManager):
                 await resource.__aexit__(None, None, None)
             except Exception as e:
                 logger.warning(f"Error in async context cleanup: {e}")
+
+
+def async_context(context_name: str):
+    """Decorator for async context management."""
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            async with AsyncResourceManager() as manager:
+                logger.debug(f"Entering async context: {context_name}")
+                try:
+                    result = await func(*args, **kwargs)
+                    logger.debug(f"Exiting async context: {context_name}")
+                    return result
+                except Exception as e:
+                    logger.error(f"Error in async context {context_name}: {e}")
+                    raise
+        return wrapper
+    return decorator

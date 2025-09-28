@@ -8,12 +8,12 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Callable, Union, AsyncGenerator
 from datetime import datetime, timedelta
-import logging
+from hive_logging import get_logger
 
 from .base_exceptions import BaseError, AsyncTimeoutError, RetryExhaustedError
 from .error_reporter import BaseErrorReporter
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

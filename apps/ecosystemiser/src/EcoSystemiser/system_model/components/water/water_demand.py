@@ -1,5 +1,6 @@
 """Water demand component with MILP optimization support and hierarchical fidelity."""
 
+import logging
 from typing import Any, Dict, List, Optional
 
 import cvxpy as cp
@@ -241,13 +242,9 @@ class WaterDemand(Component):
         self.occupancy_coupling = tech.occupancy_coupling
         self.conservation_measures = tech.conservation_measures
 
-        # Profile should be assigned by the system/builder
-        # Initialize as None, will be set by assign_profiles
-        if not hasattr(self, "profile") or self.profile is None:
-            logger.warning(f"No water demand profile assigned to {self.name}. Using zero demand.")
-            self.profile = np.zeros(getattr(self, "N", 24))
-        else:
-            self.profile = np.array(self.profile)
+        # Profile should be assigned by the system/builder after initialization
+        # Initialize as None, will be set later by profile assignment
+        self.profile = None
 
         # CVXPY variables (for MILP solver)
         self.Q_in = None

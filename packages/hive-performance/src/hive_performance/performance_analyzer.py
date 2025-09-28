@@ -6,13 +6,13 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
-import logging
+from hive_logging import get_logger
 
 from .metrics_collector import MetricsCollector, PerformanceMetrics
 from .system_monitor import SystemMonitor, SystemMetrics
 from .async_profiler import AsyncProfiler, ProfileReport
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

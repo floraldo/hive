@@ -113,6 +113,19 @@ class HeatBufferPhysicsSimple(BaseStoragePhysics):
         # Enforce physical bounds
         return self.apply_bounds(next_state)
 
+    def apply_bounds(self, energy_level: float) -> float:
+        """
+        Apply physical energy bounds (0 <= E <= E_max) for heat buffer.
+
+        Args:
+            energy_level: Energy level to bound
+
+        Returns:
+            float: Bounded energy level
+        """
+        E_max = self.params.technical.capacity_nominal
+        return max(0.0, min(energy_level, E_max))
+
 
 class HeatBufferPhysicsStandard(HeatBufferPhysicsSimple):
     """Implements the STANDARD rule-based physics for a heat buffer.
