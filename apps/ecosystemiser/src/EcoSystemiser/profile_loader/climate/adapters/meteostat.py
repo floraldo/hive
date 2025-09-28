@@ -22,6 +22,12 @@ from ecosystemiser.profile_loader.climate.adapters.errors import (
     ValidationError,
 )
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+from ecosystemiser.profile_loader.climate.processing.validation import (
+    QCReport,
+    QCIssue,
+    QCSeverity,
+)
+from ecosystemiser.profile_loader.climate.processing.validation import QCProfile
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -753,31 +759,31 @@ class MeteostatAdapter(BaseAdapter):
         )
 
 
-class MeteostatQCProfile:
+class MeteostatQCProfile(QCProfile):
     """QC profile for Meteostat data - co-located with adapter for better cohesion."""
 
     def __init__(self):
-        self.name = "Meteostat"
-        self.description = (
-            "Weather station data aggregated from multiple national weather services"
+        super().__init__(
+            name="Meteostat",
+            description="Weather station data aggregated from multiple national weather services",
+            known_issues=[
+                "Data gaps common due to station maintenance",
+                "Quality varies by region and station density",
+                "Some stations may have exposure or instrumentation issues",
+                "Interpolation used between stations can introduce artifacts",
+            ],
+            recommended_variables=[
+                "temp_air",
+                "rel_humidity",
+                "precip",
+                "wind_speed",
+                "pressure",
+            ],
+            temporal_resolution_limits={"all": "hourly"},
+            spatial_accuracy="Point measurements, station-dependent",
         )
-        self.known_issues = [
-            "Data gaps common due to station maintenance",
-            "Quality varies by region and station density",
-            "Some stations may have exposure or instrumentation issues",
-            "Interpolation used between stations can introduce artifacts",
-        ]
-        self.recommended_variables = [
-            "temp_air",
-            "rel_humidity",
-            "precip",
-            "wind_speed",
-            "pressure",
-        ]
-        self.temporal_resolution_limits = {"all": "hourly"}
-        self.spatial_accuracy = "Point measurements, station-dependent"
 
-    def validate_source_specific(self, ds: xr.Dataset, report) -> None:
+    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """Meteostat specific validation"""
 
         # Check for excessive data gaps (common with station data)
@@ -786,10 +792,15 @@ class MeteostatQCProfile:
             gap_length = self._check_consecutive_gaps(data)
 
             if gap_length > 24:  # Gaps longer than 24 hours
-                severity = "HIGH" if gap_length >= 72 else "MEDIUM"
-                report.warnings.append(
-                    f"Long data gaps in {var_name} (max: {gap_length} consecutive hours) - {severity} severity"
+                issue = QCIssue(
+                    type="data_gaps",
+                    message=f"Long data gaps detected in {var_name} (max: {gap_length} consecutive NaN values)",
+                    severity=QCSeverity.MEDIUM if gap_length < 72 else QCSeverity.HIGH,
+                    affected_variables=[var_name],
+                    metadata={"max_gap_hours": int(gap_length)},
+                    suggested_action="Check station maintenance schedules and consider gap filling",
                 )
+                report.add_issue(issue)
 
         # Check for station-specific issues (simplified)
         if "wind_speed" in ds:
@@ -797,12 +808,20 @@ class MeteostatQCProfile:
             # Check for suspiciously low wind variability (sheltered station)
             wind_std = np.nanstd(wind_data)
             if wind_std < 0.5:  # Very low wind variability
-                report.warnings.append(
-                    f"Very low wind speed variability (std={wind_std:.2f}) suggests sheltered station"
+                issue = QCIssue(
+                    type="station_exposure",
+                    message=f"Very low wind speed variability (std={wind_std:.2f}) suggests sheltered station",
+                    severity=QCSeverity.LOW,
+                    affected_variables=["wind_speed"],
+                    metadata={"wind_std": float(wind_std)},
+                    suggested_action="Consider station exposure conditions in analysis",
                 )
+                report.add_issue(issue)
+
+        report.passed_checks.append("meteostat_specific_validation")
 
     def _check_consecutive_gaps(self, data: np.ndarray) -> int:
-        """Find maximum length of consecutive NaN values - helper method moved with the class"""
+        """Find maximum length of consecutive NaN values"""
         is_nan = np.isnan(data)
         if not np.any(is_nan):
             return 0

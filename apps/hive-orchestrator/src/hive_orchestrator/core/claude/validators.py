@@ -55,16 +55,47 @@ class PydanticValidator(BaseResponseValidator):
 
     def create_fallback(self, error_message: str, context: Dict[str, Any]) -> BaseModel:
         """
-        Create a fallback response (must be overridden for specific models)
+        Create a fallback response with default values
 
         Args:
             error_message: Error that triggered the fallback
             context: Additional context for creating the fallback
 
         Returns:
-            Fallback model instance
+            Fallback model instance with default values
         """
-        raise NotImplementedError("Subclasses must implement create_fallback")
+        # Create instance with minimal required fields
+        # Use context to populate fields where possible
+        try:
+            # Try to create with default values from model schema
+            defaults = {}
+            for field_name, field in self.model_class.model_fields.items():
+                if field_name in context:
+                    defaults[field_name] = context[field_name]
+                elif field.default is not None:
+                    defaults[field_name] = field.default
+                elif not field.is_required():
+                    continue
+                else:
+                    # Provide sensible defaults for required fields
+                    if field.annotation == str:
+                        defaults[field_name] = ""
+                    elif field.annotation == int:
+                        defaults[field_name] = 0
+                    elif field.annotation == bool:
+                        defaults[field_name] = False
+                    elif field.annotation == list:
+                        defaults[field_name] = []
+                    elif field.annotation == dict:
+                        defaults[field_name] = {}
+                    else:
+                        defaults[field_name] = None
+
+            return self.model_class(**defaults)
+        except Exception as e:
+            logger.error(f"Failed to create fallback: {e}")
+            # Return minimal instance if fallback creation fails
+            return self.model_class()
 
 
 class ResponseValidator:

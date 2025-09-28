@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 
 
 def get_postgres_connection(
-    config: Optional[Dict[str, Any]] = None,
+    config: Dict[str, Any],
     host: Optional[str] = None,
     port: Optional[int] = None,
     database: Optional[str] = None,
@@ -68,9 +68,7 @@ def get_postgres_connection(
             "Install it with: pip install psycopg2-binary"
         )
 
-    # Initialize config if not provided
-    if config is None:
-        config = {}
+    # Config is now required - no fallback to empty dict
 
     # Check for full DATABASE_URL first (from config or direct parameter)
     database_url = config.get("database_url")
@@ -122,7 +120,7 @@ def get_postgres_connection(
 
 @contextmanager
 def postgres_transaction(
-    config: Optional[Dict[str, Any]] = None,
+    config: Dict[str, Any],
     host: Optional[str] = None,
     port: Optional[int] = None,
     database: Optional[str] = None,
@@ -170,7 +168,7 @@ def postgres_transaction(
 def create_connection_pool(
     minconn: int = 1,
     maxconn: int = 10,
-    config: Optional[Dict[str, Any]] = None,
+    config: Dict[str, Any],
     host: Optional[str] = None,
     port: Optional[int] = None,
     database: Optional[str] = None,
@@ -205,9 +203,7 @@ def create_connection_pool(
     if not PSYCOPG2_AVAILABLE:
         raise ImportError("psycopg2-binary is required for connection pooling")
 
-    # Initialize config if not provided
-    if config is None:
-        config = {}
+    # Config is now required - no fallback to empty dict
 
     # Use same parameter resolution as get_postgres_connection
     database_url = config.get("database_url")
@@ -259,7 +255,7 @@ def create_connection_pool(
 
 
 def get_postgres_info(
-    config: Optional[Dict[str, Any]] = None,
+    config: Dict[str, Any],
     host: Optional[str] = None,
     port: Optional[int] = None,
     database: Optional[str] = None,
@@ -302,9 +298,7 @@ def get_postgres_info(
                 cur.execute("SELECT current_database(), current_user")
                 db_info = cur.fetchone()
 
-                # Initialize config if not provided for info display
-                if config is None:
-                    config = {}
+                # Config is now required - no fallback to empty dict
 
                 return {
                     "database": db_info["current_database"],

@@ -6,22 +6,14 @@ and utility functions following the Hive inherit-extend pattern.
 """
 
 from .async_pool import (
-    AsyncConnectionPool,
     AsyncDatabaseManager,
-    async_pool_health_check,
-    close_all_async_pools,
-    get_async_connection,
-    get_async_database_manager,
-    get_async_pool_stats,
+    create_async_database_manager,
+    create_async_sqlite_pool,
 )
 from .pool import (
     ConnectionPool,
     DatabaseManager,
-    close_all_pools,
-    get_database_manager,
-    get_pool_stats,
-    get_pooled_connection,
-    pool_health_check,
+    create_database_manager,
 )
 from .postgres_connector import (
     create_connection_pool,
@@ -64,19 +56,11 @@ __all__ = [
     # Connection pooling
     "ConnectionPool",
     "DatabaseManager",
-    "get_pooled_connection",
-    "get_database_manager",
-    "close_all_pools",
-    "get_pool_stats",
-    "pool_health_check",
+    "create_database_manager",
     # Async connection pooling
-    "AsyncConnectionPool",
     "AsyncDatabaseManager",
-    "get_async_connection",
-    "get_async_database_manager",
-    "close_all_async_pools",
-    "get_async_pool_stats",
-    "async_pool_health_check",
+    "create_async_database_manager",
+    "create_async_sqlite_pool",
     # Database utilities
     "table_exists",
     "create_table_if_not_exists",

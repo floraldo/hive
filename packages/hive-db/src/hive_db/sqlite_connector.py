@@ -39,7 +39,7 @@ def get_sqlite_connection(
             'check_same_thread': False
         }
     """
-    # Initialize config if not provided
+    # If no config provided, create minimal config (db_path can be sufficient)
     if config is None:
         config = {}
 

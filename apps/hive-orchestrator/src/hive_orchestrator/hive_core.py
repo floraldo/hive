@@ -283,10 +283,12 @@ class HiveCore:
     def get_all_tasks(self) -> List[Dict[str, Any]]:
         """Get all tasks with their current status from database"""
         try:
-            # For now, get queued tasks with high limit
-            # TODO: Add get_all_tasks() function to hive-core-db
-            tasks = hive_core_db.get_queued_tasks(limit=10000)
-            return tasks
+            # Get all tasks regardless of status
+            all_tasks = []
+            for status in ['queued', 'running', 'completed', 'failed']:
+                tasks = hive_core_db.get_tasks_by_status(status)
+                all_tasks.extend(tasks)
+            return all_tasks
         except Exception as e:
             self.log.error(f"Error getting all tasks from database: {e}")
             return []

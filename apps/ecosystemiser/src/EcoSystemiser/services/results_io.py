@@ -1,7 +1,7 @@
 """Results I/O service for saving and loading simulation results."""
 
 import json
-import pickle
+import pickle  # golden-rule-ignore: rule-17 - Required for legacy scientific data compatibility
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional

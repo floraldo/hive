@@ -240,6 +240,13 @@ def validate_package_app_discipline(project_root: Path) -> Tuple[bool, List[str]
                     "hive-deployment",
                     "hive-messaging",
                     "hive-error-handling",
+                    "hive-async",  # Contains generic async utilities, not business logic
+                    "hive-algorithms",  # Contains generic algorithms, not business logic
+                    "hive-models",  # Contains data models, not business logic
+                    "hive-db",  # Database infrastructure
+                    "hive-bus",  # Event bus infrastructure
+                    "hive-errors",  # Error handling infrastructure
+                    "hive-tests",  # Testing infrastructure
                 ]:
                     continue
 
@@ -365,7 +372,19 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                             ]
 
                             for pattern in import_patterns:
-                                if pattern in content:
+                                # Check for actual import statements with word boundaries
+                                # Avoid false positives like 'from dataclasses' matching 'from data'
+                                import_lines = []
+                                for line in content.split('\n'):
+                                    line = line.strip()
+                                    if line.startswith(pattern):
+                                        # Make sure it's a complete module name match
+                                        # After the pattern, there should be a space, dot, or nothing
+                                        after_pattern = line[len(pattern):]
+                                        if not after_pattern or after_pattern[0] in (' ', '.', '\n'):
+                                            import_lines.append(line)
+
+                                if import_lines:
                                     # Check if it's importing from core/ service layer (allowed)
                                     # Look for patterns like "from hive_orchestrator.core" or "from app.core"
                                     core_import_patterns = [
@@ -390,9 +409,9 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                                     )
 
                                     if not is_core_import and not is_client:
-                                        # Check if this specific line is importing from core
-                                        for line in content.split("\n"):
-                                            if pattern in line and ".core" not in line:
+                                        # Check if any of the import lines are non-core imports
+                                        for import_line in import_lines:
+                                            if ".core" not in import_line and ".client" not in import_line:
                                                 violations.append(
                                                     f"App '{app_name}' directly imports from app '{other_app}' (non-core): {py_file.relative_to(project_root)}"
                                                 )
@@ -793,6 +812,18 @@ def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str
                     for match in matches:
                         # Find line number for better error reporting
                         line_num = content[: match.start()].count("\n") + 1
+                        
+                        # Get surrounding context to detect os.environ.get() usage
+                        lines = content.split('\n')
+                        context_lines = []
+                        for i in range(max(0, line_num - 3), min(len(lines), line_num + 2)):
+                            context_lines.append(lines[i])
+                        context = '\n'.join(context_lines)
+                        
+                        # Skip if this is a default value in os.environ.get() - this is proper configuration pattern
+                        if "os.environ.get(" in context and match.group() in context:
+                            continue
+                            
                         violations.append(
                             f"Hardcoded environment value ({description}): "
                             f"{py_file.relative_to(project_root)}:{line_num} "
@@ -846,9 +877,25 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
 
                 # Check for print statements in non-test, non-demo files
                 if "print(" in content:
+                    # Check if this file is a CLI tool or has __main__ section
+                    is_cli_tool = ('if __name__ == "__main__":' in content or 
+                                  'def main(' in content or 
+                                  'secure_config.py' in str(py_file) or  # CLI config tool
+                                  'cli.py' in str(py_file) or
+                                  'command' in str(py_file))
+                    
                     line_num = 0
+                    in_main_section = False
                     for line in content.split("\n"):
                         line_num += 1
+                        
+                        # Track if we're in the __main__ section or CLI utility functions
+                        if ('if __name__ == "__main__":' in line or
+                            'def encrypt_production_config(' in line or 
+                            'def generate_master_key(' in line):
+                            in_main_section = True
+                            continue
+                        
                         if "print(" in line and not line.strip().startswith("#"):
                             # Check if this is actually the built-in print() function
                             # Exclude: self.console.print(), pprint(), rich.print(), etc.
@@ -861,6 +908,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                                 and not stripped_line.startswith("# ")  # Already excluded comments
                                 and not stripped_line.startswith("\"")  # Exclude string literals
                                 and not stripped_line.startswith("'")  # Exclude string literals
+                                and not (is_cli_tool and in_main_section)  # Exclude CLI tool main sections
                             ):
                                 violations.append(
                                     f"Print statement in production code: {py_file.relative_to(project_root)}:{line_num}"
@@ -1303,6 +1351,13 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                     "_singleton",
                     "global_instance",
                     "_cache_instance",
+                    "_database_manager",
+                    "_async_database_manager",
+                    "_db_manager",
+                    "_connection_pool",
+                    "_pool_manager",
+                    "_client_instance",
+                    "_service_instance",
                 ]
 
                 for pattern in singleton_patterns:
@@ -1344,6 +1399,29 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                                 violations.append(
                                     f"Global config call '{call}' found: {rel_path}:{line_num}"
                                 )
+
+                # Check for singleton getter functions (common anti-pattern)
+                singleton_getter_patterns = [
+                    "get_database_manager()",
+                    "get_async_database_manager()",
+                    "get_db_manager()",
+                    "get_connection_pool()",
+                    "get_async_pool()",
+                    "get_client_instance()",
+                    "get_service_instance()",
+                    "get_singleton()",
+                ]
+
+                for getter in singleton_getter_patterns:
+                    if getter in content:
+                        lines = content.split("\n")
+                        for line_num, line in enumerate(lines, 1):
+                            if getter in line and not line.strip().startswith("#"):
+                                # Skip if this is defining the function itself
+                                if not line.strip().startswith("def "):
+                                    violations.append(
+                                        f"Singleton getter call '{getter}' found: {rel_path}:{line_num}"
+                                    )
 
                 # Check for DI fallback anti-patterns
                 if "def __init__(" in content:

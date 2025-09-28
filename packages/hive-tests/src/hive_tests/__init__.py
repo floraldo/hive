@@ -26,6 +26,7 @@ from .architectural_validators import (
     validate_service_layer_discipline,
     validate_single_config_source,
 )
+from .ast_validator import EnhancedValidator, GoldenRuleVisitor, Violation
 
 __all__ = [
     # Original validators
@@ -48,4 +49,8 @@ __all__ = [
     "validate_cli_pattern_consistency",
     # Orchestration
     "run_all_golden_rules",
+    # Enhanced AST-based validation
+    "EnhancedValidator",
+    "GoldenRuleVisitor", 
+    "Violation",
 ]

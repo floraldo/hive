@@ -7,9 +7,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from ecosystemiser.analyser import AnalyserService
-from ecosystemiser.datavis.plot_factory import PlotFactory
-from ecosystemiser.reporting.generator import HTMLReportGenerator
-from flask import Flask, jsonify, render_template, request, send_file
+from ecosystemiser.services.reporting_service import ReportingService, ReportConfig
+from flask import Flask, jsonify, render_template, request, send_file, Response
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -35,7 +34,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 
     # Initialize services
     app.analyser = AnalyserService()
-    app.plot_factory = PlotFactory()
+    app.reporting_service = ReportingService()
 
     @app.route("/")
     def index():
@@ -107,23 +106,23 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             )
 
         data = app.config[session_key]
-        raw_results = data["raw"]
         analysis_results = data["analysis"]
 
-        # Generate plots
-        plots = generate_plots(app.plot_factory, raw_results, analysis_results)
+        # Use ReportingService to generate report
+        report_config = ReportConfig(
+            report_type="standard",
+            title=f"Analysis Report - {session_id}",
+            include_plots=True,
+            output_format="html"
+        )
 
-        # Prepare report data
-        report_data = {
-            "session_id": session_id,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "metadata": analysis_results.get("metadata", {}),
-            "summary": analysis_results.get("summary", {}),
-            "analyses": analysis_results.get("analyses", {}),
-            "plots": plots,
-        }
+        report_result = app.reporting_service.generate_report(
+            analysis_results=analysis_results,
+            config=report_config
+        )
 
-        return render_template("report.html", **report_data)
+        # Return the HTML content directly
+        return Response(report_result.html_content, mimetype='text/html')
 
     @app.route("/report/ga/<study_id>")
     def report_ga(study_id):
@@ -147,33 +146,21 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         with open(study_file, "r") as f:
             study_data = json.load(f)
 
-        # Extract GA-specific results
-        ga_result = study_data.get("best_result", {})
+        # Use ReportingService to generate GA report
+        report_config = ReportConfig(
+            report_type="genetic_algorithm",
+            title=f"Genetic Algorithm Optimization - {study_id}",
+            include_plots=True,
+            output_format="html"
+        )
 
-        # Generate GA-specific plots
-        plots = {}
-        if ga_result:
-            plots["pareto_front"] = app.plot_factory.create_ga_pareto_front_plot(
-                ga_result
-            )
-            plots["convergence"] = app.plot_factory.create_ga_convergence_plot(
-                ga_result
-            )
+        report_result = app.reporting_service.generate_report(
+            analysis_results=study_data,
+            config=report_config
+        )
 
-        # Prepare report data
-        report_data = {
-            "study_id": study_id,
-            "study_type": "genetic_algorithm",
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "summary": study_data.get("summary_statistics", {}),
-            "best_result": ga_result,
-            "num_simulations": study_data.get("num_simulations", 0),
-            "execution_time": study_data.get("execution_time", 0),
-            "plots": plots,
-            "objectives": study_data.get("configuration", {}).get("objectives", []),
-        }
-
-        return render_template("report_ga.html", **report_data)
+        # Return the HTML content directly
+        return Response(report_result.html_content, mimetype='text/html')
 
     @app.route("/report/mc/<study_id>")
     def report_mc(study_id):
@@ -197,41 +184,21 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         with open(study_file, "r") as f:
             study_data = json.load(f)
 
-        # Extract MC-specific results
-        mc_result = study_data.get("best_result", {})
+        # Use ReportingService to generate MC report
+        report_config = ReportConfig(
+            report_type="monte_carlo",
+            title=f"Monte Carlo Uncertainty Analysis - {study_id}",
+            include_plots=True,
+            output_format="html"
+        )
 
-        # Generate MC-specific plots
-        plots = {}
-        if mc_result:
-            plots["uncertainty"] = (
-                app.plot_factory.create_uncertainty_distribution_plot(mc_result)
-            )
-            plots["risk"] = app.plot_factory.create_risk_analysis_plot(mc_result)
-            if "sensitivity" in mc_result:
-                plots["sensitivity"] = app.plot_factory.create_sensitivity_tornado_plot(
-                    mc_result
-                )
-            if "scenarios" in mc_result:
-                plots["scenarios"] = app.plot_factory.create_scenario_comparison_plot(
-                    mc_result
-                )
+        report_result = app.reporting_service.generate_report(
+            analysis_results=study_data,
+            config=report_config
+        )
 
-        # Prepare report data
-        report_data = {
-            "study_id": study_id,
-            "study_type": "monte_carlo",
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "summary": study_data.get("summary_statistics", {}),
-            "uncertainty_analysis": mc_result.get("uncertainty_analysis", {}),
-            "num_samples": study_data.get("num_simulations", 0),
-            "execution_time": study_data.get("execution_time", 0),
-            "plots": plots,
-            "sampling_method": study_data.get("configuration", {}).get(
-                "sampling_method", "lhs"
-            ),
-        }
-
-        return render_template("report_mc.html", **report_data)
+        # Return the HTML content directly
+        return Response(report_result.html_content, mimetype='text/html')
 
     @app.route("/api/study/<study_id>")
     def api_study(study_id):
@@ -315,14 +282,20 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         raw_results = data["raw"]
         analysis_results = data["analysis"]
 
-        # Generate plots
-        plots = generate_plots(app.plot_factory, raw_results, analysis_results)
-
-        # Use centralized generator for standalone reports
-        generator = HTMLReportGenerator()
-        html = generator.generate_standalone_report(
-            analysis_results, plots, f"EcoSystemiser Analysis Report - {session_id}"
+        # Generate report using ReportingService
+        report_config = ReportConfig(
+            report_type="standard",
+            title=f"EcoSystemiser Analysis Report - {session_id}",
+            include_plots=True,
+            output_format="html"
         )
+
+        report_result = app.reporting_service.generate_report(
+            analysis_results=analysis_results,
+            config=report_config
+        )
+
+        html = report_result.html_content
 
         # Save to temporary file and send
         with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as tmp:
@@ -350,64 +323,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     return app
 
 
-def generate_plots(
-    plot_factory: PlotFactory,
-    raw_results: Dict[str, Any],
-    analysis_results: Dict[str, Any],
-) -> Dict[str, Any]:
-    """Generate all relevant plots for the report.
-
-    Args:
-        plot_factory: PlotFactory instance
-        raw_results: Raw simulation results
-        analysis_results: Analysis results
-
-    Returns:
-        Dictionary of plot data
-    """
-    plots = {}
-
-    # Technical KPI gauges
-    if "technical_kpi" in analysis_results.get("analyses", {}):
-        kpi_data = analysis_results["analyses"]["technical_kpi"]
-        plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(kpi_data)
-
-    # Economic summary
-    if "economic" in analysis_results.get("analyses", {}):
-        economic_data = analysis_results["analyses"]["economic"]
-        plots["economic_summary"] = plot_factory.create_economic_summary_plot(
-            economic_data
-        )
-
-    # Sensitivity analysis
-    if "sensitivity" in analysis_results.get("analyses", {}):
-        sensitivity_data = analysis_results["analyses"]["sensitivity"]
-        plots["sensitivity_heatmap"] = plot_factory.create_sensitivity_heatmap(
-            sensitivity_data
-        )
-        plots["pareto_frontier"] = plot_factory.create_pareto_frontier_plot(
-            sensitivity_data
-        )
-
-    # Original visualizations from raw results
-    if "system" in raw_results:
-        system = raw_results["system"]
-        # These would need the actual system object, not just the dictionary
-        # For now, we'll skip these as they require the full system instance
-
-    # KPI dashboard from raw KPIs
-    if "kpis" in raw_results:
-        plots["kpi_dashboard"] = plot_factory.create_kpi_dashboard(raw_results["kpis"])
-
-    # Solver metrics
-    if "solver_metrics" in raw_results:
-        plots["optimization_status"] = (
-            plot_factory.create_optimization_convergence_plot(
-                raw_results["solver_metrics"]
-            )
-        )
-
-    return plots
+# Note: generate_plots function removed - now handled by ReportingService
 
 
 def run_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = False):

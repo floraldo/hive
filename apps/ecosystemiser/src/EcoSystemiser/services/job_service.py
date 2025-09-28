@@ -7,7 +7,7 @@ This module provides both a JobService class and functions for the arq worker to
 from typing import Any, Dict
 
 from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
-from ecosystemiser.profile_loader.climate.service import get_enhanced_climate_service
+from ecosystemiser.profile_loader.climate import create_climate_service
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -68,8 +68,10 @@ async def process_climate_job(
         # Create climate request from job data
         request = ClimateRequest(**job_data["request"])
 
-        # Get climate service
-        service = get_enhanced_climate_service()
+        # Get climate service using factory function
+        from ecosystemiser.settings import get_settings
+        config = get_settings()
+        service = create_climate_service(config)
 
         # Process the request
         result = await service.process_request_async(request)

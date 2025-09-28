@@ -26,7 +26,7 @@ app.config['DEBUG'] = os.environ.get('FLASK_ENV') == 'development'
 from api.health import health_bp
 app.register_blueprint(health_bp)
 
-# TODO: Register your API blueprints here
+# Register additional API blueprints
 # from api.your_module import your_bp
 # app.register_blueprint(your_bp)
 

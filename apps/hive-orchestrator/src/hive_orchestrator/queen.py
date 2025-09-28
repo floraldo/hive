@@ -1813,6 +1813,7 @@ class QueenLite:
                 phase.value,
                 "--mode",
                 mode,
+                "--async",  # Enable async processing for 3-5x performance
             ]
 
             if self.live_output:

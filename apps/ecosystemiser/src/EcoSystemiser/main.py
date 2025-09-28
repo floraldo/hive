@@ -338,9 +338,11 @@ def check_database_health() -> bool:
 def check_profile_loader_health() -> bool:
     """Check profile loader module health"""
     try:
-        from ecosystemiser.profile_loader.service import get_enhanced_climate_service
+        from ecosystemiser.profile_loader.climate import create_climate_service
 
-        service = get_enhanced_climate_service()
+        # Try to create a service instance with minimal config
+        minimal_config = {"profile_loader": {"climate": {"adapters": ["meteostat"]}}}
+        service = create_climate_service(minimal_config)
         return service is not None
     except Exception as e:
         logger.error(f"Profile loader health check failed: {e}")

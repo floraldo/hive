@@ -331,273 +331,19 @@ class QCProfile(ABC):
         return base_bounds
 
 
-class NASAPowerQCProfile(QCProfile):
-    """QC profile for NASA POWER data"""
-
-    def __init__(self):
-        super().__init__(
-            name="NASA POWER",
-            description="NASA's Prediction Of Worldwide Energy Resources - satellite-derived with MERRA-2 reanalysis",
-            known_issues=[
-                "Solar radiation slightly overestimated in tropical regions",
-                "Temperature may show warm bias in arid regions",
-                "Precipitation estimates less reliable than ground stations",
-                "Limited accuracy for mountainous terrain due to 0.5deg resolution",
-            ],
-            recommended_variables=[
-                "temp_air",
-                "ghi",
-                "dni",
-                "dhi",
-                "wind_speed",
-                "pressure",
-            ],
-            temporal_resolution_limits={
-                "all": "hourly"  # NASA POWER provides hourly data
-            },
-            spatial_accuracy="0.5deg x 0.5deg (~50km resolution)",
-        )
-
-    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
-        """NASA POWER specific validation"""
-
-        # Check for known solar radiation bias in tropics
-        lat = ds.attrs.get("latitude", 0)
-        if abs(lat) < 23.5 and "ghi" in ds:  # Tropics
-            ghi_data = ds["ghi"].values
-            if np.nanmean(ghi_data) > 250:  # High average GHI
-                issue = QCIssue(
-                    type="source_bias",
-                    message="NASA POWER may overestimate solar radiation in tropical regions",
-                    severity=QCSeverity.LOW,
-                    affected_variables=["ghi", "dni", "dhi"],
-                    metadata={"latitude": lat, "avg_ghi": float(np.nanmean(ghi_data))},
-                    suggested_action="Consider validation against ground measurements if available",
-                )
-                report.add_issue(issue)
-
-        # Check temperature bias in arid regions (simplified check)
-        if "temp_air" in ds and "rel_humidity" in ds:
-            temp_data = ds["temp_air"].values
-            humidity_data = ds["rel_humidity"].values
-
-            # Arid conditions: high temperature, low humidity
-            arid_mask = (temp_data > 30) & (humidity_data < 30)
-            if (
-                np.sum(arid_mask & ~np.isnan(temp_data)) > len(temp_data) * 0.3
-            ):  # >30% arid conditions
-                issue = QCIssue(
-                    type="source_bias",
-                    message="NASA POWER may show warm bias in arid regions",
-                    severity=QCSeverity.LOW,
-                    affected_variables=["temp_air"],
-                    suggested_action="Consider local validation for extreme arid conditions",
-                )
-                report.add_issue(issue)
-
-        # Check for precipitation data quality warning
-        if "precip" in ds:
-            precip_data = ds["precip"].values
-            n_precip_events = np.sum(precip_data > 0.1)  # >0.1 mm/h
-
-            if n_precip_events > 0:
-                issue = QCIssue(
-                    type="source_limitation",
-                    message="NASA POWER precipitation estimates have lower accuracy than ground stations",
-                    severity=QCSeverity.LOW,
-                    affected_variables=["precip"],
-                    metadata={"precip_events": int(n_precip_events)},
-                    suggested_action="Use ground-based precipitation data when available",
-                )
-                report.add_issue(issue)
-
-        report.passed_checks.append("nasa_power_specific_validation")
 
 
-class MeteostatQCProfile(QCProfile):
-    """QC profile for Meteostat data"""
-
-    def __init__(self):
-        super().__init__(
-            name="Meteostat",
-            description="Weather station data aggregated from multiple national weather services",
-            known_issues=[
-                "Data gaps common due to station maintenance",
-                "Quality varies by region and station density",
-                "Some stations may have exposure or instrumentation issues",
-                "Interpolation used between stations can introduce artifacts",
-            ],
-            recommended_variables=[
-                "temp_air",
-                "rel_humidity",
-                "precip",
-                "wind_speed",
-                "pressure",
-            ],
-            temporal_resolution_limits={"all": "hourly"},
-            spatial_accuracy="Point measurements, station-dependent",
-        )
-
-    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
-        """Meteostat specific validation"""
-
-        # Check for excessive data gaps (common with station data)
-        for var_name in ds.data_vars:
-            data = ds[var_name].values
-            gap_length = self._check_consecutive_gaps(data)
-
-            if gap_length > 24:  # Gaps longer than 24 hours
-                issue = QCIssue(
-                    type="data_gaps",
-                    message=f"Long data gaps detected in {var_name} (max: {gap_length} consecutive NaN values)",
-                    severity=QCSeverity.MEDIUM if gap_length < 72 else QCSeverity.HIGH,
-                    affected_variables=[var_name],
-                    metadata={"max_gap_hours": int(gap_length)},
-                    suggested_action="Check station maintenance schedules and consider gap filling",
-                )
-                report.add_issue(issue)
-
-        # Check for station-specific issues (simplified)
-        if "wind_speed" in ds:
-            wind_data = ds["wind_speed"].values
-            # Check for suspiciously low wind variability (sheltered station)
-            wind_std = np.nanstd(wind_data)
-            if wind_std < 0.5:  # Very low wind variability
-                issue = QCIssue(
-                    type="station_exposure",
-                    message=f"Very low wind speed variability (std={wind_std:.2f}) suggests sheltered station",
-                    severity=QCSeverity.LOW,
-                    affected_variables=["wind_speed"],
-                    metadata={"wind_std": float(wind_std)},
-                    suggested_action="Consider station exposure conditions in analysis",
-                )
-                report.add_issue(issue)
-
-        report.passed_checks.append("meteostat_specific_validation")
-
-    def _check_consecutive_gaps(self, data: np.ndarray) -> int:
-        """Find maximum length of consecutive NaN values"""
-        is_nan = np.isnan(data)
-        if not np.any(is_nan):
-            return 0
-
-        # Find consecutive NaN sequences
-        groups = np.split(np.arange(len(is_nan)), np.where(np.diff(is_nan))[0] + 1)
-        max_gap = 0
-
-        for group in groups:
-            if len(group) > 0 and is_nan[group[0]]:
-                max_gap = max(max_gap, len(group))
-
-        return max_gap
 
 
-class ERA5QCProfile(QCProfile):
-    """QC profile for ERA5 reanalysis data"""
 
-    def __init__(self):
-        super().__init__(
-            name="ERA5",
-            description="ECMWF's fifth-generation atmospheric reanalysis",
-            known_issues=[
-                "Smoothed data due to reanalysis model constraints",
-                "May not capture extreme local weather events accurately",
-                "Precipitation and cloud fields have known biases",
-                "Surface variables affected by model topography vs real topography",
-            ],
-            recommended_variables=[
-                "temp_air",
-                "dewpoint",
-                "wind_speed",
-                "wind_dir",
-                "pressure",
-                "rel_humidity",
-            ],
-            temporal_resolution_limits={"all": "hourly"},
-            spatial_accuracy="0.25deg x 0.25deg (~30km resolution)",
-        )
-
-    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
-        """ERA5 specific validation"""
-
-        # Check for over-smoothed data (typical of reanalysis)
-        for var_name in ["temp_air", "wind_speed"]:
-            if var_name not in ds:
-                continue
-
-            data = ds[var_name].values
-            valid_data = data[~np.isnan(data)]
-
-            if len(valid_data) > 24:  # At least 24 hours
-                # Check for unnaturally smooth data
-                # Calculate second derivative to detect lack of high-frequency variation
-                second_derivative = np.abs(np.diff(valid_data, n=2))
-                smooth_ratio = np.mean(second_derivative < 0.01)  # Very small changes
-
-                if smooth_ratio > 0.8:  # 80% of changes are very small
-                    issue = QCIssue(
-                        type="reanalysis_smoothing",
-                        message=f"Data appears over-smoothed in {var_name} (typical of reanalysis)",
-                        severity=QCSeverity.LOW,
-                        affected_variables=[var_name],
-                        metadata={"smooth_ratio": float(smooth_ratio)},
-                        suggested_action="Consider supplementing with higher-resolution data for local applications",
-                    )
-                    report.add_issue(issue)
-
-        # Warn about precipitation biases
-        if "precip" in ds:
-            issue = QCIssue(
-                type="reanalysis_limitation",
-                message="ERA5 precipitation has known regional biases and may not represent local extremes",
-                severity=QCSeverity.LOW,
-                affected_variables=["precip"],
-                suggested_action="Validate against local observations for precipitation-sensitive applications",
-            )
-            report.add_issue(issue)
-
-        report.passed_checks.append("era5_specific_validation")
-
-
-# Note: PVGISQCProfile and EPWQCProfile have been moved to their respective adapter files
-# for better co-location of adapter-specific QC logic
-
-# Registry of available QC profiles
-QC_PROFILES = {
-    "nasa_power": NASAPowerQCProfile,
-    "meteostat": MeteostatQCProfile,
-    "era5": ERA5QCProfile,
-    # Note: pvgis and epw profiles are now dynamically loaded from adapter files
-}
-
-
-def _get_pvgis_qc_profile():
-    """Dynamically load PVGIS QC profile from adapter"""
-    try:
-        from ecosystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
-
-        return get_qc_profile()
-    except ImportError:
-        logger.warning("Could not import PVGIS QC profile from adapter")
-        return None
-
-
-def _get_epw_qc_profile():
-    """Dynamically load EPW QC profile from adapter"""
-    try:
-        from ecosystemiser.profile_loader.climate.adapters.file_epw import (
-            get_qc_profile,
-        )
-
-        return get_qc_profile()
-    except ImportError:
-        logger.warning("Could not import EPW QC profile from adapter")
-        return None
+# Note: All QCProfile classes have been moved to their respective adapter files
+# for better co-location of adapter-specific QC logic (following co-location principle)
 
 
 def get_source_profile(source: str) -> QCProfile:
     """
     Get QC profile for a data source.
+    Dynamically loads profiles from their respective adapter modules.
 
     Args:
         source: Data source identifier
@@ -608,24 +354,40 @@ def get_source_profile(source: str) -> QCProfile:
     Raises:
         ValueError: If source is unknown
     """
-    # Handle standard profiles from registry
-    if source in QC_PROFILES:
-        return QC_PROFILES[source]()
+    # Mapping of source names to their adapter modules
+    source_mapping = {
+        "nasa_power": "ecosystemiser.profile_loader.climate.adapters.nasa_power",
+        "meteostat": "ecosystemiser.profile_loader.climate.adapters.meteostat",
+        "era5": "ecosystemiser.profile_loader.climate.adapters.era5",
+        "pvgis": "ecosystemiser.profile_loader.climate.adapters.pvgis",
+        "epw": "ecosystemiser.profile_loader.climate.adapters.file_epw",
+        "file_epw": "ecosystemiser.profile_loader.climate.adapters.file_epw",
+    }
 
-    # Handle dynamically loaded profiles
-    if source in ["pvgis"]:
-        profile = _get_pvgis_qc_profile()
-        if profile:
-            return profile
+    if source not in source_mapping:
+        available = list(source_mapping.keys())
+        raise ValueError(f"Unknown data source: {source}. Available: {available}")
 
-    if source in ["epw", "file_epw"]:
-        profile = _get_epw_qc_profile()
-        if profile:
-            return profile
-
-    # If we get here, the source is unknown
-    available = list(QC_PROFILES.keys()) + ["pvgis", "epw", "file_epw"]
-    raise ValueError(f"Unknown data source: {source}. Available: {available}")
+    # Dynamically import the profile from the adapter module
+    try:
+        if source == "nasa_power":
+            from ecosystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerQCProfile
+            return NASAPowerQCProfile()
+        elif source == "meteostat":
+            from ecosystemiser.profile_loader.climate.adapters.meteostat import MeteostatQCProfile
+            return MeteostatQCProfile()
+        elif source == "era5":
+            from ecosystemiser.profile_loader.climate.adapters.era5 import ERA5QCProfile
+            return ERA5QCProfile()
+        elif source in ["pvgis"]:
+            from ecosystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
+            return get_qc_profile()
+        elif source in ["epw", "file_epw"]:
+            from ecosystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
+            return get_qc_profile()
+    except ImportError as e:
+        logger.warning(f"Could not import QC profile for {source}: {e}")
+        raise ValueError(f"QC profile for {source} could not be loaded: {e}")
 
 
 # ============================================================================

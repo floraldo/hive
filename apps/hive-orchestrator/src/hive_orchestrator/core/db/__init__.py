@@ -13,6 +13,9 @@ from hive_db import (
     sqlite_transaction,
 )
 
+# Create alias for backward compatibility
+transaction = sqlite_transaction
+
 from .database import (
     close_connection,
     create_run,
@@ -130,6 +133,8 @@ __all__ = [
     # Connection pooling
     "get_pooled_connection",
     "close_pool",
+    # Backward compatibility
+    "transaction",
     # Async support (if available)
     "ASYNC_AVAILABLE",
 ]

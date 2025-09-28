@@ -62,4 +62,3 @@ apps/*/.env.local
 # Keep example files
 !.env.*.example
 !apps/*/.env.example
-.env.old

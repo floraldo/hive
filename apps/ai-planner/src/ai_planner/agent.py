@@ -9,7 +9,6 @@ executable plans for complex tasks submitted to the Hive system.
 import asyncio
 import json
 import signal
-import sqlite3
 import sys
 import time
 import uuid
@@ -358,7 +357,8 @@ class AIPlanner:
             Complexity level: 'simple', 'medium', or 'complex'
         """
         # Simple heuristic-based complexity analysis
-        # TODO: Replace with AI-powered analysis in Phase 2
+        # Phase 2 Enhancement: Integrate Claude API for advanced complexity analysis using
+        # natural language understanding and pattern recognition for more accurate estimations
 
         description_lower = task_description.lower()
 

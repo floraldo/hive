@@ -202,49 +202,35 @@ def run(config, output, solver, verbose):
         ecosys simulate run config.yaml
         ecosys simulate run config.yaml -o results.json --solver milp
     """
-    from ecosystemiser.component_data.repository import ComponentRepository
     from ecosystemiser.services.simulation_service import SimulationService
-    from ecosystemiser.solver.base import SolverConfig
 
     try:
-        # Load configuration
-        with open(config, 'r') as f:
-            config_data = yaml.safe_load(f)
-
         click.echo(f"[INFO] Loading configuration from {config}")
 
-        # Create component repository
-        component_repo = ComponentRepository(
-            data_source="file",
-            base_path=Path(__file__).parent.parent / "component_data" / "library"
-        )
-
-        # Create simulation service
+        # Create simulation service (it handles repository creation internally)
         service = SimulationService()
 
-        # Create solver config
-        solver_config = SolverConfig(
-            verbose=verbose,
-            solver_type=solver,
-            solver_specific=config_data.get('solver_config', {})
-        )
-
-        # Run simulation
+        # Run simulation using the new service method
         click.echo(f"[INFO] Running simulation with {solver} solver...")
-        results = service.run_simulation(
+        result = service.run_simulation_from_path(
             config_path=Path(config),
-            solver_config=solver_config,
-            component_repo=component_repo,
-            results_path=Path(output) if output else None
+            solver_type=solver,
+            output_path=Path(output) if output else None,
+            verbose=verbose
         )
 
         # Display summary
         click.echo("\n[SUCCESS] Simulation completed!")
-        click.echo(f"  Status: {results.get('status', 'unknown')}")
-        if 'objective_value' in results:
-            click.echo(f"  Objective Value: {results['objective_value']:.2f}")
-        if 'solve_time' in results:
-            click.echo(f"  Solve Time: {results['solve_time']:.3f}s")
+        click.echo(f"  Status: {result.status}")
+        if result.kpis:
+            click.echo(f"  Key Performance Indicators:")
+            for key, value in result.kpis.items():
+                click.echo(f"    {key}: {value:.2f}")
+        if result.solver_metrics:
+            if 'objective_value' in result.solver_metrics:
+                click.echo(f"  Objective Value: {result.solver_metrics['objective_value']:.2f}")
+            if 'solve_time' in result.solver_metrics:
+                click.echo(f"  Solve Time: {result.solver_metrics['solve_time']:.3f}s")
 
         if output:
             click.echo(f"  Results saved to: {output}")
@@ -269,36 +255,31 @@ def validate(config):
     Examples:
         ecosys simulate validate config.yaml
     """
-    from ecosystemiser.component_data.repository import ComponentRepository
-    from ecosystemiser.utils.system_builder import SystemBuilder
+    from ecosystemiser.services.simulation_service import SimulationService
 
     click.echo(f"[INFO] Validating configuration from {config}")
 
     try:
-        # Load configuration
-        with open(config, 'r') as f:
-            config_data = yaml.safe_load(f)
+        # Create simulation service
+        service = SimulationService()
 
-        # Create component repository
-        component_repo = ComponentRepository(
-            data_source="file",
-            base_path=Path(__file__).parent.parent / "component_data" / "library"
-        )
+        # Validate configuration using the service
+        validation_result = service.validate_system_config(Path(config))
 
-        # Try to build system
-        builder = SystemBuilder(Path(config), component_repo)
-        system = builder.build()
+        if validation_result['valid']:
+            # Display validation results
+            click.echo("\n[SUCCESS] Configuration is valid!")
+            click.echo(f"  System ID: {validation_result['system_id']}")
+            click.echo(f"  Components: {validation_result['num_components']}")
+            click.echo(f"  Timesteps: {validation_result['timesteps']}")
 
-        # Display validation results
-        click.echo("\n[SUCCESS] Configuration is valid!")
-        click.echo(f"  System ID: {getattr(system, 'system_id', 'Unknown')}")
-        click.echo(f"  Components: {len(system.components)}")
-        click.echo(f"  Timesteps: {system.N}")
-
-        # List components
-        click.echo("\n  Component List:")
-        for comp in system.components.values():
-            click.echo(f"    - {comp.name} ({comp.__class__.__name__})")
+            # List components
+            click.echo("\n  Component List:")
+            for comp in validation_result['components']:
+                click.echo(f"    - {comp['name']} ({comp['type']})")
+        else:
+            click.echo(f"\n[ERROR] Configuration validation failed: {validation_result['error']}", err=True)
+            sys.exit(1)
 
     except FileNotFoundError:
         click.echo(f"Error: Configuration file not found: {config}", err=True)
@@ -437,22 +418,26 @@ def optimize(config, objectives, population, generations, variables, multi_objec
             # Generate report if requested
             if report:
                 click.echo("\n[INFO] Generating HTML report...")
-                from ecosystemiser.datavis.plot_factory import PlotFactory
-                from ecosystemiser.reporting.generator import HTMLReportGenerator
+                from ecosystemiser.services.reporting_service import ReportingService, ReportConfig
 
-                plot_factory = PlotFactory()
-                report_generator = HTMLReportGenerator()
+                # Create reporting service
+                reporting_service = ReportingService()
 
-                # Generate plots
-                plots = {
-                    'pareto_front': plot_factory.create_ga_pareto_front_plot(result.best_result),
-                    'convergence': plot_factory.create_ga_convergence_plot(result.best_result)
-                }
+                # Configure report
+                report_config = ReportConfig(
+                    report_type='genetic_algorithm',
+                    title='Genetic Algorithm Optimization Report',
+                    include_plots=True,
+                    output_format='html',
+                    save_path=output_dir / f"ga_report_{result.study_id}"
+                )
 
-                # Generate HTML report
-                html = report_generator.generate_ga_optimization_report(result.dict(), plots)
+                # Generate report using the centralized service
+                report_result = reporting_service.generate_report(
+                    analysis_results=result.dict(),
+                    config=report_config
+                )
                 report_file = output_dir / f"ga_report_{result.study_id}.html"
-                report_generator.save_report(html, report_file)
                 click.echo(f"  HTML report saved to: {report_file}")
         else:
             click.echo(f"  Study ID: {result.study_id}")
@@ -938,7 +923,7 @@ def server(host, port, debug):
 @click.argument('study_file', type=click.Path(exists=True))
 @click.option('--output', '-o', type=click.Path(), default='report.html',
               help='Output HTML file path')
-@click.option('--type', 'study_type', type=click.Choice(['auto', 'ga', 'mc']),
+@click.option('--type', 'study_type', type=click.Choice(['auto', 'ga', 'mc', 'standard']),
               default='auto', help='Type of study (auto-detect by default)')
 def generate(study_file, output, study_type):
     """Generate a standalone HTML report from study results.
@@ -948,9 +933,7 @@ def generate(study_file, output, study_type):
         ecosys report generate mc_uncertainty_456.json --output analysis.html
     """
     import json
-
-    from ecosystemiser.datavis.plot_factory import PlotFactory
-    from ecosystemiser.reporting.generator import HTMLReportGenerator
+    from ecosystemiser.services.reporting_service import ReportingService, ReportConfig
 
     try:
         # Load study results
@@ -960,51 +943,46 @@ def generate(study_file, output, study_type):
         # Auto-detect study type if needed
         if study_type == 'auto':
             if 'pareto_front' in study_data.get('best_result', {}):
-                study_type = 'ga'
+                study_type = 'genetic_algorithm'
             elif 'uncertainty_analysis' in study_data.get('best_result', {}):
-                study_type = 'mc'
+                study_type = 'monte_carlo'
+            elif 'study_type' in study_data:
+                study_type = study_data['study_type']
             else:
-                click.echo("Could not auto-detect study type. Please specify with --type", err=True)
-                sys.exit(1)
+                study_type = 'standard'
 
-        click.echo(f"Generating {study_type.upper()} report from: {study_file}")
+        # Map legacy type names
+        type_map = {
+            'ga': 'genetic_algorithm',
+            'mc': 'monte_carlo'
+        }
+        study_type = type_map.get(study_type, study_type)
 
-        # Create generators
-        plot_factory = PlotFactory()
-        report_generator = HTMLReportGenerator()
+        click.echo(f"Generating {study_type} report from: {study_file}")
 
-        # Generate appropriate report
-        if study_type == 'ga':
-            # Generate GA plots
-            plots = {}
-            if 'best_result' in study_data:
-                plots['pareto_front'] = plot_factory.create_ga_pareto_front_plot(study_data['best_result'])
-                plots['convergence'] = plot_factory.create_ga_convergence_plot(study_data['best_result'])
+        # Create reporting service
+        reporting_service = ReportingService()
 
-            # Generate GA report
-            html = report_generator.generate_ga_optimization_report(study_data, plots)
+        # Configure report generation
+        report_config = ReportConfig(
+            report_type=study_type,
+            title=f"EcoSystemiser {study_type.replace('_', ' ').title()} Report",
+            include_plots=True,
+            output_format="html",
+            save_path=Path(output)
+        )
 
-        else:  # MC
-            # Generate MC plots
-            plots = {}
-            if 'best_result' in study_data:
-                mc_result = study_data['best_result']
-                plots['uncertainty'] = plot_factory.create_uncertainty_distribution_plot(mc_result)
-                plots['risk'] = plot_factory.create_risk_analysis_plot(mc_result)
-                if 'sensitivity' in mc_result or 'sensitivity_analysis' in mc_result:
-                    plots['sensitivity'] = plot_factory.create_sensitivity_tornado_plot(mc_result)
+        # Generate report using the centralized service
+        report_result = reporting_service.generate_report(
+            analysis_results=study_data,
+            config=report_config
+        )
 
-            # Generate MC report
-            html = report_generator.generate_mc_uncertainty_report(study_data, plots)
-
-        # Save report
-        output_path = Path(output)
-        report_generator.save_report(html, output_path)
-        click.echo(f"HTML report saved to: {output_path}")
+        click.echo(f"HTML report saved to: {output}")
 
         # Open in browser if available
         import webbrowser
-        webbrowser.open(f'file://{output_path.absolute()}')
+        webbrowser.open(f'file://{Path(output).absolute()}')
 
     except FileNotFoundError:
         click.echo(f"Error: Study file not found: {study_file}", err=True)

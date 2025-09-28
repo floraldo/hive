@@ -32,11 +32,12 @@ from ecosystemiser.discovery.encoders.parameter_encoder import (
     ParameterSpec,
     SystemConfigEncoder,
 )
+# Import only types from simulation_service to avoid direct coupling
 from ecosystemiser.services.simulation_service import (
     SimulationConfig,
     SimulationResult,
-    SimulationService,
 )
+from ecosystemiser.services.job_facade import JobFacade
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from hive_logging import get_logger
 from pydantic import BaseModel, Field
@@ -124,13 +125,13 @@ class StudyResult(BaseModel):
 class StudyService:
     """Service for orchestrating multi-simulation studies."""
 
-    def __init__(self, simulation_service: Optional[SimulationService] = None):
+    def __init__(self, job_facade: Optional[JobFacade] = None):
         """Initialize study service.
 
         Args:
-            simulation_service: Optional simulation service, creates default if None
+            job_facade: Optional job facade, creates default if None
         """
-        self.simulation_service = simulation_service or SimulationService()
+        self.job_facade = job_facade or JobFacade()
         self.event_bus = get_ecosystemiser_event_bus()
 
     def run_study(self, config: StudyConfig) -> StudyResult:
@@ -765,9 +766,46 @@ class StudyService:
                 sim_config.system_config_path = str(temp_config_path)
                 sim_config.simulation_id = f"opt_{hash(tuple(parameter_vector))}"
 
-                # Run simulation
-                sim_service = SimulationService()
-                result = sim_service.run_simulation(sim_config)
+                # Run simulation using JobFacade (uses self.job_facade from parent class)
+                # Note: We need to pass the job facade reference through closure
+                job_result = self.job_facade.submit_simulation_job(
+                    config=sim_config.dict(),
+                    correlation_id=f"opt_{hash(tuple(parameter_vector))}",
+                    blocking=True  # Synchronous for now
+                )
+
+                # Extract simulation result from job result
+                if job_result.status.value == "completed" and job_result.result:
+                    # Convert the result dict back to SimulationResult
+                    result = SimulationResult(**job_result.result)
+                elif job_result.status.value in ["failed", "timeout"]:
+                    # Handle job failure
+                    temp_config_path.unlink(missing_ok=True)
+                    return {
+                        "objectives": [float("inf")]
+                        * (
+                            len(config.optimization_objective.split(","))
+                            if config.optimization_objective
+                            else 1
+                        ),
+                        "fitness": float("inf"),
+                        "valid": False,
+                        "error": job_result.error or "Simulation job failed",
+                    }
+                else:
+                    # Unexpected status
+                    temp_config_path.unlink(missing_ok=True)
+                    return {
+                        "objectives": [float("inf")]
+                        * (
+                            len(config.optimization_objective.split(","))
+                            if config.optimization_objective
+                            else 1
+                        ),
+                        "fitness": float("inf"),
+                        "valid": False,
+                        "error": f"Unexpected job status: {job_result.status.value}",
+                    }
 
                 # Clean up temporary file
                 temp_config_path.unlink(missing_ok=True)
@@ -970,9 +1008,9 @@ class StudyService:
             SimulationResult
         """
         # This is called potentially in a separate process
-        # Create a new simulation service instance to avoid sharing state
-        sim_service = SimulationService()
-        return sim_service.run_simulation(config)
+        # Use JobFacade to decouple from SimulationService
+        job_facade = JobFacade()
+        return job_facade.run_simulation(config)
 
     def _process_results(
         self, results: List[SimulationResult], config: StudyConfig

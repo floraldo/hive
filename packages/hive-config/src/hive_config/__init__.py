@@ -44,10 +44,19 @@ __all__ = [
     "load_config",
     "get_config",
     "reset_config",
+    # Secure config exports
+    "SecureConfigLoader",
+    "encrypt_production_config",
+    "generate_master_key",
 ]
 
 __version__ = "1.1.0"
 
+from .secure_config import (
+    SecureConfigLoader,
+    encrypt_production_config,
+    generate_master_key,
+)
 from .unified_config import (
     AIConfig,
     ClaudeConfig,

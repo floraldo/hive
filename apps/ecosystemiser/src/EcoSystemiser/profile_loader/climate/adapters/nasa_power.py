@@ -21,6 +21,12 @@ from ecosystemiser.profile_loader.climate.adapters.errors import (
     DataParseError,
     ValidationError,
 )
+from ecosystemiser.profile_loader.climate.processing.validation import (
+    QCReport,
+    QCIssue,
+    QCSeverity,
+    QCProfile,
+)
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
 from ecosystemiser.profile_loader.climate.utils.chunking import (
     concatenate_chunked_results,
@@ -640,10 +646,11 @@ class NASAPowerAdapter(BaseAdapter):
         return combined
 
 
-class NASAPowerQCProfile:
+class NASAPowerQCProfile(QCProfile):
     """QC profile for NASA POWER data - co-located with adapter for better cohesion."""
 
     def __init__(self):
+        super().__init__()
         self.name = "NASA POWER"
         self.description = "NASA's Prediction Of Worldwide Energy Resources - satellite-derived with MERRA-2 reanalysis"
         self.known_issues = [
@@ -665,7 +672,7 @@ class NASAPowerQCProfile:
         }
         self.spatial_accuracy = "0.5deg x 0.5deg (~50km resolution)"
 
-    def validate_source_specific(self, ds: xr.Dataset, report) -> None:
+    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """NASA POWER specific validation"""
 
         # Check for known solar radiation bias in tropics
@@ -673,9 +680,15 @@ class NASAPowerQCProfile:
         if abs(lat) < 23.5 and "ghi" in ds:  # Tropics
             ghi_data = ds["ghi"].values
             if np.nanmean(ghi_data) > 250:  # High average GHI
-                report.warnings.append(
-                    f"NASA POWER may overestimate solar radiation in tropical regions (lat={lat:.2f}, avg_ghi={np.nanmean(ghi_data):.1f})"
+                issue = QCIssue(
+                    type="source_bias",
+                    message="NASA POWER may overestimate solar radiation in tropical regions",
+                    severity=QCSeverity.LOW,
+                    affected_variables=["ghi", "dni", "dhi"],
+                    metadata={"latitude": lat, "avg_ghi": float(np.nanmean(ghi_data))},
+                    suggested_action="Consider validation against ground measurements if available",
                 )
+                report.add_issue(issue)
 
         # Check temperature bias in arid regions (simplified check)
         if "temp_air" in ds and "rel_humidity" in ds:
@@ -687,9 +700,14 @@ class NASAPowerQCProfile:
             if (
                 np.sum(arid_mask & ~np.isnan(temp_data)) > len(temp_data) * 0.3
             ):  # >30% arid conditions
-                report.warnings.append(
-                    "NASA POWER may show warm bias in arid regions - consider local validation"
+                issue = QCIssue(
+                    type="source_bias",
+                    message="NASA POWER may show warm bias in arid regions",
+                    severity=QCSeverity.LOW,
+                    affected_variables=["temp_air"],
+                    suggested_action="Consider local validation for extreme arid conditions",
                 )
+                report.add_issue(issue)
 
         # Check for precipitation data quality warning
         if "precip" in ds:
@@ -697,13 +715,14 @@ class NASAPowerQCProfile:
             n_precip_events = np.sum(precip_data > 0.1)  # >0.1 mm/h
 
             if n_precip_events > 0:
-                report.warnings.append(
-                    f"NASA POWER precipitation estimates have lower accuracy than ground stations ({n_precip_events} precip events detected)"
+                issue = QCIssue(
+                    type="source_limitation",
+                    message="NASA POWER precipitation estimates have lower accuracy than ground stations",
+                    severity=QCSeverity.LOW,
+                    affected_variables=["precip"],
+                    metadata={"precip_events": int(n_precip_events)},
+                    suggested_action="Use ground-based precipitation data when available",
                 )
+                report.add_issue(issue)
 
-    def get_adjusted_bounds(
-        self, base_bounds: Dict[str, Tuple[float, float]]
-    ) -> Dict[str, Tuple[float, float]]:
-        """Get source-specific adjusted bounds"""
-        # Default: return base bounds unchanged
-        return base_bounds
+        report.passed_checks.append("nasa_power_specific_validation")

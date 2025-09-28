@@ -336,16 +336,53 @@ class MicrogridDemoRunner:
 
         # Generate GA report
         logger.info("\nGenerating Genetic Algorithm optimization report...")
+        ga_results_file = self.results_dir / f"{ga_study_id}.json"
         ga_report = self.results_dir / f"report_{ga_study_id}.html"
-        # In real implementation, would call report generator
-        reports_generated.append(ga_report)
-        logger.info(f"   ✅ GA Report: {ga_report}")
+
+        try:
+            # Load GA results and generate HTML report
+            with open(ga_results_file, 'r') as f:
+                ga_data = json.load(f)
+
+            html_content = self.report_generator.generate_standalone_report(
+                analysis_results=ga_data,
+                title=f"Genetic Algorithm Optimization - {ga_data.get('study_id', 'Unknown')}",
+                report_type='genetic_algorithm'
+            )
+
+            # Write HTML report to file
+            with open(ga_report, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+
+            reports_generated.append(ga_report)
+            logger.info(f"   OK GA Report: {ga_report}")
+        except Exception as e:
+            logger.error(f"   Failed to generate GA report: {e}")
 
         # Generate MC report
         logger.info("\nGenerating Monte Carlo uncertainty analysis report...")
+        mc_results_file = self.results_dir / f"{mc_study_id}.json"
         mc_report = self.results_dir / f"report_{mc_study_id}.html"
-        reports_generated.append(mc_report)
-        logger.info(f"   ✅ MC Report: {mc_report}")
+
+        try:
+            # Load MC results and generate HTML report
+            with open(mc_results_file, 'r') as f:
+                mc_data = json.load(f)
+
+            html_content = self.report_generator.generate_standalone_report(
+                analysis_results=mc_data,
+                title=f"Monte Carlo Uncertainty Analysis - {mc_data.get('study_id', 'Unknown')}",
+                report_type='monte_carlo'
+            )
+
+            # Write HTML report to file
+            with open(mc_report, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+
+            reports_generated.append(mc_report)
+            logger.info(f"   OK MC Report: {mc_report}")
+        except Exception as e:
+            logger.error(f"   Failed to generate MC report: {e}")
 
         return reports_generated
 

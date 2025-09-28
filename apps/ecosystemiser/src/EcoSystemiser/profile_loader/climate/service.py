@@ -1041,16 +1041,4 @@ class ClimateService(BaseProfileService):
 
 
 # Global service instance
-_global_service: Optional[ClimateService] = None
-
-
-def get_enhanced_climate_service(config: Optional[Dict[str, Any]] = None) -> ClimateService:
-    """Get the global enhanced climate service instance"""
-    global _global_service
-
-    if _global_service is None:
-        # Use provided config or load default
-        service_config = config or get_config()
-        _global_service = ClimateService(service_config)
-
-    return _global_service
+# Singleton pattern removed - use create_climate_service() from __init__.py instead

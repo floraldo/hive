@@ -186,10 +186,18 @@ def clear_all_tasks():
     logger = get_logger(__name__)
 
     try:
-        # This would require a new function in hive-core-db
-        # For now, we'll note this as a TODO
-        logger.warning("clear_all_tasks() not yet implemented - would need database truncate function")
-        # TODO: Add clear_all_tasks() function to hive-core-db
+        # Use direct database connection to clear tasks
+        from hive_db import get_sqlite_connection, sqlite_transaction
+        from hive_config.paths import DB_PATH
+
+        with sqlite_transaction(DB_PATH) as conn:
+            cursor = conn.cursor()
+            # Delete runs first (foreign key constraint)
+            cursor.execute("DELETE FROM runs")
+            # Then delete tasks
+            cursor.execute("DELETE FROM tasks")
+            conn.commit()
+            logger.info("Successfully cleared all tasks from the database")
     except Exception as e:
         logger.error(f"Failed to clear tasks: {e}")
 

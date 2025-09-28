@@ -551,10 +551,12 @@ async def process_climate_request(
     """
     Process single climate request using the actual climate service.
     """
-    # Get the enhanced climate service
-    from ecosystemiser.profile_loader.service import get_enhanced_climate_service
+    # Get the climate service using factory function
+    from ecosystemiser.profile_loader.climate import create_climate_service
+    from ecosystemiser.settings import get_settings
 
-    service = get_enhanced_climate_service()
+    config = get_settings()
+    service = create_climate_service(config)
 
     # Process the request through the full pipeline
     response = service.get_climate(request)
@@ -791,10 +793,12 @@ async def analyze_climate_data(
         from ecosystemiser.profile_loader.analysis.statistics import (
             calculate_statistics,
         )
-        from ecosystemiser.profile_loader.service import get_enhanced_climate_service
+        from ecosystemiser.profile_loader.climate import create_climate_service
+        from ecosystemiser.settings import get_settings
 
         # Get data using climate service (will be preprocessed)
-        service = get_enhanced_climate_service()
+        config = get_settings()
+        service = create_climate_service(config)
         climate_req = ClimateRequest(
             location=request.location,
             period=request.period,
@@ -884,10 +888,12 @@ async def get_climate_profile(
         correlation_id = str(uuid.uuid4())
 
     try:
-        from ecosystemiser.profile_loader.service import get_enhanced_climate_service
+        from ecosystemiser.profile_loader.climate import create_climate_service
+        from ecosystemiser.settings import get_settings
 
         # Configure service with processing options
-        service = get_enhanced_climate_service()
+        config = get_settings()
+        service = create_climate_service(config)
 
         # Add processing options to request (will be used by _process_data)
         request.processing_options = request.processing_options or ProcessingOptions()
@@ -909,20 +915,15 @@ async def get_climate_profile(
 
 
 @router.get("/processing/options")
-async def get_processing_options(config=None):
+async def get_processing_options(config: Dict[str, Any]):
     """
     Get available processing options and their defaults.
 
     This helps clients understand what processing capabilities are available.
 
     Args:
-        config: Optional configuration object. If not provided, uses default settings.
+        config: Configuration object (required via dependency injection)
     """
-    if config is None:
-        # Fallback to settings import only when no config provided
-        from settings import get_settings
-
-        config = get_settings()
 
     return {
         "preprocessing": {

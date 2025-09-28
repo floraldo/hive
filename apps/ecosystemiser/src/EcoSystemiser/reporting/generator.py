@@ -149,26 +149,7 @@ class HTMLReportGenerator:
 
     def _generate_styles(self, include_bootstrap: bool = False) -> str:
         """Generate CSS styles for the report."""
-        base_styles = """
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f5f5f5;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            background: white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-        }
-        """
-
-        return f"""
-    <style>
-        {base_styles}
+        return """
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -303,7 +284,6 @@ class HTMLReportGenerator:
             margin: 0 0 10px 0;
             color: #1565C0;
         }
-
         /* Interactive Report Styles */
         .result-card {
             background: white;
@@ -799,11 +779,43 @@ document.addEventListener('DOMContentLoaded', function() {{
                             <div class="row">
             """
 
-            for obj_name, obj_stats in statistics.items():
-                mean = obj_stats.get('mean', 0)
-                std = obj_stats.get('std', 0)
-                min_val = obj_stats.get('min', 0)
-                max_val = obj_stats.get('max', 0)
+            # Handle case where statistics is a single dict of values
+            if isinstance(statistics.get('mean'), (int, float)):
+                # Single objective case
+                mean = statistics.get('mean', 0)
+                std = statistics.get('std', 0)
+                min_val = statistics.get('min', 0)
+                max_val = statistics.get('max', 0)
+
+                html += f"""
+                                <div class="col-md-6">
+                                    <h5>TCO (Million EUR)</h5>
+                                    <div class="stats-row">
+                                        <span class="stats-label">Mean:</span>
+                                        <span class="stats-value">{mean:.4f}</span>
+                                    </div>
+                                    <div class="stats-row">
+                                        <span class="stats-label">Std Dev:</span>
+                                        <span class="stats-value">{std:.4f}</span>
+                                    </div>
+                                    <div class="stats-row">
+                                        <span class="stats-label">Min:</span>
+                                        <span class="stats-value">{min_val:.4f}</span>
+                                    </div>
+                                    <div class="stats-row">
+                                        <span class="stats-label">Max:</span>
+                                        <span class="stats-value">{max_val:.4f}</span>
+                                    </div>
+                                </div>
+                """
+            else:
+                # Multi-objective case
+                for obj_name, obj_stats in statistics.items():
+                    if isinstance(obj_stats, dict):
+                        mean = obj_stats.get('mean', 0)
+                        std = obj_stats.get('std', 0)
+                        min_val = obj_stats.get('min', 0)
+                        max_val = obj_stats.get('max', 0)
 
                 html += f"""
                                 <div class="col-md-6">

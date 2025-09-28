@@ -50,6 +50,7 @@ exclude = [ "archive/", "legacy/", "tests/",]
 [tool.poetry.dependencies]
 python = "^3.11"
 python-dotenv = "^1.0.0"
+cryptography = "^41.0.0"
 
 [tool.pytest.ini_options]
 testpaths = [ "tests",]

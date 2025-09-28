@@ -22,6 +22,12 @@ from ecosystemiser.profile_loader.climate.adapters.errors import (
     DataParseError,
     ValidationError,
 )
+from ecosystemiser.profile_loader.climate.processing.validation import (
+    QCReport,
+    QCIssue,
+    QCSeverity,
+    QCProfile,
+)
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -918,30 +924,32 @@ class ERA5Adapter(BaseAdapter):
         )
 
 
-class ERA5QCProfile:
+class ERA5QCProfile(QCProfile):
     """QC profile for ERA5 reanalysis data - co-located with adapter for better cohesion."""
 
     def __init__(self):
-        self.name = "ERA5"
-        self.description = "ECMWF's fifth-generation atmospheric reanalysis"
-        self.known_issues = [
-            "Smoothed data due to reanalysis model constraints",
-            "May not capture extreme local weather events accurately",
-            "Precipitation and cloud fields have known biases",
-            "Surface variables affected by model topography vs real topography",
-        ]
-        self.recommended_variables = [
-            "temp_air",
-            "dewpoint",
-            "wind_speed",
-            "wind_dir",
-            "pressure",
-            "rel_humidity",
-        ]
-        self.temporal_resolution_limits = {"all": "hourly"}
-        self.spatial_accuracy = "0.25deg x 0.25deg (~30km resolution)"
+        super().__init__(
+            name="ERA5",
+            description="ECMWF's fifth-generation atmospheric reanalysis",
+            known_issues=[
+                "Smoothed data due to reanalysis model constraints",
+                "May not capture extreme local weather events accurately",
+                "Precipitation and cloud fields have known biases",
+                "Surface variables affected by model topography vs real topography",
+            ],
+            recommended_variables=[
+                "temp_air",
+                "dewpoint",
+                "wind_speed",
+                "wind_dir",
+                "pressure",
+                "rel_humidity",
+            ],
+            temporal_resolution_limits={"all": "hourly"},
+            spatial_accuracy="0.25deg x 0.25deg (~30km resolution)",
+        )
 
-    def validate_source_specific(self, ds: xr.Dataset, report) -> None:
+    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """ERA5 specific validation"""
 
         # Check for over-smoothed data (typical of reanalysis)
@@ -959,18 +967,25 @@ class ERA5QCProfile:
                 smooth_ratio = np.mean(second_derivative < 0.01)  # Very small changes
 
                 if smooth_ratio > 0.8:  # 80% of changes are very small
-                    report.warnings.append(
-                        f"Data appears over-smoothed in {var_name} (smooth ratio={smooth_ratio:.2f}) - typical of reanalysis"
+                    issue = QCIssue(
+                        type="reanalysis_smoothing",
+                        message=f"Data appears over-smoothed in {var_name} (typical of reanalysis)",
+                        severity=QCSeverity.LOW,
+                        affected_variables=[var_name],
+                        metadata={"smooth_ratio": float(smooth_ratio)},
+                        suggested_action="Consider supplementing with higher-resolution data for local applications",
                     )
+                    report.add_issue(issue)
 
         # Warn about precipitation biases
         if "precip" in ds:
-            report.warnings.append(
-                "ERA5 precipitation has known regional biases and may not represent local extremes"
+            issue = QCIssue(
+                type="reanalysis_limitation",
+                message="ERA5 precipitation has known regional biases and may not represent local extremes",
+                severity=QCSeverity.LOW,
+                affected_variables=["precip"],
+                suggested_action="Validate against local observations for precipitation-sensitive applications",
             )
+            report.add_issue(issue)
 
-    def get_adjusted_bounds(
-        self, base_bounds: Dict[str, Tuple[float, float]]
-    ) -> Dict[str, Tuple[float, float]]:
-        """Get source-specific adjusted bounds"""
-        return base_bounds
+        report.passed_checks.append("era5_specific_validation")

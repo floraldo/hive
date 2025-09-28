@@ -18,6 +18,8 @@ try:
 except ImportError:
     # Fallback implementation if hive_error_handling is not available
     class BaseError(Exception):
+        """Base error class for fallback implementation."""
+
         def __init__(self, message: str, component: str = "unknown", **kwargs):
             super().__init__(message)
             self.message = message
@@ -28,10 +30,14 @@ except ImportError:
                 setattr(self, key, value)
 
     class BaseErrorReporter:
+        """Base error reporter class for fallback implementation."""
+
         def report_error(self, error: BaseError):
             logger.error(f"Error in {error.component}: {error.message}")
 
     class RecoveryStrategy:
+        """Base recovery strategy class for fallback implementation."""
+
         pass
 
 

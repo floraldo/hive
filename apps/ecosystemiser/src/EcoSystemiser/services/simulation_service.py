@@ -64,6 +64,7 @@ class SimulationService:
         """
         self.component_repo = component_repo or ComponentRepository()
         self.results_io = ResultsIO()
+        self._system_builder = None
 
     def run_simulation(self, config: SimulationConfig) -> SimulationResult:
         """Run a complete simulation from configuration.
@@ -429,3 +430,87 @@ class SimulationService:
 
         config = SimulationConfig(**config_dict)
         return self.run_simulation(config)
+
+    def run_simulation_from_path(
+        self,
+        config_path: Path,
+        solver_type: str = "milp",
+        output_path: Optional[Path] = None,
+        solver_config: Optional[SolverConfig] = None,
+        verbose: bool = False
+    ) -> SimulationResult:
+        """Run a simulation directly from a configuration file path.
+
+        This method is designed to be called from the CLI, moving the domain
+        logic from the presentation layer to the service layer.
+
+        Args:
+            config_path: Path to the system configuration file
+            solver_type: Type of solver to use
+            output_path: Optional output path for results
+            solver_config: Optional solver configuration
+            verbose: Whether to enable verbose output
+
+        Returns:
+            SimulationResult with status and results
+        """
+        from datetime import datetime
+
+        # Load configuration
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+
+        # Create simulation configuration
+        sim_config = SimulationConfig(
+            simulation_id=f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            system_config_path=str(config_path),
+            solver_type=solver_type,
+            solver_config=solver_config or SolverConfig(verbose=verbose, solver_type=solver_type),
+            output_config={
+                "save_results": output_path is not None,
+                "results_path": str(output_path) if output_path else None
+            }
+        )
+
+        # Run simulation
+        return self.run_simulation(sim_config)
+
+    def validate_system_config(self, config_path: Path) -> Dict[str, Any]:
+        """Validate a system configuration file.
+
+        This method validates that a configuration can be properly loaded
+        and a system can be built from it.
+
+        Args:
+            config_path: Path to the system configuration file
+
+        Returns:
+            Validation result with system information
+        """
+        from ecosystemiser.utils.system_builder import SystemBuilder
+
+        try:
+            # Try to build system
+            builder = SystemBuilder(config_path, self.component_repo)
+            system = builder.build()
+
+            # Return validation result
+            return {
+                "valid": True,
+                "system_id": getattr(system, 'system_id', 'Unknown'),
+                "num_components": len(system.components),
+                "timesteps": system.N,
+                "components": [
+                    {
+                        "name": comp.name,
+                        "type": comp.__class__.__name__
+                    }
+                    for comp in system.components.values()
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "valid": False,
+                "error": str(e)
+            }

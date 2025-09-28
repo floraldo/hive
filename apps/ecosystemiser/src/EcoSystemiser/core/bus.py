@@ -18,6 +18,8 @@ try:
 except ImportError:
     # Fallback implementation if hive_messaging is not available
     class BaseEvent:
+        """Base event class for fallback implementation."""
+
         def __init__(self, event_type: str, source: str = "unknown", **kwargs):
             self.event_type = event_type
             self.source = source
@@ -27,6 +29,8 @@ except ImportError:
                 setattr(self, key, value)
 
     class BaseBus:
+        """Base event bus class for fallback implementation."""
+
         def __init__(self):
             self.events = []
 

@@ -4,39 +4,73 @@ This is the main, user-facing entry point for accessing climate data.
 """
 
 import asyncio
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from .data_models import ClimateRequest, ClimateResponse
 from .service import ClimateService
-from ecosystemiser.settings import get_settings
-
-_service_instance = None
 
 
-def get_service(config: Optional[Dict[str, Any]] = None) -> ClimateService:
-    """Singleton factory for the climate service with dependency injection."""
-    global _service_instance
-    if _service_instance is None:
-        service_config = config or get_settings()
-        _service_instance = ClimateService(service_config)
-    return _service_instance
+def create_climate_service(config: Dict[str, Any]) -> ClimateService:
+    """Factory function to create a new ClimateService instance with explicit configuration.
 
+    Args:
+        config: Configuration dictionary for the climate service
 
-async def get_profile(req: ClimateRequest):
+    Returns:
+        ClimateService: New climate service instance
+
+    Example:
+        # In main application
+        config = get_settings()
+        climate_service = create_climate_service(config)
+
+        # Pass to functions that need it
+        profile = await get_profile(request, climate_service)
     """
-    The single public async function to fetch and process a climate profile.
-    Orchestrates the entire data retrieval and processing pipeline.
+    return ClimateService(config)
+
+
+async def get_profile(req: ClimateRequest, service: ClimateService):
     """
-    service = get_service()
+    Fetch and process a climate profile using dependency injection.
+
+    Args:
+        req: Climate data request specification
+        service: ClimateService instance (injected dependency)
+
+    Returns:
+        Processed climate profile data
+
+    Example:
+        from ecosystemiser.settings import get_settings
+
+        config = get_settings()
+        service = create_climate_service(config)
+        profile = await get_profile(request, service)
+    """
     return await service.process_request_async(req)
 
 
-def get_profile_sync(req: ClimateRequest):
+def get_profile_sync(req: ClimateRequest, service: ClimateService):
     """
     A synchronous wrapper for the get_profile function for environments
     where async is not available.
+
+    Args:
+        req: Climate data request specification
+        service: ClimateService instance (injected dependency)
+
+    Returns:
+        Processed climate profile data
+
+    Example:
+        from ecosystemiser.settings import get_settings
+
+        config = get_settings()
+        service = create_climate_service(config)
+        profile = get_profile_sync(request, service)
     """
-    return asyncio.run(get_profile(req))
+    return asyncio.run(get_profile(req, service))
 
 
-__all__ = ["get_profile", "get_profile_sync", "ClimateRequest", "ClimateResponse"]
+__all__ = ["create_climate_service", "get_profile", "get_profile_sync", "ClimateRequest", "ClimateResponse"]
