@@ -3,28 +3,30 @@ Core review logic for analyzing code quality, tests, and documentation
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from hive_claude_bridge import (
+    ClaudeBridgeConfig,
+    ClaudeService,
+    RateLimitConfig,
+    get_claude_service,
+)
+from hive_errors import (
+    ErrorReporter,
+    RetryStrategy,
+    ReviewError,
+    ReviewValidationError,
+    with_recovery,
+)
 from pydantic import BaseModel, Field
 
 from .inspector_bridge import InspectorBridge
-from hive_claude_bridge import (
-    get_claude_service,
-    ClaudeService,
-    RateLimitConfig,
-    ClaudeBridgeConfig
-)
-from hive_errors import (
-    ReviewError,
-    ReviewValidationError,
-    ErrorReporter,
-    RetryStrategy,
-    with_recovery
-)
 
 
 class ReviewDecision(Enum):
     """Possible review decisions"""
+
     APPROVE = "approve"
     REJECT = "reject"
     REWORK = "rework"
@@ -33,9 +35,12 @@ class ReviewDecision(Enum):
 
 class QualityMetrics(BaseModel):
     """Quality metrics for code review"""
+
     code_quality: float = Field(ge=0, le=100, description="Code quality score")
     test_coverage: float = Field(ge=0, le=100, description="Test coverage score")
-    documentation: float = Field(ge=0, le=100, description="Documentation quality score")
+    documentation: float = Field(
+        ge=0, le=100, description="Documentation quality score"
+    )
     security: float = Field(ge=0, le=100, description="Security assessment score")
     architecture: float = Field(ge=0, le=100, description="Architecture quality score")
 
@@ -47,12 +52,11 @@ class QualityMetrics(BaseModel):
             "test_coverage": 0.25,
             "documentation": 0.15,
             "security": 0.2,
-            "architecture": 0.1
+            "architecture": 0.1,
         }
 
         total = sum(
-            getattr(self, metric) * weight
-            for metric, weight in weights.items()
+            getattr(self, metric) * weight for metric, weight in weights.items()
         )
         return round(total, 2)
 
@@ -60,6 +64,7 @@ class QualityMetrics(BaseModel):
 @dataclass
 class ReviewResult:
     """Result of an AI review"""
+
     task_id: str
     decision: ReviewDecision
     metrics: QualityMetrics
@@ -80,7 +85,7 @@ class ReviewResult:
             "summary": self.summary,
             "issues": self.issues,
             "suggestions": self.suggestions,
-            "confidence": self.confidence
+            "confidence": self.confidence,
         }
 
         if self.escalation_reason:
@@ -107,7 +112,7 @@ class ReviewEngine:
         config = ClaudeBridgeConfig(mock_mode=mock_mode)
         rate_config = RateLimitConfig(
             max_calls_per_minute=15,  # Reviews are more intensive
-            max_calls_per_hour=300
+            max_calls_per_hour=300,
         )
         self.claude_service = get_claude_service(config=config, rate_config=rate_config)
         self.inspector = InspectorBridge()
@@ -118,9 +123,9 @@ class ReviewEngine:
         # Review thresholds
         self.thresholds = {
             "approve_threshold": 80.0,  # Overall score needed for approval
-            "reject_threshold": 40.0,   # Below this is automatic rejection
-            "escalate_threshold": 60.0, # Between reject and this = escalate
-            "confidence_threshold": 0.7 # Minimum confidence for auto-decision
+            "reject_threshold": 40.0,  # Below this is automatic rejection
+            "escalate_threshold": 60.0,  # Between reject and this = escalate
+            "confidence_threshold": 0.7,  # Minimum confidence for auto-decision
         }
 
     def review_task(
@@ -129,7 +134,7 @@ class ReviewEngine:
         task_description: str,
         code_files: Dict[str, str],
         test_results: Optional[Dict[str, Any]] = None,
-        transcript: Optional[str] = None
+        transcript: Optional[str] = None,
     ) -> ReviewResult:
         """
         Perform AI review of a task
@@ -150,7 +155,7 @@ class ReviewEngine:
         except Exception as e:
             error = ReviewError(
                 message=f"Failed to run objective analysis for task {task_id}",
-                original_error=e
+                original_error=e,
             )
             self.error_reporter.report_error(error)
             objective_analysis = None
@@ -164,12 +169,12 @@ class ReviewEngine:
                 test_results=test_results,
                 objective_analysis=objective_analysis,
                 transcript=transcript,
-                use_cache=False  # Don't cache reviews as code changes frequently
+                use_cache=False,  # Don't cache reviews as code changes frequently
             )
         except Exception as e:
             error = ReviewError(
                 message=f"Failed to get Claude review for task {task_id}",
-                original_error=e
+                original_error=e,
             )
             self.error_reporter.report_error(error)
             # Create fallback result
@@ -179,7 +184,7 @@ class ReviewEngine:
                 "issues": ["Review process encountered an error"],
                 "suggestions": ["Manual review required"],
                 "confidence": 0.0,
-                "escalation_reason": f"Claude review failed: {str(e)}"
+                "escalation_reason": f"Claude review failed: {str(e)}",
             }
 
         # Step 3: Extract validated results
@@ -190,7 +195,7 @@ class ReviewEngine:
             error = ReviewValidationError(
                 message=f"Invalid review decision: {decision_str}",
                 field="decision",
-                value=decision_str
+                value=decision_str,
             )
             self.error_reporter.report_error(error, severity="WARNING")
             decision = ReviewDecision.ESCALATE
@@ -202,7 +207,7 @@ class ReviewEngine:
             test_coverage=claude_metrics.get("testing", 50),
             documentation=claude_metrics.get("documentation", 50),
             security=claude_metrics.get("security", 50),
-            architecture=claude_metrics.get("architecture", 50)
+            architecture=claude_metrics.get("architecture", 50),
         )
 
         # Extract other fields from validated response
@@ -227,5 +232,5 @@ class ReviewEngine:
             suggestions=suggestions,
             confidence=confidence,
             escalation_reason=escalation_reason,
-            confusion_points=confusion_points
+            confusion_points=confusion_points,
         )

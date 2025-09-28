@@ -7,10 +7,10 @@ resource management and health monitoring.
 
 import sqlite3
 import threading
-from pathlib import Path
-from typing import Optional, Dict, Any
 from contextlib import contextmanager
-from queue import Queue, Empty, Full
+from pathlib import Path
+from queue import Empty, Full, Queue
+from typing import Any, Dict, Optional
 
 from hive_logging import get_logger
 
@@ -29,11 +29,13 @@ class ConnectionPool:
     - Graceful degradation under load
     """
 
-    def __init__(self,
-                 db_path: Path,
-                 min_connections: int = 2,
-                 max_connections: int = 10,
-                 connection_timeout: float = 30.0):
+    def __init__(
+        self,
+        db_path: Path,
+        min_connections: int = 2,
+        max_connections: int = 10,
+        connection_timeout: float = 30.0,
+    ):
         """
         Initialize connection pool for a specific database.
 
@@ -72,21 +74,23 @@ class ConnectionPool:
                 str(self.db_path),
                 check_same_thread=False,
                 timeout=30.0,  # 30 second timeout for locks
-                isolation_level='DEFERRED'  # Better concurrency
+                isolation_level="DEFERRED",  # Better concurrency
             )
 
             # Optimize connection settings
             conn.row_factory = sqlite3.Row
-            conn.execute('PRAGMA journal_mode=WAL')  # Write-Ahead Logging
-            conn.execute('PRAGMA synchronous=NORMAL')  # Faster writes
-            conn.execute('PRAGMA cache_size=10000')  # 10MB cache
-            conn.execute('PRAGMA foreign_keys=ON')
-            conn.execute('PRAGMA temp_store=MEMORY')  # Use memory for temp tables
+            conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
+            conn.execute("PRAGMA synchronous=NORMAL")  # Faster writes
+            conn.execute("PRAGMA cache_size=10000")  # 10MB cache
+            conn.execute("PRAGMA foreign_keys=ON")
+            conn.execute("PRAGMA temp_store=MEMORY")  # Use memory for temp tables
 
             with self._lock:
                 self._connections_created += 1
 
-            logger.debug(f"Created connection #{self._connections_created} for {self.db_path.name}")
+            logger.debug(
+                f"Created connection #{self._connections_created} for {self.db_path.name}"
+            )
             return conn
 
         except Exception as e:
@@ -96,7 +100,7 @@ class ConnectionPool:
     def _validate_connection(self, conn: sqlite3.Connection) -> bool:
         """Check if a connection is still valid."""
         try:
-            conn.execute('SELECT 1')
+            conn.execute("SELECT 1")
             return True
         except (sqlite3.Error, sqlite3.ProgrammingError, AttributeError) as e:
             logger.debug(f"Connection validation failed for {self.db_path.name}: {e}")
@@ -131,7 +135,9 @@ class ConnectionPool:
                         conn = self._pool.get(timeout=self.connection_timeout * 2)
 
             if not conn:
-                raise RuntimeError(f"Failed to acquire database connection for {self.db_path}")
+                raise RuntimeError(
+                    f"Failed to acquire database connection for {self.db_path}"
+                )
 
             yield conn
 
@@ -144,11 +150,15 @@ class ConnectionPool:
                     self._pool.put(conn)
                 except (Full, sqlite3.Error) as e:
                     # Connection corrupted, close it
-                    logger.warning(f"Failed to return connection to pool for {self.db_path.name}: {e}")
+                    logger.warning(
+                        f"Failed to return connection to pool for {self.db_path.name}: {e}"
+                    )
                     try:
                         conn.close()
                     except (sqlite3.Error, AttributeError) as close_error:
-                        logger.debug(f"Failed to close corrupted connection: {close_error}")
+                        logger.debug(
+                            f"Failed to close corrupted connection: {close_error}"
+                        )
                     with self._lock:
                         self._connections_created -= 1
 
@@ -171,11 +181,11 @@ class ConnectionPool:
     def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics."""
         return {
-            'db_path': str(self.db_path),
-            'pool_size': self._pool.qsize(),
-            'connections_created': self._connections_created,
-            'max_connections': self.max_connections,
-            'min_connections': self.min_connections
+            "db_path": str(self.db_path),
+            "pool_size": self._pool.qsize(),
+            "connections_created": self._connections_created,
+            "max_connections": self.max_connections,
+            "min_connections": self.min_connections,
         }
 
 
@@ -208,8 +218,7 @@ class DatabaseManager:
             with self._lock:
                 if db_name not in self._pools:
                     self._pools[db_name] = ConnectionPool(
-                        db_path=db_path,
-                        **pool_kwargs
+                        db_path=db_path, **pool_kwargs
                     )
                     logger.info(f"Created connection pool for database: {db_name}")
 
@@ -257,71 +266,33 @@ class DatabaseManager:
                 try:
                     # Test connection acquisition
                     with pool.get_connection() as conn:
-                        conn.execute('SELECT 1')
-                    results[db_name] = {'status': 'healthy', 'stats': pool.get_stats()}
+                        conn.execute("SELECT 1")
+                    results[db_name] = {"status": "healthy", "stats": pool.get_stats()}
                 except Exception as e:
-                    results[db_name] = {'status': 'unhealthy', 'error': str(e)}
+                    results[db_name] = {"status": "unhealthy", "error": str(e)}
 
         return results
 
 
-# Global database manager instance
-_database_manager: Optional[DatabaseManager] = None
-_manager_lock = threading.Lock()
-
-
-def get_database_manager() -> DatabaseManager:
-    """Get or create the global database manager."""
-    global _database_manager
-
-    if _database_manager is None:
-        with _manager_lock:
-            if _database_manager is None:
-                _database_manager = DatabaseManager()
-                logger.info("Database manager initialized")
-
-    return _database_manager
-
-
-@contextmanager
-def get_pooled_connection(db_name: str, db_path: Path, **pool_kwargs):
+# Factory function for creating database managers with explicit configuration
+def create_database_manager() -> DatabaseManager:
     """
-    Get a pooled connection for a specific database.
+    Factory function to create a new DatabaseManager instance.
 
-    This is the main interface for getting pooled database connections.
+    This replaces the previous singleton pattern with explicit instantiation.
+    Applications should create one DatabaseManager instance and inject it
+    where needed following dependency injection principles.
 
-    Args:
-        db_name: Unique identifier for the database
-        db_path: Path to the SQLite database file
-        **pool_kwargs: Additional arguments for ConnectionPool
+    Returns:
+        DatabaseManager: New database manager instance
 
     Example:
-        with get_pooled_connection("app_db", Path("./app.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users")
+        # In main application
+        db_manager = create_database_manager()
+
+        # Pass to services that need it
+        service = MyService(db_manager=db_manager)
     """
-    manager = get_database_manager()
-    with manager.get_connection(db_name, db_path, **pool_kwargs) as conn:
-        yield conn
-
-
-def close_all_pools():
-    """Close all database connection pools."""
-    global _database_manager
-
-    if _database_manager:
-        _database_manager.close_all_pools()
-        _database_manager = None
-        logger.info("All database connection pools closed")
-
-
-def get_pool_stats() -> Dict[str, Dict[str, Any]]:
-    """Get statistics for all database connection pools."""
-    manager = get_database_manager()
-    return manager.get_all_stats()
-
-
-def pool_health_check() -> Dict[str, Any]:
-    """Perform health check on all database connection pools."""
-    manager = get_database_manager()
-    return manager.health_check()
+    manager = DatabaseManager()
+    logger.info("Database manager created")
+    return manager

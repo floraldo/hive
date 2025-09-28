@@ -4,45 +4,54 @@ WorkerCore - Streamlined Worker
 Preserves path duplication fix while simplifying architecture
 """
 
+import argparse
 import json
 import os
+import platform
 import subprocess
 import sys
-import argparse
-import platform
-from pathlib import Path
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+# Hive utilities for path management
+from hive_config.paths import (
+    LOGS_DIR,
+    PROJECT_ROOT,
+    WORKTREES_DIR,
+    ensure_directory,
+    get_task_log_dir,
+    get_worker_workspace_dir,
+)
 
 # Hive logging system
-from hive_logging import setup_logging, get_logger
+from hive_logging import get_logger, setup_logging
 
 # Hive database system - use orchestrator's core layer
 from hive_orchestrator.core import db as hive_core_db
 
-# Hive utilities for path management
-from hive_config.paths import (
-    PROJECT_ROOT,
-    WORKTREES_DIR,
-    LOGS_DIR,
-    get_worker_workspace_dir,
-    get_task_log_dir,
-    ensure_directory
-)
-
 
 class WorkerCore:
-    """Streamlined worker with preserved path fix"""
+    """Streamlined worker with preserved path fix and DI support"""
 
-    def __init__(self, worker_id: str, task_id: str = None, run_id: str = None,
-                 workspace: str = None, phase: str = None, mode: str = None,
-                 live_output: bool = False):
+    def __init__(
+        self,
+        worker_id: str,
+        task_id: str = None,
+        run_id: str = None,
+        workspace: str = None,
+        phase: str = None,
+        mode: str = None,
+        live_output: bool = False,
+        config: Optional[Dict[str, Any]] = None,
+    ):
         self.worker_id = worker_id
         self.task_id = task_id
         self.run_id = run_id
         self.phase = phase or "apply"
         self.mode = mode or "fresh"
         self.live_output = live_output
+        self.config = config or {}
 
         # Initialize logger
         self.log = get_logger(__name__)
@@ -83,8 +92,6 @@ class WorkerCore:
         logger.info(f"         [INFO] Workspace: {self.workspace}")
         logger.info(f"         [INFO] Claude: {self.claude_cmd or 'SIMULATION MODE'}")
 
-
-
     def _create_workspace(self) -> Path:
         """Create or reuse workspace based on mode (fresh or repo)"""
         # Use the authoritative workspace path from singleton
@@ -94,16 +101,23 @@ class WorkerCore:
             # Fresh mode: clean only on 'apply' phase, preserve for 'test' phase
             if self.phase == "apply" and workspace_path.exists():
                 import shutil
+
                 try:
                     shutil.rmtree(workspace_path)
-                    self.log.info(f"Cleaned existing workspace for apply phase: {workspace_path}")
+                    self.log.info(
+                        f"Cleaned existing workspace for apply phase: {workspace_path}"
+                    )
                 except PermissionError:
                     # Windows file locking issue - just continue, mkdir will handle it
-                    self.log.warning(f"Could not clean workspace (file in use), continuing anyway")
+                    self.log.warning(
+                        f"Could not clean workspace (file in use), continuing anyway"
+                    )
 
             workspace_path.mkdir(parents=True, exist_ok=True)
             if self.phase == "test" and any(workspace_path.iterdir()):
-                self.log.info(f"Reusing existing workspace for test phase: {workspace_path}")
+                self.log.info(
+                    f"Reusing existing workspace for test phase: {workspace_path}"
+                )
             else:
                 self.log.info(f"Created fresh workspace: {workspace_path}")
             return workspace_path
@@ -118,7 +132,9 @@ class WorkerCore:
     def _create_git_worktree(self, workspace_path: Path) -> Path:
         """Create git worktree for repo mode"""
         # Create branch name
-        safe_task_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in self.task_id)
+        safe_task_id = "".join(
+            c if c.isalnum() or c in "-_" else "_" for c in self.task_id
+        )
         branch = f"agent/{self.worker_id}/{safe_task_id}"
 
         # If worktree already exists and is valid, reuse it
@@ -130,20 +146,33 @@ class WorkerCore:
             else:
                 # Directory exists but not a git worktree - remove it
                 import shutil
+
                 try:
                     shutil.rmtree(workspace_path)
                 except PermissionError:
                     # Windows file locking issue - just continue
-                    self.log.warning(f"Could not clean non-git directory (file in use), continuing anyway")
+                    self.log.warning(
+                        f"Could not clean non-git directory (file in use), continuing anyway"
+                    )
 
         # Prune stale worktrees
-        subprocess.run(["git", "worktree", "prune"], cwd=str(self.root), capture_output=True, text=True)
+        subprocess.run(
+            ["git", "worktree", "prune"],
+            cwd=str(self.root),
+            capture_output=True,
+            text=True,
+        )
 
         # Does the branch already exist?
-        branch_exists = subprocess.run(
-            ["git", "rev-parse", "--verify", "--quiet", branch],
-            cwd=str(self.root), capture_output=True, text=True
-        ).returncode == 0
+        branch_exists = (
+            subprocess.run(
+                ["git", "rev-parse", "--verify", "--quiet", branch],
+                cwd=str(self.root),
+                capture_output=True,
+                text=True,
+            ).returncode
+            == 0
+        )
 
         try:
             if branch_exists:
@@ -151,34 +180,53 @@ class WorkerCore:
                 self.log.info(f"Attaching worktree to existing branch: {branch}")
                 subprocess.run(
                     ["git", "worktree", "add", str(workspace_path), branch],
-                    cwd=str(self.root), capture_output=True, text=True, check=True
+                    cwd=str(self.root),
+                    capture_output=True,
+                    text=True,
+                    check=True,
                 )
             else:
                 # Create new branch from HEAD
                 self.log.info(f"Creating worktree with new branch: {branch}")
                 subprocess.run(
-                    ["git", "worktree", "add", "-b", branch, str(workspace_path), "HEAD"],
-                    cwd=str(self.root), capture_output=True, text=True, check=True
+                    [
+                        "git",
+                        "worktree",
+                        "add",
+                        "-b",
+                        branch,
+                        str(workspace_path),
+                        "HEAD",
+                    ],
+                    cwd=str(self.root),
+                    capture_output=True,
+                    text=True,
+                    check=True,
                 )
         except subprocess.CalledProcessError as e:
             # Helpful diagnostics
             error_message = e.stderr.strip() if e.stderr else str(e)
             self.log.error(f"git worktree add failed: {error_message}")
-            raise RuntimeError(f"Could not create or attach git worktree: {error_message}") from e
+            raise RuntimeError(
+                f"Could not create or attach git worktree: {error_message}"
+            ) from e
 
         # Validate that worktree was created properly
         git_file = workspace_path / ".git"
         if not git_file.exists():
-            raise RuntimeError(f"Git worktree created but missing .git file: {workspace_path}")
+            raise RuntimeError(
+                f"Git worktree created but missing .git file: {workspace_path}"
+            )
 
         self.log.info(f"Created git worktree: {workspace_path} (branch: {branch})")
         return workspace_path
 
     def find_claude_cmd(self) -> Optional[str]:
         """Find Claude command with fallbacks"""
-        # Check environment variable first
-        if os.getenv("CLAUDE_BIN"):
-            claude_path = Path(os.getenv("CLAUDE_BIN"))
+        # Check config for claude binary path
+        claude_bin = self.config.get("claude_bin")
+        if claude_bin:
+            claude_path = Path(claude_bin)
             if claude_path.exists():
                 logger.info(f"[INFO] Using Claude from CLAUDE_BIN: {claude_path}")
                 return str(claude_path)
@@ -190,7 +238,7 @@ class WorkerCore:
             Path.home() / ".npm-global" / "bin" / "claude",
             Path("claude.cmd"),
             Path("claude.CMD"),
-            Path("claude")
+            Path("claude"),
         ]
 
         for path in possible_paths:
@@ -202,9 +250,11 @@ class WorkerCore:
         try:
             result = subprocess.run(
                 ["where" if os.name == "nt" else "which", "claude"],
-                capture_output=True, text=True, check=True
+                capture_output=True,
+                text=True,
+                check=True,
             )
-            claude_path = result.stdout.strip().split('\n')[0]
+            claude_path = result.stdout.strip().split("\n")[0]
             if claude_path:
                 logger.info(f"[INFO] Using Claude from system PATH: {claude_path}")
                 return claude_path
@@ -214,10 +264,9 @@ class WorkerCore:
         logger.warning("[WARN] Claude command not found - running in simulation mode")
         return None
 
-
     def _verify_workspace_isolation(self):
         """Pre-flight invariant checks to ensure workspace isolation."""
-        if os.getenv("HIVE_DEBUG") != "1":
+        if not self.config.get("debug_mode", False):
             return
 
         self.log.info("[ISOLATION] Verifying workspace isolation...")
@@ -229,7 +278,9 @@ class WorkerCore:
             self.log.info(f"[OK] Process cwd matches workspace: {current_cwd}")
         else:
             # This is a critical failure condition for the KISS approach.
-            self.log.error(f"[CRITICAL] Process cwd mismatch: {current_cwd} != {workspace_resolved}")
+            self.log.error(
+                f"[CRITICAL] Process cwd mismatch: {current_cwd} != {workspace_resolved}"
+            )
 
         # Check 2: Verify git can naturally operate within this directory.
         if self.mode == "repo":
@@ -237,14 +288,21 @@ class WorkerCore:
                 # A lightweight command like 'git rev-parse --git-dir' is better than 'git status'.
                 result = subprocess.run(
                     ["git", "rev-parse", "--git-dir"],
-                    capture_output=True, text=True, cwd=str(self.workspace), check=True
+                    capture_output=True,
+                    text=True,
+                    cwd=str(self.workspace),
+                    check=True,
                 )
                 if result.stdout.strip():
-                    self.log.info("[OK] Git context successfully detected in workspace.")
+                    self.log.info(
+                        "[OK] Git context successfully detected in workspace."
+                    )
                 else:
                     self.log.warning("[WARN] Git command ran but returned no git-dir.")
             except subprocess.CalledProcessError as e:
-                self.log.warning(f"[WARN] Git detection failed in workspace: {e.stderr.strip()}")
+                self.log.warning(
+                    f"[WARN] Git detection failed in workspace: {e.stderr.strip()}"
+                )
         else:
             self.log.info("[OK] Fresh mode - skipping git checks.")
 
@@ -277,12 +335,16 @@ class WorkerCore:
             # Load the most recent result for the referenced task
             results_dir = self.results_dir / prev_task_id
             if not results_dir.exists():
-                context_sections.append(f"[Context from {prev_task_id}: No results found]")
+                context_sections.append(
+                    f"[Context from {prev_task_id}: No results found]"
+                )
                 continue
 
             result_files = list(results_dir.glob("*.json"))
             if not result_files:
-                context_sections.append(f"[Context from {prev_task_id}: No results found]")
+                context_sections.append(
+                    f"[Context from {prev_task_id}: No results found]"
+                )
                 continue
 
             # Get the most recent result
@@ -299,13 +361,17 @@ class WorkerCore:
                 # Include file information if available
                 files = result.get("files", {})
                 if files.get("created"):
-                    context_text += f"- Files created: {', '.join(files['created'][:5])}"
-                    if len(files['created']) > 5:
+                    context_text += (
+                        f"- Files created: {', '.join(files['created'][:5])}"
+                    )
+                    if len(files["created"]) > 5:
                         context_text += f" (+{len(files['created'])-5} more)"
                     context_text += "\n"
                 if files.get("modified"):
-                    context_text += f"- Files modified: {', '.join(files['modified'][:5])}"
-                    if len(files['modified']) > 5:
+                    context_text += (
+                        f"- Files modified: {', '.join(files['modified'][:5])}"
+                    )
+                    if len(files["modified"]) > 5:
                         context_text += f" (+{len(files['modified'])-5} more)"
                     context_text += "\n"
 
@@ -316,7 +382,9 @@ class WorkerCore:
                 context_sections.append(context_text)
 
             except Exception as e:
-                context_sections.append(f"[Context from {prev_task_id}: Error loading - {e}]")
+                context_sections.append(
+                    f"[Context from {prev_task_id}: Error loading - {e}]"
+                )
 
         if context_sections:
             return "\n".join(context_sections) + "\n"
@@ -333,14 +401,14 @@ class WorkerCore:
         role_map = {
             "backend": "Backend Developer (Python/Flask/FastAPI specialist)",
             "frontend": "Frontend Developer (React/Next.js specialist)",
-            "infra": "Infrastructure Engineer (Docker/Kubernetes/CI specialist)"
+            "infra": "Infrastructure Engineer (Docker/Kubernetes/CI specialist)",
         }
         role = role_map.get(self.worker_id, f"{self.worker_id.title()} Developer")
 
         # Phase-specific instructions (two-phase system)
         phase_instructions = {
             "apply": "Focus on implementation. Create actual working code/configuration with inline planning.",
-            "test": "Focus on validation. Write comprehensive tests and verify the implementation works correctly."
+            "test": "Focus on validation. Write comprehensive tests and verify the implementation works correctly.",
         }
 
         phase_focus = phase_instructions.get(self.phase, "Complete the requested task.")
@@ -403,20 +471,26 @@ CRITICAL PATH CONSTRAINT:
                     # Files changed in commits since baseline
                     res = subprocess.run(
                         ["git", "diff", "--name-only", diff_target],
-                        cwd=str(self.workspace), capture_output=True, text=True
+                        cwd=str(self.workspace),
+                        capture_output=True,
+                        text=True,
                     )
                     if res.returncode == 0:
-                        modified_files = [f for f in res.stdout.strip().split("\n") if f]
+                        modified_files = [
+                            f for f in res.stdout.strip().split("\n") if f
+                        ]
 
                     # Untracked files (never committed)
                     result = subprocess.run(
                         ["git", "ls-files", "--others", "--exclude-standard"],
                         cwd=str(self.workspace),
                         capture_output=True,
-                        text=True
+                        text=True,
                     )
                     if result.returncode == 0:
-                        created_files = [f for f in result.stdout.strip().split("\n") if f]
+                        created_files = [
+                            f for f in result.stdout.strip().split("\n") if f
+                        ]
                 except Exception as e:
                     self.log.warning(f"[WARN] Could not get git file status: {e}")
             else:
@@ -429,10 +503,7 @@ CRITICAL PATH CONSTRAINT:
                 except Exception as e:
                     self.log.warning(f"[WARN] Could not scan workspace files: {e}")
 
-        return {
-            "created": created_files,
-            "modified": modified_files
-        }
+        return {"created": created_files, "modified": modified_files}
 
     def _format_live_output(self, line: str) -> Optional[str]:
         """Format line for live output - shows Claude messages, commands, and results with worker ID"""
@@ -441,10 +512,10 @@ CRITICAL PATH CONSTRAINT:
 
         # Worker identification with color coding
         worker_colors = {
-            "backend": "\033[94m",    # Blue
-            "frontend": "\033[92m",   # Green
-            "infra": "\033[93m",      # Yellow
-            "test": "\033[95m"        # Magenta
+            "backend": "\033[94m",  # Blue
+            "frontend": "\033[92m",  # Green
+            "infra": "\033[93m",  # Yellow
+            "test": "\033[95m",  # Magenta
         }
         reset_color = "\033[0m"
         color = worker_colors.get(self.worker_id, "\033[97m")  # White default
@@ -495,9 +566,12 @@ CRITICAL PATH CONSTRAINT:
                             else:
                                 # Truncate long outputs but keep them readable
                                 if len(result) > 200:
-                                    lines = result.split('\n')
+                                    lines = result.split("\n")
                                     if len(lines) > 10:
-                                        result = '\n'.join(lines[:8]) + f"\n... ({len(lines)-8} more lines)"
+                                        result = (
+                                            "\n".join(lines[:8])
+                                            + f"\n... ({len(lines)-8} more lines)"
+                                        )
                                     else:
                                         result = result[:200] + "..."
                                 return f"{worker_prefix} 📤 {result}"
@@ -514,18 +588,24 @@ CRITICAL PATH CONSTRAINT:
     def run_claude(self, prompt: str) -> Dict[str, Any]:
         """Execute Claude with workspace-aware path handling"""
         if not self.claude_cmd:
-            return {"status": "blocked", "notes": "Claude command not available", "next_state": "blocked"}
+            return {
+                "status": "blocked",
+                "notes": "Claude command not available",
+                "next_state": "blocked",
+            }
 
         # Build base command
         cmd = [
             self.claude_cmd,
-            "--output-format", "stream-json",
+            "--output-format",
+            "stream-json",
             "--verbose",
-            "--add-dir", str(self.workspace),
+            "--add-dir",
+            str(self.workspace),
             "--dangerously-skip-permissions",
-            "-p", prompt
+            "-p",
+            prompt,
         ]
-
 
         self.log.info("[RUNNING] Claude is working...")
         logger.info(f"         [INFO] Workspace: {self.workspace}")
@@ -542,24 +622,38 @@ CRITICAL PATH CONSTRAINT:
 
         try:
             # Create isolated environment for workspace
-            env = os.environ.copy()
-            env.update({
-                "CLAUDE_PROJECT_ROOT": str(self.workspace),
-                "CLAUDE_WORKSPACE_ROOT": str(self.workspace),
-                "PWD": str(self.workspace),
-                "WORKSPACE": str(self.workspace),
-                # Prevent repo-root climbing; treat workspace as the ceiling
-                "GIT_CEILING_DIRECTORIES": str(self.workspace),
-            })
+            # Pass environment variables from config if provided
+            env_base = self.config.get("env_vars", {})
+            if not env_base:
+                # Fallback to current environment for backwards compatibility
+                import os
+
+                env_base = os.environ.copy()
+            env = env_base.copy()
+            env.update(
+                {
+                    "CLAUDE_PROJECT_ROOT": str(self.workspace),
+                    "CLAUDE_WORKSPACE_ROOT": str(self.workspace),
+                    "PWD": str(self.workspace),
+                    "WORKSPACE": str(self.workspace),
+                    # Prevent repo-root climbing; treat workspace as the ceiling
+                    "GIT_CEILING_DIRECTORIES": str(self.workspace),
+                }
+            )
 
             # KISS approach: trust git's native worktree detection
             if self.mode == "repo":
-                self.log.info("[INFO] Using standard git context detection within worktree")
+                self.log.info(
+                    "[INFO] Using standard git context detection within worktree"
+                )
                 # Capture baseline commit before run
                 try:
                     base = subprocess.run(
                         ["git", "rev-parse", "HEAD"],
-                        cwd=str(self.workspace), capture_output=True, text=True, check=True
+                        cwd=str(self.workspace),
+                        capture_output=True,
+                        text=True,
+                        check=True,
                     )
                     self._baseline_commit = base.stdout.strip()
                 except Exception as e:
@@ -572,7 +666,9 @@ CRITICAL PATH CONSTRAINT:
                 # On Windows, avoid pipes to prevent Claude CLI deadlock
                 stdout_pipe = subprocess.DEVNULL
                 stderr_pipe = subprocess.DEVNULL
-                self.log.info(f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=DEVNULL")
+                self.log.info(
+                    f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=DEVNULL"
+                )
             else:
                 # On Unix, pipes work fine and provide better monitoring
                 stdout_pipe = subprocess.PIPE
@@ -598,7 +694,7 @@ CRITICAL PATH CONSTRAINT:
                 self.log.info(f"  [{i}] = '{arg}'")
 
             # Log command as string (what would be executed in shell)
-            cmd_string = ' '.join(cmd)
+            cmd_string = " ".join(cmd)
             self.log.info(f"[DEBUG] Command string: {cmd_string}")
 
             # Log working directory
@@ -609,22 +705,31 @@ CRITICAL PATH CONSTRAINT:
             # Log critical environment variables
             self.log.info(f"[DEBUG] Environment variables:")
             self.log.info(f"  CLAUDE_BIN = {env.get('CLAUDE_BIN', 'NOT SET')}")
-            self.log.info(f"  CLAUDE_PROJECT_ROOT = {env.get('CLAUDE_PROJECT_ROOT', 'NOT SET')}")
-            self.log.info(f"  CLAUDE_WORKSPACE_ROOT = {env.get('CLAUDE_WORKSPACE_ROOT', 'NOT SET')}")
+            self.log.info(
+                f"  CLAUDE_PROJECT_ROOT = {env.get('CLAUDE_PROJECT_ROOT', 'NOT SET')}"
+            )
+            self.log.info(
+                f"  CLAUDE_WORKSPACE_ROOT = {env.get('CLAUDE_WORKSPACE_ROOT', 'NOT SET')}"
+            )
             self.log.info(f"  PWD = {env.get('PWD', 'NOT SET')}")
             self.log.info(f"  WORKSPACE = {env.get('WORKSPACE', 'NOT SET')}")
-            self.log.info(f"  GIT_CEILING_DIRECTORIES = {env.get('GIT_CEILING_DIRECTORIES', 'NOT SET')}")
+            self.log.info(
+                f"  GIT_CEILING_DIRECTORIES = {env.get('GIT_CEILING_DIRECTORIES', 'NOT SET')}"
+            )
 
             # Log PATH (first 500 chars to see more)
-            path_env = env.get('PATH', 'NOT SET')
+            path_env = env.get("PATH", "NOT SET")
             self.log.info(f"[DEBUG] PATH (first 500 chars): {path_env[:500]}")
 
             # Check if claude command exists and is accessible
             import shutil
+
             claude_path = shutil.which(self.claude_cmd, path=path_env)
             self.log.info(f"[DEBUG] Claude command resolved to: {claude_path}")
             if claude_path:
-                self.log.info(f"[DEBUG] Claude exists at resolved path: {os.path.exists(claude_path)}")
+                self.log.info(
+                    f"[DEBUG] Claude exists at resolved path: {os.path.exists(claude_path)}"
+                )
                 self.log.info(f"[DEBUG] Claude is file: {os.path.isfile(claude_path)}")
 
             # Log prompt details
@@ -643,17 +748,20 @@ CRITICAL PATH CONSTRAINT:
                     stderr=stderr_pipe,
                     stdin=subprocess.DEVNULL,  # Prevent hanging on input
                     text=True,
-                    bufsize=1
+                    bufsize=1,
                 )
                 self.log.info(f"[DEBUG] Subprocess started with PID: {process.pid}")
                 self.log.info(f"[DEBUG] Process poll status: {process.poll()}")
 
                 # Give process a moment to fail if it's going to fail immediately
                 import time
+
                 time.sleep(0.5)
                 initial_poll = process.poll()
                 if initial_poll is not None:
-                    self.log.error(f"[ERROR] Process died immediately with exit code: {initial_poll}")
+                    self.log.error(
+                        f"[ERROR] Process died immediately with exit code: {initial_poll}"
+                    )
                     # Try to capture any error output
                     if is_real_pipe and process.stderr:
                         stderr_output = process.stderr.read()
@@ -667,8 +775,9 @@ CRITICAL PATH CONSTRAINT:
 
                 # Check if we have a real pipe (not DEVNULL)
                 # On Windows, stdout will be None when using DEVNULL
-                is_real_pipe = (process.stdout is not None and
-                               hasattr(process.stdout, 'readline'))
+                is_real_pipe = process.stdout is not None and hasattr(
+                    process.stdout, "readline"
+                )
 
                 self.log.info(f"[DEBUG] is_real_pipe = {is_real_pipe}")
 
@@ -681,10 +790,13 @@ CRITICAL PATH CONSTRAINT:
                             poll_result = process.poll()
                             if poll_result is not None:
                                 exit_code = poll_result
-                                self.log.info(f"[DEBUG] Process exited with code: {exit_code}")
+                                self.log.info(
+                                    f"[DEBUG] Process exited with code: {exit_code}"
+                                )
                                 break
                             # No more output but process still running, wait a bit
                             import time
+
                             time.sleep(0.1)
                             continue
 
@@ -710,18 +822,25 @@ CRITICAL PATH CONSTRAINT:
                                 if data.get("subtype") == "success":
                                     # Extract the result text as our output
                                     result_text = data.get("result", "")
-                                    self.log.info(f"[CLAUDE] Completed with result: {result_text[:100]}...")
+                                    self.log.info(
+                                        f"[CLAUDE] Completed with result: {result_text[:100]}..."
+                                    )
                         except json.JSONDecodeError:
                             pass  # Not JSON, that's fine
                 else:
                     # Non-piped mode (Windows with DEVNULL): just wait for process completion
-                    self.log.info(f"[DEBUG] Non-piped mode: monitoring process completion only")
+                    self.log.info(
+                        f"[DEBUG] Non-piped mode: monitoring process completion only"
+                    )
                     import time
+
                     while True:
                         poll_result = process.poll()
                         if poll_result is not None:
                             exit_code = poll_result
-                            self.log.info(f"[DEBUG] Process exited with code: {exit_code}")
+                            self.log.info(
+                                f"[DEBUG] Process exited with code: {exit_code}"
+                            )
                             break
                         time.sleep(0.5)  # Check every 500ms
 
@@ -731,7 +850,9 @@ CRITICAL PATH CONSTRAINT:
                     self.log.info(f"[DEBUG] Process still running, waiting for exit...")
                     try:
                         exit_code = process.wait(timeout=600)
-                        self.log.info(f"[DEBUG] Process completed with exit code: {exit_code}")
+                        self.log.info(
+                            f"[DEBUG] Process completed with exit code: {exit_code}"
+                        )
                     except subprocess.TimeoutExpired:
                         self.log.error("[ERROR] Claude timed out after 10 minutes")
                         try:
@@ -777,7 +898,9 @@ CRITICAL PATH CONSTRAINT:
                     if files_changed.get("created") or files_changed.get("modified"):
                         success = True
                         status_notes = f"Created {len(files_changed.get('created', []))} files, modified {len(files_changed.get('modified', []))} files"
-                        self.log.info(f"[SUCCESS] Task likely succeeded - files were created/modified")
+                        self.log.info(
+                            f"[SUCCESS] Task likely succeeded - files were created/modified"
+                        )
                     else:
                         success = False
                         status_notes = "Claude exited without creating files"
@@ -802,12 +925,18 @@ CRITICAL PATH CONSTRAINT:
                     "claude_completed": claude_completed,
                     "exit_code": exit_code,
                     "output_lines": len(output_lines),
-                    "transcript": "\n".join(transcript_lines)  # Include full transcript for database
+                    "transcript": "\n".join(
+                        transcript_lines
+                    ),  # Include full transcript for database
                 }
 
         except Exception as e:
             self.log.error(f"[ERROR] Claude execution failed: {e}")
-            return {"status": "failed", "notes": f"Execution error: {str(e)}", "next_state": "failed"}
+            return {
+                "status": "failed",
+                "notes": f"Execution error: {str(e)}",
+                "next_state": "failed",
+            }
 
     def emit_result(self, result: Dict[str, Any]):
         """Save execution result"""
@@ -816,7 +945,9 @@ CRITICAL PATH CONSTRAINT:
             return
 
         # Extract transcript before adding to result_data
-        transcript = result.pop('transcript', None)  # Remove from result to avoid duplication
+        transcript = result.pop(
+            "transcript", None
+        )  # Remove from result to avoid duplication
 
         # Prepare result data
         result_data = {
@@ -826,12 +957,12 @@ CRITICAL PATH CONSTRAINT:
             "phase": self.phase,
             "workspace": str(self.workspace),
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            **result
+            **result,
         }
 
         # Save result to database
-        status = result.get('status', 'unknown')
-        error_message = result.get('error') if status == 'failed' else None
+        status = result.get("status", "unknown")
+        error_message = result.get("error") if status == "failed" else None
 
         try:
             success = hive_core_db.log_run_result(
@@ -839,13 +970,17 @@ CRITICAL PATH CONSTRAINT:
                 status=status,
                 result_data=result_data,
                 error_message=error_message,
-                transcript=transcript  # Pass transcript to database
+                transcript=transcript,  # Pass transcript to database
             )
 
             if success:
-                self.log.info(f"[RESULT] Saved to database: run_id={self.run_id}, status={status}")
+                self.log.info(
+                    f"[RESULT] Saved to database: run_id={self.run_id}, status={status}"
+                )
             else:
-                self.log.error(f"[ERROR] Failed to save result to database: run_id={self.run_id}")
+                self.log.error(
+                    f"[ERROR] Failed to save result to database: run_id={self.run_id}"
+                )
 
         except Exception as e:
             self.log.error(f"[ERROR] Database save failed: {e}")
@@ -873,7 +1008,11 @@ CRITICAL PATH CONSTRAINT:
         """Run in one-shot mode (called by Queen)"""
         if not self.task_id:
             logger.error("[ERROR] One-shot mode requires task_id")
-            return {"status": "failed", "notes": "Missing task_id", "next_state": "failed"}
+            return {
+                "status": "failed",
+                "notes": "Missing task_id",
+                "next_state": "failed",
+            }
 
         # Load task
         task = self.load_task(self.task_id)
@@ -885,23 +1024,44 @@ CRITICAL PATH CONSTRAINT:
         # Execute task
         return self.execute_task(task)
 
+
 def main():
     """Main CLI entry point"""
 
     parser = argparse.ArgumentParser(description="WorkerCore - Streamlined Worker")
     parser.add_argument("worker_id", help="Worker ID (backend, frontend, infra)")
-    parser.add_argument("--one-shot", action="store_true", help="One-shot mode for Queen")
-    parser.add_argument("--local", action="store_true",
-                       help="Local development mode - run task directly without Queen")
-    parser.add_argument("--task-id", help="Task ID (required for one-shot and local modes)")
-    parser.add_argument("--run-id", help="Run ID for this execution (auto-generated in local mode)")
+    parser.add_argument(
+        "--one-shot", action="store_true", help="One-shot mode for Queen"
+    )
+    parser.add_argument(
+        "--local",
+        action="store_true",
+        help="Local development mode - run task directly without Queen",
+    )
+    parser.add_argument(
+        "--task-id", help="Task ID (required for one-shot and local modes)"
+    )
+    parser.add_argument(
+        "--run-id", help="Run ID for this execution (auto-generated in local mode)"
+    )
     parser.add_argument("--workspace", help="Workspace directory")
-    parser.add_argument("--phase", choices=["plan", "apply", "test"], default="apply",
-                       help="Execution phase")
-    parser.add_argument("--mode", choices=["fresh", "repo"], default="fresh",
-                       help="Workspace mode: fresh (empty directory) or repo (git worktree)")
-    parser.add_argument("--live", action="store_true",
-                       help="Enable live streaming output to terminal (shows Claude messages, commands, and results)")
+    parser.add_argument(
+        "--phase",
+        choices=["plan", "apply", "test"],
+        default="apply",
+        help="Execution phase",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["fresh", "repo"],
+        default="fresh",
+        help="Workspace mode: fresh (empty directory) or repo (git worktree)",
+    )
+    parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Enable live streaming output to terminal (shows Claude messages, commands, and results)",
+    )
 
     args = parser.parse_args()
 
@@ -913,11 +1073,7 @@ def main():
     # Make log path absolute + centralized (before any chdir operations)
     centralized_log = LOGS_DIR / f"{log_name}.log"
     ensure_directory(LOGS_DIR)  # Ensure logs directory exists
-    setup_logging(
-        name=log_name,
-        log_to_file=True,
-        log_file_path=str(centralized_log)
-    )
+    setup_logging(name=log_name, log_to_file=True, log_file_path=str(centralized_log))
     log = get_logger(__name__)
 
     # Validate local mode arguments
@@ -925,7 +1081,9 @@ def main():
         if not args.task_id:
             logger.error("[ERROR] Local mode requires --task-id to be specified")
             logger.info("\nUsage example:")
-            logger.info("  python worker.py backend --local --task-id hello_hive --phase apply")
+            logger.info(
+                "  python worker.py backend --local --task-id hello_hive --phase apply"
+            )
             sys.exit(1)
 
         # Generate run_id if not provided in local mode
@@ -942,14 +1100,17 @@ def main():
             workspace=args.workspace,
             phase=args.phase,
             mode=args.mode,
-            live_output=args.live
+            live_output=args.live,
         )
-        log.info(f"Worker {args.worker_id} initialized successfully for task {args.task_id}")
+        log.info(
+            f"Worker {args.worker_id} initialized successfully for task {args.task_id}"
+        )
     except Exception as e:
         log.error(f"Failed to initialize worker: {e}")
         log.error(f"Worker ID: {args.worker_id}, Task ID: {args.task_id}")
         log.error(f"Mode: {args.mode}, Phase: {args.phase}")
         import traceback
+
         log.error(traceback.format_exc())
         sys.exit(2)
 
@@ -964,6 +1125,7 @@ def main():
     else:
         logger.info("Interactive mode not implemented - use --one-shot or --local")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

@@ -9,14 +9,13 @@ Provides 35-70% performance improvement for database operations.
 import sqlite3
 import threading
 import time
-from hive_logging import get_logger
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional, Dict, Any
-from queue import Queue, Empty, Full
+from queue import Empty, Full, Queue
+from typing import Any, Dict, Optional
 
 from hive_config.paths import DB_PATH, ensure_directory
-from hive_config import get_config
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -33,25 +32,37 @@ class ConnectionPool:
     - Graceful degradation under load
     """
 
-    def __init__(self,
-                 min_connections: int = None,
-                 max_connections: int = None,
-                 connection_timeout: float = None):
+    def __init__(
+        self,
+        min_connections: int = None,
+        max_connections: int = None,
+        connection_timeout: float = None,
+        db_config: Optional[Dict[str, Any]] = None,
+    ):
         """
         Initialize connection pool.
 
         Args:
-            min_connections: Minimum connections to maintain (defaults to config)
-            max_connections: Maximum connections allowed (defaults to config)
-            connection_timeout: Timeout for acquiring connections (defaults to config)
+            min_connections: Minimum connections to maintain
+            max_connections: Maximum connections allowed
+            connection_timeout: Timeout for acquiring connections
+            db_config: Database configuration dictionary
         """
-        # Get centralized configuration
-        config = get_config()
-        db_config = config.get_database_config()
+        # Use provided db_config or defaults
+        if db_config is None:
+            db_config = {"max_connections": 10, "connection_timeout": 30.0}
 
         self.min_connections = min_connections if min_connections is not None else 2
-        self.max_connections = max_connections if max_connections is not None else db_config["max_connections"]
-        self.connection_timeout = connection_timeout if connection_timeout is not None else db_config["connection_timeout"]
+        self.max_connections = (
+            max_connections
+            if max_connections is not None
+            else db_config.get("max_connections", 10)
+        )
+        self.connection_timeout = (
+            connection_timeout
+            if connection_timeout is not None
+            else db_config.get("connection_timeout", 30.0)
+        )
 
         self._pool = Queue(maxsize=self.max_connections)
         self._connections_created = 0
@@ -76,16 +87,16 @@ class ConnectionPool:
                 str(DB_PATH),
                 check_same_thread=False,
                 timeout=30.0,  # 30 second timeout for locks
-                isolation_level='DEFERRED'  # Better concurrency
+                isolation_level="DEFERRED",  # Better concurrency
             )
 
             # Optimize connection settings
             conn.row_factory = sqlite3.Row
-            conn.execute('PRAGMA journal_mode=WAL')  # Write-Ahead Logging
-            conn.execute('PRAGMA synchronous=NORMAL')  # Faster writes
-            conn.execute('PRAGMA cache_size=10000')  # 10MB cache
-            conn.execute('PRAGMA foreign_keys=ON')
-            conn.execute('PRAGMA temp_store=MEMORY')  # Use memory for temp tables
+            conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
+            conn.execute("PRAGMA synchronous=NORMAL")  # Faster writes
+            conn.execute("PRAGMA cache_size=10000")  # 10MB cache
+            conn.execute("PRAGMA foreign_keys=ON")
+            conn.execute("PRAGMA temp_store=MEMORY")  # Use memory for temp tables
 
             with self._lock:
                 self._connections_created += 1
@@ -100,7 +111,7 @@ class ConnectionPool:
     def _validate_connection(self, conn: sqlite3.Connection) -> bool:
         """Check if a connection is still valid."""
         try:
-            conn.execute('SELECT 1')
+            conn.execute("SELECT 1")
             return True
         except (sqlite3.Error, sqlite3.ProgrammingError, AttributeError) as e:
             logger.debug(f"Connection validation failed: {e}")
@@ -152,7 +163,9 @@ class ConnectionPool:
                     try:
                         conn.close()
                     except (sqlite3.Error, AttributeError) as close_error:
-                        logger.debug(f"Failed to close corrupted connection: {close_error}")
+                        logger.debug(
+                            f"Failed to close corrupted connection: {close_error}"
+                        )
                     with self._lock:
                         self._connections_created -= 1
 
@@ -175,10 +188,10 @@ class ConnectionPool:
     def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics."""
         return {
-            'pool_size': self._pool.qsize(),
-            'connections_created': self._connections_created,
-            'max_connections': self.max_connections,
-            'min_connections': self.min_connections
+            "pool_size": self._pool.qsize(),
+            "connections_created": self._connections_created,
+            "max_connections": self.max_connections,
+            "min_connections": self.min_connections,
         }
 
 

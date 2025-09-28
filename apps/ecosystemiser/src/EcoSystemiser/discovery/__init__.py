@@ -5,13 +5,13 @@ and uncertainty analysis, transforming EcoSystemiser into a complete
 discovery engine for energy system optimization.
 """
 
-from ecosystemiser.algorithms.genetic_algorithm import GeneticAlgorithm, NSGAIIOptimizer
-from ecosystemiser.algorithms.monte_carlo import MonteCarloEngine
-from ecosystemiser.encoders.parameter_encoder import ParameterEncoder
+from ecosystemiser.discovery.algorithms.genetic_algorithm import GeneticAlgorithm, NSGAIIOptimizer
+from ecosystemiser.discovery.algorithms.monte_carlo import MonteCarloEngine
+from ecosystemiser.discovery.encoders.parameter_encoder import ParameterEncoder
 
 __all__ = [
-    'GeneticAlgorithm',
-    'NSGAIIOptimizer',
-    'MonteCarloEngine',
-    'ParameterEncoder'
+    "GeneticAlgorithm",
+    "NSGAIIOptimizer",
+    "MonteCarloEngine",
+    "ParameterEncoder",
 ]

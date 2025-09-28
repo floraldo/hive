@@ -6,8 +6,8 @@ for any event-driven system.
 """
 
 import threading
-from typing import Dict, List, Callable, Optional
 from abc import ABC, abstractmethod
+from typing import Callable, Dict, List, Optional
 
 from .base_events import BaseEvent
 from .subscribers import BaseSubscriber
@@ -48,7 +48,7 @@ class BaseBus(ABC):
         self,
         event_pattern: str,
         callback: Callable[[BaseEvent], None],
-        subscriber_name: str = "anonymous"
+        subscriber_name: str = "anonymous",
     ) -> str:
         """
         Subscribe to events matching a pattern.
@@ -62,9 +62,7 @@ class BaseBus(ABC):
             Subscription ID
         """
         subscriber = BaseSubscriber(
-            pattern=event_pattern,
-            callback=callback,
-            subscriber_name=subscriber_name
+            pattern=event_pattern, callback=callback, subscriber_name=subscriber_name
         )
 
         with self._subscriber_lock:

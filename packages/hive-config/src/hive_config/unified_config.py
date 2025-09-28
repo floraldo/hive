@@ -5,17 +5,19 @@ Provides centralized configuration management for all Hive components
 
 import json
 import os
-from pathlib import Path
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
-from pydantic import BaseModel, Field, ValidationError
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from hive_logging import get_logger
+from pydantic import BaseModel, Field, ValidationError
 
 logger = get_logger(__name__)
 
 
 class DatabaseConfig(BaseModel):
     """Database configuration settings"""
+
     path: Path = Field(default=Path("hive/db/hive-internal.db"))
     connection_pool_min: int = Field(default=2, ge=1)
     connection_pool_max: int = Field(default=10, ge=1)
@@ -28,6 +30,7 @@ class DatabaseConfig(BaseModel):
 
 class ClaudeConfig(BaseModel):
     """Claude API configuration settings"""
+
     mock_mode: bool = Field(default=False)
     timeout: int = Field(default=120, ge=1)
     max_retries: int = Field(default=3, ge=0)
@@ -37,23 +40,27 @@ class ClaudeConfig(BaseModel):
 
 class OrchestrationConfig(BaseModel):
     """Orchestration configuration settings"""
+
     poll_interval: int = Field(default=5, ge=1)
     worker_timeout: int = Field(default=600, ge=1)
     max_parallel_workers: int = Field(default=4, ge=1)
-    phase_timeouts: Dict[str, int] = Field(default_factory=lambda: {
-        "analysis": 300,
-        "design": 600,
-        "implementation": 900,
-        "testing": 600,
-        "validation": 300,
-        "review": 180
-    })
+    phase_timeouts: Dict[str, int] = Field(
+        default_factory=lambda: {
+            "analysis": 300,
+            "design": 600,
+            "implementation": 900,
+            "testing": 600,
+            "validation": 300,
+            "review": 180,
+        }
+    )
     zombie_task_threshold: int = Field(default=3600)
     heartbeat_interval: int = Field(default=30)
 
 
 class WorkerConfig(BaseModel):
     """Worker configuration settings"""
+
     backend_enabled: bool = Field(default=True)
     frontend_enabled: bool = Field(default=True)
     infra_enabled: bool = Field(default=True)
@@ -65,6 +72,7 @@ class WorkerConfig(BaseModel):
 
 class AIConfig(BaseModel):
     """AI component configuration settings"""
+
     planner_enabled: bool = Field(default=True)
     reviewer_enabled: bool = Field(default=True)
     planner_poll_interval: int = Field(default=10)
@@ -76,6 +84,7 @@ class AIConfig(BaseModel):
 
 class LoggingConfig(BaseModel):
     """Logging configuration settings"""
+
     level: str = Field(default="INFO")
     format: str = Field(default="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     file_enabled: bool = Field(default=True)
@@ -92,6 +101,7 @@ class HiveConfig(BaseModel):
     This is the master configuration object that contains all settings
     for the entire Hive system.
     """
+
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     claude: ClaudeConfig = Field(default_factory=ClaudeConfig)
     orchestration: OrchestrationConfig = Field(default_factory=OrchestrationConfig)
@@ -123,7 +133,7 @@ class HiveConfig(BaseModel):
             return cls()
 
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 config_data = json.load(f)
 
             config = cls(**config_data)
@@ -166,7 +176,7 @@ class HiveConfig(BaseModel):
 
         def set_nested(data: dict, path: str, value: Any):
             """Set a value in nested dictionary using dot notation"""
-            keys = path.split('.')
+            keys = path.split(".")
             current = data
             for key in keys[:-1]:
                 if key not in current:
@@ -174,8 +184,8 @@ class HiveConfig(BaseModel):
                 current = current[key]
 
             # Convert string values to appropriate types
-            if value.lower() in ('true', 'false'):
-                value = value.lower() == 'true'
+            if value.lower() in ("true", "false"):
+                value = value.lower() == "true"
             elif value.isdigit():
                 value = int(value)
 
@@ -201,7 +211,7 @@ class HiveConfig(BaseModel):
         """
         config_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             json.dump(self.dict(), f, indent=2, default=str)
 
         logger.info(f"Configuration saved to {config_path}")
@@ -222,7 +232,7 @@ class HiveConfig(BaseModel):
                 "database": self.database.dict(),
                 "poll_interval": self.ai.planner_poll_interval,
                 "enabled": self.ai.planner_enabled,
-                "logging": self.logging.dict()
+                "logging": self.logging.dict(),
             },
             "ai-reviewer": {
                 "claude": self.claude.dict(),
@@ -232,16 +242,16 @@ class HiveConfig(BaseModel):
                 "thresholds": {
                     "approval": self.ai.auto_approval_threshold,
                     "rejection": self.ai.auto_rejection_threshold,
-                    "escalation": self.ai.escalation_threshold
+                    "escalation": self.ai.escalation_threshold,
                 },
-                "logging": self.logging.dict()
+                "logging": self.logging.dict(),
             },
             "hive-orchestrator": {
                 "database": self.database.dict(),
                 "orchestration": self.orchestration.dict(),
                 "worker": self.worker.dict(),
-                "logging": self.logging.dict()
-            }
+                "logging": self.logging.dict(),
+            },
         }
 
         return component_mappings.get(component, {})
@@ -257,7 +267,9 @@ class HiveConfig(BaseModel):
 
         # Check pool size consistency
         if self.database.connection_pool_min > self.database.connection_pool_max:
-            errors.append("Database min connections cannot be greater than max connections")
+            errors.append(
+                "Database min connections cannot be greater than max connections"
+            )
 
         # Check threshold consistency
         if self.ai.auto_approval_threshold <= self.ai.auto_rejection_threshold:
@@ -265,7 +277,9 @@ class HiveConfig(BaseModel):
 
         # Check file paths
         if self.database.path and not self.database.path.parent.exists():
-            errors.append(f"Database directory does not exist: {self.database.path.parent}")
+            errors.append(
+                f"Database directory does not exist: {self.database.path.parent}"
+            )
 
         # Check worker configuration
         if self.orchestration.max_parallel_workers < 1:
@@ -276,8 +290,7 @@ class HiveConfig(BaseModel):
 
 # Configuration loading utilities for dependency injection
 def create_config_from_sources(
-    config_path: Optional[Path] = None,
-    use_environment: bool = True
+    config_path: Optional[Path] = None, use_environment: bool = True
 ) -> HiveConfig:
     """
     Create a Hive configuration instance from various sources
@@ -300,7 +313,7 @@ def create_config_from_sources(
         default_paths = [
             Path("hive_config.json"),
             Path("config/hive_config.json"),
-            Path.home() / ".hive" / "config.json"
+            Path.home() / ".hive" / "config.json",
         ]
 
         config = None

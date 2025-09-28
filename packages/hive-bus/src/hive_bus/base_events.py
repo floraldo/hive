@@ -5,10 +5,10 @@ These are pure, business-logic-free event patterns that can be used
 to build any event-driven system.
 """
 
-from datetime import datetime, timezone
-from typing import Dict, Any, Optional
-from dataclasses import dataclass, field
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -24,6 +24,7 @@ class BaseEvent:
     - Payload data
     - Metadata
     """
+
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: str = ""
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -41,11 +42,11 @@ class BaseEvent:
             "source": self.source,
             "payload": self.payload,
             "metadata": self.metadata,
-            "correlation_id": self.correlation_id
+            "correlation_id": self.correlation_id,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'BaseEvent':
+    def from_dict(cls, data: Dict[str, Any]) -> "BaseEvent":
         """Create event from dictionary"""
         timestamp = datetime.fromisoformat(data["timestamp"])
 
@@ -56,5 +57,5 @@ class BaseEvent:
             source=data["source"],
             payload=data.get("payload", {}),
             metadata=data.get("metadata", {}),
-            correlation_id=data.get("correlation_id")
+            correlation_id=data.get("correlation_id"),
         )

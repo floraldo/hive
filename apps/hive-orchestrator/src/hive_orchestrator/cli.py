@@ -7,14 +7,14 @@ Command-line interface for Hive Orchestrator.
 Provides commands to manage the Queen coordinator and Worker agents.
 """
 
-import click
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import click
 from hive_logging import get_logger
-from datetime import datetime
 
 logger = get_logger(__name__)
 
@@ -29,9 +29,10 @@ def cli():
 
 
 @cli.command()
-@click.option('--config', '-c', type=click.Path(exists=True),
-              help='Path to configuration file')
-@click.option('--debug', is_flag=True, help='Enable debug logging')
+@click.option(
+    "--config", "-c", type=click.Path(exists=True), help="Path to configuration file"
+)
+@click.option("--debug", is_flag=True, help="Enable debug logging")
 def start_queen(config: Optional[str], debug: bool):
     """Start the Queen orchestrator."""
     try:
@@ -43,15 +44,16 @@ def start_queen(config: Optional[str], debug: bool):
                 raise click.ClickException(f"Config file not found: {config}")
             if not config_path.is_file():
                 raise click.ClickException(f"Config path is not a file: {config}")
-            args.extend(['--config', config])
+            args.extend(["--config", config])
         if debug:
-            args.append('--debug')
+            args.append("--debug")
 
         # Call the queen main with simulated argv
         import sys
+
         original_argv = sys.argv
         try:
-            sys.argv = ['hive-queen'] + args
+            sys.argv = ["hive-queen"] + args
             queen_main()
         finally:
             sys.argv = original_argv
@@ -65,29 +67,35 @@ def start_queen(config: Optional[str], debug: bool):
 
 
 @cli.command()
-@click.option('--mode', '-m', type=click.Choice(['backend', 'frontend', 'infra', 'general']),
-              default='general', help='Worker mode')
-@click.option('--name', '-n', help='Worker name')
-@click.option('--debug', is_flag=True, help='Enable debug logging')
+@click.option(
+    "--mode",
+    "-m",
+    type=click.Choice(["backend", "frontend", "infra", "general"]),
+    default="general",
+    help="Worker mode",
+)
+@click.option("--name", "-n", help="Worker name")
+@click.option("--debug", is_flag=True, help="Enable debug logging")
 def start_worker(mode: str, name: Optional[str], debug: bool):
     """Start a Worker agent."""
     try:
-        args = ['--mode', mode]
+        args = ["--mode", mode]
         if name:
             # Validate worker name format
             if not name.strip():
                 raise click.ClickException("Worker name cannot be empty")
             if len(name) > 50:
                 raise click.ClickException("Worker name too long (max 50 characters)")
-            args.extend(['--name', name])
+            args.extend(["--name", name])
         if debug:
-            args.append('--debug')
+            args.append("--debug")
 
         # Call the worker main with simulated argv
         import sys
+
         original_argv = sys.argv
         try:
-            sys.argv = ['hive-worker'] + args
+            sys.argv = ["hive-worker"] + args
             worker_main()
         finally:
             sys.argv = original_argv
@@ -115,7 +123,9 @@ def status():
         result = cursor.fetchone()
         queued = result[0] if result else 0
 
-        cursor.execute("SELECT COUNT(*) FROM tasks WHERE status IN ('assigned', 'in_progress')")
+        cursor.execute(
+            "SELECT COUNT(*) FROM tasks WHERE status IN ('assigned', 'in_progress')"
+        )
         result = cursor.fetchone()
         running = result[0] if result else 0
 
@@ -159,28 +169,31 @@ def status():
 
 
 @cli.command()
-@click.argument('task_id')
+@click.argument("task_id")
 def review_escalated(task_id: str):
     """Review an escalated task requiring human decision."""
     try:
         from hive_db import get_connection
         from hive_orchestrator.core.db import TaskStatus
+        from rich import box
         from rich.console import Console
         from rich.panel import Panel
-        from rich.table import Table
         from rich.prompt import Prompt
-        from rich import box
+        from rich.table import Table
 
         console = Console()
         conn = get_connection()
         cursor = conn.cursor()
 
         # Fetch the escalated task
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, title, description, status, priority, result_data
             FROM tasks
             WHERE id = ? AND status = ?
-        """, (task_id, TaskStatus.ESCALATED.value))
+        """,
+            (task_id, TaskStatus.ESCALATED.value),
+        )
 
         task = cursor.fetchone()
 
@@ -189,22 +202,24 @@ def review_escalated(task_id: str):
             raise click.Exit(1)
 
         # Parse result data for AI review information
-        result_data = json.loads(task['result_data']) if task['result_data'] else {}
-        review = result_data.get('review', {})
+        result_data = json.loads(task["result_data"]) if task["result_data"] else {}
+        review = result_data.get("review", {})
 
         # Display task header
-        logger.info(Panel.fit(
-            f"[bold red]ESCALATED TASK REVIEW[/bold red]\n"
-            f"[yellow]Task ID:[/yellow] {task['id']}\n"
-            f"[yellow]Title:[/yellow] {task['title']}\n"
-            f"[yellow]Priority:[/yellow] {task['priority']}",
-            title="Human Review Required",
-            box=box.DOUBLE
-        ))
+        logger.info(
+            Panel.fit(
+                f"[bold red]ESCALATED TASK REVIEW[/bold red]\n"
+                f"[yellow]Task ID:[/yellow] {task['id']}\n"
+                f"[yellow]Title:[/yellow] {task['title']}\n"
+                f"[yellow]Priority:[/yellow] {task['priority']}",
+                title="Human Review Required",
+                box=box.DOUBLE,
+            )
+        )
 
         # Display task description
         console.logger.info("\n[bold]Task Description:[/bold]")
-        console.logger.info(task['description'])
+        console.logger.info(task["description"])
 
         # Display AI analysis if available
         if review:
@@ -215,43 +230,62 @@ def review_escalated(task_id: str):
             metrics_table.add_column("Metric", style="cyan")
             metrics_table.add_column("Score", style="white")
 
-            metrics = review.get('metrics', {})
-            metrics_table.add_row("Code Quality", f"{metrics.get('code_quality', 0):.0f}")
-            metrics_table.add_row("Test Coverage", f"{metrics.get('test_coverage', 0):.0f}")
-            metrics_table.add_row("Documentation", f"{metrics.get('documentation', 0):.0f}")
+            metrics = review.get("metrics", {})
+            metrics_table.add_row(
+                "Code Quality", f"{metrics.get('code_quality', 0):.0f}"
+            )
+            metrics_table.add_row(
+                "Test Coverage", f"{metrics.get('test_coverage', 0):.0f}"
+            )
+            metrics_table.add_row(
+                "Documentation", f"{metrics.get('documentation', 0):.0f}"
+            )
             metrics_table.add_row("Security", f"{metrics.get('security', 0):.0f}")
-            metrics_table.add_row("Architecture", f"{metrics.get('architecture', 0):.0f}")
-            metrics_table.add_row("[bold]Overall[/bold]", f"[bold]{review.get('overall_score', 0):.0f}[/bold]")
+            metrics_table.add_row(
+                "Architecture", f"{metrics.get('architecture', 0):.0f}"
+            )
+            metrics_table.add_row(
+                "[bold]Overall[/bold]",
+                f"[bold]{review.get('overall_score', 0):.0f}[/bold]",
+            )
 
             console.logger.info(metrics_table)
 
             # AI reasoning
-            console.logger.info("\n[bold]AI Decision:[/bold]", review.get('decision', 'unknown'))
-            console.logger.info("[bold]Confidence:[/bold]", f"{review.get('confidence', 0):.0%}")
-            console.logger.info("\n[bold]Summary:[/bold]", review.get('summary', 'No summary available'))
+            console.logger.info(
+                "\n[bold]AI Decision:[/bold]", review.get("decision", "unknown")
+            )
+            console.logger.info(
+                "[bold]Confidence:[/bold]", f"{review.get('confidence', 0):.0%}"
+            )
+            console.logger.info(
+                "\n[bold]Summary:[/bold]", review.get("summary", "No summary available")
+            )
 
             # Issues found
-            if review.get('issues'):
+            if review.get("issues"):
                 console.logger.info("\n[bold red]Issues Found:[/bold red]")
-                for issue in review['issues']:
+                for issue in review["issues"]:
                     console.logger.info(f"  • {issue}")
 
             # Suggestions
-            if review.get('suggestions'):
+            if review.get("suggestions"):
                 console.logger.info("\n[bold yellow]AI Suggestions:[/bold yellow]")
-                for suggestion in review['suggestions']:
+                for suggestion in review["suggestions"]:
                     console.logger.info(f"  • {suggestion}")
 
             # Escalation reason
-            if 'escalation_reason' in result_data:
+            if "escalation_reason" in result_data:
                 console.logger.info("\n[bold magenta]Escalation Reason:[/bold magenta]")
-                console.logger.info(result_data['escalation_reason'])
+                console.logger.info(result_data["escalation_reason"])
 
         # Human decision prompt
-        console.logger.info("\n" + "="*60 + "\n")
+        console.logger.info("\n" + "=" * 60 + "\n")
         console.logger.info("[bold cyan]HUMAN REVIEW DECISION REQUIRED[/bold cyan]")
         console.logger.info("\nAvailable actions:")
-        console.logger.info("  [green]approve[/green]  - Override AI concerns and approve")
+        console.logger.info(
+            "  [green]approve[/green]  - Override AI concerns and approve"
+        )
         console.logger.info("  [red]reject[/red]   - Confirm rejection")
         console.logger.info("  [yellow]rework[/yellow]   - Send back for improvements")
         console.logger.info("  [cyan]defer[/cyan]    - Need more information")
@@ -261,7 +295,7 @@ def review_escalated(task_id: str):
         decision = Prompt.ask(
             "\nYour decision",
             choices=["approve", "reject", "rework", "defer", "cancel"],
-            default="defer"
+            default="defer",
         )
 
         if decision == "cancel":
@@ -276,7 +310,7 @@ def review_escalated(task_id: str):
             "approve": TaskStatus.APPROVED.value,
             "reject": TaskStatus.REJECTED.value,
             "rework": TaskStatus.REWORK_NEEDED.value,
-            "defer": TaskStatus.ESCALATED.value
+            "defer": TaskStatus.ESCALATED.value,
         }[decision]
 
         # Store human review
@@ -284,22 +318,27 @@ def review_escalated(task_id: str):
             "decision": decision,
             "notes": notes,
             "timestamp": datetime.now().isoformat(),
-            "reviewer": "human"
+            "reviewer": "human",
         }
 
         if not result_data:
             result_data = {}
-        result_data['human_review'] = human_review
+        result_data["human_review"] = human_review
 
-        cursor.execute("""
+        cursor.execute(
+            """
             UPDATE tasks
             SET status = ?, result_data = ?, updated_at = ?
             WHERE id = ?
-        """, (new_status, json.dumps(result_data), datetime.now().isoformat(), task_id))
+        """,
+            (new_status, json.dumps(result_data), datetime.now().isoformat(), task_id),
+        )
 
         conn.commit()
 
-        console.logger.info(f"\n[green]✓[/green] Task {task_id} updated to status: [bold]{new_status}[/bold]")
+        console.logger.info(
+            f"\n[green]✓[/green] Task {task_id} updated to status: [bold]{new_status}[/bold]"
+        )
 
         if notes:
             console.logger.info(f"[dim]Notes recorded: {notes}[/dim]")
@@ -317,24 +356,28 @@ def review_escalated(task_id: str):
 def list_escalated():
     """List all tasks requiring human review."""
     try:
+        import json
+
         from hive_db import get_connection
         from hive_orchestrator.core.db import TaskStatus
+        from rich import box
         from rich.console import Console
         from rich.table import Table
-        from rich import box
-        import json
 
         console = Console()
         conn = get_connection()
         cursor = conn.cursor()
 
         # Fetch all escalated tasks
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, title, description, priority, created_at, result_data
             FROM tasks
             WHERE status = ?
             ORDER BY priority DESC, created_at ASC
-        """, (TaskStatus.ESCALATED.value,))
+        """,
+            (TaskStatus.ESCALATED.value,),
+        )
 
         tasks = cursor.fetchall()
 
@@ -345,7 +388,7 @@ def list_escalated():
         # Create table
         table = Table(
             title=f"[bold red]🚨 {len(tasks)} Tasks Requiring Human Review[/bold red]",
-            box=box.ROUNDED
+            box=box.ROUNDED,
         )
 
         table.add_column("ID", style="cyan", width=12)
@@ -357,27 +400,33 @@ def list_escalated():
 
         for task in tasks:
             # Calculate age
-            created = datetime.fromisoformat(task['created_at'])
+            created = datetime.fromisoformat(task["created_at"])
             age = datetime.now() - created
-            age_str = f"{age.days}d {age.seconds//3600}h" if age.days > 0 else f"{age.seconds//3600}h {(age.seconds%3600)//60}m"
+            age_str = (
+                f"{age.days}d {age.seconds//3600}h"
+                if age.days > 0
+                else f"{age.seconds//3600}h {(age.seconds%3600)//60}m"
+            )
 
             # Get AI score and reason
-            result_data = json.loads(task['result_data']) if task['result_data'] else {}
-            review = result_data.get('review', {})
-            score = review.get('overall_score', 0)
+            result_data = json.loads(task["result_data"]) if task["result_data"] else {}
+            review = result_data.get("review", {})
+            score = review.get("overall_score", 0)
 
             # Determine escalation reason
             if review:
                 if score < 40:
                     reason = "Very low quality score"
-                elif len(review.get('issues', [])) > 5:
+                elif len(review.get("issues", [])) > 5:
                     reason = f"{len(review['issues'])} issues found"
-                elif review.get('confidence', 1) < 0.5:
+                elif review.get("confidence", 1) < 0.5:
                     reason = "Low AI confidence"
                 else:
-                    reason = result_data.get('escalation_reason', 'Complex decision required')
+                    reason = result_data.get(
+                        "escalation_reason", "Complex decision required"
+                    )
             else:
-                reason = result_data.get('reason', 'No AI analysis available')
+                reason = result_data.get("reason", "No AI analysis available")
 
             # Color code by age
             if age.days > 2:
@@ -388,16 +437,18 @@ def list_escalated():
                 age_color = "white"
 
             table.add_row(
-                task['id'][:12],
-                task['title'][:30],
-                str(task['priority']),
+                task["id"][:12],
+                task["title"][:30],
+                str(task["priority"]),
                 f"[{age_color}]{age_str}[/{age_color}]",
                 f"{score:.0f}" if score else "N/A",
-                reason[:30]
+                reason[:30],
             )
 
         console.logger.info(table)
-        console.logger.info(f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]")
+        console.logger.info(
+            f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]"
+        )
 
     except ImportError as e:
         click.echo(f"Required module not available: {e}", err=True)
@@ -409,9 +460,9 @@ def list_escalated():
 
 
 @cli.command()
-@click.argument('task_description')
-@click.option('--role', '-r', help='Target worker role')
-@click.option('--priority', '-p', type=int, default=1, help='Task priority')
+@click.argument("task_description")
+@click.option("--role", "-r", help="Target worker role")
+@click.option("--priority", "-p", type=int, default=1, help="Task priority")
 def queue_task(task_description: str, role: Optional[str], priority: int):
     """Queue a new task for processing."""
     try:
@@ -419,7 +470,9 @@ def queue_task(task_description: str, role: Optional[str], priority: int):
         if not task_description.strip():
             raise click.ClickException("Task description cannot be empty")
         if len(task_description) > 5000:
-            raise click.ClickException("Task description too long (max 5000 characters)")
+            raise click.ClickException(
+                "Task description too long (max 5000 characters)"
+            )
         if priority < 1 or priority > 10:
             raise click.ClickException("Priority must be between 1 and 10")
         if role and len(role) > 50:
@@ -430,9 +483,9 @@ def queue_task(task_description: str, role: Optional[str], priority: int):
 
         task_id = create_task(
             title=task_description[:50],  # Truncate title
-            task_type=role or 'general',
+            task_type=role or "general",
             description=task_description,
-            priority=priority
+            priority=priority,
         )
 
         click.echo(f"Task queued with ID: {task_id}")
@@ -449,5 +502,5 @@ def queue_task(task_description: str, role: Optional[str], priority: int):
         raise click.Exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

@@ -1,11 +1,11 @@
 """Base strategy class for all analysis implementations."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
-import pandas as pd
-import numpy as np
 from pathlib import Path
+from typing import Any, Dict, Optional
 
+import numpy as np
+import pandas as pd
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -30,7 +30,9 @@ class BaseAnalysis(ABC):
         self.metadata = None
 
     @abstractmethod
-    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    def run(
+        self, results_data: Dict[str, Any], metadata: Optional[Dict] = None
+    ) -> Dict[str, Any]:
         """Execute the analysis on the provided results data.
 
         This is the main method that each strategy must implement.
@@ -102,7 +104,9 @@ class BaseAnalysis(ABC):
 
         return processed
 
-    def execute(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    def execute(
+        self, results_data: Dict[str, Any], metadata: Optional[Dict] = None
+    ) -> Dict[str, Any]:
         """Execute the complete analysis pipeline.
 
         This method orchestrates validation, preprocessing, analysis,
@@ -135,8 +139,8 @@ class BaseAnalysis(ABC):
         final_results = self.postprocess_results(raw_results)
 
         # Add metadata
-        final_results['analysis_type'] = self.name
-        final_results['analysis_version'] = '1.0.0'
+        final_results["analysis_type"] = self.name
+        final_results["analysis_version"] = "1.0.0"
 
         logger.info(f"{self.name} analysis complete")
 

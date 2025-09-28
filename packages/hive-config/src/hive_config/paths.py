@@ -6,9 +6,9 @@ This module provides a singleton pattern to ensure all components
 use consistent, absolute paths derived from the project root.
 """
 
-from pathlib import Path
 import functools
 import os
+from pathlib import Path
 
 
 def _search_for_root(start_path: Path) -> Path:
@@ -29,7 +29,7 @@ def _search_for_root(start_path: Path) -> Path:
 
         if pyproject_path.exists():
             try:
-                content = pyproject_path.read_text(encoding='utf-8')
+                content = pyproject_path.read_text(encoding="utf-8")
                 # Look for the workspace root identifier
                 if 'name = "hive-workspace"' in content:
                     return current_path
@@ -57,7 +57,7 @@ def get_project_root() -> Path:
         RuntimeError: If the project root cannot be found
     """
     # First, check environment variable override
-    if env_root := os.environ.get('HIVE_PROJECT_ROOT'):
+    if env_root := os.environ.get("HIVE_PROJECT_ROOT"):
         env_path = Path(env_root)
         if env_path.exists() and (env_path / "pyproject.toml").exists():
             return env_path
@@ -81,16 +81,16 @@ def get_project_root() -> Path:
         Path.home() / "git" / "hive",
         Path.home() / "src" / "hive",
         Path.home() / "code" / "hive",
-        Path.home() / "dev" / "hive"
+        Path.home() / "dev" / "hive",
     ]
 
     for dev_path in common_dev_paths:
         if dev_path.exists() and (dev_path / "pyproject.toml").exists():
             try:
-                content = (dev_path / "pyproject.toml").read_text(encoding='utf-8')
+                content = (dev_path / "pyproject.toml").read_text(encoding="utf-8")
                 if 'name = "hive-workspace"' in content:
                     # Cache this for future use
-                    os.environ['HIVE_PROJECT_ROOT'] = str(dev_path)
+                    os.environ["HIVE_PROJECT_ROOT"] = str(dev_path)
                     return dev_path
             except Exception as e:
                 continue

@@ -7,9 +7,8 @@ the entire Hive ecosystem.
 
 from pathlib import Path
 from typing import Optional
+
 from hive_config.paths import get_project_root
-
-
 
 
 def find_hive_app_root(start_path: Optional[Path] = None) -> Optional[Path]:

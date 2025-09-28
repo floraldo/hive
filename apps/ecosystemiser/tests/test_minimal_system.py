@@ -1,35 +1,39 @@
 #!/usr/bin/env python3
 """Test script for minimal EcoSystemiser system."""
 
+import json
+import logging
 import sys
 from pathlib import Path
-import logging
+
 import yaml
-import json
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
 
 def test_minimal_system():
     """Test the minimal energy system configuration."""
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("EcoSystemiser - Minimal System Test")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     try:
         # Import required modules
-        from src.EcoSystemiser.services.simulation_service import SimulationService, SimulationConfig
         from src.EcoSystemiser.analyser.kpi_calculator import KPICalculator
+        from src.EcoSystemiser.services.simulation_service import (
+            SimulationConfig,
+            SimulationService,
+        )
 
         print("✅ Modules imported successfully")
 
         # Load simulation configuration
         config_path = Path("config/simulations/example_simulation.yml")
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             config_dict = yaml.safe_load(f)
 
         print(f"✅ Loaded simulation config: {config_path}")
@@ -57,7 +61,7 @@ def test_minimal_system():
             print(f"   Results saved to: {result.results_path}")
 
             # Load and display results summary
-            with open(result.results_path, 'r') as f:
+            with open(result.results_path, "r") as f:
                 results_data = json.load(f)
 
             print(f"\n   System Info:")
@@ -85,15 +89,17 @@ def test_minimal_system():
     except Exception as e:
         print(f"\n❌ Test failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def test_component_repository():
     """Test the component repository functionality."""
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Component Repository Test")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     try:
         from src.EcoSystemiser.component_data.repository import ComponentRepository
@@ -101,13 +107,15 @@ def test_component_repository():
         repo = ComponentRepository()
 
         # List available components
-        energy_components = repo.list_available_components('energy')
+        energy_components = repo.list_available_components("energy")
         print(f"Available energy components: {energy_components}")
 
         # Load a specific component
-        if 'sonnen_eco_10' in energy_components:
-            component_data = repo.get_component_data('sonnen_eco_10')
-            print(f"\nLoaded component: {component_data.get('manufacturer')} {component_data.get('model')}")
+        if "sonnen_eco_10" in energy_components:
+            component_data = repo.get_component_data("sonnen_eco_10")
+            print(
+                f"\nLoaded component: {component_data.get('manufacturer')} {component_data.get('model')}"
+            )
             print(f"  Class: {component_data.get('component_class')}")
             print(f"  Description: {component_data.get('description')}")
 
@@ -118,16 +126,17 @@ def test_component_repository():
         print(f"\n❌ Component repository test failed: {e}")
         return False
 
+
 def test_system_builder():
     """Test the system builder functionality."""
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("System Builder Test")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     try:
-        from src.EcoSystemiser.utils.system_builder import SystemBuilder
         from src.EcoSystemiser.component_data.repository import ComponentRepository
+        from src.EcoSystemiser.utils.system_builder import SystemBuilder
 
         repo = ComponentRepository()
         config_path = Path("config/systems/schoonschip_energy_simple.yml")
@@ -151,8 +160,10 @@ def test_system_builder():
     except Exception as e:
         print(f"\n❌ System builder test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 if __name__ == "__main__":
     # Run all tests
@@ -171,11 +182,11 @@ if __name__ == "__main__":
         all_passed = False
 
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     if all_passed:
         print("✅ ALL TESTS PASSED - EcoSystemiser is ready!")
     else:
         print("❌ Some tests failed - please review the errors above")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     sys.exit(0 if all_passed else 1)

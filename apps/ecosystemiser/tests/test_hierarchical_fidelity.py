@@ -1,19 +1,21 @@
 """Tests for hierarchical fidelity architecture and explicit fidelity control."""
 
-import pytest
 import numpy as np
-
-from src.EcoSystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    BaseTechnicalParams,
-    StorageTechnicalParams,
+import pytest
+from src.EcoSystemiser.system_model.components.energy.battery import (
+    BatteryTechnicalParams,  # Now imported from battery.py (co-location principle)
 )
 from src.EcoSystemiser.system_model.components.energy.battery import (
     Battery,
     BatteryParams,
-    BatteryTechnicalParams,  # Now imported from battery.py (co-location principle)
+)
+from src.EcoSystemiser.system_model.components.shared.archetypes import (
+    BaseTechnicalParams,
+    FidelityLevel,
+    StorageTechnicalParams,
 )
 from src.EcoSystemiser.system_model.system import System
+
 
 class TestFidelityLevels:
     """Test the FidelityLevel enum and comparison operations."""
@@ -38,14 +40,14 @@ class TestFidelityLevels:
         assert detailed >= simple
         assert simple != detailed
 
+
 class TestArchetypeParameters:
     """Test the hierarchical parameter archetypes."""
 
     def test_base_technical_params(self):
         """Test base technical parameters with fidelity level."""
         params = BaseTechnicalParams(
-            capacity_nominal=100.0,
-            fidelity_level=FidelityLevel.STANDARD
+            capacity_nominal=100.0, fidelity_level=FidelityLevel.STANDARD
         )
 
         assert params.capacity_nominal == 100.0
@@ -56,8 +58,7 @@ class TestArchetypeParameters:
         """Test battery parameter hierarchy with different fidelity levels."""
         # Simple fidelity
         simple_params = BatteryTechnicalParams(
-            capacity_nominal=10.0,
-            fidelity_level=FidelityLevel.SIMPLE
+            capacity_nominal=10.0, fidelity_level=FidelityLevel.SIMPLE
         )
         assert simple_params.fidelity_level == FidelityLevel.SIMPLE
 
@@ -66,7 +67,7 @@ class TestArchetypeParameters:
             capacity_nominal=10.0,
             fidelity_level=FidelityLevel.DETAILED,
             temperature_coefficient_charge=-0.003,
-            degradation_model={'calendar_fade_rate': 0.02}
+            degradation_model={"calendar_fade_rate": 0.02},
         )
         assert detailed_params.fidelity_level == FidelityLevel.DETAILED
         assert detailed_params.temperature_coefficient_charge == -0.003
@@ -77,9 +78,10 @@ class TestArchetypeParameters:
         params = BatteryTechnicalParams(
             capacity_nominal=10.0,
             fidelity_level=FidelityLevel.STANDARD,
-            efficiency_roundtrip=0.90
+            efficiency_roundtrip=0.90,
         )
         assert params.efficiency_roundtrip == 0.90
+
 
 class TestBatteryFidelityConstraints:
     """Test that Battery component applies constraints based on fidelity level."""
@@ -93,8 +95,7 @@ class TestBatteryFidelityConstraints:
         # Create battery with SIMPLE fidelity
         params = BatteryParams(
             technical=BatteryTechnicalParams(
-                capacity_nominal=10.0,
-                fidelity_level=FidelityLevel.SIMPLE
+                capacity_nominal=10.0, fidelity_level=FidelityLevel.SIMPLE
             )
         )
 
@@ -121,7 +122,7 @@ class TestBatteryFidelityConstraints:
                 fidelity_level=FidelityLevel.STANDARD,
                 soc_min=0.2,
                 soc_max=0.8,
-                self_discharge_rate=0.001
+                self_discharge_rate=0.001,
             )
         )
 
@@ -147,7 +148,7 @@ class TestBatteryFidelityConstraints:
                 capacity_nominal=10.0,
                 fidelity_level=FidelityLevel.DETAILED,
                 temperature_coefficient_charge=-0.003,
-                degradation_model={'calendar_fade_rate': 0.02}
+                degradation_model={"calendar_fade_rate": 0.02},
             )
         )
 
@@ -155,7 +156,7 @@ class TestBatteryFidelityConstraints:
 
         # Add temperature profile to system for testing
         self.system.profiles = {
-            'ambient_temperature': np.ones(self.system.N) * 20  # 20°C constant
+            "ambient_temperature": np.ones(self.system.N) * 20  # 20°C constant
         }
 
         battery.add_optimization_vars(self.system.N)
@@ -175,7 +176,7 @@ class TestBatteryFidelityConstraints:
             technical=BatteryTechnicalParams(
                 capacity_nominal=10.0,
                 fidelity_level=FidelityLevel.STANDARD,
-                temperature_coefficient_charge=-0.003  # Present but not used
+                temperature_coefficient_charge=-0.003,  # Present but not used
             )
         )
 
@@ -183,13 +184,13 @@ class TestBatteryFidelityConstraints:
             technical=BatteryTechnicalParams(
                 capacity_nominal=10.0,
                 fidelity_level=FidelityLevel.DETAILED,
-                temperature_coefficient_charge=-0.003  # Should be used
+                temperature_coefficient_charge=-0.003,  # Should be used
             )
         )
 
         # Add temperature profile
         self.system.profiles = {
-            'ambient_temperature': np.ones(self.system.N) * 30  # 30°C
+            "ambient_temperature": np.ones(self.system.N) * 30  # 30°C
         }
 
         # Create batteries
@@ -208,6 +209,7 @@ class TestBatteryFidelityConstraints:
         # The temperature coefficient is ignored in STANDARD mode
         assert len(detailed_constraints) >= len(standard_constraints)
 
+
 class TestFidelityPerformance:
     """Test performance characteristics at different fidelity levels."""
 
@@ -220,8 +222,7 @@ class TestFidelityPerformance:
         # Simple fidelity
         simple_params = BatteryParams(
             technical=BatteryTechnicalParams(
-                capacity_nominal=10.0,
-                fidelity_level=FidelityLevel.SIMPLE
+                capacity_nominal=10.0, fidelity_level=FidelityLevel.SIMPLE
             )
         )
 
@@ -231,14 +232,12 @@ class TestFidelityPerformance:
                 capacity_nominal=10.0,
                 fidelity_level=FidelityLevel.DETAILED,
                 temperature_coefficient_charge=-0.003,
-                degradation_model={'calendar_fade_rate': 0.02}
+                degradation_model={"calendar_fade_rate": 0.02},
             )
         )
 
         # Add profiles for detailed constraints
-        system.profiles = {
-            'ambient_temperature': np.random.normal(20, 5, system.N)
-        }
+        system.profiles = {"ambient_temperature": np.random.normal(20, 5, system.N)}
 
         # Time SIMPLE constraint generation
         simple_battery = Battery("simple", simple_params, system)
@@ -258,7 +257,9 @@ class TestFidelityPerformance:
 
         # Log results
         print(f"SIMPLE: {len(simple_constraints)} constraints in {simple_time:.4f}s")
-        print(f"DETAILED: {len(detailed_constraints)} constraints in {detailed_time:.4f}s")
+        print(
+            f"DETAILED: {len(detailed_constraints)} constraints in {detailed_time:.4f}s"
+        )
 
         # DETAILED should have more constraints
         assert len(detailed_constraints) >= len(simple_constraints)
@@ -266,24 +267,25 @@ class TestFidelityPerformance:
         # Note: Time difference might be small for constraint generation
         # The real performance impact is in the solver phase
 
+
 def test_no_backward_compatibility():
     """Test that old-style parameters are no longer supported.
 
     This test verifies that the legacy flat parameter structure
     is rejected, enforcing the new hierarchical architecture.
     """
-    from src.EcoSystemiser.system_model.components.energy.battery import Battery
     from pydantic import ValidationError
+    from src.EcoSystemiser.system_model.components.energy.battery import Battery
 
     system = System(system_id="test", n=24)
 
     # Old-style parameters (without technical archetype)
     old_params = {
-        'P_max': 5.0,
-        'E_max': 10.0,
-        'E_init': 5.0,
-        'eta_charge': 0.95,
-        'eta_discharge': 0.95
+        "P_max": 5.0,
+        "E_max": 10.0,
+        "E_init": 5.0,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
     }
 
     # This should now raise a validation error
@@ -294,14 +296,14 @@ def test_no_backward_compatibility():
     # The correct way is now through technical params
     correct_params = BatteryParams(
         technical=BatteryTechnicalParams(
-            capacity_nominal=10.0,
-            fidelity_level=FidelityLevel.STANDARD
+            capacity_nominal=10.0, fidelity_level=FidelityLevel.STANDARD
         )
     )
 
     battery = Battery("modern", correct_params, system)
     assert battery.E_max == 10.0
     assert battery.fidelity_level == FidelityLevel.STANDARD
+
 
 if __name__ == "__main__":
     # Run specific test for development

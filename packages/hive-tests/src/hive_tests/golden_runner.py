@@ -53,13 +53,17 @@ def run_global_tests(verbose: bool = False, test_name: Optional[str] = None):
     return result.returncode
 
 
-def run_app_tests(app_name: str, verbose: bool = False, test_name: Optional[str] = None):
+def run_app_tests(
+    app_name: str, verbose: bool = False, test_name: Optional[str] = None
+):
     """Run golden rule tests for a specific app."""
     project_root = Path(__file__).parent.parent.parent.parent.parent
     app_test_file = project_root / "apps" / app_name / "tests" / "test_golden_rules.py"
 
     if not app_test_file.exists():
-        logger.warning(f"Warning: App '{app_name}' doesn't have local golden rule tests")
+        logger.warning(
+            f"Warning: App '{app_name}' doesn't have local golden rule tests"
+        )
         logger.info(f"Expected at: {app_test_file}")
         logger.info("Running global tests instead...")
         return run_global_tests(verbose, test_name)
@@ -88,7 +92,9 @@ def list_apps():
         logger.error("Error: apps directory not found")
         return []
 
-    apps = [d.name for d in apps_dir.iterdir() if d.is_dir() and not d.name.startswith('.')]
+    apps = [
+        d.name for d in apps_dir.iterdir() if d.is_dir() and not d.name.startswith(".")
+    ]
     return apps
 
 
@@ -104,33 +110,23 @@ Examples:
     golden-test -v                       # Run with verbose output
     golden-test --list-apps              # List available apps
     golden-test --test test_app_contract # Run specific test
-        """
+        """,
     )
 
     parser.add_argument(
-        "--app",
-        help="Run tests for a specific app",
-        type=str,
-        metavar="APP_NAME"
+        "--app", help="Run tests for a specific app", type=str, metavar="APP_NAME"
     )
 
     parser.add_argument(
-        "-v", "--verbose",
-        help="Verbose test output",
-        action="store_true"
+        "-v", "--verbose", help="Verbose test output", action="store_true"
     )
 
     parser.add_argument(
-        "--test",
-        help="Run a specific test by name",
-        type=str,
-        metavar="TEST_NAME"
+        "--test", help="Run a specific test by name", type=str, metavar="TEST_NAME"
     )
 
     parser.add_argument(
-        "--list-apps",
-        help="List all available apps",
-        action="store_true"
+        "--list-apps", help="List all available apps", action="store_true"
     )
 
     args = parser.parse_args()

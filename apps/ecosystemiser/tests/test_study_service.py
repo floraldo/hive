@@ -1,19 +1,23 @@
 """Comprehensive tests for StudyService parametric sweep functionality."""
 
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import numpy as np
 import pytest
 import yaml
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-import numpy as np
-
+from ecosystemiser.services.simulation_service import SimulationResult
 from ecosystemiser.services.study_service import (
-    StudyService, StudyConfig, ParameterSweepSpec, SimulationConfig
+    ParameterSweepSpec,
+    SimulationConfig,
+    StudyConfig,
+    StudyService,
 )
 from ecosystemiser.services.study_service_enhanced import (
-    apply_parameter_to_config, generate_parameter_report,
-    ParametricSweepEnhancement
+    ParametricSweepEnhancement,
+    apply_parameter_to_config,
+    generate_parameter_report,
 )
-from ecosystemiser.services.simulation_service import SimulationResult
 
 
 class TestParametricSweep:
@@ -24,7 +28,7 @@ class TestParametricSweep:
         spec = ParameterSweepSpec(
             component_name="battery",
             parameter_path="technical.capacity_nominal",
-            values=[100, 200, 300, 400]
+            values=[100, 200, 300, 400],
         )
 
         assert spec.component_name == "battery"
@@ -42,20 +46,20 @@ class TestParametricSweep:
                     {
                         "name": "battery",
                         "type": "storage",
-                        "technical": {"capacity_nominal": 100}
+                        "technical": {"capacity_nominal": 100},
                     }
                 ]
             },
             profile_config={},
             solver_config={},
-            output_config={}
+            output_config={},
         )
 
         # Create parameter sweep
         sweep = ParameterSweepSpec(
             component_name="battery",
             parameter_path="technical.capacity_nominal",
-            values=[50, 100, 150, 200]
+            values=[50, 100, 150, 200],
         )
 
         # Create study config
@@ -63,7 +67,7 @@ class TestParametricSweep:
             study_id="test_parametric",
             study_type="parametric",
             base_config=base_config,
-            parameter_sweeps=[sweep]
+            parameter_sweeps=[sweep],
         )
 
         # Generate configurations
@@ -79,7 +83,10 @@ class TestParametricSweep:
             expected_value = sweep.values[i]
             param_settings = config.output_config.get("parameter_settings", {})
             assert f"{sweep.component_name}.{sweep.parameter_path}" in param_settings
-            assert param_settings[f"{sweep.component_name}.{sweep.parameter_path}"] == expected_value
+            assert (
+                param_settings[f"{sweep.component_name}.{sweep.parameter_path}"]
+                == expected_value
+            )
 
     def test_multi_parameter_sweep(self):
         """Test sweep with multiple parameters."""
@@ -88,7 +95,7 @@ class TestParametricSweep:
             system_config={},
             profile_config={},
             solver_config={},
-            output_config={}
+            output_config={},
         )
 
         # Create multiple parameter sweeps
@@ -96,20 +103,20 @@ class TestParametricSweep:
             ParameterSweepSpec(
                 component_name="battery",
                 parameter_path="technical.capacity_nominal",
-                values=[100, 200]
+                values=[100, 200],
             ),
             ParameterSweepSpec(
                 component_name="solar_pv",
                 parameter_path="technical.capacity_nominal",
-                values=[50, 100, 150]
-            )
+                values=[50, 100, 150],
+            ),
         ]
 
         study_config = StudyConfig(
             study_id="test_multi",
             study_type="parametric",
             base_config=base_config,
-            parameter_sweeps=sweeps
+            parameter_sweeps=sweeps,
         )
 
         service = StudyService()
@@ -127,8 +134,12 @@ class TestParametricSweep:
             combinations.append((battery_cap, solar_cap))
 
         expected_combinations = [
-            (100, 50), (100, 100), (100, 150),
-            (200, 50), (200, 100), (200, 150)
+            (100, 50),
+            (100, 100),
+            (100, 150),
+            (200, 50),
+            (200, 100),
+            (200, 150),
         ]
 
         for expected in expected_combinations:
@@ -141,20 +152,14 @@ class TestParametricSweep:
                 {
                     "name": "battery",
                     "type": "storage",
-                    "technical": {
-                        "capacity_nominal": 100,
-                        "efficiency": 0.95
-                    }
+                    "technical": {"capacity_nominal": 100, "efficiency": 0.95},
                 }
             ]
         }
 
         # Apply parameter
         modified = apply_parameter_to_config(
-            config,
-            "battery",
-            "technical.capacity_nominal",
-            200
+            config, "battery", "technical.capacity_nominal", 200
         )
 
         # Check original is unchanged
@@ -173,28 +178,26 @@ class TestParametricSweep:
                     "name": "heat_pump",
                     "type": "conversion",
                     "technical": {
-                        "performance": {
-                            "cop": {
-                                "nominal": 3.5,
-                                "minimum": 2.0
-                            }
-                        }
-                    }
+                        "performance": {"cop": {"nominal": 3.5, "minimum": 2.0}}
+                    },
                 }
             ]
         }
 
         modified = apply_parameter_to_config(
-            config,
-            "heat_pump",
-            "technical.performance.cop.nominal",
-            4.5
+            config, "heat_pump", "technical.performance.cop.nominal", 4.5
         )
 
-        assert modified["components"][0]["technical"]["performance"]["cop"]["nominal"] == 4.5
-        assert modified["components"][0]["technical"]["performance"]["cop"]["minimum"] == 2.0
+        assert (
+            modified["components"][0]["technical"]["performance"]["cop"]["nominal"]
+            == 4.5
+        )
+        assert (
+            modified["components"][0]["technical"]["performance"]["cop"]["minimum"]
+            == 2.0
+        )
 
-    @patch('EcoSystemiser.services.study_service.SimulationService')
+    @patch("EcoSystemiser.services.study_service.SimulationService")
     def test_parallel_execution(self, mock_sim_service_class):
         """Test parallel execution of simulations."""
         # Setup mock simulation service
@@ -206,7 +209,7 @@ class TestParametricSweep:
             simulation_id="test",
             status="optimal",
             solver_metrics={"objective_value": 100},
-            kpis={"total_cost": 1000}
+            kpis={"total_cost": 1000},
         )
         mock_sim_service.run_simulation.return_value = mock_result
 
@@ -215,13 +218,13 @@ class TestParametricSweep:
             system_config={},
             profile_config={},
             solver_config={},
-            output_config={}
+            output_config={},
         )
 
         sweep = ParameterSweepSpec(
             component_name="battery",
             parameter_path="technical.capacity_nominal",
-            values=[100, 200, 300]
+            values=[100, 200, 300],
         )
 
         study_config = StudyConfig(
@@ -230,13 +233,13 @@ class TestParametricSweep:
             base_config=base_config,
             parameter_sweeps=[sweep],
             parallel_execution=True,
-            max_workers=2
+            max_workers=2,
         )
 
         service = StudyService(mock_sim_service)
 
         # Mock the _run_single_simulation to avoid process pool issues in tests
-        with patch.object(service, '_run_single_simulation', return_value=mock_result):
+        with patch.object(service, "_run_single_simulation", return_value=mock_result):
             result = service.run_study(study_config)
 
         assert result.study_id == "test_parallel"
@@ -246,9 +249,7 @@ class TestParametricSweep:
     def test_battery_capacity_sweep_generation(self):
         """Test battery capacity sweep value generation."""
         values = ParametricSweepEnhancement.create_battery_capacity_sweep(
-            base_capacity=100,
-            num_points=5,
-            range_factor=2.0
+            base_capacity=100, num_points=5, range_factor=2.0
         )
 
         assert len(values) == 5
@@ -259,8 +260,7 @@ class TestParametricSweep:
     def test_solar_capacity_sweep_generation(self):
         """Test solar capacity sweep value generation."""
         values = ParametricSweepEnhancement.create_solar_capacity_sweep(
-            base_capacity=50,
-            num_points=6
+            base_capacity=50, num_points=6
         )
 
         assert len(values) == 6
@@ -274,40 +274,19 @@ class TestParametricSweep:
             "all_results": [
                 {
                     "status": "optimal",
-                    "output_config": {
-                        "parameter_settings": {
-                            "battery.capacity": 100
-                        }
-                    },
-                    "kpis": {
-                        "total_cost": 10000,
-                        "renewable_fraction": 0.6
-                    }
+                    "output_config": {"parameter_settings": {"battery.capacity": 100}},
+                    "kpis": {"total_cost": 10000, "renewable_fraction": 0.6},
                 },
                 {
                     "status": "optimal",
-                    "output_config": {
-                        "parameter_settings": {
-                            "battery.capacity": 200
-                        }
-                    },
-                    "kpis": {
-                        "total_cost": 15000,
-                        "renewable_fraction": 0.8
-                    }
+                    "output_config": {"parameter_settings": {"battery.capacity": 200}},
+                    "kpis": {"total_cost": 15000, "renewable_fraction": 0.8},
                 },
                 {
                     "status": "optimal",
-                    "output_config": {
-                        "parameter_settings": {
-                            "battery.capacity": 300
-                        }
-                    },
-                    "kpis": {
-                        "total_cost": 20000,
-                        "renewable_fraction": 0.9
-                    }
-                }
+                    "output_config": {"parameter_settings": {"battery.capacity": 300}},
+                    "kpis": {"total_cost": 20000, "renewable_fraction": 0.9},
+                },
             ]
         }
 
@@ -334,20 +313,20 @@ class TestParametricSweep:
                 simulation_id="sim_1",
                 status="optimal",
                 solver_metrics={"objective_value": 100, "solve_time": 1.0},
-                kpis={"total_cost": 10000, "renewable_fraction": 0.6}
+                kpis={"total_cost": 10000, "renewable_fraction": 0.6},
             ),
             SimulationResult(
                 simulation_id="sim_2",
                 status="optimal",
                 solver_metrics={"objective_value": 150, "solve_time": 1.5},
-                kpis={"total_cost": 15000, "renewable_fraction": 0.7}
+                kpis={"total_cost": 15000, "renewable_fraction": 0.7},
             ),
             SimulationResult(
                 simulation_id="sim_3",
                 status="optimal",
                 solver_metrics={"objective_value": 200, "solve_time": 2.0},
-                kpis={"total_cost": 20000, "renewable_fraction": 0.8}
-            )
+                kpis={"total_cost": 20000, "renewable_fraction": 0.8},
+            ),
         ]
 
         service = StudyService()
@@ -357,13 +336,13 @@ class TestParametricSweep:
             system_config={},
             profile_config={},
             solver_config={},
-            output_config={}
+            output_config={},
         )
         study_config = StudyConfig(
             study_id="test",
             study_type="parametric",
             base_config=base_config,
-            save_all_results=True
+            save_all_results=True,
         )
 
         study_result = service._process_results(results, study_config)

@@ -5,10 +5,11 @@ This module defines the core validation infrastructure for climate data quality 
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Set
-import xarray as xr
-import numpy as np
 from datetime import datetime
+from typing import Dict, List, Optional, Set, Tuple
+
+import numpy as np
+import xarray as xr
 
 
 @dataclass
@@ -35,14 +36,16 @@ class QCProfile(ABC):
     known_issues: List[str]
     recommended_variables: List[str]
     temporal_resolution_limits: Dict[str, str]  # variable -> minimum resolution
-    spatial_accuracy: Optional[str] = None      # Description of spatial accuracy
+    spatial_accuracy: Optional[str] = None  # Description of spatial accuracy
 
     @abstractmethod
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """Apply source-specific validation rules"""
         pass
 
-    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
+    def get_adjusted_bounds(
+        self, base_bounds: Dict[str, Tuple[float, float]]
+    ) -> Dict[str, Tuple[float, float]]:
         """Get source-specific adjusted bounds"""
         # Default: return base bounds unchanged
         return base_bounds

@@ -2,12 +2,12 @@
 Integration tests for the complete AI Reviewer system
 """
 
-import pytest
 import asyncio
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import MagicMock, Mock, patch
 
-from ai_reviewer import ReviewEngine, ReviewAgent
+import pytest
+from ai_reviewer import ReviewAgent, ReviewEngine
 from ai_reviewer.database_adapter import DatabaseAdapter
 from hive_db import Task, TaskStatus
 
@@ -56,12 +56,9 @@ def test_validate_input():
     assert validate_input({"key": "value"}) == True
     with pytest.raises(ValueError):
         validate_input(None)
-'''
+''',
             },
-            "test_results": {
-                "passed": True,
-                "coverage": 85
-            }
+            "test_results": {"passed": True, "coverage": 85},
         }
         mock_task.metadata = {}
 
@@ -77,10 +74,7 @@ def test_validate_input():
         # Create real components
         review_engine = ReviewEngine()
         agent = ReviewAgent(
-            db=mock_db,
-            review_engine=review_engine,
-            polling_interval=1,
-            test_mode=True
+            db=mock_db, review_engine=review_engine, polling_interval=1, test_mode=True
         )
 
         # Run one review cycle
@@ -114,7 +108,7 @@ def test_validate_input():
         mock_task.status = TaskStatus.REVIEW_PENDING
         mock_task.result_data = {
             "files": {
-                "bad_code.py": '''
+                "bad_code.py": """
 # TODO: Fix everything
 def process():
     eval(user_input)  # Security issue
@@ -123,7 +117,7 @@ def process():
         something()
     except:
         pass  # Bare except
-'''
+"""
             }
         }
         mock_task.metadata = {}
@@ -140,10 +134,7 @@ def process():
         # Create components
         review_engine = ReviewEngine()
         agent = ReviewAgent(
-            db=mock_db,
-            review_engine=review_engine,
-            polling_interval=1,
-            test_mode=True
+            db=mock_db, review_engine=review_engine, polling_interval=1, test_mode=True
         )
 
         # Process the task
@@ -167,9 +158,7 @@ def process():
         result = engine.review_task(
             task_id="standalone-001",
             task_description="Test standalone usage",
-            code_files={
-                "main.py": "def hello(): return 'world'"
-            }
+            code_files={"main.py": "def hello(): return 'world'"},
         )
 
         # Should produce valid result
@@ -178,7 +167,7 @@ def process():
             ReviewDecision.APPROVE,
             ReviewDecision.REJECT,
             ReviewDecision.REWORK,
-            ReviewDecision.ESCALATE
+            ReviewDecision.ESCALATE,
         ]
         assert 0 <= result.metrics.overall_score <= 100
         assert 0 <= result.confidence <= 1
@@ -204,7 +193,7 @@ def process():
             db=mock_db,
             review_engine=review_engine,
             polling_interval=0.1,  # Very short for testing
-            test_mode=True
+            test_mode=True,
         )
 
         # Start agent in background
@@ -267,7 +256,7 @@ class TestRealDatabaseIntegration:
                 task_description=task.description,
                 code_files=code_files,
                 test_results=test_results,
-                transcript=transcript
+                transcript=transcript,
             )
 
             # Store results (but don't commit in test)
@@ -290,10 +279,7 @@ class TestRealDatabaseIntegration:
         # Create agent with mock mode for testing
         review_engine = ReviewEngine(mock_mode=True)
         agent = ReviewAgent(
-            db=db,
-            review_engine=review_engine,
-            polling_interval=5,
-            test_mode=True
+            db=db, review_engine=review_engine, polling_interval=5, test_mode=True
         )
 
         # Run for one cycle

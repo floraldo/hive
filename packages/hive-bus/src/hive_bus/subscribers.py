@@ -6,8 +6,8 @@ in any event-driven system.
 """
 
 import uuid
-from typing import Callable, Any
 from dataclasses import dataclass
+from typing import Any, Callable
 
 from .base_events import BaseEvent
 
@@ -20,6 +20,7 @@ class BaseSubscriber:
     Contains only the minimal, universal properties needed
     for subscription management in any system.
     """
+
     subscription_id: str
     pattern: str
     callback: Callable[[BaseEvent], None]
@@ -29,7 +30,7 @@ class BaseSubscriber:
         self,
         pattern: str,
         callback: Callable[[BaseEvent], None],
-        subscriber_name: str = "anonymous"
+        subscriber_name: str = "anonymous",
     ):
         self.subscription_id = str(uuid.uuid4())
         self.pattern = pattern

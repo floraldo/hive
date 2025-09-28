@@ -1,13 +1,24 @@
 """Rainwater harvesting source component with MILP optimization support and hierarchical fidelity."""
+
+from typing import Any, Dict, List, Optional
+
 import cvxpy as cp
 import numpy as np
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from hive_logging import get_logger
+from ecosystemiser.system_model.components.shared.archetypes import (
+    FidelityLevel,
+    GenerationTechnicalParams,
+)
+from ecosystemiser.system_model.components.shared.base_classes import (
+    BaseGenerationOptimization,
+    BaseGenerationPhysics,
+)
+from ecosystemiser.system_model.components.shared.component import (
+    Component,
+    ComponentParams,
+)
 from ecosystemiser.system_model.components.shared.registry import register_component
-from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
-from ecosystemiser.system_model.components.shared.archetypes import GenerationTechnicalParams, FidelityLevel
-from ecosystemiser.system_model.components.shared.base_classes import BaseGenerationPhysics, BaseGenerationOptimization
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -15,46 +26,45 @@ logger = get_logger(__name__)
 # RAINWATER SOURCE-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
 # =============================================================================
 
+
 class RainwaterSourceTechnicalParams(GenerationTechnicalParams):
     """Rainwater source-specific technical parameters extending generation archetype.
 
     This model inherits from GenerationTechnicalParams and adds rainwater harvesting-specific
     parameters for different fidelity levels.
     """
+
     # Rainwater harvesting parameters
     catchment_area_m2: float = Field(100.0, description="Roof/catchment area [m²]")
     runoff_coefficient: float = Field(0.85, description="Runoff coefficient (0-1)")
-    collection_system_type: str = Field("gravity_fed", description="Type of collection system")
+    collection_system_type: str = Field(
+        "gravity_fed", description="Type of collection system"
+    )
 
     # STANDARD fidelity additions
     first_flush_diversion: Optional[float] = Field(
-        None,
-        description="First flush diversion volume [mm]"
+        None, description="First flush diversion volume [mm]"
     )
     filtration_stages: Optional[Dict[str, float]] = Field(
-        None,
-        description="Multi-stage filtration efficiencies"
+        None, description="Multi-stage filtration efficiencies"
     )
 
     # DETAILED fidelity parameters
     seasonal_collection_factors: Optional[List[float]] = Field(
-        None,
-        description="Monthly collection efficiency factors"
+        None, description="Monthly collection efficiency factors"
     )
     water_quality_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Water quality degradation model"
+        None, description="Water quality degradation model"
     )
 
     # RESEARCH fidelity parameters
     weather_dependency_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Advanced weather dependency modeling"
+        None, description="Advanced weather dependency modeling"
     )
     contamination_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Detailed contamination and treatment modeling"
+        None, description="Detailed contamination and treatment modeling"
     )
+
 
 class RainwaterSourceParams(ComponentParams):
     """Rainwater source parameters using the hierarchical technical parameter system.
@@ -62,18 +72,21 @@ class RainwaterSourceParams(ComponentParams):
     Rainfall data should be provided separately through the system's
     profile loading mechanism, not as a component parameter.
     """
+
     technical: RainwaterSourceTechnicalParams = Field(
         default_factory=lambda: RainwaterSourceTechnicalParams(
             capacity_nominal=5.0,  # Default 5 m³/h max collection
             efficiency_nominal=0.90,  # Default 90% collection efficiency
-            fidelity_level=FidelityLevel.STANDARD
+            fidelity_level=FidelityLevel.STANDARD,
         ),
-        description="Technical parameters following the hierarchical archetype system"
+        description="Technical parameters following the hierarchical archetype system",
     )
+
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
+
 
 class RainwaterSourcePhysicsSimple(BaseGenerationPhysics):
     """Implements the SIMPLE rule-based physics for rainwater collection.
@@ -109,6 +122,7 @@ class RainwaterSourcePhysicsSimple(BaseGenerationPhysics):
 
         return max(0.0, actual_collection)
 
+
 class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
     """Implements the STANDARD rule-based physics for rainwater collection.
 
@@ -127,15 +141,19 @@ class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
         collection_after_simple = super().rule_based_generate(t, profile_value)
 
         # 2. Add STANDARD-specific physics: first flush diversion
-        first_flush = getattr(self.params.technical, 'first_flush_diversion', None)
+        first_flush = getattr(self.params.technical, "first_flush_diversion", None)
         if first_flush and profile_value > 0:
             # Simplified first flush loss (assumes some rain is diverted)
             # In practice, this would track cumulative rainfall
-            first_flush_loss_factor = min(0.1, first_flush / profile_value) if profile_value > 0 else 0
-            collection_after_simple = collection_after_simple * (1 - first_flush_loss_factor)
+            first_flush_loss_factor = (
+                min(0.1, first_flush / profile_value) if profile_value > 0 else 0
+            )
+            collection_after_simple = collection_after_simple * (
+                1 - first_flush_loss_factor
+            )
 
         # 3. Add filtration stage losses
-        filtration_stages = getattr(self.params.technical, 'filtration_stages', None)
+        filtration_stages = getattr(self.params.technical, "filtration_stages", None)
         if filtration_stages:
             # Apply combined filtration efficiency
             total_filtration_eff = 1.0
@@ -145,9 +163,11 @@ class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
 
         return max(0.0, collection_after_simple)
 
+
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
+
 
 class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
     """Implements the SIMPLE MILP optimization constraints for rainwater source.
@@ -172,7 +192,7 @@ class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
         constraints = []
         comp = self.component
 
-        if comp.Q_out is not None and hasattr(comp, 'profile'):
+        if comp.Q_out is not None and hasattr(comp, "profile"):
             # Core rainwater source constraints
             N = comp.Q_out.shape[0]
 
@@ -190,7 +210,9 @@ class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
 
                 # Basic collection calculation
                 raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000
-                available_collection = min(raw_collection, comp.technical.capacity_nominal)
+                available_collection = min(
+                    raw_collection, comp.technical.capacity_nominal
+                )
 
                 # Collection constraint: output = available collection
                 constraints.append(comp.Q_out[t] <= available_collection)
@@ -199,6 +221,7 @@ class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
             constraints.append(comp.Q_out <= comp.technical.capacity_nominal)
 
         return constraints
+
 
 class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for rainwater source.
@@ -218,7 +241,7 @@ class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
         constraints = []
         comp = self.component
 
-        if comp.Q_out is not None and hasattr(comp, 'profile'):
+        if comp.Q_out is not None and hasattr(comp, "profile"):
             # Core rainwater source constraints
             N = comp.Q_out.shape[0]
 
@@ -236,16 +259,20 @@ class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
 
                 # Basic collection calculation
                 raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000
-                available_collection = min(raw_collection, comp.technical.capacity_nominal)
+                available_collection = min(
+                    raw_collection, comp.technical.capacity_nominal
+                )
 
                 # STANDARD ENHANCEMENTS: First flush diversion
-                first_flush = getattr(comp.technical, 'first_flush_diversion', None)
+                first_flush = getattr(comp.technical, "first_flush_diversion", None)
                 if first_flush and rainfall_t > 0:
-                    first_flush_loss = min(0.1, first_flush / rainfall_t) if rainfall_t > 0 else 0
+                    first_flush_loss = (
+                        min(0.1, first_flush / rainfall_t) if rainfall_t > 0 else 0
+                    )
                     available_collection = available_collection * (1 - first_flush_loss)
 
                 # STANDARD ENHANCEMENTS: Multi-stage filtration
-                filtration_stages = getattr(comp.technical, 'filtration_stages', None)
+                filtration_stages = getattr(comp.technical, "filtration_stages", None)
                 if filtration_stages:
                     total_filtration_eff = 1.0
                     for stage, eff in filtration_stages.items():
@@ -260,9 +287,11 @@ class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
 
         return constraints
 
+
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
 # =============================================================================
+
 
 @register_component("RainwaterSource")
 class RainwaterSource(Component):
@@ -302,9 +331,11 @@ class RainwaterSource(Component):
 
         # Profile should be assigned by the system/builder
         # Initialize as None, will be set by assign_profiles
-        if not hasattr(self, 'profile') or self.profile is None:
-            logger.warning(f"No rainfall profile assigned to {self.name}. Using zero rainfall.")
-            self.profile = np.zeros(getattr(self, 'N', 24))
+        if not hasattr(self, "profile") or self.profile is None:
+            logger.warning(
+                f"No rainfall profile assigned to {self.name}. Using zero rainfall."
+            )
+            self.profile = np.zeros(getattr(self, "N", 24))
         else:
             self.profile = np.array(self.profile)
 
@@ -347,7 +378,9 @@ class RainwaterSource(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return RainwaterSourceOptimizationStandard(self.params, self)
         else:
-            raise ValueError(f"Unknown fidelity level for RainwaterSource optimization: {fidelity}")
+            raise ValueError(
+                f"Unknown fidelity level for RainwaterSource optimization: {fidelity}"
+            )
 
     def rule_based_generate(self, t: int) -> float:
         """
@@ -357,7 +390,11 @@ class RainwaterSource(Component):
         delegates the actual physics calculation to the strategy object.
         """
         # Check bounds
-        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
+        if (
+            not hasattr(self, "profile")
+            or self.profile is None
+            or t >= len(self.profile)
+        ):
             return 0.0
 
         # Get rainfall intensity for this timestep (mm/h)
@@ -380,13 +417,13 @@ class RainwaterSource(Component):
         if N is None:
             N = self.N
 
-        self.Q_out = cp.Variable(N, name=f'{self.name}_Q_out', nonneg=True)
+        self.Q_out = cp.Variable(N, name=f"{self.name}_Q_out", nonneg=True)
 
         # Add as flow
-        self.flows['source']['Q_out'] = {
-            'type': 'water',
-            'value': self.Q_out,
-            'profile': self.profile
+        self.flows["source"]["Q_out"] = {
+            "type": "water",
+            "value": self.Q_out,
+            "profile": self.profile,
         }
 
     def set_constraints(self) -> List:
@@ -399,7 +436,9 @@ class RainwaterSource(Component):
 
     def __repr__(self):
         """String representation."""
-        return (f"RainwaterSource(name='{self.name}', "
-                f"area={self.catchment_area_m2}m², "
-                f"max_collection={self.Q_max}m³/h, "
-                f"fidelity={self.technical.fidelity_level.value})")
+        return (
+            f"RainwaterSource(name='{self.name}', "
+            f"area={self.catchment_area_m2}m², "
+            f"max_collection={self.Q_max}m³/h, "
+            f"fidelity={self.technical.fidelity_level.value})"
+        )

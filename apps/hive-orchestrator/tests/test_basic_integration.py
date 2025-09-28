@@ -4,11 +4,11 @@ Basic integration tests for Hive Orchestrator components.
 Tests basic functionality without complex import dependencies.
 """
 
+import json
 import sys
 import tempfile
-import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 # No sys.path manipulation needed - use Poetry workspace imports
 
@@ -17,9 +17,10 @@ def test_module_imports():
     """Test that core modules can be imported"""
     try:
         # Test individual module imports
-        import hive_orchestrator.cli
         import hive_orchestrator.clean_hive
+        import hive_orchestrator.cli
         import hive_orchestrator.dashboard
+
         print("✅ All core modules imported successfully")
         return True
     except ImportError as e:
@@ -33,8 +34,8 @@ def test_cli_module_basic():
         from hive_orchestrator.cli import cli
 
         # Check that CLI commands exist
-        commands = list(cli.commands.keys()) if hasattr(cli, 'commands') else []
-        expected_commands = ['status', 'queue-task', 'start-queen', 'start-worker']
+        commands = list(cli.commands.keys()) if hasattr(cli, "commands") else []
+        expected_commands = ["status", "queue-task", "start-queen", "start-worker"]
 
         for cmd in expected_commands:
             if cmd in commands:
@@ -51,7 +52,8 @@ def test_cli_module_basic():
 def test_clean_hive_module():
     """Test clean_hive module functionality"""
     try:
-        from hive_orchestrator.clean_hive import clean_database, main as clean_main
+        from hive_orchestrator.clean_hive import clean_database
+        from hive_orchestrator.clean_hive import main as clean_main
 
         # Test that functions exist and are callable
         assert callable(clean_database), "clean_database should be callable"
@@ -70,7 +72,10 @@ def test_dashboard_module():
         from hive_orchestrator.dashboard import HiveDashboard
 
         # Test dashboard initialization
-        with patch('hive_orchestrator.dashboard.get_connection', side_effect=Exception("Mock DB error")):
+        with patch(
+            "hive_orchestrator.dashboard.get_connection",
+            side_effect=Exception("Mock DB error"),
+        ):
             dashboard = HiveDashboard()
             assert dashboard.refresh_rate == 2
             assert dashboard.console is not None
@@ -88,7 +93,10 @@ def test_error_handling():
         from hive_orchestrator.clean_hive import clean_database
 
         # Test that clean_database handles database errors gracefully
-        with patch('hive_orchestrator.clean_hive.get_connection', side_effect=Exception("Database error")):
+        with patch(
+            "hive_orchestrator.clean_hive.get_connection",
+            side_effect=Exception("Database error"),
+        ):
             # This should not raise an exception, but handle it gracefully
             try:
                 clean_database()  # Should handle the error internally
@@ -125,17 +133,17 @@ def test_input_validation():
 def test_configuration_handling():
     """Test configuration file handling"""
     try:
-        import tempfile
         import json
+        import tempfile
 
         # Create a temporary config file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             config = {"test": "value", "number": 42}
             json.dump(config, f)
             config_path = f.name
 
         # Test reading the config
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             loaded_config = json.load(f)
 
         assert loaded_config["test"] == "value"
@@ -163,7 +171,7 @@ def run_all_tests():
         ("Dashboard Module", test_dashboard_module),
         ("Error Handling", test_error_handling),
         ("Input Validation", test_input_validation),
-        ("Configuration Handling", test_configuration_handling)
+        ("Configuration Handling", test_configuration_handling),
     ]
 
     results = []

@@ -4,11 +4,11 @@ Individual module tests for Hive Orchestrator components.
 Tests modules individually to avoid import dependency issues.
 """
 
+import json
 import sys
 import tempfile
-import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 # Add the source path for testing
 # No sys.path manipulation needed - use Poetry workspace imports
@@ -22,7 +22,7 @@ def test_cli_module_direct():
         import cli
 
         # Check that CLI function exists
-        assert hasattr(cli, 'cli'), "CLI module should have cli function"
+        assert hasattr(cli, "cli"), "CLI module should have cli function"
         assert callable(cli.cli), "cli should be callable"
 
         print("[OK] CLI module imported and verified directly")
@@ -40,8 +40,10 @@ def test_clean_hive_module_direct():
         import clean_hive
 
         # Test that functions exist and are callable
-        assert hasattr(clean_hive, 'clean_database'), "Should have clean_database function"
-        assert hasattr(clean_hive, 'main'), "Should have main function"
+        assert hasattr(
+            clean_hive, "clean_database"
+        ), "Should have clean_database function"
+        assert hasattr(clean_hive, "main"), "Should have main function"
         assert callable(clean_hive.clean_database), "clean_database should be callable"
         assert callable(clean_hive.main), "main should be callable"
 
@@ -60,8 +62,8 @@ def test_dashboard_module_direct():
         import dashboard
 
         # Test that HiveDashboard class exists
-        assert hasattr(dashboard, 'HiveDashboard'), "Should have HiveDashboard class"
-        assert hasattr(dashboard, 'main'), "Should have main function"
+        assert hasattr(dashboard, "HiveDashboard"), "Should have HiveDashboard class"
+        assert hasattr(dashboard, "main"), "Should have main function"
 
         print("[OK] Dashboard module classes verified directly")
         return True
@@ -78,7 +80,7 @@ def test_error_handling_patterns():
 
         # Test that clean_database has proper error handling
         # We can't easily mock the imports, but we can check the function exists
-        with patch('clean_hive.get_connection', side_effect=Exception("Test error")):
+        with patch("clean_hive.get_connection", side_effect=Exception("Test error")):
             # The function should exist and handle errors gracefully
             assert callable(clean_hive.clean_database)
 
@@ -127,7 +129,7 @@ def test_path_safety_logic():
             "../../etc/passwd",
             "../../../windows/system32",
             "normal_file.txt",
-            "sub/dir/file.txt"
+            "sub/dir/file.txt",
         ]
 
         for path_str in dangerous_paths:
@@ -135,7 +137,9 @@ def test_path_safety_logic():
             safe_path = Path(test_path.name)  # Only use filename
 
             # Should prevent directory traversal
-            assert ".." not in str(safe_path), f"Path traversal not prevented: {safe_path}"
+            assert ".." not in str(
+                safe_path
+            ), f"Path traversal not prevented: {safe_path}"
 
         print("[OK] Path safety logic verified")
         return True
@@ -185,7 +189,7 @@ def run_all_tests():
         ("Error Handling Patterns", test_error_handling_patterns),
         ("CLI Validation Logic", test_cli_validation_logic),
         ("Path Safety Logic", test_path_safety_logic),
-        ("Database Mock Patterns", test_database_mock_patterns)
+        ("Database Mock Patterns", test_database_mock_patterns),
     ]
 
     results = []

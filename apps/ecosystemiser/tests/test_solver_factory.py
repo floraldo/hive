@@ -20,7 +20,7 @@ def test_solver_factory_consolidation():
         print(f"[INFO] Available solvers: {available_solvers}")
 
         # Verify rolling_horizon is available
-        if 'rolling_horizon' not in available_solvers:
+        if "rolling_horizon" not in available_solvers:
             print("[FAIL] rolling_horizon solver not available in factory")
             return False
 
@@ -37,7 +37,7 @@ def test_solver_factory_consolidation():
         mock_system = MockSystem()
 
         # Create rolling horizon solver through factory
-        solver = SolverFactory.get_solver('rolling_horizon', mock_system)
+        solver = SolverFactory.get_solver("rolling_horizon", mock_system)
         print(f"[SUCCESS] Created solver through factory: {type(solver)}")
 
         # Verify it's the correct implementation
@@ -48,7 +48,7 @@ def test_solver_factory_consolidation():
         print("[SUCCESS] Solver is correct RollingHorizonMILPSolver type")
 
         # Test that it has the expected attributes of the comprehensive implementation
-        expected_attrs = ['_generate_windows', 'validate_solution', 'get_full_solution']
+        expected_attrs = ["_generate_windows", "validate_solution", "get_full_solution"]
         for attr in expected_attrs:
             if hasattr(solver, attr):
                 print(f"[SUCCESS] Found expected method: {attr}")
@@ -56,13 +56,16 @@ def test_solver_factory_consolidation():
                 print(f"[FAIL] Missing expected method: {attr}")
                 return False
 
-        print("[SUCCESS] All expected methods found - using comprehensive implementation")
+        print(
+            "[SUCCESS] All expected methods found - using comprehensive implementation"
+        )
 
         return True
 
     except Exception as e:
         print(f"[FAIL] SolverFactory test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -74,14 +77,24 @@ def test_no_ambiguity():
     try:
         # Try to import the old implementation - should fail
         try:
-            from ecosystemiser.solver.rolling_horizon_solver import RollingHorizonMILPSolver as OldSolver
-            print("[FAIL] Old rolling_horizon_solver.py still importable - should have been removed")
+            from ecosystemiser.solver.rolling_horizon_solver import (
+                RollingHorizonMILPSolver as OldSolver,
+            )
+
+            print(
+                "[FAIL] Old rolling_horizon_solver.py still importable - should have been removed"
+            )
             return False
         except ImportError:
-            print("[SUCCESS] Old implementation no longer importable - correctly removed")
+            print(
+                "[SUCCESS] Old implementation no longer importable - correctly removed"
+            )
 
         # Import the unified implementation - should work
-        from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver as UnifiedSolver
+        from ecosystemiser.solver.rolling_horizon_milp import (
+            RollingHorizonMILPSolver as UnifiedSolver,
+        )
+
         print("[SUCCESS] Unified implementation successfully importable")
 
         # Verify they're the same implementation the factory uses
@@ -90,13 +103,15 @@ def test_no_ambiguity():
             system_id = "test"
             components = {}
 
-        factory_solver = SolverFactory.get_solver('rolling_horizon', MockSystem())
+        factory_solver = SolverFactory.get_solver("rolling_horizon", MockSystem())
         direct_solver = UnifiedSolver(MockSystem())
 
         if type(factory_solver) == type(direct_solver):
             print("[SUCCESS] Factory and direct imports use same implementation")
         else:
-            print(f"[FAIL] Factory uses {type(factory_solver)}, direct uses {type(direct_solver)}")
+            print(
+                f"[FAIL] Factory uses {type(factory_solver)}, direct uses {type(direct_solver)}"
+            )
             return False
 
         return True

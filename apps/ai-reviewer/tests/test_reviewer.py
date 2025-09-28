@@ -2,13 +2,14 @@
 Tests for the AI Reviewer review engine
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 from ai_reviewer.reviewer import (
+    QualityMetrics,
+    ReviewDecision,
     ReviewEngine,
     ReviewResult,
-    ReviewDecision,
-    QualityMetrics
 )
 
 
@@ -22,7 +23,7 @@ class TestQualityMetrics:
             test_coverage=90,
             documentation=70,
             security=85,
-            architecture=75
+            architecture=75,
         )
 
         # Expected: 80*0.3 + 90*0.25 + 70*0.15 + 85*0.2 + 75*0.1
@@ -36,18 +37,14 @@ class TestQualityMetrics:
             test_coverage=100,
             documentation=100,
             security=100,
-            architecture=100
+            architecture=100,
         )
         assert metrics.overall_score == 100
 
     def test_zero_scores(self):
         """Test with zero scores"""
         metrics = QualityMetrics(
-            code_quality=0,
-            test_coverage=0,
-            documentation=0,
-            security=0,
-            architecture=0
+            code_quality=0, test_coverage=0, documentation=0, security=0, architecture=0
         )
         assert metrics.overall_score == 0
 
@@ -87,7 +84,7 @@ def test_calculate_sum():
 def test_process_data():
     assert process_data([1, 2, 3]) == [2, 4, 6]
     assert process_data([-1, 0, 1]) == [2]
-"""
+""",
         }
 
     def test_review_task_basic(self, engine, sample_code):
@@ -96,7 +93,7 @@ def test_process_data():
             task_id="test-123",
             task_description="Implement basic math functions",
             code_files=sample_code,
-            test_results={"passed": True, "coverage": 85}
+            test_results={"passed": True, "coverage": 85},
         )
 
         assert isinstance(result, ReviewResult)
@@ -134,7 +131,8 @@ def very_long_function_that_does_too_many_things():
                 if i > 20:
                     if i > 30:
                         print(i)
-    """ + "\n".join(["    pass"] * 50)  # Make it very long
+    """
+            + "\n".join(["    pass"] * 50)  # Make it very long
         }
         score = engine._score_code_quality(bad_code)
         assert score < 70  # Bad code should score low
@@ -143,17 +141,14 @@ def very_long_function_that_does_too_many_things():
         """Test coverage scoring"""
         code_with_tests = {
             "main.py": "def func(): pass",
-            "test_main.py": "def test_func(): pass"
+            "test_main.py": "def test_func(): pass",
         }
         score = engine._score_test_coverage(
-            code_with_tests,
-            {"passed": True, "coverage": 90}
+            code_with_tests, {"passed": True, "coverage": 90}
         )
         assert score > 80
 
-        code_without_tests = {
-            "main.py": "def func(): pass"
-        }
+        code_without_tests = {"main.py": "def func(): pass"}
         score = engine._score_test_coverage(code_without_tests, None)
         assert score == 0
 
@@ -174,13 +169,13 @@ def function_two():
         assert score == 100
 
         poorly_documented = {
-            "main.py": '''
+            "main.py": """
 def function_one():
     pass
 
 def function_two():
     pass
-'''
+"""
         }
         score = engine._score_documentation(poorly_documented)
         assert score == 0
@@ -221,7 +216,8 @@ def process():
         x = 1
     except:
         pass
-""" + "x" * 150  # Long line
+"""
+            + "x" * 150  # Long line
         }
 
         issues = engine._detect_issues(problematic_code, None)
@@ -238,7 +234,7 @@ def process():
             test_coverage=85,
             documentation=80,
             security=95,
-            architecture=90
+            architecture=90,
         )
         decision = engine._make_decision(high_metrics, [])
         assert decision == ReviewDecision.APPROVE
@@ -249,7 +245,7 @@ def process():
             test_coverage=60,
             documentation=50,
             security=75,
-            architecture=70
+            architecture=70,
         )
         decision = engine._make_decision(medium_metrics, [])
         assert decision == ReviewDecision.REWORK
@@ -260,7 +256,7 @@ def process():
             test_coverage=20,
             documentation=10,
             security=40,
-            architecture=30
+            architecture=30,
         )
         decision = engine._make_decision(low_metrics, [])
         assert decision == ReviewDecision.REJECT
@@ -271,7 +267,7 @@ def process():
             test_coverage=90,
             documentation=90,
             security=90,
-            architecture=90
+            architecture=90,
         )
         critical_issues = ["Security vulnerability detected", "Test failures"]
         decision = engine._make_decision(good_metrics, critical_issues)
@@ -284,7 +280,7 @@ def process():
             test_coverage=40,
             documentation=30,
             security=60,
-            architecture=70
+            architecture=70,
         )
         issues = ["TODO comments found", "print statements detected"]
 
@@ -298,9 +294,7 @@ def process():
     def test_review_result_to_dict(self, engine, sample_code):
         """Test ReviewResult.to_dict() method"""
         result = engine.review_task(
-            task_id="test-456",
-            task_description="Test task",
-            code_files=sample_code
+            task_id="test-456", task_description="Test task", code_files=sample_code
         )
 
         result_dict = result.to_dict()
@@ -369,14 +363,14 @@ def test_subtract():
     assert subtract(5, 3) == 2
     assert subtract(0, 1) == -1
     assert subtract(1.5, 0.5) == 1.0
-'''
+''',
         }
 
         result = engine.review_task(
             task_id="excel-001",
             task_description="Implement calculator with add and subtract",
             code_files=excellent_code,
-            test_results={"passed": True, "coverage": 100}
+            test_results={"passed": True, "coverage": 100},
         )
 
         assert result.decision == ReviewDecision.APPROVE
@@ -388,7 +382,7 @@ def test_subtract():
         engine = ReviewEngine(mock_mode=True)
 
         poor_code = {
-            "hack.py": '''
+            "hack.py": """
 # Quick hack, TODO: fix everything
 def do_stuff(x):
     eval(x)  # Process input
@@ -402,14 +396,14 @@ def do_stuff(x):
                         print("big number")
     except:
         pass  # Ignore all errors
-'''
+"""
         }
 
         result = engine.review_task(
             task_id="poor-001",
             task_description="Process user input",
             code_files=poor_code,
-            test_results=None
+            test_results=None,
         )
 
         assert result.decision in [ReviewDecision.REJECT, ReviewDecision.ESCALATE]

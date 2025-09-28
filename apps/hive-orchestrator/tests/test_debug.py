@@ -9,10 +9,12 @@ from pathlib import Path
 
 # No sys.path manipulation needed - use Poetry workspace imports
 
+
 def test_config():
     """Test configuration system"""
     try:
         from hive_config import get_config
+
         config = get_config()
         print(f"Environment: {config.env}")
         print(f"Debug mode: {config.get_bool('debug_mode')}")
@@ -22,6 +24,7 @@ def test_config():
     except Exception as e:
         print(f"Configuration test failed: {e}")
         return False
+
 
 if __name__ == "__main__":
     print("Debug test starting...")

@@ -11,16 +11,16 @@ This test validates the complete workflow:
 This is the definitive test that proves the entire system works!
 """
 
-import os
-import sys
-import time
 import json
+import os
+import shutil
 import sqlite3
 import subprocess
-import shutil
-from pathlib import Path
+import sys
+import time
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -31,6 +31,7 @@ project_root = Path(__file__).parent.parent
 DB_PATH = project_root / "hive" / "db" / "hive-internal.db"
 WORKTREES_DIR = project_root / ".worktrees"
 LOGS_DIR = project_root / "logs"
+
 
 class E2ETestRunner:
     """Comprehensive E2E test runner for Hive V2.0"""
@@ -49,7 +50,7 @@ class E2ETestRunner:
             "SUCCESS": "[PASS]",
             "ERROR": "[FAIL]",
             "WARN": "[WARN]",
-            "TEST": "[TEST]"
+            "TEST": "[TEST]",
         }.get(level, "[INFO]")
         print(f"[{timestamp}] {symbol} {message}")
 
@@ -81,7 +82,9 @@ class E2ETestRunner:
                 self.log(f"Warning: Could not fully clean worktrees: {e}", "WARN")
 
         # Prune git worktrees
-        subprocess.run(["git", "worktree", "prune"], cwd=project_root, capture_output=True)
+        subprocess.run(
+            ["git", "worktree", "prune"], cwd=project_root, capture_output=True
+        )
         self.log("Pruned git worktrees")
 
         # Create logs directory
@@ -96,7 +99,7 @@ class E2ETestRunner:
                 [sys.executable, "scripts/seed_test_tasks.py"],
                 cwd=project_root,
                 capture_output=True,
-                text=True
+                text=True,
             )
 
             if result.returncode != 0:
@@ -104,13 +107,13 @@ class E2ETestRunner:
                 return False
 
             # Extract task IDs from output
-            for line in result.stdout.split('\n'):
+            for line in result.stdout.split("\n"):
                 if "Task 1:" in line:
-                    self.task_ids['task1'] = line.split(': ')[1].strip()
+                    self.task_ids["task1"] = line.split(": ")[1].strip()
                 elif "Task 2:" in line:
-                    self.task_ids['task2'] = line.split(': ')[1].strip()
+                    self.task_ids["task2"] = line.split(": ")[1].strip()
                 elif "Task 3:" in line:
-                    self.task_ids['task3'] = line.split(': ')[1].strip()
+                    self.task_ids["task3"] = line.split(": ")[1].strip()
 
             self.log(f"Seeded tasks: {len(self.task_ids)} tasks created", "SUCCESS")
             return True
@@ -135,13 +138,13 @@ class E2ETestRunner:
                 self.log(f"Starting {name}...")
                 log_file = LOGS_DIR / f"{name}.log"
 
-                with open(log_file, 'w') as f:
+                with open(log_file, "w") as f:
                     proc = subprocess.Popen(
                         command,
                         cwd=project_root,
                         stdout=f,
                         stderr=subprocess.STDOUT,
-                        text=True
+                        text=True,
                     )
                     self.processes[name] = proc
                     self.log(f"{name} started (PID: {proc.pid})", "SUCCESS")
@@ -184,9 +187,16 @@ class E2ETestRunner:
                 last_status = status
 
             # Check if we've reached desired states
-            task1_done = states.get(self.task_ids.get('task1', ''), '') in ['completed', 'test', 'approved']
-            task2_done = states.get(self.task_ids.get('task2', ''), '') in ['escalated', 'review_pending']
-            task3_done = states.get(self.task_ids.get('task3', ''), '') == 'completed'
+            task1_done = states.get(self.task_ids.get("task1", ""), "") in [
+                "completed",
+                "test",
+                "approved",
+            ]
+            task2_done = states.get(self.task_ids.get("task2", ""), "") in [
+                "escalated",
+                "review_pending",
+            ]
+            task3_done = states.get(self.task_ids.get("task3", ""), "") == "completed"
 
             if task1_done and task2_done and task3_done:
                 self.log("All tasks reached expected states!", "SUCCESS")
@@ -226,7 +236,7 @@ class E2ETestRunner:
             for name, task_id in self.task_ids.items():
                 cursor.execute(
                     "SELECT status, current_phase, assignee FROM tasks WHERE id = ?",
-                    (task_id,)
+                    (task_id,),
                 )
                 row = cursor.fetchone()
 
@@ -239,27 +249,27 @@ class E2ETestRunner:
                 self.log(f"{name}: status={status}, phase={phase}, assignee={assignee}")
 
                 # Validate expected states
-                if name == 'task1':
+                if name == "task1":
                     # Should be approved or completed
-                    if status in ['completed', 'test', 'approved', 'review_pending']:
+                    if status in ["completed", "test", "approved", "review_pending"]:
                         self.test_results[name] = "PASSED"
                         self.log(f"{name}: Expected state reached", "SUCCESS")
                     else:
                         self.test_results[name] = "FAILED"
                         self.log(f"{name}: Unexpected state {status}", "ERROR")
 
-                elif name == 'task2':
+                elif name == "task2":
                     # Should be escalated
-                    if status in ['escalated', 'review_pending']:
+                    if status in ["escalated", "review_pending"]:
                         self.test_results[name] = "PASSED"
                         self.log(f"{name}: Expected escalation/review", "SUCCESS")
                     else:
                         self.test_results[name] = "FAILED"
                         self.log(f"{name}: Expected escalated, got {status}", "ERROR")
 
-                elif name == 'task3':
+                elif name == "task3":
                     # Should be completed directly
-                    if status == 'completed':
+                    if status == "completed":
                         self.test_results[name] = "PASSED"
                         self.log(f"{name}: Completed as expected", "SUCCESS")
                     else:
@@ -315,7 +325,7 @@ class E2ETestRunner:
                 self.log(f"  - Python files: None", "WARN")
 
             # Check for test files
-            test_files = [f for f in py_files if 'test' in f.name.lower()]
+            test_files = [f for f in py_files if "test" in f.name.lower()]
             if test_files:
                 self.log(f"  - Test files: {len(test_files)} found", "SUCCESS")
 
@@ -327,7 +337,9 @@ class E2ETestRunner:
 
         # Overall status
         all_passed = all(r == "PASSED" for r in self.test_results.values())
-        overall = "[PASS] ALL TESTS PASSED" if all_passed else "[FAIL] SOME TESTS FAILED"
+        overall = (
+            "[PASS] ALL TESTS PASSED" if all_passed else "[FAIL] SOME TESTS FAILED"
+        )
 
         self.log("")
         self.log(overall, "SUCCESS" if all_passed else "ERROR")

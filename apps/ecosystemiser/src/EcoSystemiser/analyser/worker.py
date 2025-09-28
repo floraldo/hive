@@ -8,17 +8,18 @@ simulation execution and analysis processing.
 """
 
 import asyncio
+import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, List
-import json
+from typing import Any, Dict, List, Optional
 
-from ecosystemiser.core.events import SimulationEvent as Event, AnalysisEvent
+from ecosystemiser.analyser.service import AnalyserService
 from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
 from ecosystemiser.core.errors import ProfileError as ProcessingError
+from ecosystemiser.core.events import AnalysisEvent
+from ecosystemiser.core.events import SimulationEvent as Event
 from hive_logging import get_logger
-from ecosystemiser.analyser.service import AnalyserService
 
 logger = get_logger(__name__)
 
@@ -31,10 +32,12 @@ class AnalyserWorker:
     workflows. Designed for loose coupling and resilient operation.
     """
 
-    def __init__(self,
-                 event_bus: Optional[EcoSystemiserEventBus] = None,
-                 analyser_service: Optional[AnalyserService] = None,
-                 auto_analysis_strategies: Optional[List[str]] = None):
+    def __init__(
+        self,
+        event_bus: Optional[EcoSystemiserEventBus] = None,
+        analyser_service: Optional[AnalyserService] = None,
+        auto_analysis_strategies: Optional[List[str]] = None,
+    ):
         """Initialize the Analyser Worker.
 
         Args:
@@ -45,9 +48,9 @@ class AnalyserWorker:
         self.event_bus = event_bus or get_ecosystemiser_event_bus()
         self.analyser_service = analyser_service or AnalyserService()
         self.auto_analysis_strategies = auto_analysis_strategies or [
-            'technical_kpi',
-            'economic',
-            'sensitivity'
+            "technical_kpi",
+            "economic",
+            "sensitivity",
         ]
         self.is_running = False
         self._subscription_ids: List[str] = []
@@ -63,14 +66,13 @@ class AnalyserWorker:
         # Subscribe to study completion events
         study_completed_id = await self.event_bus.subscribe(
             event_type="simulation.study_completed",
-            handler=self._handle_study_completed
+            handler=self._handle_study_completed,
         )
         self._subscription_ids.append(study_completed_id)
 
         # Subscribe to simulation completion events (for individual analysis)
         simulation_completed_id = await self.event_bus.subscribe(
-            event_type="simulation.completed",
-            handler=self._handle_simulation_completed
+            event_type="simulation.completed", handler=self._handle_simulation_completed
         )
         self._subscription_ids.append(simulation_completed_id)
 
@@ -99,12 +101,14 @@ class AnalyserWorker:
             event: Study completion event
         """
         try:
-            logger.info(f"Received study completion event: {event.payload.get('study_id')}")
+            logger.info(
+                f"Received study completion event: {event.payload.get('study_id')}"
+            )
 
             # Extract study information
-            study_id = event.payload.get('study_id')
-            study_type = event.payload.get('study_type')
-            results_path = event.payload.get('results_path')
+            study_id = event.payload.get("study_id")
+            study_type = event.payload.get("study_type")
+            results_path = event.payload.get("results_path")
 
             if not results_path:
                 logger.warning(f"No results path in study completion event: {study_id}")
@@ -119,10 +123,10 @@ class AnalyserWorker:
                 results_path=results_path,
                 strategies=strategies,
                 metadata={
-                    'study_id': study_id,
-                    'study_type': study_type,
-                    'trigger': 'auto_study_completion'
-                }
+                    "study_id": study_id,
+                    "study_type": study_type,
+                    "trigger": "auto_study_completion",
+                },
             )
 
         except Exception as e:
@@ -135,34 +139,38 @@ class AnalyserWorker:
             event: Simulation completion event
         """
         try:
-            simulation_id = event.payload.get('simulation_id')
-            results_path = event.payload.get('results_path')
+            simulation_id = event.payload.get("simulation_id")
+            results_path = event.payload.get("results_path")
 
             if not results_path:
-                logger.warning(f"No results path in simulation completion event: {simulation_id}")
+                logger.warning(
+                    f"No results path in simulation completion event: {simulation_id}"
+                )
                 return
 
             # For individual simulations, run basic analysis
-            strategies = ['technical_kpi']
+            strategies = ["technical_kpi"]
 
             await self._execute_analysis(
                 analysis_id=f"sim_{simulation_id}_{uuid.uuid4().hex[:8]}",
                 results_path=results_path,
                 strategies=strategies,
                 metadata={
-                    'simulation_id': simulation_id,
-                    'trigger': 'auto_simulation_completion'
-                }
+                    "simulation_id": simulation_id,
+                    "trigger": "auto_simulation_completion",
+                },
             )
 
         except Exception as e:
             logger.error(f"Error handling simulation completion event: {e}")
 
-    async def _execute_analysis(self,
-                              analysis_id: str,
-                              results_path: str,
-                              strategies: List[str],
-                              metadata: Optional[Dict[str, Any]] = None):
+    async def _execute_analysis(
+        self,
+        analysis_id: str,
+        results_path: str,
+        strategies: List[str],
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
         """Execute analysis and publish events.
 
         Args:
@@ -180,21 +188,19 @@ class AnalyserWorker:
             parameters={
                 "source_agent": "AnalyserWorker",
                 "source_results_path": str(results_path),
-                "strategies_executed": strategies
-            }
+                "strategies_executed": strategies,
+            },
         )
         await self.event_bus.publish_analysis_event(analysis_started_event)
 
         try:
-            logger.info(f"Starting analysis {analysis_id} with strategies: {strategies}")
+            logger.info(
+                f"Starting analysis {analysis_id} with strategies: {strategies}"
+            )
 
             # Execute analysis using AnalyserService
             analysis_results = await asyncio.get_event_loop().run_in_executor(
-                None,
-                self.analyser_service.analyse,
-                results_path,
-                strategies,
-                metadata
+                None, self.analyser_service.analyse, results_path, strategies, metadata
             )
 
             # Determine output path
@@ -202,10 +208,7 @@ class AnalyserWorker:
 
             # Save analysis results
             await asyncio.get_event_loop().run_in_executor(
-                None,
-                self.analyser_service.save_analysis,
-                analysis_results,
-                output_path
+                None, self.analyser_service.save_analysis, analysis_results, output_path
             )
 
             execution_time = (datetime.now() - start_time).total_seconds()
@@ -218,12 +221,14 @@ class AnalyserWorker:
                     "source_results_path": str(results_path),
                     "analysis_results_path": str(output_path),
                     "strategies_executed": strategies,
-                    "duration_seconds": execution_time
-                }
+                    "duration_seconds": execution_time,
+                },
             )
             await self.event_bus.publish_analysis_event(analysis_completed_event)
 
-            logger.info(f"Analysis {analysis_id} completed successfully in {execution_time:.2f}s")
+            logger.info(
+                f"Analysis {analysis_id} completed successfully in {execution_time:.2f}s"
+            )
 
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
@@ -236,15 +241,15 @@ class AnalyserWorker:
                     "source_agent": "AnalyserWorker",
                     "source_results_path": str(results_path),
                     "strategies_executed": strategies,
-                    "duration_seconds": execution_time
-                }
+                    "duration_seconds": execution_time,
+                },
             )
             await self.event_bus.publish_analysis_event(analysis_failed_event)
 
             logger.error(f"Analysis {analysis_id} failed: {e}")
             raise ProcessingError(
                 f"Analysis execution failed: {str(e)}",
-                details={'analysis_id': analysis_id, 'strategies': strategies}
+                details={"analysis_id": analysis_id, "strategies": strategies},
             )
 
     def _get_strategies_for_study_type(self, study_type: Optional[str]) -> List[str]:
@@ -257,16 +262,18 @@ class AnalyserWorker:
             List of strategy names to execute
         """
         if study_type == "parametric":
-            return ['sensitivity', 'technical_kpi', 'economic']
+            return ["sensitivity", "technical_kpi", "economic"]
         elif study_type == "optimization":
-            return ['technical_kpi', 'economic']
+            return ["technical_kpi", "economic"]
         elif study_type == "fidelity":
-            return ['technical_kpi']
+            return ["technical_kpi"]
         else:
             # Default strategies for unknown or generic studies
             return self.auto_analysis_strategies
 
-    def _generate_analysis_output_path(self, results_path: str, analysis_id: str) -> str:
+    def _generate_analysis_output_path(
+        self, results_path: str, analysis_id: str
+    ) -> str:
         """Generate output path for analysis results.
 
         Args:
@@ -283,10 +290,12 @@ class AnalyserWorker:
         output_filename = f"{results_file.stem}_analysis_{analysis_id}.json"
         return str(output_dir / output_filename)
 
-    async def process_analysis_request(self,
-                                     results_path: str,
-                                     strategies: Optional[List[str]] = None,
-                                     metadata: Optional[Dict[str, Any]] = None) -> str:
+    async def process_analysis_request(
+        self,
+        results_path: str,
+        strategies: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Manually trigger analysis processing.
 
         Args:
@@ -307,7 +316,7 @@ class AnalyserWorker:
             analysis_id=analysis_id,
             results_path=results_path,
             strategies=strategies,
-            metadata=metadata or {'trigger': 'manual_request'}
+            metadata=metadata or {"trigger": "manual_request"},
         )
 
         return analysis_id
@@ -319,10 +328,10 @@ class AnalyserWorker:
             Dictionary with worker status information
         """
         return {
-            'is_running': self.is_running,
-            'subscriptions': len(self._subscription_ids),
-            'auto_strategies': self.auto_analysis_strategies,
-            'registered_strategies': list(self.analyser_service.strategies.keys())
+            "is_running": self.is_running,
+            "subscriptions": len(self._subscription_ids),
+            "auto_strategies": self.auto_analysis_strategies,
+            "registered_strategies": list(self.analyser_service.strategies.keys()),
         }
 
 
@@ -333,9 +342,9 @@ class AnalyserWorkerPool:
     Provides load balancing and resilience for analysis processing.
     """
 
-    def __init__(self,
-                 pool_size: int = 3,
-                 event_bus: Optional[EcoSystemiserEventBus] = None):
+    def __init__(
+        self, pool_size: int = 3, event_bus: Optional[EcoSystemiserEventBus] = None
+    ):
         """Initialize worker pool.
 
         Args:
@@ -354,7 +363,7 @@ class AnalyserWorkerPool:
         for i in range(self.pool_size):
             worker = AnalyserWorker(
                 event_bus=self.event_bus,
-                auto_analysis_strategies=['technical_kpi', 'economic', 'sensitivity']
+                auto_analysis_strategies=["technical_kpi", "economic", "sensitivity"],
             )
             await worker.start()
             self.workers.append(worker)
@@ -384,10 +393,12 @@ class AnalyserWorkerPool:
         self.current_worker_index = (self.current_worker_index + 1) % len(self.workers)
         return worker
 
-    async def process_analysis_request(self,
-                                     results_path: str,
-                                     strategies: Optional[List[str]] = None,
-                                     metadata: Optional[Dict[str, Any]] = None) -> str:
+    async def process_analysis_request(
+        self,
+        results_path: str,
+        strategies: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Process analysis request using next available worker.
 
         Args:
@@ -408,7 +419,7 @@ class AnalyserWorkerPool:
             Dictionary with pool status information
         """
         return {
-            'pool_size': self.pool_size,
-            'active_workers': len([w for w in self.workers if w.is_running]),
-            'workers': [w.get_status() for w in self.workers]
+            "pool_size": self.pool_size,
+            "active_workers": len([w for w in self.workers if w.is_running]),
+            "workers": [w.get_status() for w in self.workers],
         }

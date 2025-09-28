@@ -1,10 +1,10 @@
 """Constraint handling for optimization problems."""
 
-from typing import Dict, Any, List, Callable, Optional, Union
-import numpy as np
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional, Union
 
+import numpy as np
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -13,6 +13,7 @@ logger = get_logger(__name__)
 @dataclass
 class Constraint:
     """Definition of an optimization constraint."""
+
     name: str
     constraint_type: str  # equality, inequality, bounds
     function: Callable[[np.ndarray], float]
@@ -43,8 +44,13 @@ class ConstraintHandler:
         self.constraints.append(constraint)
         logger.debug(f"Added constraint: {constraint.name}")
 
-    def add_equality_constraint(self, name: str, function: Callable[[np.ndarray], float],
-                              tolerance: float = 1e-6, weight: float = 1.0):
+    def add_equality_constraint(
+        self,
+        name: str,
+        function: Callable[[np.ndarray], float],
+        tolerance: float = 1e-6,
+        weight: float = 1.0,
+    ):
         """Add an equality constraint.
 
         Args:
@@ -58,12 +64,13 @@ class ConstraintHandler:
             constraint_type="equality",
             function=function,
             tolerance=tolerance,
-            weight=weight
+            weight=weight,
         )
         self.add_constraint(constraint)
 
-    def add_inequality_constraint(self, name: str, function: Callable[[np.ndarray], float],
-                                weight: float = 1.0):
+    def add_inequality_constraint(
+        self, name: str, function: Callable[[np.ndarray], float], weight: float = 1.0
+    ):
         """Add an inequality constraint.
 
         Args:
@@ -72,10 +79,7 @@ class ConstraintHandler:
             weight: Weight in penalty calculation
         """
         constraint = Constraint(
-            name=name,
-            constraint_type="inequality",
-            function=function,
-            weight=weight
+            name=name, constraint_type="inequality", function=function, weight=weight
         )
         self.add_constraint(constraint)
 
@@ -105,7 +109,7 @@ class ConstraintHandler:
 
             except Exception as e:
                 logger.warning(f"Error evaluating constraint {constraint.name}: {e}")
-                violations[constraint.name] = float('inf')
+                violations[constraint.name] = float("inf")
 
         return violations
 
@@ -128,12 +132,14 @@ class ConstraintHandler:
                 if self.penalty_method == "static":
                     penalty = self.penalty_factor * constraint.weight * violation
                 elif self.penalty_method == "adaptive":
-                    penalty = self.penalty_factor * constraint.weight * (violation ** 2)
+                    penalty = self.penalty_factor * constraint.weight * (violation**2)
                 else:  # barrier method
                     if violation < 1e-6:
                         penalty = 0.0
                     else:
-                        penalty = -self.penalty_factor * constraint.weight * np.log(violation)
+                        penalty = (
+                            -self.penalty_factor * constraint.weight * np.log(violation)
+                        )
 
                 total_penalty += penalty
 
@@ -174,8 +180,9 @@ class ConstraintHandler:
 
         return feasible_indices
 
-    def repair_solution(self, solution: np.ndarray, bounds: List[tuple],
-                       max_iterations: int = 100) -> np.ndarray:
+    def repair_solution(
+        self, solution: np.ndarray, bounds: List[tuple], max_iterations: int = 100
+    ) -> np.ndarray:
         """Attempt to repair an infeasible solution.
 
         Args:
@@ -197,7 +204,9 @@ class ConstraintHandler:
             violations = self.evaluate_constraints(repaired)
 
             # If feasible, we're done
-            if all(v <= c.tolerance for c, v in zip(self.constraints, violations.values())):
+            if all(
+                v <= c.tolerance for c, v in zip(self.constraints, violations.values())
+            ):
                 break
 
             # Apply simple repair heuristics
@@ -252,9 +261,9 @@ class TechnicalConstraintValidator:
             battery_power_idx = None
 
             for i, param in enumerate(encoder.spec.parameters):
-                if param.name == 'battery_capacity':
+                if param.name == "battery_capacity":
                     battery_capacity_idx = i
-                elif param.name == 'battery_power':
+                elif param.name == "battery_power":
                     battery_power_idx = i
 
             if battery_capacity_idx is None or battery_power_idx is None:
@@ -277,8 +286,9 @@ class TechnicalConstraintValidator:
             return 0.0
 
     @staticmethod
-    def renewable_generation_demand_balance(solution: np.ndarray, encoder,
-                                          demand_profile: Optional[np.ndarray] = None) -> float:
+    def renewable_generation_demand_balance(
+        solution: np.ndarray, encoder, demand_profile: Optional[np.ndarray] = None
+    ) -> float:
         """Constraint: Renewable generation should be sufficient for demand.
 
         Args:
@@ -295,9 +305,9 @@ class TechnicalConstraintValidator:
             wind_capacity = 0
 
             for i, param in enumerate(encoder.spec.parameters):
-                if param.name == 'solar_capacity':
+                if param.name == "solar_capacity":
                     solar_capacity = solution[i]
-                elif param.name == 'wind_capacity':
+                elif param.name == "wind_capacity":
                     wind_capacity = solution[i]
 
             total_renewable = solar_capacity + wind_capacity
@@ -334,10 +344,10 @@ class TechnicalConstraintValidator:
 
             # Rough cost estimation
             cost_factors = {
-                'battery_capacity': 500,  # $/kWh
-                'solar_capacity': 1200,   # $/kW
-                'wind_capacity': 1500,    # $/kW
-                'heat_pump_capacity': 800 # $/kW
+                "battery_capacity": 500,  # $/kWh
+                "solar_capacity": 1200,  # $/kW
+                "wind_capacity": 1500,  # $/kW
+                "heat_pump_capacity": 800,  # $/kW
             }
 
             for i, param in enumerate(encoder.spec.parameters):
@@ -353,7 +363,9 @@ class TechnicalConstraintValidator:
             return 0.0
 
     @classmethod
-    def create_standard_constraints(cls, encoder, config: Dict[str, Any]) -> ConstraintHandler:
+    def create_standard_constraints(
+        cls, encoder, config: Dict[str, Any]
+    ) -> ConstraintHandler:
         """Create standard technical constraints for energy systems.
 
         Args:
@@ -369,27 +381,27 @@ class TechnicalConstraintValidator:
         handler.add_inequality_constraint(
             name="battery_power_capacity_ratio",
             function=lambda x: cls.battery_power_capacity_ratio(x, encoder),
-            weight=10.0
+            weight=10.0,
         )
 
         # Budget constraint if specified
-        if 'max_budget' in config:
-            max_budget = config['max_budget']
+        if "max_budget" in config:
+            max_budget = config["max_budget"]
             handler.add_inequality_constraint(
                 name="budget_constraint",
                 function=lambda x: cls.budget_constraint(x, encoder, max_budget),
-                weight=5.0
+                weight=5.0,
             )
 
         # Renewable generation constraint if demand profile available
-        if 'demand_profile' in config:
-            demand_profile = np.array(config['demand_profile'])
+        if "demand_profile" in config:
+            demand_profile = np.array(config["demand_profile"])
             handler.add_inequality_constraint(
                 name="renewable_demand_balance",
                 function=lambda x: cls.renewable_generation_demand_balance(
                     x, encoder, demand_profile
                 ),
-                weight=2.0
+                weight=2.0,
             )
 
         logger.info(f"Created {len(handler.constraints)} standard constraints")

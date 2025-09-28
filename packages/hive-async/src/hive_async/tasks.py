@@ -1,15 +1,13 @@
 """Basic async task utilities for infrastructure use."""
 
 import asyncio
-from typing import Any, List, Awaitable, TypeVar
+from typing import Any, Awaitable, List, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 async def gather_with_concurrency(
-    *coros: Awaitable[T],
-    max_concurrent: int = 10,
-    return_exceptions: bool = False
+    *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False
 ) -> List[Any]:
     """
     Gather coroutines with concurrency limit.
@@ -35,10 +33,7 @@ async def gather_with_concurrency(
     return await asyncio.gather(*limited_coros, return_exceptions=return_exceptions)
 
 
-async def run_with_timeout(
-    coro: Awaitable[T],
-    timeout: float
-) -> T:
+async def run_with_timeout(coro: Awaitable[T], timeout: float) -> T:
     """
     Run a coroutine with timeout.
 

@@ -11,12 +11,8 @@ This package contains NO business logic - it's a generic toolkit
 that can be used to build any event-driven system.
 """
 
-from .base_events import BaseEvent
 from .base_bus import BaseBus
+from .base_events import BaseEvent
 from .subscribers import BaseSubscriber
 
-__all__ = [
-    "BaseEvent",
-    "BaseBus",
-    "BaseSubscriber"
-]
+__all__ = ["BaseEvent", "BaseBus", "BaseSubscriber"]

@@ -3,9 +3,10 @@ Response validation utilities for Claude outputs
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, Type
-from pydantic import BaseModel, ValidationError
+from typing import Any, Dict, Optional, Type
+
 from hive_logging import get_logger
+from pydantic import BaseModel, ValidationError
 
 logger = get_logger(__name__)
 
@@ -78,7 +79,7 @@ class ResponseValidator:
         self,
         data: Dict[str, Any],
         context: Optional[Dict[str, Any]] = None,
-        use_fallback: bool = True
+        use_fallback: bool = True,
     ) -> Optional[BaseModel]:
         """
         Validate response with optional fallback
@@ -100,9 +101,6 @@ class ResponseValidator:
         # Create fallback if enabled
         if use_fallback and context:
             logger.info("Creating fallback response")
-            return self.validator.create_fallback(
-                "Validation failed",
-                context or {}
-            )
+            return self.validator.create_fallback("Validation failed", context or {})
 
         return None

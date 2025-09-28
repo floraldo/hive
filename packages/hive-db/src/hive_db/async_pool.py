@@ -6,12 +6,12 @@ for non-blocking database operations.
 """
 
 import asyncio
-import aiosqlite
-from pathlib import Path
-from typing import Optional, Dict, Any, Set
-from dataclasses import dataclass
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, Optional, Set
 
+import aiosqlite
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -20,6 +20,7 @@ logger = get_logger(__name__)
 @dataclass
 class AsyncPoolStats:
     """Statistics for async connection pool monitoring"""
+
     active_connections: int
     idle_connections: int
     total_connections: int
@@ -43,12 +44,14 @@ class AsyncConnectionPool:
     - Graceful degradation under high load
     """
 
-    def __init__(self,
-                 db_path: Path,
-                 min_connections: int = 3,
-                 max_connections: int = 25,
-                 connection_timeout: float = 30.0,
-                 max_idle_time: float = 300.0):
+    def __init__(
+        self,
+        db_path: Path,
+        min_connections: int = 3,
+        max_connections: int = 25,
+        connection_timeout: float = 30.0,
+        max_idle_time: float = 300.0,
+    ):
         """
         Initialize async connection pool.
 
@@ -66,7 +69,9 @@ class AsyncConnectionPool:
         self.max_idle_time = max_idle_time
 
         # Pool state
-        self._idle_connections: asyncio.Queue = asyncio.Queue(maxsize=self.max_connections)
+        self._idle_connections: asyncio.Queue = asyncio.Queue(
+            maxsize=self.max_connections
+        )
         self._active_connections: Set[aiosqlite.Connection] = set()
         self._connection_semaphore = asyncio.Semaphore(self.max_connections)
         self._lock = asyncio.Lock()
@@ -80,7 +85,7 @@ class AsyncConnectionPool:
             total_acquired=0,
             total_released=0,
             total_created=0,
-            pool_exhaustions=0
+            pool_exhaustions=0,
         )
 
         # Pool lifecycle
@@ -109,7 +114,9 @@ class AsyncConnectionPool:
                         self._stats.idle_connections += 1
 
                 self._initialized = True
-                logger.info(f"Async connection pool initialized with {self.min_connections} connections")
+                logger.info(
+                    f"Async connection pool initialized with {self.min_connections} connections"
+                )
 
             except Exception as e:
                 logger.error(f"Failed to initialize async connection pool: {e}")
@@ -119,17 +126,15 @@ class AsyncConnectionPool:
         """Create a new async database connection with optimal settings."""
         try:
             conn = await aiosqlite.connect(
-                str(self.db_path),
-                timeout=30.0,
-                isolation_level='DEFERRED'
+                str(self.db_path), timeout=30.0, isolation_level="DEFERRED"
             )
 
             # Optimize connection settings
-            await conn.execute('PRAGMA journal_mode=WAL')  # Write-Ahead Logging
-            await conn.execute('PRAGMA synchronous=NORMAL')  # Faster writes
-            await conn.execute('PRAGMA cache_size=10000')  # 10MB cache
-            await conn.execute('PRAGMA foreign_keys=ON')
-            await conn.execute('PRAGMA temp_store=MEMORY')  # Use memory for temp tables
+            await conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
+            await conn.execute("PRAGMA synchronous=NORMAL")  # Faster writes
+            await conn.execute("PRAGMA cache_size=10000")  # 10MB cache
+            await conn.execute("PRAGMA foreign_keys=ON")
+            await conn.execute("PRAGMA temp_store=MEMORY")  # Use memory for temp tables
 
             # Set row factory for dict-like access
             conn.row_factory = aiosqlite.Row
@@ -145,7 +150,7 @@ class AsyncConnectionPool:
     async def _validate_connection(self, conn: aiosqlite.Connection) -> bool:
         """Check if an async connection is still valid."""
         try:
-            await conn.execute('SELECT 1')
+            await conn.execute("SELECT 1")
             return True
         except Exception as e:
             logger.debug(f"Async connection validation failed: {e}")
@@ -176,8 +181,7 @@ class AsyncConnectionPool:
         try:
             # Acquire semaphore for connection limiting
             await asyncio.wait_for(
-                self._connection_semaphore.acquire(),
-                timeout=self.connection_timeout
+                self._connection_semaphore.acquire(), timeout=self.connection_timeout
             )
             acquired_semaphore = True
 
@@ -185,7 +189,7 @@ class AsyncConnectionPool:
             try:
                 conn = await asyncio.wait_for(
                     self._idle_connections.get(),
-                    timeout=0.1  # Quick timeout for idle check
+                    timeout=0.1,  # Quick timeout for idle check
                 )
 
                 # Validate connection
@@ -211,8 +215,7 @@ class AsyncConnectionPool:
                 # Wait for connection to become available
                 try:
                     conn = await asyncio.wait_for(
-                        self._idle_connections.get(),
-                        timeout=self.connection_timeout
+                        self._idle_connections.get(), timeout=self.connection_timeout
                     )
 
                     # Validate connection again
@@ -221,7 +224,9 @@ class AsyncConnectionPool:
                         raise RuntimeError("No valid connections available")
 
                 except asyncio.TimeoutError:
-                    raise RuntimeError(f"Connection timeout after {self.connection_timeout}s")
+                    raise RuntimeError(
+                        f"Connection timeout after {self.connection_timeout}s"
+                    )
 
             # Track active connection
             async with self._lock:
@@ -239,7 +244,9 @@ class AsyncConnectionPool:
                     async with self._lock:
                         if conn in self._active_connections:
                             self._active_connections.remove(conn)
-                            self._stats.active_connections = len(self._active_connections)
+                            self._stats.active_connections = len(
+                                self._active_connections
+                            )
                             self._stats.total_released += 1
 
                     # Reset connection state
@@ -249,7 +256,9 @@ class AsyncConnectionPool:
                     try:
                         await self._idle_connections.put(conn)
                         async with self._lock:
-                            self._stats.idle_connections = self._idle_connections.qsize()
+                            self._stats.idle_connections = (
+                                self._idle_connections.qsize()
+                            )
                     except asyncio.QueueFull:
                         # Pool full, close connection
                         await conn.close()
@@ -263,7 +272,9 @@ class AsyncConnectionPool:
                         async with self._lock:
                             self._stats.total_connections -= 1
                     except Exception as close_error:
-                        logger.debug(f"Failed to close corrupted async connection: {close_error}")
+                        logger.debug(
+                            f"Failed to close corrupted async connection: {close_error}"
+                        )
 
             if acquired_semaphore:
                 self._connection_semaphore.release()
@@ -314,7 +325,7 @@ class AsyncConnectionPool:
                 total_acquired=self._stats.total_acquired,
                 total_released=self._stats.total_released,
                 total_created=self._stats.total_created,
-                pool_exhaustions=self._stats.pool_exhaustions
+                pool_exhaustions=self._stats.pool_exhaustions,
             )
 
     async def health_check(self) -> Dict[str, Any]:
@@ -322,25 +333,26 @@ class AsyncConnectionPool:
         try:
             # Test connection acquisition
             import time
+
             start_time = time.time()
             async with self.acquire() as conn:
-                await conn.execute('SELECT 1')
+                await conn.execute("SELECT 1")
             acquisition_time = time.time() - start_time
 
             stats = await self.get_stats()
 
             return {
-                'status': 'healthy',
-                'acquisition_time_ms': acquisition_time * 1000,
-                'pool_utilization': stats.active_connections / stats.max_connections,
-                'stats': stats.__dict__
+                "status": "healthy",
+                "acquisition_time_ms": acquisition_time * 1000,
+                "pool_utilization": stats.active_connections / stats.max_connections,
+                "stats": stats.__dict__,
             }
 
         except Exception as e:
             return {
-                'status': 'unhealthy',
-                'error': str(e),
-                'stats': (await self.get_stats()).__dict__
+                "status": "unhealthy",
+                "error": str(e),
+                "stats": (await self.get_stats()).__dict__,
             }
 
 
@@ -357,7 +369,9 @@ class AsyncDatabaseManager:
         self._pools: Dict[str, AsyncConnectionPool] = {}
         self._lock = asyncio.Lock()
 
-    async def get_pool(self, db_name: str, db_path: Path, **pool_kwargs) -> AsyncConnectionPool:
+    async def get_pool(
+        self, db_name: str, db_path: Path, **pool_kwargs
+    ) -> AsyncConnectionPool:
         """
         Get or create an async connection pool for a specific database.
 
@@ -375,7 +389,9 @@ class AsyncDatabaseManager:
                     pool = AsyncConnectionPool(db_path=db_path, **pool_kwargs)
                     await pool.initialize()
                     self._pools[db_name] = pool
-                    logger.info(f"Created async connection pool for database: {db_name}")
+                    logger.info(
+                        f"Created async connection pool for database: {db_name}"
+                    )
 
         return self._pools[db_name]
 

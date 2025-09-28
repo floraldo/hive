@@ -1,12 +1,12 @@
 """Parameter encoding for system configurations in optimization."""
 
-from typing import Dict, Any, List, Tuple, Optional, Union
-import numpy as np
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-import yaml
-from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import numpy as np
+import yaml
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -15,6 +15,7 @@ logger = get_logger(__name__)
 @dataclass
 class ParameterSpec:
     """Specification for an optimizable parameter."""
+
     name: str
     component: str
     parameter_path: str  # e.g., "technical.capacity_nominal"
@@ -28,6 +29,7 @@ class ParameterSpec:
 @dataclass
 class EncodingSpec:
     """Complete specification for parameter encoding."""
+
     parameters: List[ParameterSpec]
     objective_weights: Optional[Dict[str, float]] = None
     constraint_definitions: Optional[List[Dict[str, Any]]] = None
@@ -102,8 +104,10 @@ class ParameterEncoder:
             Updated system configuration
         """
         if len(vector) != self.spec.dimensions:
-            raise ValueError(f"Vector dimension {len(vector)} doesn't match "
-                           f"expected {self.spec.dimensions}")
+            raise ValueError(
+                f"Vector dimension {len(vector)} doesn't match "
+                f"expected {self.spec.dimensions}"
+            )
 
         # Create deep copy to avoid modifying original
         config = deepcopy(base_config)
@@ -122,8 +126,9 @@ class ParameterEncoder:
 
         return config
 
-    def _extract_parameter_value(self, config: Dict[str, Any],
-                                param_spec: ParameterSpec) -> float:
+    def _extract_parameter_value(
+        self, config: Dict[str, Any], param_spec: ParameterSpec
+    ) -> float:
         """Extract parameter value from configuration.
 
         Args:
@@ -137,18 +142,20 @@ class ParameterEncoder:
         value = config
 
         # First find the component
-        if 'components' in config and param_spec.component in config['components']:
-            value = config['components'][param_spec.component]
+        if "components" in config and param_spec.component in config["components"]:
+            value = config["components"][param_spec.component]
         else:
             raise ValueError(f"Component {param_spec.component} not found")
 
         # Then navigate the parameter path
-        path_parts = param_spec.parameter_path.split('.')
+        path_parts = param_spec.parameter_path.split(".")
         for part in path_parts:
             if isinstance(value, dict) and part in value:
                 value = value[part]
             else:
-                raise ValueError(f"Parameter path {param_spec.parameter_path} not found")
+                raise ValueError(
+                    f"Parameter path {param_spec.parameter_path} not found"
+                )
 
         # Convert to float
         try:
@@ -156,8 +163,9 @@ class ParameterEncoder:
         except (ValueError, TypeError):
             raise ValueError(f"Parameter {param_spec.name} is not numeric: {value}")
 
-    def _set_parameter_value(self, config: Dict[str, Any],
-                           param_spec: ParameterSpec, value: float):
+    def _set_parameter_value(
+        self, config: Dict[str, Any], param_spec: ParameterSpec, value: float
+    ):
         """Set parameter value in configuration.
 
         Args:
@@ -166,16 +174,16 @@ class ParameterEncoder:
             value: New parameter value
         """
         # Ensure components section exists
-        if 'components' not in config:
-            config['components'] = {}
+        if "components" not in config:
+            config["components"] = {}
 
         # Ensure component exists
-        if param_spec.component not in config['components']:
-            config['components'][param_spec.component] = {}
+        if param_spec.component not in config["components"]:
+            config["components"][param_spec.component] = {}
 
         # Navigate to the parameter location
-        current = config['components'][param_spec.component]
-        path_parts = param_spec.parameter_path.split('.')
+        current = config["components"][param_spec.component]
+        path_parts = param_spec.parameter_path.split(".")
 
         # Navigate to parent of final key
         for part in path_parts[:-1]:
@@ -219,7 +227,9 @@ class ParameterEncoder:
         encoded = np.clip(value, min_val, max_val)
         return encoded
 
-    def _decode_parameter(self, encoded_value: float, param_spec: ParameterSpec) -> float:
+    def _decode_parameter(
+        self, encoded_value: float, param_spec: ParameterSpec
+    ) -> float:
         """Decode a single parameter value.
 
         Args:
@@ -234,7 +244,7 @@ class ParameterEncoder:
 
         # Apply inverse scaling
         if param_spec.scaling == "log":
-            value = 10 ** value
+            value = 10**value
         elif param_spec.scaling == "normalized":
             # Scale from [0,1] to [min,max]
             value = min_val + value * (max_val - min_val)
@@ -272,13 +282,13 @@ class ParameterEncoder:
         info = {}
         for param in self.spec.parameters:
             info[param.name] = {
-                'component': param.component,
-                'parameter_path': param.parameter_path,
-                'bounds': param.bounds,
-                'type': param.parameter_type,
-                'units': param.units,
-                'description': param.description,
-                'scaling': param.scaling
+                "component": param.component,
+                "parameter_path": param.parameter_path,
+                "bounds": param.bounds,
+                "type": param.parameter_type,
+                "units": param.units,
+                "description": param.description,
+                "scaling": param.scaling,
             }
         return info
 
@@ -295,9 +305,12 @@ class SystemConfigEncoder(ParameterEncoder):
     # No hardcoded component knowledge - maintains architectural gravity toward co-location
 
     @classmethod
-    def from_config(cls, config_path: Union[str, Path],
-                   component_selection: Optional[List[str]] = None,
-                   custom_bounds: Optional[Dict[str, Tuple[float, float]]] = None) -> 'SystemConfigEncoder':
+    def from_config(
+        cls,
+        config_path: Union[str, Path],
+        component_selection: Optional[List[str]] = None,
+        custom_bounds: Optional[Dict[str, Tuple[float, float]]] = None,
+    ) -> "SystemConfigEncoder":
         """Create encoder from system configuration file.
 
         This method dynamically discovers optimizable parameters from component
@@ -312,20 +325,20 @@ class SystemConfigEncoder(ParameterEncoder):
             SystemConfigEncoder instance
         """
         # Load configuration
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             config = yaml.safe_load(f)
 
         # Detect available components
         available_components = set()
-        if 'components' in config:
-            available_components = set(config['components'].keys())
+        if "components" in config:
+            available_components = set(config["components"].keys())
 
         # Build parameter list by introspecting component configurations
         parameters = []
 
         for component_name in available_components:
             if component_selection is None or component_name in component_selection:
-                component_config = config['components'][component_name]
+                component_config = config["components"][component_name]
 
                 # Look for optimizable_parameters in component's technical section
                 optimizable_params = cls._extract_optimizable_parameters(
@@ -336,8 +349,7 @@ class SystemConfigEncoder(ParameterEncoder):
                     # Apply custom bounds if provided
                     if custom_bounds and param_spec.name in custom_bounds:
                         param_spec = dataclass.replace(
-                            param_spec,
-                            bounds=custom_bounds[param_spec.name]
+                            param_spec, bounds=custom_bounds[param_spec.name]
                         )
                     parameters.append(param_spec)
 
@@ -347,15 +359,18 @@ class SystemConfigEncoder(ParameterEncoder):
                 "Components must define 'optimizable_parameters' in their technical section."
             )
 
-        logger.info(f"Created encoder with {len(parameters)} parameters: "
-                   f"{[p.name for p in parameters]}")
+        logger.info(
+            f"Created encoder with {len(parameters)} parameters: "
+            f"{[p.name for p in parameters]}"
+        )
 
         encoding_spec = EncodingSpec(parameters=parameters)
         return cls(encoding_spec)
 
     @classmethod
-    def _extract_optimizable_parameters(cls, component_name: str,
-                                      component_config: Dict[str, Any]) -> List[ParameterSpec]:
+    def _extract_optimizable_parameters(
+        cls, component_name: str, component_config: Dict[str, Any]
+    ) -> List[ParameterSpec]:
         """Extract optimizable parameters from component configuration.
 
         This method implements the architectural principle of co-location:
@@ -371,30 +386,36 @@ class SystemConfigEncoder(ParameterEncoder):
         parameters = []
 
         # Look for optimizable_parameters in component's technical section
-        technical_config = component_config.get('technical', {})
-        optimizable_config = technical_config.get('optimizable_parameters', {})
+        technical_config = component_config.get("technical", {})
+        optimizable_config = technical_config.get("optimizable_parameters", {})
 
         if not optimizable_config:
-            logger.debug(f"No optimizable parameters defined for component {component_name}")
+            logger.debug(
+                f"No optimizable parameters defined for component {component_name}"
+            )
             return parameters
 
         # Convert each optimizable parameter to ParameterSpec
         for param_name, param_config in optimizable_config.items():
             try:
                 # Extract required fields
-                parameter_path = param_config.get('parameter_path')
-                bounds = param_config.get('bounds')
+                parameter_path = param_config.get("parameter_path")
+                bounds = param_config.get("bounds")
 
                 if not parameter_path or not bounds:
-                    logger.warning(f"Incomplete parameter definition for {component_name}.{param_name}: "
-                                 f"missing parameter_path or bounds")
+                    logger.warning(
+                        f"Incomplete parameter definition for {component_name}.{param_name}: "
+                        f"missing parameter_path or bounds"
+                    )
                     continue
 
                 # Convert bounds to tuple if it's a list
                 if isinstance(bounds, list) and len(bounds) == 2:
                     bounds = tuple(bounds)
                 elif not isinstance(bounds, tuple) or len(bounds) != 2:
-                    logger.warning(f"Invalid bounds format for {component_name}.{param_name}: {bounds}")
+                    logger.warning(
+                        f"Invalid bounds format for {component_name}.{param_name}: {bounds}"
+                    )
                     continue
 
                 # Create ParameterSpec
@@ -403,23 +424,29 @@ class SystemConfigEncoder(ParameterEncoder):
                     component=component_name,
                     parameter_path=parameter_path,
                     bounds=bounds,
-                    parameter_type=param_config.get('parameter_type', 'continuous'),
-                    units=param_config.get('units'),
-                    description=param_config.get('description', f'{param_name} for {component_name}'),
-                    scaling=param_config.get('scaling', 'linear')
+                    parameter_type=param_config.get("parameter_type", "continuous"),
+                    units=param_config.get("units"),
+                    description=param_config.get(
+                        "description", f"{param_name} for {component_name}"
+                    ),
+                    scaling=param_config.get("scaling", "linear"),
                 )
 
                 parameters.append(param_spec)
                 logger.debug(f"Extracted optimizable parameter: {param_spec.name}")
 
             except Exception as e:
-                logger.warning(f"Failed to process parameter {component_name}.{param_name}: {e}")
+                logger.warning(
+                    f"Failed to process parameter {component_name}.{param_name}: {e}"
+                )
                 continue
 
         return parameters
 
     @classmethod
-    def from_parameter_list(cls, parameter_definitions: List[Dict[str, Any]]) -> 'SystemConfigEncoder':
+    def from_parameter_list(
+        cls, parameter_definitions: List[Dict[str, Any]]
+    ) -> "SystemConfigEncoder":
         """Create encoder from parameter definition list.
 
         Args:
@@ -436,8 +463,9 @@ class SystemConfigEncoder(ParameterEncoder):
         encoding_spec = EncodingSpec(parameters=parameters)
         return cls(encoding_spec)
 
-    def suggest_bounds_from_config(self, config: Dict[str, Any],
-                                  scaling_factor: float = 2.0) -> Dict[str, Tuple[float, float]]:
+    def suggest_bounds_from_config(
+        self, config: Dict[str, Any], scaling_factor: float = 2.0
+    ) -> Dict[str, Tuple[float, float]]:
         """Suggest parameter bounds based on current configuration values.
 
         Args:

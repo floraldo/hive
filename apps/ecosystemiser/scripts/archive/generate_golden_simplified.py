@@ -2,10 +2,11 @@
 """
 Simplified golden dataset generation - run original Systemiser to get baseline results.
 """
-import sys
 import json
-from pathlib import Path
 import subprocess
+import sys
+from pathlib import Path
+
 from hive_logging import get_logger
 
 logger = get_logger('GoldenDataset')

@@ -11,17 +11,15 @@ Tests the foundational architecture after the v3.0 hardening:
 This establishes the performance baseline for the foundation work.
 """
 
-import time
 import sys
-from pathlib import Path
+import time
 import warnings
+from pathlib import Path
 
-# Set up path to import from the source directory
-src_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(src_path))
-
+# Use Poetry workspace imports
 try:
     from hive_logging import get_logger
+
     logger = get_logger(__name__)
 
     def test_config_inheritance():
@@ -38,11 +36,13 @@ try:
             logger.info(f"Config keys: {len(config.config)}")
 
             settings = config.config
-            eco_keys = [k for k in settings.keys() if 'ECOSYSTEMISER' in k]
+            eco_keys = [k for k in settings.keys() if "ECOSYSTEMISER" in k]
             logger.info(f"EcoSystemiser-specific keys: {len(eco_keys)}")
 
             # No legacy compatibility test needed - we've eliminated the wrappers
-            logger.info("SUCCESS: Using direct hive-config imports (no deprecated wrappers)")
+            logger.info(
+                "SUCCESS: Using direct hive-config imports (no deprecated wrappers)"
+            )
 
             elapsed = time.time() - start_time
             logger.info(f"Config test completed in {elapsed:.3f}s")
@@ -59,9 +59,9 @@ try:
 
         try:
             from ecosystemiser.core.db import (
-                get_ecosystemiser_db_path,
                 get_ecosystemiser_connection,
-                validate_ecosystemiser_database
+                get_ecosystemiser_db_path,
+                validate_ecosystemiser_database,
             )
 
             # Test database path
@@ -74,7 +74,7 @@ try:
 
             # Test connection context manager
             with get_ecosystemiser_connection() as conn:
-                cursor = conn.execute('SELECT 1 as test')
+                cursor = conn.execute("SELECT 1 as test")
                 result = cursor.fetchone()
                 if result and result[0] == 1:
                     logger.info("SUCCESS: Database connection working")
@@ -89,6 +89,7 @@ try:
         except Exception as e:
             logger.error(f"Database test failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -100,11 +101,14 @@ try:
         try:
             # Test direct hive_logging import
             from hive_logging import get_logger
+
             test_logger = get_logger("foundation_test")
             test_logger.info("Testing direct hive_logging import")
 
             # No legacy compatibility test needed - we've eliminated the wrappers
-            logger.info("SUCCESS: Using direct hive_logging imports (no deprecated wrappers)")
+            logger.info(
+                "SUCCESS: Using direct hive_logging imports (no deprecated wrappers)"
+            )
 
             elapsed = time.time() - start_time
             logger.info(f"Logging test completed in {elapsed:.3f}s")

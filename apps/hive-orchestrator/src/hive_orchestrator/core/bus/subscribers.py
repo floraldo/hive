@@ -5,12 +5,13 @@ Provides both synchronous and asynchronous event subscribers
 for flexible event handling patterns.
 """
 
-import uuid
-from hive_logging import get_logger
 import asyncio
-from typing import Callable, Any, Optional
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any, Callable, Optional
+
+from hive_logging import get_logger
 
 from .events import Event
 
@@ -36,10 +37,14 @@ class EventSubscriber:
     def handle_event(self, event: Event):
         """Handle an incoming event"""
         try:
-            logger.debug(f"Subscriber {self.subscriber_name} handling event {event.event_id}")
+            logger.debug(
+                f"Subscriber {self.subscriber_name} handling event {event.event_id}"
+            )
             self.callback(event)
         except Exception as e:
-            logger.error(f"Subscriber {self.subscriber_name} failed to handle event {event.event_id}: {e}")
+            logger.error(
+                f"Subscriber {self.subscriber_name} failed to handle event {event.event_id}: {e}"
+            )
             raise
 
 
@@ -62,7 +67,9 @@ class AsyncEventSubscriber:
     async def handle_event(self, event: Event):
         """Handle an incoming event asynchronously"""
         try:
-            logger.debug(f"Async subscriber {self.subscriber_name} handling event {event.event_id}")
+            logger.debug(
+                f"Async subscriber {self.subscriber_name} handling event {event.event_id}"
+            )
             result = self.callback(event)
 
             # Handle both sync and async callbacks
@@ -70,7 +77,9 @@ class AsyncEventSubscriber:
                 await result
 
         except Exception as e:
-            logger.error(f"Async subscriber {self.subscriber_name} failed to handle event {event.event_id}: {e}")
+            logger.error(
+                f"Async subscriber {self.subscriber_name} failed to handle event {event.event_id}: {e}"
+            )
             raise
 
 
@@ -147,35 +156,29 @@ class SubscriberRegistry:
 
 # Convenience functions for creating subscribers
 
+
 def create_subscriber(
-    pattern: str,
-    callback: Callable[[Event], None],
-    subscriber_name: str = "anonymous"
+    pattern: str, callback: Callable[[Event], None], subscriber_name: str = "anonymous"
 ) -> EventSubscriber:
     """Create a synchronous event subscriber"""
     return EventSubscriber(
-        pattern=pattern,
-        callback=callback,
-        subscriber_name=subscriber_name
+        pattern=pattern, callback=callback, subscriber_name=subscriber_name
     )
 
 
 def create_async_subscriber(
-    pattern: str,
-    callback: Callable[[Event], Any],
-    subscriber_name: str = "anonymous"
+    pattern: str, callback: Callable[[Event], Any], subscriber_name: str = "anonymous"
 ) -> AsyncEventSubscriber:
     """Create an asynchronous event subscriber"""
     return AsyncEventSubscriber(
-        pattern=pattern,
-        callback=callback,
-        subscriber_name=subscriber_name
+        pattern=pattern, callback=callback, subscriber_name=subscriber_name
     )
 
 
 # Decorator for easy subscription
 def event_handler(pattern: str, subscriber_name: str = "anonymous"):
     """Decorator for creating event handlers"""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
@@ -186,4 +189,5 @@ def event_handler(pattern: str, subscriber_name: str = "anonymous"):
         wrapper._is_event_handler = True
 
         return wrapper
+
     return decorator

@@ -13,11 +13,6 @@ that can be used to build error handling for any system.
 
 from .base_exceptions import BaseError
 from .error_reporter import BaseErrorReporter
-from .recovery import RecoveryStrategy, RecoveryStatus
+from .recovery import RecoveryStatus, RecoveryStrategy
 
-__all__ = [
-    "BaseError",
-    "BaseErrorReporter",
-    "RecoveryStrategy",
-    "RecoveryStatus"
-]
+__all__ = ["BaseError", "BaseErrorReporter", "RecoveryStrategy", "RecoveryStatus"]

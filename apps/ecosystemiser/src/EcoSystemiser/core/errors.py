@@ -9,9 +9,9 @@ Extends the generic error handling toolkit with EcoSystemiser capabilities:
 - EcoSystemiser-specific error reporting
 """
 
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
 import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 try:
     from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
@@ -33,6 +33,8 @@ except ImportError:
 
     class RecoveryStrategy:
         pass
+
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -57,7 +59,7 @@ class EcoSystemiserError(BaseError):
         timestep: Optional[int] = None,
         details: Optional[Dict[str, Any]] = None,
         recovery_suggestions: Optional[List[str]] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         Initialize an EcoSystemiser error with simulation context.
@@ -92,7 +94,7 @@ class EcoSystemiserError(BaseError):
             operation=operation,
             details=ecosys_details,
             recovery_suggestions=recovery_suggestions,
-            original_error=original_error
+            original_error=original_error,
         )
 
         # Store EcoSystemiser-specific attributes
@@ -113,14 +115,13 @@ class EcoSystemiserError(BaseError):
 # SIMULATION-SPECIFIC ERRORS
 # ===============================================================================
 
+
 class SimulationError(EcoSystemiserError):
     """Base class for simulation-related errors"""
 
     def __init__(self, message: str, **kwargs):
         super().__init__(
-            message=message,
-            component=kwargs.get("component", "simulation"),
-            **kwargs
+            message=message, component=kwargs.get("component", "simulation"), **kwargs
         )
 
 
@@ -132,7 +133,7 @@ class SimulationConfigError(SimulationError):
         message: str,
         config_key: Optional[str] = None,
         config_value: Any = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if config_key:
@@ -141,11 +142,14 @@ class SimulationConfigError(SimulationError):
             details["config_value"] = str(config_value)
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Check simulation configuration file",
-            "Verify parameter ranges and types",
-            "Ensure all required parameters are present"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Check simulation configuration file",
+                "Verify parameter ranges and types",
+                "Ensure all required parameters are present",
+            ],
+        )
 
         super().__init__(message=message, operation="configuration", **kwargs)
 
@@ -154,18 +158,22 @@ class SimulationExecutionError(SimulationError):
     """Error during simulation execution"""
 
     def __init__(self, message: str, **kwargs):
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Check simulation input data",
-            "Verify component connections",
-            "Review solver configuration",
-            "Check for infeasible constraints"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Check simulation input data",
+                "Verify component connections",
+                "Review solver configuration",
+                "Check for infeasible constraints",
+            ],
+        )
         super().__init__(message=message, operation="execution", **kwargs)
 
 
 # ===============================================================================
 # PROFILE LOADING ERRORS
 # ===============================================================================
+
 
 class ProfileError(EcoSystemiserError):
     """Base class for profile-related errors"""
@@ -174,7 +182,7 @@ class ProfileError(EcoSystemiserError):
         super().__init__(
             message=message,
             component=kwargs.get("component", "profile_loader"),
-            **kwargs
+            **kwargs,
         )
 
 
@@ -186,7 +194,7 @@ class ProfileLoadError(ProfileError):
         message: str,
         profile_type: Optional[str] = None,
         source: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if profile_type:
@@ -195,12 +203,15 @@ class ProfileLoadError(ProfileError):
             details["source"] = source
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Verify data source availability",
-            "Check network connection for API sources",
-            "Validate file paths for local sources",
-            "Ensure proper API credentials"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Verify data source availability",
+                "Check network connection for API sources",
+                "Validate file paths for local sources",
+                "Ensure proper API credentials",
+            ],
+        )
 
         super().__init__(message=message, operation="load", **kwargs)
 
@@ -213,7 +224,7 @@ class ProfileValidationError(ProfileError):
         message: str,
         validation_type: Optional[str] = None,
         failed_checks: Optional[List[str]] = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if validation_type:
@@ -222,12 +233,15 @@ class ProfileValidationError(ProfileError):
             details["failed_checks"] = failed_checks
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Check data format and structure",
-            "Verify time series continuity",
-            "Validate data ranges and units",
-            "Ensure quality control thresholds are appropriate"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Check data format and structure",
+                "Verify time series continuity",
+                "Validate data ranges and units",
+                "Ensure quality control thresholds are appropriate",
+            ],
+        )
 
         super().__init__(message=message, operation="validation", **kwargs)
 
@@ -236,14 +250,13 @@ class ProfileValidationError(ProfileError):
 # SOLVER AND OPTIMIZATION ERRORS
 # ===============================================================================
 
+
 class SolverError(EcoSystemiserError):
     """Base class for solver-related errors"""
 
     def __init__(self, message: str, **kwargs):
         super().__init__(
-            message=message,
-            component=kwargs.get("component", "solver"),
-            **kwargs
+            message=message, component=kwargs.get("component", "solver"), **kwargs
         )
 
 
@@ -255,7 +268,7 @@ class OptimizationInfeasibleError(SolverError):
         message: str,
         solver_type: Optional[str] = None,
         constraints_violated: Optional[List[str]] = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if solver_type:
@@ -264,13 +277,16 @@ class OptimizationInfeasibleError(SolverError):
             details["constraints_violated"] = constraints_violated
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Relax constraint boundaries",
-            "Check for conflicting constraints",
-            "Verify component capacities",
-            "Review demand-supply balance",
-            "Consider using a different solver"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Relax constraint boundaries",
+                "Check for conflicting constraints",
+                "Verify component capacities",
+                "Review demand-supply balance",
+                "Consider using a different solver",
+            ],
+        )
 
         super().__init__(message=message, operation="optimization", **kwargs)
 
@@ -283,7 +299,7 @@ class SolverConvergenceError(SolverError):
         message: str,
         iterations: Optional[int] = None,
         tolerance: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if iterations is not None:
@@ -292,13 +308,16 @@ class SolverConvergenceError(SolverError):
             details["tolerance"] = tolerance
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Increase maximum iterations",
-            "Adjust convergence tolerance",
-            "Improve initial solution guess",
-            "Simplify problem formulation",
-            "Use warm-starting if available"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Increase maximum iterations",
+                "Adjust convergence tolerance",
+                "Improve initial solution guess",
+                "Simplify problem formulation",
+                "Use warm-starting if available",
+            ],
+        )
 
         super().__init__(message=message, operation="convergence", **kwargs)
 
@@ -306,6 +325,7 @@ class SolverConvergenceError(SolverError):
 # ===============================================================================
 # COMPONENT ERRORS
 # ===============================================================================
+
 
 class ComponentError(EcoSystemiserError):
     """Base class for component-related errors"""
@@ -315,7 +335,7 @@ class ComponentError(EcoSystemiserError):
         message: str,
         component_name: Optional[str] = None,
         component_type: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if component_name:
@@ -327,7 +347,7 @@ class ComponentError(EcoSystemiserError):
         super().__init__(
             message=message,
             component=kwargs.get("component", "component_system"),
-            **kwargs
+            **kwargs,
         )
 
 
@@ -340,7 +360,7 @@ class ComponentConnectionError(ComponentError):
         source_component: Optional[str] = None,
         target_component: Optional[str] = None,
         connection_type: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if source_component:
@@ -351,12 +371,15 @@ class ComponentConnectionError(ComponentError):
             details["connection_type"] = connection_type
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Verify component compatibility",
-            "Check connection types match",
-            "Ensure components are properly initialized",
-            "Review system topology configuration"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Verify component compatibility",
+                "Check connection types match",
+                "Ensure components are properly initialized",
+                "Review system topology configuration",
+            ],
+        )
 
         super().__init__(message=message, operation="connection", **kwargs)
 
@@ -370,7 +393,7 @@ class ComponentValidationError(ComponentError):
         parameter_name: Optional[str] = None,
         parameter_value: Any = None,
         valid_range: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if parameter_name:
@@ -381,12 +404,15 @@ class ComponentValidationError(ComponentError):
             details["valid_range"] = valid_range
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Check parameter value against valid range",
-            "Verify parameter units",
-            "Ensure parameter type is correct",
-            "Review component technical specifications"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Check parameter value against valid range",
+                "Verify parameter units",
+                "Ensure parameter type is correct",
+                "Review component technical specifications",
+            ],
+        )
 
         super().__init__(message=message, operation="validation", **kwargs)
 
@@ -395,37 +421,34 @@ class ComponentValidationError(ComponentError):
 # DATABASE ERRORS
 # ===============================================================================
 
+
 class DatabaseError(EcoSystemiserError):
     """Base class for database-related errors"""
 
     def __init__(self, message: str, **kwargs):
         super().__init__(
-            message=message,
-            component=kwargs.get("component", "database"),
-            **kwargs
+            message=message, component=kwargs.get("component", "database"), **kwargs
         )
 
 
 class DatabaseConnectionError(DatabaseError):
     """Error connecting to EcoSystemiser database"""
 
-    def __init__(
-        self,
-        message: str,
-        db_path: Optional[str] = None,
-        **kwargs
-    ):
+    def __init__(self, message: str, db_path: Optional[str] = None, **kwargs):
         details = kwargs.get("details", {})
         if db_path:
             details["db_path"] = db_path
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Check database file exists",
-            "Verify file permissions",
-            "Ensure database is not locked",
-            "Check disk space availability"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Check database file exists",
+                "Verify file permissions",
+                "Ensure database is not locked",
+                "Check disk space availability",
+            ],
+        )
 
         super().__init__(message=message, operation="connection", **kwargs)
 
@@ -433,23 +456,21 @@ class DatabaseConnectionError(DatabaseError):
 class DatabaseTransactionError(DatabaseError):
     """Error during database transaction"""
 
-    def __init__(
-        self,
-        message: str,
-        transaction_type: Optional[str] = None,
-        **kwargs
-    ):
+    def __init__(self, message: str, transaction_type: Optional[str] = None, **kwargs):
         details = kwargs.get("details", {})
         if transaction_type:
             details["transaction_type"] = transaction_type
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Retry transaction",
-            "Check for database locks",
-            "Verify data integrity",
-            "Review transaction isolation level"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Retry transaction",
+                "Check for database locks",
+                "Verify data integrity",
+                "Review transaction isolation level",
+            ],
+        )
 
         super().__init__(message=message, operation="transaction", **kwargs)
 
@@ -458,14 +479,13 @@ class DatabaseTransactionError(DatabaseError):
 # EVENT BUS ERRORS
 # ===============================================================================
 
+
 class EventBusError(EcoSystemiserError):
     """Base class for event bus errors"""
 
     def __init__(self, message: str, **kwargs):
         super().__init__(
-            message=message,
-            component=kwargs.get("component", "event_bus"),
-            **kwargs
+            message=message, component=kwargs.get("component", "event_bus"), **kwargs
         )
 
 
@@ -477,7 +497,7 @@ class EventPublishError(EventBusError):
         message: str,
         event_type: Optional[str] = None,
         event_id: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if event_type:
@@ -486,12 +506,15 @@ class EventPublishError(EventBusError):
             details["event_id"] = event_id
 
         kwargs["details"] = details
-        kwargs["recovery_suggestions"] = kwargs.get("recovery_suggestions", [
-            "Check event bus connectivity",
-            "Verify event format",
-            "Ensure event handlers are registered",
-            "Review event bus capacity"
-        ])
+        kwargs["recovery_suggestions"] = kwargs.get(
+            "recovery_suggestions",
+            [
+                "Check event bus connectivity",
+                "Verify event format",
+                "Ensure event handlers are registered",
+                "Review event bus capacity",
+            ],
+        )
 
         super().__init__(message=message, operation="publish", **kwargs)
 
@@ -499,6 +522,7 @@ class EventPublishError(EventBusError):
 # ===============================================================================
 # ERROR REPORTER
 # ===============================================================================
+
 
 class EcoSystemiserErrorReporter(BaseErrorReporter):
     """
@@ -520,7 +544,7 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         self,
         error: Exception,
         context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None
+        additional_info: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Report an error with EcoSystemiser-specific handling.
@@ -547,7 +571,7 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         self.error_history.append(error_record)
 
         # Log the error (avoid 'message' key conflict with logging)
-        log_record = {k: v for k, v in error_record.items() if k != 'message'}
+        log_record = {k: v for k, v in error_record.items() if k != "message"}
         logger.error(f"EcoSystemiser Error: {error}", extra=log_record)
 
         # EcoSystemiser-specific categorization and handling
@@ -596,7 +620,7 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
             "profile_errors": len(self.profile_errors),
             "solver_errors": len(self.solver_errors),
             "component_errors": len(self.component_errors),
-            "latest_errors": self.error_history[-10:]  # Last 10 error records
+            "latest_errors": self.error_history[-10:],  # Last 10 error records
         }
 
 
@@ -619,43 +643,35 @@ def get_error_reporter() -> EcoSystemiserErrorReporter:
 __all__ = [
     # Base classes
     "EcoSystemiserError",
-
     # Simulation errors
     "SimulationError",
     "SimulationConfigError",
     "SimulationExecutionError",
-
     # Profile errors
     "ProfileError",
     "ProfileLoadError",
     "ProfileValidationError",
-
     # Solver errors
     "SolverError",
     "OptimizationInfeasibleError",
     "SolverConvergenceError",
-
     # Component errors
     "ComponentError",
     "ComponentConnectionError",
     "ComponentValidationError",
-
     # Database errors
     "DatabaseError",
     "DatabaseConnectionError",
     "DatabaseTransactionError",
-
     # Event bus errors
     "EventBusError",
     "EventPublishError",
-
     # Reporter
     "EcoSystemiserErrorReporter",
     "get_error_reporter",
-
     # Legacy aliases for backward compatibility
     "AdapterError",
-    "ValidationError"
+    "ValidationError",
 ]
 
 

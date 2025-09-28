@@ -10,4 +10,4 @@ __author__ = "Hive Fleet Command"
 
 from .agent import AIPlanner, main
 
-__all__ = ['AIPlanner', 'main']
+__all__ = ["AIPlanner", "main"]

@@ -5,15 +5,16 @@ Defines the formal event types that can be published and consumed
 by autonomous agents in the Hive system.
 """
 
-from datetime import datetime, timezone
-from typing import Dict, Any, Optional, Union
-from dataclasses import dataclass, field
-from enum import Enum
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Optional, Union
 
 
 class EventType(str, Enum):
     """Base event type categories"""
+
     TASK = "task"
     AGENT = "agent"
     WORKFLOW = "workflow"
@@ -22,6 +23,7 @@ class EventType(str, Enum):
 
 class TaskEventType(str, Enum):
     """Task-related event types"""
+
     CREATED = "task.created"
     QUEUED = "task.queued"
     ASSIGNED = "task.assigned"
@@ -35,6 +37,7 @@ class TaskEventType(str, Enum):
 
 class AgentEventType(str, Enum):
     """Agent-related event types"""
+
     STARTED = "agent.started"
     STOPPED = "agent.stopped"
     HEARTBEAT = "agent.heartbeat"
@@ -44,6 +47,7 @@ class AgentEventType(str, Enum):
 
 class WorkflowEventType(str, Enum):
     """Workflow-related event types"""
+
     PLAN_GENERATED = "workflow.plan_generated"
     PHASE_STARTED = "workflow.phase_started"
     PHASE_COMPLETED = "workflow.phase_completed"
@@ -76,7 +80,7 @@ class Event:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Event':
+    def from_dict(cls, data: Dict[str, Any]) -> "Event":
         """Create event from dictionary"""
         timestamp = datetime.fromisoformat(data["timestamp"])
         return cls(
@@ -103,11 +107,13 @@ class TaskEvent(Event):
             self.event_type = TaskEventType.CREATED
 
         # Add task info to payload
-        self.payload.update({
-            "task_id": self.task_id,
-            "task_status": self.task_status,
-            "assignee": self.assignee,
-        })
+        self.payload.update(
+            {
+                "task_id": self.task_id,
+                "task_status": self.task_status,
+                "assignee": self.assignee,
+            }
+        )
 
 
 @dataclass
@@ -123,11 +129,13 @@ class AgentEvent(Event):
             self.event_type = AgentEventType.HEARTBEAT
 
         # Add agent info to payload
-        self.payload.update({
-            "agent_name": self.agent_name,
-            "agent_type": self.agent_type,
-            "agent_status": self.agent_status,
-        })
+        self.payload.update(
+            {
+                "agent_name": self.agent_name,
+                "agent_type": self.agent_type,
+                "agent_status": self.agent_status,
+            }
+        )
 
 
 @dataclass
@@ -144,12 +152,14 @@ class WorkflowEvent(Event):
             self.event_type = WorkflowEventType.PLAN_GENERATED
 
         # Add workflow info to payload
-        self.payload.update({
-            "workflow_id": self.workflow_id,
-            "task_id": self.task_id,
-            "phase": self.phase,
-            "dependencies": self.dependencies or [],
-        })
+        self.payload.update(
+            {
+                "workflow_id": self.workflow_id,
+                "task_id": self.task_id,
+                "phase": self.phase,
+                "dependencies": self.dependencies or [],
+            }
+        )
 
 
 def create_task_event(
@@ -159,7 +169,7 @@ def create_task_event(
     task_status: Optional[str] = None,
     assignee: Optional[str] = None,
     correlation_id: Optional[str] = None,
-    **payload_data
+    **payload_data,
 ) -> TaskEvent:
     """Factory function to create task events"""
     return TaskEvent(
@@ -179,7 +189,7 @@ def create_agent_event(
     agent_type: Optional[str] = None,
     agent_status: Optional[str] = None,
     correlation_id: Optional[str] = None,
-    **payload_data
+    **payload_data,
 ) -> AgentEvent:
     """Factory function to create agent events"""
     return AgentEvent(
@@ -201,7 +211,7 @@ def create_workflow_event(
     phase: Optional[str] = None,
     dependencies: Optional[list] = None,
     correlation_id: Optional[str] = None,
-    **payload_data
+    **payload_data,
 ) -> WorkflowEvent:
     """Factory function to create workflow events"""
     return WorkflowEvent(

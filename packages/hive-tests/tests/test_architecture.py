@@ -8,21 +8,22 @@ These tests should NEVER be skipped or disabled. They are the guardians
 of the platform's architectural integrity.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 from hive_tests.architectural_validators import (
     validate_app_contracts,
     validate_colocated_tests,
-    validate_no_syspath_hacks,
-    validate_single_config_source,
-    validate_no_hardcoded_env_values,
-    validate_package_app_discipline,
-    validate_dependency_direction,
-    validate_interface_contracts,
-    validate_error_handling_standards,
-    validate_logging_standards,
-    validate_service_layer_discipline,
     validate_communication_patterns,
+    validate_dependency_direction,
+    validate_error_handling_standards,
+    validate_interface_contracts,
+    validate_logging_standards,
+    validate_no_hardcoded_env_values,
+    validate_no_syspath_hacks,
+    validate_package_app_discipline,
+    validate_service_layer_discipline,
+    validate_single_config_source,
 )
 
 
@@ -473,8 +474,7 @@ class TestArchitecturalCompliance:
 
         if not is_valid:
             failure_message = (
-                "❌ Logging Standards FAILED\n\n"
-                "Logging violations found:\n\n"
+                "❌ Logging Standards FAILED\n\n" "Logging violations found:\n\n"
             )
             for violation in violations[:15]:
                 failure_message += f"  • {violation}\n"
@@ -504,8 +504,9 @@ class TestPlatformStandards:
         Ensure no Python files exist in the project root.
         All code should be in apps/ or packages/.
         """
-        root_py_files = [f for f in project_root.glob("*.py")
-                        if f.name not in ["conftest.py"]]  # Allow conftest.py
+        root_py_files = [
+            f for f in project_root.glob("*.py") if f.name not in ["conftest.py"]
+        ]  # Allow conftest.py
 
         assert not root_py_files, (
             f"Found Python files in project root: {root_py_files}\n"
@@ -520,14 +521,14 @@ class TestPlatformStandards:
             pytest.skip("No packages directory found")
 
         for package_dir in packages_dir.iterdir():
-            if package_dir.is_dir() and not package_dir.name.startswith('.'):
+            if package_dir.is_dir() and not package_dir.name.startswith("."):
                 # Each package should have pyproject.toml and src/
-                assert (package_dir / "pyproject.toml").exists(), (
-                    f"Package {package_dir.name} missing pyproject.toml"
-                )
-                assert (package_dir / "src").exists(), (
-                    f"Package {package_dir.name} missing src/ directory"
-                )
+                assert (
+                    package_dir / "pyproject.toml"
+                ).exists(), f"Package {package_dir.name} missing pyproject.toml"
+                assert (
+                    package_dir / "src"
+                ).exists(), f"Package {package_dir.name} missing src/ directory"
 
     def test_proper_app_structure(self, apps_dir):
         """
@@ -537,14 +538,14 @@ class TestPlatformStandards:
             pytest.skip("No apps directory found")
 
         for app_dir in apps_dir.iterdir():
-            if app_dir.is_dir() and not app_dir.name.startswith('.'):
+            if app_dir.is_dir() and not app_dir.name.startswith("."):
                 # Each app should have either src/ or be self-contained
                 has_src = (app_dir / "src").exists()
                 has_python_files = any(app_dir.glob("*.py"))
 
-                assert has_src or has_python_files, (
-                    f"App {app_dir.name} has no Python code (no src/ or *.py files)"
-                )
+                assert (
+                    has_src or has_python_files
+                ), f"App {app_dir.name} has no Python code (no src/ or *.py files)"
 
 
 if __name__ == "__main__":

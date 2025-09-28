@@ -1,18 +1,14 @@
 """Test hive-bus integration for EcoSystemiser."""
 
-import pytest
-import tempfile
 import os
-from pathlib import Path
+import tempfile
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from ecosystemiser.core.bus import (
-    get_ecosystemiser_event_bus, EcoSystemiserEventBus
-)
-from ecosystemiser.core.events import (
-    SimulationEvent, StudyEvent, AnalysisEvent
-)
+import pytest
+from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
+from ecosystemiser.core.events import AnalysisEvent, SimulationEvent, StudyEvent
 
 
 class TestEventBus:
@@ -24,22 +20,21 @@ class TestEventBus:
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test_ecosystemiser.db"
             # Set environment variable to use temp database
-            old_path = os.environ.get('ECOSYSTEMISER_DB_PATH')
-            os.environ['ECOSYSTEMISER_DB_PATH'] = str(db_path)
+            old_path = os.environ.get("ECOSYSTEMISER_DB_PATH")
+            os.environ["ECOSYSTEMISER_DB_PATH"] = str(db_path)
 
             yield
 
             # Restore original environment
             if old_path:
-                os.environ['ECOSYSTEMISER_DB_PATH'] = old_path
+                os.environ["ECOSYSTEMISER_DB_PATH"] = old_path
             else:
-                del os.environ['ECOSYSTEMISER_DB_PATH']
+                del os.environ["ECOSYSTEMISER_DB_PATH"]
 
     def test_event_creation(self):
         """Test creating a simulation event."""
         event = SimulationEvent.started(
-            simulation_id="test_sim_123",
-            config={"key": "value"}
+            simulation_id="test_sim_123", config={"key": "value"}
         )
 
         assert event.event_type == "simulation.started"
@@ -54,7 +49,7 @@ class TestEventBus:
             event_type=WorkflowEventType.STARTED,
             workflow_id="wf-123",
             source_agent="test",
-            status="running"
+            status="running",
         )
 
         assert event.event_type == WorkflowEventType.STARTED
@@ -67,7 +62,7 @@ class TestEventBus:
             event_type=TaskEventType.CREATED,
             task_id="task-456",
             source_agent="test",
-            task_name="Process data"
+            task_name="Process data",
         )
 
         assert event.event_type == TaskEventType.CREATED
@@ -87,9 +82,7 @@ class TestEventBus:
 
         # Publish an event
         event = Event(
-            event_type="test.event",
-            source_agent="test",
-            payload={"data": "test"}
+            event_type="test.event", source_agent="test", payload={"data": "test"}
         )
         event_id = bus.publish(event)
 
@@ -128,19 +121,13 @@ class TestEventBus:
 
         # Publish some events
         event1 = Event(
-            event_type="test.one",
-            source_agent="test",
-            correlation_id="corr-123"
+            event_type="test.one", source_agent="test", correlation_id="corr-123"
         )
         event2 = Event(
-            event_type="test.two",
-            source_agent="test",
-            correlation_id="corr-456"
+            event_type="test.two", source_agent="test", correlation_id="corr-456"
         )
         event3 = Event(
-            event_type="test.one",
-            source_agent="test",
-            correlation_id="corr-123"
+            event_type="test.one", source_agent="test", correlation_id="corr-123"
         )
 
         bus.publish(event1)
@@ -178,7 +165,7 @@ class TestEcoSystemiserEvents:
             simulation_id="sim-789",
             source_agent="ecosystemiser",
             system_config_path="/path/to/config.yml",
-            solver_type="MILP"
+            solver_type="MILP",
         )
 
         assert event.simulation_id == "sim-789"
@@ -192,7 +179,7 @@ class TestEcoSystemiserEvents:
             study_id="study-101",
             source_agent="ecosystemiser",
             study_type="parametric",
-            total_simulations=100
+            total_simulations=100,
         )
 
         assert event.study_id == "study-101"
@@ -215,7 +202,7 @@ class TestEcoSystemiserEvents:
             simulation_id="sim-test",
             source_agent="test",
             results_path="/results/sim-test.json",
-            duration_seconds=45.5
+            duration_seconds=45.5,
         )
 
         # Note: SimulationEvent inherits from our Event class
@@ -227,8 +214,8 @@ class TestEcoSystemiserEvents:
             payload={
                 "simulation_id": sim_event.simulation_id,
                 "results_path": sim_event.results_path,
-                "duration_seconds": sim_event.duration_seconds
-            }
+                "duration_seconds": sim_event.duration_seconds,
+            },
         )
 
         bus.publish(base_event)

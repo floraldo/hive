@@ -4,16 +4,17 @@ This module extends the StudyService with full parameter application support,
 enabling true exploration of design spaces for the intelligent co-pilot vision.
 """
 
-from typing import Dict, Any, List
 import copy
+from typing import Any, Dict, List
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-def apply_parameter_to_config(config_dict: Dict[str, Any],
-                             component_name: str,
-                             parameter_path: str,
-                             value: Any) -> Dict[str, Any]:
+
+def apply_parameter_to_config(
+    config_dict: Dict[str, Any], component_name: str, parameter_path: str, value: Any
+) -> Dict[str, Any]:
     """Apply a parameter value to a system configuration dictionary.
 
     Args:
@@ -37,7 +38,7 @@ def apply_parameter_to_config(config_dict: Dict[str, Any],
             component_found = True
 
             # Navigate the parameter path
-            path_parts = parameter_path.split('.')
+            path_parts = parameter_path.split(".")
             current = component
 
             # Navigate to the parent of the final key
@@ -51,7 +52,9 @@ def apply_parameter_to_config(config_dict: Dict[str, Any],
             old_value = current.get(final_key, "NOT_SET")
             current[final_key] = value
 
-            logger.debug(f"Updated {component_name}.{parameter_path}: {old_value} -> {value}")
+            logger.debug(
+                f"Updated {component_name}.{parameter_path}: {old_value} -> {value}"
+            )
             break
 
     if not component_found:
@@ -59,8 +62,10 @@ def apply_parameter_to_config(config_dict: Dict[str, Any],
 
     return config
 
-def generate_parameter_report(parameter_settings: Dict[str, Any],
-                             results: Dict[str, Any]) -> Dict[str, Any]:
+
+def generate_parameter_report(
+    parameter_settings: Dict[str, Any], results: Dict[str, Any]
+) -> Dict[str, Any]:
     """Generate a report for a parametric sweep result.
 
     Args:
@@ -74,25 +79,28 @@ def generate_parameter_report(parameter_settings: Dict[str, Any],
         "parameters": parameter_settings,
         "kpis": results.get("kpis", {}),
         "solver_metrics": results.get("solver_metrics", {}),
-        "sensitivity_score": 0.0
+        "sensitivity_score": 0.0,
     }
 
     # Calculate sensitivity score based on KPI variance
     if "kpis" in results:
         # Simple sensitivity metric: sum of normalized KPI values
-        kpi_values = [v for v in results["kpis"].values() if isinstance(v, (int, float))]
+        kpi_values = [
+            v for v in results["kpis"].values() if isinstance(v, (int, float))
+        ]
         if kpi_values:
             report["sensitivity_score"] = sum(kpi_values) / len(kpi_values)
 
     return report
 
+
 class ParametricSweepEnhancement:
     """Enhanced parametric sweep capabilities for StudyService."""
 
     @staticmethod
-    def create_battery_capacity_sweep(base_capacity: float,
-                                     num_points: int = 5,
-                                     range_factor: float = 2.0) -> List[float]:
+    def create_battery_capacity_sweep(
+        base_capacity: float, num_points: int = 5, range_factor: float = 2.0
+    ) -> List[float]:
         """Create a sweep of battery capacity values.
 
         Args:
@@ -111,8 +119,9 @@ class ParametricSweepEnhancement:
         return list(np.linspace(min_capacity, max_capacity, num_points))
 
     @staticmethod
-    def create_solar_capacity_sweep(base_capacity: float,
-                                   num_points: int = 5) -> List[float]:
+    def create_solar_capacity_sweep(
+        base_capacity: float, num_points: int = 5
+    ) -> List[float]:
         """Create a sweep of solar PV capacity values.
 
         Args:
@@ -155,7 +164,7 @@ class ParametricSweepEnhancement:
             "parameter_sensitivities": {},
             "optimal_configuration": None,
             "pareto_frontier": [],
-            "recommendations": []
+            "recommendations": [],
         }
 
         if not study_result.get("all_results"):
@@ -198,15 +207,17 @@ class ParametricSweepEnhancement:
                 analysis["parameter_sensitivities"][param_name] = param_sensitivity
 
         # Find optimal configuration (lowest cost)
-        best_cost = float('inf')
+        best_cost = float("inf")
         best_config = None
 
         for result in study_result["all_results"]:
             if result.get("status") in ["optimal", "feasible"]:
-                cost = result.get("kpis", {}).get("total_cost", float('inf'))
+                cost = result.get("kpis", {}).get("total_cost", float("inf"))
                 if cost < best_cost:
                     best_cost = cost
-                    best_config = result.get("output_config", {}).get("parameter_settings", {})
+                    best_config = result.get("output_config", {}).get(
+                        "parameter_settings", {}
+                    )
 
         analysis["optimal_configuration"] = best_config
 

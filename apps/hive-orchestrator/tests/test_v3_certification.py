@@ -4,19 +4,20 @@ V3.0 Platform Certification Test
 Comprehensive integration test for all V3.0 improvements
 """
 
+import json
+import logging
+import sqlite3
 import sys
 import time
-import json
-import sqlite3
-from pathlib import Path
 from datetime import datetime
-import logging
+from pathlib import Path
 
 # Add the package paths
 # No sys.path manipulation needed - use Poetry workspace imports
 # No sys.path manipulation needed - use Poetry workspace imports
 # No sys.path manipulation needed - use Poetry workspace imports
 # No sys.path manipulation needed - use Poetry workspace imports
+
 
 class V3CertificationTest:
     """V3.0 Platform Certification Test Suite"""
@@ -42,14 +43,14 @@ class V3CertificationTest:
                 self.test_results[test_name] = {
                     "status": "PASSED",
                     "duration": duration,
-                    "message": "Test completed successfully"
+                    "message": "Test completed successfully",
                 }
                 self.log(f"[PASS] {test_name} PASSED ({duration:.2f}s)", "SUCCESS")
             else:
                 self.test_results[test_name] = {
                     "status": "FAILED",
                     "duration": duration,
-                    "message": "Test returned False"
+                    "message": "Test returned False",
                 }
                 self.log(f"[FAIL] {test_name} FAILED ({duration:.2f}s)", "ERROR")
 
@@ -58,7 +59,7 @@ class V3CertificationTest:
             self.test_results[test_name] = {
                 "status": "ERROR",
                 "duration": duration,
-                "message": str(e)
+                "message": str(e),
             }
             self.log(f"[ERROR] {test_name} ERROR: {e} ({duration:.2f}s)", "ERROR")
 
@@ -135,8 +136,11 @@ class V3CertificationTest:
         """Test Claude service with centralized configuration"""
         try:
             self.log("Testing Claude service integration...")
-            from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
             from hive_claude_bridge.bridge import ClaudeBridgeConfig
+            from hive_claude_bridge.claude_service import (
+                get_claude_service,
+                reset_claude_service,
+            )
             from hive_config import get_config
 
             # Reset for clean test
@@ -212,7 +216,7 @@ class V3CertificationTest:
             # No sys.path manipulation needed - use Poetry workspace imports
 
             # Test that QueenLite can be imported and has expected structure
-            from hive_orchestrator.queen import QueenLite, Phase
+            from hive_orchestrator.queen import Phase, QueenLite
 
             # Test Phase enum
             assert Phase.PLAN.value == "plan"
@@ -221,10 +225,10 @@ class V3CertificationTest:
 
             # Test QueenLite class exists and has expected architecture
             # (We can't fully initialize it without HiveCore, but we can verify structure)
-            assert hasattr(QueenLite, '__init__')
-            assert hasattr(QueenLite, 'spawn_worker')
-            assert hasattr(QueenLite, 'process_queued_tasks')
-            assert hasattr(QueenLite, 'run_forever')
+            assert hasattr(QueenLite, "__init__")
+            assert hasattr(QueenLite, "spawn_worker")
+            assert hasattr(QueenLite, "process_queued_tasks")
+            assert hasattr(QueenLite, "run_forever")
 
             # Check docstring indicates architectural improvements
             assert QueenLite.__doc__ is not None
@@ -241,9 +245,12 @@ class V3CertificationTest:
         """Test integration between all components"""
         try:
             # Test that all components can work together
+            from hive_claude_bridge.claude_service import (
+                get_claude_service,
+                reset_claude_service,
+            )
             from hive_config import get_config
             from hive_db import get_pooled_connection
-            from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
 
             # Get centralized config
             config = get_config()
@@ -276,6 +283,7 @@ class V3CertificationTest:
         """Test environment-specific configuration"""
         try:
             import os
+
             from hive_config import get_config
 
             config = get_config()
@@ -301,7 +309,9 @@ class V3CertificationTest:
                 else:
                     os.environ.pop("test_override_key", None)
 
-            self.log("Environment configuration: Environment-aware configuration working")
+            self.log(
+                "Environment configuration: Environment-aware configuration working"
+            )
             return True
 
         except Exception as e:
@@ -310,14 +320,20 @@ class V3CertificationTest:
 
     def print_final_report(self):
         """Print comprehensive test report"""
-        self.log("\n" + "="*70)
+        self.log("\n" + "=" * 70)
         self.log("V3.0 PLATFORM CERTIFICATION TEST REPORT")
-        self.log("="*70)
+        self.log("=" * 70)
 
         total_tests = len(self.test_results)
-        passed_tests = len([r for r in self.test_results.values() if r["status"] == "PASSED"])
-        failed_tests = len([r for r in self.test_results.values() if r["status"] == "FAILED"])
-        error_tests = len([r for r in self.test_results.values() if r["status"] == "ERROR"])
+        passed_tests = len(
+            [r for r in self.test_results.values() if r["status"] == "PASSED"]
+        )
+        failed_tests = len(
+            [r for r in self.test_results.values() if r["status"] == "FAILED"]
+        )
+        error_tests = len(
+            [r for r in self.test_results.values() if r["status"] == "ERROR"]
+        )
 
         # Test summary
         self.log(f"Total Tests: {total_tests}")
@@ -336,8 +352,12 @@ class V3CertificationTest:
         self.log("-" * 50)
 
         for test_name, result in self.test_results.items():
-            status_icon = {"PASSED": "[PASS]", "FAILED": "[FAIL]", "ERROR": "[ERR]"}[result["status"]]
-            self.log(f"{status_icon} {test_name:<35} {result['status']:<8} ({result['duration']:.2f}s)")
+            status_icon = {"PASSED": "[PASS]", "FAILED": "[FAIL]", "ERROR": "[ERR]"}[
+                result["status"]
+            ]
+            self.log(
+                f"{status_icon} {test_name:<35} {result['status']:<8} ({result['duration']:.2f}s)"
+            )
             if result["status"] != "PASSED":
                 self.log(f"   -> {result['message']}")
 
@@ -366,7 +386,9 @@ class V3CertificationTest:
         if success_rate == 100:
             self.log("- All tests passed! Platform ready for V3.0 certification")
         else:
-            self.log(f"- Achieve >=85% success rate for certification (current: {success_rate:.1f}%)")
+            self.log(
+                f"- Achieve >=85% success rate for certification (current: {success_rate:.1f}%)"
+            )
 
     def run_all_tests(self):
         """Run all certification tests"""
@@ -394,7 +416,9 @@ class V3CertificationTest:
         self.print_final_report()
 
         # Return overall success
-        passed_tests = len([r for r in self.test_results.values() if r["status"] == "PASSED"])
+        passed_tests = len(
+            [r for r in self.test_results.values() if r["status"] == "PASSED"]
+        )
         total_tests = len(self.test_results)
         success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
 

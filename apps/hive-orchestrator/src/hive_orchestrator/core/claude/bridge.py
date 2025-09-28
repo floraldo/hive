@@ -3,22 +3,23 @@ Unified Claude CLI Bridge
 Central implementation for all Claude API interactions
 """
 
-import subprocess
 import os
-from typing import Dict, Any, Optional, List
-from pathlib import Path
-from dataclasses import dataclass
+import subprocess
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from hive_logging import get_logger
 
-from .json_parser import JsonExtractor, JsonExtractionStrategy
-from .validators import BaseResponseValidator
 from .exceptions import (
     ClaudeNotFoundError,
-    ClaudeTimeoutError,
     ClaudeResponseError,
-    ClaudeValidationError
+    ClaudeTimeoutError,
+    ClaudeValidationError,
 )
+from .json_parser import JsonExtractionStrategy, JsonExtractor
+from .validators import BaseResponseValidator
 
 logger = get_logger(__name__)
 
@@ -26,6 +27,7 @@ logger = get_logger(__name__)
 @dataclass
 class ClaudeBridgeConfig:
     """Configuration for Claude Bridge"""
+
     mock_mode: bool = False
     timeout: int = 120  # seconds
     max_retries: int = 3
@@ -71,12 +73,16 @@ class BaseClaludeBridge(ABC):
         possible_paths = [
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
-            Path.home() / "AppData" / "Roaming" / "npm" / "claude.cmd",  # Windows npm global
+            Path.home()
+            / "AppData"
+            / "Roaming"
+            / "npm"
+            / "claude.cmd",  # Windows npm global
             Path.home() / "AppData" / "Roaming" / "npm" / "claude",
             Path("/usr/local/bin/claude"),  # macOS/Linux system install
             Path("/usr/bin/claude"),
             Path("claude.cmd"),
-            Path("claude")
+            Path("claude"),
         ]
 
         for path in possible_paths:
@@ -88,14 +94,11 @@ class BaseClaludeBridge(ABC):
         try:
             cmd = "where" if os.name == "nt" else "which"
             result = subprocess.run(
-                [cmd, "claude"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                [cmd, "claude"], capture_output=True, text=True, timeout=5
             )
 
             if result.returncode == 0:
-                claude_path = result.stdout.strip().split('\n')[0]
+                claude_path = result.stdout.strip().split("\n")[0]
                 if claude_path:
                     logger.info(f"Found Claude in PATH: {claude_path}")
                     return claude_path
@@ -129,10 +132,10 @@ class BaseClaludeBridge(ABC):
         cmd = [self.claude_cmd]
 
         # Add flags
-        cmd.extend(['--print'])  # Ensure Claude exits after responding
+        cmd.extend(["--print"])  # Ensure Claude exits after responding
 
         if self.config.use_dangerously_skip_permissions:
-            cmd.extend(['--dangerously-skip-permissions'])
+            cmd.extend(["--dangerously-skip-permissions"])
 
         # Add prompt
         cmd.append(prompt)
@@ -147,11 +150,13 @@ class BaseClaludeBridge(ABC):
                 capture_output=True,
                 text=True,
                 timeout=self.config.timeout,
-                shell=self.config.shell_mode_windows and os.name == 'nt'
+                shell=self.config.shell_mode_windows and os.name == "nt",
             )
 
             if result.returncode != 0:
-                error_msg = f"Claude CLI failed with code {result.returncode}: {result.stderr}"
+                error_msg = (
+                    f"Claude CLI failed with code {result.returncode}: {result.stderr}"
+                )
                 logger.error(error_msg)
                 raise ClaudeResponseError(error_msg)
 
@@ -171,7 +176,7 @@ class BaseClaludeBridge(ABC):
         prompt: str,
         validator: Optional[BaseResponseValidator] = None,
         extraction_strategies: Optional[List[JsonExtractionStrategy]] = None,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Call Claude and get validated response
@@ -191,24 +196,31 @@ class BaseClaludeBridge(ABC):
 
             # Extract JSON
             response_json = self.json_extractor.extract_json(
-                response_text,
-                extraction_strategies
+                response_text, extraction_strategies
             )
 
             if not response_json:
                 if self.config.fallback_enabled:
-                    return self._create_fallback_response("Failed to extract JSON", context)
-                raise ClaudeValidationError("Failed to extract JSON from Claude response")
+                    return self._create_fallback_response(
+                        "Failed to extract JSON", context
+                    )
+                raise ClaudeValidationError(
+                    "Failed to extract JSON from Claude response"
+                )
 
             # Validate if validator provided
             if validator:
                 validated = validator.validate(response_json)
                 if not validated:
                     if self.config.fallback_enabled:
-                        fallback = validator.create_fallback("Validation failed", context or {})
-                        return fallback.dict() if hasattr(fallback, 'dict') else fallback
+                        fallback = validator.create_fallback(
+                            "Validation failed", context or {}
+                        )
+                        return (
+                            fallback.dict() if hasattr(fallback, "dict") else fallback
+                        )
                     raise ClaudeValidationError("Response validation failed")
-                return validated.dict() if hasattr(validated, 'dict') else response_json
+                return validated.dict() if hasattr(validated, "dict") else response_json
 
             return response_json
 
@@ -221,7 +233,7 @@ class BaseClaludeBridge(ABC):
         self,
         prompt: str,
         validator: Optional[BaseResponseValidator] = None,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Call Claude with retry logic
@@ -239,7 +251,9 @@ class BaseClaludeBridge(ABC):
         for attempt in range(self.config.max_retries):
             try:
                 if attempt > 0:
-                    logger.info(f"Retry attempt {attempt + 1}/{self.config.max_retries}")
+                    logger.info(
+                        f"Retry attempt {attempt + 1}/{self.config.max_retries}"
+                    )
 
                 return self.call_claude(prompt, validator, context=context)
 
@@ -250,8 +264,7 @@ class BaseClaludeBridge(ABC):
         # All retries failed
         if self.config.fallback_enabled:
             return self._create_fallback_response(
-                f"All {self.config.max_retries} attempts failed: {last_error}",
-                context
+                f"All {self.config.max_retries} attempts failed: {last_error}", context
             )
 
         raise last_error
@@ -271,9 +284,7 @@ class BaseClaludeBridge(ABC):
 
     @abstractmethod
     def _create_fallback_response(
-        self,
-        error_message: str,
-        context: Optional[Dict[str, Any]]
+        self, error_message: str, context: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
         Create a fallback response when Claude is unavailable

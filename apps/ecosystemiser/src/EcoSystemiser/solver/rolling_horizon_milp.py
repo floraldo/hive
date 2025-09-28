@@ -1,31 +1,37 @@
 """Rolling horizon MILP solver for large-scale optimization problems."""
-from hive_logging import get_logger
-from typing import Dict, Any, Optional, List
-import numpy as np
-import cvxpy as cp
-from datetime import datetime, timedelta
 
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import cvxpy as cp
+import numpy as np
 from ecosystemiser.solver.base import BaseSolver, SolverConfig, SolverResult
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.system_model.system import System
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
+
 class RollingHorizonConfig(SolverConfig):
     """Configuration for rolling horizon MILP solver."""
+
     horizon_hours: int = 24  # Hours in each optimization window
-    overlap_hours: int = 4   # Hours of overlap between windows
+    overlap_hours: int = 4  # Hours of overlap between windows
     prediction_horizon: int = 72  # Hours to use for future predictions
-    warmstart: bool = True   # Use previous solution as warmstart
+    warmstart: bool = True  # Use previous solution as warmstart
     parallel_windows: bool = False  # Parallel processing of windows
     storage_continuity: bool = True  # Enforce storage state continuity between windows
 
+
 class RollingHorizonResult(SolverResult):
     """Result from rolling horizon MILP solver."""
+
     num_windows: int = 0
     window_results: List[Dict[str, Any]] = []
     storage_violations: List[Dict[str, Any]] = []
     forecast_accuracy: Optional[Dict[str, float]] = None
+
 
 class RollingHorizonMILPSolver(BaseSolver):
     """Rolling horizon solver for large-scale MILP optimization.
@@ -89,9 +95,9 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         # Initialize main system component arrays
         for comp in self.system.components.values():
-            if hasattr(comp, 'E') and comp.E is None:
+            if hasattr(comp, "E") and comp.E is None:
                 comp.E = np.zeros(self.system.N)
-            for attr in ['P_charge', 'P_discharge', 'P_gen', 'P_cons']:
+            for attr in ["P_charge", "P_discharge", "P_gen", "P_cons"]:
                 if hasattr(comp, attr) and getattr(comp, attr) is None:
                     setattr(comp, attr, np.zeros(self.system.N))
 
@@ -100,8 +106,10 @@ class RollingHorizonMILPSolver(BaseSolver):
         storage_violations = []
 
         for window_idx, window in enumerate(windows):
-            logger.info(f"Solving window {window_idx + 1}/{len(windows)}: "
-                       f"t={window['start']} to t={window['end']}")
+            logger.info(
+                f"Solving window {window_idx + 1}/{len(windows)}: "
+                f"t={window['start']} to t={window['end']}"
+            )
 
             try:
                 # Create window system
@@ -126,46 +134,53 @@ class RollingHorizonMILPSolver(BaseSolver):
                 # Enhanced: Store solution vectors for warm-starting
                 solution_vectors = self._extract_solution_vectors(window_result, window)
 
-                all_window_results.append({
-                    'window_index': window_idx,
-                    'start_time': window['start'],
-                    'end_time': window['end'],
-                    'status': window_result.status,
-                    'solve_time': window_result.solve_time,
-                    'objective_value': window_result.objective_value,
-                    'iterations': window_result.iterations,
-                    'solution_vectors': solution_vectors  # Store for warm-starting
-                })
+                all_window_results.append(
+                    {
+                        "window_index": window_idx,
+                        "start_time": window["start"],
+                        "end_time": window["end"],
+                        "status": window_result.status,
+                        "solve_time": window_result.solve_time,
+                        "objective_value": window_result.objective_value,
+                        "iterations": window_result.iterations,
+                        "solution_vectors": solution_vectors,  # Store for warm-starting
+                    }
+                )
 
                 self.total_solve_time += window_result.solve_time
 
             except Exception as e:
                 logger.error(f"Window {window_idx} failed: {e}")
-                all_window_results.append({
-                    'window_index': window_idx,
-                    'start_time': window['start'],
-                    'end_time': window['end'],
-                    'status': 'error',
-                    'error': str(e)
-                })
+                all_window_results.append(
+                    {
+                        "window_index": window_idx,
+                        "start_time": window["start"],
+                        "end_time": window["end"],
+                        "status": "error",
+                        "error": str(e),
+                    }
+                )
 
         # Aggregate results
         total_time = (datetime.now() - start_time).total_seconds()
 
         # Determine overall status
-        window_statuses = [r['status'] for r in all_window_results]
-        if all(s == 'optimal' for s in window_statuses):
-            overall_status = 'optimal'
-        elif all(s in ['optimal', 'feasible'] for s in window_statuses):
-            overall_status = 'feasible'
+        window_statuses = [r["status"] for r in all_window_results]
+        if all(s == "optimal" for s in window_statuses):
+            overall_status = "optimal"
+        elif all(s in ["optimal", "feasible"] for s in window_statuses):
+            overall_status = "feasible"
         else:
-            overall_status = 'infeasible'
+            overall_status = "infeasible"
 
         # Calculate total objective (if all windows optimal)
         total_objective = None
-        if overall_status in ['optimal', 'feasible']:
-            objectives = [r.get('objective_value', 0) for r in all_window_results
-                         if r.get('objective_value') is not None]
+        if overall_status in ["optimal", "feasible"]:
+            objectives = [
+                r.get("objective_value", 0)
+                for r in all_window_results
+                if r.get("objective_value") is not None
+            ]
             if objectives:
                 total_objective = sum(objectives)
 
@@ -180,7 +195,7 @@ class RollingHorizonMILPSolver(BaseSolver):
             iterations=len(windows),
             num_windows=len(windows),
             window_results=all_window_results,
-            storage_violations=storage_violations
+            storage_violations=storage_violations,
         )
 
         logger.info(f"Rolling horizon completed: {overall_status} in {total_time:.2f}s")
@@ -199,18 +214,24 @@ class RollingHorizonMILPSolver(BaseSolver):
         step_size = self.rh_config.horizon_hours - self.rh_config.overlap_hours
 
         while current_start < self.system.N:
-            window_end = min(current_start + self.rh_config.horizon_hours, self.system.N)
+            window_end = min(
+                current_start + self.rh_config.horizon_hours, self.system.N
+            )
 
             # Extend to prediction horizon if configured
-            prediction_end = min(current_start + self.rh_config.prediction_horizon, self.system.N)
+            prediction_end = min(
+                current_start + self.rh_config.prediction_horizon, self.system.N
+            )
 
-            windows.append({
-                'start': current_start,
-                'end': window_end,
-                'prediction_end': prediction_end,
-                'implement_start': current_start,
-                'implement_end': min(current_start + step_size, self.system.N)
-            })
+            windows.append(
+                {
+                    "start": current_start,
+                    "end": window_end,
+                    "prediction_end": prediction_end,
+                    "implement_start": current_start,
+                    "implement_end": min(current_start + step_size, self.system.N),
+                }
+            )
 
             # Move to next window
             current_start += step_size
@@ -230,12 +251,11 @@ class RollingHorizonMILPSolver(BaseSolver):
         Returns:
             System configured for this window
         """
-        window_size = window['prediction_end'] - window['start']
+        window_size = window["prediction_end"] - window["start"]
 
         # Create new system with window size
         window_system = System(
-            system_id=f"{self.system.system_id}_window_{window['start']}",
-            n=window_size
+            system_id=f"{self.system.system_id}_window_{window['start']}", n=window_size
         )
 
         # Copy components and adjust profiles
@@ -245,10 +265,13 @@ class RollingHorizonMILPSolver(BaseSolver):
             # Note: In a full implementation, this would copy all component state
 
             # Adjust profiles for window
-            if hasattr(comp, 'profile') and comp.profile is not None:
-                start_idx = window['start']
-                end_idx = window['prediction_end']
-                if isinstance(comp.profile, np.ndarray) and len(comp.profile) > start_idx:
+            if hasattr(comp, "profile") and comp.profile is not None:
+                start_idx = window["start"]
+                end_idx = window["prediction_end"]
+                if (
+                    isinstance(comp.profile, np.ndarray)
+                    and len(comp.profile) > start_idx
+                ):
                     window_comp.profile = comp.profile[start_idx:end_idx]
                 else:
                     # Handle missing profile data
@@ -265,15 +288,17 @@ class RollingHorizonMILPSolver(BaseSolver):
     def _initialize_storage_states(self):
         """Initialize storage state tracking from system components."""
         for comp_name, comp in self.system.components.items():
-            if hasattr(comp, 'E_init') or comp.type == "storage":
-                initial_energy = getattr(comp, 'E_init', 0.0)
+            if hasattr(comp, "E_init") or comp.type == "storage":
+                initial_energy = getattr(comp, "E_init", 0.0)
                 self.storage_states[comp_name] = {
-                    'energy': initial_energy,
-                    'last_updated': 0
+                    "energy": initial_energy,
+                    "last_updated": 0,
                 }
                 logger.debug(f"Initialized storage {comp_name} at {initial_energy}")
 
-    def _set_initial_storage_states(self, window_system: System, window: Dict[str, int]):
+    def _set_initial_storage_states(
+        self, window_system: System, window: Dict[str, int]
+    ):
         """Set initial storage states for window optimization.
 
         Args:
@@ -281,14 +306,16 @@ class RollingHorizonMILPSolver(BaseSolver):
             window: Window specification
         """
         for comp_name, comp in window_system.components.items():
-            if comp_name in self.storage_states and hasattr(comp, 'E_init'):
+            if comp_name in self.storage_states and hasattr(comp, "E_init"):
                 # Set initial energy from tracked state
                 stored_state = self.storage_states[comp_name]
-                comp.E_init = stored_state['energy']
+                comp.E_init = stored_state["energy"]
 
                 logger.debug(f"Set {comp_name} initial energy to {comp.E_init:.2f}")
 
-    def _solve_window(self, window_system: System, window: Dict[str, int]) -> SolverResult:
+    def _solve_window(
+        self, window_system: System, window: Dict[str, int]
+    ) -> SolverResult:
         """Solve a single optimization window.
 
         Args:
@@ -302,7 +329,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         milp_config = SolverConfig(
             solver_type="MOSEK",
             verbose=self.config.verbose,
-            solver_specific=self.config.solver_specific
+            solver_specific=self.config.solver_specific,
         )
 
         milp_solver = MILPSolver(window_system, milp_config)
@@ -328,28 +355,29 @@ class RollingHorizonMILPSolver(BaseSolver):
         # Get the last successful window result with solution vectors
         last_result = None
         for result_data in reversed(self.window_results):
-            if (result_data.get('status') in ['optimal', 'feasible'] and
-                'solution_vectors' in result_data):
+            if (
+                result_data.get("status") in ["optimal", "feasible"]
+                and "solution_vectors" in result_data
+            ):
                 last_result = result_data
                 break
 
-        if not last_result or 'solution_vectors' not in last_result:
+        if not last_result or "solution_vectors" not in last_result:
             logger.debug("No successful previous solution with vectors for warmstart")
             return
 
         try:
             # Get overlap region indices
-            overlap_start = window['start'] - last_result['start_time']
+            overlap_start = window["start"] - last_result["start_time"]
             overlap_length = min(
-                self.rh_config.overlap_hours,
-                last_result['end_time'] - window['start']
+                self.rh_config.overlap_hours, last_result["end_time"] - window["start"]
             )
 
             if overlap_length <= 0:
                 logger.debug("No overlap region for warmstart")
                 return
 
-            solution_vectors = last_result.get('solution_vectors', {})
+            solution_vectors = last_result.get("solution_vectors", {})
             warmstart_count = 0
 
             # Apply warmstart values to all components
@@ -363,74 +391,89 @@ class RollingHorizonMILPSolver(BaseSolver):
                 # This provides the solver with a good starting point
 
                 # Warmstart power input variables
-                if 'P_in' in comp_vectors and hasattr(comp, 'P_in_opt'):
+                if "P_in" in comp_vectors and hasattr(comp, "P_in_opt"):
                     try:
                         # Shift the solution vector to align with new window
-                        shifted_values = comp_vectors['P_in'][overlap_start:overlap_start+overlap_length]
+                        shifted_values = comp_vectors["P_in"][
+                            overlap_start : overlap_start + overlap_length
+                        ]
                         if len(shifted_values) > 0:
                             # CVXPY warm-start: set initial value
-                            if hasattr(comp.P_in_opt, 'value'):
+                            if hasattr(comp.P_in_opt, "value"):
                                 comp.P_in_opt.value = np.pad(
                                     shifted_values,
-                                    (0, max(0, window['length'] - len(shifted_values))),
-                                    'constant'
+                                    (0, max(0, window["length"] - len(shifted_values))),
+                                    "constant",
                                 )
                                 warmstart_count += 1
                     except Exception as e:
                         logger.debug(f"Could not warmstart P_in for {comp_name}: {e}")
 
                 # Warmstart power output variables
-                if 'P_out' in comp_vectors and hasattr(comp, 'P_out_opt'):
+                if "P_out" in comp_vectors and hasattr(comp, "P_out_opt"):
                     try:
-                        shifted_values = comp_vectors['P_out'][overlap_start:overlap_start+overlap_length]
-                        if len(shifted_values) > 0 and hasattr(comp.P_out_opt, 'value'):
+                        shifted_values = comp_vectors["P_out"][
+                            overlap_start : overlap_start + overlap_length
+                        ]
+                        if len(shifted_values) > 0 and hasattr(comp.P_out_opt, "value"):
                             comp.P_out_opt.value = np.pad(
                                 shifted_values,
-                                (0, max(0, window['length'] - len(shifted_values))),
-                                'constant'
+                                (0, max(0, window["length"] - len(shifted_values))),
+                                "constant",
                             )
                             warmstart_count += 1
                     except Exception as e:
                         logger.debug(f"Could not warmstart P_out for {comp_name}: {e}")
 
                 # Warmstart energy/storage variables
-                if 'E' in comp_vectors and hasattr(comp, 'E_opt'):
+                if "E" in comp_vectors and hasattr(comp, "E_opt"):
                     try:
-                        shifted_values = comp_vectors['E'][overlap_start:overlap_start+overlap_length]
-                        if len(shifted_values) > 0 and hasattr(comp.E_opt, 'value'):
+                        shifted_values = comp_vectors["E"][
+                            overlap_start : overlap_start + overlap_length
+                        ]
+                        if len(shifted_values) > 0 and hasattr(comp.E_opt, "value"):
                             # For storage, also use the final value to extend
-                            final_value = comp_vectors['E'][-1] if len(comp_vectors['E']) > 0 else 0
+                            final_value = (
+                                comp_vectors["E"][-1]
+                                if len(comp_vectors["E"]) > 0
+                                else 0
+                            )
                             comp.E_opt.value = np.pad(
                                 shifted_values,
-                                (0, max(0, window['length'] - len(shifted_values))),
-                                'constant',
-                                constant_values=final_value
+                                (0, max(0, window["length"] - len(shifted_values))),
+                                "constant",
+                                constant_values=final_value,
                             )
                             warmstart_count += 1
                     except Exception as e:
                         logger.debug(f"Could not warmstart E for {comp_name}: {e}")
 
                 # Warmstart binary variables (on/off states)
-                if 'on' in comp_vectors and hasattr(comp, 'on_opt'):
+                if "on" in comp_vectors and hasattr(comp, "on_opt"):
                     try:
-                        shifted_values = comp_vectors['on'][overlap_start:overlap_start+overlap_length]
-                        if len(shifted_values) > 0 and hasattr(comp.on_opt, 'value'):
+                        shifted_values = comp_vectors["on"][
+                            overlap_start : overlap_start + overlap_length
+                        ]
+                        if len(shifted_values) > 0 and hasattr(comp.on_opt, "value"):
                             comp.on_opt.value = np.pad(
                                 shifted_values,
-                                (0, max(0, window['length'] - len(shifted_values))),
-                                'constant'
+                                (0, max(0, window["length"] - len(shifted_values))),
+                                "constant",
                             )
                             warmstart_count += 1
                     except Exception as e:
                         logger.debug(f"Could not warmstart on for {comp_name}: {e}")
 
-            logger.info(f"Applied warmstart to {warmstart_count} variables for window starting at {window['start']}")
+            logger.info(
+                f"Applied warmstart to {warmstart_count} variables for window starting at {window['start']}"
+            )
 
         except Exception as e:
             logger.warning(f"Warmstart failed: {e}, continuing without warmstart")
 
-    def _apply_window_solution(self, window_result: SolverResult,
-                             window: Dict[str, int], window_idx: int):
+    def _apply_window_solution(
+        self, window_result: SolverResult, window: Dict[str, int], window_idx: int
+    ):
         """Apply window solution to the main system.
 
         Args:
@@ -438,20 +481,22 @@ class RollingHorizonMILPSolver(BaseSolver):
             window: Window specification
             window_idx: Index of this window
         """
-        if window_result.status not in ['optimal', 'feasible']:
-            logger.warning(f"Cannot apply solution from window {window_idx}: status {window_result.status}")
+        if window_result.status not in ["optimal", "feasible"]:
+            logger.warning(
+                f"Cannot apply solution from window {window_idx}: status {window_result.status}"
+            )
             return
 
         # Only implement the first part of each window solution (no overlap)
-        implement_length = window['implement_end'] - window['implement_start']
-        system_start_idx = window['implement_start']
-        system_end_idx = window['implement_end']
+        implement_length = window["implement_end"] - window["implement_start"]
+        system_start_idx = window["implement_start"]
+        system_end_idx = window["implement_end"]
 
         logger.debug(f"Implementing timesteps {system_start_idx} to {system_end_idx}")
 
         try:
             # Get the window system that was solved
-            window_system = getattr(window_result, 'system', None)
+            window_system = getattr(window_result, "system", None)
             if not window_system:
                 logger.warning(f"No system in window result for window {window_idx}")
                 return
@@ -462,10 +507,12 @@ class RollingHorizonMILPSolver(BaseSolver):
                     continue
 
                 main_comp = self.system.components[comp_name]
-                window_impl_end = min(implement_length, len(getattr(window_comp, 'E', [])))
+                window_impl_end = min(
+                    implement_length, len(getattr(window_comp, "E", []))
+                )
 
                 # Copy storage levels
-                if hasattr(window_comp, 'E') and hasattr(main_comp, 'E'):
+                if hasattr(window_comp, "E") and hasattr(main_comp, "E"):
                     if main_comp.E is None:
                         main_comp.E = np.zeros(self.system.N)
 
@@ -475,7 +522,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                             main_comp.E[system_start_idx + t] = window_comp.E[t]
 
                 # Copy power flows
-                for attr in ['P_charge', 'P_discharge', 'P_gen', 'P_cons']:
+                for attr in ["P_charge", "P_discharge", "P_gen", "P_cons"]:
                     if hasattr(window_comp, attr) and hasattr(main_comp, attr):
                         window_values = getattr(window_comp, attr)
                         main_values = getattr(main_comp, attr)
@@ -490,8 +537,9 @@ class RollingHorizonMILPSolver(BaseSolver):
         except Exception as e:
             logger.error(f"Failed to apply window solution {window_idx}: {e}")
 
-    def _update_storage_states(self, window_result: SolverResult,
-                             window: Dict[str, int]) -> List[Dict[str, Any]]:
+    def _update_storage_states(
+        self, window_result: SolverResult, window: Dict[str, int]
+    ) -> List[Dict[str, Any]]:
         """Update storage states from window solution for next window.
 
         Args:
@@ -503,16 +551,18 @@ class RollingHorizonMILPSolver(BaseSolver):
         """
         violations = []
 
-        if window_result.status not in ['optimal', 'feasible']:
-            logger.warning(f"Cannot update storage states: window status {window_result.status}")
+        if window_result.status not in ["optimal", "feasible"]:
+            logger.warning(
+                f"Cannot update storage states: window status {window_result.status}"
+            )
             return violations
 
         # Extract final storage states from window solution
-        implement_end_idx = window['implement_end'] - window['start']
+        implement_end_idx = window["implement_end"] - window["start"]
 
         try:
             # Get the window system that was solved
-            window_system = getattr(window_result, 'system', None)
+            window_system = getattr(window_result, "system", None)
             if not window_system:
                 logger.warning("No system in window result for storage state update")
                 return violations
@@ -524,7 +574,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 window_comp = window_system.components[comp_name]
                 main_comp = self.system.components.get(comp_name)
 
-                if not main_comp or not hasattr(window_comp, 'E'):
+                if not main_comp or not hasattr(window_comp, "E"):
                     continue
 
                 # Get energy level at the end of the implemented period
@@ -532,46 +582,62 @@ class RollingHorizonMILPSolver(BaseSolver):
                     final_energy = window_comp.E[implement_end_idx - 1]
 
                     # Update tracked state for next window
-                    previous_energy = self.storage_states[comp_name]['energy']
-                    self.storage_states[comp_name]['energy'] = final_energy
-                    self.storage_states[comp_name]['last_updated'] = window['implement_end']
+                    previous_energy = self.storage_states[comp_name]["energy"]
+                    self.storage_states[comp_name]["energy"] = final_energy
+                    self.storage_states[comp_name]["last_updated"] = window[
+                        "implement_end"
+                    ]
 
                     # Check for storage constraint violations
-                    E_max = getattr(main_comp, 'E_max', float('inf'))
-                    E_min = getattr(main_comp, 'E_min', 0.0)
+                    E_max = getattr(main_comp, "E_max", float("inf"))
+                    E_min = getattr(main_comp, "E_min", 0.0)
 
-                    if final_energy > E_max + 1e-6:  # Small tolerance for numerical issues
-                        violations.append({
-                            'type': 'storage_overflow',
-                            'component': comp_name,
-                            'timestep': window['implement_end'],
-                            'energy': final_energy,
-                            'max_capacity': E_max,
-                            'violation': final_energy - E_max
-                        })
-                        logger.warning(f"Storage overflow in {comp_name}: {final_energy:.3f} > {E_max:.3f}")
+                    if (
+                        final_energy > E_max + 1e-6
+                    ):  # Small tolerance for numerical issues
+                        violations.append(
+                            {
+                                "type": "storage_overflow",
+                                "component": comp_name,
+                                "timestep": window["implement_end"],
+                                "energy": final_energy,
+                                "max_capacity": E_max,
+                                "violation": final_energy - E_max,
+                            }
+                        )
+                        logger.warning(
+                            f"Storage overflow in {comp_name}: {final_energy:.3f} > {E_max:.3f}"
+                        )
 
                     if final_energy < E_min - 1e-6:
-                        violations.append({
-                            'type': 'storage_underflow',
-                            'component': comp_name,
-                            'timestep': window['implement_end'],
-                            'energy': final_energy,
-                            'min_capacity': E_min,
-                            'violation': E_min - final_energy
-                        })
-                        logger.warning(f"Storage underflow in {comp_name}: {final_energy:.3f} < {E_min:.3f}")
+                        violations.append(
+                            {
+                                "type": "storage_underflow",
+                                "component": comp_name,
+                                "timestep": window["implement_end"],
+                                "energy": final_energy,
+                                "min_capacity": E_min,
+                                "violation": E_min - final_energy,
+                            }
+                        )
+                        logger.warning(
+                            f"Storage underflow in {comp_name}: {final_energy:.3f} < {E_min:.3f}"
+                        )
 
-                    logger.debug(f"Updated {comp_name}: {previous_energy:.3f} -> {final_energy:.3f} kWh")
+                    logger.debug(
+                        f"Updated {comp_name}: {previous_energy:.3f} -> {final_energy:.3f} kWh"
+                    )
 
         except Exception as e:
             logger.error(f"Failed to update storage states: {e}")
             # Add a generic violation for tracking
-            violations.append({
-                'type': 'state_update_error',
-                'error': str(e),
-                'timestep': window['implement_end']
-            })
+            violations.append(
+                {
+                    "type": "state_update_error",
+                    "error": str(e),
+                    "timestep": window["implement_end"],
+                }
+            )
 
         return violations
 
@@ -589,44 +655,48 @@ class RollingHorizonMILPSolver(BaseSolver):
                 comp_solution = {}
 
                 # Storage levels
-                if hasattr(comp, 'E') and comp.E is not None:
-                    comp_solution['energy'] = np.array(comp.E)
+                if hasattr(comp, "E") and comp.E is not None:
+                    comp_solution["energy"] = np.array(comp.E)
 
                 # Power flows
-                for attr in ['P_charge', 'P_discharge', 'P_gen', 'P_cons']:
+                for attr in ["P_charge", "P_discharge", "P_gen", "P_cons"]:
                     if hasattr(comp, attr):
                         values = getattr(comp, attr)
                         if values is not None:
                             comp_solution[attr.lower()] = np.array(values)
 
                 # Flows (input/output)
-                if hasattr(comp, 'flows'):
-                    for flow_type in ['source', 'sink']:
+                if hasattr(comp, "flows"):
+                    for flow_type in ["source", "sink"]:
                         if flow_type in comp.flows:
                             for flow_name, flow_data in comp.flows[flow_type].items():
-                                if 'value' in flow_data and hasattr(flow_data['value'], 'value'):
+                                if "value" in flow_data and hasattr(
+                                    flow_data["value"], "value"
+                                ):
                                     # Extract CVXPY variable value
                                     flow_key = f"{flow_type}_{flow_name}"
-                                    comp_solution[flow_key] = np.array(flow_data['value'].value)
+                                    comp_solution[flow_key] = np.array(
+                                        flow_data["value"].value
+                                    )
 
                 if comp_solution:  # Only add if we found some data
                     solution[comp_name] = comp_solution
 
             # Add system-level information
-            solution['_metadata'] = {
-                'total_windows': len(self.window_results),
-                'horizon_hours': self.rh_config.horizon_hours,
-                'overlap_hours': self.rh_config.overlap_hours,
-                'timesteps': self.system.N,
-                'solve_time': self.total_solve_time,
-                'storage_violations': getattr(self, 'storage_violations', [])
+            solution["_metadata"] = {
+                "total_windows": len(self.window_results),
+                "horizon_hours": self.rh_config.horizon_hours,
+                "overlap_hours": self.rh_config.overlap_hours,
+                "timesteps": self.system.N,
+                "solve_time": self.total_solve_time,
+                "storage_violations": getattr(self, "storage_violations", []),
             }
 
             logger.info(f"Reconstructed solution for {len(solution)-1} components")
 
         except Exception as e:
             logger.error(f"Failed to reconstruct full solution: {e}")
-            solution['_error'] = str(e)
+            solution["_error"] = str(e)
 
         return solution
 
@@ -641,9 +711,9 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         # Initialize main system component arrays
         for comp in self.system.components.values():
-            if hasattr(comp, 'E') and comp.E is None:
+            if hasattr(comp, "E") and comp.E is None:
                 comp.E = np.zeros(self.system.N)
-            for attr in ['P_charge', 'P_discharge', 'P_gen', 'P_cons']:
+            for attr in ["P_charge", "P_discharge", "P_gen", "P_cons"]:
                 if hasattr(comp, attr) and getattr(comp, attr) is None:
                     setattr(comp, attr, np.zeros(self.system.N))
 
@@ -667,10 +737,10 @@ class RollingHorizonMILPSolver(BaseSolver):
             # Ensure all component arrays are properly sized
             for comp in self.system.components.values():
                 # Initialize missing arrays if needed
-                if hasattr(comp, 'E') and comp.E is None:
+                if hasattr(comp, "E") and comp.E is None:
                     comp.E = np.zeros(self.system.N)
 
-                for attr in ['P_charge', 'P_discharge', 'P_gen', 'P_cons']:
+                for attr in ["P_charge", "P_discharge", "P_gen", "P_cons"]:
                     if hasattr(comp, attr) and getattr(comp, attr) is None:
                         setattr(comp, attr, np.zeros(self.system.N))
 
@@ -688,8 +758,8 @@ class RollingHorizonMILPSolver(BaseSolver):
     def _update_system_flows(self):
         """Update system flow variables with component solution values."""
         for flow_key, flow_data in self.system.flows.items():
-            source_comp = self.system.components.get(flow_data['source'])
-            target_comp = self.system.components.get(flow_data['target'])
+            source_comp = self.system.components.get(flow_data["source"])
+            target_comp = self.system.components.get(flow_data["target"])
 
             if source_comp and target_comp:
                 # Create flow values based on component outputs
@@ -697,10 +767,10 @@ class RollingHorizonMILPSolver(BaseSolver):
 
                 # This is a simplified flow calculation
                 # In practice, would need more sophisticated flow matching
-                if hasattr(source_comp, 'P_gen') and source_comp.P_gen is not None:
+                if hasattr(source_comp, "P_gen") and source_comp.P_gen is not None:
                     flow_values = np.array(source_comp.P_gen)
 
-                flow_data['values'] = flow_values
+                flow_data["values"] = flow_values
 
     def _calculate_system_totals(self):
         """Calculate system-level totals for the rolling horizon solution."""
@@ -709,7 +779,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         for comp in self.system.components.values():
             # Sum energy flows
-            if hasattr(comp, 'P_gen') and comp.P_gen is not None:
+            if hasattr(comp, "P_gen") and comp.P_gen is not None:
                 total_energy += np.sum(comp.P_gen)
 
             # Add cost calculations as needed
@@ -725,70 +795,82 @@ class RollingHorizonMILPSolver(BaseSolver):
             Dictionary of validation metrics
         """
         validation = {
-            'storage_continuity_violations': 0,
-            'window_failures': 0,
-            'total_windows': len(self.window_results),
-            'energy_balance_errors': [],
-            'storage_bound_violations': [],
-            'solution_gaps': []
+            "storage_continuity_violations": 0,
+            "window_failures": 0,
+            "total_windows": len(self.window_results),
+            "energy_balance_errors": [],
+            "storage_bound_violations": [],
+            "solution_gaps": [],
         }
 
         try:
             # Count storage violations
-            storage_violations = getattr(self, 'storage_violations', [])
-            validation['storage_continuity_violations'] = len(storage_violations)
-            validation['storage_bound_violations'] = [
-                v for v in storage_violations
-                if v.get('type') in ['storage_overflow', 'storage_underflow']
+            storage_violations = getattr(self, "storage_violations", [])
+            validation["storage_continuity_violations"] = len(storage_violations)
+            validation["storage_bound_violations"] = [
+                v
+                for v in storage_violations
+                if v.get("type") in ["storage_overflow", "storage_underflow"]
             ]
 
             # Count window failures
-            validation['window_failures'] = len([
-                r for r in self.window_results
-                if r.get('status') in ['error', 'infeasible']
-            ])
+            validation["window_failures"] = len(
+                [
+                    r
+                    for r in self.window_results
+                    if r.get("status") in ["error", "infeasible"]
+                ]
+            )
 
             # Check for solution gaps (missing timesteps)
             for comp_name, comp in self.system.components.items():
-                if hasattr(comp, 'E') and comp.E is not None:
+                if hasattr(comp, "E") and comp.E is not None:
                     # Check for any zero or uninitialized values that might indicate gaps
                     zero_count = np.sum(np.array(comp.E) == 0)
-                    if zero_count > self.system.N * 0.1:  # More than 10% zeros might indicate gaps
-                        validation['solution_gaps'].append({
-                            'component': comp_name,
-                            'zero_timesteps': int(zero_count),
-                            'total_timesteps': self.system.N
-                        })
+                    if (
+                        zero_count > self.system.N * 0.1
+                    ):  # More than 10% zeros might indicate gaps
+                        validation["solution_gaps"].append(
+                            {
+                                "component": comp_name,
+                                "zero_timesteps": int(zero_count),
+                                "total_timesteps": self.system.N,
+                            }
+                        )
 
             # Calculate success metrics
-            validation['success_rate'] = (
-                (validation['total_windows'] - validation['window_failures']) /
-                max(validation['total_windows'], 1)
-            )
+            validation["success_rate"] = (
+                validation["total_windows"] - validation["window_failures"]
+            ) / max(validation["total_windows"], 1)
 
-            validation['storage_violation_rate'] = (
-                validation['storage_continuity_violations'] /
-                max(len(self.storage_states) * validation['total_windows'], 1)
-            )
+            validation["storage_violation_rate"] = validation[
+                "storage_continuity_violations"
+            ] / max(len(self.storage_states) * validation["total_windows"], 1)
 
             # Overall health score
-            health_score = validation['success_rate']
-            if validation['storage_continuity_violations'] > 0:
+            health_score = validation["success_rate"]
+            if validation["storage_continuity_violations"] > 0:
                 health_score *= 0.8  # Penalize storage violations
-            if validation['solution_gaps']:
+            if validation["solution_gaps"]:
                 health_score *= 0.9  # Penalize solution gaps
 
-            validation['health_score'] = health_score
-            validation['status'] = 'good' if health_score > 0.9 else 'warning' if health_score > 0.7 else 'poor'
+            validation["health_score"] = health_score
+            validation["status"] = (
+                "good"
+                if health_score > 0.9
+                else "warning" if health_score > 0.7 else "poor"
+            )
 
         except Exception as e:
             logger.error(f"Validation failed: {e}")
-            validation['validation_error'] = str(e)
-            validation['status'] = 'error'
+            validation["validation_error"] = str(e)
+            validation["status"] = "error"
 
         return validation
 
-    def _extract_solution_vectors(self, window_result: SolverResult, window: Dict[str, int]) -> Dict[str, Any]:
+    def _extract_solution_vectors(
+        self, window_result: SolverResult, window: Dict[str, int]
+    ) -> Dict[str, Any]:
         """Extract solution vectors from window result for warm-starting.
 
         Args:
@@ -806,24 +888,48 @@ class RollingHorizonMILPSolver(BaseSolver):
                 comp_vectors = {}
 
                 # Extract energy/power decision variables
-                if hasattr(comp, 'P_in') and hasattr(comp.P_in, 'value') and comp.P_in.value is not None:
-                    comp_vectors['P_in'] = np.array(comp.P_in.value).copy()
+                if (
+                    hasattr(comp, "P_in")
+                    and hasattr(comp.P_in, "value")
+                    and comp.P_in.value is not None
+                ):
+                    comp_vectors["P_in"] = np.array(comp.P_in.value).copy()
 
-                if hasattr(comp, 'P_out') and hasattr(comp.P_out, 'value') and comp.P_out.value is not None:
-                    comp_vectors['P_out'] = np.array(comp.P_out.value).copy()
+                if (
+                    hasattr(comp, "P_out")
+                    and hasattr(comp.P_out, "value")
+                    and comp.P_out.value is not None
+                ):
+                    comp_vectors["P_out"] = np.array(comp.P_out.value).copy()
 
-                if hasattr(comp, 'E') and hasattr(comp.E, 'value') and comp.E.value is not None:
-                    comp_vectors['E'] = np.array(comp.E.value).copy()
+                if (
+                    hasattr(comp, "E")
+                    and hasattr(comp.E, "value")
+                    and comp.E.value is not None
+                ):
+                    comp_vectors["E"] = np.array(comp.E.value).copy()
 
                 # Extract binary decision variables
-                if hasattr(comp, 'on') and hasattr(comp.on, 'value') and comp.on.value is not None:
-                    comp_vectors['on'] = np.array(comp.on.value).copy()
+                if (
+                    hasattr(comp, "on")
+                    and hasattr(comp.on, "value")
+                    and comp.on.value is not None
+                ):
+                    comp_vectors["on"] = np.array(comp.on.value).copy()
 
-                if hasattr(comp, 'startup') and hasattr(comp.startup, 'value') and comp.startup.value is not None:
-                    comp_vectors['startup'] = np.array(comp.startup.value).copy()
+                if (
+                    hasattr(comp, "startup")
+                    and hasattr(comp.startup, "value")
+                    and comp.startup.value is not None
+                ):
+                    comp_vectors["startup"] = np.array(comp.startup.value).copy()
 
-                if hasattr(comp, 'shutdown') and hasattr(comp.shutdown, 'value') and comp.shutdown.value is not None:
-                    comp_vectors['shutdown'] = np.array(comp.shutdown.value).copy()
+                if (
+                    hasattr(comp, "shutdown")
+                    and hasattr(comp.shutdown, "value")
+                    and comp.shutdown.value is not None
+                ):
+                    comp_vectors["shutdown"] = np.array(comp.shutdown.value).copy()
 
                 if comp_vectors:
                     solution_vectors[comp_name] = comp_vectors

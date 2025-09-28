@@ -4,24 +4,24 @@ Comprehensive test suite for Hive V2.0 Windows integration.
 Consolidates all test scenarios into a single, organized test runner.
 """
 
-import sys
-import os
 import json
+import os
 import sqlite3
 import subprocess
-import time
+import sys
 import tempfile
-from pathlib import Path
-from datetime import datetime, timezone
+import time
 import uuid
+from datetime import datetime, timezone
+from pathlib import Path
 
 # No sys.path manipulation needed - use Poetry workspace imports
 project_root = Path(__file__).parent.parent.parent.parent
 # All packages available through Poetry workspace imports
 
-from hive_orchestrator.hive_core import HiveCore
-from hive_orchestrator.core import db as hive_core_db
 from hive_config.paths import DB_PATH
+from hive_orchestrator.core import db as hive_core_db
+from hive_orchestrator.hive_core import HiveCore
 
 
 class HiveTestSuite:
@@ -61,34 +61,36 @@ class HiveTestSuite:
             "task_type": "simple",
             "priority": 1,
             "status": "queued",
-            "payload": json.dumps({
-                "message": f"Test message for {worker}",
-                "action": "test"
-            }),
+            "payload": json.dumps(
+                {"message": f"Test message for {worker}", "action": "test"}
+            ),
             "assigned_worker": worker,
             "workspace_type": "repo",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 payload, assigned_worker, workspace_type, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            task_data["id"],
-            task_data["title"],
-            task_data["description"],
-            task_data["task_type"],
-            task_data["priority"],
-            task_data["status"],
-            task_data["payload"],
-            task_data["assigned_worker"],
-            task_data["workspace_type"],
-            task_data["created_at"]
-        ))
+        """,
+            (
+                task_data["id"],
+                task_data["title"],
+                task_data["description"],
+                task_data["task_type"],
+                task_data["priority"],
+                task_data["status"],
+                task_data["payload"],
+                task_data["assigned_worker"],
+                task_data["workspace_type"],
+                task_data["created_at"],
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -105,19 +107,26 @@ class HiveTestSuite:
         # Build command using module approach
         cmd = [
             sys.executable,
-            "-m", "hive_orchestrator.worker",
+            "-m",
+            "hive_orchestrator.worker",
             "backend",
             "--one-shot",
-            "--task-id", task_id,
-            "--run-id", f"test-{uuid.uuid4().hex[:8]}",
-            "--phase", "apply",
-            "--mode", "repo"
+            "--task-id",
+            task_id,
+            "--run-id",
+            f"test-{uuid.uuid4().hex[:8]}",
+            "--phase",
+            "apply",
+            "--mode",
+            "repo",
         ]
 
         # Set up environment
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
-        orchestrator_src = (self.hive.root / "apps" / "hive-orchestrator" / "src").as_posix()
+        orchestrator_src = (
+            self.hive.root / "apps" / "hive-orchestrator" / "src"
+        ).as_posix()
         env["PYTHONPATH"] = orchestrator_src
 
         try:
@@ -128,7 +137,7 @@ class HiveTestSuite:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                env=env
+                env=env,
             )
 
             # Give it 3 seconds to initialize
@@ -160,18 +169,25 @@ class HiveTestSuite:
 
         cmd = [
             sys.executable,
-            "-m", "hive_orchestrator.worker",
+            "-m",
+            "hive_orchestrator.worker",
             "backend",
             "--one-shot",
-            "--task-id", "invalid-task-id",
-            "--run-id", "test-error",
-            "--phase", "apply",
-            "--mode", "repo"
+            "--task-id",
+            "invalid-task-id",
+            "--run-id",
+            "test-error",
+            "--phase",
+            "apply",
+            "--mode",
+            "repo",
         ]
 
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
-        orchestrator_src = (self.hive.root / "apps" / "hive-orchestrator" / "src").as_posix()
+        orchestrator_src = (
+            self.hive.root / "apps" / "hive-orchestrator" / "src"
+        ).as_posix()
         env["PYTHONPATH"] = orchestrator_src
 
         try:
@@ -182,7 +198,7 @@ class HiveTestSuite:
                 stderr=subprocess.PIPE,
                 text=True,
                 env=env,
-                timeout=10
+                timeout=10,
             )
 
             # Should exit with code 2 for task not found
@@ -190,7 +206,9 @@ class HiveTestSuite:
                 self.log("Error handling working correctly")
                 return True
             else:
-                self.log(f"Unexpected behavior: code={process.returncode}, stderr={process.stderr[:200]}")
+                self.log(
+                    f"Unexpected behavior: code={process.returncode}, stderr={process.stderr[:200]}"
+                )
                 return False
 
         except subprocess.TimeoutExpired:
@@ -213,7 +231,7 @@ class HiveTestSuite:
             required_keys = [
                 "worker_spawn_timeout",
                 "status_refresh_seconds",
-                "max_parallel_tasks"
+                "max_parallel_tasks",
             ]
 
             for key in required_keys:
@@ -244,7 +262,7 @@ class HiveTestSuite:
                 [sys.executable, str(queen_script), "--help"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
 
             if result.returncode == 0 and "QueenLite" in result.stdout:
@@ -310,7 +328,7 @@ class HiveTestSuite:
             ("Database Integration", self.test_database_integration),
             ("Worker Spawning", self.test_worker_spawning),
             ("Error Handling", self.test_error_handling),
-            ("Queen Runner", self.test_queen_runner)
+            ("Queen Runner", self.test_queen_runner),
         ]
 
         for test_name, test_func in tests:

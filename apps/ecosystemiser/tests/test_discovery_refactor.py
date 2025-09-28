@@ -6,61 +6,61 @@ This script tests that the component-specific knowledge has been successfully
 moved from the Discovery engine to the component configurations themselves.
 """
 
-import yaml
-import tempfile
 import os
+import tempfile
 from pathlib import Path
 
+import yaml
 from ecosystemiser.discovery.encoders.parameter_encoder import SystemConfigEncoder
 
 
 def create_test_system_config():
     """Create a test system configuration with components that have optimizable parameters."""
     test_config = {
-        'system': {
-            'name': 'test_optimization_system',
-            'description': 'Test system for validation of dynamic parameter discovery'
+        "system": {
+            "name": "test_optimization_system",
+            "description": "Test system for validation of dynamic parameter discovery",
         },
-        'components': {
-            'battery': {
-                'type': 'storage',
-                'component_data_file': 'sonnen_eco_10.yml',
-                'technical': {
-                    'capacity_nominal': 10.0,
-                    'max_charge_rate': 0.55,
-                    'optimizable_parameters': {
-                        'capacity': {
-                            'parameter_path': 'technical.capacity_nominal',
-                            'bounds': [5.0, 50.0],
-                            'units': 'kWh',
-                            'description': 'Battery storage capacity',
-                            'parameter_type': 'continuous'
+        "components": {
+            "battery": {
+                "type": "storage",
+                "component_data_file": "sonnen_eco_10.yml",
+                "technical": {
+                    "capacity_nominal": 10.0,
+                    "max_charge_rate": 0.55,
+                    "optimizable_parameters": {
+                        "capacity": {
+                            "parameter_path": "technical.capacity_nominal",
+                            "bounds": [5.0, 50.0],
+                            "units": "kWh",
+                            "description": "Battery storage capacity",
+                            "parameter_type": "continuous",
                         },
-                        'power': {
-                            'parameter_path': 'technical.max_charge_rate',
-                            'bounds': [0.2, 2.0],
-                            'units': 'C-rate',
-                            'description': 'Battery charge rate'
-                        }
-                    }
-                }
+                        "power": {
+                            "parameter_path": "technical.max_charge_rate",
+                            "bounds": [0.2, 2.0],
+                            "units": "C-rate",
+                            "description": "Battery charge rate",
+                        },
+                    },
+                },
             },
-            'solar_pv': {
-                'type': 'generation',
-                'component_data_file': 'solar_pv_residential.yml',
-                'technical': {
-                    'P_max': 5.0,
-                    'optimizable_parameters': {
-                        'capacity': {
-                            'parameter_path': 'technical.P_max',
-                            'bounds': [1.0, 20.0],
-                            'units': 'kW',
-                            'description': 'Solar PV capacity'
+            "solar_pv": {
+                "type": "generation",
+                "component_data_file": "solar_pv_residential.yml",
+                "technical": {
+                    "P_max": 5.0,
+                    "optimizable_parameters": {
+                        "capacity": {
+                            "parameter_path": "technical.P_max",
+                            "bounds": [1.0, 20.0],
+                            "units": "kW",
+                            "description": "Solar PV capacity",
                         }
-                    }
-                }
-            }
-        }
+                    },
+                },
+            },
+        },
     }
     return test_config
 
@@ -73,7 +73,7 @@ def test_dynamic_parameter_discovery():
     test_config = create_test_system_config()
 
     # Write to temporary file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
         yaml.dump(test_config, f, default_flow_style=False)
         config_path = f.name
 
@@ -83,14 +83,16 @@ def test_dynamic_parameter_discovery():
         encoder = SystemConfigEncoder.from_config(config_path)
 
         # Validate that parameters were discovered
-        print(f"[SUCCESS] Successfully created encoder with {encoder.spec.dimensions} parameters")
+        print(
+            f"[SUCCESS] Successfully created encoder with {encoder.spec.dimensions} parameters"
+        )
 
         # Check specific parameters
         param_names = encoder.spec.get_parameter_names()
         print(f"[INFO] Discovered parameters: {param_names}")
 
         # Validate expected parameters exist
-        expected_params = ['battery_capacity', 'battery_power', 'solar_pv_capacity']
+        expected_params = ["battery_capacity", "battery_power", "solar_pv_capacity"]
         for expected in expected_params:
             if expected in param_names:
                 print(f"[SUCCESS] Found expected parameter: {expected}")
@@ -113,19 +115,26 @@ def test_dynamic_parameter_discovery():
         print(f"[SUCCESS] Successfully decoded parameter vector to configuration")
 
         # Verify values were applied correctly
-        battery_capacity = decoded_config['components']['battery']['technical']['capacity_nominal']
-        solar_capacity = decoded_config['components']['solar_pv']['technical']['P_max']
-        print(f"[INFO] Decoded values: battery={battery_capacity}kWh, solar={solar_capacity}kW")
+        battery_capacity = decoded_config["components"]["battery"]["technical"][
+            "capacity_nominal"
+        ]
+        solar_capacity = decoded_config["components"]["solar_pv"]["technical"]["P_max"]
+        print(
+            f"[INFO] Decoded values: battery={battery_capacity}kWh, solar={solar_capacity}kW"
+        )
 
         # Encode back
         encoded_vector = encoder.encode(decoded_config)
-        print(f"[SUCCESS] Successfully encoded configuration to vector: {encoded_vector}")
+        print(
+            f"[SUCCESS] Successfully encoded configuration to vector: {encoded_vector}"
+        )
 
         return True
 
     except Exception as e:
         print(f"[FAIL] Test failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -141,34 +150,34 @@ def test_component_agnostic_architecture():
 
     # Test with a completely new component type not in the original hardcoded dictionary
     new_component_config = {
-        'system': {'name': 'test_new_component'},
-        'components': {
-            'electrolyzer': {  # New component type
-                'type': 'conversion',
-                'technical': {
-                    'efficiency': 0.75,
-                    'capacity_nominal': 100.0,
-                    'optimizable_parameters': {
-                        'efficiency': {
-                            'parameter_path': 'technical.efficiency',
-                            'bounds': [0.6, 0.9],
-                            'units': 'fraction',
-                            'description': 'Electrolyzer efficiency'
+        "system": {"name": "test_new_component"},
+        "components": {
+            "electrolyzer": {  # New component type
+                "type": "conversion",
+                "technical": {
+                    "efficiency": 0.75,
+                    "capacity_nominal": 100.0,
+                    "optimizable_parameters": {
+                        "efficiency": {
+                            "parameter_path": "technical.efficiency",
+                            "bounds": [0.6, 0.9],
+                            "units": "fraction",
+                            "description": "Electrolyzer efficiency",
                         },
-                        'capacity': {
-                            'parameter_path': 'technical.capacity_nominal',
-                            'bounds': [50.0, 500.0],
-                            'units': 'kW',
-                            'description': 'Electrolyzer capacity'
-                        }
-                    }
-                }
+                        "capacity": {
+                            "parameter_path": "technical.capacity_nominal",
+                            "bounds": [50.0, 500.0],
+                            "units": "kW",
+                            "description": "Electrolyzer capacity",
+                        },
+                    },
+                },
             }
-        }
+        },
     }
 
     # Write to temporary file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
         yaml.dump(new_component_config, f, default_flow_style=False)
         config_path = f.name
 
@@ -177,10 +186,12 @@ def test_component_agnostic_architecture():
         encoder = SystemConfigEncoder.from_config(config_path)
         param_names = encoder.spec.get_parameter_names()
 
-        print(f"[SUCCESS] Successfully discovered parameters for new component type: {param_names}")
+        print(
+            f"[SUCCESS] Successfully discovered parameters for new component type: {param_names}"
+        )
 
         # Verify the new component parameters
-        expected_new_params = ['electrolyzer_efficiency', 'electrolyzer_capacity']
+        expected_new_params = ["electrolyzer_efficiency", "electrolyzer_capacity"]
         for expected in expected_new_params:
             if expected in param_names:
                 print(f"[SUCCESS] New component parameter discovered: {expected}")
@@ -188,7 +199,9 @@ def test_component_agnostic_architecture():
                 print(f"[FAIL] Failed to discover new component parameter: {expected}")
                 return False
 
-        print("[SUCCESS] Architecture is now component-agnostic - new components automatically supported!")
+        print(
+            "[SUCCESS] Architecture is now component-agnostic - new components automatically supported!"
+        )
         return True
 
     except Exception as e:
@@ -229,7 +242,9 @@ def main():
 
     if overall_success:
         print("\n[SUCCESS] Phase 1 Discovery Engine Refactoring: SUCCESS!")
-        print("   [SUCCESS] Component knowledge successfully moved to component configurations")
+        print(
+            "   [SUCCESS] Component knowledge successfully moved to component configurations"
+        )
         print("   [SUCCESS] Discovery engine is now component-agnostic")
         print("   [SUCCESS] Architectural gravity correctly realigned")
     else:

@@ -1,29 +1,39 @@
 """Base solver abstract class for all solver implementations."""
+
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
-from pydantic import BaseModel
+from typing import Any, Dict, Optional
+
 from hive_logging import get_logger
+from pydantic import BaseModel
+
 logger = get_logger(__name__)
+
 
 class SolverConfig(BaseModel):
     """Configuration for solver behavior."""
+
     max_iterations: int = 1000
     tolerance: float = 1e-6
     verbose: bool = False
     solver_specific: Dict[str, Any] = {}
 
     # Multi-objective configuration
-    objective_weights: Optional[Dict[str, float]] = None  # e.g., {"cost": 0.7, "emissions": 0.3}
+    objective_weights: Optional[Dict[str, float]] = (
+        None  # e.g., {"cost": 0.7, "emissions": 0.3}
+    )
     normalize_objectives: bool = True  # Normalize objectives before combining
     pareto_mode: bool = False  # Generate Pareto frontier instead of single solution
 
+
 class SolverResult(BaseModel):
     """Result structure from solver execution."""
+
     status: str  # "optimal", "infeasible", "error"
     objective_value: Optional[float] = None
     solve_time: float
     iterations: int = 0
     message: str = ""
+
 
 class BaseSolver(ABC):
     """Abstract base class for all system solvers."""
@@ -78,9 +88,9 @@ class BaseSolver(ABC):
         for component in self.system.components.values():
             # Check storage bounds
             if component.type == "storage":
-                if hasattr(component, 'E'):
+                if hasattr(component, "E"):
                     E = component.E
-                    E_max = getattr(component, 'E_max', float('inf'))
+                    E_max = getattr(component, "E_max", float("inf"))
                     if any(e < -1e-6 or e > E_max + 1e-6 for e in E if e is not None):
                         violations.append(f"{component.name}: Storage bounds violated")
 

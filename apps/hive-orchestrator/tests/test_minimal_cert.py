@@ -13,11 +13,13 @@ from pathlib import Path
 # No sys.path manipulation needed - use Poetry workspace imports
 # No sys.path manipulation needed - use Poetry workspace imports
 
+
 def test_1_configuration():
     """Test configuration system"""
     print("Testing configuration...")
     try:
         from hive_config import get_config
+
         config = get_config()
         assert config.env in ["development", "testing", "production"]
         claude_config = config.get_claude_config()
@@ -28,12 +30,14 @@ def test_1_configuration():
         print(f"FAIL: Configuration - {e}")
         return False
 
+
 def test_2_database():
     """Test database connection pool"""
     print("Testing database...")
     try:
         # Test connection pool class creation and basic configuration
         import hive_db as cp
+
         pool = cp.ConnectionPool()
         assert pool.max_connections > 0
         assert pool.connection_timeout > 0
@@ -49,11 +53,16 @@ def test_2_database():
         print(f"FAIL: Database - {e}")
         return False
 
+
 def test_3_claude_service():
     """Test Claude service"""
     print("Testing Claude service...")
     try:
-        from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
+        from hive_claude_bridge.claude_service import (
+            get_claude_service,
+            reset_claude_service,
+        )
+
         reset_claude_service()
         service = get_claude_service()
         assert service is not None
@@ -64,6 +73,7 @@ def test_3_claude_service():
     except Exception as e:
         print(f"FAIL: Claude service - {e}")
         return False
+
 
 def main():
     """Run minimal certification tests"""
@@ -97,6 +107,7 @@ def main():
         print("Some tests failed - check logs above")
 
     return passed == total
+
 
 if __name__ == "__main__":
     success = main()

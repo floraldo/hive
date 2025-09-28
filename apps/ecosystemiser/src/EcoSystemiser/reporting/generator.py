@@ -5,9 +5,9 @@ eliminating code duplication between CLI and web interfaces.
 """
 
 import json
-from typing import Dict, Any, Optional, List
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 class HTMLReportGenerator:
@@ -149,7 +149,7 @@ class HTMLReportGenerator:
 
     def _generate_styles(self, include_bootstrap: bool = False) -> str:
         """Generate CSS styles for the report."""
-        base_styles = """ if include_bootstrap else """
+        base_styles = """
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;

@@ -4,34 +4,35 @@ Final comprehensive test for complete Strategy Pattern implementation.
 Validates that ALL components have separate Simple and Standard optimization strategies.
 """
 
+import logging
 import sys
 from pathlib import Path
-import logging
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 # Add path for imports
-eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
+eco_path = Path(__file__).parent.parent / "src" / "EcoSystemiser"
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
+
 
 def test_complete_strategy_pattern():
     """Test that all components have complete Strategy Pattern implementation."""
 
     # List of all components to check
     components_to_check = [
-        ('energy.battery', 'Battery'),
-        ('energy.heat_buffer', 'HeatBuffer'),
-        ('energy.solar_pv', 'SolarPV'),
-        ('energy.heat_pump', 'HeatPump'),
-        ('energy.power_demand', 'PowerDemand'),
-        ('energy.electric_boiler', 'ElectricBoiler'),
-        ('energy.heat_demand', 'HeatDemand'),
-        ('energy.grid', 'Grid'),
-        ('water.water_grid', 'WaterGrid'),
-        ('water.water_demand', 'WaterDemand'),
-        ('water.water_storage', 'WaterStorage'),
-        ('water.rainwater_source', 'RainwaterSource')
+        ("energy.battery", "Battery"),
+        ("energy.heat_buffer", "HeatBuffer"),
+        ("energy.solar_pv", "SolarPV"),
+        ("energy.heat_pump", "HeatPump"),
+        ("energy.power_demand", "PowerDemand"),
+        ("energy.electric_boiler", "ElectricBoiler"),
+        ("energy.heat_demand", "HeatDemand"),
+        ("energy.grid", "Grid"),
+        ("water.water_grid", "WaterGrid"),
+        ("water.water_demand", "WaterDemand"),
+        ("water.water_storage", "WaterStorage"),
+        ("water.rainwater_source", "RainwaterSource"),
     ]
 
     logger.info("=" * 70)
@@ -45,27 +46,29 @@ def test_complete_strategy_pattern():
 
     for module_path, component_name in components_to_check:
         try:
-            module = __import__(f'system_model.components.{module_path}', fromlist=[component_name])
+            module = __import__(
+                f"system_model.components.{module_path}", fromlist=[component_name]
+            )
 
             # Check for physics strategies
-            has_simple_physics = hasattr(module, f'{component_name}PhysicsSimple')
-            has_standard_physics = hasattr(module, f'{component_name}PhysicsStandard')
+            has_simple_physics = hasattr(module, f"{component_name}PhysicsSimple")
+            has_standard_physics = hasattr(module, f"{component_name}PhysicsStandard")
 
             # Check for optimization strategies
-            has_simple_opt = hasattr(module, f'{component_name}OptimizationSimple')
-            has_standard_opt = hasattr(module, f'{component_name}OptimizationStandard')
+            has_simple_opt = hasattr(module, f"{component_name}OptimizationSimple")
+            has_standard_opt = hasattr(module, f"{component_name}OptimizationStandard")
 
             # Check inheritance
             inheritance_ok = True
             if has_standard_physics and has_simple_physics:
-                StandardPhysics = getattr(module, f'{component_name}PhysicsStandard')
-                SimplePhysics = getattr(module, f'{component_name}PhysicsSimple')
+                StandardPhysics = getattr(module, f"{component_name}PhysicsStandard")
+                SimplePhysics = getattr(module, f"{component_name}PhysicsSimple")
                 if not issubclass(StandardPhysics, SimplePhysics):
                     inheritance_ok = False
 
             if has_standard_opt and has_simple_opt:
-                StandardOpt = getattr(module, f'{component_name}OptimizationStandard')
-                SimpleOpt = getattr(module, f'{component_name}OptimizationSimple')
+                StandardOpt = getattr(module, f"{component_name}OptimizationStandard")
+                SimpleOpt = getattr(module, f"{component_name}OptimizationSimple")
                 if not issubclass(StandardOpt, SimpleOpt):
                     inheritance_ok = False
 
@@ -75,7 +78,9 @@ def test_complete_strategy_pattern():
 
             if physics_complete and opt_complete and inheritance_ok:
                 complete.append(component_name)
-                logger.info(f"[COMPLETE] {component_name}: All 4 strategies with proper inheritance")
+                logger.info(
+                    f"[COMPLETE] {component_name}: All 4 strategies with proper inheritance"
+                )
             else:
                 incomplete.append(component_name)
                 issues = []
@@ -125,6 +130,7 @@ def test_complete_strategy_pattern():
 
     return len(complete) == len(components_to_check)
 
+
 def test_factory_methods():
     """Test that factory methods correctly select strategies based on fidelity."""
 
@@ -134,42 +140,55 @@ def test_factory_methods():
 
     # Test a few components
     test_components = [
-        ('energy.battery', 'Battery', 'BatteryParams'),
-        ('energy.heat_buffer', 'HeatBuffer', 'HeatBufferParams'),
-        ('energy.solar_pv', 'SolarPV', 'SolarPVParams'),
+        ("energy.battery", "Battery", "BatteryParams"),
+        ("energy.heat_buffer", "HeatBuffer", "HeatBufferParams"),
+        ("energy.solar_pv", "SolarPV", "SolarPVParams"),
     ]
 
     all_good = True
 
     for module_path, component_name, params_name in test_components:
         try:
-            module = __import__(f'system_model.components.{module_path}', fromlist=[component_name, params_name])
+            module = __import__(
+                f"system_model.components.{module_path}",
+                fromlist=[component_name, params_name],
+            )
             Component = getattr(module, component_name)
             Params = getattr(module, params_name)
 
             # Test SIMPLE fidelity
             params_simple = Params()
             params_simple.technical.fidelity_level = FidelityLevel.SIMPLE
-            comp_simple = Component(name='test_simple', params=params_simple)
+            comp_simple = Component(name="test_simple", params=params_simple)
 
             physics_simple = comp_simple._get_physics_strategy()
             opt_simple = comp_simple._get_optimization_strategy()
 
-            assert physics_simple.__class__.__name__ == f'{component_name}PhysicsSimple'
-            assert opt_simple.__class__.__name__ == f'{component_name}OptimizationSimple'
+            assert physics_simple.__class__.__name__ == f"{component_name}PhysicsSimple"
+            assert (
+                opt_simple.__class__.__name__ == f"{component_name}OptimizationSimple"
+            )
 
             # Test STANDARD fidelity
             params_standard = Params()
             params_standard.technical.fidelity_level = FidelityLevel.STANDARD
-            comp_standard = Component(name='test_standard', params=params_standard)
+            comp_standard = Component(name="test_standard", params=params_standard)
 
             physics_standard = comp_standard._get_physics_strategy()
             opt_standard = comp_standard._get_optimization_strategy()
 
-            assert physics_standard.__class__.__name__ == f'{component_name}PhysicsStandard'
-            assert opt_standard.__class__.__name__ == f'{component_name}OptimizationStandard'
+            assert (
+                physics_standard.__class__.__name__
+                == f"{component_name}PhysicsStandard"
+            )
+            assert (
+                opt_standard.__class__.__name__
+                == f"{component_name}OptimizationStandard"
+            )
 
-            logger.info(f"[PASSED] {component_name}: Factory methods correctly select strategies")
+            logger.info(
+                f"[PASSED] {component_name}: Factory methods correctly select strategies"
+            )
 
         except AssertionError as e:
             all_good = False
@@ -184,6 +203,7 @@ def test_factory_methods():
         logger.warning("\nFactory methods: SOME TESTS FAILED")
 
     return all_good
+
 
 if __name__ == "__main__":
     # Run tests

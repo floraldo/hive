@@ -1,13 +1,24 @@
 """Solar PV component with MILP optimization support and hierarchical fidelity."""
+
+from typing import Any, Dict, List, Optional
+
 import cvxpy as cp
 import numpy as np
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from hive_logging import get_logger
+from ecosystemiser.system_model.components.shared.archetypes import (
+    FidelityLevel,
+    GenerationTechnicalParams,
+)
+from ecosystemiser.system_model.components.shared.base_classes import (
+    BaseGenerationOptimization,
+    BaseGenerationPhysics,
+)
+from ecosystemiser.system_model.components.shared.component import (
+    Component,
+    ComponentParams,
+)
 from ecosystemiser.system_model.components.shared.registry import register_component
-from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
-from ecosystemiser.system_model.components.shared.archetypes import GenerationTechnicalParams, FidelityLevel
-from ecosystemiser.system_model.components.shared.base_classes import BaseGenerationPhysics, BaseGenerationOptimization
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -15,48 +26,42 @@ logger = get_logger(__name__)
 # SOLAR PV-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
 # =============================================================================
 
+
 class SolarPVTechnicalParams(GenerationTechnicalParams):
     """Solar PV-specific technical parameters extending generation archetype.
 
     This model inherits from GenerationTechnicalParams and adds solar-specific
     parameters for different fidelity levels.
     """
+
     # Basic solar parameters (always used)
     technology: str = Field("monocrystalline", description="PV technology type")
 
     # STANDARD fidelity additions
     panel_efficiency: Optional[float] = Field(
-        0.20,
-        description="Panel efficiency at STC"
+        0.20, description="Panel efficiency at STC"
     )
     inverter_efficiency: Optional[float] = Field(
-        0.98,
-        description="DC to AC conversion efficiency"
+        0.98, description="DC to AC conversion efficiency"
     )
 
     # DETAILED fidelity parameters
     temperature_coefficient: Optional[float] = Field(
-        None,
-        description="Power temperature coefficient [%/°C]"
+        None, description="Power temperature coefficient [%/°C]"
     )
     degradation_rate_annual: Optional[float] = Field(
-        None,
-        description="Annual degradation rate [%/year]"
+        None, description="Annual degradation rate [%/year]"
     )
-    soiling_factor: Optional[float] = Field(
-        None,
-        description="Soiling derating factor"
-    )
+    soiling_factor: Optional[float] = Field(None, description="Soiling derating factor")
 
     # RESEARCH fidelity parameters
     spectral_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Spectral irradiance model parameters"
+        None, description="Spectral irradiance model parameters"
     )
     bifacial_gain: Optional[float] = Field(
-        None,
-        description="Bifacial module gain factor"
+        None, description="Bifacial module gain factor"
     )
+
 
 class SolarPVParams(ComponentParams):
     """Solar PV parameters using the hierarchical technical parameter system.
@@ -64,18 +69,21 @@ class SolarPVParams(ComponentParams):
     Profile data should be provided separately through the system's
     profile loading mechanism, not as a component parameter.
     """
+
     technical: SolarPVTechnicalParams = Field(
         default_factory=lambda: SolarPVTechnicalParams(
             capacity_nominal=10.0,  # Default 10 kW
             efficiency_nominal=1.0,  # Solar uses profile * capacity
-            fidelity_level=FidelityLevel.STANDARD
+            fidelity_level=FidelityLevel.STANDARD,
         ),
-        description="Technical parameters following the hierarchical archetype system"
+        description="Technical parameters following the hierarchical archetype system",
     )
+
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
+
 
 class SolarPVPhysicsSimple(BaseGenerationPhysics):
     """Implements the SIMPLE rule-based physics for a solar PV system.
@@ -100,6 +108,7 @@ class SolarPVPhysicsSimple(BaseGenerationPhysics):
 
         return max(0.0, base_output)
 
+
 class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
     """Implements the STANDARD rule-based physics for a solar PV system.
 
@@ -118,16 +127,20 @@ class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
         generation_after_simple = super().rule_based_generate(t, profile_value)
 
         # 2. Add STANDARD-specific physics: inverter efficiency
-        inverter_efficiency = getattr(self.params.technical, 'inverter_efficiency', 0.98)
+        inverter_efficiency = getattr(
+            self.params.technical, "inverter_efficiency", 0.98
+        )
 
         # Apply inverter efficiency (DC to AC conversion)
         final_generation = generation_after_simple * inverter_efficiency
 
         return max(0.0, final_generation)
 
+
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
+
 
 class SolarPVOptimizationSimple(BaseGenerationOptimization):
     """Implements the SIMPLE MILP optimization constraints for solar PV.
@@ -151,7 +164,7 @@ class SolarPVOptimizationSimple(BaseGenerationOptimization):
         constraints = []
         comp = self.component
 
-        if comp.P_out is not None and hasattr(comp, 'profile'):
+        if comp.P_out is not None and hasattr(comp, "profile"):
             # SIMPLE MODEL: Direct profile scaling
             # P_out = profile * P_max
             effective_generation = comp.profile * comp.P_max
@@ -160,6 +173,7 @@ class SolarPVOptimizationSimple(BaseGenerationOptimization):
             constraints.append(comp.P_out == effective_generation)
 
         return constraints
+
 
 class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for solar PV.
@@ -178,12 +192,12 @@ class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
         constraints = []
         comp = self.component
 
-        if comp.P_out is not None and hasattr(comp, 'profile'):
+        if comp.P_out is not None and hasattr(comp, "profile"):
             # Start with SIMPLE model: profile * P_max
             effective_generation = comp.profile * comp.P_max
 
             # STANDARD enhancement: add inverter efficiency
-            inverter_efficiency = getattr(comp.technical, 'inverter_efficiency', 0.98)
+            inverter_efficiency = getattr(comp.technical, "inverter_efficiency", 0.98)
             effective_generation = effective_generation * inverter_efficiency
 
             # Apply the generation constraint with efficiency losses
@@ -191,9 +205,11 @@ class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
 
         return constraints
 
+
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
 # =============================================================================
+
 
 @register_component("SolarPV")
 class SolarPV(Component):
@@ -229,9 +245,11 @@ class SolarPV(Component):
 
         # Profile should be assigned by the system/builder
         # Initialize as None, will be set by assign_profiles
-        if not hasattr(self, 'profile') or self.profile is None:
-            logger.warning(f"No generation profile assigned to {self.name}. Using zero output.")
-            self.profile = np.zeros(getattr(self, 'N', 24))
+        if not hasattr(self, "profile") or self.profile is None:
+            logger.warning(
+                f"No generation profile assigned to {self.name}. Using zero output."
+            )
+            self.profile = np.zeros(getattr(self, "N", 24))
         else:
             self.profile = np.array(self.profile)
 
@@ -274,7 +292,9 @@ class SolarPV(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return SolarPVOptimizationStandard(self.params, self)
         else:
-            raise ValueError(f"Unknown fidelity level for SolarPV optimization: {fidelity}")
+            raise ValueError(
+                f"Unknown fidelity level for SolarPV optimization: {fidelity}"
+            )
 
     def rule_based_generate(self, t: int) -> float:
         """
@@ -284,7 +304,11 @@ class SolarPV(Component):
         delegates the actual physics calculation to the strategy object.
         """
         # Check bounds
-        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
+        if (
+            not hasattr(self, "profile")
+            or self.profile is None
+            or t >= len(self.profile)
+        ):
             return 0.0
 
         # Get normalized profile value for this timestep
@@ -305,13 +329,13 @@ class SolarPV(Component):
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""
         # For solar, output is fixed by profile
-        self.P_out = cp.Variable(N, name=f'{self.name}_P_out', nonneg=True)
+        self.P_out = cp.Variable(N, name=f"{self.name}_P_out", nonneg=True)
 
         # Add as flow
-        self.flows['source']['P_out'] = {
-            'type': 'electricity',
-            'value': self.P_out,
-            'profile': self.profile
+        self.flows["source"]["P_out"] = {
+            "type": "electricity",
+            "value": self.P_out,
+            "profile": self.profile,
         }
 
     def set_constraints(self) -> List:

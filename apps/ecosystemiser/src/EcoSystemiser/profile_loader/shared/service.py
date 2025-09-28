@@ -7,8 +7,12 @@ This module defines the common service interface that all profile loaders
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, Union
+
 import xarray as xr
-from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
+from ecosystemiser.profile_loader.shared.models import (
+    BaseProfileRequest,
+    BaseProfileResponse,
+)
 
 
 class BaseProfileService(ABC):
@@ -20,7 +24,9 @@ class BaseProfileService(ABC):
     """
 
     @abstractmethod
-    async def process_request_async(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, BaseProfileResponse]:
+    async def process_request_async(
+        self, request: BaseProfileRequest
+    ) -> Tuple[xr.Dataset, BaseProfileResponse]:
         """
         Process a profile data request asynchronously.
 
@@ -36,7 +42,9 @@ class BaseProfileService(ABC):
         pass
 
     @abstractmethod
-    def process_request(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, BaseProfileResponse]:
+    def process_request(
+        self, request: BaseProfileRequest
+    ) -> Tuple[xr.Dataset, BaseProfileResponse]:
         """
         Process a profile data request synchronously.
 
@@ -75,7 +83,9 @@ class BaseProfileService(ABC):
         pass
 
     @abstractmethod
-    def get_available_variables(self, source: Optional[str] = None) -> Dict[str, Dict[str, str]]:
+    def get_available_variables(
+        self, source: Optional[str] = None
+    ) -> Dict[str, Dict[str, str]]:
         """
         Get available variables for this profile type.
 
@@ -114,15 +124,20 @@ class BaseProfileService(ABC):
             "capabilities": {
                 "async_processing": True,
                 "caching": True,
-                "validation": True
-            }
+                "validation": True,
+            },
         }
 
 
 class ProfileServiceError(Exception):
     """Base exception for profile service errors."""
 
-    def __init__(self, message: str, error_code: Optional[str] = None, details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        message: str,
+        error_code: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         super().__init__(message)
         self.error_code = error_code
         self.details = details or {}
@@ -130,14 +145,17 @@ class ProfileServiceError(Exception):
 
 class ProfileValidationError(ProfileServiceError):
     """Exception for profile request validation errors."""
+
     pass
 
 
 class ProfileDataError(ProfileServiceError):
     """Exception for profile data processing errors."""
+
     pass
 
 
 class ProfileSourceError(ProfileServiceError):
     """Exception for profile data source errors."""
+
     pass

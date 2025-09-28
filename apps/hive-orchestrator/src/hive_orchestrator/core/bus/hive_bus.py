@@ -9,17 +9,20 @@ Extends the generic messaging toolkit with Hive orchestration capabilities:
 """
 
 import json
-from hive_logging import get_logger
-from typing import Dict, Any, List, Optional, Union
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Union
 
 from hive_bus import BaseBus, BaseEvent
-from hive_config import get_config
 from hive_errors import BaseError
+from hive_logging import get_logger
 
-from .hive_events import TaskEvent, AgentEvent, WorkflowEvent
 from ..db.connection_pool import get_pooled_connection
-from ..errors.hive_exceptions import EventBusError, EventPublishError, EventSubscribeError
+from ..errors.hive_exceptions import (
+    EventBusError,
+    EventPublishError,
+    EventSubscribeError,
+)
+from .hive_events import AgentEvent, TaskEvent, WorkflowEvent
 
 logger = get_logger(__name__)
 
@@ -35,10 +38,14 @@ class HiveEventBus(BaseBus):
     - Task coordination patterns
     """
 
-    def __init__(self):
-        """Initialize the Hive event bus"""
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """Initialize the Hive event bus
+
+        Args:
+            config: Event bus configuration dictionary
+        """
         super().__init__()
-        self.config = get_config()
+        self.config = config if config is not None else {}
         self._ensure_hive_event_tables()
 
     def _ensure_hive_event_tables(self):
@@ -47,7 +54,8 @@ class HiveEventBus(BaseBus):
             cursor = conn.cursor()
 
             # Hive events table with orchestration-specific fields
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS hive_events (
                     event_id TEXT PRIMARY KEY,
                     event_type TEXT NOT NULL,
@@ -61,30 +69,37 @@ class HiveEventBus(BaseBus):
                     metadata TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Hive-specific indexes for orchestration queries
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_hive_events_workflow
                 ON hive_events(workflow_id, timestamp)
-            """)
+            """
+            )
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_hive_events_task
                 ON hive_events(task_id, timestamp)
-            """)
+            """
+            )
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_hive_events_agent
                 ON hive_events(agent_id, timestamp)
-            """)
+            """
+            )
 
             conn.commit()
 
     def publish(
         self,
         event: Union[BaseEvent, Dict[str, Any]],
-        correlation_id: Optional[str] = None
+        correlation_id: Optional[str] = None,
     ) -> str:
         """
         Publish a Hive event with orchestration context.
@@ -106,31 +121,34 @@ class HiveEventBus(BaseBus):
                 event.correlation_id = correlation_id
 
             # Extract Hive-specific fields
-            workflow_id = getattr(event, 'workflow_id', None)
-            task_id = getattr(event, 'task_id', None)
-            agent_id = getattr(event, 'agent_id', None)
+            workflow_id = getattr(event, "workflow_id", None)
+            task_id = getattr(event, "task_id", None)
+            agent_id = getattr(event, "agent_id", None)
 
             # Store in Hive database
             with get_pooled_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO hive_events (
                         event_id, event_type, timestamp, source_agent,
                         correlation_id, workflow_id, task_id, agent_id,
                         payload, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    event.event_id,
-                    event.event_type,
-                    event.timestamp.isoformat(),
-                    event.source,
-                    event.correlation_id,
-                    workflow_id,
-                    task_id,
-                    agent_id,
-                    json.dumps(event.payload),
-                    json.dumps(event.metadata)
-                ))
+                """,
+                    (
+                        event.event_id,
+                        event.event_type,
+                        event.timestamp.isoformat(),
+                        event.source,
+                        event.correlation_id,
+                        workflow_id,
+                        task_id,
+                        agent_id,
+                        json.dumps(event.payload),
+                        json.dumps(event.metadata),
+                    ),
+                )
                 conn.commit()
 
             # Notify subscribers
@@ -144,7 +162,7 @@ class HiveEventBus(BaseBus):
                 message=f"Failed to publish Hive event: {e}",
                 component="hive-event-bus",
                 operation="publish",
-                original_error=e
+                original_error=e,
             ) from e
 
     def _create_hive_event_from_dict(self, data: Dict[str, Any]) -> BaseEvent:
@@ -161,26 +179,16 @@ class HiveEventBus(BaseBus):
             return BaseEvent.from_dict(data)
 
     def get_workflow_history(
-        self,
-        workflow_id: str,
-        limit: int = 50
+        self, workflow_id: str, limit: int = 50
     ) -> List[BaseEvent]:
         """Get all events for a workflow (coordination trace)"""
         return self._get_hive_events(workflow_id=workflow_id, limit=limit)
 
-    def get_task_history(
-        self,
-        task_id: str,
-        limit: int = 50
-    ) -> List[BaseEvent]:
+    def get_task_history(self, task_id: str, limit: int = 50) -> List[BaseEvent]:
         """Get all events for a task"""
         return self._get_hive_events(task_id=task_id, limit=limit)
 
-    def get_agent_activity(
-        self,
-        agent_id: str,
-        limit: int = 50
-    ) -> List[BaseEvent]:
+    def get_agent_activity(self, agent_id: str, limit: int = 50) -> List[BaseEvent]:
         """Get all events for an agent"""
         return self._get_hive_events(agent_id=agent_id, limit=limit)
 
@@ -191,7 +199,7 @@ class HiveEventBus(BaseBus):
         workflow_id: Optional[str] = None,
         task_id: Optional[str] = None,
         agent_id: Optional[str] = None,
-        limit: int = 100
+        limit: int = 100,
     ) -> List[BaseEvent]:
         """Query Hive events with orchestration filters"""
         query_parts = ["SELECT * FROM hive_events WHERE 1=1"]

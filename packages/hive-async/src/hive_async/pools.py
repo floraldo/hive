@@ -1,14 +1,15 @@
 """Connection pooling and resource management for async operations."""
 
 import asyncio
-from typing import Any, Dict, Optional, Callable, Generic, TypeVar
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from typing import Any, Callable, Dict, Generic, Optional, TypeVar
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclass
@@ -30,7 +31,7 @@ class ConnectionPool(Generic[T]):
         create_connection: Callable[[], T],
         close_connection: Optional[Callable[[T], None]] = None,
         health_check: Optional[Callable[[T], bool]] = None,
-        config: Optional[PoolConfig] = None
+        config: Optional[PoolConfig] = None,
     ):
         self.create_connection = create_connection
         self.close_connection = close_connection
@@ -82,8 +83,7 @@ class ConnectionPool(Generic[T]):
         try:
             # Try to get existing connection
             conn = await asyncio.wait_for(
-                self._pool.get(),
-                timeout=self.config.acquire_timeout
+                self._pool.get(), timeout=self.config.acquire_timeout
             )
 
             # Health check if available
@@ -138,7 +138,7 @@ class ConnectionPool(Generic[T]):
                     await self.close_connection(connection)
                 else:
                     self.close_connection(connection)
-            elif hasattr(connection, 'close'):
+            elif hasattr(connection, "close"):
                 if asyncio.iscoroutinefunction(connection.close):
                     await connection.close()
                 else:

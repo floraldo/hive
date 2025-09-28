@@ -1,26 +1,35 @@
 """Comprehensive test suite for the EcoSystemiser orchestration layer."""
-import pytest
-import tempfile
+
 import json
-import yaml
+import sys
+import tempfile
 from pathlib import Path
-import numpy as np
 from unittest.mock import Mock, patch
 
-import sys
-eco_path = Path(__file__).parent.parent / 'src'
+import numpy as np
+import pytest
+import yaml
+
+eco_path = Path(__file__).parent.parent / "src"
 from ecosystemiser.services.simulation_service import (
-    SimulationService, SimulationConfig, SimulationResult
+    SimulationConfig,
+    SimulationResult,
+    SimulationService,
 )
 from ecosystemiser.services.study_service import (
-    StudyService, StudyConfig, ParameterSweepSpec, FidelitySweepSpec
+    FidelitySweepSpec,
+    ParameterSweepSpec,
+    StudyConfig,
+    StudyService,
 )
 from ecosystemiser.solver.rolling_horizon_milp import (
-    RollingHorizonMILPSolver, RollingHorizonConfig
+    RollingHorizonConfig,
+    RollingHorizonMILPSolver,
 )
-from ecosystemiser.system_model.system import System
 from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
+from ecosystemiser.system_model.system import System
+
 
 class TestSimulationService:
     """Test suite for SimulationService orchestration."""
@@ -37,7 +46,7 @@ class TestSimulationService:
         config = SimulationConfig(
             simulation_id="test_sim",
             system_config_path="test_system.yml",
-            solver_type="rule_based"
+            solver_type="rule_based",
         )
         assert config.simulation_id == "test_sim"
         assert config.solver_type == "rule_based"
@@ -49,7 +58,7 @@ class TestSimulationService:
             status="optimal",
             results_path=Path("test_results"),
             kpis={"cost": 100.0},
-            solver_metrics={"solve_time": 1.5}
+            solver_metrics={"solve_time": 1.5},
         )
         assert result.simulation_id == "test"
         assert result.status == "optimal"
@@ -59,26 +68,23 @@ class TestSimulationService:
     def mock_system_config(self):
         """Create a mock system configuration file."""
         config = {
-            "system": {
-                "system_id": "test_system",
-                "timesteps": 24
-            },
+            "system": {"system_id": "test_system", "timesteps": 24},
             "components": {
                 "battery": {
                     "type": "Battery",
                     "technical": {
                         "capacity_nominal": 10.0,
                         "efficiency_nominal": 0.95,
-                        "fidelity_level": "STANDARD"
-                    }
+                        "fidelity_level": "STANDARD",
+                    },
                 }
-            }
+            },
         }
         return config
 
     def test_simulation_service_with_mock_config(self, mock_system_config):
         """Test SimulationService with mocked configuration."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             yaml.dump(mock_system_config, f)
             config_path = f.name
 
@@ -87,7 +93,7 @@ class TestSimulationService:
                 simulation_id="test_orchestration",
                 system_config_path=config_path,
                 solver_type="rule_based",
-                output_config={"directory": tempfile.gettempdir()}
+                output_config={"directory": tempfile.gettempdir()},
             )
 
             service = SimulationService()
@@ -98,6 +104,7 @@ class TestSimulationService:
 
         finally:
             Path(config_path).unlink()
+
 
 class TestStudyService:
     """Test suite for StudyService multi-simulation orchestration."""
@@ -112,7 +119,7 @@ class TestStudyService:
         sweep = ParameterSweepSpec(
             component_name="battery",
             parameter_path="technical.capacity_nominal",
-            values=[5.0, 10.0, 15.0]
+            values=[5.0, 10.0, 15.0],
         )
         assert sweep.component_name == "battery"
         assert len(sweep.values) == 3
@@ -121,7 +128,7 @@ class TestStudyService:
         """Test FidelitySweepSpec creation."""
         sweep = FidelitySweepSpec(
             component_names=["battery", "solar_pv"],
-            fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"]
+            fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"],
         )
         assert len(sweep.component_names) == 2
         assert len(sweep.fidelity_levels) == 3
@@ -129,15 +136,14 @@ class TestStudyService:
     def test_study_config_parametric(self):
         """Test StudyConfig for parametric studies."""
         base_config = SimulationConfig(
-            simulation_id="base",
-            system_config_path="test.yml"
+            simulation_id="base", system_config_path="test.yml"
         )
 
         sweeps = [
             ParameterSweepSpec(
                 component_name="battery",
                 parameter_path="technical.capacity_nominal",
-                values=[10.0, 20.0]
+                values=[10.0, 20.0],
             )
         ]
 
@@ -145,7 +151,7 @@ class TestStudyService:
             study_id="param_study",
             study_type="parametric",
             base_config=base_config,
-            parameter_sweeps=sweeps
+            parameter_sweeps=sweeps,
         )
 
         assert study_config.study_type == "parametric"
@@ -156,28 +162,23 @@ class TestStudyService:
         service = StudyService()
 
         base_config = SimulationConfig(
-            simulation_id="base",
-            system_config_path="test.yml"
+            simulation_id="base", system_config_path="test.yml"
         )
 
         sweeps = [
             ParameterSweepSpec(
-                component_name="battery",
-                parameter_path="capacity",
-                values=[10.0, 20.0]
+                component_name="battery", parameter_path="capacity", values=[10.0, 20.0]
             ),
             ParameterSweepSpec(
-                component_name="solar",
-                parameter_path="power",
-                values=[5.0, 15.0]
-            )
+                component_name="solar", parameter_path="power", values=[5.0, 15.0]
+            ),
         ]
 
         study_config = StudyConfig(
             study_id="test",
             study_type="parametric",
             base_config=base_config,
-            parameter_sweeps=sweeps
+            parameter_sweeps=sweeps,
         )
 
         configs = service._generate_parametric_configs(study_config)
@@ -195,8 +196,7 @@ class TestStudyService:
         service = StudyService()
 
         base_config = SimulationConfig(
-            simulation_id="base",
-            system_config_path="test.yml"
+            simulation_id="base", system_config_path="test.yml"
         )
 
         study_config = StudyConfig(
@@ -205,8 +205,8 @@ class TestStudyService:
             base_config=base_config,
             fidelity_sweep=FidelitySweepSpec(
                 component_names=["battery"],
-                fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"]
-            )
+                fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"],
+            ),
         )
 
         configs = service._generate_fidelity_configs(study_config)
@@ -219,27 +219,26 @@ class TestStudyService:
         for config, expected in zip(configs, expected_fidelities):
             assert config.output_config["fidelity_level"] == expected
 
-    @patch('EcoSystemiser.services.study_service.StudyService._run_single_simulation')
+    @patch("EcoSystemiser.services.study_service.StudyService._run_single_simulation")
     def test_run_simulations_sequential(self, mock_run_single):
         """Test sequential simulation execution."""
         service = StudyService()
 
         # Mock simulation results
         mock_run_single.return_value = SimulationResult(
-            simulation_id="test",
-            status="optimal"
+            simulation_id="test", status="optimal"
         )
 
         configs = [
             SimulationConfig(simulation_id="sim1", system_config_path="test1.yml"),
-            SimulationConfig(simulation_id="sim2", system_config_path="test2.yml")
+            SimulationConfig(simulation_id="sim2", system_config_path="test2.yml"),
         ]
 
         study_config = StudyConfig(
             study_id="test",
             study_type="parametric",
             base_config=configs[0],
-            parallel_execution=False
+            parallel_execution=False,
         )
 
         results = service._run_simulations(configs, study_config)
@@ -256,26 +255,24 @@ class TestStudyService:
                 simulation_id="sim1",
                 status="optimal",
                 kpis={"cost": 100.0, "renewable": 0.8},
-                solver_metrics={"solve_time": 1.0, "objective_value": 100.0}
+                solver_metrics={"solve_time": 1.0, "objective_value": 100.0},
             ),
             SimulationResult(
                 simulation_id="sim2",
                 status="optimal",
                 kpis={"cost": 120.0, "renewable": 0.9},
-                solver_metrics={"solve_time": 1.5, "objective_value": 120.0}
+                solver_metrics={"solve_time": 1.5, "objective_value": 120.0},
             ),
-            SimulationResult(
-                simulation_id="sim3",
-                status="error",
-                error="Test error"
-            )
+            SimulationResult(simulation_id="sim3", status="error", error="Test error"),
         ]
 
         study_config = StudyConfig(
             study_id="test",
             study_type="parametric",
-            base_config=SimulationConfig(simulation_id="base", system_config_path="test.yml"),
-            save_all_results=True
+            base_config=SimulationConfig(
+                simulation_id="base", system_config_path="test.yml"
+            ),
+            save_all_results=True,
         )
 
         study_result = service._process_results(results, study_config)
@@ -291,23 +288,21 @@ class TestStudyService:
         assert "cost_mean" in stats
         assert stats["cost_mean"] == 110.0  # (100 + 120) / 2
 
+
 class TestRollingHorizonMILPSolver:
     """Test suite for RollingHorizonMILPSolver."""
 
     def test_rolling_horizon_config(self):
         """Test RollingHorizonConfig validation."""
         config = RollingHorizonConfig(
-            horizon_hours=24,
-            overlap_hours=4,
-            prediction_horizon=72
+            horizon_hours=24, overlap_hours=4, prediction_horizon=72
         )
         assert config.horizon_hours == 24
         assert config.overlap_hours == 4
 
         # Test invalid configuration (this should be caught in the solver, not config)
         invalid_config = RollingHorizonConfig(
-            horizon_hours=24,
-            overlap_hours=30  # Invalid: overlap >= horizon
+            horizon_hours=24, overlap_hours=30  # Invalid: overlap >= horizon
         )
         # The validation happens in the solver initialization
         system = System("test", 168)
@@ -317,10 +312,7 @@ class TestRollingHorizonMILPSolver:
     def test_rolling_horizon_initialization(self):
         """Test RollingHorizonMILPSolver initialization."""
         system = System("test", 168)  # 1 week
-        config = RollingHorizonConfig(
-            horizon_hours=24,
-            overlap_hours=4
-        )
+        config = RollingHorizonConfig(horizon_hours=24, overlap_hours=4)
 
         solver = RollingHorizonMILPSolver(system, config)
         assert solver.system == system
@@ -331,9 +323,7 @@ class TestRollingHorizonMILPSolver:
         """Test window generation for rolling horizon."""
         system = System("test", 72)  # 3 days
         config = RollingHorizonConfig(
-            horizon_hours=24,
-            overlap_hours=4,
-            prediction_horizon=48
+            horizon_hours=24, overlap_hours=4, prediction_horizon=48
         )
 
         solver = RollingHorizonMILPSolver(system, config)
@@ -344,15 +334,15 @@ class TestRollingHorizonMILPSolver:
 
         # Check window structure
         for window in windows:
-            assert 'start' in window
-            assert 'end' in window
-            assert 'prediction_end' in window
-            assert window['end'] <= window['prediction_end']
+            assert "start" in window
+            assert "end" in window
+            assert "prediction_end" in window
+            assert window["end"] <= window["prediction_end"]
 
         # Check overlap between consecutive windows
         for i in range(len(windows) - 1):
-            current_end = windows[i]['implement_end']
-            next_start = windows[i + 1]['start']
+            current_end = windows[i]["implement_end"]
+            next_start = windows[i + 1]["start"]
             overlap = current_end - next_start
             # Should have negative overlap (actual overlap)
             assert overlap <= 0
@@ -372,11 +362,7 @@ class TestRollingHorizonMILPSolver:
         config = RollingHorizonConfig(horizon_hours=24)
         solver = RollingHorizonMILPSolver(system, config)
 
-        window = {
-            'start': 0,
-            'end': 24,
-            'prediction_end': 24
-        }
+        window = {"start": 0, "end": 24, "prediction_end": 24}
 
         window_system = solver._create_window_system(window)
 
@@ -417,18 +403,19 @@ class TestRollingHorizonMILPSolver:
 
         # Mock some results
         solver.window_results = [
-            {'status': 'optimal'},
-            {'status': 'optimal'},
-            {'status': 'error'}
+            {"status": "optimal"},
+            {"status": "optimal"},
+            {"status": "error"},
         ]
-        solver.storage_violations = [{'violation': 'test'}]
+        solver.storage_violations = [{"violation": "test"}]
 
         validation = solver.validate_solution()
 
-        assert validation['total_windows'] == 3
-        assert validation['window_failures'] == 1
-        assert validation['storage_continuity_violations'] == 1
-        assert validation['success_rate'] == 2/3
+        assert validation["total_windows"] == 3
+        assert validation["window_failures"] == 1
+        assert validation["storage_continuity_violations"] == 1
+        assert validation["success_rate"] == 2 / 3
+
 
 class TestOrchestrationIntegration:
     """Integration tests for the complete orchestration layer."""
@@ -441,21 +428,18 @@ class TestOrchestrationIntegration:
         # Verify services are properly linked
         assert study_service.simulation_service == sim_service
 
-    @patch('EcoSystemiser.services.simulation_service.SimulationService.run_simulation')
+    @patch("EcoSystemiser.services.simulation_service.SimulationService.run_simulation")
     def test_end_to_end_parametric_study(self, mock_run_sim):
         """Test end-to-end parametric study execution."""
         # Mock simulation results
         mock_run_sim.return_value = SimulationResult(
-            simulation_id="test",
-            status="optimal",
-            kpis={"cost": 100.0}
+            simulation_id="test", status="optimal", kpis={"cost": 100.0}
         )
 
         study_service = StudyService()
 
         base_config = SimulationConfig(
-            simulation_id="base",
-            system_config_path="test.yml"
+            simulation_id="base", system_config_path="test.yml"
         )
 
         study_config = StudyConfig(
@@ -466,10 +450,10 @@ class TestOrchestrationIntegration:
                 ParameterSweepSpec(
                     component_name="battery",
                     parameter_path="capacity",
-                    values=[10.0, 20.0]
+                    values=[10.0, 20.0],
                 )
             ],
-            parallel_execution=False  # Sequential for testing
+            parallel_execution=False,  # Sequential for testing
         )
 
         result = study_service.run_study(study_config)
@@ -490,9 +474,8 @@ class TestOrchestrationIntegration:
                 study_id="test",
                 study_type="invalid_type",
                 base_config=SimulationConfig(
-                    simulation_id="base",
-                    system_config_path="test.yml"
-                )
+                    simulation_id="base", system_config_path="test.yml"
+                ),
             )
             study_service.run_study(study_config)
 
@@ -505,11 +488,11 @@ class TestOrchestrationIntegration:
             {
                 "component_name": "battery",
                 "parameter_path": "capacity",
-                "values": [10.0, 20.0, 30.0]
+                "values": [10.0, 20.0, 30.0],
             }
         ]
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             # Create a minimal config file
             yaml.dump({"system": {"system_id": "test"}}, f)
             config_path = f.name
@@ -518,11 +501,12 @@ class TestOrchestrationIntegration:
             # This would normally run the study, but we'll just test the setup
             # The actual study run would fail due to missing components,
             # but we can test that the method sets up correctly
-            assert hasattr(study_service, 'run_parameter_sensitivity')
-            assert hasattr(study_service, 'run_fidelity_comparison')
+            assert hasattr(study_service, "run_parameter_sensitivity")
+            assert hasattr(study_service, "run_fidelity_comparison")
         finally:
             # Clean up the temporary file
             Path(config_path).unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
     # Run tests with pytest

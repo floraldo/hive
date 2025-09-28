@@ -8,9 +8,9 @@ Extends the generic messaging toolkit with EcoSystemiser-specific events:
 - Component state change events
 """
 
-from typing import Dict, Any, Optional, List
-from datetime import datetime, timezone
 import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 try:
     from hive_bus import BaseEvent
@@ -24,6 +24,7 @@ except ImportError:
             self.event_id = str(uuid.uuid4())
             for key, value in kwargs.items():
                 setattr(self, key, value)
+
 
 from hive_logging import get_logger
 
@@ -47,7 +48,7 @@ class EcoSystemiserEvent(BaseEvent):
         analysis_id: Optional[str] = None,
         optimization_id: Optional[str] = None,
         timestep: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize an EcoSystemiser event.
@@ -62,10 +63,7 @@ class EcoSystemiserEvent(BaseEvent):
             timestep: Simulation timestep if applicable
         """
         super().__init__(
-            event_type=event_type,
-            source=source,
-            payload=payload or {},
-            **kwargs
+            event_type=event_type, source=source, payload=payload or {}, **kwargs
         )
 
         # EcoSystemiser-specific fields
@@ -88,13 +86,14 @@ class EcoSystemiserEvent(BaseEvent):
             event_id=data.get("event_id", str(uuid.uuid4())),
             timestamp=data.get("timestamp", datetime.now(timezone.utc)),
             correlation_id=data.get("correlation_id"),
-            metadata=data.get("metadata", {})
+            metadata=data.get("metadata", {}),
         )
 
 
 # ===============================================================================
 # SIMULATION EVENTS
 # ===============================================================================
+
 
 class SimulationEvent(EcoSystemiserEvent):
     """Events related to simulation lifecycle and execution"""
@@ -103,15 +102,12 @@ class SimulationEvent(EcoSystemiserEvent):
         super().__init__(
             event_type=f"simulation.{event_type}",
             source=kwargs.get("source", "simulation"),
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
     def started(
-        cls,
-        simulation_id: str,
-        config: Dict[str, Any],
-        **kwargs
+        cls, simulation_id: str, config: Dict[str, Any], **kwargs
     ) -> "SimulationEvent":
         """Create simulation started event"""
         return cls(
@@ -120,9 +116,9 @@ class SimulationEvent(EcoSystemiserEvent):
             payload={
                 "simulation_id": simulation_id,
                 "config": config,
-                "status": "started"
+                "status": "started",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -131,7 +127,7 @@ class SimulationEvent(EcoSystemiserEvent):
         simulation_id: str,
         results: Dict[str, Any],
         duration_seconds: float,
-        **kwargs
+        **kwargs,
     ) -> "SimulationEvent":
         """Create simulation completed event"""
         return cls(
@@ -141,9 +137,9 @@ class SimulationEvent(EcoSystemiserEvent):
                 "simulation_id": simulation_id,
                 "results": results,
                 "duration_seconds": duration_seconds,
-                "status": "completed"
+                "status": "completed",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -152,7 +148,7 @@ class SimulationEvent(EcoSystemiserEvent):
         simulation_id: str,
         error_message: str,
         error_details: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> "SimulationEvent":
         """Create simulation failed event"""
         return cls(
@@ -162,9 +158,9 @@ class SimulationEvent(EcoSystemiserEvent):
                 "simulation_id": simulation_id,
                 "error_message": error_message,
                 "error_details": error_details or {},
-                "status": "failed"
+                "status": "failed",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -174,7 +170,7 @@ class SimulationEvent(EcoSystemiserEvent):
         timestep: int,
         total_timesteps: int,
         status_message: str,
-        **kwargs
+        **kwargs,
     ) -> "SimulationEvent":
         """Create simulation progress event"""
         return cls(
@@ -185,16 +181,19 @@ class SimulationEvent(EcoSystemiserEvent):
                 "simulation_id": simulation_id,
                 "timestep": timestep,
                 "total_timesteps": total_timesteps,
-                "progress_percent": (timestep / total_timesteps) * 100 if total_timesteps > 0 else 0,
-                "status_message": status_message
+                "progress_percent": (
+                    (timestep / total_timesteps) * 100 if total_timesteps > 0 else 0
+                ),
+                "status_message": status_message,
             },
-            **kwargs
+            **kwargs,
         )
 
 
 # ===============================================================================
 # ANALYSIS EVENTS
 # ===============================================================================
+
 
 class AnalysisEvent(EcoSystemiserEvent):
     """Events related to analysis workflows and results"""
@@ -203,16 +202,12 @@ class AnalysisEvent(EcoSystemiserEvent):
         super().__init__(
             event_type=f"analysis.{event_type}",
             source=kwargs.get("source", "analysis"),
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
     def started(
-        cls,
-        analysis_id: str,
-        analysis_type: str,
-        parameters: Dict[str, Any],
-        **kwargs
+        cls, analysis_id: str, analysis_type: str, parameters: Dict[str, Any], **kwargs
     ) -> "AnalysisEvent":
         """Create analysis started event"""
         return cls(
@@ -222,9 +217,9 @@ class AnalysisEvent(EcoSystemiserEvent):
                 "analysis_id": analysis_id,
                 "analysis_type": analysis_type,
                 "parameters": parameters,
-                "status": "started"
+                "status": "started",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -233,7 +228,7 @@ class AnalysisEvent(EcoSystemiserEvent):
         analysis_id: str,
         results: Dict[str, Any],
         insights: Optional[List[str]] = None,
-        **kwargs
+        **kwargs,
     ) -> "AnalysisEvent":
         """Create analysis completed event"""
         return cls(
@@ -243,9 +238,9 @@ class AnalysisEvent(EcoSystemiserEvent):
                 "analysis_id": analysis_id,
                 "results": results,
                 "insights": insights or [],
-                "status": "completed"
+                "status": "completed",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -254,7 +249,7 @@ class AnalysisEvent(EcoSystemiserEvent):
         analysis_id: str,
         error_message: str,
         error_details: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> "AnalysisEvent":
         """Create analysis failed event"""
         return cls(
@@ -264,15 +259,16 @@ class AnalysisEvent(EcoSystemiserEvent):
                 "analysis_id": analysis_id,
                 "error_message": error_message,
                 "error_details": error_details or {},
-                "status": "failed"
+                "status": "failed",
             },
-            **kwargs
+            **kwargs,
         )
 
 
 # ===============================================================================
 # STUDY EVENTS
 # ===============================================================================
+
 
 class StudyEvent(EcoSystemiserEvent):
     """Events related to multi-simulation study lifecycle and execution"""
@@ -281,7 +277,7 @@ class StudyEvent(EcoSystemiserEvent):
         super().__init__(
             event_type=f"study.{event_type}",
             source=kwargs.get("source", "study"),
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -290,19 +286,15 @@ class StudyEvent(EcoSystemiserEvent):
         study_id: str,
         config: Dict[str, Any],
         source_agent: str = "StudyService",
-        **kwargs
+        **kwargs,
     ) -> "StudyEvent":
         """Create study started event"""
         return cls(
             event_type="started",
             study_id=study_id,
             source=source_agent,
-            payload={
-                "study_id": study_id,
-                "config": config,
-                "status": "started"
-            },
-            **kwargs
+            payload={"study_id": study_id, "config": config, "status": "started"},
+            **kwargs,
         )
 
     @classmethod
@@ -312,7 +304,7 @@ class StudyEvent(EcoSystemiserEvent):
         results: Dict[str, Any],
         duration_seconds: float,
         source_agent: str = "StudyService",
-        **kwargs
+        **kwargs,
     ) -> "StudyEvent":
         """Create study completed event"""
         return cls(
@@ -323,9 +315,9 @@ class StudyEvent(EcoSystemiserEvent):
                 "study_id": study_id,
                 "results": results,
                 "duration_seconds": duration_seconds,
-                "status": "completed"
+                "status": "completed",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -335,7 +327,7 @@ class StudyEvent(EcoSystemiserEvent):
         error_message: str,
         error_details: Optional[Dict[str, Any]] = None,
         source_agent: str = "StudyService",
-        **kwargs
+        **kwargs,
     ) -> "StudyEvent":
         """Create study failed event"""
         return cls(
@@ -346,9 +338,9 @@ class StudyEvent(EcoSystemiserEvent):
                 "study_id": study_id,
                 "error_message": error_message,
                 "error_details": error_details or {},
-                "status": "failed"
+                "status": "failed",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -358,7 +350,7 @@ class StudyEvent(EcoSystemiserEvent):
         metric_name: str,
         metric_value: float,
         metric_unit: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> "AnalysisEvent":
         """Create metric calculated event"""
         return cls(
@@ -368,15 +360,16 @@ class StudyEvent(EcoSystemiserEvent):
                 "analysis_id": analysis_id,
                 "metric_name": metric_name,
                 "metric_value": metric_value,
-                "metric_unit": metric_unit
+                "metric_unit": metric_unit,
             },
-            **kwargs
+            **kwargs,
         )
 
 
 # ===============================================================================
 # OPTIMIZATION EVENTS
 # ===============================================================================
+
 
 class OptimizationEvent(EcoSystemiserEvent):
     """Events related to optimization processes"""
@@ -385,16 +378,12 @@ class OptimizationEvent(EcoSystemiserEvent):
         super().__init__(
             event_type=f"optimization.{event_type}",
             source=kwargs.get("source", "optimization"),
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
     def started(
-        cls,
-        optimization_id: str,
-        solver_type: str,
-        objectives: List[str],
-        **kwargs
+        cls, optimization_id: str, solver_type: str, objectives: List[str], **kwargs
     ) -> "OptimizationEvent":
         """Create optimization started event"""
         return cls(
@@ -404,9 +393,9 @@ class OptimizationEvent(EcoSystemiserEvent):
                 "optimization_id": optimization_id,
                 "solver_type": solver_type,
                 "objectives": objectives,
-                "status": "started"
+                "status": "started",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -416,7 +405,7 @@ class OptimizationEvent(EcoSystemiserEvent):
         iteration: int,
         objective_value: float,
         convergence_metric: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ) -> "OptimizationEvent":
         """Create optimization iteration event"""
         return cls(
@@ -426,9 +415,9 @@ class OptimizationEvent(EcoSystemiserEvent):
                 "optimization_id": optimization_id,
                 "iteration": iteration,
                 "objective_value": objective_value,
-                "convergence_metric": convergence_metric
+                "convergence_metric": convergence_metric,
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -438,7 +427,7 @@ class OptimizationEvent(EcoSystemiserEvent):
         final_objective: float,
         iterations: int,
         solution: Dict[str, Any],
-        **kwargs
+        **kwargs,
     ) -> "OptimizationEvent":
         """Create optimization converged event"""
         return cls(
@@ -449,9 +438,9 @@ class OptimizationEvent(EcoSystemiserEvent):
                 "final_objective": final_objective,
                 "iterations": iterations,
                 "solution": solution,
-                "status": "converged"
+                "status": "converged",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -460,7 +449,7 @@ class OptimizationEvent(EcoSystemiserEvent):
         optimization_id: str,
         constraints_violated: List[str],
         solver_message: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> "OptimizationEvent":
         """Create optimization infeasible event"""
         return cls(
@@ -470,15 +459,16 @@ class OptimizationEvent(EcoSystemiserEvent):
                 "optimization_id": optimization_id,
                 "constraints_violated": constraints_violated,
                 "solver_message": solver_message,
-                "status": "infeasible"
+                "status": "infeasible",
             },
-            **kwargs
+            **kwargs,
         )
 
 
 # ===============================================================================
 # COMPONENT EVENTS
 # ===============================================================================
+
 
 class ComponentEvent(EcoSystemiserEvent):
     """Events related to component lifecycle and state changes"""
@@ -487,7 +477,7 @@ class ComponentEvent(EcoSystemiserEvent):
         super().__init__(
             event_type=f"component.{event_type}",
             source=kwargs.get("source", "component"),
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -496,7 +486,7 @@ class ComponentEvent(EcoSystemiserEvent):
         component_name: str,
         component_type: str,
         parameters: Dict[str, Any],
-        **kwargs
+        **kwargs,
     ) -> "ComponentEvent":
         """Create component created event"""
         return cls(
@@ -505,17 +495,14 @@ class ComponentEvent(EcoSystemiserEvent):
                 "component_name": component_name,
                 "component_type": component_type,
                 "parameters": parameters,
-                "status": "created"
+                "status": "created",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
     def configured(
-        cls,
-        component_name: str,
-        configuration: Dict[str, Any],
-        **kwargs
+        cls, component_name: str, configuration: Dict[str, Any], **kwargs
     ) -> "ComponentEvent":
         """Create component configured event"""
         return cls(
@@ -523,9 +510,9 @@ class ComponentEvent(EcoSystemiserEvent):
             payload={
                 "component_name": component_name,
                 "configuration": configuration,
-                "status": "configured"
+                "status": "configured",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -535,7 +522,7 @@ class ComponentEvent(EcoSystemiserEvent):
         old_state: str,
         new_state: str,
         timestep: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> "ComponentEvent":
         """Create component state changed event"""
         return cls(
@@ -545,15 +532,16 @@ class ComponentEvent(EcoSystemiserEvent):
                 "component_name": component_name,
                 "old_state": old_state,
                 "new_state": new_state,
-                "timestep": timestep
+                "timestep": timestep,
             },
-            **kwargs
+            **kwargs,
         )
 
 
 # ===============================================================================
 # PROFILE LOADING EVENTS
 # ===============================================================================
+
 
 class ProfileEvent(EcoSystemiserEvent):
     """Events related to profile loading and processing"""
@@ -562,16 +550,12 @@ class ProfileEvent(EcoSystemiserEvent):
         super().__init__(
             event_type=f"profile.{event_type}",
             source=kwargs.get("source", "profile_loader"),
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
     def load_started(
-        cls,
-        profile_type: str,
-        source: str,
-        parameters: Dict[str, Any],
-        **kwargs
+        cls, profile_type: str, source: str, parameters: Dict[str, Any], **kwargs
     ) -> "ProfileEvent":
         """Create profile load started event"""
         return cls(
@@ -580,9 +564,9 @@ class ProfileEvent(EcoSystemiserEvent):
                 "profile_type": profile_type,
                 "source": source,
                 "parameters": parameters,
-                "status": "loading"
+                "status": "loading",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -592,7 +576,7 @@ class ProfileEvent(EcoSystemiserEvent):
         source: str,
         data_points: int,
         duration_seconds: float,
-        **kwargs
+        **kwargs,
     ) -> "ProfileEvent":
         """Create profile load completed event"""
         return cls(
@@ -602,9 +586,9 @@ class ProfileEvent(EcoSystemiserEvent):
                 "source": source,
                 "data_points": data_points,
                 "duration_seconds": duration_seconds,
-                "status": "completed"
+                "status": "completed",
             },
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -614,7 +598,7 @@ class ProfileEvent(EcoSystemiserEvent):
         warning_type: str,
         warning_message: str,
         affected_data_points: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> "ProfileEvent":
         """Create profile validation warning event"""
         return cls(
@@ -623,9 +607,9 @@ class ProfileEvent(EcoSystemiserEvent):
                 "profile_type": profile_type,
                 "warning_type": warning_type,
                 "warning_message": warning_message,
-                "affected_data_points": affected_data_points
+                "affected_data_points": affected_data_points,
             },
-            **kwargs
+            **kwargs,
         )
 
 
@@ -633,19 +617,14 @@ class ProfileEvent(EcoSystemiserEvent):
 __all__ = [
     # Base event
     "EcoSystemiserEvent",
-
     # Simulation events
     "SimulationEvent",
-
     # Analysis events
     "AnalysisEvent",
-
     # Optimization events
     "OptimizationEvent",
-
     # Component events
     "ComponentEvent",
-
     # Profile events
-    "ProfileEvent"
+    "ProfileEvent",
 ]

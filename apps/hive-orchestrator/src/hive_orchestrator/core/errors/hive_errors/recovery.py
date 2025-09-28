@@ -4,17 +4,19 @@ Provides automated recovery mechanisms for common error scenarios
 """
 
 import time
-from hive_logging import get_logger
-from enum import Enum
-from typing import Callable, Optional, Any, Dict, List
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class RecoveryAction(Enum):
     """Possible recovery actions"""
+
     RETRY = "retry"
     RETRY_WITH_BACKOFF = "retry_with_backoff"
     FALLBACK = "fallback"
@@ -27,6 +29,7 @@ class RecoveryAction(Enum):
 @dataclass
 class RecoveryResult:
     """Result of a recovery attempt"""
+
     success: bool
     action_taken: RecoveryAction
     result: Optional[Any] = None
@@ -40,11 +43,7 @@ class RecoveryStrategy(ABC):
 
     @abstractmethod
     def recover(
-        self,
-        error: Exception,
-        operation: Callable,
-        *args,
-        **kwargs
+        self, error: Exception, operation: Callable, *args, **kwargs
     ) -> RecoveryResult:
         """
         Attempt to recover from an error
@@ -68,7 +67,7 @@ class RetryStrategy(RecoveryStrategy):
         self,
         max_retries: int = 3,
         delay: float = 1.0,
-        exceptions: Optional[List[type]] = None
+        exceptions: Optional[List[type]] = None,
     ):
         """
         Initialize retry strategy
@@ -83,11 +82,7 @@ class RetryStrategy(RecoveryStrategy):
         self.exceptions = exceptions or [Exception]
 
     def recover(
-        self,
-        error: Exception,
-        operation: Callable,
-        *args,
-        **kwargs
+        self, error: Exception, operation: Callable, *args, **kwargs
     ) -> RecoveryResult:
         """Attempt recovery through retrying"""
         # Check if we should retry this exception
@@ -96,7 +91,7 @@ class RetryStrategy(RecoveryStrategy):
                 success=False,
                 action_taken=RecoveryAction.ABORT,
                 error=error,
-                message=f"Exception {type(error).__name__} not retryable"
+                message=f"Exception {type(error).__name__} not retryable",
             )
 
         attempts = 0
@@ -104,7 +99,9 @@ class RetryStrategy(RecoveryStrategy):
 
         for attempt in range(self.max_retries):
             attempts = attempt + 1
-            logger.info(f"Retry attempt {attempts}/{self.max_retries} after {self.delay}s delay")
+            logger.info(
+                f"Retry attempt {attempts}/{self.max_retries} after {self.delay}s delay"
+            )
 
             time.sleep(self.delay)
 
@@ -115,7 +112,7 @@ class RetryStrategy(RecoveryStrategy):
                     action_taken=RecoveryAction.RETRY,
                     result=result,
                     attempts=attempts,
-                    message=f"Recovered after {attempts} attempts"
+                    message=f"Recovered after {attempts} attempts",
                 )
             except Exception as e:
                 last_error = e
@@ -126,7 +123,7 @@ class RetryStrategy(RecoveryStrategy):
             action_taken=RecoveryAction.RETRY,
             error=last_error,
             attempts=attempts,
-            message=f"Failed after {attempts} retry attempts"
+            message=f"Failed after {attempts} retry attempts",
         )
 
 
@@ -139,7 +136,7 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
         base_delay: float = 1.0,
         max_delay: float = 60.0,
         exponential_base: float = 2.0,
-        jitter: bool = True
+        jitter: bool = True,
     ):
         """
         Initialize exponential backoff strategy
@@ -158,11 +155,7 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
         self.jitter = jitter
 
     def recover(
-        self,
-        error: Exception,
-        operation: Callable,
-        *args,
-        **kwargs
+        self, error: Exception, operation: Callable, *args, **kwargs
     ) -> RecoveryResult:
         """Attempt recovery with exponential backoff"""
         attempts = 0
@@ -173,16 +166,18 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
 
             # Calculate delay with exponential backoff
             delay = min(
-                self.base_delay * (self.exponential_base ** attempt),
-                self.max_delay
+                self.base_delay * (self.exponential_base**attempt), self.max_delay
             )
 
             # Add jitter if enabled
             if self.jitter:
                 import random
-                delay *= (0.5 + random.random())
 
-            logger.info(f"Backoff attempt {attempts}/{self.max_retries} after {delay:.2f}s")
+                delay *= 0.5 + random.random()
+
+            logger.info(
+                f"Backoff attempt {attempts}/{self.max_retries} after {delay:.2f}s"
+            )
             time.sleep(delay)
 
             try:
@@ -192,7 +187,7 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
                     action_taken=RecoveryAction.RETRY_WITH_BACKOFF,
                     result=result,
                     attempts=attempts,
-                    message=f"Recovered with backoff after {attempts} attempts"
+                    message=f"Recovered with backoff after {attempts} attempts",
                 )
             except Exception as e:
                 last_error = e
@@ -203,7 +198,7 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
             action_taken=RecoveryAction.RETRY_WITH_BACKOFF,
             error=last_error,
             attempts=attempts,
-            message=f"Failed after {attempts} backoff attempts"
+            message=f"Failed after {attempts} backoff attempts",
         )
 
 
@@ -214,7 +209,7 @@ class FallbackStrategy(RecoveryStrategy):
         self,
         fallback_operation: Callable,
         fallback_args: Optional[tuple] = None,
-        fallback_kwargs: Optional[dict] = None
+        fallback_kwargs: Optional[dict] = None,
     ):
         """
         Initialize fallback strategy
@@ -229,26 +224,21 @@ class FallbackStrategy(RecoveryStrategy):
         self.fallback_kwargs = fallback_kwargs or {}
 
     def recover(
-        self,
-        error: Exception,
-        operation: Callable,
-        *args,
-        **kwargs
+        self, error: Exception, operation: Callable, *args, **kwargs
     ) -> RecoveryResult:
         """Attempt recovery using fallback operation"""
         logger.info(f"Attempting fallback due to: {error}")
 
         try:
             result = self.fallback_operation(
-                *self.fallback_args,
-                **self.fallback_kwargs
+                *self.fallback_args, **self.fallback_kwargs
             )
             return RecoveryResult(
                 success=True,
                 action_taken=RecoveryAction.FALLBACK,
                 result=result,
                 attempts=1,
-                message="Recovered using fallback operation"
+                message="Recovered using fallback operation",
             )
         except Exception as e:
             return RecoveryResult(
@@ -256,7 +246,7 @@ class FallbackStrategy(RecoveryStrategy):
                 action_taken=RecoveryAction.FALLBACK,
                 error=e,
                 attempts=1,
-                message=f"Fallback also failed: {e}"
+                message=f"Fallback also failed: {e}",
             )
 
 
@@ -273,17 +263,15 @@ class CompositeStrategy(RecoveryStrategy):
         self.strategies = strategies
 
     def recover(
-        self,
-        error: Exception,
-        operation: Callable,
-        *args,
-        **kwargs
+        self, error: Exception, operation: Callable, *args, **kwargs
     ) -> RecoveryResult:
         """Attempt recovery using multiple strategies"""
         last_result = None
 
         for i, strategy in enumerate(self.strategies):
-            logger.info(f"Trying recovery strategy {i+1}/{len(self.strategies)}: {type(strategy).__name__}")
+            logger.info(
+                f"Trying recovery strategy {i+1}/{len(self.strategies)}: {type(strategy).__name__}"
+            )
 
             result = strategy.recover(error, operation, *args, **kwargs)
 
@@ -299,7 +287,7 @@ class CompositeStrategy(RecoveryStrategy):
             action_taken=RecoveryAction.ESCALATE,
             error=error,
             attempts=sum(r.attempts for r in [last_result] if r),
-            message="All recovery strategies exhausted"
+            message="All recovery strategies exhausted",
         )
 
 
@@ -310,7 +298,7 @@ class CircuitBreakerStrategy(RecoveryStrategy):
         self,
         failure_threshold: int = 5,
         timeout: float = 60.0,
-        half_open_requests: int = 1
+        half_open_requests: int = 1,
     ):
         """
         Initialize circuit breaker
@@ -330,11 +318,7 @@ class CircuitBreakerStrategy(RecoveryStrategy):
         self.half_open_attempts = 0
 
     def recover(
-        self,
-        error: Exception,
-        operation: Callable,
-        *args,
-        **kwargs
+        self, error: Exception, operation: Callable, *args, **kwargs
     ) -> RecoveryResult:
         """Attempt recovery with circuit breaker protection"""
         current_time = time.time()
@@ -350,7 +334,7 @@ class CircuitBreakerStrategy(RecoveryStrategy):
                     success=False,
                     action_taken=RecoveryAction.ABORT,
                     error=error,
-                    message="Circuit breaker is open"
+                    message="Circuit breaker is open",
                 )
 
         # Try the operation
@@ -359,7 +343,9 @@ class CircuitBreakerStrategy(RecoveryStrategy):
 
             # Success - reset circuit
             if self.state == "half-open":
-                logger.info("Circuit breaker: Closing circuit after successful half-open")
+                logger.info(
+                    "Circuit breaker: Closing circuit after successful half-open"
+                )
                 self.state = "closed"
                 self.failure_count = 0
             elif self.state == "closed":
@@ -370,7 +356,7 @@ class CircuitBreakerStrategy(RecoveryStrategy):
                 action_taken=RecoveryAction.RETRY,
                 result=result,
                 attempts=1,
-                message="Operation successful"
+                message="Operation successful",
             )
 
         except Exception as e:
@@ -381,25 +367,28 @@ class CircuitBreakerStrategy(RecoveryStrategy):
             if self.state == "half-open":
                 self.half_open_attempts += 1
                 if self.half_open_attempts >= self.half_open_requests:
-                    logger.warning("Circuit breaker: Re-opening circuit after half-open failures")
+                    logger.warning(
+                        "Circuit breaker: Re-opening circuit after half-open failures"
+                    )
                     self.state = "open"
-            elif self.state == "closed" and self.failure_count >= self.failure_threshold:
-                logger.warning(f"Circuit breaker: Opening circuit after {self.failure_count} failures")
+            elif (
+                self.state == "closed" and self.failure_count >= self.failure_threshold
+            ):
+                logger.warning(
+                    f"Circuit breaker: Opening circuit after {self.failure_count} failures"
+                )
                 self.state = "open"
 
             return RecoveryResult(
                 success=False,
                 action_taken=RecoveryAction.ABORT,
                 error=e,
-                message=f"Circuit breaker: State={self.state}, Failures={self.failure_count}"
+                message=f"Circuit breaker: State={self.state}, Failures={self.failure_count}",
             )
 
 
 def with_recovery(
-    strategy: RecoveryStrategy,
-    operation: Callable,
-    *args,
-    **kwargs
+    strategy: RecoveryStrategy, operation: Callable, *args, **kwargs
 ) -> Any:
     """
     Execute an operation with recovery strategy

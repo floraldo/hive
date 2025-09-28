@@ -5,5 +5,5 @@ Allows the package to be run with: python -m hive_orchestrator
 
 from .cli import cli
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

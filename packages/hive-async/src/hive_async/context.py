@@ -1,8 +1,9 @@
 """Async context management utilities."""
 
 import asyncio
-from typing import Any, Dict, Optional, AsyncContextManager
 from contextlib import asynccontextmanager
+from typing import Any, AsyncContextManager, Dict, Optional
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -21,7 +22,9 @@ class AsyncResourceManager:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.cleanup_all()
 
-    def register_resource(self, name: str, resource: Any, cleanup_callback: Optional[Any] = None):
+    def register_resource(
+        self, name: str, resource: Any, cleanup_callback: Optional[Any] = None
+    ):
         """Register a resource for automatic cleanup."""
         self.resources[name] = resource
         if cleanup_callback:
@@ -39,7 +42,7 @@ class AsyncResourceManager:
                         await cleanup_callback(resource)
                     else:
                         cleanup_callback(resource)
-                elif hasattr(resource, 'close'):
+                elif hasattr(resource, "close"):
                     if asyncio.iscoroutinefunction(resource.close):
                         await resource.close()
                     else:

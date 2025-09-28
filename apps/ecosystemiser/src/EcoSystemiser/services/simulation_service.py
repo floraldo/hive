@@ -1,32 +1,36 @@
 """Main simulation service orchestrator."""
-from hive_logging import get_logger
-from pathlib import Path
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field
-import json
-import yaml
-from typing import List
 
+import json
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
+from ecosystemiser.component_data.repository import ComponentRepository
+from ecosystemiser.profile_loader import ClimateRequest, get_profile_sync
+from ecosystemiser.services.results_io import ResultsIO
+from ecosystemiser.solver.base import SolverConfig
+from ecosystemiser.solver.factory import SolverFactory
 from ecosystemiser.system_model.system import System
 from ecosystemiser.utils.system_builder import SystemBuilder
-from ecosystemiser.component_data.repository import ComponentRepository
-from ecosystemiser.solver.factory import SolverFactory
-from ecosystemiser.solver.base import SolverConfig
-from ecosystemiser.profile_loader import get_profile_sync, ClimateRequest
-from ecosystemiser.results_io import ResultsIO
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
+
 class StageConfig(BaseModel):
     """Configuration for a single stage in staged simulation."""
+
     stage_name: str
     system_config_path: str
     solver_type: str = "milp"
     outputs_to_pass: Optional[List[Dict[str, Any]]] = None
     inputs_from_stage: Optional[List[Dict[str, Any]]] = None
 
+
 class SimulationConfig(BaseModel):
     """Complete configuration for a simulation run."""
+
     simulation_id: str
     system_config_path: Optional[str] = None  # Optional for staged simulations
     solver_type: str = "rule_based"
@@ -37,14 +41,17 @@ class SimulationConfig(BaseModel):
     # Support for staged simulations
     stages: Optional[List[StageConfig]] = None
 
+
 class SimulationResult(BaseModel):
     """Result of a simulation run."""
+
     simulation_id: str
     status: str
     results_path: Optional[Path] = None
     kpis: Optional[Dict[str, float]] = None
     solver_metrics: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+
 
 class SimulationService:
     """Main service for orchestrating system simulations."""
@@ -97,18 +104,16 @@ class SimulationService:
                 results_path=results_path,
                 kpis=kpis,
                 solver_metrics={
-                    'solve_time': solver_result.solve_time,
-                    'iterations': solver_result.iterations,
-                    'objective_value': solver_result.objective_value
-                }
+                    "solve_time": solver_result.solve_time,
+                    "iterations": solver_result.iterations,
+                    "objective_value": solver_result.objective_value,
+                },
             )
 
         except Exception as e:
             logger.error(f"Simulation failed: {e}")
             return SimulationResult(
-                simulation_id=config.simulation_id,
-                status="error",
-                error=str(e)
+                simulation_id=config.simulation_id, status="error", error=str(e)
             )
 
     def _run_staged_simulation(self, config: SimulationConfig) -> SimulationResult:
@@ -135,7 +140,9 @@ class SimulationService:
 
             # Execute each stage sequentially
             for stage_idx, stage in enumerate(config.stages):
-                logger.info(f"Executing stage {stage_idx + 1}/{len(config.stages)}: {stage.stage_name}")
+                logger.info(
+                    f"Executing stage {stage_idx + 1}/{len(config.stages)}: {stage.stage_name}"
+                )
 
                 # Prepare profiles for this stage
                 stage_profiles = base_profiles.copy()
@@ -143,18 +150,24 @@ class SimulationService:
                 # Add inputs from previous stages
                 if stage.inputs_from_stage:
                     for input_spec in stage.inputs_from_stage:
-                        from_stage = input_spec.get('from_stage')
-                        profile_name = input_spec.get('profile_name')
+                        from_stage = input_spec.get("from_stage")
+                        profile_name = input_spec.get("profile_name")
 
                         if profile_name in intermediate_profiles:
                             # Assign to the component or as a general profile
-                            assign_to = input_spec.get('assign_to_component')
+                            assign_to = input_spec.get("assign_to_component")
                             if assign_to:
-                                stage_profiles[f"{assign_to}_additional_demand"] = intermediate_profiles[profile_name]
+                                stage_profiles[f"{assign_to}_additional_demand"] = (
+                                    intermediate_profiles[profile_name]
+                                )
                             else:
-                                stage_profiles[profile_name] = intermediate_profiles[profile_name]
+                                stage_profiles[profile_name] = intermediate_profiles[
+                                    profile_name
+                                ]
 
-                            logger.info(f"Passed profile '{profile_name}' from {from_stage} to {stage.stage_name}")
+                            logger.info(
+                                f"Passed profile '{profile_name}' from {from_stage} to {stage.stage_name}"
+                            )
 
                 # Build and solve this stage's system
                 stage_config = SimulationConfig(
@@ -162,7 +175,7 @@ class SimulationService:
                     system_config_path=stage.system_config_path,
                     solver_type=stage.solver_type,
                     solver_config=config.solver_config,  # Use global solver config
-                    output_config=config.output_config
+                    output_config=config.output_config,
                 )
 
                 # Build system for this stage
@@ -174,9 +187,9 @@ class SimulationService:
                 # Extract outputs to pass to next stage
                 if stage.outputs_to_pass:
                     for output_spec in stage.outputs_to_pass:
-                        component_name = output_spec.get('component')
-                        attribute = output_spec.get('attribute')
-                        as_profile_name = output_spec.get('as_profile_name')
+                        component_name = output_spec.get("component")
+                        attribute = output_spec.get("attribute")
+                        as_profile_name = output_spec.get("as_profile_name")
 
                         # Extract the specified output from the component
                         if component_name in stage_system.components:
@@ -185,16 +198,24 @@ class SimulationService:
                             # Try to extract the attribute
                             if hasattr(comp, attribute):
                                 profile_data = getattr(comp, attribute)
-                            elif 'flows' in dir(comp) and attribute in comp.flows.get('sink', {}):
-                                profile_data = comp.flows['sink'][attribute]['value']
-                            elif 'flows' in dir(comp) and attribute in comp.flows.get('source', {}):
-                                profile_data = comp.flows['source'][attribute]['value']
+                            elif "flows" in dir(comp) and attribute in comp.flows.get(
+                                "sink", {}
+                            ):
+                                profile_data = comp.flows["sink"][attribute]["value"]
+                            elif "flows" in dir(comp) and attribute in comp.flows.get(
+                                "source", {}
+                            ):
+                                profile_data = comp.flows["source"][attribute]["value"]
                             else:
-                                logger.warning(f"Could not find attribute '{attribute}' in component '{component_name}'")
+                                logger.warning(
+                                    f"Could not find attribute '{attribute}' in component '{component_name}'"
+                                )
                                 continue
 
                             intermediate_profiles[as_profile_name] = profile_data
-                            logger.info(f"Extracted '{attribute}' from '{component_name}' as '{as_profile_name}'")
+                            logger.info(
+                                f"Extracted '{attribute}' from '{component_name}' as '{as_profile_name}'"
+                            )
 
                 # Calculate stage KPIs
                 stage_kpis = self._calculate_basic_kpis(stage_system)
@@ -202,37 +223,39 @@ class SimulationService:
                     aggregated_kpis[f"{stage.stage_name}_{key}"] = value
 
                 # Store stage results
-                stage_results.append({
-                    'stage_name': stage.stage_name,
-                    'status': stage_solver_result.status,
-                    'solve_time': stage_solver_result.solve_time
-                })
+                stage_results.append(
+                    {
+                        "stage_name": stage.stage_name,
+                        "status": stage_solver_result.status,
+                        "solve_time": stage_solver_result.solve_time,
+                    }
+                )
 
                 # Save stage results
                 self._save_results(stage_system, stage_config, stage_solver_result)
 
             # Aggregate final results
-            total_solve_time = sum(r['solve_time'] for r in stage_results if r.get('solve_time'))
-            all_success = all(r['status'] == 'optimal' for r in stage_results)
+            total_solve_time = sum(
+                r["solve_time"] for r in stage_results if r.get("solve_time")
+            )
+            all_success = all(r["status"] == "optimal" for r in stage_results)
 
             return SimulationResult(
                 simulation_id=config.simulation_id,
-                status='optimal' if all_success else 'feasible',
-                results_path=Path(config.output_config.get('directory', 'outputs')),
+                status="optimal" if all_success else "feasible",
+                results_path=Path(config.output_config.get("directory", "outputs")),
                 kpis=aggregated_kpis,
                 solver_metrics={
-                    'solve_time': total_solve_time,
-                    'stages': stage_results,
-                    'iterations': len(config.stages)
-                }
+                    "solve_time": total_solve_time,
+                    "stages": stage_results,
+                    "iterations": len(config.stages),
+                },
             )
 
         except Exception as e:
             logger.error(f"Staged simulation failed: {e}")
             return SimulationResult(
-                simulation_id=config.simulation_id,
-                status="error",
-                error=str(e)
+                simulation_id=config.simulation_id, status="error", error=str(e)
             )
 
     def _load_profiles(self, config: SimulationConfig) -> Dict[str, Any]:
@@ -259,7 +282,10 @@ class SimulationService:
         # Load demand profiles if configured
         if config.demand_input:
             try:
-                from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
+                from ecosystemiser.profile_loader.demand.file_adapter import (
+                    DemandFileAdapter,
+                )
+
                 adapter = DemandFileAdapter()
                 demand_profiles = adapter.fetch(config.demand_input)
                 profiles.update(demand_profiles)
@@ -269,7 +295,9 @@ class SimulationService:
 
         return profiles
 
-    def _build_system(self, config: SimulationConfig, profiles: Dict[str, Any]) -> System:
+    def _build_system(
+        self, config: SimulationConfig, profiles: Dict[str, Any]
+    ) -> System:
         """Build system from configuration.
 
         Args:
@@ -280,10 +308,7 @@ class SimulationService:
             Configured System object
         """
         # Create system builder
-        builder = SystemBuilder(
-            Path(config.system_config_path),
-            self.component_repo
-        )
+        builder = SystemBuilder(Path(config.system_config_path), self.component_repo)
 
         # Build system
         system = builder.build()
@@ -306,9 +331,7 @@ class SimulationService:
         """
         # Get solver from factory
         solver = SolverFactory.get_solver(
-            config.solver_type,
-            system,
-            config.solver_config
+            config.solver_type, system, config.solver_config
         )
 
         # Run solver
@@ -318,8 +341,9 @@ class SimulationService:
         logger.info(f"Solver completed with status: {result.status}")
         return result
 
-    def _save_results(self, system: System, config: SimulationConfig,
-                     solver_result) -> Path:
+    def _save_results(
+        self, system: System, config: SimulationConfig, solver_result
+    ) -> Path:
         """Save simulation results.
 
         Args:
@@ -332,8 +356,8 @@ class SimulationService:
         """
         # Configure output
         output_config = config.output_config
-        output_dir = Path(output_config.get('directory', 'outputs'))
-        output_format = output_config.get('format', 'json')
+        output_dir = Path(output_config.get("directory", "outputs"))
+        output_format = output_config.get("format", "json")
 
         # Save results
         results_path = self.results_io.save_results(
@@ -342,10 +366,10 @@ class SimulationService:
             output_dir,
             output_format,
             metadata={
-                'solver_type': config.solver_type,
-                'solver_status': solver_result.status,
-                'solve_time': solver_result.solve_time
-            }
+                "solver_type": config.solver_type,
+                "solver_status": solver_result.status,
+                "solve_time": solver_result.solve_time,
+            },
         )
 
         logger.info(f"Results saved to: {results_path}")
@@ -367,27 +391,27 @@ class SimulationService:
         # Calculate total energy from grid
         for comp in system.components.values():
             if comp.type == "transmission" and comp.medium == "electricity":
-                if 'P_draw' in comp.flows.get('source', {}):
-                    flow = comp.flows['source']['P_draw']['value']
+                if "P_draw" in comp.flows.get("source", {}):
+                    flow = comp.flows["source"]["P_draw"]["value"]
                     if isinstance(flow, np.ndarray):
-                        kpis['total_grid_import_kwh'] = float(np.sum(flow))
+                        kpis["total_grid_import_kwh"] = float(np.sum(flow))
 
-                if 'P_feed' in comp.flows.get('sink', {}):
-                    flow = comp.flows['sink']['P_feed']['value']
+                if "P_feed" in comp.flows.get("sink", {}):
+                    flow = comp.flows["sink"]["P_feed"]["value"]
                     if isinstance(flow, np.ndarray):
-                        kpis['total_grid_export_kwh'] = float(np.sum(flow))
+                        kpis["total_grid_export_kwh"] = float(np.sum(flow))
 
         # Calculate renewable generation
         total_renewable = 0
         for comp in system.components.values():
-            if comp.type == "generation" and hasattr(comp, 'profile'):
+            if comp.type == "generation" and hasattr(comp, "profile"):
                 total_renewable += np.sum(comp.profile)
-        kpis['total_renewable_kwh'] = float(total_renewable)
+        kpis["total_renewable_kwh"] = float(total_renewable)
 
         # Calculate self-consumption rate
-        if 'total_grid_export_kwh' in kpis and total_renewable > 0:
-            self_consumed = total_renewable - kpis['total_grid_export_kwh']
-            kpis['self_consumption_rate'] = float(self_consumed / total_renewable)
+        if "total_grid_export_kwh" in kpis and total_renewable > 0:
+            self_consumed = total_renewable - kpis["total_grid_export_kwh"]
+            kpis["self_consumption_rate"] = float(self_consumed / total_renewable)
 
         return kpis
 
@@ -400,7 +424,7 @@ class SimulationService:
         Returns:
             SimulationResult
         """
-        with open(yaml_path, 'r') as f:
+        with open(yaml_path, "r") as f:
             config_dict = yaml.safe_load(f)
 
         config = SimulationConfig(**config_dict)

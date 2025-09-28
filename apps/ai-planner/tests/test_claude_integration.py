@@ -4,18 +4,19 @@ Comprehensive test suite for AI Planner Claude integration
 Tests the complete Phase 2 Claude-powered planning workflow
 """
 
-import sys
 import json
+import sys
 import uuid
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
+
 import pytest
+from ai_planner.agent import AIPlanner
+from ai_planner.claude_bridge import ClaudePlanningResponse, RobustClaudePlannerBridge
+from hive_db import get_connection, init_db
 
 # Imports now handled by Poetry workspace dependencies
 
-from ai_planner.agent import AIPlanner
-from ai_planner.claude_bridge import RobustClaudePlannerBridge, ClaudePlanningResponse
-from hive_db import get_connection, init_db
 
 
 class TestClaudeIntegration:
@@ -50,10 +51,10 @@ class TestClaudeIntegration:
             context_data={
                 "files_affected": 5,
                 "dependencies": ["jwt", "database"],
-                "tech_stack": ["python", "flask"]
+                "tech_stack": ["python", "flask"],
             },
             priority=75,
-            requestor="test_user"
+            requestor="test_user",
         )
 
         # Validate mock response structure
@@ -86,7 +87,7 @@ class TestClaudeIntegration:
             task_description="Build a complex distributed system",
             context_data={"files_affected": 20},
             priority=90,
-            requestor="fallback_test"
+            requestor="fallback_test",
         )
 
         # Validate fallback response
@@ -94,7 +95,9 @@ class TestClaudeIntegration:
         assert plan["plan_id"].startswith("fallback-")
         assert "fallback" in plan["plan_name"].lower()
         assert len(plan["sub_tasks"]) == 3  # Standard fallback has 3 tasks
-        assert plan["metrics"]["confidence_score"] == 0.6  # Lower confidence for fallback
+        assert (
+            plan["metrics"]["confidence_score"] == 0.6
+        )  # Lower confidence for fallback
 
         print("OK Fallback plan generation validation")
 
@@ -116,19 +119,19 @@ class TestClaudeIntegration:
                     "dependencies": [],
                     "workflow_phase": "analysis",
                     "required_skills": ["analysis"],
-                    "deliverables": ["requirements.md"]
+                    "deliverables": ["requirements.md"],
                 }
             ],
             "dependencies": {
                 "critical_path": ["task-001"],
                 "parallel_groups": [],
-                "blocking_dependencies": {}
+                "blocking_dependencies": {},
             },
             "workflow": {
                 "lifecycle_phases": ["analysis"],
                 "phase_transitions": {},
                 "validation_gates": {"analysis": ["requirements_clear"]},
-                "rollback_strategy": "manual rollback"
+                "rollback_strategy": "manual rollback",
             },
             "metrics": {
                 "total_estimated_duration": 30,
@@ -136,10 +139,10 @@ class TestClaudeIntegration:
                 "complexity_breakdown": {"simple": 0, "medium": 1, "complex": 0},
                 "skill_requirements": {"analysis": 1},
                 "confidence_score": 0.9,
-                "risk_factors": []
+                "risk_factors": [],
             },
             "recommendations": [],
-            "considerations": []
+            "considerations": [],
         }
 
         # Should validate successfully
@@ -165,32 +168,35 @@ class TestClaudeIntegration:
 
         # Create test task data
         test_task = {
-            'id': 'claude-integration-test-' + str(uuid.uuid4())[:8],
-            'task_description': 'Build a microservices API gateway with authentication',
-            'priority': 80,
-            'requestor': 'integration_test',
-            'context_data': {
-                'files_affected': 10,
-                'dependencies': ['jwt', 'redis', 'postgres'],
-                'tech_stack': ['python', 'fastapi', 'docker']
-            }
+            "id": "claude-integration-test-" + str(uuid.uuid4())[:8],
+            "task_description": "Build a microservices API gateway with authentication",
+            "priority": 80,
+            "requestor": "integration_test",
+            "context_data": {
+                "files_affected": 10,
+                "dependencies": ["jwt", "redis", "postgres"],
+                "tech_stack": ["python", "fastapi", "docker"],
+            },
         }
 
         # CRITICAL FIX: Insert test task into planning_queue BEFORE trying to save execution plan
         # This satisfies the foreign key constraint: planning_task_id REFERENCES planning_queue(id)
         cursor = agent.db_connection.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO planning_queue
             (id, task_description, priority, requestor, context_data, status)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            test_task['id'],
-            test_task['task_description'],
-            test_task['priority'],
-            test_task['requestor'],
-            json.dumps(test_task['context_data']),
-            'pending'
-        ))
+        """,
+            (
+                test_task["id"],
+                test_task["task_description"],
+                test_task["priority"],
+                test_task["requestor"],
+                json.dumps(test_task["context_data"]),
+                "pending",
+            ),
+        )
         agent.db_connection.commit()
 
         # Generate execution plan using Claude
@@ -198,11 +204,11 @@ class TestClaudeIntegration:
 
         # Validate plan generation
         assert plan is not None
-        assert plan['task_id'] == test_task['id']
-        assert 'sub_tasks' in plan
-        assert 'metadata' in plan
-        assert plan['metadata']['generation_method'] == 'claude-powered'
-        assert plan['metadata']['generator'] == 'ai-planner-v2-claude'
+        assert plan["task_id"] == test_task["id"]
+        assert "sub_tasks" in plan
+        assert "metadata" in plan
+        assert plan["metadata"]["generation_method"] == "claude-powered"
+        assert plan["metadata"]["generator"] == "ai-planner-v2-claude"
 
         # Test plan saving
         save_success = agent.save_execution_plan(plan)
@@ -210,18 +216,23 @@ class TestClaudeIntegration:
 
         # Verify plan was saved to database
         cursor = agent.db_connection.cursor()
-        cursor.execute("SELECT COUNT(*) FROM execution_plans WHERE planning_task_id = ?", (test_task['id'],))
+        cursor.execute(
+            "SELECT COUNT(*) FROM execution_plans WHERE planning_task_id = ?",
+            (test_task["id"],),
+        )
         plan_count = cursor.fetchone()[0]
         assert plan_count == 1
 
         # Verify sub-tasks were created
         cursor.execute("SELECT COUNT(*) FROM tasks WHERE task_type = 'planned_subtask'")
         subtask_count = cursor.fetchone()[0]
-        assert subtask_count >= len(plan['sub_tasks'])
+        assert subtask_count >= len(plan["sub_tasks"])
 
         # Cleanup - correct order to respect foreign keys
-        cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task['id'],))
-        cursor.execute("DELETE FROM planning_queue WHERE id = ?", (test_task['id'],))
+        cursor.execute(
+            "DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task["id"],)
+        )
+        cursor.execute("DELETE FROM planning_queue WHERE id = ?", (test_task["id"],))
         cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
         agent.db_connection.commit()
         agent.db_connection.close()
@@ -237,55 +248,84 @@ class TestClaudeIntegration:
         conn = get_connection()
         cursor = conn.cursor()
 
-        test_task_id = 'e2e-complex-test-' + str(uuid.uuid4())[:8]
-        cursor.execute("""
+        test_task_id = "e2e-complex-test-" + str(uuid.uuid4())[:8]
+        cursor.execute(
+            """
             INSERT INTO planning_queue
             (id, task_description, priority, requestor, context_data, status)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            test_task_id,
-            'Design and implement a complete e-commerce platform with user management, product catalog, shopping cart, payment processing, and admin dashboard',
-            95,
-            'e2e_test',
-            json.dumps({
-                'files_affected': 50,
-                'dependencies': ['stripe', 'redis', 'postgres', 'elasticsearch'],
-                'tech_stack': ['python', 'react', 'fastapi', 'docker', 'kubernetes'],
-                'constraints': ['PCI compliance', 'GDPR compliance', 'high availability']
-            }),
-            'pending'
-        ))
+        """,
+            (
+                test_task_id,
+                "Design and implement a complete e-commerce platform with user management, product catalog, shopping cart, payment processing, and admin dashboard",
+                95,
+                "e2e_test",
+                json.dumps(
+                    {
+                        "files_affected": 50,
+                        "dependencies": [
+                            "stripe",
+                            "redis",
+                            "postgres",
+                            "elasticsearch",
+                        ],
+                        "tech_stack": [
+                            "python",
+                            "react",
+                            "fastapi",
+                            "docker",
+                            "kubernetes",
+                        ],
+                        "constraints": [
+                            "PCI compliance",
+                            "GDPR compliance",
+                            "high availability",
+                        ],
+                    }
+                ),
+                "pending",
+            ),
+        )
         conn.commit()
 
         # Process the task through the complete pipeline
         task = agent.get_next_task()
         assert task is not None
-        assert task['id'] == test_task_id
+        assert task["id"] == test_task_id
 
         # Process task
         success = agent.process_task(task)
         assert success == True
 
         # Verify results
-        cursor.execute("SELECT status FROM planning_queue WHERE id = ?", (test_task_id,))
+        cursor.execute(
+            "SELECT status FROM planning_queue WHERE id = ?", (test_task_id,)
+        )
         final_status = cursor.fetchone()[0]
-        assert final_status == 'planned'
+        assert final_status == "planned"
 
-        cursor.execute("SELECT plan_data FROM execution_plans WHERE planning_task_id = ?", (test_task_id,))
+        cursor.execute(
+            "SELECT plan_data FROM execution_plans WHERE planning_task_id = ?",
+            (test_task_id,),
+        )
         plan_result = cursor.fetchone()
-        assert plan_result is not None, f"No execution plan found for task {test_task_id}. Check if plan was saved properly."
+        assert (
+            plan_result is not None
+        ), f"No execution plan found for task {test_task_id}. Check if plan was saved properly."
         plan_json = plan_result[0]
         plan_data = json.loads(plan_json)
 
         # Validate complex plan structure
-        assert len(plan_data['sub_tasks']) > 0
-        assert plan_data['metrics']['total_estimated_duration'] > 0
-        assert 'dependencies' in plan_data
-        assert 'workflow' in plan_data
+        assert len(plan_data["sub_tasks"]) > 0
+        assert plan_data["metrics"]["total_estimated_duration"] > 0
+        assert "dependencies" in plan_data
+        assert "workflow" in plan_data
 
         # Cleanup
         cursor.execute("DELETE FROM planning_queue WHERE id = ?", (test_task_id,))
-        cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task_id,))
+        cursor.execute(
+            "DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task_id,)
+        )
         cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
         conn.commit()
         conn.close()
@@ -300,11 +340,11 @@ class TestClaudeIntegration:
 
         # Test with malformed task data
         malformed_task = {
-            'id': 'error-test-' + str(uuid.uuid4())[:8],
-            'task_description': '',  # Empty description
-            'priority': 'invalid',  # Invalid priority
-            'requestor': None,  # Null requestor
-            'context_data': 'not-json'  # Invalid JSON
+            "id": "error-test-" + str(uuid.uuid4())[:8],
+            "task_description": "",  # Empty description
+            "priority": "invalid",  # Invalid priority
+            "requestor": None,  # Null requestor
+            "context_data": "not-json",  # Invalid JSON
         }
 
         # Should handle gracefully and not crash
@@ -316,11 +356,9 @@ class TestClaudeIntegration:
         agent.db_connection.close()
         agent.db_connection = None
 
-        save_result = agent.save_execution_plan({
-            'plan_id': 'test',
-            'task_id': 'test',
-            'status': 'test'
-        })
+        save_result = agent.save_execution_plan(
+            {"plan_id": "test", "task_id": "test", "status": "test"}
+        )
         assert save_result == False  # Should fail gracefully
 
         print("OK Error handling and resilience")
@@ -334,8 +372,7 @@ class TestClaudeIntegration:
         # Measure plan generation time
         start_time = time.time()
         plan = bridge.generate_execution_plan(
-            "Create a high-performance web application",
-            {"files_affected": 15}
+            "Create a high-performance web application", {"files_affected": 15}
         )
         end_time = time.time()
 
@@ -344,7 +381,7 @@ class TestClaudeIntegration:
         # Mock mode should be very fast
         assert generation_time < 1.0  # Should complete in under 1 second
         assert plan is not None
-        assert plan['metrics']['confidence_score'] > 0.8
+        assert plan["metrics"]["confidence_score"] > 0.8
 
         print(f"OK Performance metrics - Generation time: {generation_time:.3f}s")
 
@@ -365,7 +402,7 @@ def run_tests():
         test_suite.test_ai_planner_claude_integration,
         test_suite.test_complex_task_end_to_end,
         test_suite.test_error_handling_and_resilience,
-        test_suite.test_performance_metrics
+        test_suite.test_performance_metrics,
     ]
 
     passed = 0

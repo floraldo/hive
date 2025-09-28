@@ -10,6 +10,7 @@ import os
 import sys
 from pathlib import Path
 
+
 def fix_unicode_in_file(filepath):
     """Fix unicode symbols in a single file."""
     replacements = {

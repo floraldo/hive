@@ -3,16 +3,16 @@
 EcoSystemiser CLI - Complete system simulation and climate profiles interface
 """
 
-import click
 import json
 import sys
 from pathlib import Path
-from hive_logging import get_logger
-import yaml
-from typing import Dict, Any
+from typing import Any, Dict
 
-from ecosystemiser.profile_loader.climate import get_profile_sync, ClimateRequest
+import click
+import yaml
+from ecosystemiser.profile_loader.climate import ClimateRequest, get_profile_sync
 from ecosystemiser.reporting.generator import create_standalone_html_report
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -202,9 +202,9 @@ def run(config, output, solver, verbose):
         ecosys simulate run config.yaml
         ecosys simulate run config.yaml -o results.json --solver milp
     """
+    from ecosystemiser.component_data.repository import ComponentRepository
     from ecosystemiser.services.simulation_service import SimulationService
     from ecosystemiser.solver.base import SolverConfig
-    from ecosystemiser.component_data.repository import ComponentRepository
 
     try:
         # Load configuration
@@ -269,8 +269,8 @@ def validate(config):
     Examples:
         ecosys simulate validate config.yaml
     """
-    from ecosystemiser.utils.system_builder import SystemBuilder
     from ecosystemiser.component_data.repository import ComponentRepository
+    from ecosystemiser.utils.system_builder import SystemBuilder
 
     click.echo(f"[INFO] Validating configuration from {config}")
 
@@ -363,8 +363,9 @@ def optimize(config, objectives, population, generations, variables, multi_objec
         # With custom variables definition
         ecosys discover optimize config.yaml --variables variables.json --output results/
     """
-    from ecosystemiser.services.study_service import StudyService
     import json
+
+    from ecosystemiser.services.study_service import StudyService
 
     try:
         click.echo(f"[INFO] Starting genetic algorithm optimization")
@@ -436,8 +437,8 @@ def optimize(config, objectives, population, generations, variables, multi_objec
             # Generate report if requested
             if report:
                 click.echo("\n[INFO] Generating HTML report...")
-                from ecosystemiser.reporting.generator import HTMLReportGenerator
                 from ecosystemiser.datavis.plot_factory import PlotFactory
+                from ecosystemiser.reporting.generator import HTMLReportGenerator
 
                 plot_factory = PlotFactory()
                 report_generator = HTMLReportGenerator()
@@ -523,8 +524,9 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
         # Comprehensive analysis with risk metrics
         ecosys discover uncertainty config.yaml -u params.json --sensitivity --risk --output results/
     """
-    from ecosystemiser.services.study_service import StudyService
     import json
+
+    from ecosystemiser.services.study_service import StudyService
 
     try:
         click.echo(f"[INFO] Starting Monte Carlo uncertainty analysis")
@@ -697,8 +699,9 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
         # Custom objectives and output
         ecosys discover explore config.yaml -v vars.json --objectives "cost,emissions,efficiency" -o results/
     """
-    from ecosystemiser.services.study_service import StudyService
     import json
+
+    from ecosystemiser.services.study_service import StudyService
 
     try:
         click.echo(f"[INFO] Starting design space exploration")
@@ -944,9 +947,10 @@ def generate(study_file, output, study_type):
         ecosys report generate ga_optimization_123.json
         ecosys report generate mc_uncertainty_456.json --output analysis.html
     """
-    from ecosystemiser.reporting.generator import HTMLReportGenerator
-    from ecosystemiser.datavis.plot_factory import PlotFactory
     import json
+
+    from ecosystemiser.datavis.plot_factory import PlotFactory
+    from ecosystemiser.reporting.generator import HTMLReportGenerator
 
     try:
         # Load study results

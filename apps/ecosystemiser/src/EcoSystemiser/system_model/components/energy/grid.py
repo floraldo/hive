@@ -1,12 +1,20 @@
 """Grid component with MILP optimization support and hierarchical fidelity."""
+
+from typing import Any, Dict, List, Optional
+
 import cvxpy as cp
 import numpy as np
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from hive_logging import get_logger
+from ecosystemiser.system_model.components.shared.archetypes import (
+    FidelityLevel,
+    TransmissionTechnicalParams,
+)
+from ecosystemiser.system_model.components.shared.component import (
+    Component,
+    ComponentParams,
+)
 from ecosystemiser.system_model.components.shared.registry import register_component
-from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
-from ecosystemiser.system_model.components.shared.archetypes import TransmissionTechnicalParams, FidelityLevel
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -14,41 +22,41 @@ logger = get_logger(__name__)
 # GRID-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
 # =============================================================================
 
+
 class GridTechnicalParams(TransmissionTechnicalParams):
     """Grid-specific technical parameters extending transmission archetype.
 
     This model inherits from TransmissionTechnicalParams and adds grid-specific
     parameters for different fidelity levels.
     """
+
     # Economic parameters (should eventually move to economic block)
     import_tariff: float = Field(0.25, description="Import electricity price [$/kWh]")
     feed_in_tariff: float = Field(0.08, description="Export electricity price [$/kWh]")
 
     # STANDARD fidelity additions
     grid_losses: Optional[float] = Field(
-        None,
-        description="Transmission loss factor [%]"
+        None, description="Transmission loss factor [%]"
     )
 
     # DETAILED fidelity parameters
     voltage_limits: Optional[Dict[str, float]] = Field(
-        None,
-        description="Voltage limits {min_pu, max_pu}"
+        None, description="Voltage limits {min_pu, max_pu}"
     )
     power_factor_limits: Optional[Dict[str, float]] = Field(
-        None,
-        description="Power factor requirements"
+        None, description="Power factor requirements"
     )
 
     # RESEARCH fidelity parameters
     grid_impedance_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Detailed grid impedance model"
+        None, description="Detailed grid impedance model"
     )
+
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
+
 
 class GridPhysicsSimple:
     """Implements the SIMPLE rule-based physics for grid transmission.
@@ -91,6 +99,7 @@ class GridPhysicsSimple:
         # Simple clipping to max export
         return min(power_available, max_export)
 
+
 class GridPhysicsStandard(GridPhysicsSimple):
     """Implements the STANDARD rule-based physics for grid transmission.
 
@@ -109,7 +118,7 @@ class GridPhysicsStandard(GridPhysicsSimple):
         power_from_grid = super().rule_based_import(power_requested, max_import)
 
         # 2. Add STANDARD-specific physics: transmission losses
-        grid_losses = getattr(self.params.technical, 'grid_losses', 0.02)  # 2% default
+        grid_losses = getattr(self.params.technical, "grid_losses", 0.02)  # 2% default
         if grid_losses and grid_losses > 0:
             # Power delivered = power from grid * (1 - losses)
             power_delivered = power_from_grid * (1 - grid_losses)
@@ -117,9 +126,11 @@ class GridPhysicsStandard(GridPhysicsSimple):
 
         return power_from_grid
 
+
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
+
 
 class GridOptimizationSimple:
     """Implements the SIMPLE MILP optimization constraints for grid.
@@ -151,6 +162,7 @@ class GridOptimizationSimple:
 
         return constraints
 
+
 class GridOptimizationStandard(GridOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for grid.
 
@@ -170,16 +182,20 @@ class GridOptimizationStandard(GridOptimizationSimple):
         comp = self.component
 
         # STANDARD: Acknowledge grid losses (actual implementation would be in energy balance)
-        grid_losses = getattr(comp.technical, 'grid_losses', None)
+        grid_losses = getattr(comp.technical, "grid_losses", None)
         if grid_losses and grid_losses > 0 and comp.P_draw is not None:
-            logger.debug(f"STANDARD: Grid losses of {grid_losses*100:.1f}% acknowledged")
+            logger.debug(
+                f"STANDARD: Grid losses of {grid_losses*100:.1f}% acknowledged"
+            )
             # Note: Actual loss implementation would be in system-level energy balance
             # Could add: constraints.append(comp.P_draw_effective == comp.P_draw * (1 - grid_losses))
 
         return constraints
 
+
 class GridParams(ComponentParams):
     """Grid parameters using the hierarchical technical parameter system."""
+
     technical: GridTechnicalParams = Field(
         default_factory=lambda: GridTechnicalParams(
             capacity_nominal=100.0,  # Default 100 kW capacity
@@ -187,14 +203,16 @@ class GridParams(ComponentParams):
             max_export=100.0,  # Default 100 kW export
             import_tariff=0.25,
             feed_in_tariff=0.08,
-            fidelity_level=FidelityLevel.STANDARD
+            fidelity_level=FidelityLevel.STANDARD,
         ),
-        description="Technical parameters following the hierarchical archetype system"
+        description="Technical parameters following the hierarchical archetype system",
     )
+
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
 # =============================================================================
+
 
 @register_component("Grid")
 class Grid(Component):
@@ -274,22 +292,18 @@ class Grid(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return GridOptimizationStandard(self.params, self)
         else:
-            raise ValueError(f"Unknown fidelity level for Grid optimization: {fidelity}")
+            raise ValueError(
+                f"Unknown fidelity level for Grid optimization: {fidelity}"
+            )
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""
-        self.P_draw = cp.Variable(N, name=f'{self.name}_P_draw', nonneg=True)
-        self.P_feed = cp.Variable(N, name=f'{self.name}_P_feed', nonneg=True)
+        self.P_draw = cp.Variable(N, name=f"{self.name}_P_draw", nonneg=True)
+        self.P_feed = cp.Variable(N, name=f"{self.name}_P_feed", nonneg=True)
 
         # Add as flows
-        self.flows['source']['P_draw'] = {
-            'type': 'electricity',
-            'value': self.P_draw
-        }
-        self.flows['sink']['P_feed'] = {
-            'type': 'electricity',
-            'value': self.P_feed
-        }
+        self.flows["source"]["P_draw"] = {"type": "electricity", "value": self.P_draw}
+        self.flows["sink"]["P_feed"] = {"type": "electricity", "value": self.P_feed}
 
     def set_constraints(self) -> List:
         """Delegate constraint creation to optimization strategy."""

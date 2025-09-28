@@ -4,13 +4,12 @@ Database adapter for AI Reviewer to interact with Hive Core DB
 
 import json
 import sys
-from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import hive_db as hive_core_db
 from hive_logging import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -35,10 +34,10 @@ class DatabaseAdapter:
         Returns:
             Parsed payload dictionary or None if parsing fails
         """
-        if not task.get('payload'):
+        if not task.get("payload"):
             return None
 
-        payload = task['payload']
+        payload = task["payload"]
         if isinstance(payload, str):
             try:
                 return json.loads(payload)
@@ -164,8 +163,8 @@ class DatabaseAdapter:
             if runs:
                 # Get the most recent run
                 for run in runs:
-                    if run.get('transcript'):
-                        return run['transcript']
+                    if run.get("transcript"):
+                        return run["transcript"]
 
             # Fall back to checking task payload
             task = hive_core_db.get_task(task_id)
@@ -187,10 +186,7 @@ class DatabaseAdapter:
             return None
 
     def update_task_status(
-        self,
-        task_id: str,
-        new_status: str,
-        review_data: Dict[str, Any]
+        self, task_id: str, new_status: str, review_data: Dict[str, Any]
     ) -> bool:
         """
         Update task status after review
@@ -214,7 +210,7 @@ class DatabaseAdapter:
             metadata = {
                 "review": review_data,
                 "review_timestamp": datetime.now().isoformat(),
-                "reviewed_by": "ai-reviewer"
+                "reviewed_by": "ai-reviewer",
             }
 
             # Store escalation details if present
@@ -227,7 +223,7 @@ class DatabaseAdapter:
             metadata["last_review"] = {
                 "status": new_status,
                 "timestamp": datetime.now().isoformat(),
-                "score": review_data.get("overall_score", 0)
+                "score": review_data.get("overall_score", 0),
             }
 
             success = hive_core_db.update_task_status(task_id, new_status, metadata)
@@ -242,11 +238,7 @@ class DatabaseAdapter:
             logger.error(f"Error updating task {task_id} status: {e}")
             return False
 
-    def store_review_report(
-        self,
-        task_id: str,
-        report: Dict[str, Any]
-    ) -> bool:
+    def store_review_report(self, task_id: str, report: Dict[str, Any]) -> bool:
         """
         Store detailed review report
 
@@ -316,28 +308,38 @@ class DatabaseAdapter:
         try:
             with self.db.get_session() as session:
                 # Count tasks by review status
-                total_reviewed = session.query(Task)\
-                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))\
+                total_reviewed = (
+                    session.query(Task)
+                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))
                     .count()
+                )
 
-                approved = session.query(Task)\
-                    .filter(Task.status == TaskStatus.APPROVED)\
-                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))\
+                approved = (
+                    session.query(Task)
+                    .filter(Task.status == TaskStatus.APPROVED)
+                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))
                     .count()
+                )
 
-                rejected = session.query(Task)\
-                    .filter(Task.status == TaskStatus.REJECTED)\
-                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))\
+                rejected = (
+                    session.query(Task)
+                    .filter(Task.status == TaskStatus.REJECTED)
+                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))
                     .count()
+                )
 
-                rework = session.query(Task)\
-                    .filter(Task.status == TaskStatus.REWORK_NEEDED)\
-                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))\
+                rework = (
+                    session.query(Task)
+                    .filter(Task.status == TaskStatus.REWORK_NEEDED)
+                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))
                     .count()
+                )
 
-                pending = session.query(Task)\
-                    .filter(Task.status == TaskStatus.REVIEW_PENDING)\
+                pending = (
+                    session.query(Task)
+                    .filter(Task.status == TaskStatus.REVIEW_PENDING)
                     .count()
+                )
 
                 return {
                     "total_reviewed": total_reviewed,
@@ -345,7 +347,9 @@ class DatabaseAdapter:
                     "rejected": rejected,
                     "rework_needed": rework,
                     "pending_review": pending,
-                    "approval_rate": (approved / total_reviewed * 100) if total_reviewed > 0 else 0
+                    "approval_rate": (
+                        (approved / total_reviewed * 100) if total_reviewed > 0 else 0
+                    ),
                 }
 
         except Exception as e:

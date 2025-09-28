@@ -8,14 +8,13 @@ Consolidates connection management while maintaining database isolation.
 
 import sqlite3
 import threading
-from pathlib import Path
-from typing import Optional, Dict, Any
 from contextlib import contextmanager
-from queue import Queue, Empty, Full
+from pathlib import Path
+from queue import Empty, Full, Queue
+from typing import Any, Dict, Optional
 
-from hive_logging import get_logger
 from hive_config.paths import ensure_directory
-from hive_config import get_config
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -32,11 +31,13 @@ class DatabaseConnectionPool:
     - Graceful degradation under load
     """
 
-    def __init__(self,
-                 db_path: Path,
-                 min_connections: int = 2,
-                 max_connections: int = 10,
-                 connection_timeout: float = 30.0):
+    def __init__(
+        self,
+        db_path: Path,
+        min_connections: int = 2,
+        max_connections: int = 10,
+        connection_timeout: float = 30.0,
+    ):
         """
         Initialize connection pool for a specific database.
 
@@ -74,21 +75,23 @@ class DatabaseConnectionPool:
                 str(self.db_path),
                 check_same_thread=False,
                 timeout=30.0,  # 30 second timeout for locks
-                isolation_level='DEFERRED'  # Better concurrency
+                isolation_level="DEFERRED",  # Better concurrency
             )
 
             # Optimize connection settings
             conn.row_factory = sqlite3.Row
-            conn.execute('PRAGMA journal_mode=WAL')  # Write-Ahead Logging
-            conn.execute('PRAGMA synchronous=NORMAL')  # Faster writes
-            conn.execute('PRAGMA cache_size=10000')  # 10MB cache
-            conn.execute('PRAGMA foreign_keys=ON')
-            conn.execute('PRAGMA temp_store=MEMORY')  # Use memory for temp tables
+            conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
+            conn.execute("PRAGMA synchronous=NORMAL")  # Faster writes
+            conn.execute("PRAGMA cache_size=10000")  # 10MB cache
+            conn.execute("PRAGMA foreign_keys=ON")
+            conn.execute("PRAGMA temp_store=MEMORY")  # Use memory for temp tables
 
             with self._lock:
                 self._connections_created += 1
 
-            logger.debug(f"Created connection #{self._connections_created} for {self.db_path.name}")
+            logger.debug(
+                f"Created connection #{self._connections_created} for {self.db_path.name}"
+            )
             return conn
 
         except Exception as e:
@@ -98,7 +101,7 @@ class DatabaseConnectionPool:
     def _validate_connection(self, conn: sqlite3.Connection) -> bool:
         """Check if a connection is still valid."""
         try:
-            conn.execute('SELECT 1')
+            conn.execute("SELECT 1")
             return True
         except (sqlite3.Error, sqlite3.ProgrammingError, AttributeError) as e:
             logger.debug(f"Connection validation failed for {self.db_path.name}: {e}")
@@ -133,7 +136,9 @@ class DatabaseConnectionPool:
                         conn = self._pool.get(timeout=self.connection_timeout * 2)
 
             if not conn:
-                raise RuntimeError(f"Failed to acquire database connection for {self.db_path}")
+                raise RuntimeError(
+                    f"Failed to acquire database connection for {self.db_path}"
+                )
 
             yield conn
 
@@ -146,11 +151,15 @@ class DatabaseConnectionPool:
                     self._pool.put(conn)
                 except (Full, sqlite3.Error) as e:
                     # Connection corrupted, close it
-                    logger.warning(f"Failed to return connection to pool for {self.db_path.name}: {e}")
+                    logger.warning(
+                        f"Failed to return connection to pool for {self.db_path.name}: {e}"
+                    )
                     try:
                         conn.close()
                     except (sqlite3.Error, AttributeError) as close_error:
-                        logger.debug(f"Failed to close corrupted connection: {close_error}")
+                        logger.debug(
+                            f"Failed to close corrupted connection: {close_error}"
+                        )
                     with self._lock:
                         self._connections_created -= 1
 
@@ -173,11 +182,11 @@ class DatabaseConnectionPool:
     def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics."""
         return {
-            'db_path': str(self.db_path),
-            'pool_size': self._pool.qsize(),
-            'connections_created': self._connections_created,
-            'max_connections': self.max_connections,
-            'min_connections': self.min_connections
+            "db_path": str(self.db_path),
+            "pool_size": self._pool.qsize(),
+            "connections_created": self._connections_created,
+            "max_connections": self.max_connections,
+            "min_connections": self.min_connections,
         }
 
 
@@ -189,11 +198,15 @@ class SharedDatabaseService:
     while maintaining connection pooling and proper resource management.
     """
 
-    def __init__(self):
-        """Initialize the shared database service."""
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """Initialize the shared database service with DI support.
+
+        Args:
+            config: Optional configuration dictionary for database settings
+        """
         self._pools: Dict[str, DatabaseConnectionPool] = {}
         self._lock = threading.RLock()
-        self._config = get_config()
+        self._config = config or {}
 
     def get_pool(self, db_name: str, db_path: Path) -> DatabaseConnectionPool:
         """
@@ -209,14 +222,14 @@ class SharedDatabaseService:
         if db_name not in self._pools:
             with self._lock:
                 if db_name not in self._pools:
-                    # Get database-specific configuration
-                    db_config = self._config.get_database_config()
+                    # Get database-specific configuration from config dict
+                    db_config = self._config.get("database", {})
 
                     self._pools[db_name] = DatabaseConnectionPool(
                         db_path=db_path,
                         min_connections=2,
                         max_connections=db_config.get("max_connections", 10),
-                        connection_timeout=db_config.get("connection_timeout", 30.0)
+                        connection_timeout=db_config.get("connection_timeout", 30.0),
                     )
                     logger.info(f"Created connection pool for database: {db_name}")
 
@@ -263,10 +276,10 @@ class SharedDatabaseService:
                 try:
                     # Test connection acquisition
                     with pool.get_connection() as conn:
-                        conn.execute('SELECT 1')
-                    results[db_name] = {'status': 'healthy', 'stats': pool.get_stats()}
+                        conn.execute("SELECT 1")
+                    results[db_name] = {"status": "healthy", "stats": pool.get_stats()}
                 except Exception as e:
-                    results[db_name] = {'status': 'unhealthy', 'error': str(e)}
+                    results[db_name] = {"status": "unhealthy", "error": str(e)}
 
         return results
 
@@ -276,14 +289,20 @@ _shared_service: Optional[SharedDatabaseService] = None
 _service_lock = threading.Lock()
 
 
-def get_shared_database_service() -> SharedDatabaseService:
-    """Get or create the global shared database service."""
+def get_shared_database_service(
+    config: Optional[Dict[str, Any]] = None,
+) -> SharedDatabaseService:
+    """Get or create the global shared database service with DI support.
+
+    Args:
+        config: Optional configuration dictionary for database settings
+    """
     global _shared_service
 
     if _shared_service is None:
         with _service_lock:
             if _shared_service is None:
-                _shared_service = SharedDatabaseService()
+                _shared_service = SharedDatabaseService(config)
                 logger.info("Shared database service initialized")
 
     return _shared_service

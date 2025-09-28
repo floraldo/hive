@@ -1,19 +1,31 @@
 """Battery storage component with MILP optimization support."""
+
+from typing import Any, Dict, List, Optional
+
 import cvxpy as cp
 import numpy as np
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from hive_logging import get_logger
+from ecosystemiser.system_model.components.shared.archetypes import (
+    FidelityLevel,
+    StorageTechnicalParams,
+)
+from ecosystemiser.system_model.components.shared.base_classes import (
+    BaseStorageOptimization,
+    BaseStoragePhysics,
+)
+from ecosystemiser.system_model.components.shared.component import (
+    Component,
+    ComponentParams,
+)
 from ecosystemiser.system_model.components.shared.registry import register_component
-from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
-from ecosystemiser.system_model.components.shared.archetypes import StorageTechnicalParams, FidelityLevel
-from ecosystemiser.system_model.components.shared.base_classes import BaseStoragePhysics, BaseStorageOptimization
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
 # =============================================================================
 # BATTERY-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
 # =============================================================================
+
 
 class BatteryTechnicalParams(StorageTechnicalParams):
     """Battery-specific technical parameters extending storage archetype."""
@@ -23,53 +35,54 @@ class BatteryTechnicalParams(StorageTechnicalParams):
     max_discharge_rate: float = Field(..., description="Maximum discharge power [kW]")
 
     # STANDARD fidelity parameters
-    self_discharge_rate: float = Field(0.0001, description="Self-discharge rate per timestep [fraction/hour]")
+    self_discharge_rate: float = Field(
+        0.0001, description="Self-discharge rate per timestep [fraction/hour]"
+    )
 
     # Battery-specific additions (DETAILED fidelity)
     temperature_coefficient_capacity: Optional[float] = Field(
-        None,
-        description="Temperature coefficient for capacity (%/°C)"
+        None, description="Temperature coefficient for capacity (%/°C)"
     )
     temperature_coefficient_charge: Optional[float] = Field(
-        None,
-        description="Temperature coefficient for charging (%/°C)"
+        None, description="Temperature coefficient for charging (%/°C)"
     )
 
     # STANDARD fidelity additions
     degradation_model: Optional[Dict[str, float]] = Field(
-        None,
-        description="Battery degradation model parameters"
+        None, description="Battery degradation model parameters"
     )
 
     # DETAILED fidelity parameters
     voltage_curve: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Voltage vs SOC curve for detailed modeling"
+        None, description="Voltage vs SOC curve for detailed modeling"
     )
 
     # RESEARCH fidelity parameters
     electrochemical_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Detailed electrochemical model parameters"
+        None, description="Detailed electrochemical model parameters"
     )
+
 
 class BatteryParams(ComponentParams):
     """Battery parameters using the hierarchical technical parameter system."""
+
     technical: BatteryTechnicalParams = Field(
         default_factory=lambda: BatteryTechnicalParams(
             capacity_nominal=10.0,  # Default 10 kWh
-            max_charge_rate=5.0,    # Default 5 kW charge
-            max_discharge_rate=5.0, # Default 5 kW discharge
+            max_charge_rate=5.0,  # Default 5 kW charge
+            max_discharge_rate=5.0,  # Default 5 kW discharge
             efficiency_roundtrip=0.95,
             initial_soc_pct=0.5,
-            fidelity_level=FidelityLevel.STANDARD
+            fidelity_level=FidelityLevel.STANDARD,
         ),
-        description="Technical parameters following the hierarchical archetype system"
+        description="Technical parameters following the hierarchical archetype system",
     )
+
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
+
 
 class BatteryPhysicsSimple(BaseStoragePhysics):
     """Implements the SIMPLE rule-based physics for a battery.
@@ -80,7 +93,9 @@ class BatteryPhysicsSimple(BaseStoragePhysics):
     - Physical bounds enforcement (0 <= E <= E_max)
     """
 
-    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
+    def rule_based_update_state(
+        self, t: int, E_old: float, charge_power: float, discharge_power: float
+    ) -> float:
         """
         Implement SIMPLE battery physics with roundtrip efficiency.
 
@@ -121,6 +136,7 @@ class BatteryPhysicsSimple(BaseStoragePhysics):
         # Apply bounds
         return max(0.0, min(energy_level, E_max))
 
+
 class BatteryPhysicsStandard(BatteryPhysicsSimple):
     """Implements the STANDARD rule-based physics for a battery.
 
@@ -129,18 +145,24 @@ class BatteryPhysicsStandard(BatteryPhysicsSimple):
     - Temperature-independent degradation modeling (future)
     """
 
-    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
+    def rule_based_update_state(
+        self, t: int, E_old: float, charge_power: float, discharge_power: float
+    ) -> float:
         """
         Implement STANDARD battery physics with self-discharge.
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.
         """
         # 1. Get the baseline result from SIMPLE physics
-        energy_after_simple = super().rule_based_update_state(t, E_old, charge_power, discharge_power)
+        energy_after_simple = super().rule_based_update_state(
+            t, E_old, charge_power, discharge_power
+        )
 
         # 2. Add STANDARD-specific physics: self-discharge
         # Self-discharge is based on energy level at START of timestep
-        self_discharge_rate = getattr(self.params.technical, 'self_discharge_rate', 0.0001)
+        self_discharge_rate = getattr(
+            self.params.technical, "self_discharge_rate", 0.0001
+        )
         self_discharge_loss = E_old * self_discharge_rate
 
         # 3. Apply self-discharge to the result
@@ -149,9 +171,11 @@ class BatteryPhysicsStandard(BatteryPhysicsSimple):
         # 4. Enforce bounds again after self-discharge
         return self.apply_bounds(final_energy)
 
+
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
+
 
 class BatteryOptimizationSimple(BaseStorageOptimization):
     """Implements the SIMPLE MILP optimization constraints for battery.
@@ -199,11 +223,10 @@ class BatteryOptimizationSimple(BaseStorageOptimization):
                 # Basic charge/discharge with efficiency
                 energy_change = comp.eta * comp.P_cha[t] - comp.P_dis[t] / comp.eta
 
-                constraints.append(
-                    comp.E_opt[t + 1] == comp.E_opt[t] + energy_change
-                )
+                constraints.append(comp.E_opt[t + 1] == comp.E_opt[t] + energy_change)
 
         return constraints
+
 
 class BatteryOptimizationStandard(BatteryOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for battery.
@@ -246,19 +269,21 @@ class BatteryOptimizationStandard(BatteryOptimizationSimple):
                 energy_change = comp.eta * comp.P_cha[t] - comp.P_dis[t] / comp.eta
 
                 # STANDARD enhancement: add self-discharge
-                self_discharge_rate = getattr(comp.technical, 'self_discharge_rate', 0.0001)
+                self_discharge_rate = getattr(
+                    comp.technical, "self_discharge_rate", 0.0001
+                )
                 # Self-discharge based on energy at start of timestep
                 energy_change -= comp.E_opt[t] * self_discharge_rate
 
-                constraints.append(
-                    comp.E_opt[t + 1] == comp.E_opt[t] + energy_change
-                )
+                constraints.append(comp.E_opt[t + 1] == comp.E_opt[t] + energy_change)
 
         return constraints
+
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
 # =============================================================================
+
 
 @register_component("Battery")
 class Battery(Component):
@@ -333,9 +358,13 @@ class Battery(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return BatteryOptimizationStandard(self.params, self)
         else:
-            raise ValueError(f"Unknown fidelity level for Battery optimization: {fidelity}")
+            raise ValueError(
+                f"Unknown fidelity level for Battery optimization: {fidelity}"
+            )
 
-    def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float):
+    def rule_based_update_state(
+        self, t: int, charge_power: float, discharge_power: float
+    ):
         """
         Delegate to physics strategy for state update.
 
@@ -349,10 +378,12 @@ class Battery(Component):
         if t == 0:
             initial_level = self.E_init
         else:
-            initial_level = self.E[t-1]
+            initial_level = self.E[t - 1]
 
         # Delegate to physics strategy
-        new_energy = self.physics.rule_based_update_state(t, initial_level, charge_power, discharge_power)
+        new_energy = self.physics.rule_based_update_state(
+            t, initial_level, charge_power, discharge_power
+        )
 
         # Update the storage array
         self.E[t] = new_energy
@@ -367,19 +398,13 @@ class Battery(Component):
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables for MILP solver."""
-        self.E_opt = cp.Variable(N + 1, name=f'{self.name}_energy', nonneg=True)
-        self.P_cha = cp.Variable(N, name=f'{self.name}_charge', nonneg=True)
-        self.P_dis = cp.Variable(N, name=f'{self.name}_discharge', nonneg=True)
+        self.E_opt = cp.Variable(N + 1, name=f"{self.name}_energy", nonneg=True)
+        self.P_cha = cp.Variable(N, name=f"{self.name}_charge", nonneg=True)
+        self.P_dis = cp.Variable(N, name=f"{self.name}_discharge", nonneg=True)
 
         # Add flows
-        self.flows['sink']['P_cha'] = {
-            'type': 'electricity',
-            'value': self.P_cha
-        }
-        self.flows['source']['P_dis'] = {
-            'type': 'electricity',
-            'value': self.P_dis
-        }
+        self.flows["sink"]["P_cha"] = {"type": "electricity", "value": self.P_cha}
+        self.flows["source"]["P_dis"] = {"type": "electricity", "value": self.P_dis}
 
     def set_constraints(self) -> List:
         """Delegate constraint creation to optimization strategy."""
@@ -392,7 +417,7 @@ class Battery(Component):
         if t == 0:
             current_level = self.E_init
         else:
-            current_level = self.E[t-1] if hasattr(self, 'E') and t > 0 else 0.0
+            current_level = self.E[t - 1] if hasattr(self, "E") and t > 0 else 0.0
 
         # Available power is limited by both P_max and current energy level
         return min(self.P_max, current_level)
@@ -403,7 +428,7 @@ class Battery(Component):
         if t == 0:
             current_level = self.E_init
         else:
-            current_level = self.E[t-1] if hasattr(self, 'E') and t > 0 else 0.0
+            current_level = self.E[t - 1] if hasattr(self, "E") and t > 0 else 0.0
 
         # Available charge power is limited by remaining capacity and power limit
         remaining_capacity = self.E_max - current_level

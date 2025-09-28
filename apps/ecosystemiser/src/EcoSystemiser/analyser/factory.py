@@ -1,10 +1,11 @@
 """Factory for creating analysis strategies dynamically."""
 
-from typing import Dict, Any, Type, Optional
+from typing import Any, Dict, Optional, Type
+
 from ecosystemiser.analyser.strategies import BaseAnalysis
-from ecosystemiser.analyser.strategies.technical_kpi import TechnicalKPIAnalysis
 from ecosystemiser.analyser.strategies.economic import EconomicAnalysis
 from ecosystemiser.analyser.strategies.sensitivity import SensitivityAnalysis
+from ecosystemiser.analyser.strategies.technical_kpi import TechnicalKPIAnalysis
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -19,9 +20,9 @@ class AnalyserFactory:
 
     # Registry of available strategy classes
     _strategies: Dict[str, Type[BaseAnalysis]] = {
-        'technical_kpi': TechnicalKPIAnalysis,
-        'economic': EconomicAnalysis,
-        'sensitivity': SensitivityAnalysis
+        "technical_kpi": TechnicalKPIAnalysis,
+        "economic": EconomicAnalysis,
+        "sensitivity": SensitivityAnalysis,
     }
 
     @classmethod
@@ -45,7 +46,9 @@ class AnalyserFactory:
         logger.info(f"Registered strategy class: {name}")
 
     @classmethod
-    def create_strategy(cls, name: str, config: Optional[Dict[str, Any]] = None) -> BaseAnalysis:
+    def create_strategy(
+        cls, name: str, config: Optional[Dict[str, Any]] = None
+    ) -> BaseAnalysis:
         """Create an analysis strategy instance.
 
         Args:
@@ -59,10 +62,9 @@ class AnalyserFactory:
             ValueError: If strategy name is not registered
         """
         if name not in cls._strategies:
-            available = ', '.join(cls._strategies.keys())
+            available = ", ".join(cls._strategies.keys())
             raise ValueError(
-                f"Unknown strategy: {name}. "
-                f"Available strategies: {available}"
+                f"Unknown strategy: {name}. " f"Available strategies: {available}"
             )
 
         strategy_class = cls._strategies[name]
@@ -83,7 +85,9 @@ class AnalyserFactory:
         return instance
 
     @classmethod
-    def create_all_strategies(cls, config: Optional[Dict[str, Dict[str, Any]]] = None) -> Dict[str, BaseAnalysis]:
+    def create_all_strategies(
+        cls, config: Optional[Dict[str, Dict[str, Any]]] = None
+    ) -> Dict[str, BaseAnalysis]:
         """Create instances of all registered strategies.
 
         Args:
@@ -113,13 +117,15 @@ class AnalyserFactory:
             # Extract docstring as description
             doc = strategy_class.__doc__ or "No description available"
             # Get first line of docstring
-            description = doc.strip().split('\n')[0]
+            description = doc.strip().split("\n")[0]
             info[name] = description
 
         return info
 
     @classmethod
-    def create_strategy_for_system_type(cls, system_type: str) -> Dict[str, BaseAnalysis]:
+    def create_strategy_for_system_type(
+        cls, system_type: str
+    ) -> Dict[str, BaseAnalysis]:
         """Create appropriate strategies based on system type.
 
         Args:
@@ -130,17 +136,17 @@ class AnalyserFactory:
         """
         strategies = {}
 
-        if system_type == 'energy':
-            strategies['technical_kpi'] = cls.create_strategy('technical_kpi')
-            strategies['economic'] = cls.create_strategy('economic')
-            strategies['sensitivity'] = cls.create_strategy('sensitivity')
+        if system_type == "energy":
+            strategies["technical_kpi"] = cls.create_strategy("technical_kpi")
+            strategies["economic"] = cls.create_strategy("economic")
+            strategies["sensitivity"] = cls.create_strategy("sensitivity")
 
-        elif system_type == 'water':
+        elif system_type == "water":
             # For water systems, still use technical KPIs (it handles water metrics)
-            strategies['technical_kpi'] = cls.create_strategy('technical_kpi')
-            strategies['economic'] = cls.create_strategy('economic')
+            strategies["technical_kpi"] = cls.create_strategy("technical_kpi")
+            strategies["economic"] = cls.create_strategy("economic")
 
-        elif system_type == 'mixed':
+        elif system_type == "mixed":
             # For mixed systems, use all strategies
             strategies = cls.create_all_strategies()
 

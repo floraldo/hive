@@ -5,15 +5,16 @@ Extends the generic messaging toolkit with Hive orchestration events.
 These contain the business logic for agent coordination.
 """
 
-from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict, Optional
 
 from hive_bus import BaseEvent
 
 
 class TaskStatus(Enum):
     """Hive task status enumeration"""
+
     PENDING = "pending"
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
@@ -24,6 +25,7 @@ class TaskStatus(Enum):
 
 class AgentStatus(Enum):
     """Hive agent status enumeration"""
+
     IDLE = "idle"
     BUSY = "busy"
     OFFLINE = "offline"
@@ -37,6 +39,7 @@ class TaskEvent(BaseEvent):
 
     Extends BaseEvent with Hive task orchestration properties.
     """
+
     task_id: str = ""
     worker_id: Optional[str] = None
     status: TaskStatus = TaskStatus.PENDING
@@ -55,6 +58,7 @@ class AgentEvent(BaseEvent):
 
     Extends BaseEvent with Hive agent orchestration properties.
     """
+
     agent_id: str = ""
     agent_type: str = ""  # queen, worker, reviewer, etc.
     status: AgentStatus = AgentStatus.IDLE
@@ -73,6 +77,7 @@ class WorkflowEvent(BaseEvent):
 
     Extends BaseEvent with Hive workflow orchestration properties.
     """
+
     workflow_id: str = ""
     phase: str = ""  # planning, execution, review, completion
     progress: float = 0.0  # 0.0 to 1.0

@@ -3,13 +3,18 @@ Tests for the AI Reviewer autonomous agent
 """
 
 import asyncio
-import pytest
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
+import pytest
 from ai_reviewer.agent import ReviewAgent
-from ai_reviewer.reviewer import ReviewEngine, ReviewResult, ReviewDecision, QualityMetrics
 from ai_reviewer.database_adapter import DatabaseAdapter
+from ai_reviewer.reviewer import (
+    QualityMetrics,
+    ReviewDecision,
+    ReviewEngine,
+    ReviewResult,
+)
 from hive_db import Task, TaskStatus
 
 
@@ -30,7 +35,7 @@ def mock_review_engine():
         test_coverage=75,
         documentation=70,
         security=85,
-        architecture=80
+        architecture=80,
     )
 
     engine.review_task.return_value = ReviewResult(
@@ -40,7 +45,7 @@ def mock_review_engine():
         summary="Code meets quality standards",
         issues=[],
         suggestions=[],
-        confidence=0.85
+        confidence=0.85,
     )
 
     return engine
@@ -62,10 +67,7 @@ def mock_adapter():
 def agent(mock_db, mock_review_engine, mock_adapter):
     """Create a ReviewAgent instance with mocks"""
     agent = ReviewAgent(
-        db=mock_db,
-        review_engine=mock_review_engine,
-        polling_interval=1,
-        test_mode=True
+        db=mock_db, review_engine=mock_review_engine, polling_interval=1, test_mode=True
     )
     agent.adapter = mock_adapter
     return agent
@@ -77,9 +79,7 @@ class TestReviewAgent:
     def test_initialization(self, mock_db, mock_review_engine):
         """Test agent initialization"""
         agent = ReviewAgent(
-            db=mock_db,
-            review_engine=mock_review_engine,
-            polling_interval=30
+            db=mock_db, review_engine=mock_review_engine, polling_interval=30
         )
 
         assert agent.db == mock_db
@@ -94,7 +94,7 @@ class TestReviewAgent:
             db=mock_db,
             review_engine=mock_review_engine,
             polling_interval=30,
-            test_mode=True
+            test_mode=True,
         )
 
         assert agent.polling_interval == 5  # Should be reduced in test mode
@@ -146,7 +146,7 @@ class TestReviewAgent:
             task_description="Good code",
             code_files={"main.py": "def test(): pass"},
             test_results={"passed": True},
-            transcript="Task completed successfully"
+            transcript="Task completed successfully",
         )
 
         # Verify status was updated
@@ -164,7 +164,7 @@ class TestReviewAgent:
             test_coverage=30,
             documentation=20,
             security=50,
-            architecture=40
+            architecture=40,
         )
 
         mock_review_engine.review_task.return_value = ReviewResult(
@@ -174,7 +174,7 @@ class TestReviewAgent:
             summary="Code quality too low",
             issues=["No tests", "Security issues"],
             suggestions=["Add tests", "Fix security"],
-            confidence=0.9
+            confidence=0.9,
         )
 
         mock_task = Mock(spec=Task)
@@ -209,7 +209,9 @@ class TestReviewAgent:
         assert agent.stats["escalated"] == 1
 
     @pytest.mark.asyncio
-    async def test_review_task_error_handling(self, agent, mock_adapter, mock_review_engine):
+    async def test_review_task_error_handling(
+        self, agent, mock_adapter, mock_review_engine
+    ):
         """Test error handling during review"""
         mock_task = Mock(spec=Task)
         mock_task.id = "error-001"
@@ -314,7 +316,9 @@ class TestDatabaseAdapter:
         mock_query.first.return_value = mock_task
 
         review_data = {"score": 85, "decision": "approve"}
-        result = adapter.update_task_status("test-123", TaskStatus.APPROVED, review_data)
+        result = adapter.update_task_status(
+            "test-123", TaskStatus.APPROVED, review_data
+        )
 
         assert result == True
         assert mock_task.status == TaskStatus.APPROVED

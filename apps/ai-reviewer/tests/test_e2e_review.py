@@ -4,20 +4,21 @@ End-to-end test for autonomous AI reviewer with drift simulation
 Tests the complete review loop including drift resilience
 """
 
-import sys
 import json
 import sqlite3
-from pathlib import Path
+import sys
 from datetime import datetime, timezone
-from typing import Dict, Any
+from pathlib import Path
+from typing import Any, Dict
+
+from ai_reviewer.database_adapter import DatabaseAdapter
+from ai_reviewer.reviewer import ReviewEngine
+from ai_reviewer.robust_claude_bridge import ClaudeReviewResponse, RobustClaudeBridge
+from hive_orchestrator.core import db as hive_core_db
 
 # Imports now handled by Poetry workspace dependencies
 # Import from orchestrator core for Hive-specific database access
 from hive_orchestrator.core.db import get_database, get_pooled_connection
-from hive_orchestrator.core import db as hive_core_db
-from ai_reviewer.database_adapter import DatabaseAdapter
-from ai_reviewer.reviewer import ReviewEngine
-from ai_reviewer.robust_claude_bridge import RobustClaudeBridge, ClaudeReviewResponse
 
 
 def create_test_task(task_type: str = "good") -> str:
@@ -76,16 +77,16 @@ async def distributed_compute(tasks: List[Dict[str, Any]]) -> List[Any]:
         "task_type": "test",
         "priority": 1,
         "status": "review_pending",
-        "payload": json.dumps({
-            "message": f"Test task for {task_type} code",
-            "code": code,
-            "files": {
-                "main.py": code
+        "payload": json.dumps(
+            {
+                "message": f"Test task for {task_type} code",
+                "code": code,
+                "files": {"main.py": code},
             }
-        }),
+        ),
         "assigned_worker": "backend",
         "workspace_type": "repo",
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
     # Insert into database
@@ -93,23 +94,26 @@ async def distributed_compute(tasks: List[Dict[str, Any]]) -> List[Any]:
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO tasks (
             id, title, description, task_type, priority, status,
             payload, assigned_worker, workspace_type, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        task_data["id"],
-        task_data["title"],
-        task_data["description"],
-        task_data["task_type"],
-        task_data["priority"],
-        task_data["status"],
-        task_data["payload"],
-        task_data["assigned_worker"],
-        task_data["workspace_type"],
-        task_data["created_at"]
-    ))
+    """,
+        (
+            task_data["id"],
+            task_data["title"],
+            task_data["description"],
+            task_data["task_type"],
+            task_data["priority"],
+            task_data["status"],
+            task_data["payload"],
+            task_data["assigned_worker"],
+            task_data["workspace_type"],
+            task_data["created_at"],
+        ),
+    )
     conn.commit()
     conn.close()
 
@@ -127,28 +131,28 @@ def test_json_extraction():
     test_cases = [
         {
             "name": "Pure JSON",
-            "output": '''{"decision": "approve", "summary": "Code looks good", "issues": [], "suggestions": [], "quality_score": 85, "metrics": {"code_quality": 85, "security": 90, "testing": 80, "architecture": 85, "documentation": 75}, "confidence": 0.9}''',
-            "expected_decision": "approve"
+            "output": """{"decision": "approve", "summary": "Code looks good", "issues": [], "suggestions": [], "quality_score": 85, "metrics": {"code_quality": 85, "security": 90, "testing": 80, "architecture": 85, "documentation": 75}, "confidence": 0.9}""",
+            "expected_decision": "approve",
         },
         {
             "name": "JSON in markdown",
-            "output": '''Sure! Here's my review:
+            "output": """Sure! Here's my review:
 ```json
 {"decision": "rework", "summary": "Needs improvements", "issues": ["No error handling"], "suggestions": ["Add try-catch blocks"], "quality_score": 65, "metrics": {"code_quality": 65, "security": 70, "testing": 60, "architecture": 65, "documentation": 55}, "confidence": 0.8}
 ```
-Hope this helps!''',
-            "expected_decision": "rework"
+Hope this helps!""",
+            "expected_decision": "rework",
         },
         {
             "name": "Conversational response",
-            "output": '''I've reviewed the code and I would APPROVE it. The implementation is solid with good error handling. The code quality is excellent.''',
-            "expected_decision": "approve"
+            "output": """I've reviewed the code and I would APPROVE it. The implementation is solid with good error handling. The code quality is excellent.""",
+            "expected_decision": "approve",
         },
         {
             "name": "Malformed JSON recovery",
-            "output": '''The review results: decision=reject, summary="Major security issues", issues=["SQL injection risk"], quality_score=25''',
-            "expected_decision": "reject"
-        }
+            "output": """The review results: decision=reject, summary="Major security issues", issues=["SQL injection risk"], quality_score=25""",
+            "expected_decision": "reject",
+        },
     ]
 
     passed = 0
@@ -156,7 +160,9 @@ Hope this helps!''',
         try:
             result = bridge._extract_and_validate_json(test["output"])
             if result and result.decision == test["expected_decision"]:
-                print(f"  [PASS] {test['name']}: Correctly extracted '{result.decision}'")
+                print(
+                    f"  [PASS] {test['name']}: Correctly extracted '{result.decision}'"
+                )
                 passed += 1
             else:
                 print(f"  [FAIL] {test['name']}: Failed to extract correct decision")
@@ -173,6 +179,7 @@ def test_review_engine():
 
     # Use mock mode for testing to avoid Claude CLI issues
     from ai_reviewer.robust_claude_bridge import RobustClaudeBridge
+
     engine = ReviewEngine()
     engine.robust_claude = RobustClaudeBridge(mock_mode=True)
 
@@ -188,7 +195,7 @@ def test_review_engine():
     result = engine.review_task(
         task_id="test-engine-good",
         task_description="Fibonacci implementation",
-        code_files=good_code
+        code_files=good_code,
     )
 
     print(f"  Decision: {result.decision}")
@@ -196,15 +203,13 @@ def test_review_engine():
     print(f"  Summary: {result.summary}")
 
     # Test with bad code
-    bad_code = {
-        "vulnerable.py": "exec(user_input)  # DANGEROUS!"
-    }
+    bad_code = {"vulnerable.py": "exec(user_input)  # DANGEROUS!"}
 
     print("\nTesting review of bad code...")
     result = engine.review_task(
         task_id="test-engine-bad",
         task_description="User input processor",
-        code_files=bad_code
+        code_files=bad_code,
     )
 
     print(f"  Decision: {result.decision}")
@@ -225,6 +230,7 @@ def test_full_autonomous_loop():
     # Step 2: Initialize components
     adapter = DatabaseAdapter()
     from ai_reviewer.robust_claude_bridge import RobustClaudeBridge
+
     engine = ReviewEngine()
     engine.robust_claude = RobustClaudeBridge(mock_mode=True)
 
@@ -250,7 +256,7 @@ def test_full_autonomous_loop():
         result = engine.review_task(
             task_id=task_id,
             task_description=task.get("description", "Test task"),
-            code_files=code_files
+            code_files=code_files,
         )
 
         print(f"  Review completed: {result.decision.value}")
@@ -261,15 +267,11 @@ def test_full_autonomous_loop():
             "approve": "approved",
             "reject": "rejected",
             "rework": "rework_needed",
-            "escalate": "escalated"
+            "escalate": "escalated",
         }
 
         new_status = status_map.get(result.decision.value, "escalated")
-        success = adapter.update_task_status(
-            task_id,
-            new_status,
-            result.to_dict()
-        )
+        success = adapter.update_task_status(task_id, new_status, result.to_dict())
 
         if success:
             print(f"  [OK] Status updated to '{new_status}'")
@@ -344,6 +346,7 @@ def main():
     except Exception as e:
         print(f"\n[ERROR] Test suite failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

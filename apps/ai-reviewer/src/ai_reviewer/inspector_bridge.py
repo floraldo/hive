@@ -2,11 +2,11 @@
 Bridge to integrate inspect_run.py with the AI reviewer
 """
 
-import sys
-import subprocess
 import json
+import subprocess
+import sys
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from hive_logging import get_logger
 
@@ -20,12 +20,18 @@ class InspectorBridge:
         """Initialize inspector bridge"""
         # Find the inspect_run.py script
         # Use resolve() to get absolute path on Windows
-        self.inspect_script = (Path(__file__).parent.parent.parent.parent.parent / "scripts" / "inspect_run.py").resolve()
+        self.inspect_script = (
+            Path(__file__).parent.parent.parent.parent.parent
+            / "scripts"
+            / "inspect_run.py"
+        ).resolve()
 
         if not self.inspect_script.exists():
             logger.warning(f"inspect_run.py not found at {self.inspect_script}")
 
-    def inspect_task_run(self, task_id: str, run_id: Optional[str] = None) -> Dict[str, Any]:
+    def inspect_task_run(
+        self, task_id: str, run_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Run objective analysis on a task using inspect_run.py
 
@@ -42,7 +48,7 @@ class InspectorBridge:
                 "task_id": task_id,
                 "metrics": {},
                 "files": {},
-                "checks": {}
+                "checks": {},
             }
 
         try:
@@ -61,24 +67,29 @@ class InspectorBridge:
 
             # Run the script
             result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60  # 1 minute timeout
+                cmd, capture_output=True, text=True, timeout=60  # 1 minute timeout
             )
 
             if result.returncode == 0:
                 try:
                     # Parse JSON output
                     analysis = json.loads(result.stdout)
-                    logger.info(f"Successfully ran objective analysis for task {task_id}")
+                    logger.info(
+                        f"Successfully ran objective analysis for task {task_id}"
+                    )
                     return analysis
                 except json.JSONDecodeError as e:
                     logger.error(f"Failed to parse inspect_run.py output: {e}")
-                    return self._create_error_response(task_id, f"JSON decode error: {e}")
+                    return self._create_error_response(
+                        task_id, f"JSON decode error: {e}"
+                    )
             else:
-                logger.error(f"inspect_run.py failed with code {result.returncode}: {result.stderr}")
-                return self._create_error_response(task_id, f"Script error: {result.stderr}")
+                logger.error(
+                    f"inspect_run.py failed with code {result.returncode}: {result.stderr}"
+                )
+                return self._create_error_response(
+                    task_id, f"Script error: {result.stderr}"
+                )
 
         except subprocess.TimeoutExpired:
             logger.error(f"inspect_run.py timed out for task {task_id}")
@@ -98,22 +109,20 @@ class InspectorBridge:
                 "code_quality": 0,
                 "test_coverage": 0,
                 "documentation": 0,
-                "complexity": 0
+                "complexity": 0,
             },
             "checks": {
                 "syntax_valid": False,
                 "tests_exist": False,
-                "documentation_exists": False
+                "documentation_exists": False,
             },
             "issues": [{"type": "analysis_error", "message": error_msg}],
-            "summary": {
-                "total_files": 0,
-                "total_lines": 0,
-                "total_issues": 1
-            }
+            "summary": {"total_files": 0, "total_lines": 0, "total_issues": 1},
         }
 
-    def extract_code_quality_metrics(self, analysis: Dict[str, Any]) -> Dict[str, float]:
+    def extract_code_quality_metrics(
+        self, analysis: Dict[str, Any]
+    ) -> Dict[str, float]:
         """
         Extract standardized quality metrics from analysis
 
@@ -128,7 +137,7 @@ class InspectorBridge:
             "test_coverage": 0.0,
             "documentation": 0.0,
             "security": 0.0,
-            "architecture": 0.0
+            "architecture": 0.0,
         }
 
         if "error" in analysis:
@@ -153,7 +162,9 @@ class InspectorBridge:
             if "test_coverage" in analysis_metrics:
                 metrics["test_coverage"] = float(analysis_metrics["test_coverage"])
             elif analysis_checks.get("tests_exist", False):
-                metrics["test_coverage"] = 75.0  # Assume reasonable coverage if tests exist
+                metrics["test_coverage"] = (
+                    75.0  # Assume reasonable coverage if tests exist
+                )
             else:
                 metrics["test_coverage"] = 0.0
 
@@ -164,7 +175,9 @@ class InspectorBridge:
                 metrics["documentation"] = 20.0
 
             # Security - check for common issues
-            security_issues = [i for i in analysis_issues if "security" in i.get("type", "").lower()]
+            security_issues = [
+                i for i in analysis_issues if "security" in i.get("type", "").lower()
+            ]
             metrics["security"] = max(0, 100 - (len(security_issues) * 20))
 
             # Architecture - based on complexity and structure
@@ -201,7 +214,9 @@ class InspectorBridge:
             # File summary
             file_count = analysis.get("summary", {}).get("total_files", 0)
             line_count = analysis.get("summary", {}).get("total_lines", 0)
-            summary_parts.append(f"Analyzed {file_count} files with {line_count} total lines.")
+            summary_parts.append(
+                f"Analyzed {file_count} files with {line_count} total lines."
+            )
 
             # Issues summary
             issues = analysis.get("issues", [])
@@ -211,7 +226,9 @@ class InspectorBridge:
                     issue_type = issue.get("type", "unknown")
                     issue_types[issue_type] = issue_types.get(issue_type, 0) + 1
 
-                issue_summary = ", ".join([f"{count} {type}" for type, count in issue_types.items()])
+                issue_summary = ", ".join(
+                    [f"{count} {type}" for type, count in issue_types.items()]
+                )
                 summary_parts.append(f"Found issues: {issue_summary}.")
             else:
                 summary_parts.append("No issues detected.")

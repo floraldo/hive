@@ -1,0 +1,40 @@
+[app]
+name = "ai-deployer"
+version = "0.1.0"
+description = "Autonomous deployment agent that monitors deployment_pending queue and deploys applications"
+type = "daemon"
+
+[daemons.default]
+description = "Starts the main autonomous deployment agent loop"
+command = "python src/ai_deployer/agent.py"
+restart_on_failure = true
+restart_delay_seconds = 30
+
+[daemons.test-mode]
+description = "Runs agent in test mode with shorter intervals"
+command = "python src/ai_deployer/agent.py --test-mode"
+restart_on_failure = false
+
+[capabilities]
+deployment = ["ssh", "docker", "kubernetes", "systemd"]
+strategies = ["blue-green", "rolling", "canary", "direct"]
+monitoring = ["health-check", "rollback", "metrics"]
+autonomous = true
+
+[integration]
+database = "hive-core-db"
+uses_queue = "deployment_pending"
+updates_status = ["deploying", "deployed", "deployment_failed", "rolling_back"]
+rollback_on_failure = true
+
+[deployment]
+default_strategy = "direct"
+health_check_timeout_seconds = 300
+rollback_timeout_seconds = 600
+max_concurrent_deployments = 3
+
+[monitoring]
+heartbeat_interval = 60
+health_check_endpoint = "/health"
+metrics_enabled = true
+post_deployment_validation = true

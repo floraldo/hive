@@ -1,6 +1,6 @@
 """Local error classes for climate adapters to avoid circular imports"""
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 
 class AdapterError(Exception):
@@ -11,7 +11,7 @@ class AdapterError(Exception):
         message: str,
         adapter_name: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(message)
         self.message = message
@@ -32,7 +32,7 @@ class DataFetchError(AdapterError):
         message: str,
         details: Optional[Dict[str, Any]] = None,
         suggested_action: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(message, adapter_name, details, **kwargs)
         self.suggested_action = suggested_action
@@ -47,7 +47,7 @@ class DataParseError(AdapterError):
         message: str,
         field: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(message, adapter_name, details, **kwargs)
         self.field = field
@@ -62,7 +62,7 @@ class ValidationError(AdapterError):
         field: Optional[str] = None,
         value: Optional[Any] = None,
         recovery_suggestion: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(message, **kwargs)
         self.field = field

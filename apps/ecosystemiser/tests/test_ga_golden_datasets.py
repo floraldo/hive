@@ -11,20 +11,21 @@ References:
 - Schaffer (1985): Schaffer function definitions
 """
 
-import pytest
-import numpy as np
-from pathlib import Path
 import json
-from typing import List, Tuple, Dict, Any
+
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 from scipy.spatial.distance import cdist
 
-# Add source directory to path
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from ecosystemiser.discovery.algorithms.genetic_algorithm import (
-    GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
+    GeneticAlgorithm,
+    GeneticAlgorithmConfig,
+    NSGAIIOptimizer,
 )
 
 
@@ -43,7 +44,7 @@ class TestFunctions:
         """
         x = x[0]  # Single variable
         f1 = x**2
-        f2 = (x - 2)**2
+        f2 = (x - 2) ** 2
         return np.array([f1, f2])
 
     @staticmethod
@@ -71,7 +72,7 @@ class TestFunctions:
         n = len(x)
         f1 = x[0]
         g = 1 + 9 * np.sum(x[1:]) / (n - 1)
-        f2 = g * (1 - (f1 / g)**2)
+        f2 = g * (1 - (f1 / g) ** 2)
         return np.array([f1, f2])
 
     @staticmethod
@@ -97,8 +98,8 @@ class TestFunctions:
         Complex Pareto front with multiple segments
         """
         n = len(x)
-        f1 = np.sum(-10 * np.exp(-0.2 * np.sqrt(x[:-1]**2 + x[1:]**2)))
-        f2 = np.sum(np.abs(x)**0.8 + 5 * np.sin(x**3))
+        f1 = np.sum(-10 * np.exp(-0.2 * np.sqrt(x[:-1] ** 2 + x[1:] ** 2)))
+        f2 = np.sum(np.abs(x) ** 0.8 + 5 * np.sin(x**3))
         return np.array([f1, f2])
 
     @staticmethod
@@ -108,7 +109,7 @@ class TestFunctions:
             # Pareto front: x in [0, 2]
             x = np.linspace(0, 2, n_points)
             f1 = x**2
-            f2 = (x - 2)**2
+            f2 = (x - 2) ** 2
             return np.column_stack([f1, f2])
 
         elif problem == "zdt1":
@@ -132,7 +133,7 @@ class TestFunctions:
                 (0.182228780, 0.2577623634),
                 (0.4093136748, 0.4538821041),
                 (0.6183967944, 0.6525117038),
-                (0.8233317983, 0.8518328654)
+                (0.8233317983, 0.8518328654),
             ]
 
             points = []
@@ -140,7 +141,11 @@ class TestFunctions:
                 mask = (f1 >= start) & (f1 <= end)
                 f1_region = f1[mask]
                 if len(f1_region) > 0:
-                    f2_region = 1 - np.sqrt(f1_region) - f1_region * np.sin(10 * np.pi * f1_region)
+                    f2_region = (
+                        1
+                        - np.sqrt(f1_region)
+                        - f1_region * np.sin(10 * np.pi * f1_region)
+                    )
                     points.extend(zip(f1_region, f2_region))
 
             return np.array(points) if points else np.empty((0, 2))
@@ -153,21 +158,25 @@ class TestFunctions:
 class TestGeneticAlgorithmGoldenDatasets:
     """Test GA implementation against canonical problems."""
 
-    def calculate_igd(self, obtained_front: np.ndarray, true_front: np.ndarray) -> float:
+    def calculate_igd(
+        self, obtained_front: np.ndarray, true_front: np.ndarray
+    ) -> float:
         """
         Calculate Inverted Generational Distance (IGD) metric.
 
         Lower is better, 0 means perfect convergence.
         """
         if len(obtained_front) == 0 or len(true_front) == 0:
-            return float('inf')
+            return float("inf")
 
         # Calculate minimum distance from each true point to obtained front
         distances = cdist(true_front, obtained_front)
         min_distances = np.min(distances, axis=1)
         return np.mean(min_distances)
 
-    def calculate_hypervolume(self, front: np.ndarray, reference_point: np.ndarray) -> float:
+    def calculate_hypervolume(
+        self, front: np.ndarray, reference_point: np.ndarray
+    ) -> float:
         """
         Calculate hypervolume indicator (simplified 2D version).
 
@@ -203,9 +212,9 @@ class TestGeneticAlgorithmGoldenDatasets:
             bounds=[(0, 4)],
             population_size=50,
             max_generations=100,
-            objectives=['f1', 'f2'],
+            objectives=["f1", "f2"],
             mutation_rate=0.1,
-            crossover_rate=0.9
+            crossover_rate=0.9,
         )
 
         # Create optimizer
@@ -215,24 +224,24 @@ class TestGeneticAlgorithmGoldenDatasets:
         def fitness_function(x):
             objectives = TestFunctions.schaffer_n1(x)
             return {
-                'objectives': objectives,
-                'fitness': np.sum(objectives),  # For single-objective fallback
-                'valid': True
+                "objectives": objectives,
+                "fitness": np.sum(objectives),  # For single-objective fallback
+                "valid": True,
             }
 
         # Run optimization
         result = optimizer.optimize(fitness_function)
 
         # Get Pareto front from result
-        pareto_front = result.get('pareto_objectives', [])
+        pareto_front = result.get("pareto_objectives", [])
         if len(pareto_front) == 0:
-            pareto_front = result.get('pareto_front', [])
+            pareto_front = result.get("pareto_front", [])
 
         # Convert to numpy array
         obtained_front = np.array(pareto_front) if pareto_front else np.empty((0, 2))
 
         # Get true Pareto front
-        true_front = TestFunctions.get_true_pareto_front('schaffer_n1')
+        true_front = TestFunctions.get_true_pareto_front("schaffer_n1")
 
         # Calculate quality metrics
         igd = self.calculate_igd(obtained_front, true_front)
@@ -241,7 +250,9 @@ class TestGeneticAlgorithmGoldenDatasets:
         assert igd < 0.1, f"Poor convergence on Schaffer N.1: IGD = {igd:.4f}"
 
         # Check that we found diverse solutions
-        assert len(obtained_front) >= 10, f"Insufficient diversity: only {len(obtained_front)} solutions"
+        assert (
+            len(obtained_front) >= 10
+        ), f"Insufficient diversity: only {len(obtained_front)} solutions"
 
     def test_zdt1_convergence(self):
         """Test NSGA-II on ZDT1 (convex Pareto front)."""
@@ -251,10 +262,10 @@ class TestGeneticAlgorithmGoldenDatasets:
             bounds=[(0, 1)] * 30,
             population_size=100,
             max_generations=250,
-            objectives=['f1', 'f2'],
-            mutation_rate=1/30,  # 1/n as recommended
+            objectives=["f1", "f2"],
+            mutation_rate=1 / 30,  # 1/n as recommended
             crossover_rate=0.9,
-            mutation_strength=0.1
+            mutation_strength=0.1,
         )
 
         # Create optimizer
@@ -264,20 +275,20 @@ class TestGeneticAlgorithmGoldenDatasets:
         def fitness_function(x):
             objectives = TestFunctions.zdt1(x)
             return {
-                'objectives': objectives,
-                'fitness': np.sum(objectives),
-                'valid': True
+                "objectives": objectives,
+                "fitness": np.sum(objectives),
+                "valid": True,
             }
 
         # Run optimization
         result = optimizer.optimize(fitness_function)
 
         # Get Pareto front
-        pareto_front = result.get('pareto_objectives', [])
+        pareto_front = result.get("pareto_objectives", [])
         obtained_front = np.array(pareto_front) if pareto_front else np.empty((0, 2))
 
         # Get true Pareto front
-        true_front = TestFunctions.get_true_pareto_front('zdt1')
+        true_front = TestFunctions.get_true_pareto_front("zdt1")
 
         # Calculate metrics
         igd = self.calculate_igd(obtained_front, true_front)
@@ -298,9 +309,9 @@ class TestGeneticAlgorithmGoldenDatasets:
             bounds=[(0, 1)] * 30,
             population_size=100,
             max_generations=250,
-            objectives=['f1', 'f2'],
-            mutation_rate=1/30,
-            crossover_rate=0.9
+            objectives=["f1", "f2"],
+            mutation_rate=1 / 30,
+            crossover_rate=0.9,
         )
 
         optimizer = NSGAIIOptimizer(config)
@@ -308,17 +319,17 @@ class TestGeneticAlgorithmGoldenDatasets:
         def fitness_function(x):
             objectives = TestFunctions.zdt2(x)
             return {
-                'objectives': objectives,
-                'fitness': np.sum(objectives),
-                'valid': True
+                "objectives": objectives,
+                "fitness": np.sum(objectives),
+                "valid": True,
             }
 
         result = optimizer.optimize(fitness_function)
 
-        pareto_front = result.get('pareto_objectives', [])
+        pareto_front = result.get("pareto_objectives", [])
         obtained_front = np.array(pareto_front) if pareto_front else np.empty((0, 2))
 
-        true_front = TestFunctions.get_true_pareto_front('zdt2')
+        true_front = TestFunctions.get_true_pareto_front("zdt2")
 
         igd = self.calculate_igd(obtained_front, true_front)
 
@@ -332,9 +343,9 @@ class TestGeneticAlgorithmGoldenDatasets:
             bounds=[(0, 4)],
             population_size=50,
             max_generations=100,
-            objectives=['f1', 'f2'],
+            objectives=["f1", "f2"],
             diversity_preservation=True,
-            crowding_factor=2.0
+            crowding_factor=2.0,
         )
 
         optimizer = NSGAIIOptimizer(config)
@@ -342,14 +353,14 @@ class TestGeneticAlgorithmGoldenDatasets:
         def fitness_function(x):
             objectives = TestFunctions.schaffer_n1(x)
             return {
-                'objectives': objectives,
-                'fitness': np.sum(objectives),
-                'valid': True
+                "objectives": objectives,
+                "fitness": np.sum(objectives),
+                "valid": True,
             }
 
         result = optimizer.optimize(fitness_function)
 
-        pareto_front = result.get('pareto_objectives', [])
+        pareto_front = result.get("pareto_objectives", [])
         obtained_front = np.array(pareto_front) if pareto_front else np.empty((0, 2))
 
         # Check diversity: solutions should be spread along front
@@ -363,7 +374,9 @@ class TestGeneticAlgorithmGoldenDatasets:
             # Check that spacing is relatively uniform (low variance)
             if len(spacings) > 0:
                 spacing_cv = np.std(spacings) / (np.mean(spacings) + 1e-10)
-                assert spacing_cv < 1.0, f"Poor diversity: spacing CV = {spacing_cv:.2f}"
+                assert (
+                    spacing_cv < 1.0
+                ), f"Poor diversity: spacing CV = {spacing_cv:.2f}"
 
     def test_convergence_metrics(self):
         """Test that convergence metrics are properly tracked."""
@@ -372,7 +385,7 @@ class TestGeneticAlgorithmGoldenDatasets:
             bounds=[(0, 4)],
             population_size=20,
             max_generations=50,
-            objectives=['f1', 'f2']
+            objectives=["f1", "f2"],
         )
 
         optimizer = NSGAIIOptimizer(config)
@@ -380,16 +393,16 @@ class TestGeneticAlgorithmGoldenDatasets:
         def fitness_function(x):
             objectives = TestFunctions.schaffer_n1(x)
             return {
-                'objectives': objectives,
-                'fitness': np.sum(objectives),
-                'valid': True
+                "objectives": objectives,
+                "fitness": np.sum(objectives),
+                "valid": True,
             }
 
         result = optimizer.optimize(fitness_function)
 
         # Verify convergence history exists
-        assert 'convergence_history' in result, "Missing convergence history"
-        history = result['convergence_history']
+        assert "convergence_history" in result, "Missing convergence history"
+        history = result["convergence_history"]
         assert len(history) > 0, "Empty convergence history"
 
         # Check that fitness generally improves (decreases for minimization)
@@ -399,16 +412,14 @@ class TestGeneticAlgorithmGoldenDatasets:
             assert late_avg <= early_avg, "No improvement in fitness over generations"
 
         # Verify other metrics
-        assert 'num_evaluations' in result, "Missing evaluation count"
-        assert 'final_population' in result, "Missing final population"
-        assert result['num_evaluations'] > 0, "No evaluations performed"
+        assert "num_evaluations" in result, "Missing evaluation count"
+        assert "final_population" in result, "Missing final population"
+        assert result["num_evaluations"] > 0, "No evaluations performed"
 
     def test_pareto_dominance(self):
         """Test that Pareto dominance is correctly identified."""
         config = GeneticAlgorithmConfig(
-            dimensions=2,
-            bounds=[(0, 1)] * 2,
-            objectives=['f1', 'f2']
+            dimensions=2, bounds=[(0, 1)] * 2, objectives=["f1", "f2"]
         )
 
         optimizer = NSGAIIOptimizer(config)
@@ -432,32 +443,46 @@ class TestGeneticAlgorithmGoldenDatasets:
 
         results_file = results_dir / f"ga_{test_name}_results.json"
 
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(metrics, f, indent=2, default=str)
 
-    def generate_pareto_plot(self, obtained_front: np.ndarray, true_front: np.ndarray,
-                            test_name: str):
+    def generate_pareto_plot(
+        self, obtained_front: np.ndarray, true_front: np.ndarray, test_name: str
+    ):
         """Generate visualization of obtained vs true Pareto front."""
         plt.figure(figsize=(10, 8))
 
         if true_front is not None and len(true_front) > 0:
-            plt.plot(true_front[:, 0], true_front[:, 1], 'b-',
-                    label='True Pareto Front', linewidth=2)
+            plt.plot(
+                true_front[:, 0],
+                true_front[:, 1],
+                "b-",
+                label="True Pareto Front",
+                linewidth=2,
+            )
 
         if len(obtained_front) > 0:
-            plt.scatter(obtained_front[:, 0], obtained_front[:, 1],
-                       c='r', marker='o', s=50, label='NSGA-II Solutions')
+            plt.scatter(
+                obtained_front[:, 0],
+                obtained_front[:, 1],
+                c="r",
+                marker="o",
+                s=50,
+                label="NSGA-II Solutions",
+            )
 
-        plt.xlabel('Objective 1', fontsize=12)
-        plt.ylabel('Objective 2', fontsize=12)
-        plt.title(f'Pareto Front Validation: {test_name}', fontsize=14)
+        plt.xlabel("Objective 1", fontsize=12)
+        plt.ylabel("Objective 2", fontsize=12)
+        plt.title(f"Pareto Front Validation: {test_name}", fontsize=14)
         plt.legend()
         plt.grid(True, alpha=0.3)
 
         # Save plot
         plots_dir = Path("tests/validation_plots")
         plots_dir.mkdir(exist_ok=True)
-        plt.savefig(plots_dir / f"ga_{test_name}_pareto.png", dpi=300, bbox_inches='tight')
+        plt.savefig(
+            plots_dir / f"ga_{test_name}_pareto.png", dpi=300, bbox_inches="tight"
+        )
         plt.close()
 
 
@@ -469,7 +494,7 @@ class TestGANumericalAccuracy:
         config = GeneticAlgorithmConfig(
             dimensions=5,
             bounds=[(0, 10), (-5, 5), (100, 200), (-1, 1), (0, 1)],
-            crossover_method='sbx'
+            crossover_method="sbx",
         )
 
         ga = GeneticAlgorithm(config)
@@ -483,10 +508,12 @@ class TestGANumericalAccuracy:
 
             # Check bounds compliance
             for i, (lower, upper) in enumerate(config.bounds):
-                assert lower <= offspring1[i] <= upper, \
-                    f"Offspring1 violates bounds at dim {i}: {offspring1[i]} not in [{lower}, {upper}]"
-                assert lower <= offspring2[i] <= upper, \
-                    f"Offspring2 violates bounds at dim {i}: {offspring2[i]} not in [{lower}, {upper}]"
+                assert (
+                    lower <= offspring1[i] <= upper
+                ), f"Offspring1 violates bounds at dim {i}: {offspring1[i]} not in [{lower}, {upper}]"
+                assert (
+                    lower <= offspring2[i] <= upper
+                ), f"Offspring2 violates bounds at dim {i}: {offspring2[i]} not in [{lower}, {upper}]"
 
     def test_mutation_distribution(self):
         """Test that mutation follows expected distribution."""
@@ -495,7 +522,7 @@ class TestGANumericalAccuracy:
             bounds=[(0, 100)],
             mutation_rate=1.0,  # Always mutate for testing
             mutation_strength=0.1,
-            mutation_method='polynomial'
+            mutation_method="polynomial",
         )
 
         ga = GeneticAlgorithm(config)
@@ -512,13 +539,15 @@ class TestGANumericalAccuracy:
 
         # Check that mutations are centered around original
         mean_mutation = np.mean(mutations)
-        assert abs(mean_mutation - 50) < 5, \
-            f"Mutation bias detected: mean = {mean_mutation:.2f}, expected ~50"
+        assert (
+            abs(mean_mutation - 50) < 5
+        ), f"Mutation bias detected: mean = {mean_mutation:.2f}, expected ~50"
 
         # Check that mutations have reasonable spread
         std_mutation = np.std(mutations)
-        assert 5 < std_mutation < 30, \
-            f"Unexpected mutation spread: std = {std_mutation:.2f}"
+        assert (
+            5 < std_mutation < 30
+        ), f"Unexpected mutation spread: std = {std_mutation:.2f}"
 
     def test_selection_pressure(self):
         """Test that selection properly favors better solutions."""
@@ -527,7 +556,7 @@ class TestGANumericalAccuracy:
             bounds=[(0, 10)],
             population_size=10,
             tournament_size=3,
-            selection_method='tournament'
+            selection_method="tournament",
         )
 
         ga = GeneticAlgorithm(config)
@@ -552,8 +581,9 @@ class TestGANumericalAccuracy:
         for i in range(len(selection_counts) - 1):
             # Allow some noise but general trend should be decreasing
             if i < 5:  # Stronger expectation for clearly better solutions
-                assert selection_counts[i] >= selection_counts[i+5], \
-                    f"Selection pressure violation: worse solution selected more"
+                assert (
+                    selection_counts[i] >= selection_counts[i + 5]
+                ), f"Selection pressure violation: worse solution selected more"
 
 
 # Main test execution

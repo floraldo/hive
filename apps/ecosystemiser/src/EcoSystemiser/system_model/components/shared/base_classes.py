@@ -1,11 +1,15 @@
 """Strategy Pattern base classes for component physics and optimization."""
+
 from abc import ABC, abstractmethod
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 # =============================================================================
 # STRATEGY PATTERN BASE CLASSES
 # =============================================================================
+
 
 class BaseStoragePhysics(ABC):
     """Abstract base class for storage physics strategies.
@@ -24,7 +28,9 @@ class BaseStoragePhysics(ABC):
         self.params = params
 
     @abstractmethod
-    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
+    def rule_based_update_state(
+        self, t: int, E_old: float, charge_power: float, discharge_power: float
+    ) -> float:
         """
         Calculate new energy state based on physics model.
 
@@ -57,6 +63,7 @@ class BaseStoragePhysics(ABC):
         """
         pass
 
+
 class BaseStorageOptimization(ABC):
     """Abstract base class for storage optimization strategies.
 
@@ -80,6 +87,7 @@ class BaseStorageOptimization(ABC):
             list: CVXPY constraint objects
         """
         pass
+
 
 class BaseGenerationPhysics(ABC):
     """Abstract base class for generation physics strategies.
@@ -113,6 +121,7 @@ class BaseGenerationPhysics(ABC):
         """
         pass
 
+
 class BaseGenerationOptimization(ABC):
     """Abstract base class for generation optimization strategies.
 
@@ -137,6 +146,7 @@ class BaseGenerationOptimization(ABC):
         """
         pass
 
+
 class BaseConversionPhysics(ABC):
     """Abstract base class for conversion physics strategies.
 
@@ -154,7 +164,9 @@ class BaseConversionPhysics(ABC):
         self.params = params
 
     @abstractmethod
-    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+    def rule_based_conversion_capacity(
+        self, t: int, from_medium: str, to_medium: str
+    ) -> dict:
         """
         Calculate conversion capacities for the current timestep.
 
@@ -171,7 +183,9 @@ class BaseConversionPhysics(ABC):
         pass
 
     @abstractmethod
-    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
+    def rule_based_conversion_dispatch(
+        self, t: int, requested_output: float, from_medium: str, to_medium: str
+    ) -> dict:
         """
         Calculate actual input/output for a requested output.
 
@@ -185,6 +199,7 @@ class BaseConversionPhysics(ABC):
             dict: {'input_required': float, 'output_delivered': float}
         """
         pass
+
 
 class BaseConversionOptimization(ABC):
     """Abstract base class for conversion optimization strategies.
@@ -209,6 +224,7 @@ class BaseConversionOptimization(ABC):
             list: CVXPY constraint objects
         """
         pass
+
 
 class BaseDemandPhysics(ABC):
     """Abstract base class for demand physics strategies.
@@ -241,6 +257,7 @@ class BaseDemandPhysics(ABC):
             float: Actual demand requirement in kW
         """
         pass
+
 
 class BaseDemandOptimization(ABC):
     """Abstract base class for demand optimization strategies.

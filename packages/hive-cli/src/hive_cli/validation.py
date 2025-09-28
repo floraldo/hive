@@ -1,9 +1,10 @@
 """Common validation functions for CLI inputs."""
 
-import click
+import json
 from pathlib import Path
 from typing import Any, Dict, Optional
-import json
+
+import click
 import yaml
 
 
@@ -24,11 +25,11 @@ def validate_config(config_path: Path) -> Dict[str, Any]:
         raise click.BadParameter(f"Configuration file not found: {config_path}")
 
     try:
-        if config_path.suffix.lower() in ['.yaml', '.yml']:
-            with open(config_path, 'r') as f:
+        if config_path.suffix.lower() in [".yaml", ".yml"]:
+            with open(config_path, "r") as f:
                 return yaml.safe_load(f)
-        elif config_path.suffix.lower() == '.json':
-            with open(config_path, 'r') as f:
+        elif config_path.suffix.lower() == ".json":
+            with open(config_path, "r") as f:
                 return json.load(f)
         else:
             raise click.BadParameter(f"Unsupported config format: {config_path.suffix}")

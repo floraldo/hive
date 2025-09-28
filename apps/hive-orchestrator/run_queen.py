@@ -7,8 +7,8 @@ Run the Queen orchestrator as a module with proper Python paths.
 This is the recommended way to run Queen on Windows.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Now import HiveCore and Queen
@@ -20,8 +20,12 @@ def main():
     """Run the Queen orchestrator"""
     import argparse
 
-    parser = argparse.ArgumentParser(description="QueenLite - Streamlined Queen Orchestrator")
-    parser.add_argument("--live", action="store_true", help="Enable live streaming output from workers")
+    parser = argparse.ArgumentParser(
+        description="QueenLite - Streamlined Queen Orchestrator"
+    )
+    parser.add_argument(
+        "--live", action="store_true", help="Enable live streaming output from workers"
+    )
     args = parser.parse_args()
 
     logger.info("=" * 70)
@@ -46,6 +50,7 @@ def main():
     except Exception as e:
         logger.error(f"[QUEEN] Fatal error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

@@ -5,9 +5,13 @@ This module provides the main validator class that applies quality control
 profiles to climate datasets.
 """
 
+from typing import Any, Dict, Optional
+
 import xarray as xr
-from typing import Optional, Dict, Any
-from ecosystemiser.profile_loader.climate.processing.validation.base import QCProfile, QCReport
+from ecosystemiser.profile_loader.climate.processing.validation.base import (
+    QCProfile,
+    QCReport,
+)
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -64,33 +68,37 @@ class ClimateDataValidator:
         ds_corrected = ds.copy()
 
         for issue in report.issues:
-            if issue.get('auto_correctable', False):
-                correction_type = issue.get('correction_type')
+            if issue.get("auto_correctable", False):
+                correction_type = issue.get("correction_type")
 
-                if correction_type == 'clip_range':
+                if correction_type == "clip_range":
                     # Clip values to valid range
-                    var_name = issue.get('variable')
-                    min_val = issue.get('min_value')
-                    max_val = issue.get('max_value')
+                    var_name = issue.get("variable")
+                    min_val = issue.get("min_value")
+                    max_val = issue.get("max_value")
 
                     if var_name in ds_corrected:
-                        ds_corrected[var_name] = ds_corrected[var_name].clip(min=min_val, max=max_val)
-                        logger.info(f"Clipped {var_name} to range [{min_val}, {max_val}]")
+                        ds_corrected[var_name] = ds_corrected[var_name].clip(
+                            min=min_val, max=max_val
+                        )
+                        logger.info(
+                            f"Clipped {var_name} to range [{min_val}, {max_val}]"
+                        )
 
-                elif correction_type == 'interpolate_missing':
+                elif correction_type == "interpolate_missing":
                     # Interpolate missing values
-                    var_name = issue.get('variable')
+                    var_name = issue.get("variable")
                     if var_name in ds_corrected:
-                        ds_corrected[var_name] = ds_corrected[var_name].interpolate_na(dim='time')
+                        ds_corrected[var_name] = ds_corrected[var_name].interpolate_na(
+                            dim="time"
+                        )
                         logger.info(f"Interpolated missing values in {var_name}")
 
         return ds_corrected
 
 
 def apply_quality_control(
-    ds: xr.Dataset,
-    qc_profile: Optional[QCProfile] = None,
-    auto_correct: bool = False
+    ds: xr.Dataset, qc_profile: Optional[QCProfile] = None, auto_correct: bool = False
 ) -> tuple[xr.Dataset, QCReport]:
     """
     Apply quality control to a climate dataset.

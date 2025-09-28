@@ -1,14 +1,15 @@
 """Task management and coordination utilities for async operations."""
 
 import asyncio
-from typing import Any, List, Dict, Optional, Callable, Awaitable, TypeVar
-from dataclasses import dataclass
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclass
@@ -36,7 +37,7 @@ class TaskManager:
         self,
         coro: Awaitable[T],
         task_id: Optional[str] = None,
-        timeout: Optional[float] = None
+        timeout: Optional[float] = None,
     ) -> str:
         """
         Submit a task for execution.
@@ -68,22 +69,18 @@ class TaskManager:
 
                     duration = asyncio.get_event_loop().time() - start_time
                     task_result = TaskResult(
-                        task_id=task_id,
-                        success=True,
-                        result=result,
-                        duration=duration
+                        task_id=task_id, success=True, result=result, duration=duration
                     )
                     self.completed_tasks[task_id] = task_result
-                    logger.debug(f"Task {task_id} completed successfully in {duration:.2f}s")
+                    logger.debug(
+                        f"Task {task_id} completed successfully in {duration:.2f}s"
+                    )
                     return result
 
                 except Exception as e:
                     duration = asyncio.get_event_loop().time() - start_time
                     task_result = TaskResult(
-                        task_id=task_id,
-                        success=False,
-                        error=e,
-                        duration=duration
+                        task_id=task_id, success=False, error=e, duration=duration
                     )
                     self.completed_tasks[task_id] = task_result
                     logger.error(f"Task {task_id} failed after {duration:.2f}s: {e}")
@@ -111,7 +108,9 @@ class TaskManager:
 
         return self.completed_tasks[task_id]
 
-    async def wait_for_all(self, task_ids: Optional[List[str]] = None) -> Dict[str, TaskResult]:
+    async def wait_for_all(
+        self, task_ids: Optional[List[str]] = None
+    ) -> Dict[str, TaskResult]:
         """Wait for all specified tasks (or all active tasks) to complete."""
         if task_ids is None:
             task_ids = list(self.active_tasks.keys())
@@ -139,7 +138,7 @@ class TaskManager:
         self.completed_tasks[task_id] = TaskResult(
             task_id=task_id,
             success=False,
-            error=asyncio.CancelledError("Task was cancelled")
+            error=asyncio.CancelledError("Task was cancelled"),
         )
 
         return True
@@ -153,11 +152,11 @@ class TaskManager:
     def get_status(self) -> Dict[str, Any]:
         """Get current status of all tasks."""
         return {
-            'active_count': len(self.active_tasks),
-            'completed_count': len(self.completed_tasks),
-            'max_concurrent': self.max_concurrent,
-            'active_tasks': list(self.active_tasks.keys()),
-            'success_rate': self._calculate_success_rate()
+            "active_count": len(self.active_tasks),
+            "completed_count": len(self.completed_tasks),
+            "max_concurrent": self.max_concurrent,
+            "active_tasks": list(self.active_tasks.keys()),
+            "success_rate": self._calculate_success_rate(),
         }
 
     def _calculate_success_rate(self) -> Optional[float]:
@@ -165,7 +164,9 @@ class TaskManager:
         if not self.completed_tasks:
             return None
 
-        successful = sum(1 for result in self.completed_tasks.values() if result.success)
+        successful = sum(
+            1 for result in self.completed_tasks.values() if result.success
+        )
         return successful / len(self.completed_tasks)
 
     @asynccontextmanager
@@ -186,9 +187,7 @@ class TaskManager:
 
 
 async def gather_with_concurrency(
-    *coros: Awaitable[T],
-    max_concurrent: int = 10,
-    return_exceptions: bool = False
+    *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False
 ) -> List[Any]:
     """
     Gather coroutines with concurrency limit.
@@ -215,7 +214,7 @@ async def run_with_timeout_and_retry(
     coro: Awaitable[T],
     timeout: float,
     max_retries: int = 3,
-    backoff_factor: float = 1.0
+    backoff_factor: float = 1.0,
 ) -> T:
     """
     Run a coroutine with timeout and retry logic.
@@ -240,8 +239,10 @@ async def run_with_timeout_and_retry(
         except Exception as e:
             last_exception = e
             if attempt < max_retries:
-                wait_time = backoff_factor * (2 ** attempt)
-                logger.warning(f"Attempt {attempt + 1} failed, retrying in {wait_time}s: {e}")
+                wait_time = backoff_factor * (2**attempt)
+                logger.warning(
+                    f"Attempt {attempt + 1} failed, retrying in {wait_time}s: {e}"
+                )
                 await asyncio.sleep(wait_time)
             else:
                 logger.error(f"All {max_retries + 1} attempts failed: {e}")

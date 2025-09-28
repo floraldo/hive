@@ -5,16 +5,23 @@ This module provides a single entry point for all profile services
 (climate, demand, etc.) using the unified interface.
 """
 
-from typing import Dict, Type, Optional, Any, List
-from hive_logging import get_logger
-from ecosystemiser.profile_loader.shared.service import BaseProfileService
-from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
-from ecosystemiser.profile_loader.climate.service import ClimateService
+from typing import Any, Dict, List, Optional, Type
+
+from ecosystemiser.settings import get_settings
+
 from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
-from ecosystemiser.profile_loader.demand.service import DemandService
+from ecosystemiser.profile_loader.climate.service import ClimateService
 from ecosystemiser.profile_loader.demand.models import DemandRequest
+from ecosystemiser.profile_loader.demand.service import DemandService
+from ecosystemiser.profile_loader.shared.models import (
+    BaseProfileRequest,
+    BaseProfileResponse,
+)
+from ecosystemiser.profile_loader.shared.service import BaseProfileService
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 class UnifiedProfileService:
     """
@@ -24,27 +31,34 @@ class UnifiedProfileService:
     appropriate specialized service based on the request type.
     """
 
-    def __init__(self):
-        """Initialize unified service with all profile services."""
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """Initialize unified service with all profile services.
+
+        Args:
+            config: Configuration object (optional - loads default if not provided)
+        """
+        self.config = config or get_settings()
         self.services: Dict[str, BaseProfileService] = {}
         self.request_mappings: Dict[Type, str] = {}
 
         # Initialize available services
         self._init_services()
-        logger.info(f"UnifiedProfileService initialized with {len(self.services)} services")
+        logger.info(
+            f"UnifiedProfileService initialized with {len(self.services)} services"
+        )
 
     def _init_services(self):
         """Initialize and register all available profile services."""
         try:
-            # Climate service
-            self.services["climate"] = ClimateService()
+            # Climate service with DI
+            self.services["climate"] = ClimateService(self.config)
             self.request_mappings[ClimateRequest] = "climate"
             logger.info("Climate service registered")
         except Exception as e:
             logger.warning(f"Failed to initialize climate service: {e}")
 
         try:
-            # Demand service
+            # Demand service with DI (need to check if DemandService supports config)
             self.services["demand"] = DemandService()
             self.request_mappings[DemandRequest] = "demand"
             logger.info("Demand service registered")
@@ -63,7 +77,9 @@ class UnifiedProfileService:
         """
         return self.services.get(service_type)
 
-    def get_service_for_request(self, request: BaseProfileRequest) -> Optional[BaseProfileService]:
+    def get_service_for_request(
+        self, request: BaseProfileRequest
+    ) -> Optional[BaseProfileService]:
         """
         Get the appropriate service for a given request.
 
@@ -80,14 +96,22 @@ class UnifiedProfileService:
             return self.services.get(service_type)
 
         # Try to infer from request attributes
-        if hasattr(request, 'demand_type'):
+        if hasattr(request, "demand_type"):
             return self.services.get("demand")
-        elif hasattr(request, 'source') and request.source in ["nasa_power", "meteostat", "pvgis", "era5", "file_epw"]:
+        elif hasattr(request, "source") and request.source in [
+            "nasa_power",
+            "meteostat",
+            "pvgis",
+            "era5",
+            "file_epw",
+        ]:
             return self.services.get("climate")
 
         return None
 
-    async def process_request_async(self, request: BaseProfileRequest) -> BaseProfileResponse:
+    async def process_request_async(
+        self, request: BaseProfileRequest
+    ) -> BaseProfileResponse:
         """
         Process any profile request asynchronously.
 
@@ -174,14 +198,16 @@ class UnifiedProfileService:
         logger.info("Shutting down UnifiedProfileService")
         for service_type, service in self.services.items():
             try:
-                if hasattr(service, 'shutdown'):
+                if hasattr(service, "shutdown"):
                     await service.shutdown()
                 logger.info(f"Shutdown {service_type} service")
             except Exception as e:
                 logger.warning(f"Error shutting down {service_type} service: {e}")
 
+
 # Global unified service instance
 _unified_service: Optional[UnifiedProfileService] = None
+
 
 def get_unified_profile_service() -> UnifiedProfileService:
     """Get the global unified profile service instance."""
@@ -192,21 +218,25 @@ def get_unified_profile_service() -> UnifiedProfileService:
 
     return _unified_service
 
+
 # Convenience functions for direct access
 async def process_climate_request(request: ClimateRequest):
     """Process climate request directly."""
     service = get_unified_profile_service()
     return await service.get_service("climate").process_request_async(request)
 
+
 async def process_demand_request(request: DemandRequest):
     """Process demand request directly."""
     service = get_unified_profile_service()
     return await service.get_service("demand").process_request_async(request)
 
+
 def get_climate_service() -> ClimateService:
     """Get climate service directly."""
     service = get_unified_profile_service()
     return service.get_service("climate")
+
 
 def get_demand_service() -> DemandService:
     """Get demand service directly."""

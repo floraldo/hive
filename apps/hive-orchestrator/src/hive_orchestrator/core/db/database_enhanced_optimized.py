@@ -13,15 +13,14 @@ Performance improvements:
 """
 
 import json
-from typing import List, Dict, Any, Optional, Set
-from .database import get_connection
+from typing import Any, Dict, List, Optional, Set
+
 from .connection_pool import get_pooled_connection
+from .database import get_connection
 
 
 def get_queued_tasks_with_planning_optimized(
-    limit: int = 10,
-    task_type: Optional[str] = None,
-    use_pool: bool = True
+    limit: int = 10, task_type: Optional[str] = None, use_pool: bool = True
 ) -> List[Dict[str, Any]]:
     """
     Optimized task selection with single query and dependency pre-fetching.
@@ -42,12 +41,15 @@ def get_queued_tasks_with_planning_optimized(
     # Use pooled connection for better performance
     if use_pool:
         from contextlib import contextmanager
+
         @contextmanager
         def get_conn():
             with get_pooled_connection() as conn:
                 yield conn
+
     else:
         from contextlib import contextmanager
+
         @contextmanager
         def get_conn():
             conn = get_connection()
@@ -58,7 +60,7 @@ def get_queued_tasks_with_planning_optimized(
 
     with get_conn() as conn:
         # Optimized single query with LEFT JOINs
-        query = '''
+        query = """
             WITH ready_tasks AS (
                 SELECT
                     t.*,
@@ -85,7 +87,7 @@ def get_queued_tasks_with_planning_optimized(
                 END DESC,
                 created_at ASC
             LIMIT ?
-        '''
+        """
 
         if task_type:
             cursor = conn.execute(query, (task_type, task_type, limit))
@@ -107,7 +109,7 @@ def get_queued_tasks_with_planning_optimized(
                 "payload": json.loads(row[8]) if row[8] else {},
                 "created_at": row[9],
                 "updated_at": row[10],
-                "assignee": row[15] if len(row) > 15 else None
+                "assignee": row[15] if len(row) > 15 else None,
             }
 
             # Enhance planner sub-tasks
@@ -118,7 +120,7 @@ def get_queued_tasks_with_planning_optimized(
                     "workflow_phase": payload.get("workflow_phase"),
                     "estimated_duration": payload.get("estimated_duration"),
                     "required_skills": payload.get("required_skills", []),
-                    "deliverables": payload.get("deliverables", [])
+                    "deliverables": payload.get("deliverables", []),
                 }
 
                 dependencies = payload.get("dependencies", [])
@@ -152,13 +154,13 @@ def _batch_check_dependencies(conn, tasks: List[Dict[str, Any]]):
         return
 
     # Single query to check all dependencies
-    placeholders = ','.join('?' * len(all_deps))
-    query = f'''
+    placeholders = ",".join("?" * len(all_deps))
+    query = f"""
         SELECT id, status
         FROM tasks
         WHERE id IN ({placeholders})
         OR json_extract(payload, '$.subtask_id') IN ({placeholders})
-    '''
+    """
 
     cursor = conn.execute(query, list(all_deps) * 2)
 
@@ -172,8 +174,7 @@ def _batch_check_dependencies(conn, tasks: List[Dict[str, Any]]):
         deps = task.get("depends_on", [])
         if deps:
             task["dependencies_met"] = all(
-                dep_status.get(dep_id) == 'completed'
-                for dep_id in deps
+                dep_status.get(dep_id) == "completed" for dep_id in deps
             )
         else:
             task["dependencies_met"] = True
@@ -196,12 +197,15 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
 
     with get_pooled_connection() as conn:
         # Get all tasks and their dependencies in one query
-        placeholders = ','.join('?' * len(task_ids))
-        cursor = conn.execute(f'''
+        placeholders = ",".join("?" * len(task_ids))
+        cursor = conn.execute(
+            f"""
             SELECT id, payload
             FROM tasks
             WHERE id IN ({placeholders})
-        ''', task_ids)
+        """,
+            task_ids,
+        )
 
         # Collect all dependencies
         task_deps = {}
@@ -218,13 +222,16 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
 
         # Check all dependencies in one query
         if all_deps:
-            dep_placeholders = ','.join('?' * len(all_deps))
-            cursor = conn.execute(f'''
+            dep_placeholders = ",".join("?" * len(all_deps))
+            cursor = conn.execute(
+                f"""
                 SELECT id, status
                 FROM tasks
                 WHERE (id IN ({dep_placeholders})
                 OR json_extract(payload, '$.subtask_id') IN ({dep_placeholders}))
-            ''', list(all_deps) * 2)
+            """,
+                list(all_deps) * 2,
+            )
 
             dep_status = {dep_id: status for dep_id, status in cursor.fetchall()}
         else:
@@ -235,8 +242,7 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
         for task_id, deps in task_deps.items():
             if deps:
                 results[task_id] = all(
-                    dep_status.get(dep_id) == 'completed'
-                    for dep_id in deps
+                    dep_status.get(dep_id) == "completed" for dep_id in deps
                 )
             else:
                 results[task_id] = True
@@ -272,8 +278,7 @@ def get_execution_plan_status_cached(plan_id: str) -> Optional[str]:
     # Query database
     with get_pooled_connection() as conn:
         cursor = conn.execute(
-            'SELECT status FROM execution_plans WHERE id = ?',
-            (plan_id,)
+            "SELECT status FROM execution_plans WHERE id = ?", (plan_id,)
         )
         row = cursor.fetchone()
 
@@ -285,8 +290,7 @@ def get_execution_plan_status_cached(plan_id: str) -> Optional[str]:
     # Clean old cache entries
     current_time = time.time()
     expired = [
-        k for k, (_, t) in _plan_status_cache.items()
-        if current_time - t > _cache_ttl
+        k for k, (_, t) in _plan_status_cache.items() if current_time - t > _cache_ttl
     ]
     for k in expired:
         del _plan_status_cache[k]
@@ -309,8 +313,7 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
     with get_pooled_connection() as conn:
         # Get execution plan
         cursor = conn.execute(
-            'SELECT plan_data FROM execution_plans WHERE id = ?',
-            (plan_id,)
+            "SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,)
         )
         row = cursor.fetchone()
 
@@ -325,12 +328,15 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
 
         # Check existing tasks in batch
         task_ids = [f"subtask_{plan_id}_{st.get('id', '')}" for st in sub_tasks]
-        placeholders = ','.join('?' * len(task_ids))
+        placeholders = ",".join("?" * len(task_ids))
 
-        cursor = conn.execute(f'''
+        cursor = conn.execute(
+            f"""
             SELECT id FROM tasks
             WHERE id IN ({placeholders})
-        ''', task_ids)
+        """,
+            task_ids,
+        )
 
         existing_ids = {row[0] for row in cursor.fetchall()}
 
@@ -351,27 +357,32 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
                 "required_skills": sub_task.get("required_skills", []),
                 "deliverables": sub_task.get("deliverables", []),
                 "dependencies": sub_task.get("dependencies", []),
-                "assignee": sub_task.get("assignee", "worker:backend")
+                "assignee": sub_task.get("assignee", "worker:backend"),
             }
 
-            insert_data.append((
-                task_id,
-                sub_task.get("title", "Planned Sub-task"),
-                sub_task.get("description", ""),
-                "planned_subtask",
-                sub_task.get("priority", 50),
-                "queued",
-                json.dumps(payload)
-            ))
+            insert_data.append(
+                (
+                    task_id,
+                    sub_task.get("title", "Planned Sub-task"),
+                    sub_task.get("description", ""),
+                    "planned_subtask",
+                    sub_task.get("priority", 50),
+                    "queued",
+                    json.dumps(payload),
+                )
+            )
 
         # Batch insert
         if insert_data:
-            conn.executemany('''
+            conn.executemany(
+                """
                 INSERT INTO tasks (
                     id, title, description, task_type,
                     priority, status, payload, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            ''', insert_data)
+            """,
+                insert_data,
+            )
 
             conn.commit()
 

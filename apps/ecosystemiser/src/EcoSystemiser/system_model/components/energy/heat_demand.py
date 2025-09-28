@@ -1,13 +1,24 @@
 """Heat demand component with MILP optimization support and hierarchical fidelity."""
+
+from typing import Any, Dict, List, Optional
+
 import cvxpy as cp
 import numpy as np
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
-from hive_logging import get_logger
+from ecosystemiser.system_model.components.shared.archetypes import (
+    DemandTechnicalParams,
+    FidelityLevel,
+)
+from ecosystemiser.system_model.components.shared.base_classes import (
+    BaseDemandOptimization,
+    BaseDemandPhysics,
+)
+from ecosystemiser.system_model.components.shared.component import (
+    Component,
+    ComponentParams,
+)
 from ecosystemiser.system_model.components.shared.registry import register_component
-from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
-from ecosystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
-from ecosystemiser.system_model.components.shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -15,52 +26,47 @@ logger = get_logger(__name__)
 # HEAT DEMAND-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
 # =============================================================================
 
+
 class HeatDemandTechnicalParams(DemandTechnicalParams):
     """Heat demand-specific technical parameters extending demand archetype.
 
     This model inherits from DemandTechnicalParams and adds thermal demand-specific
     parameters for different fidelity levels.
     """
+
     # Heat-specific parameters
     demand_type: str = Field("space_heating", description="Type of heat demand")
     temperature_requirement: Optional[float] = Field(
-        None,
-        description="Required supply temperature [°C]"
+        None, description="Required supply temperature [°C]"
     )
 
     # STANDARD fidelity additions
     thermal_comfort_band: Optional[Dict[str, float]] = Field(
-        None,
-        description="Acceptable temperature range {min_temp, max_temp}"
+        None, description="Acceptable temperature range {min_temp, max_temp}"
     )
     building_thermal_mass: Optional[float] = Field(
-        None,
-        description="Building thermal inertia factor"
+        None, description="Building thermal inertia factor"
     )
 
     # DETAILED fidelity parameters
     weather_dependency: Optional[Dict[str, float]] = Field(
-        None,
-        description="Weather correlation parameters"
+        None, description="Weather correlation parameters"
     )
     occupancy_schedule: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Occupancy-driven demand variations"
+        None, description="Occupancy-driven demand variations"
     )
     demand_response_capability: Optional[Dict[str, float]] = Field(
-        None,
-        description="Demand response parameters {shift_capacity, shed_capacity}"
+        None, description="Demand response parameters {shift_capacity, shed_capacity}"
     )
 
     # RESEARCH fidelity parameters
     building_physics_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Detailed building physics model parameters"
+        None, description="Detailed building physics model parameters"
     )
     behavioral_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Occupant behavior modeling parameters"
+        None, description="Occupant behavior modeling parameters"
     )
+
 
 class HeatDemandParams(ComponentParams):
     """Heat demand parameters using the hierarchical technical parameter system.
@@ -68,19 +74,22 @@ class HeatDemandParams(ComponentParams):
     Profile data should be provided separately through the system's
     profile loading mechanism, not as a component parameter.
     """
+
     technical: HeatDemandTechnicalParams = Field(
         default_factory=lambda: HeatDemandTechnicalParams(
             capacity_nominal=5.0,  # Required by base archetype
             peak_demand=5.0,  # Default 5 kW peak heat demand
             load_profile_type="variable",
-            fidelity_level=FidelityLevel.STANDARD
+            fidelity_level=FidelityLevel.STANDARD,
         ),
-        description="Technical parameters following the hierarchical archetype system"
+        description="Technical parameters following the hierarchical archetype system",
     )
+
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
+
 
 class HeatDemandPhysicsSimple(BaseDemandPhysics):
     """Implements the SIMPLE rule-based physics for heat demand.
@@ -105,6 +114,7 @@ class HeatDemandPhysicsSimple(BaseDemandPhysics):
 
         return max(0.0, base_demand)
 
+
 class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
     """Implements the STANDARD rule-based physics for heat demand.
 
@@ -123,12 +133,12 @@ class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
         demand_after_simple = super().rule_based_demand(t, profile_value)
 
         # 2. Add STANDARD-specific physics: weather dependency
-        weather_dependency = getattr(self.params.technical, 'weather_dependency', None)
+        weather_dependency = getattr(self.params.technical, "weather_dependency", None)
         if weather_dependency:
             # Simplified weather adjustment
             # In real implementation, would use actual ambient temperature
-            temp_factor = weather_dependency.get('temperature_factor', 0.05)
-            reference_temp = weather_dependency.get('reference_temp', 18)
+            temp_factor = weather_dependency.get("temperature_factor", 0.05)
+            reference_temp = weather_dependency.get("reference_temp", 18)
             # Assume some temperature deviation for demonstration
             temp_deviation = 5  # Assume 5°C deviation from reference
             weather_multiplier = 1 + temp_factor * temp_deviation
@@ -136,9 +146,11 @@ class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
 
         return max(0.0, demand_after_simple)
 
+
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
+
 
 class HeatDemandOptimizationSimple(BaseDemandOptimization):
     """Implements the SIMPLE MILP optimization constraints for heat demand.
@@ -163,7 +175,7 @@ class HeatDemandOptimizationSimple(BaseDemandOptimization):
         constraints = []
         comp = self.component
 
-        if comp.H_in is not None and hasattr(comp, 'profile'):
+        if comp.H_in is not None and hasattr(comp, "profile"):
             # Core heat demand constraints
             N = comp.H_in.shape[0]
 
@@ -172,12 +184,15 @@ class HeatDemandOptimizationSimple(BaseDemandOptimization):
                 if t < len(comp.profile):
                     base_demand_t = comp.profile[t] * comp.H_max
                 else:
-                    base_demand_t = comp.profile[-1] * comp.H_max if len(comp.profile) > 0 else 0
+                    base_demand_t = (
+                        comp.profile[-1] * comp.H_max if len(comp.profile) > 0 else 0
+                    )
 
                 # SIMPLE MODEL: Fixed heat demand must be met exactly
                 constraints.append(comp.H_in[t] == base_demand_t)
 
         return constraints
+
 
 class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for heat demand.
@@ -196,7 +211,7 @@ class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
         constraints = []
         comp = self.component
 
-        if comp.H_in is not None and hasattr(comp, 'profile'):
+        if comp.H_in is not None and hasattr(comp, "profile"):
             # Core heat demand constraints
             N = comp.H_in.shape[0]
 
@@ -205,10 +220,14 @@ class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
                 if t < len(comp.profile):
                     base_demand_t = comp.profile[t] * comp.H_max
                 else:
-                    base_demand_t = comp.profile[-1] * comp.H_max if len(comp.profile) > 0 else 0
+                    base_demand_t = (
+                        comp.profile[-1] * comp.H_max if len(comp.profile) > 0 else 0
+                    )
 
                 # STANDARD: Thermal comfort bands allow some flexibility
-                thermal_comfort_band = getattr(comp.technical, 'thermal_comfort_band', None)
+                thermal_comfort_band = getattr(
+                    comp.technical, "thermal_comfort_band", None
+                )
                 if thermal_comfort_band:
                     comfort_flexibility = 0.1  # 10% flexibility for thermal comfort
                     demand_min = base_demand_t * (1 - comfort_flexibility)
@@ -223,9 +242,11 @@ class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
 
         return constraints
 
+
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
 # =============================================================================
+
 
 @register_component("HeatDemand")
 class HeatDemand(Component):
@@ -252,7 +273,9 @@ class HeatDemand(Component):
 
         # Core parameters - EXACTLY as original heat demand expects
         self.H_max = tech.peak_demand  # kW peak heat demand
-        self.P_max = tech.peak_demand  # Alias for compatibility with BaseDemandComponent
+        self.P_max = (
+            tech.peak_demand
+        )  # Alias for compatibility with BaseDemandComponent
 
         # Store heat demand-specific parameters
         self.demand_type = tech.demand_type
@@ -265,9 +288,11 @@ class HeatDemand(Component):
 
         # Profile should be assigned by the system/builder
         # Initialize as None, will be set by assign_profiles
-        if not hasattr(self, 'profile') or self.profile is None:
-            logger.warning(f"No heat demand profile assigned to {self.name}. Using zero demand.")
-            self.profile = np.zeros(getattr(self, 'N', 24))
+        if not hasattr(self, "profile") or self.profile is None:
+            logger.warning(
+                f"No heat demand profile assigned to {self.name}. Using zero demand."
+            )
+            self.profile = np.zeros(getattr(self, "N", 24))
         else:
             self.profile = np.array(self.profile)
 
@@ -313,7 +338,9 @@ class HeatDemand(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return HeatDemandOptimizationStandard(self.params, self)
         else:
-            raise ValueError(f"Unknown fidelity level for HeatDemand optimization: {fidelity}")
+            raise ValueError(
+                f"Unknown fidelity level for HeatDemand optimization: {fidelity}"
+            )
 
     def rule_based_demand(self, t: int) -> float:
         """
@@ -323,7 +350,11 @@ class HeatDemand(Component):
         delegates the actual physics calculation to the strategy object.
         """
         # Check bounds
-        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
+        if (
+            not hasattr(self, "profile")
+            or self.profile is None
+            or t >= len(self.profile)
+        ):
             return 0.0
 
         # Get normalized profile value for this timestep
@@ -346,13 +377,10 @@ class HeatDemand(Component):
         if N is None:
             N = self.N
 
-        self.H_in = cp.Variable(N, name=f'{self.name}_H_in', nonneg=True)
+        self.H_in = cp.Variable(N, name=f"{self.name}_H_in", nonneg=True)
 
         # Add as sink flow
-        self.flows['sink']['H_in'] = {
-            'type': 'heat',
-            'value': self.H_in
-        }
+        self.flows["sink"]["H_in"] = {"type": "heat", "value": self.H_in}
 
     def set_constraints(self) -> List:
         """Delegate constraint creation to optimization strategy."""

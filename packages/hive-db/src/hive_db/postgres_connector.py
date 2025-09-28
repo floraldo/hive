@@ -5,14 +5,16 @@ Provides production-ready PostgreSQL connectivity with connection pooling and en
 """
 
 import os
-from hive_logging import get_logger
-from typing import Optional, Dict, Any, Union
 from contextlib import contextmanager
+from typing import Any, Dict, Optional, Union
+
+from hive_logging import get_logger
 
 try:
     import psycopg2
     import psycopg2.pool
     from psycopg2.extras import RealDictCursor
+
     PSYCOPG2_AVAILABLE = True
 except ImportError:
     PSYCOPG2_AVAILABLE = False
@@ -28,8 +30,8 @@ def get_postgres_connection(
     database: Optional[str] = None,
     user: Optional[str] = None,
     password: Optional[str] = None,
-    **kwargs
-) -> 'psycopg2.connection':
+    **kwargs,
+) -> "psycopg2.connection":
     """
     Get a PostgreSQL database connection.
 
@@ -71,10 +73,12 @@ def get_postgres_connection(
         config = {}
 
     # Check for full DATABASE_URL first (from config or direct parameter)
-    database_url = config.get('database_url')
+    database_url = config.get("database_url")
     if database_url and not any([host, port, database, user, password]):
         try:
-            conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor, **kwargs)
+            conn = psycopg2.connect(
+                database_url, cursor_factory=RealDictCursor, **kwargs
+            )
             logger.info("PostgreSQL connection established via database_url")
             return conn
         except psycopg2.Error as e:
@@ -83,30 +87,32 @@ def get_postgres_connection(
 
     # Use individual parameters with config fallbacks
     connection_params = {
-        'host': host or config.get('host', 'localhost'),
-        'port': port or config.get('port', 5432),
-        'database': database or config.get('database'),
-        'user': user or config.get('user'),
-        'password': password or config.get('password'),
-        'cursor_factory': RealDictCursor
+        "host": host or config.get("host", "localhost"),
+        "port": port or config.get("port", 5432),
+        "database": database or config.get("database"),
+        "user": user or config.get("user"),
+        "password": password or config.get("password"),
+        "cursor_factory": RealDictCursor,
     }
 
     # Ensure port is integer
-    if isinstance(connection_params['port'], str):
-        connection_params['port'] = int(connection_params['port'])
+    if isinstance(connection_params["port"], str):
+        connection_params["port"] = int(connection_params["port"])
 
     # Add any additional parameters
     connection_params.update(kwargs)
 
     # Validate required parameters
-    required = ['database', 'user', 'password']
+    required = ["database", "user", "password"]
     missing = [param for param in required if not connection_params.get(param)]
     if missing:
         raise ValueError(f"Missing required PostgreSQL parameters: {missing}")
 
     try:
         conn = psycopg2.connect(**connection_params)
-        logger.info(f"PostgreSQL connection established: {connection_params['host']}:{connection_params['port']}/{connection_params['database']}")
+        logger.info(
+            f"PostgreSQL connection established: {connection_params['host']}:{connection_params['port']}/{connection_params['database']}"
+        )
         return conn
 
     except psycopg2.Error as e:
@@ -122,7 +128,7 @@ def postgres_transaction(
     database: Optional[str] = None,
     user: Optional[str] = None,
     password: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ):
     """
     Context manager for PostgreSQL transactions.
@@ -143,7 +149,9 @@ def postgres_transaction(
     """
     conn = None
     try:
-        conn = get_postgres_connection(config, host, port, database, user, password, **kwargs)
+        conn = get_postgres_connection(
+            config, host, port, database, user, password, **kwargs
+        )
         yield conn
         conn.commit()
         logger.debug("PostgreSQL transaction committed")
@@ -168,8 +176,8 @@ def create_connection_pool(
     database: Optional[str] = None,
     user: Optional[str] = None,
     password: Optional[str] = None,
-    **kwargs
-) -> 'psycopg2.pool.ThreadedConnectionPool':
+    **kwargs,
+) -> "psycopg2.pool.ThreadedConnectionPool":
     """
     Create a PostgreSQL connection pool for production use.
 
@@ -202,41 +210,47 @@ def create_connection_pool(
         config = {}
 
     # Use same parameter resolution as get_postgres_connection
-    database_url = config.get('database_url')
+    database_url = config.get("database_url")
     if database_url and not any([host, port, database, user, password]):
         try:
             pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn, maxconn, database_url, cursor_factory=RealDictCursor, **kwargs
             )
-            logger.info(f"PostgreSQL connection pool created via database_url: {minconn}-{maxconn} connections")
+            logger.info(
+                f"PostgreSQL connection pool created via database_url: {minconn}-{maxconn} connections"
+            )
             return pool
         except psycopg2.Error as e:
             logger.error(f"Failed to create connection pool via database_url: {e}")
             raise
 
     connection_params = {
-        'host': host or config.get('host', 'localhost'),
-        'port': port or config.get('port', 5432),
-        'database': database or config.get('database'),
-        'user': user or config.get('user'),
-        'password': password or config.get('password'),
-        'cursor_factory': RealDictCursor
+        "host": host or config.get("host", "localhost"),
+        "port": port or config.get("port", 5432),
+        "database": database or config.get("database"),
+        "user": user or config.get("user"),
+        "password": password or config.get("password"),
+        "cursor_factory": RealDictCursor,
     }
 
     # Ensure port is integer
-    if isinstance(connection_params['port'], str):
-        connection_params['port'] = int(connection_params['port'])
+    if isinstance(connection_params["port"], str):
+        connection_params["port"] = int(connection_params["port"])
     connection_params.update(kwargs)
 
     # Validate required parameters
-    required = ['database', 'user', 'password']
+    required = ["database", "user", "password"]
     missing = [param for param in required if not connection_params.get(param)]
     if missing:
         raise ValueError(f"Missing required PostgreSQL parameters: {missing}")
 
     try:
-        pool = psycopg2.pool.ThreadedConnectionPool(minconn, maxconn, **connection_params)
-        logger.info(f"PostgreSQL connection pool created: {minconn}-{maxconn} connections")
+        pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn, maxconn, **connection_params
+        )
+        logger.info(
+            f"PostgreSQL connection pool created: {minconn}-{maxconn} connections"
+        )
         return pool
 
     except psycopg2.Error as e:
@@ -250,7 +264,7 @@ def get_postgres_info(
     port: Optional[int] = None,
     database: Optional[str] = None,
     user: Optional[str] = None,
-    password: Optional[str] = None
+    password: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Get information about a PostgreSQL database.
@@ -266,19 +280,23 @@ def get_postgres_info(
             with conn.cursor() as cur:
                 # Get PostgreSQL version
                 cur.execute("SELECT version()")
-                pg_version = cur.fetchone()['version']
+                pg_version = cur.fetchone()["version"]
 
                 # Get database size
-                cur.execute("SELECT pg_size_pretty(pg_database_size(current_database()))")
-                db_size = cur.fetchone()['pg_size_pretty']
+                cur.execute(
+                    "SELECT pg_size_pretty(pg_database_size(current_database()))"
+                )
+                db_size = cur.fetchone()["pg_size_pretty"]
 
                 # Get table count
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT COUNT(*) as table_count
                     FROM information_schema.tables
                     WHERE table_schema = 'public'
-                """)
-                table_count = cur.fetchone()['table_count']
+                """
+                )
+                table_count = cur.fetchone()["table_count"]
 
                 # Get connection info
                 cur.execute("SELECT current_database(), current_user")
@@ -289,13 +307,13 @@ def get_postgres_info(
                     config = {}
 
                 return {
-                    'database': db_info['current_database'],
-                    'user': db_info['current_user'],
-                    'version': pg_version,
-                    'size': db_size,
-                    'table_count': table_count,
-                    'host': host or config.get('host', 'localhost'),
-                    'port': port or config.get('port', 5432)
+                    "database": db_info["current_database"],
+                    "user": db_info["current_user"],
+                    "version": pg_version,
+                    "size": db_size,
+                    "table_count": table_count,
+                    "host": host or config.get("host", "localhost"),
+                    "port": port or config.get("port", 5432),
                 }
 
     except Exception as e:

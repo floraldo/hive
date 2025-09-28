@@ -2,15 +2,20 @@
 
 import json
 import uuid
-from pathlib import Path
-from typing import Dict, Any, List, Optional
-import pandas as pd
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from hive_logging import get_logger
+import pandas as pd
+from ecosystemiser.analyser.strategies import (
+    BaseAnalysis,
+    EconomicAnalysis,
+    SensitivityAnalysis,
+    TechnicalKPIAnalysis,
+)
 from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
 from ecosystemiser.core.events import AnalysisEvent
-from ecosystemiser.analyser.strategies import BaseAnalysis, TechnicalKPIAnalysis, EconomicAnalysis, SensitivityAnalysis
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -36,9 +41,9 @@ class AnalyserService:
 
     def _register_default_strategies(self):
         """Register the default analysis strategies."""
-        self.register_strategy('technical_kpi', TechnicalKPIAnalysis())
-        self.register_strategy('economic', EconomicAnalysis())
-        self.register_strategy('sensitivity', SensitivityAnalysis())
+        self.register_strategy("technical_kpi", TechnicalKPIAnalysis())
+        self.register_strategy("economic", EconomicAnalysis())
+        self.register_strategy("sensitivity", SensitivityAnalysis())
 
     def register_strategy(self, name: str, strategy: BaseAnalysis):
         """Register a new analysis strategy.
@@ -48,13 +53,19 @@ class AnalyserService:
             strategy: Analysis strategy instance implementing BaseAnalysis
         """
         if not isinstance(strategy, BaseAnalysis):
-            raise TypeError(f"Strategy must inherit from BaseAnalysis, got {type(strategy)}")
+            raise TypeError(
+                f"Strategy must inherit from BaseAnalysis, got {type(strategy)}"
+            )
 
         self.strategies[name] = strategy
         logger.info(f"Registered analysis strategy: {name}")
 
-    def analyse(self, results_path: str, strategies: Optional[List[str]] = None,
-                metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def analyse(
+        self,
+        results_path: str,
+        strategies: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """Execute analysis on simulation results.
 
         This is the primary method that orchestrates the analysis process.
@@ -87,19 +98,19 @@ class AnalyserService:
             event_type=EcoSystemiserEventType.ANALYSIS_STARTED,
             analysis_id=analysis_id,
             source_results_path=results_path,
-            strategies_executed=strategies_to_run
+            strategies_executed=strategies_to_run,
         )
 
         try:
             # Execute analysis strategies
             analysis_results = {
-                'metadata': {
-                    'analysis_id': analysis_id,
-                    'results_path': str(results_path),
-                    'strategies_executed': strategies_to_run,
-                    'analysis_timestamp': pd.Timestamp.now().isoformat()
+                "metadata": {
+                    "analysis_id": analysis_id,
+                    "results_path": str(results_path),
+                    "strategies_executed": strategies_to_run,
+                    "analysis_timestamp": pd.Timestamp.now().isoformat(),
                 },
-                'analyses': {}
+                "analyses": {},
             }
 
             for strategy_name in strategies_to_run:
@@ -107,21 +118,23 @@ class AnalyserService:
                 try:
                     strategy = self.strategies[strategy_name]
                     strategy_results = strategy.execute(results_data, metadata)
-                    analysis_results['analyses'][strategy_name] = strategy_results
+                    analysis_results["analyses"][strategy_name] = strategy_results
                     logger.info(f"Successfully executed strategy: {strategy_name}")
                 except Exception as e:
                     logger.error(f"Error executing strategy {strategy_name}: {e}")
-                    analysis_results['analyses'][strategy_name] = {
-                        'error': str(e),
-                        'status': 'failed'
+                    analysis_results["analyses"][strategy_name] = {
+                        "error": str(e),
+                        "status": "failed",
                     }
 
             # Add summary
-            analysis_results['summary'] = self._create_summary(analysis_results['analyses'])
+            analysis_results["summary"] = self._create_summary(
+                analysis_results["analyses"]
+            )
 
             # Calculate execution time
             execution_time = (datetime.now() - start_time).total_seconds()
-            analysis_results['metadata']['execution_time_seconds'] = execution_time
+            analysis_results["metadata"]["execution_time_seconds"] = execution_time
 
             # Publish analysis completed event
             self._publish_analysis_event(
@@ -129,7 +142,7 @@ class AnalyserService:
                 analysis_id=analysis_id,
                 source_results_path=results_path,
                 strategies_executed=strategies_to_run,
-                duration_seconds=execution_time
+                duration_seconds=execution_time,
             )
 
             return analysis_results
@@ -143,14 +156,15 @@ class AnalyserService:
                 analysis_id=analysis_id,
                 source_results_path=results_path,
                 strategies_executed=strategies_to_run,
-                duration_seconds=execution_time
+                duration_seconds=execution_time,
             )
 
             logger.error(f"Analysis {analysis_id} failed: {e}")
             raise
 
-    def analyse_parametric_study(self, study_results_path: str,
-                                 metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def analyse_parametric_study(
+        self, study_results_path: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Analyze results from a parametric study.
 
         This method is specifically designed for analyzing multiple simulation
@@ -168,11 +182,11 @@ class AnalyserService:
         study_data = self._load_results(study_results_path)
 
         # Ensure this is a parametric study result
-        if 'all_results' not in study_data:
+        if "all_results" not in study_data:
             raise ValueError("File does not contain parametric study results")
 
         # Run appropriate strategies for parametric studies
-        strategies_for_parametric = ['sensitivity', 'economic', 'technical_kpi']
+        strategies_for_parametric = ["sensitivity", "economic", "technical_kpi"]
 
         return self.analyse(study_results_path, strategies_for_parametric, metadata)
 
@@ -194,13 +208,15 @@ class AnalyserService:
         if not path.exists():
             raise FileNotFoundError(f"Results file not found: {results_path}")
 
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             data = json.load(f)
 
         logger.info(f"Loaded results from {results_path}")
         return data
 
-    def _get_strategies_to_run(self, requested: Optional[List[str]] = None) -> List[str]:
+    def _get_strategies_to_run(
+        self, requested: Optional[List[str]] = None
+    ) -> List[str]:
         """Determine which strategies to execute.
 
         Args:
@@ -218,7 +234,7 @@ class AnalyserService:
         # Validate requested strategies
         for strategy_name in requested:
             if strategy_name not in self.strategies:
-                available = ', '.join(self.strategies.keys())
+                available = ", ".join(self.strategies.keys())
                 raise ValueError(
                     f"Unknown strategy: {strategy_name}. "
                     f"Available strategies: {available}"
@@ -235,35 +251,42 @@ class AnalyserService:
         Returns:
             Summary dictionary with key metrics
         """
-        summary = {
-            'successful_analyses': 0,
-            'failed_analyses': 0,
-            'key_metrics': {}
-        }
+        summary = {"successful_analyses": 0, "failed_analyses": 0, "key_metrics": {}}
 
         for strategy_name, results in analyses.items():
-            if 'error' in results:
-                summary['failed_analyses'] += 1
+            if "error" in results:
+                summary["failed_analyses"] += 1
             else:
-                summary['successful_analyses'] += 1
+                summary["successful_analyses"] += 1
 
                 # Extract key metrics based on strategy type
-                if strategy_name == 'technical_kpi':
-                    for key in ['grid_self_sufficiency', 'renewable_fraction',
-                               'system_efficiency', 'battery_cycles']:
+                if strategy_name == "technical_kpi":
+                    for key in [
+                        "grid_self_sufficiency",
+                        "renewable_fraction",
+                        "system_efficiency",
+                        "battery_cycles",
+                    ]:
                         if key in results:
-                            summary['key_metrics'][key] = results[key]
+                            summary["key_metrics"][key] = results[key]
 
-                elif strategy_name == 'economic':
-                    for key in ['lcoe', 'npv', 'payback_period_years',
-                               'total_cost_ownership']:
+                elif strategy_name == "economic":
+                    for key in [
+                        "lcoe",
+                        "npv",
+                        "payback_period_years",
+                        "total_cost_ownership",
+                    ]:
                         if key in results:
-                            summary['key_metrics'][key] = results[key]
+                            summary["key_metrics"][key] = results[key]
 
-                elif strategy_name == 'sensitivity':
-                    if 'most_influential_parameters' in results:
-                        summary['key_metrics']['most_influential'] = \
-                            results['most_influential_parameters'][:3]  # Top 3
+                elif strategy_name == "sensitivity":
+                    if "most_influential_parameters" in results:
+                        summary["key_metrics"]["most_influential"] = results[
+                            "most_influential_parameters"
+                        ][
+                            :3
+                        ]  # Top 3
 
         return summary
 
@@ -277,30 +300,32 @@ class AnalyserService:
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             json.dump(analysis_results, f, indent=2, default=str)
 
         logger.info(f"Saved analysis results to {output_path}")
 
         # If analysis metadata includes analysis_id, publish a save completion event
-        metadata = analysis_results.get('metadata', {})
-        if 'analysis_id' in metadata:
+        metadata = analysis_results.get("metadata", {})
+        if "analysis_id" in metadata:
             self._publish_analysis_event(
                 event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
-                analysis_id=metadata['analysis_id'],
-                source_results_path=metadata.get('results_path', ''),
-                strategies_executed=metadata.get('strategies_executed', []),
+                analysis_id=metadata["analysis_id"],
+                source_results_path=metadata.get("results_path", ""),
+                strategies_executed=metadata.get("strategies_executed", []),
                 analysis_results_path=output_path,
-                duration_seconds=metadata.get('execution_time_seconds')
+                duration_seconds=metadata.get("execution_time_seconds"),
             )
 
-    def _publish_analysis_event(self,
-                              event_type: str,
-                              analysis_id: str,
-                              source_results_path: str,
-                              strategies_executed: List[str],
-                              analysis_results_path: Optional[str] = None,
-                              duration_seconds: Optional[float] = None):
+    def _publish_analysis_event(
+        self,
+        event_type: str,
+        analysis_id: str,
+        source_results_path: str,
+        strategies_executed: List[str],
+        analysis_results_path: Optional[str] = None,
+        duration_seconds: Optional[float] = None,
+    ):
         """Helper method to publish analysis events.
 
         Args:
@@ -321,7 +346,7 @@ class AnalyserService:
                 source_results_path=source_results_path,
                 analysis_results_path=analysis_results_path,
                 strategies_executed=strategies_executed,
-                duration_seconds=duration_seconds
+                duration_seconds=duration_seconds,
             )
 
             # Publish event using sync publisher

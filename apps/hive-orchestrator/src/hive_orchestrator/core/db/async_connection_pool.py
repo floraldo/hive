@@ -7,16 +7,15 @@ Provides non-blocking database operations for the async-first architecture.
 """
 
 import asyncio
-import aiosqlite
-from hive_logging import get_logger
 import time
 from contextlib import asynccontextmanager
-from pathlib import Path
-from typing import Optional, Dict, Any, Set, List
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
+import aiosqlite
 from hive_config.paths import DB_PATH, ensure_directory
-from hive_config import get_config
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -24,6 +23,7 @@ logger = get_logger(__name__)
 @dataclass
 class PoolStats:
     """Statistics for async connection pool monitoring"""
+
     active_connections: int
     idle_connections: int
     total_connections: int
@@ -35,8 +35,6 @@ class PoolStats:
 
 
 class AsyncConnectionPool:
-    _instance = None
-    _lock = asyncio.Lock() if 'asyncio' in globals() else None
     """
     High-performance async SQLite connection pool for Phase 4.1 architecture.
 
@@ -49,31 +47,45 @@ class AsyncConnectionPool:
     - Graceful degradation under high load
     """
 
-    def __init__(self,
-                 min_connections: int = None,
-                 max_connections: int = None,
-                 connection_timeout: float = None,
-                 max_idle_time: float = 300.0):
+    def __init__(
+        self,
+        min_connections: int = None,
+        max_connections: int = None,
+        connection_timeout: float = None,
+        max_idle_time: float = 300.0,
+        db_config: Optional[Dict[str, Any]] = None,
+    ):
         """
         Initialize async connection pool.
 
         Args:
-            min_connections: Minimum connections to maintain (defaults to config)
-            max_connections: Maximum connections allowed (defaults to config)
-            connection_timeout: Timeout for acquiring connections (defaults to config)
+            min_connections: Minimum connections to maintain
+            max_connections: Maximum connections allowed
+            connection_timeout: Timeout for acquiring connections
             max_idle_time: Maximum idle time before connection recycling
+            db_config: Database configuration dictionary
         """
-        # Get centralized configuration
-        config = get_config()
-        db_config = config.get_database_config()
+        # Use provided db_config or defaults
+        if db_config is None:
+            db_config = {"max_connections": 25, "connection_timeout": 30.0}
 
         self.min_connections = min_connections if min_connections is not None else 3
-        self.max_connections = max_connections if max_connections is not None else db_config.get("max_connections", 25)
-        self.connection_timeout = connection_timeout if connection_timeout is not None else db_config.get("connection_timeout", 30.0)
+        self.max_connections = (
+            max_connections
+            if max_connections is not None
+            else db_config.get("max_connections", 25)
+        )
+        self.connection_timeout = (
+            connection_timeout
+            if connection_timeout is not None
+            else db_config.get("connection_timeout", 30.0)
+        )
         self.max_idle_time = max_idle_time
 
         # Pool state
-        self._idle_connections: asyncio.Queue = asyncio.Queue(maxsize=self.max_connections)
+        self._idle_connections: asyncio.Queue = asyncio.Queue(
+            maxsize=self.max_connections
+        )
         self._active_connections: Set[aiosqlite.Connection] = set()
         self._connection_semaphore = asyncio.Semaphore(self.max_connections)
         self._lock = asyncio.Lock()
@@ -87,7 +99,7 @@ class AsyncConnectionPool:
             total_acquired=0,
             total_released=0,
             total_created=0,
-            pool_exhaustions=0
+            pool_exhaustions=0,
         )
 
         # Pool lifecycle
@@ -115,7 +127,9 @@ class AsyncConnectionPool:
                         self._stats.idle_connections += 1
 
                 self._initialized = True
-                logger.info(f"Async connection pool initialized with {self.min_connections} connections")
+                logger.info(
+                    f"Async connection pool initialized with {self.min_connections} connections"
+                )
 
             except Exception as e:
                 logger.error(f"Failed to initialize async connection pool: {e}")
@@ -125,17 +139,15 @@ class AsyncConnectionPool:
         """Create a new async database connection with optimal settings."""
         try:
             conn = await aiosqlite.connect(
-                str(DB_PATH),
-                timeout=30.0,
-                isolation_level='DEFERRED'
+                str(DB_PATH), timeout=30.0, isolation_level="DEFERRED"
             )
 
             # Optimize connection settings
-            await conn.execute('PRAGMA journal_mode=WAL')  # Write-Ahead Logging
-            await conn.execute('PRAGMA synchronous=NORMAL')  # Faster writes
-            await conn.execute('PRAGMA cache_size=10000')  # 10MB cache
-            await conn.execute('PRAGMA foreign_keys=ON')
-            await conn.execute('PRAGMA temp_store=MEMORY')  # Use memory for temp tables
+            await conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
+            await conn.execute("PRAGMA synchronous=NORMAL")  # Faster writes
+            await conn.execute("PRAGMA cache_size=10000")  # 10MB cache
+            await conn.execute("PRAGMA foreign_keys=ON")
+            await conn.execute("PRAGMA temp_store=MEMORY")  # Use memory for temp tables
 
             # Set row factory for dict-like access
             conn.row_factory = aiosqlite.Row
@@ -151,7 +163,7 @@ class AsyncConnectionPool:
     async def _validate_connection(self, conn: aiosqlite.Connection) -> bool:
         """Check if an async connection is still valid."""
         try:
-            await conn.execute('SELECT 1')
+            await conn.execute("SELECT 1")
             return True
         except Exception as e:
             logger.debug(f"Async connection validation failed: {e}")
@@ -182,8 +194,7 @@ class AsyncConnectionPool:
         try:
             # Acquire semaphore for connection limiting
             await asyncio.wait_for(
-                self._connection_semaphore.acquire(),
-                timeout=self.connection_timeout
+                self._connection_semaphore.acquire(), timeout=self.connection_timeout
             )
             acquired_semaphore = True
 
@@ -191,7 +202,7 @@ class AsyncConnectionPool:
             try:
                 conn = await asyncio.wait_for(
                     self._idle_connections.get(),
-                    timeout=0.1  # Quick timeout for idle check
+                    timeout=0.1,  # Quick timeout for idle check
                 )
 
                 # Validate connection
@@ -217,8 +228,7 @@ class AsyncConnectionPool:
                 # Wait for connection to become available
                 try:
                     conn = await asyncio.wait_for(
-                        self._idle_connections.get(),
-                        timeout=self.connection_timeout
+                        self._idle_connections.get(), timeout=self.connection_timeout
                     )
 
                     # Validate connection again
@@ -227,7 +237,9 @@ class AsyncConnectionPool:
                         raise RuntimeError("No valid connections available")
 
                 except asyncio.TimeoutError:
-                    raise RuntimeError(f"Connection timeout after {self.connection_timeout}s")
+                    raise RuntimeError(
+                        f"Connection timeout after {self.connection_timeout}s"
+                    )
 
             # Track active connection
             async with self._lock:
@@ -245,7 +257,9 @@ class AsyncConnectionPool:
                     async with self._lock:
                         if conn in self._active_connections:
                             self._active_connections.remove(conn)
-                            self._stats.active_connections = len(self._active_connections)
+                            self._stats.active_connections = len(
+                                self._active_connections
+                            )
                             self._stats.total_released += 1
 
                     # Reset connection state
@@ -255,7 +269,9 @@ class AsyncConnectionPool:
                     try:
                         await self._idle_connections.put(conn)
                         async with self._lock:
-                            self._stats.idle_connections = self._idle_connections.qsize()
+                            self._stats.idle_connections = (
+                                self._idle_connections.qsize()
+                            )
                     except asyncio.QueueFull:
                         # Pool full, close connection
                         await conn.close()
@@ -269,7 +285,9 @@ class AsyncConnectionPool:
                         async with self._lock:
                             self._stats.total_connections -= 1
                     except Exception as close_error:
-                        logger.debug(f"Failed to close corrupted async connection: {close_error}")
+                        logger.debug(
+                            f"Failed to close corrupted async connection: {close_error}"
+                        )
 
             if acquired_semaphore:
                 self._connection_semaphore.release()
@@ -320,7 +338,7 @@ class AsyncConnectionPool:
                 total_acquired=self._stats.total_acquired,
                 total_released=self._stats.total_released,
                 total_created=self._stats.total_created,
-                pool_exhaustions=self._stats.pool_exhaustions
+                pool_exhaustions=self._stats.pool_exhaustions,
             )
 
     async def health_check(self) -> Dict[str, Any]:
@@ -329,23 +347,23 @@ class AsyncConnectionPool:
             # Test connection acquisition
             start_time = time.time()
             async with self.acquire() as conn:
-                await conn.execute('SELECT 1')
+                await conn.execute("SELECT 1")
             acquisition_time = time.time() - start_time
 
             stats = await self.get_stats()
 
             return {
-                'status': 'healthy',
-                'acquisition_time_ms': acquisition_time * 1000,
-                'pool_utilization': stats.active_connections / stats.max_connections,
-                'stats': stats.__dict__
+                "status": "healthy",
+                "acquisition_time_ms": acquisition_time * 1000,
+                "pool_utilization": stats.active_connections / stats.max_connections,
+                "stats": stats.__dict__,
             }
 
         except Exception as e:
             return {
-                'status': 'unhealthy',
-                'error': str(e),
-                'stats': (await self.get_stats()).__dict__
+                "status": "unhealthy",
+                "error": str(e),
+                "stats": (await self.get_stats()).__dict__,
             }
 
 
@@ -409,30 +427,46 @@ async def async_pool_health_check() -> Dict[str, Any]:
         return await _async_pool.health_check()
     else:
         return {
-            'status': 'not_initialized',
-            'message': 'Async connection pool not initialized'
+            "status": "not_initialized",
+            "message": "Async connection pool not initialized",
         }
 
 
 # Async database operations
-async def create_task_async(task_type: str, task_data: Dict[str, Any], priority: int = 5,
-                           worker_hint: Optional[str] = None, timeout_seconds: Optional[int] = None) -> str:
+async def create_task_async(
+    task_type: str,
+    task_data: Dict[str, Any],
+    priority: int = 5,
+    worker_hint: Optional[str] = None,
+    timeout_seconds: Optional[int] = None,
+) -> str:
     """Create a new task asynchronously."""
     import json
-    from datetime import datetime, timezone
     import uuid
+    from datetime import datetime, timezone
 
     task_id = str(uuid.uuid4())
     task_data_json = json.dumps(task_data)
     created_at = datetime.now(timezone.utc).isoformat()
 
     async with get_async_connection() as conn:
-        await conn.execute('''
+        await conn.execute(
+            """
             INSERT INTO tasks (task_id, task_type, task_data, status, priority, worker_hint,
                              timeout_seconds, created_at, updated_at)
             VALUES (?, ?, ?, 'queued', ?, ?, ?, ?, ?)
-        ''', (task_id, task_type, task_data_json, priority, worker_hint, timeout_seconds,
-              created_at, created_at))
+        """,
+            (
+                task_id,
+                task_type,
+                task_data_json,
+                priority,
+                worker_hint,
+                timeout_seconds,
+                created_at,
+                created_at,
+            ),
+        )
         await conn.commit()
 
     return task_id
@@ -443,75 +477,92 @@ async def get_task_async(task_id: str) -> Optional[Dict[str, Any]]:
     import json
 
     async with get_async_connection() as conn:
-        cursor = await conn.execute('SELECT * FROM tasks WHERE task_id = ?', (task_id,))
+        cursor = await conn.execute("SELECT * FROM tasks WHERE task_id = ?", (task_id,))
         row = await cursor.fetchone()
 
         if row:
             task = dict(row)
-            if task['task_data']:
-                task['task_data'] = json.loads(task['task_data'])
+            if task["task_data"]:
+                task["task_data"] = json.loads(task["task_data"])
             return task
         return None
 
 
-async def get_queued_tasks_async(limit: int = 10, task_type: Optional[str] = None) -> List[Dict[str, Any]]:
+async def get_queued_tasks_async(
+    limit: int = 10, task_type: Optional[str] = None
+) -> List[Dict[str, Any]]:
     """Get queued tasks asynchronously."""
     import json
     from typing import List
 
     async with get_async_connection() as conn:
         if task_type:
-            cursor = await conn.execute('''
+            cursor = await conn.execute(
+                """
                 SELECT * FROM tasks
                 WHERE status = 'queued' AND task_type = ?
                 ORDER BY priority DESC, created_at ASC
                 LIMIT ?
-            ''', (task_type, limit))
+            """,
+                (task_type, limit),
+            )
         else:
-            cursor = await conn.execute('''
+            cursor = await conn.execute(
+                """
                 SELECT * FROM tasks
                 WHERE status = 'queued'
                 ORDER BY priority DESC, created_at ASC
                 LIMIT ?
-            ''', (limit,))
+            """,
+                (limit,),
+            )
 
         rows = await cursor.fetchall()
         tasks = []
         for row in rows:
             task = dict(row)
-            if task['task_data']:
-                task['task_data'] = json.loads(task['task_data'])
+            if task["task_data"]:
+                task["task_data"] = json.loads(task["task_data"])
             tasks.append(task)
 
         return tasks
 
 
-async def get_tasks_by_status_async(status: str, limit: int = 50) -> List[Dict[str, Any]]:
+async def get_tasks_by_status_async(
+    status: str, limit: int = 50
+) -> List[Dict[str, Any]]:
     """Get tasks by status asynchronously."""
     import json
     from typing import List
 
     async with get_async_connection() as conn:
-        cursor = await conn.execute('''
+        cursor = await conn.execute(
+            """
             SELECT * FROM tasks
             WHERE status = ?
             ORDER BY updated_at DESC
             LIMIT ?
-        ''', (status, limit))
+        """,
+            (status, limit),
+        )
 
         rows = await cursor.fetchall()
         tasks = []
         for row in rows:
             task = dict(row)
-            if task['task_data']:
-                task['task_data'] = json.loads(task['task_data'])
+            if task["task_data"]:
+                task["task_data"] = json.loads(task["task_data"])
             tasks.append(task)
 
         return tasks
 
 
-async def update_task_status_async(task_id: str, status: str, worker_id: Optional[str] = None,
-                                  result_data: Optional[Dict[str, Any]] = None) -> bool:
+async def update_task_status_async(
+    task_id: str,
+    status: str,
+    worker_id: Optional[str] = None,
+    result_data: Optional[Dict[str, Any]] = None,
+) -> bool:
     """Update task status asynchronously."""
     import json
     from datetime import datetime, timezone
@@ -521,23 +572,31 @@ async def update_task_status_async(task_id: str, status: str, worker_id: Optiona
 
     async with get_async_connection() as conn:
         if worker_id:
-            cursor = await conn.execute('''
+            cursor = await conn.execute(
+                """
                 UPDATE tasks
                 SET status = ?, assigned_worker = ?, result_data = ?, updated_at = ?
                 WHERE task_id = ?
-            ''', (status, worker_id, result_json, updated_at, task_id))
+            """,
+                (status, worker_id, result_json, updated_at, task_id),
+            )
         else:
-            cursor = await conn.execute('''
+            cursor = await conn.execute(
+                """
                 UPDATE tasks
                 SET status = ?, result_data = ?, updated_at = ?
                 WHERE task_id = ?
-            ''', (status, result_json, updated_at, task_id))
+            """,
+                (status, result_json, updated_at, task_id),
+            )
 
         await conn.commit()
         return cursor.rowcount > 0
 
 
-async def create_run_async(task_id: str, worker_id: str, run_type: str = "execution") -> str:
+async def create_run_async(
+    task_id: str, worker_id: str, run_type: str = "execution"
+) -> str:
     """Create a new task run asynchronously."""
     import uuid
     from datetime import datetime, timezone
@@ -546,10 +605,13 @@ async def create_run_async(task_id: str, worker_id: str, run_type: str = "execut
     started_at = datetime.now(timezone.utc).isoformat()
 
     async with get_async_connection() as conn:
-        await conn.execute('''
+        await conn.execute(
+            """
             INSERT INTO task_runs (run_id, task_id, worker_id, run_type, status, started_at)
             VALUES (?, ?, ?, ?, 'running', ?)
-        ''', (run_id, task_id, worker_id, run_type, started_at))
+        """,
+            (run_id, task_id, worker_id, run_type, started_at),
+        )
         await conn.commit()
 
     return run_id

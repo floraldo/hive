@@ -4,11 +4,11 @@ Database utilities and helper functions for Hive applications.
 Provides common database operations, migrations, and utility functions.
 """
 
-import sqlite3
 import asyncio
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Tuple
+import sqlite3
 from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from hive_logging import get_logger
 
@@ -47,7 +47,7 @@ def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
     try:
         cursor = conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            (table_name,)
+            (table_name,),
         )
         return cursor.fetchone() is not None
     except sqlite3.Error as e:
@@ -72,13 +72,15 @@ def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[Dict[str
 
         schema = []
         for col in columns:
-            schema.append({
-                'name': col[1],
-                'type': col[2],
-                'not_null': bool(col[3]),
-                'default_value': col[4],
-                'primary_key': bool(col[5])
-            })
+            schema.append(
+                {
+                    "name": col[1],
+                    "type": col[2],
+                    "not_null": bool(col[3]),
+                    "default_value": col[4],
+                    "primary_key": bool(col[5]),
+                }
+            )
 
         return schema
     except sqlite3.Error as e:
@@ -95,7 +97,7 @@ def execute_script(conn: sqlite3.Connection, script_path: Path):
         script_path: Path to the SQL script file
     """
     try:
-        with open(script_path, 'r') as f:
+        with open(script_path, "r") as f:
             script = f.read()
 
         conn.executescript(script)
@@ -162,31 +164,29 @@ def get_database_info(conn: sqlite3.Connection) -> Dict[str, Any]:
         cursor = conn.execute("PRAGMA page_size")
         page_size = cursor.fetchone()[0]
 
-        info['page_count'] = page_count
-        info['page_size'] = page_size
-        info['database_size_bytes'] = page_count * page_size
+        info["page_count"] = page_count
+        info["page_size"] = page_size
+        info["database_size_bytes"] = page_count * page_size
 
         # Get journal mode
         cursor = conn.execute("PRAGMA journal_mode")
-        info['journal_mode'] = cursor.fetchone()[0]
+        info["journal_mode"] = cursor.fetchone()[0]
 
         # Get synchronous setting
         cursor = conn.execute("PRAGMA synchronous")
-        info['synchronous'] = cursor.fetchone()[0]
+        info["synchronous"] = cursor.fetchone()[0]
 
         # Get foreign keys setting
         cursor = conn.execute("PRAGMA foreign_keys")
-        info['foreign_keys'] = bool(cursor.fetchone()[0])
+        info["foreign_keys"] = bool(cursor.fetchone()[0])
 
         # Get cache size
         cursor = conn.execute("PRAGMA cache_size")
-        info['cache_size'] = cursor.fetchone()[0]
+        info["cache_size"] = cursor.fetchone()[0]
 
         # Get table count
-        cursor = conn.execute(
-            "SELECT COUNT(*) FROM sqlite_master WHERE type='table'"
-        )
-        info['table_count'] = cursor.fetchone()[0]
+        cursor = conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table'")
+        info["table_count"] = cursor.fetchone()[0]
 
         return info
     except sqlite3.Error as e:
@@ -195,7 +195,9 @@ def get_database_info(conn: sqlite3.Connection) -> Dict[str, Any]:
 
 
 @contextmanager
-def database_transaction(conn: sqlite3.Connection, isolation_level: Optional[str] = None):
+def database_transaction(
+    conn: sqlite3.Connection, isolation_level: Optional[str] = None
+):
     """
     Context manager for database transactions with automatic rollback on error.
 
@@ -226,8 +228,12 @@ def database_transaction(conn: sqlite3.Connection, isolation_level: Optional[str
         cursor.close()
 
 
-def insert_or_update(conn: sqlite3.Connection, table: str, data: Dict[str, Any],
-                    conflict_columns: List[str]) -> str:
+def insert_or_update(
+    conn: sqlite3.Connection,
+    table: str,
+    data: Dict[str, Any],
+    conflict_columns: List[str],
+) -> str:
     """
     Insert or update a record using UPSERT (INSERT ... ON CONFLICT).
 
@@ -242,7 +248,7 @@ def insert_or_update(conn: sqlite3.Connection, table: str, data: Dict[str, Any],
     """
     try:
         columns = list(data.keys())
-        placeholders = ['?' for _ in columns]
+        placeholders = ["?" for _ in columns]
         values = list(data.values())
 
         # Build the INSERT statement
@@ -253,7 +259,9 @@ def insert_or_update(conn: sqlite3.Connection, table: str, data: Dict[str, Any],
 
         # Build the ON CONFLICT clause
         conflict_sql = f"ON CONFLICT({', '.join(conflict_columns)}) DO UPDATE SET"
-        update_clauses = [f"{col} = excluded.{col}" for col in columns if col not in conflict_columns]
+        update_clauses = [
+            f"{col} = excluded.{col}" for col in columns if col not in conflict_columns
+        ]
 
         if update_clauses:
             sql = f"{insert_sql} {conflict_sql} {', '.join(update_clauses)}"
@@ -274,8 +282,12 @@ def insert_or_update(conn: sqlite3.Connection, table: str, data: Dict[str, Any],
         raise
 
 
-def batch_insert(conn: sqlite3.Connection, table: str, data: List[Dict[str, Any]],
-                chunk_size: int = 1000):
+def batch_insert(
+    conn: sqlite3.Connection,
+    table: str,
+    data: List[Dict[str, Any]],
+    chunk_size: int = 1000,
+):
     """
     Insert multiple records in batches for better performance.
 
@@ -290,12 +302,12 @@ def batch_insert(conn: sqlite3.Connection, table: str, data: List[Dict[str, Any]
 
     try:
         columns = list(data[0].keys())
-        placeholders = ['?' for _ in columns]
+        placeholders = ["?" for _ in columns]
         sql = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
 
         # Process in chunks
         for i in range(0, len(data), chunk_size):
-            chunk = data[i:i + chunk_size]
+            chunk = data[i : i + chunk_size]
             values = [list(record.values()) for record in chunk]
 
             conn.executemany(sql, values)
@@ -309,8 +321,9 @@ def batch_insert(conn: sqlite3.Connection, table: str, data: List[Dict[str, Any]
         raise
 
 
-def migrate_database(conn: sqlite3.Connection, migrations_dir: Path,
-                    target_version: Optional[int] = None):
+def migrate_database(
+    conn: sqlite3.Connection, migrations_dir: Path, target_version: Optional[int] = None
+):
     """
     Apply database migrations from a directory.
 
@@ -324,7 +337,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path,
         create_table_if_not_exists(
             conn,
             "migrations",
-            "version INTEGER PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+            "version INTEGER PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
         )
 
         # Get applied migrations
@@ -332,10 +345,10 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path,
         applied = {row[0] for row in cursor.fetchall()}
 
         # Find migration files
-        migration_files = sorted([
-            f for f in migrations_dir.glob("*.sql")
-            if f.stem.isdigit()
-        ], key=lambda x: int(x.stem))
+        migration_files = sorted(
+            [f for f in migrations_dir.glob("*.sql") if f.stem.isdigit()],
+            key=lambda x: int(x.stem),
+        )
 
         # Apply migrations
         for migration_file in migration_files:
@@ -351,10 +364,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path,
             execute_script(conn, migration_file)
 
             # Record migration
-            conn.execute(
-                "INSERT INTO migrations (version) VALUES (?)",
-                (version,)
-            )
+            conn.execute("INSERT INTO migrations (version) VALUES (?)", (version,))
             conn.commit()
 
         logger.info("Database migrations completed")
@@ -371,7 +381,7 @@ async def async_table_exists(conn, table_name: str) -> bool:
     try:
         cursor = await conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            (table_name,)
+            (table_name,),
         )
         result = await cursor.fetchone()
         return result is not None
@@ -392,31 +402,31 @@ async def async_get_database_info(conn) -> Dict[str, Any]:
         cursor = await conn.execute("PRAGMA page_size")
         page_size = (await cursor.fetchone())[0]
 
-        info['page_count'] = page_count
-        info['page_size'] = page_size
-        info['database_size_bytes'] = page_count * page_size
+        info["page_count"] = page_count
+        info["page_size"] = page_size
+        info["database_size_bytes"] = page_count * page_size
 
         # Get journal mode
         cursor = await conn.execute("PRAGMA journal_mode")
-        info['journal_mode'] = (await cursor.fetchone())[0]
+        info["journal_mode"] = (await cursor.fetchone())[0]
 
         # Get synchronous setting
         cursor = await conn.execute("PRAGMA synchronous")
-        info['synchronous'] = (await cursor.fetchone())[0]
+        info["synchronous"] = (await cursor.fetchone())[0]
 
         # Get foreign keys setting
         cursor = await conn.execute("PRAGMA foreign_keys")
-        info['foreign_keys'] = bool((await cursor.fetchone())[0])
+        info["foreign_keys"] = bool((await cursor.fetchone())[0])
 
         # Get cache size
         cursor = await conn.execute("PRAGMA cache_size")
-        info['cache_size'] = (await cursor.fetchone())[0]
+        info["cache_size"] = (await cursor.fetchone())[0]
 
         # Get table count
         cursor = await conn.execute(
             "SELECT COUNT(*) FROM sqlite_master WHERE type='table'"
         )
-        info['table_count'] = (await cursor.fetchone())[0]
+        info["table_count"] = (await cursor.fetchone())[0]
 
         return info
     except Exception as e:

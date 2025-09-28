@@ -12,10 +12,15 @@ This follows the "inherit → extend" pattern:
 - Core components add EcoSystemiser-specific business logic
 """
 
+from hive_bus import BaseBus, BaseEvent
+from hive_db import (
+    create_table_if_not_exists,
+    get_sqlite_connection,
+    sqlite_transaction,
+)
+
 # Import base components from hive packages to establish inheritance
 from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
-from hive_bus import BaseBus, BaseEvent
-from hive_db import get_sqlite_connection, sqlite_transaction, create_table_if_not_exists
 
 # Core modules are imported as needed by specific components
 # No re-exports at this level to maintain clear module boundaries

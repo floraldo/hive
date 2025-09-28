@@ -5,7 +5,7 @@ Extends the generic error handling toolkit with Hive orchestration errors.
 These contain the business logic for Hive-specific error scenarios.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from hive_errors import BaseError
 
@@ -20,7 +20,7 @@ class HiveError(BaseError):
         operation: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
         recovery_suggestions: Optional[List[str]] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         super().__init__(
             message=message,
@@ -28,13 +28,14 @@ class HiveError(BaseError):
             operation=operation,
             details=details,
             recovery_suggestions=recovery_suggestions,
-            original_error=original_error
+            original_error=original_error,
         )
 
 
 # Task Management Errors
 class TaskError(HiveError):
     """Base class for task-related errors"""
+
     pass
 
 
@@ -48,9 +49,9 @@ class TaskCreationError(TaskError):
             recovery_suggestions=[
                 "Check task description format",
                 "Verify required parameters",
-                "Check system resources"
+                "Check system resources",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
@@ -66,9 +67,9 @@ class TaskExecutionError(TaskError):
                 "Retry task on different worker",
                 "Check worker health status",
                 "Reduce task complexity",
-                "Check system resources"
+                "Check system resources",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
@@ -84,15 +85,16 @@ class TaskTimeoutError(TaskError):
                 "Increase task timeout",
                 "Break task into smaller parts",
                 "Check for infinite loops",
-                "Optimize task implementation"
+                "Optimize task implementation",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
 # Worker Management Errors
 class WorkerError(HiveError):
     """Base class for worker-related errors"""
+
     pass
 
 
@@ -108,9 +110,9 @@ class WorkerSpawnError(WorkerError):
                 "Check system resources",
                 "Verify worker configuration",
                 "Check network connectivity",
-                "Restart orchestrator service"
+                "Restart orchestrator service",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
@@ -126,9 +128,9 @@ class WorkerCommunicationError(WorkerError):
                 "Check worker health status",
                 "Retry communication",
                 "Restart worker",
-                "Check network connectivity"
+                "Check network connectivity",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
@@ -139,20 +141,25 @@ class WorkerOverloadError(WorkerError):
         super().__init__(
             message=f"Worker {worker_id} overloaded: {current_load}/{max_load} tasks",
             operation="assign_task",
-            details={"worker_id": worker_id, "current_load": current_load, "max_load": max_load},
+            details={
+                "worker_id": worker_id,
+                "current_load": current_load,
+                "max_load": max_load,
+            },
             recovery_suggestions=[
                 "Spawn additional workers",
                 "Redistribute tasks",
                 "Increase worker capacity",
-                "Implement load balancing"
+                "Implement load balancing",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
 # Event Bus Errors
 class EventBusError(HiveError):
     """Base class for event bus errors"""
+
     pass
 
 
@@ -168,9 +175,9 @@ class EventPublishError(EventBusError):
                 "Check event bus health",
                 "Verify event format",
                 "Check database connectivity",
-                "Retry publishing"
+                "Retry publishing",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
@@ -186,15 +193,16 @@ class EventSubscribeError(EventBusError):
                 "Check subscription pattern format",
                 "Verify subscriber callback",
                 "Check event bus health",
-                "Restart subscriber"
+                "Restart subscriber",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
 # Claude Integration Errors
 class ClaudeError(HiveError):
     """Base class for Claude integration errors"""
+
     pass
 
 
@@ -210,9 +218,9 @@ class ClaudeRateLimitError(ClaudeError):
                 "Wait before retrying",
                 "Implement exponential backoff",
                 "Reduce API call frequency",
-                "Check rate limit configuration"
+                "Check rate limit configuration",
             ],
-            **kwargs
+            **kwargs,
         )
 
 
@@ -227,7 +235,7 @@ class ClaudeServiceError(ClaudeError):
                 "Retry with exponential backoff",
                 "Check Claude service health",
                 "Verify API credentials",
-                "Switch to backup service"
+                "Switch to backup service",
             ],
-            **kwargs
+            **kwargs,
         )

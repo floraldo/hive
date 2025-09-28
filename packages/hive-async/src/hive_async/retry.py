@@ -1,18 +1,19 @@
 """Async retry utilities with configurable strategies."""
 
 import asyncio
-from typing import Any, Callable, Optional, Type, Union, List
 from dataclasses import dataclass
+from typing import Any, Callable, List, Optional, Type, Union
+
+from hive_logging import get_logger
 from tenacity import (
     AsyncRetrying,
     RetryError,
+    after_log,
+    before_sleep_log,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
-    before_sleep_log,
-    after_log
 )
-from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -41,10 +42,7 @@ class AsyncRetryError(Exception):
 
 
 async def async_retry(
-    func: Callable,
-    config: Optional[AsyncRetryConfig] = None,
-    *args,
-    **kwargs
+    func: Callable, config: Optional[AsyncRetryConfig] = None, *args, **kwargs
 ) -> Any:
     """
     Retry an async function with configurable strategy.
@@ -67,19 +65,21 @@ async def async_retry(
     # Build retry conditions
     retry_condition = retry_if_exception_type(config.retry_exceptions)
     if config.stop_on_exceptions:
-        retry_condition = retry_condition & ~retry_if_exception_type(config.stop_on_exceptions)
+        retry_condition = retry_condition & ~retry_if_exception_type(
+            config.stop_on_exceptions
+        )
 
     # Build retry strategy
     retry_strategy = AsyncRetrying(
         stop=stop_after_attempt(config.max_attempts),
         wait=wait_exponential(
-            multiplier=config.multiplier,
-            min=config.min_wait,
-            max=config.max_wait
+            multiplier=config.multiplier, min=config.min_wait, max=config.max_wait
         ),
         retry=retry_condition,
-        before_sleep=before_sleep_log(logger, "WARNING") if config.log_before_sleep else None,
-        after=after_log(logger, "INFO") if config.log_after_attempt else None
+        before_sleep=(
+            before_sleep_log(logger, "WARNING") if config.log_before_sleep else None
+        ),
+        after=after_log(logger, "INFO") if config.log_after_attempt else None,
     )
 
     try:
@@ -87,7 +87,9 @@ async def async_retry(
     except RetryError as e:
         if e.last_attempt.failed:
             original_error = e.last_attempt.exception()
-            raise AsyncRetryError(original_error, config.max_attempts) from original_error
+            raise AsyncRetryError(
+                original_error, config.max_attempts
+            ) from original_error
         raise
 
 
@@ -101,10 +103,13 @@ def create_retry_decorator(config: Optional[AsyncRetryConfig] = None):
     Returns:
         Decorator function
     """
+
     def decorator(func: Callable):
         async def wrapper(*args, **kwargs):
             return await async_retry(func, config, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
 

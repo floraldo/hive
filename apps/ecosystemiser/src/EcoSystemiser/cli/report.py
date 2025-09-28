@@ -1,10 +1,10 @@
 """CLI commands for reporting module."""
 
-import click
 import json
 from pathlib import Path
 from typing import Optional
 
+import click
 from ecosystemiser.analyser import AnalyserService
 from ecosystemiser.reporting import create_app, run_server
 from hive_logging import get_logger
@@ -19,15 +19,26 @@ def report():
 
 
 @report.command()
-@click.argument('results_file', type=click.Path(exists=True))
-@click.option('--output', '-o', type=click.Path(),
-              help='Output directory for report files')
-@click.option('--strategies', '-s', multiple=True,
-              help='Analysis strategies to run (default: all)')
-@click.option('--format', 'output_format', type=click.Choice(['json', 'html']),
-              default='json', help='Output format')
-def analyze(results_file: str, output: Optional[str], strategies: tuple,
-           output_format: str):
+@click.argument("results_file", type=click.Path(exists=True))
+@click.option(
+    "--output", "-o", type=click.Path(), help="Output directory for report files"
+)
+@click.option(
+    "--strategies",
+    "-s",
+    multiple=True,
+    help="Analysis strategies to run (default: all)",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["json", "html"]),
+    default="json",
+    help="Output format",
+)
+def analyze(
+    results_file: str, output: Optional[str], strategies: tuple, output_format: str
+):
     """Analyze simulation results and generate report data.
 
     Args:
@@ -45,53 +56,57 @@ def analyze(results_file: str, output: Optional[str], strategies: tuple,
         if output:
             output_dir = Path(output)
         else:
-            output_dir = Path(results_file).parent / 'analysis_output'
+            output_dir = Path(results_file).parent / "analysis_output"
 
         output_dir.mkdir(exist_ok=True)
 
-        if output_format == 'json':
+        if output_format == "json":
             # Save JSON results
-            output_file = output_dir / 'analysis_results.json'
+            output_file = output_dir / "analysis_results.json"
             analyser.save_analysis(analysis_results, str(output_file))
             click.echo(f"Analysis saved to: {output_file}")
 
-        elif output_format == 'html':
+        elif output_format == "html":
             # Generate HTML report (simplified)
             from ecosystemiser.datavis.plot_factory import PlotFactory
 
             plot_factory = PlotFactory()
 
             # Load raw results for plot generation
-            with open(results_file, 'r') as f:
+            with open(results_file, "r") as f:
                 raw_results = json.load(f)
 
             # Generate plots (simplified version)
             plots = {}
-            if 'technical_kpi' in analysis_results.get('analyses', {}):
-                kpi_data = analysis_results['analyses']['technical_kpi']
-                plots['kpi_gauges'] = plot_factory.create_technical_kpi_gauges(kpi_data)
+            if "technical_kpi" in analysis_results.get("analyses", {}):
+                kpi_data = analysis_results["analyses"]["technical_kpi"]
+                plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(kpi_data)
 
             # Create basic HTML report
             html_content = create_basic_html_report(analysis_results, plots)
 
-            output_file = output_dir / 'report.html'
-            with open(output_file, 'w') as f:
+            output_file = output_dir / "report.html"
+            with open(output_file, "w") as f:
                 f.write(html_content)
 
             click.echo(f"HTML report saved to: {output_file}")
 
         # Print summary
-        summary = analysis_results.get('summary', {})
+        summary = analysis_results.get("summary", {})
         click.echo(f"\nAnalysis Summary:")
         click.echo(f"  Successful analyses: {summary.get('successful_analyses', 0)}")
         click.echo(f"  Failed analyses: {summary.get('failed_analyses', 0)}")
 
-        if 'key_metrics' in summary:
-            key_metrics = summary['key_metrics']
-            if 'grid_self_sufficiency' in key_metrics:
-                click.echo(f"  Grid self-sufficiency: {key_metrics['grid_self_sufficiency']:.1%}")
-            if 'renewable_fraction' in key_metrics:
-                click.echo(f"  Renewable fraction: {key_metrics['renewable_fraction']:.1%}")
+        if "key_metrics" in summary:
+            key_metrics = summary["key_metrics"]
+            if "grid_self_sufficiency" in key_metrics:
+                click.echo(
+                    f"  Grid self-sufficiency: {key_metrics['grid_self_sufficiency']:.1%}"
+                )
+            if "renewable_fraction" in key_metrics:
+                click.echo(
+                    f"  Renewable fraction: {key_metrics['renewable_fraction']:.1%}"
+                )
 
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
@@ -100,9 +115,9 @@ def analyze(results_file: str, output: Optional[str], strategies: tuple,
 
 
 @report.command()
-@click.option('--host', default='127.0.0.1', help='Host to bind to')
-@click.option('--port', default=5000, help='Port to bind to')
-@click.option('--debug', is_flag=True, help='Enable debug mode')
+@click.option("--host", default="127.0.0.1", help="Host to bind to")
+@click.option("--port", default=5000, help="Port to bind to")
+@click.option("--debug", is_flag=True, help="Enable debug mode")
 def server(host: str, port: int, debug: bool):
     """Start the reporting web server.
 
@@ -124,9 +139,14 @@ def server(host: str, port: int, debug: bool):
 
 
 @report.command()
-@click.argument('results_file', type=click.Path(exists=True))
-@click.option('--output', '-o', type=click.Path(), default='report.html',
-              help='Output HTML file path')
+@click.argument("results_file", type=click.Path(exists=True))
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    default="report.html",
+    help="Output HTML file path",
+)
 def generate(results_file: str, output: str):
     """Generate a standalone HTML report.
 
@@ -139,26 +159,35 @@ def generate(results_file: str, output: str):
         analysis_results = analyser.analyse(results_file)
 
         # Load raw results
-        with open(results_file, 'r') as f:
+        with open(results_file, "r") as f:
             raw_results = json.load(f)
 
         # Generate plots
         from ecosystemiser.datavis.plot_factory import PlotFactory
+
         plot_factory = PlotFactory()
 
         plots = {}
-        analyses = analysis_results.get('analyses', {})
+        analyses = analysis_results.get("analyses", {})
 
         # Generate relevant plots
-        if 'technical_kpi' in analyses:
-            plots['kpi_gauges'] = plot_factory.create_technical_kpi_gauges(analyses['technical_kpi'])
+        if "technical_kpi" in analyses:
+            plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(
+                analyses["technical_kpi"]
+            )
 
-        if 'economic' in analyses:
-            plots['economic_summary'] = plot_factory.create_economic_summary_plot(analyses['economic'])
+        if "economic" in analyses:
+            plots["economic_summary"] = plot_factory.create_economic_summary_plot(
+                analyses["economic"]
+            )
 
-        if 'sensitivity' in analyses:
-            plots['sensitivity_heatmap'] = plot_factory.create_sensitivity_heatmap(analyses['sensitivity'])
-            plots['pareto_frontier'] = plot_factory.create_pareto_frontier_plot(analyses['sensitivity'])
+        if "sensitivity" in analyses:
+            plots["sensitivity_heatmap"] = plot_factory.create_sensitivity_heatmap(
+                analyses["sensitivity"]
+            )
+            plots["pareto_frontier"] = plot_factory.create_pareto_frontier_plot(
+                analyses["sensitivity"]
+            )
 
         # Create HTML report
         html_content = create_standalone_html_report(analysis_results, plots)
@@ -167,14 +196,16 @@ def generate(results_file: str, output: str):
         output_path = Path(output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.write(html_content)
 
         click.echo(f"HTML report generated: {output_path}")
 
         # Print summary
-        summary = analysis_results.get('summary', {})
-        click.echo(f"Report includes {summary.get('successful_analyses', 0)} successful analyses")
+        summary = analysis_results.get("summary", {})
+        click.echo(
+            f"Report includes {summary.get('successful_analyses', 0)} successful analyses"
+        )
 
     except Exception as e:
         logger.error(f"Report generation failed: {e}")
@@ -184,7 +215,7 @@ def generate(results_file: str, output: str):
 
 def create_basic_html_report(analysis_results: dict, plots: dict) -> str:
     """Create a basic HTML report without Flask templates."""
-    summary = analysis_results.get('summary', {})
+    summary = analysis_results.get("summary", {})
 
     html = f"""
     <!DOCTYPE html>
@@ -240,8 +271,8 @@ def create_basic_html_report(analysis_results: dict, plots: dict) -> str:
 
 def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
     """Create a comprehensive standalone HTML report."""
-    summary = analysis_results.get('summary', {})
-    analyses = analysis_results.get('analyses', {})
+    summary = analysis_results.get("summary", {})
+    analyses = analysis_results.get("analyses", {})
 
     html = f"""
     <!DOCTYPE html>
@@ -277,8 +308,8 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
     """
 
     # Add key metrics if available
-    key_metrics = summary.get('key_metrics', {})
-    if 'grid_self_sufficiency' in key_metrics:
+    key_metrics = summary.get("key_metrics", {})
+    if "grid_self_sufficiency" in key_metrics:
         html += f"""
             <div class="col-md-3">
                 <div class="metric-card">
@@ -288,7 +319,7 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
             </div>
         """
 
-    if 'renewable_fraction' in key_metrics:
+    if "renewable_fraction" in key_metrics:
         html += f"""
             <div class="col-md-3">
                 <div class="metric-card">
@@ -314,12 +345,12 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
         """
 
     # Add detailed results tables for each analysis type
-    if 'technical_kpi' in analyses:
+    if "technical_kpi" in analyses:
         html += """
         <h3>Technical KPIs</h3>
         <table class="table table-striped">
         """
-        for key, value in analyses['technical_kpi'].items():
+        for key, value in analyses["technical_kpi"].items():
             if isinstance(value, (int, float)):
                 if 0 <= value <= 1:
                     formatted_value = f"{value:.1%}"
@@ -336,22 +367,28 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
             """
         html += "</table>"
 
-    if 'economic' in analyses:
+    if "economic" in analyses:
         html += """
         <h3>Economic Analysis</h3>
         <table class="table table-striped">
         """
-        economic = analyses['economic']
-        economic_keys = ['lcoe', 'npv', 'payback_period_years', 'capex_total', 'opex_annual']
+        economic = analyses["economic"]
+        economic_keys = [
+            "lcoe",
+            "npv",
+            "payback_period_years",
+            "capex_total",
+            "opex_annual",
+        ]
 
         for key in economic_keys:
             if key in economic:
                 value = economic[key]
-                if key == 'lcoe':
+                if key == "lcoe":
                     formatted_value = f"${value:.3f}/kWh"
-                elif 'cost' in key or 'npv' in key or 'opex' in key or 'capex' in key:
+                elif "cost" in key or "npv" in key or "opex" in key or "capex" in key:
                     formatted_value = f"${value:,.0f}"
-                elif 'period' in key:
+                elif "period" in key:
                     formatted_value = f"{value:.1f} years"
                 else:
                     formatted_value = f"{value:.2f}"
@@ -381,5 +418,5 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
     return html
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     report()

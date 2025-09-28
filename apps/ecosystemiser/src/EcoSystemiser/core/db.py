@@ -5,14 +5,18 @@ This module extends the generic hive-db package with EcoSystemiser-specific
 database functionality, following the inherit→extend pattern.
 """
 
-from pathlib import Path
-from contextlib import contextmanager
-from typing import Optional
 import os
 import sqlite3
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Optional
 
+from hive_db import (
+    create_table_if_not_exists,
+    get_sqlite_connection,
+    sqlite_transaction,
+)
 from hive_logging import get_logger
-from hive_db import get_sqlite_connection, sqlite_transaction, create_table_if_not_exists
 
 logger = get_logger(__name__)
 
@@ -25,16 +29,16 @@ def get_ecosystemiser_db_path() -> Path:
         Path to ecosystemiser.db in the EcoSystemiser data directory
     """
     # Check for environment variable override
-    db_path_env = os.environ.get('ECOSYSTEMISER_DB_PATH')
+    db_path_env = os.environ.get("ECOSYSTEMISER_DB_PATH")
     if db_path_env:
         return Path(db_path_env)
 
     # Default to data directory relative to project root
     project_root = Path(__file__).parent.parent.parent.parent.parent
-    data_dir = project_root / 'data' / 'ecosystemiser'
+    data_dir = project_root / "data" / "ecosystemiser"
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    return data_dir / 'ecosystemiser.db'
+    return data_dir / "ecosystemiser.db"
 
 
 @contextmanager
@@ -116,7 +120,7 @@ def validate_ecosystemiser_database() -> bool:
     """
     try:
         with get_ecosystemiser_connection() as conn:
-            conn.execute('SELECT 1')
+            conn.execute("SELECT 1")
         logger.info("EcoSystemiser database validation successful")
         return True
     except Exception as e:

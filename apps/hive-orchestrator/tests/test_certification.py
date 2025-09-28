@@ -6,18 +6,19 @@ This script orchestrates the complete V2.0 certification test automatically,
 running all services in the background and monitoring their behavior.
 """
 
+import json
 import os
+import signal
+import sqlite3
+import subprocess
 import sys
 import time
-import json
-import subprocess
-import sqlite3
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import signal
 
 # No sys.path manipulation needed - use Poetry workspace imports
+
 
 class CertificationTestConductor:
     """Orchestrates the V2.0 certification test."""
@@ -46,18 +47,16 @@ class CertificationTestConductor:
                     proc.kill()
                     proc.wait()
 
-    def run_command(self, command: str, capture_output: bool = True, env=None) -> Tuple[int, str, str]:
+    def run_command(
+        self, command: str, capture_output: bool = True, env=None
+    ) -> Tuple[int, str, str]:
         """Run a command and return exit code, stdout, stderr."""
         self.log(f"Running: {command}", "DEBUG")
         if env is None:
             env = os.environ.copy()
             env["PYTHONPATH"] = str(Path.cwd())
         result = subprocess.run(
-            command,
-            shell=True,
-            capture_output=capture_output,
-            text=True,
-            env=env
+            command, shell=True, capture_output=capture_output, text=True, env=env
         )
         return result.returncode, result.stdout, result.stderr
 
@@ -77,7 +76,9 @@ class CertificationTestConductor:
 
         # Seed test data
         self.log("Seeding test tasks...", "INFO")
-        exit_code, stdout, stderr = self.run_command("python scripts/seed_test_tasks.py")
+        exit_code, stdout, stderr = self.run_command(
+            "python scripts/seed_test_tasks.py"
+        )
         if exit_code != 0:
             self.log(f"Failed to seed test data: {stderr}", "ERROR")
             return False
@@ -92,7 +93,7 @@ class CertificationTestConductor:
         services = [
             ("queen", "python scripts/hive_queen.py"),
             ("reviewer", "python scripts/ai_reviewer_daemon.py"),
-            ("dashboard", "python scripts/hive_dashboard.py")
+            ("dashboard", "python scripts/hive_dashboard.py"),
         ]
 
         for name, command in services:
@@ -109,7 +110,7 @@ class CertificationTestConductor:
                     shell=True,
                     stdout=stdout_file,
                     stderr=stderr_file,
-                    preexec_fn=os.setsid if os.name != 'nt' else None
+                    preexec_fn=os.setsid if os.name != "nt" else None,
                 )
                 self.processes[name] = proc
                 self.log(f"{name} started with PID {proc.pid}", "SUCCESS")
@@ -146,7 +147,9 @@ class CertificationTestConductor:
             if conn:
                 conn.close()
 
-    def wait_for_state(self, task_id: int, target_state: str, timeout: int = 120) -> bool:
+    def wait_for_state(
+        self, task_id: int, target_state: str, timeout: int = 120
+    ) -> bool:
         """Wait for a task to reach a target state."""
         start = time.time()
         last_state = None
@@ -171,7 +174,13 @@ class CertificationTestConductor:
         self.log("=== TEST CASE 1: Happy Path ===", "TEST")
 
         # Task 1 should flow: queued -> in_progress -> apply -> review_pending -> test -> completed
-        expected_states = ["in_progress", "apply", "review_pending", "test", "completed"]
+        expected_states = [
+            "in_progress",
+            "apply",
+            "review_pending",
+            "test",
+            "completed",
+        ]
 
         for state in expected_states:
             self.log(f"Waiting for Task 1 to reach {state}...", "INFO")
@@ -263,7 +272,11 @@ class CertificationTestConductor:
 
         # Overall status
         all_passed = all(result == "PASSED" for result in self.test_results.values())
-        overall_status = "[PASS] CERTIFICATION PASSED" if all_passed else "[FAIL] CERTIFICATION FAILED"
+        overall_status = (
+            "[PASS] CERTIFICATION PASSED"
+            if all_passed
+            else "[FAIL] CERTIFICATION FAILED"
+        )
 
         self.log(overall_status, "REPORT")
         self.log("", "REPORT")
@@ -285,11 +298,15 @@ class CertificationTestConductor:
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            cursor.execute("SELECT id, title, state, application FROM tasks ORDER BY id")
+            cursor.execute(
+                "SELECT id, title, state, application FROM tasks ORDER BY id"
+            )
             tasks = cursor.fetchall()
 
             for task in tasks:
-                self.log(f"  Task {task[0]} ({task[1]}): {task[2]} [{task[3]}]", "REPORT")
+                self.log(
+                    f"  Task {task[0]} ({task[1]}): {task[2]} [{task[3]}]", "REPORT"
+                )
         except Exception as e:
             self.log(f"  Error querying database: {e}", "ERROR")
         finally:
@@ -341,7 +358,7 @@ def signal_handler(signum, frame):
 if __name__ == "__main__":
     # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)
-    if hasattr(signal, 'SIGTERM'):
+    if hasattr(signal, "SIGTERM"):
         signal.signal(signal.SIGTERM, signal_handler)
 
     # Run the test

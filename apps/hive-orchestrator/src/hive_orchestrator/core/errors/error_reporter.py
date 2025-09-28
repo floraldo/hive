@@ -3,14 +3,15 @@ Error Reporting and Tracking
 Centralized error logging and metrics collection
 """
 
-from hive_logging import get_logger
 import json
 import sqlite3
-from pathlib import Path
-from typing import Dict, Any, Optional, List
-from datetime import datetime, timedelta
-from dataclasses import dataclass
 from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from hive_logging import get_logger
 
 from .exceptions import HiveError
 
@@ -20,6 +21,7 @@ logger = get_logger(__name__)
 @dataclass
 class ErrorContext:
     """Context information for error reporting"""
+
     user_id: Optional[str] = None
     session_id: Optional[str] = None
     request_id: Optional[str] = None
@@ -43,7 +45,7 @@ class ErrorReporter:
         log_to_file: bool = True,
         log_to_db: bool = True,
         error_log_path: Optional[Path] = None,
-        error_db_path: Optional[Path] = None
+        error_db_path: Optional[Path] = None,
     ):
         """
         Initialize error reporter
@@ -79,7 +81,7 @@ class ErrorReporter:
         file_handler = logging.FileHandler(self.error_log_path)
         file_handler.setLevel(logging.ERROR)
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
@@ -89,7 +91,8 @@ class ErrorReporter:
         conn = sqlite3.connect(str(self.error_db_path))
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS errors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
@@ -104,22 +107,29 @@ class ErrorReporter:
                 resolution_time TEXT,
                 resolution_notes TEXT
             )
-        """)
+        """
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_errors_timestamp
             ON errors(timestamp DESC)
-        """)
+        """
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_errors_component
             ON errors(component)
-        """)
+        """
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_errors_type
             ON errors(error_type)
-        """)
+        """
+        )
 
         conn.commit()
         conn.close()
@@ -128,7 +138,7 @@ class ErrorReporter:
         self,
         error: Exception,
         context: Optional[ErrorContext] = None,
-        additional_info: Optional[Dict[str, Any]] = None
+        additional_info: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Report an error with context
@@ -169,30 +179,34 @@ class ErrorReporter:
         self,
         error: Exception,
         context: Optional[ErrorContext],
-        additional_info: Optional[Dict[str, Any]]
+        additional_info: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
         """Build structured error record"""
         record = {
             "timestamp": datetime.now().isoformat(),
             "error_type": error.__class__.__name__,
-            "message": str(error)
+            "message": str(error),
         }
 
         # Add Hive-specific error details
         if isinstance(error, HiveError):
-            record.update({
-                "component": error.component,
-                "operation": error.operation,
-                "details": error.details,
-                "recovery_suggestions": error.recovery_suggestions
-            })
+            record.update(
+                {
+                    "component": error.component,
+                    "operation": error.operation,
+                    "details": error.details,
+                    "recovery_suggestions": error.recovery_suggestions,
+                }
+            )
         else:
-            record.update({
-                "component": "unknown",
-                "operation": "unknown",
-                "details": {},
-                "recovery_suggestions": []
-            })
+            record.update(
+                {
+                    "component": "unknown",
+                    "operation": "unknown",
+                    "details": {},
+                    "recovery_suggestions": [],
+                }
+            )
 
         # Add context
         if context:
@@ -201,7 +215,7 @@ class ErrorReporter:
                 "session_id": context.session_id,
                 "request_id": context.request_id,
                 "environment": context.environment,
-                "additional_data": context.additional_data
+                "additional_data": context.additional_data,
             }
 
         # Add additional info
@@ -227,7 +241,7 @@ class ErrorReporter:
     def _log_to_file(self, error_record: Dict[str, Any]):
         """Log error to file"""
         try:
-            with open(self.error_log_path, 'a') as f:
+            with open(self.error_log_path, "a") as f:
                 f.write(json.dumps(error_record) + "\n")
         except Exception as e:
             logger.warning(f"Failed to write error to file: {e}")
@@ -238,21 +252,24 @@ class ErrorReporter:
             conn = sqlite3.connect(str(self.error_db_path))
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO errors (
                     timestamp, error_type, component, operation,
                     message, details, context, recovery_suggestions
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                error_record["timestamp"],
-                error_record["error_type"],
-                error_record.get("component", "unknown"),
-                error_record.get("operation"),
-                error_record["message"],
-                json.dumps(error_record.get("details", {})),
-                json.dumps(error_record.get("context", {})),
-                json.dumps(error_record.get("recovery_suggestions", []))
-            ))
+            """,
+                (
+                    error_record["timestamp"],
+                    error_record["error_type"],
+                    error_record.get("component", "unknown"),
+                    error_record.get("operation"),
+                    error_record["message"],
+                    json.dumps(error_record.get("details", {})),
+                    json.dumps(error_record.get("context", {})),
+                    json.dumps(error_record.get("recovery_suggestions", [])),
+                ),
+            )
 
             conn.commit()
             conn.close()
@@ -260,9 +277,7 @@ class ErrorReporter:
             logger.warning(f"Failed to write error to database: {e}")
 
     def mark_error_resolved(
-        self,
-        error_id: str,
-        resolution_notes: Optional[str] = None
+        self, error_id: str, resolution_notes: Optional[str] = None
     ):
         """Mark an error as resolved"""
         if not self.log_to_db:
@@ -272,7 +287,8 @@ class ErrorReporter:
             conn = sqlite3.connect(str(self.error_db_path))
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE errors
                 SET resolved = TRUE,
                     resolution_time = ?,
@@ -283,11 +299,13 @@ class ErrorReporter:
                     ORDER BY id DESC
                     LIMIT 1
                 )
-            """, (
-                datetime.now().isoformat(),
-                resolution_notes,
-                f"%{error_id.split('_')[1]}%"
-            ))
+            """,
+                (
+                    datetime.now().isoformat(),
+                    resolution_notes,
+                    f"%{error_id.split('_')[1]}%",
+                ),
+            )
 
             conn.commit()
             conn.close()
@@ -295,8 +313,7 @@ class ErrorReporter:
             logger.warning(f"Failed to mark error as resolved: {e}")
 
     def get_error_statistics(
-        self,
-        time_window: Optional[timedelta] = None
+        self, time_window: Optional[timedelta] = None
     ) -> Dict[str, Any]:
         """
         Get error statistics
@@ -312,14 +329,15 @@ class ErrorReporter:
             "errors_by_type": {},
             "errors_by_component": {},
             "recent_errors": [],
-            "top_errors": []
+            "top_errors": [],
         }
 
         # Filter by time window if specified
         if time_window:
             cutoff_time = datetime.now() - time_window
             recent_history = [
-                e for e in self.error_history
+                e
+                for e in self.error_history
                 if datetime.fromisoformat(e["timestamp"]) > cutoff_time
             ]
         else:
@@ -341,17 +359,12 @@ class ErrorReporter:
 
         # Top errors
         stats["top_errors"] = sorted(
-            type_counts.items(),
-            key=lambda x: x[1],
-            reverse=True
+            type_counts.items(), key=lambda x: x[1], reverse=True
         )[:5]
 
         return stats
 
-    def get_recovery_suggestions(
-        self,
-        error_type: str
-    ) -> List[str]:
+    def get_recovery_suggestions(self, error_type: str) -> List[str]:
         """
         Get recovery suggestions for an error type
 
@@ -362,10 +375,7 @@ class ErrorReporter:
             List of recovery suggestions
         """
         # Find recent errors of this type
-        recent_errors = [
-            e for e in self.error_history
-            if e["error_type"] == error_type
-        ]
+        recent_errors = [e for e in self.error_history if e["error_type"] == error_type]
 
         if not recent_errors:
             return []
@@ -392,9 +402,7 @@ def get_error_reporter() -> ErrorReporter:
 
 
 def report_error(
-    error: Exception,
-    context: Optional[ErrorContext] = None,
-    **kwargs
+    error: Exception, context: Optional[ErrorContext] = None, **kwargs
 ) -> str:
     """
     Convenience function to report an error

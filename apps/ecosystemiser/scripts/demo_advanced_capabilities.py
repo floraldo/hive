@@ -11,19 +11,20 @@ Usage:
     python demo_advanced_capabilities.py
 """
 
-import sys
-from pathlib import Path
-import time
 import json
+import sys
+import time
+from pathlib import Path
 
-# Add the source directory to Python path
-src_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(src_path))
-
+# Use Poetry workspace imports
 try:
-    from ecosystemiser.services.study_service import StudyService, StudyConfig, SimulationConfig
-    from ecosystemiser.reporting.generator import HTMLReportGenerator
     from ecosystemiser.datavis.plot_factory import PlotFactory
+    from ecosystemiser.reporting.generator import HTMLReportGenerator
+    from ecosystemiser.services.study_service import (
+        SimulationConfig,
+        StudyConfig,
+        StudyService,
+    )
     from hive_logging import get_logger
 
     logger = get_logger(__name__)
@@ -42,22 +43,22 @@ try:
                 "component": "battery_storage",
                 "parameter": "technical.energy_capacity_nominal",
                 "bounds": [10, 200],  # kWh
-                "description": "Battery energy capacity"
+                "description": "Battery energy capacity",
             },
             {
                 "name": "solar_pv_capacity",
                 "component": "solar_pv",
                 "parameter": "technical.power_capacity_nominal",
                 "bounds": [5, 100],  # kW
-                "description": "Solar PV power capacity"
+                "description": "Solar PV power capacity",
             },
             {
                 "name": "inverter_capacity",
                 "component": "inverter",
                 "parameter": "technical.power_capacity_nominal",
                 "bounds": [5, 50],  # kW
-                "description": "Inverter power capacity"
-            }
+                "description": "Inverter power capacity",
+            },
         ]
 
         # Multi-objective optimization: minimize cost, maximize renewable fraction
@@ -69,7 +70,7 @@ try:
             "max_generations": 20,
             "mutation_rate": 0.15,
             "crossover_rate": 0.85,
-            "elite_size": 5
+            "elite_size": 5,
         }
 
         # Create study service
@@ -95,35 +96,62 @@ try:
                     [110200.30, 0.781],
                     [125400.50, 0.847],
                     [142800.75, 0.892],
-                    [168500.90, 0.923]
+                    [168500.90, 0.923],
                 ],
                 "pareto_objectives": [
                     [98500.20, 0.726],
                     [110200.30, 0.781],
                     [125400.50, 0.847],
                     [142800.75, 0.892],
-                    [168500.90, 0.923]
+                    [168500.90, 0.923],
                 ],
-                "convergence_history": [180000, 165000, 152000, 145000, 140000, 135000, 132000, 130000, 128000, 127000, 126500, 126000, 125800, 125600, 125500, 125450, 125430, 125420, 125410, 125400.50],
+                "convergence_history": [
+                    180000,
+                    165000,
+                    152000,
+                    145000,
+                    140000,
+                    135000,
+                    132000,
+                    130000,
+                    128000,
+                    127000,
+                    126500,
+                    126000,
+                    125800,
+                    125600,
+                    125500,
+                    125450,
+                    125430,
+                    125420,
+                    125410,
+                    125400.50,
+                ],
                 "algorithm_metadata": {
                     "final_population_diversity": 0.234,
                     "convergence_rate": 0.94,
                     "elite_contribution": 0.65,
-                    "mutation_effectiveness": 0.78
-                }
+                    "mutation_effectiveness": 0.78,
+                },
             },
             "summary_statistics": {
                 "final_generation": 20,
                 "total_evaluations": 600,
                 "convergence_status": "CONVERGED",
                 "pareto_front_size": 5,
-                "optimization_efficiency": 0.89
-            }
+                "optimization_efficiency": 0.89,
+            },
         }
 
-        logger.info(f"Optimization completed: {demo_result['successful_simulations']}/{demo_result['num_simulations']} successful evaluations")
-        logger.info(f"Best solution: Battery={demo_result['best_result']['best_solution'][0]:.1f} kWh, Solar={demo_result['best_result']['best_solution'][1]:.1f} kW")
-        logger.info(f"Achieved cost: ${demo_result['best_result']['best_objectives'][0]:,.0f}, Renewable fraction: {demo_result['best_result']['best_objectives'][1]:.1%}")
+        logger.info(
+            f"Optimization completed: {demo_result['successful_simulations']}/{demo_result['num_simulations']} successful evaluations"
+        )
+        logger.info(
+            f"Best solution: Battery={demo_result['best_result']['best_solution'][0]:.1f} kWh, Solar={demo_result['best_result']['best_solution'][1]:.1f} kW"
+        )
+        logger.info(
+            f"Achieved cost: ${demo_result['best_result']['best_objectives'][0]:,.0f}, Renewable fraction: {demo_result['best_result']['best_objectives'][1]:.1%}"
+        )
 
         return demo_result
 
@@ -136,23 +164,23 @@ try:
             "electricity_price": {
                 "distribution": "normal",
                 "parameters": {"mean": 0.12, "std": 0.02},  # $/kWh
-                "description": "Electricity price uncertainty"
+                "description": "Electricity price uncertainty",
             },
             "solar_irradiance": {
                 "distribution": "normal",
                 "parameters": {"mean": 5.2, "std": 0.8},  # kWh/m²/day
-                "description": "Annual solar irradiance variation"
+                "description": "Annual solar irradiance variation",
             },
             "battery_degradation": {
                 "distribution": "uniform",
                 "parameters": {"a": 0.02, "b": 0.05},  # %/year
-                "description": "Battery degradation rate"
+                "description": "Battery degradation rate",
             },
             "load_growth": {
                 "distribution": "triangular",
                 "parameters": {"a": 0.01, "b": 0.05, "c": 0.025},  # %/year
-                "description": "Annual load growth rate"
-            }
+                "description": "Annual load growth rate",
+            },
         }
 
         # MC configuration
@@ -161,7 +189,7 @@ try:
             "sampling_method": "lhs",  # Latin Hypercube Sampling
             "confidence_levels": [0.05, 0.25, 0.50, 0.75, 0.95],
             "sensitivity_analysis": True,
-            "risk_analysis": True
+            "risk_analysis": True,
         }
 
         logger.info("Simulating Monte Carlo uncertainty analysis...")
@@ -187,22 +215,46 @@ try:
                             "max": 178650.90,
                             "median": 122450.80,
                             "skewness": 0.124,
-                            "kurtosis": 2.89
+                            "kurtosis": 2.89,
                         }
                     },
                     "confidence_intervals": {
                         "total_cost": {
-                            "95%": {"lower": 95680.20, "upper": 165420.80, "width": 69740.60},
-                            "75%": {"lower": 108940.50, "upper": 145870.30, "width": 36929.80},
-                            "50%": {"lower": 116250.40, "upper": 132850.70, "width": 16600.30}
+                            "95%": {
+                                "lower": 95680.20,
+                                "upper": 165420.80,
+                                "width": 69740.60,
+                            },
+                            "75%": {
+                                "lower": 108940.50,
+                                "upper": 145870.30,
+                                "width": 36929.80,
+                            },
+                            "50%": {
+                                "lower": 116250.40,
+                                "upper": 132850.70,
+                                "width": 16600.30,
+                            },
                         }
                     },
                     "sensitivity": {
                         "total_cost": {
-                            "param_0": {"sensitivity_index": 0.782, "pearson_correlation": -0.782},
-                            "param_1": {"sensitivity_index": 0.654, "pearson_correlation": -0.654},
-                            "param_2": {"sensitivity_index": 0.423, "pearson_correlation": 0.423},
-                            "param_3": {"sensitivity_index": 0.287, "pearson_correlation": 0.287}
+                            "param_0": {
+                                "sensitivity_index": 0.782,
+                                "pearson_correlation": -0.782,
+                            },
+                            "param_1": {
+                                "sensitivity_index": 0.654,
+                                "pearson_correlation": -0.654,
+                            },
+                            "param_2": {
+                                "sensitivity_index": 0.423,
+                                "pearson_correlation": 0.423,
+                            },
+                            "param_3": {
+                                "sensitivity_index": 0.287,
+                                "pearson_correlation": 0.287,
+                            },
                         }
                     },
                     "risk": {
@@ -213,7 +265,7 @@ try:
                             "cvar_99": 174200.25,
                             "prob_exceed_mean": 0.487,
                             "prob_exceed_2std": 0.022,
-                            "risk_ratio": 0.148
+                            "risk_ratio": 0.148,
                         }
                     },
                     "scenarios": {
@@ -221,32 +273,38 @@ try:
                             "optimistic": {
                                 "description": "Best 10% of outcomes",
                                 "sample_count": 98,
-                                "mean_objective": 95240.80
+                                "mean_objective": 95240.80,
                             },
                             "expected": {
                                 "description": "Median outcomes",
                                 "sample_count": 487,
-                                "mean_objective": 124850.75
+                                "mean_objective": 124850.75,
                             },
                             "pessimistic": {
                                 "description": "Worst 10% of outcomes",
                                 "sample_count": 99,
-                                "mean_objective": 168420.30
-                            }
+                                "mean_objective": 168420.30,
+                            },
                         }
-                    }
-                }
+                    },
+                },
             },
             "summary_statistics": {
                 "sampling_method": "lhs",
                 "total_samples": 1000,
-                "analysis_completeness": 0.987
-            }
+                "analysis_completeness": 0.987,
+            },
         }
 
-        logger.info(f"Monte Carlo analysis completed: {demo_result['successful_simulations']}/{demo_result['num_simulations']} successful samples")
-        logger.info(f"Mean cost: ${demo_result['best_result']['uncertainty_analysis']['statistics']['total_cost']['mean']:,.0f}")
-        logger.info(f"95% confidence interval: ${demo_result['best_result']['uncertainty_analysis']['confidence_intervals']['total_cost']['95%']['lower']:,.0f} - ${demo_result['best_result']['uncertainty_analysis']['confidence_intervals']['total_cost']['95%']['upper']:,.0f}")
+        logger.info(
+            f"Monte Carlo analysis completed: {demo_result['successful_simulations']}/{demo_result['num_simulations']} successful samples"
+        )
+        logger.info(
+            f"Mean cost: ${demo_result['best_result']['uncertainty_analysis']['statistics']['total_cost']['mean']:,.0f}"
+        )
+        logger.info(
+            f"95% confidence interval: ${demo_result['best_result']['uncertainty_analysis']['confidence_intervals']['total_cost']['95%']['lower']:,.0f} - ${demo_result['best_result']['uncertainty_analysis']['confidence_intervals']['total_cost']['95%']['upper']:,.0f}"
+        )
 
         return demo_result
 
@@ -263,16 +321,37 @@ try:
                     {"cost": 110200.30, "renewable": 0.781},
                     {"cost": 125400.50, "renewable": 0.847},
                     {"cost": 142800.75, "renewable": 0.892},
-                    {"cost": 168500.90, "renewable": 0.923}
+                    {"cost": 168500.90, "renewable": 0.923},
                 ],
-                "cost_renewable_correlation": -0.745
+                "cost_renewable_correlation": -0.745,
             }
         }
         plots["pareto_frontier"] = plot_factory.create_pareto_frontier_plot(pareto_data)
 
         # Mock convergence data
         ga_result = {
-            "convergence_history": [180000, 165000, 152000, 145000, 140000, 135000, 132000, 130000, 128000, 127000, 126500, 126000, 125800, 125600, 125500, 125450, 125430, 125420, 125410, 125400.50]
+            "convergence_history": [
+                180000,
+                165000,
+                152000,
+                145000,
+                140000,
+                135000,
+                132000,
+                130000,
+                128000,
+                127000,
+                126500,
+                126000,
+                125800,
+                125600,
+                125500,
+                125450,
+                125430,
+                125420,
+                125410,
+                125400.50,
+            ]
         }
         plots["convergence"] = plot_factory.create_ga_convergence_plot(ga_result)
 
@@ -284,12 +363,14 @@ try:
                         "mean": 124850.75,
                         "std": 18420.33,
                         "min": 87420.10,
-                        "max": 178650.90
+                        "max": 178650.90,
                     }
                 }
             }
         }
-        plots["uncertainty_distribution"] = plot_factory.create_uncertainty_distribution_plot(mc_result)
+        plots["uncertainty_distribution"] = (
+            plot_factory.create_uncertainty_distribution_plot(mc_result)
+        )
 
         # Mock risk analysis
         plots["risk_analysis"] = plot_factory.create_risk_analysis_plot(mc_result)
@@ -321,7 +402,9 @@ try:
         logger.info(f"Generated MC uncertainty report: {mc_report_path}")
 
         # Generate comparison report
-        comparison_html = report_generator.generate_study_comparison_report([ga_result, mc_result], plots)
+        comparison_html = report_generator.generate_study_comparison_report(
+            [ga_result, mc_result], plots
+        )
         comparison_report_path = Path("reports/demo_study_comparison.html")
         report_generator.save_report(comparison_html, comparison_report_path)
         logger.info(f"Generated study comparison report: {comparison_report_path}")
@@ -329,7 +412,7 @@ try:
         return {
             "ga_report": ga_report_path,
             "mc_report": mc_report_path,
-            "comparison_report": comparison_report_path
+            "comparison_report": comparison_report_path,
         }
 
     def main():
@@ -362,7 +445,9 @@ try:
             logger.info("")
             logger.info("Advanced Capabilities Demonstrated:")
             logger.info("  * Genetic Algorithm Design Optimization")
-            logger.info("    - Multi-objective optimization (cost vs. renewable fraction)")
+            logger.info(
+                "    - Multi-objective optimization (cost vs. renewable fraction)"
+            )
             logger.info("    - Pareto frontier analysis")
             logger.info("    - Design space exploration with 600 evaluations")
             logger.info("  * Monte Carlo Uncertainty Analysis")
@@ -389,6 +474,7 @@ try:
         except Exception as e:
             logger.error(f"Demonstration failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 

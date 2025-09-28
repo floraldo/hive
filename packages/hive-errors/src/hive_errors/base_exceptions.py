@@ -5,7 +5,7 @@ These are pure, business-logic-free exception patterns that can be used
 to build robust error handling for any system.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class BaseError(Exception):
@@ -27,7 +27,7 @@ class BaseError(Exception):
         operation: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
         recovery_suggestions: Optional[List[str]] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         super().__init__(message)
         self.message = message
@@ -46,30 +46,35 @@ class BaseError(Exception):
             "operation": self.operation,
             "details": self.details,
             "recovery_suggestions": self.recovery_suggestions,
-            "original_error": str(self.original_error) if self.original_error else None
+            "original_error": str(self.original_error) if self.original_error else None,
         }
 
 
 class ConfigurationError(BaseError):
     """Generic configuration-related error"""
+
     pass
 
 
 class ConnectionError(BaseError):
     """Generic connection-related error"""
+
     pass
 
 
 class ValidationError(BaseError):
     """Generic validation-related error"""
+
     pass
 
 
 class TimeoutError(BaseError):
     """Generic timeout-related error"""
+
     pass
 
 
 class ResourceError(BaseError):
     """Generic resource-related error (memory, disk, etc.)"""
+
     pass

@@ -1,21 +1,30 @@
 """Base component class for all system components."""
+
+from typing import Any, Dict, Optional
+
 import cvxpy as cp
 import numpy as np
-from typing import Dict, Any, Optional
-from pydantic import BaseModel
-from ecosystemiser.system_model.components.shared.economic_params import EconomicParamsModel
-from ecosystemiser.system_model.components.shared.environmental_params import EnvironmentalParamsModel
+from ecosystemiser.system_model.components.shared.economic_params import (
+    EconomicParamsModel,
+)
+from ecosystemiser.system_model.components.shared.environmental_params import (
+    EnvironmentalParamsModel,
+)
 from hive_logging import get_logger
+from pydantic import BaseModel
 
 logger = get_logger(__name__)
 
+
 class ComponentParams(BaseModel):
     """Base parameters for all components."""
+
     economic: Optional[EconomicParamsModel] = EconomicParamsModel()
     environmental: Optional[EnvironmentalParamsModel] = EnvironmentalParamsModel()
 
     class Config:
         extra = "allow"  # Allow additional fields for component-specific params
+
 
 class Component:
     """Base class for all system components with enhanced parameter handling."""
@@ -37,12 +46,7 @@ class Component:
         self.medium = "electricity"
 
         # Flow dictionaries for system connections
-        self.flows = {
-            'input': {},
-            'output': {},
-            'source': {},
-            'sink': {}
-        }
+        self.flows = {"input": {}, "output": {}, "source": {}, "sink": {}}
 
         # Constraints list for optimization
         self.constraints = []
@@ -55,9 +59,9 @@ class Component:
 
         # Make nested parameters directly accessible (for backwards compatibility)
         # This allows self.technical.P_max instead of self.params.technical.P_max
-        self.technical = getattr(params, 'technical', None)
-        self.economic = getattr(params, 'economic', None)
-        self.environmental = getattr(params, 'environmental', None)
+        self.technical = getattr(params, "technical", None)
+        self.economic = getattr(params, "economic", None)
+        self.environmental = getattr(params, "environmental", None)
 
         # Profile placeholder (set by SystemBuilder if needed)
         self.profile = None
@@ -105,15 +109,11 @@ class Component:
         Note:
             Override in subclasses for component-specific state.
         """
-        state = {
-            'name': self.name,
-            'type': self.type,
-            'medium': self.medium
-        }
+        state = {"name": self.name, "type": self.type, "medium": self.medium}
 
         # Add profile value if available
         if self.profile is not None and t < len(self.profile):
-            state['profile_value'] = float(self.profile[t])
+            state["profile_value"] = float(self.profile[t])
 
         return state
 

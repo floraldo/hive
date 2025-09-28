@@ -7,8 +7,8 @@ is working correctly and that there are no configuration conflicts.
 """
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -40,11 +40,11 @@ def test_pyproject_toml_exists():
 
     # Test that it contains expected content
     try:
-        with open(pyproject_path, 'r') as f:
+        with open(pyproject_path, "r") as f:
             content = f.read()
 
         # Check for consolidated dependencies
-        if 'cvxpy' in content:
+        if "cvxpy" in content:
             print("[SUCCESS] cvxpy dependency found (from setup.py consolidation)")
         else:
             print("[FAIL] cvxpy dependency missing - needed for MILP optimization")
@@ -56,7 +56,7 @@ def test_pyproject_toml_exists():
             print("[FAIL] version not properly consolidated")
             return False
 
-        if 'Energy ecosystem optimization' in content:
+        if "Energy ecosystem optimization" in content:
             print("[SUCCESS] description properly consolidated")
         else:
             print("[FAIL] description not properly consolidated")
@@ -75,8 +75,9 @@ def test_poetry_validation():
 
     try:
         # Run poetry check to validate the configuration
-        result = subprocess.run(['poetry', 'check'],
-                              capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            ["poetry", "check"], capture_output=True, text=True, timeout=30
+        )
 
         if result.returncode == 0:
             print("[SUCCESS] Poetry configuration is valid")
@@ -92,7 +93,9 @@ def test_poetry_validation():
         return False
     except FileNotFoundError:
         print("[WARNING] Poetry not found - cannot validate configuration")
-        print("[INFO] This is expected in CI/test environments without Poetry installed")
+        print(
+            "[INFO] This is expected in CI/test environments without Poetry installed"
+        )
         return True  # Don't fail the test just because Poetry isn't installed
     except Exception as e:
         print(f"[FAIL] Error running poetry check: {e}")
@@ -105,9 +108,9 @@ def test_no_conflicting_configs():
 
     # Check for other potential configuration files that might conflict
     conflicting_files = [
-        'setup.cfg',
-        'requirements.txt',  # Should use pyproject.toml instead
-        'Pipfile',          # Should use pyproject.toml instead
+        "setup.cfg",
+        "requirements.txt",  # Should use pyproject.toml instead
+        "Pipfile",  # Should use pyproject.toml instead
     ]
 
     conflicts_found = False
@@ -166,7 +169,9 @@ def main():
     else:
         print("[FAIL] No Conflicting Configs: FAILED")
 
-    overall_success = test1_success and test2_success and test3_success and test4_success
+    overall_success = (
+        test1_success and test2_success and test3_success and test4_success
+    )
 
     if overall_success:
         print("\n[SUCCESS] Phase 4 Project Configuration Consolidation: SUCCESS!")

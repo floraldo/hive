@@ -5,11 +5,12 @@ Provides reusable patterns for error reporting and metrics
 that can be extended for any system.
 """
 
-from hive_logging import get_logger
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from hive_logging import get_logger
 
 from .base_exceptions import BaseError
 
@@ -37,7 +38,7 @@ class BaseErrorReporter(ABC):
         self,
         error: Exception,
         context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None
+        additional_info: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Report an error with context.
@@ -56,30 +57,34 @@ class BaseErrorReporter(ABC):
         self,
         error: Exception,
         context: Optional[Dict[str, Any]],
-        additional_info: Optional[Dict[str, Any]]
+        additional_info: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
         """Build structured error record"""
         record = {
             "timestamp": datetime.now().isoformat(),
             "error_type": error.__class__.__name__,
-            "message": str(error)
+            "message": str(error),
         }
 
         # Add structured error details if available
         if isinstance(error, BaseError):
-            record.update({
-                "component": error.component,
-                "operation": error.operation,
-                "details": error.details,
-                "recovery_suggestions": error.recovery_suggestions
-            })
+            record.update(
+                {
+                    "component": error.component,
+                    "operation": error.operation,
+                    "details": error.details,
+                    "recovery_suggestions": error.recovery_suggestions,
+                }
+            )
         else:
-            record.update({
-                "component": "unknown",
-                "operation": "unknown",
-                "details": {},
-                "recovery_suggestions": []
-            })
+            record.update(
+                {
+                    "component": "unknown",
+                    "operation": "unknown",
+                    "details": {},
+                    "recovery_suggestions": [],
+                }
+            )
 
         # Add context
         if context:
@@ -110,7 +115,8 @@ class BaseErrorReporter(ABC):
         return {
             "total_errors": self.error_counts["total"],
             "errors_by_type": {
-                k: v for k, v in self.error_counts.items()
+                k: v
+                for k, v in self.error_counts.items()
                 if not k.startswith("component_") and k != "total"
             },
             "errors_by_component": {
@@ -124,10 +130,7 @@ class BaseErrorReporter(ABC):
     def get_recovery_suggestions(self, error_type: str) -> List[str]:
         """Get recovery suggestions for an error type"""
         # Find recent errors of this type
-        recent_errors = [
-            e for e in self.error_history
-            if e["error_type"] == error_type
-        ]
+        recent_errors = [e for e in self.error_history if e["error_type"] == error_type]
 
         if not recent_errors:
             return []

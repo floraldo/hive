@@ -9,21 +9,36 @@ This test verifies that recent changes haven't broken the core logic by
 ensuring numerical equivalence with the original, trusted Systemiser implementation.
 """
 
-import sys
 import json
+import sys
 from pathlib import Path
+
 import numpy as np
 
 # Add path for imports
 eco_path = Path(__file__).parent / 'src' / 'EcoSystemiser'
+from solver.rule_based_engine import RuleBasedEngine
+from system_model.components.energy.battery import (
+    Battery,
+    BatteryParams,
+    BatteryTechnicalParams,
+)
+from system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
+from system_model.components.energy.power_demand import (
+    PowerDemand,
+    PowerDemandParams,
+    PowerDemandTechnicalParams,
+)
+from system_model.components.energy.solar_pv import (
+    SolarPV,
+    SolarPVParams,
+    SolarPVTechnicalParams,
+)
+from system_model.components.shared.archetypes import FidelityLevel
+
 # Import EcoSystemiser components
 from system_model.system import System
-from system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
-from system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
-from system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
-from system_model.components.energy.power_demand import PowerDemand, PowerDemandParams, PowerDemandTechnicalParams
-from system_model.components.shared.archetypes import FidelityLevel
-from solver.rule_based_engine import RuleBasedEngine
+
 
 def load_golden_dataset():
     """Load the golden dataset from the Systemiser baseline."""

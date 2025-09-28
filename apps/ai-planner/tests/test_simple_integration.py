@@ -3,8 +3,8 @@
 Simple test for AI Planner Claude integration without emoji symbols
 """
 
-import sys
 import json
+import sys
 import uuid
 from pathlib import Path
 
@@ -31,7 +31,7 @@ try:
         # Test plan generation
         plan = bridge.generate_execution_plan(
             task_description="Build a simple web API",
-            context_data={"files_affected": 3}
+            context_data={"files_affected": 3},
         )
 
         assert plan is not None
@@ -47,16 +47,16 @@ try:
 
         # Test task processing
         test_task = {
-            'id': 'test-' + str(uuid.uuid4())[:8],
-            'task_description': 'Create user authentication',
-            'priority': 50,
-            'requestor': 'test',
-            'context_data': {'files_affected': 2}
+            "id": "test-" + str(uuid.uuid4())[:8],
+            "task_description": "Create user authentication",
+            "priority": 50,
+            "requestor": "test",
+            "context_data": {"files_affected": 2},
         }
 
         plan = agent.generate_execution_plan(test_task)
         assert plan is not None
-        assert plan['metadata']['generation_method'] == 'claude-powered'
+        assert plan["metadata"]["generation_method"] == "claude-powered"
         print("SUCCESS: Task processing working")
 
         # Test plan saving
@@ -67,7 +67,10 @@ try:
         # Cleanup
         if agent.db_connection:
             cursor = agent.db_connection.cursor()
-            cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task['id'],))
+            cursor.execute(
+                "DELETE FROM execution_plans WHERE planning_task_id = ?",
+                (test_task["id"],),
+            )
             cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
             agent.db_connection.commit()
             agent.db_connection.close()
@@ -89,6 +92,7 @@ try:
         except Exception as e:
             print(f"\nFAILED: Test failed with error: {e}")
             import traceback
+
             traceback.print_exc()
             sys.exit(1)
 

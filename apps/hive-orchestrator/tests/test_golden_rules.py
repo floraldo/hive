@@ -9,18 +9,20 @@ relevant to the current app context.
 Run with: pytest tests/test_golden_rules.py -v
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 # Import the validators from hive-testing-utils
 from hive_tests.architectural_validators import (
     validate_app_contracts,
     validate_colocated_tests,
-    validate_no_syspath_hacks,
     validate_dependency_direction,
-    validate_interface_contracts,
     validate_error_handling_standards,
+    validate_interface_contracts,
     validate_logging_standards,
+    validate_no_syspath_hacks,
+    validate_single_config_source,
 )
 
 
@@ -46,6 +48,7 @@ class TestLocalGoldenRules:
         assert contract_file.exists(), "Missing hive-app.toml contract file"
 
         import toml
+
         contract = toml.load(contract_file)
 
         # Verify required sections
@@ -72,7 +75,7 @@ class TestLocalGoldenRules:
                 continue
 
             try:
-                with open(py_file, 'r', encoding='utf-8') as f:
+                with open(py_file, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for sys.path manipulation patterns
@@ -97,13 +100,13 @@ class TestLocalGoldenRules:
                 continue
 
             try:
-                with open(py_file, 'r', encoding='utf-8') as f:
+                with open(py_file, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 for other_app in other_apps:
                     import_patterns = [
                         f"from {other_app.replace('-', '_')}",
-                        f"import {other_app.replace('-', '_')}"
+                        f"import {other_app.replace('-', '_')}",
                     ]
 
                     for pattern in import_patterns:
@@ -125,26 +128,33 @@ class TestLocalGoldenRules:
         violations = []
 
         for py_file in app_root.rglob("*.py"):
-            if (".venv" in str(py_file) or "__pycache__" in str(py_file) or
-                "test" in str(py_file) or "__main__" in str(py_file.name)):
+            if (
+                ".venv" in str(py_file)
+                or "__pycache__" in str(py_file)
+                or "test" in str(py_file)
+                or "__main__" in str(py_file.name)
+            ):
                 continue
 
             try:
-                with open(py_file, 'r', encoding='utf-8') as f:
+                with open(py_file, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for print statements
                 if "print(" in content:
-                    lines = content.split('\n')
+                    lines = content.split("\n")
                     for i, line in enumerate(lines, 1):
-                        if "print(" in line and not line.strip().startswith('#'):
+                        if "print(" in line and not line.strip().startswith("#"):
                             violations.append(
                                 f"{py_file.relative_to(app_root)}:{i}: print statement"
                             )
 
                 # Check if uses logging but not hive_logging
-                if ("logger" in content.lower() or "logging" in content.lower()):
-                    if "from hive_logging import" not in content and "import hive_logging" not in content:
+                if "logger" in content.lower() or "logging" in content.lower():
+                    if (
+                        "from hive_logging import" not in content
+                        and "import hive_logging" not in content
+                    ):
                         violations.append(
                             f"{py_file.relative_to(app_root)}: uses logging without hive_logging"
                         )
@@ -162,16 +172,19 @@ class TestLocalGoldenRules:
         violations = []
 
         for py_file in app_root.rglob("*.py"):
-            if (".venv" in str(py_file) or "__pycache__" in str(py_file) or
-                "test" in str(py_file)):
+            if (
+                ".venv" in str(py_file)
+                or "__pycache__" in str(py_file)
+                or "test" in str(py_file)
+            ):
                 continue
 
             try:
-                with open(py_file, 'r', encoding='utf-8') as f:
+                with open(py_file, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for bare except clauses
-                lines = content.split('\n')
+                lines = content.split("\n")
                 for i, line in enumerate(lines, 1):
                     if line.strip() == "except:" or line.strip() == "except Exception:":
                         violations.append(
@@ -186,8 +199,23 @@ class TestLocalGoldenRules:
             for v in violations[:5]:  # Show first 5
                 print(f"  - {v}")
 
+    def test_single_config_source(self, project_root):
+        """Golden Rule 16: Verify no global config calls or singleton patterns."""
+        is_valid, violations = validate_single_config_source(project_root)
+
+        if not is_valid:
+            # Filter for violations in this app only
+            app_violations = [v for v in violations if "hive-orchestrator" in v]
+            if app_violations:
+                print(f"Golden Rule 16 violations in hive-orchestrator:")
+                for v in app_violations[:10]:  # Show first 10
+                    print(f"  - {v}")
+                # For now, warn instead of failing to allow gradual migration
+                print(f"Total: {len(app_violations)} violations in this app")
+
 
 if __name__ == "__main__":
     # Allow running directly with python
     import sys
+
     pytest.main([__file__, "-v", "--tb=short"])

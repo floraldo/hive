@@ -8,23 +8,22 @@ Interactive terminal dashboard for monitoring the entire Hive system.
 Uses the rich library for beautiful terminal UI with live updates.
 """
 
-import time
 import json
+import time
 from datetime import datetime
-from typing import List, Dict, Any
 from pathlib import Path
-
-from rich.console import Console
-from rich.live import Live
-from rich.table import Table
-from rich.panel import Panel
-from rich.layout import Layout
-from rich.columns import Columns
-from rich.text import Text
-from rich import box
+from typing import Any, Dict, List
 
 # Import database functions from the orchestrator's core
-from hive_orchestrator.core.db import get_connection, close_connection
+from hive_orchestrator.core.db import close_connection, get_connection
+from rich import box
+from rich.columns import Columns
+from rich.console import Console
+from rich.layout import Layout
+from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 
 class HiveDashboard:
@@ -40,9 +39,19 @@ class HiveDashboard:
         cursor = conn.cursor()
 
         stats = {}
-        statuses = ['queued', 'assigned', 'in_progress', 'review_pending',
-                   'approved', 'rejected', 'rework_needed', 'escalated',
-                   'completed', 'failed', 'cancelled']
+        statuses = [
+            "queued",
+            "assigned",
+            "in_progress",
+            "review_pending",
+            "approved",
+            "rejected",
+            "rework_needed",
+            "escalated",
+            "completed",
+            "failed",
+            "cancelled",
+        ]
 
         for status in statuses:
             cursor.execute("SELECT COUNT(*) FROM tasks WHERE status = ?", (status,))
@@ -55,26 +64,31 @@ class HiveDashboard:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, title, task_type, status, priority,
                    assigned_worker, created_at, updated_at
             FROM tasks
             ORDER BY updated_at DESC
             LIMIT ?
-        """, (limit,))
+        """,
+            (limit,),
+        )
 
         tasks = []
         for row in cursor.fetchall():
-            tasks.append({
-                'id': row[0],
-                'title': row[1],
-                'task_type': row[2],
-                'status': row[3],
-                'priority': row[4],
-                'assigned_worker': row[5],
-                'created_at': row[6],
-                'updated_at': row[7]
-            })
+            tasks.append(
+                {
+                    "id": row[0],
+                    "title": row[1],
+                    "task_type": row[2],
+                    "status": row[3],
+                    "priority": row[4],
+                    "assigned_worker": row[5],
+                    "created_at": row[6],
+                    "updated_at": row[7],
+                }
+            )
 
         return tasks
 
@@ -83,28 +97,32 @@ class HiveDashboard:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, title, priority, created_at, result_data
             FROM tasks
             WHERE status = 'escalated'
             ORDER BY priority DESC, created_at ASC
             LIMIT 5
-        """)
+        """
+        )
 
         escalated = []
         for row in cursor.fetchall():
             # Parse result data to get AI score
             result_data = json.loads(row[4]) if row[4] else {}
-            review = result_data.get('review', {})
+            review = result_data.get("review", {})
 
-            escalated.append({
-                'id': row[0],
-                'title': row[1],
-                'priority': row[2],
-                'created_at': row[3],
-                'ai_score': review.get('overall_score', 0),
-                'reason': result_data.get('escalation_reason', 'Review needed')
-            })
+            escalated.append(
+                {
+                    "id": row[0],
+                    "title": row[1],
+                    "priority": row[2],
+                    "created_at": row[3],
+                    "ai_score": review.get("overall_score", 0),
+                    "reason": result_data.get("escalation_reason", "Review needed"),
+                }
+            )
 
         return escalated
 
@@ -113,23 +131,27 @@ class HiveDashboard:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, role, status, current_task_id,
                    last_heartbeat, registered_at
             FROM workers
             ORDER BY last_heartbeat DESC
-        """)
+        """
+        )
 
         workers = []
         for row in cursor.fetchall():
-            workers.append({
-                'id': row[0],
-                'role': row[1],
-                'status': row[2],
-                'current_task_id': row[3],
-                'last_heartbeat': row[4],
-                'registered_at': row[5]
-            })
+            workers.append(
+                {
+                    "id": row[0],
+                    "role": row[1],
+                    "status": row[2],
+                    "current_task_id": row[3],
+                    "last_heartbeat": row[4],
+                    "registered_at": row[5],
+                }
+            )
 
         return workers
 
@@ -138,27 +160,32 @@ class HiveDashboard:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT r.id, r.task_id, t.title, r.worker_id,
                    r.status, r.phase, r.started_at, r.completed_at
             FROM runs r
             JOIN tasks t ON r.task_id = t.id
             ORDER BY r.started_at DESC
             LIMIT ?
-        """, (limit,))
+        """,
+            (limit,),
+        )
 
         runs = []
         for row in cursor.fetchall():
-            runs.append({
-                'id': row[0],
-                'task_id': row[1],
-                'task_title': row[2],
-                'worker_id': row[3],
-                'status': row[4],
-                'phase': row[5],
-                'started_at': row[6],
-                'completed_at': row[7]
-            })
+            runs.append(
+                {
+                    "id": row[0],
+                    "task_id": row[1],
+                    "task_title": row[2],
+                    "worker_id": row[3],
+                    "status": row[4],
+                    "phase": row[5],
+                    "started_at": row[6],
+                    "completed_at": row[7],
+                }
+            )
 
         return runs
 
@@ -171,7 +198,9 @@ class HiveDashboard:
 
         # Create alert content
         alert_lines = []
-        alert_lines.append("[bold red blink]🚨 ACTION REQUIRED: HUMAN REVIEW NEEDED 🚨[/bold red blink]\n")
+        alert_lines.append(
+            "[bold red blink]🚨 ACTION REQUIRED: HUMAN REVIEW NEEDED 🚨[/bold red blink]\n"
+        )
 
         # Create mini table for escalated tasks
         table = Table(box=box.SIMPLE, show_header=True, header_style="bold yellow")
@@ -183,7 +212,7 @@ class HiveDashboard:
 
         for task in escalated:
             # Calculate age
-            created = datetime.fromisoformat(task['created_at'])
+            created = datetime.fromisoformat(task["created_at"])
             age = datetime.now() - created
             if age.days > 0:
                 age_str = f"{age.days}d"
@@ -194,11 +223,11 @@ class HiveDashboard:
                 age_color = "yellow" if hours > 12 else "white"
 
             table.add_row(
-                task['id'][:12],
-                task['title'][:25],
+                task["id"][:12],
+                task["title"][:25],
                 f"P{task['priority']}",
                 f"[{age_color}]{age_str}[/{age_color}]",
-                f"{task['ai_score']:.0f}" if task['ai_score'] else "N/A"
+                f"{task['ai_score']:.0f}" if task["ai_score"] else "N/A",
             )
 
         # Create panel with alert styling
@@ -207,7 +236,7 @@ class HiveDashboard:
             title=f"[bold red]{len(escalated)} Tasks Escalated for Review[/bold red]",
             box=box.DOUBLE,
             border_style="red",
-            padding=(0, 1)
+            padding=(0, 1),
         )
 
         return panel
@@ -227,16 +256,19 @@ class HiveDashboard:
         table.add_column("Failed", style="red", justify="center")
 
         table.add_row(
-            str(stats.get('queued', 0)),
-            str(stats.get('assigned', 0)),
-            str(stats.get('in_progress', 0)),
-            str(stats.get('review_pending', 0)),
-            str(stats.get('completed', 0)),
-            str(stats.get('failed', 0))
+            str(stats.get("queued", 0)),
+            str(stats.get("assigned", 0)),
+            str(stats.get("in_progress", 0)),
+            str(stats.get("review_pending", 0)),
+            str(stats.get("completed", 0)),
+            str(stats.get("failed", 0)),
         )
 
         # Add review status if there are any
-        if any(stats.get(s, 0) > 0 for s in ['approved', 'rejected', 'rework_needed', 'escalated']):
+        if any(
+            stats.get(s, 0) > 0
+            for s in ["approved", "rejected", "rework_needed", "escalated"]
+        ):
             review_table = Table(title="AI Review Status", box=box.ROUNDED)
             review_table.add_column("Approved", style="green", justify="center")
             review_table.add_column("Rejected", style="red", justify="center")
@@ -244,10 +276,14 @@ class HiveDashboard:
             review_table.add_column("Escalated", style="red bold", justify="center")
 
             review_table.add_row(
-                str(stats.get('approved', 0)),
-                str(stats.get('rejected', 0)),
-                str(stats.get('rework_needed', 0)),
-                f"[red bold]{stats.get('escalated', 0)}[/red bold]" if stats.get('escalated', 0) > 0 else "0"
+                str(stats.get("approved", 0)),
+                str(stats.get("rejected", 0)),
+                str(stats.get("rework_needed", 0)),
+                (
+                    f"[red bold]{stats.get('escalated', 0)}[/red bold]"
+                    if stats.get("escalated", 0) > 0
+                    else "0"
+                ),
             )
 
             return Columns([table, review_table])
@@ -267,23 +303,23 @@ class HiveDashboard:
         table.add_column("Worker", width=15)
 
         status_colors = {
-            'queued': 'white',
-            'assigned': 'cyan',
-            'in_progress': 'yellow',
-            'completed': 'green',
-            'failed': 'red',
-            'cancelled': 'dim'
+            "queued": "white",
+            "assigned": "cyan",
+            "in_progress": "yellow",
+            "completed": "green",
+            "failed": "red",
+            "cancelled": "dim",
         }
 
         for task in tasks:
-            status_color = status_colors.get(task['status'], 'white')
+            status_color = status_colors.get(task["status"], "white")
             table.add_row(
-                task['id'][:8],
-                task['title'][:30],
-                task['task_type'],
+                task["id"][:8],
+                task["title"][:30],
+                task["task_type"],
                 f"[{status_color}]{task['status']}[/{status_color}]",
-                str(task['priority']),
-                task['assigned_worker'] or '-'
+                str(task["priority"]),
+                task["assigned_worker"] or "-",
             )
 
         return table
@@ -300,29 +336,29 @@ class HiveDashboard:
         table.add_column("Last Heartbeat", width=15)
 
         status_colors = {
-            'active': 'green',
-            'idle': 'yellow',
-            'offline': 'red',
-            'error': 'red bold'
+            "active": "green",
+            "idle": "yellow",
+            "offline": "red",
+            "error": "red bold",
         }
 
         for worker in workers:
-            status_color = status_colors.get(worker['status'], 'white')
+            status_color = status_colors.get(worker["status"], "white")
 
             # Calculate time since last heartbeat
-            if worker['last_heartbeat']:
-                last_hb = datetime.fromisoformat(worker['last_heartbeat'])
+            if worker["last_heartbeat"]:
+                last_hb = datetime.fromisoformat(worker["last_heartbeat"])
                 time_diff = datetime.now() - last_hb
                 hb_text = f"{int(time_diff.total_seconds())}s ago"
             else:
                 hb_text = "Never"
 
             table.add_row(
-                worker['id'][:8],
-                worker['role'],
+                worker["id"][:8],
+                worker["role"],
                 f"[{status_color}]{worker['status']}[/{status_color}]",
-                worker['current_task_id'][:20] if worker['current_task_id'] else '-',
-                hb_text
+                worker["current_task_id"][:20] if worker["current_task_id"] else "-",
+                hb_text,
             )
 
         return table
@@ -340,37 +376,37 @@ class HiveDashboard:
         table.add_column("Duration", width=10)
 
         status_colors = {
-            'pending': 'white',
-            'running': 'yellow',
-            'success': 'green',
-            'failure': 'red',
-            'timeout': 'red bold',
-            'cancelled': 'dim'
+            "pending": "white",
+            "running": "yellow",
+            "success": "green",
+            "failure": "red",
+            "timeout": "red bold",
+            "cancelled": "dim",
         }
 
         for run in runs:
-            status_color = status_colors.get(run['status'], 'white')
+            status_color = status_colors.get(run["status"], "white")
 
             # Calculate duration
-            if run['started_at'] and run['completed_at']:
-                start = datetime.fromisoformat(run['started_at'])
-                end = datetime.fromisoformat(run['completed_at'])
+            if run["started_at"] and run["completed_at"]:
+                start = datetime.fromisoformat(run["started_at"])
+                end = datetime.fromisoformat(run["completed_at"])
                 duration = end - start
                 duration_text = f"{int(duration.total_seconds())}s"
-            elif run['started_at']:
-                start = datetime.fromisoformat(run['started_at'])
+            elif run["started_at"]:
+                start = datetime.fromisoformat(run["started_at"])
                 duration = datetime.now() - start
                 duration_text = f"{int(duration.total_seconds())}s"
             else:
                 duration_text = "-"
 
             table.add_row(
-                run['id'][:8],
-                run['task_title'][:25],
-                run['worker_id'][:8],
+                run["id"][:8],
+                run["task_title"][:25],
+                run["worker_id"][:8],
                 f"[{status_color}]{run['status']}[/{status_color}]",
-                run['phase'] or '-',
-                duration_text
+                run["phase"] or "-",
+                duration_text,
             )
 
         return table
@@ -390,7 +426,7 @@ class HiveDashboard:
                 Layout(name="escalation", size=8),  # Prominent alert
                 Layout(name="status", size=5),
                 Layout(name="main", size=18),
-                Layout(name="footer", size=3)
+                Layout(name="footer", size=3),
             )
             layout["escalation"].update(escalation_panel)
         else:
@@ -399,13 +435,13 @@ class HiveDashboard:
                 Layout(name="header", size=3),
                 Layout(name="status", size=5),
                 Layout(name="main", size=20),
-                Layout(name="footer", size=3)
+                Layout(name="footer", size=3),
             )
 
         # Header
         header_text = Text.from_markup(
-            "[bold cyan]HIVE FLEET COMMAND DASHBOARD[/bold cyan]\n" +
-            f"[dim]Real-time System Monitor • Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/dim]"
+            "[bold cyan]HIVE FLEET COMMAND DASHBOARD[/bold cyan]\n"
+            + f"[dim]Real-time System Monitor • Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/dim]"
         )
         layout["header"].update(Panel(header_text, box=box.DOUBLE))
 
@@ -414,14 +450,13 @@ class HiveDashboard:
 
         # Main area - split into columns
         layout["main"].split_row(
-            Layout(name="left", ratio=1),
-            Layout(name="right", ratio=1)
+            Layout(name="left", ratio=1), Layout(name="right", ratio=1)
         )
 
         # Left side - Tasks and Workers
         layout["left"].split_column(
             Layout(self.create_tasks_table(), name="tasks", ratio=2),
-            Layout(self.create_workers_table(), name="workers", ratio=1)
+            Layout(self.create_workers_table(), name="workers", ratio=1),
         )
 
         # Right side - Runs
@@ -438,7 +473,9 @@ class HiveDashboard:
     def run(self):
         """Run the dashboard with live updates."""
         try:
-            with Live(self.create_dashboard(), refresh_per_second=0.5, console=self.console) as live:
+            with Live(
+                self.create_dashboard(), refresh_per_second=0.5, console=self.console
+            ) as live:
                 while True:
                     time.sleep(self.refresh_rate)
                     live.update(self.create_dashboard())

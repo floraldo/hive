@@ -1,12 +1,16 @@
 """Test SQLite component backend implementation."""
 
-import pytest
-import tempfile
 import json
+import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from ecosystemiser.component_data.repository import ComponentRepository, SQLiteLoader, FileLoader
+import pytest
+from ecosystemiser.component_data.repository import (
+    ComponentRepository,
+    FileLoader,
+    SQLiteLoader,
+)
 
 
 class TestSQLiteLoader:
@@ -34,15 +38,12 @@ class TestSQLiteLoader:
                 "technical": {
                     "capacity": 10.0,
                     "power_rating": 5.0,
-                    "efficiency": 0.95
+                    "efficiency": 0.95,
                 },
-                "economic": {
-                    "capex": 5000,
-                    "opex": 100
-                },
+                "economic": {"capex": 5000, "opex": 100},
                 # Metadata fields go at root level, not in a metadata dict
                 "vendor": "TestCorp",
-                "model": "TB-100"
+                "model": "TB-100",
             }
 
             # Save component
@@ -67,16 +68,22 @@ class TestSQLiteLoader:
             loader = SQLiteLoader(str(db_path))
 
             # Add some components
-            loader.save_component("battery1", {
-                "component_class": "Battery",
-                "category": "energy",
-                "technical": {"capacity": 10.0}
-            })
-            loader.save_component("water_tank1", {
-                "component_class": "WaterStorage",
-                "category": "water",
-                "technical": {"volume": 1000}
-            })
+            loader.save_component(
+                "battery1",
+                {
+                    "component_class": "Battery",
+                    "category": "energy",
+                    "technical": {"capacity": 10.0},
+                },
+            )
+            loader.save_component(
+                "water_tank1",
+                {
+                    "component_class": "WaterStorage",
+                    "category": "water",
+                    "technical": {"volume": 1000},
+                },
+            )
 
             # List all components
             all_components = loader.list_components()
@@ -128,14 +135,14 @@ class TestComponentRepository:
         repo = ComponentRepository()
         assert repo.data_source == "database"
 
-    @patch('EcoSystemiser.component_data.repository.SQLiteLoader')
+    @patch("EcoSystemiser.component_data.repository.SQLiteLoader")
     def test_get_component_data_from_database(self, mock_sqlite_loader):
         """Test getting component data from database backend."""
         # Setup mock
         mock_loader_instance = MagicMock()
         mock_loader_instance.load.return_value = {
             "component_class": "Battery",
-            "technical": {"capacity": 10.0}
+            "technical": {"capacity": 10.0},
         }
         mock_sqlite_loader.return_value = mock_loader_instance
 
@@ -152,12 +159,14 @@ class TestComponentRepository:
 
     def test_cache_functionality(self):
         """Test that repository caches loaded components."""
-        with patch('EcoSystemiser.component_data.repository.SQLiteLoader') as mock_sqlite_loader:
+        with patch(
+            "EcoSystemiser.component_data.repository.SQLiteLoader"
+        ) as mock_sqlite_loader:
             # Setup mock
             mock_loader_instance = MagicMock()
             mock_loader_instance.load.return_value = {
                 "component_class": "Battery",
-                "technical": {"capacity": 10.0}
+                "technical": {"capacity": 10.0},
             }
             mock_sqlite_loader.return_value = mock_loader_instance
 
@@ -192,8 +201,16 @@ class TestComponentRepository:
             mock_file_loader = MagicMock()
             mock_file_loader.list_components.return_value = ["battery1", "solar1"]
             mock_file_loader.load.side_effect = [
-                {"component_class": "Battery", "technical": {"capacity": 10.0}, "category": "energy"},
-                {"component_class": "SolarPV", "technical": {"power": 5.0}, "category": "energy"}
+                {
+                    "component_class": "Battery",
+                    "technical": {"capacity": 10.0},
+                    "category": "energy",
+                },
+                {
+                    "component_class": "SolarPV",
+                    "technical": {"power": 5.0},
+                    "category": "energy",
+                },
             ]
 
             # Run migration

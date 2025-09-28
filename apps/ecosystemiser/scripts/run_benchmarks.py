@@ -17,21 +17,21 @@ Usage:
     python scripts/run_benchmarks.py
 """
 
+import gc
 import json
 import sys
 import time
-import gc
-import numpy as np
+import traceback
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Any, List, Optional
-import traceback
+from typing import Any, Dict, List, Optional
 
-# Set up imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+import numpy as np
 
+# Use Poetry workspace imports
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -39,10 +39,12 @@ except ImportError:
 
 try:
     from hive_logging import get_logger, setup_logging
+
     LOGGING_AVAILABLE = True
 except ImportError:
     LOGGING_AVAILABLE = False
     print("WARNING: Logging not available, using print statements")
+
 
 # Mock classes for foundation testing when real components unavailable
 class MockSystem:
@@ -50,11 +52,13 @@ class MockSystem:
         self.name = name
         self.components = ["solar_pv", "battery", "power_demand", "water_storage"]
 
+
 class MockResult:
     def __init__(self, status="optimal", total_cost=1000.0):
         self.status = status
         self.total_cost = total_cost
         self.objective_value = total_cost
+
 
 class MockSolver:
     def __init__(self, fidelity_level=None, warm_start=False):
@@ -64,12 +68,18 @@ class MockSolver:
 
     def solve(self, system, start_time, end_time, time_step):
         # Simulate solve time based on complexity
-        complexity_factor = {"SIMPLE": 0.001, "STANDARD": 0.01, "DETAILED": 0.05, "RESEARCH": 0.1}
+        complexity_factor = {
+            "SIMPLE": 0.001,
+            "STANDARD": 0.01,
+            "DETAILED": 0.05,
+            "RESEARCH": 0.1,
+        }
         sleep_time = complexity_factor.get(str(self.fidelity_level), 0.01)
         if self.warm_start:
             sleep_time *= 0.7  # Warm start speedup
         time.sleep(sleep_time)
         return MockResult()
+
 
 class BenchmarkRunner:
     """Main benchmarking orchestrator for EcoSystemiser v3.0"""
@@ -80,15 +90,12 @@ class BenchmarkRunner:
                 "version": "3.0",
                 "timestamp": datetime.utcnow().isoformat(),
                 "platform": self._get_platform_info(),
-                "system_spec": self._get_system_spec()
+                "system_spec": self._get_system_spec(),
             },
             "fidelity_benchmarks": [],
             "rolling_horizon_benchmarks": [],
-            "discovery_engine_benchmarks": {
-                "genetic_algorithm": [],
-                "monte_carlo": []
-            },
-            "summary": {}
+            "discovery_engine_benchmarks": {"genetic_algorithm": [], "monte_carlo": []},
+            "summary": {},
         }
 
         if PSUTIL_AVAILABLE:
@@ -99,11 +106,12 @@ class BenchmarkRunner:
     def _get_platform_info(self) -> Dict[str, Any]:
         """Get platform and Python environment info"""
         import platform
+
         return {
             "python_version": platform.python_version(),
             "platform": platform.platform(),
             "processor": platform.processor(),
-            "architecture": platform.architecture()[0]
+            "architecture": platform.architecture()[0],
         }
 
     def _get_system_spec(self) -> Dict[str, Any]:
@@ -115,7 +123,7 @@ class BenchmarkRunner:
                 return {
                     "total_memory_gb": round(memory.total / (1024**3), 2),
                     "cpu_count": cpu_count,
-                    "cpu_logical_count": psutil.cpu_count(logical=True)
+                    "cpu_logical_count": psutil.cpu_count(logical=True),
                 }
             else:
                 return {"total_memory_gb": "unknown", "cpu_count": "unknown"}
@@ -186,14 +194,14 @@ class BenchmarkRunner:
 
         try:
             # Try to import real fidelity levels and solver
-            from ecosystemiser.solver.milp_solver import MILPSolver
             from ecosystemiser.solver.base import FidelityLevel
+            from ecosystemiser.solver.milp_solver import MILPSolver
 
             fidelity_levels = [
                 FidelityLevel.SIMPLE,
                 FidelityLevel.STANDARD,
                 FidelityLevel.DETAILED,
-                FidelityLevel.RESEARCH
+                FidelityLevel.RESEARCH,
             ]
             real_solver = True
 
@@ -203,7 +211,7 @@ class BenchmarkRunner:
             real_solver = False
 
         for fidelity in fidelity_levels:
-            fidelity_name = fidelity.name if hasattr(fidelity, 'name') else fidelity
+            fidelity_name = fidelity.name if hasattr(fidelity, "name") else fidelity
             self._log(f"Benchmarking fidelity level: {fidelity_name}")
 
             try:
@@ -225,7 +233,7 @@ class BenchmarkRunner:
                         system=system,
                         start_time=start_time,
                         end_time=end_time,
-                        time_step=timedelta(hours=1)
+                        time_step=timedelta(hours=1),
                     )
 
                 # Measure solve time and memory
@@ -234,31 +242,39 @@ class BenchmarkRunner:
                 solve_time = time.time() - solve_start
 
                 # Extract accuracy KPI
-                total_cost = getattr(result, 'total_cost', None)
-                if total_cost is None and hasattr(result, 'objective_value'):
+                total_cost = getattr(result, "total_cost", None)
+                if total_cost is None and hasattr(result, "objective_value"):
                     total_cost = result.objective_value
 
-                fidelity_results.append({
-                    "fidelity_level": fidelity_name,
-                    "solve_time_s": round(solve_time, 4),
-                    "peak_memory_mb": round(peak_memory, 2),
-                    "status": result.status if hasattr(result, 'status') else "completed",
-                    "total_cost": total_cost,
-                    "error": None
-                })
+                fidelity_results.append(
+                    {
+                        "fidelity_level": fidelity_name,
+                        "solve_time_s": round(solve_time, 4),
+                        "peak_memory_mb": round(peak_memory, 2),
+                        "status": (
+                            result.status if hasattr(result, "status") else "completed"
+                        ),
+                        "total_cost": total_cost,
+                        "error": None,
+                    }
+                )
 
-                self._log(f"  Solve time: {solve_time:.4f}s, Peak memory: {peak_memory:.2f}MB")
+                self._log(
+                    f"  Solve time: {solve_time:.4f}s, Peak memory: {peak_memory:.2f}MB"
+                )
 
             except Exception as e:
                 self._log(f"Fidelity {fidelity_name} benchmark failed: {e}")
-                fidelity_results.append({
-                    "fidelity_level": fidelity_name,
-                    "solve_time_s": None,
-                    "peak_memory_mb": None,
-                    "status": "failed",
-                    "total_cost": None,
-                    "error": str(e)
-                })
+                fidelity_results.append(
+                    {
+                        "fidelity_level": fidelity_name,
+                        "solve_time_s": None,
+                        "peak_memory_mb": None,
+                        "status": "failed",
+                        "total_cost": None,
+                        "error": str(e),
+                    }
+                )
 
         return fidelity_results
 
@@ -268,8 +284,11 @@ class BenchmarkRunner:
 
         try:
             # Try to import real rolling horizon solver
-            from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
             from ecosystemiser.solver.base import FidelityLevel
+            from ecosystemiser.solver.rolling_horizon_milp import (
+                RollingHorizonMILPSolver,
+            )
+
             real_solver = True
         except ImportError:
             real_solver = False
@@ -286,7 +305,7 @@ class BenchmarkRunner:
                         fidelity_level=FidelityLevel.STANDARD,
                         horizon_hours=8,
                         step_hours=8,
-                        warm_start=warm_start
+                        warm_start=warm_start,
                     )
                 else:
                     solver = MockSolver(warm_start=warm_start)
@@ -303,7 +322,7 @@ class BenchmarkRunner:
                         system=system,
                         start_time=start_time,
                         end_time=end_time,
-                        time_step=timedelta(hours=1)
+                        time_step=timedelta(hours=1),
                     )
 
                 # Measure solve time and memory
@@ -312,50 +331,61 @@ class BenchmarkRunner:
                 solve_time = time.time() - solve_start
 
                 # Extract results
-                total_cost = getattr(result, 'total_cost', None)
-                horizon_count = getattr(solver, 'horizon_count', 3)
+                total_cost = getattr(result, "total_cost", None)
+                horizon_count = getattr(solver, "horizon_count", 3)
 
-                rolling_results.append({
-                    "warm_start_enabled": warm_start,
-                    "solve_time_s": round(solve_time, 4),
-                    "peak_memory_mb": round(peak_memory, 2),
-                    "status": result.status if hasattr(result, 'status') else "completed",
-                    "total_cost": total_cost,
-                    "horizon_count": horizon_count,
-                    "error": None
-                })
+                rolling_results.append(
+                    {
+                        "warm_start_enabled": warm_start,
+                        "solve_time_s": round(solve_time, 4),
+                        "peak_memory_mb": round(peak_memory, 2),
+                        "status": (
+                            result.status if hasattr(result, "status") else "completed"
+                        ),
+                        "total_cost": total_cost,
+                        "horizon_count": horizon_count,
+                        "error": None,
+                    }
+                )
 
-                self._log(f"  Solve time: {solve_time:.4f}s, Peak memory: {peak_memory:.2f}MB")
+                self._log(
+                    f"  Solve time: {solve_time:.4f}s, Peak memory: {peak_memory:.2f}MB"
+                )
 
             except Exception as e:
-                self._log(f"Rolling horizon (warm_start={warm_start}) benchmark failed: {e}")
-                rolling_results.append({
-                    "warm_start_enabled": warm_start,
-                    "solve_time_s": None,
-                    "peak_memory_mb": None,
-                    "status": "failed",
-                    "total_cost": None,
-                    "horizon_count": None,
-                    "error": str(e)
-                })
+                self._log(
+                    f"Rolling horizon (warm_start={warm_start}) benchmark failed: {e}"
+                )
+                rolling_results.append(
+                    {
+                        "warm_start_enabled": warm_start,
+                        "solve_time_s": None,
+                        "peak_memory_mb": None,
+                        "status": "failed",
+                        "total_cost": None,
+                        "horizon_count": None,
+                        "error": str(e),
+                    }
+                )
 
         return rolling_results
 
     def benchmark_discovery_engine(self, system) -> Dict[str, List[Dict[str, Any]]]:
         """Benchmark Discovery Engine (GA and MC algorithms)."""
-        discovery_results = {
-            "genetic_algorithm": [],
-            "monte_carlo": []
-        }
+        discovery_results = {"genetic_algorithm": [], "monte_carlo": []}
 
         try:
             # Try to import real Discovery Engine components
             from ecosystemiser.discovery.algorithms.genetic_algorithm import (
-                GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
+                GeneticAlgorithm,
+                GeneticAlgorithmConfig,
+                NSGAIIOptimizer,
             )
             from ecosystemiser.discovery.algorithms.monte_carlo import (
-                MonteCarloEngine, MonteCarloConfig
+                MonteCarloConfig,
+                MonteCarloEngine,
             )
+
             real_discovery = True
         except ImportError:
             real_discovery = False
@@ -367,20 +397,22 @@ class BenchmarkRunner:
         ga_configs = [
             {"population": 20, "generations": 10, "dimensions": 2},
             {"population": 50, "generations": 20, "dimensions": 5},
-            {"population": 100, "generations": 50, "dimensions": 10}
+            {"population": 100, "generations": 50, "dimensions": 10},
         ]
 
         for config in ga_configs:
-            self._log(f"  GA: pop={config['population']}, gen={config['generations']}, dim={config['dimensions']}")
+            self._log(
+                f"  GA: pop={config['population']}, gen={config['generations']}, dim={config['dimensions']}"
+            )
 
             try:
                 if real_discovery:
                     ga_config = GeneticAlgorithmConfig(
-                        dimensions=config['dimensions'],
-                        bounds=[(0, 100)] * config['dimensions'],
-                        population_size=config['population'],
-                        max_generations=config['generations'],
-                        objectives=['minimize_cost']
+                        dimensions=config["dimensions"],
+                        bounds=[(0, 100)] * config["dimensions"],
+                        population_size=config["population"],
+                        max_generations=config["generations"],
+                        objectives=["minimize_cost"],
                     )
 
                     optimizer = GeneticAlgorithm(ga_config)
@@ -388,9 +420,9 @@ class BenchmarkRunner:
                     # Simple test function (sphere function)
                     def fitness_function(x):
                         return {
-                            'fitness': np.sum(x**2),
-                            'objectives': [np.sum(x**2)],
-                            'valid': True
+                            "fitness": np.sum(x**2),
+                            "objectives": [np.sum(x**2)],
+                            "valid": True,
                         }
 
                     gc.collect()
@@ -400,34 +432,43 @@ class BenchmarkRunner:
                     )
                     solve_time = time.time() - solve_start
 
-                    num_evaluations = config['population'] * config['generations']
+                    num_evaluations = config["population"] * config["generations"]
 
                 else:
                     # Mock benchmark
-                    time.sleep(0.01 * config['population'] * config['generations'] / 100)
-                    solve_time = 0.01 * config['population'] * config['generations'] / 100
-                    peak_memory = config['dimensions'] * config['population'] * 0.001
-                    num_evaluations = config['population'] * config['generations']
-                    result = {'best_fitness': np.random.random() * 100}
+                    time.sleep(
+                        0.01 * config["population"] * config["generations"] / 100
+                    )
+                    solve_time = (
+                        0.01 * config["population"] * config["generations"] / 100
+                    )
+                    peak_memory = config["dimensions"] * config["population"] * 0.001
+                    num_evaluations = config["population"] * config["generations"]
+                    result = {"best_fitness": np.random.random() * 100}
 
-                discovery_results["genetic_algorithm"].append({
-                    "configuration": config,
-                    "solve_time_s": round(solve_time, 4),
-                    "peak_memory_mb": round(peak_memory, 2),
-                    "evaluations": num_evaluations,
-                    "evaluations_per_second": round(num_evaluations / solve_time, 2),
-                    "best_fitness": result.get('best_fitness', None),
-                    "error": None
-                })
+                discovery_results["genetic_algorithm"].append(
+                    {
+                        "configuration": config,
+                        "solve_time_s": round(solve_time, 4),
+                        "peak_memory_mb": round(peak_memory, 2),
+                        "evaluations": num_evaluations,
+                        "evaluations_per_second": round(
+                            num_evaluations / solve_time, 2
+                        ),
+                        "best_fitness": result.get("best_fitness", None),
+                        "error": None,
+                    }
+                )
 
-                self._log(f"    Time: {solve_time:.4f}s, Memory: {peak_memory:.2f}MB, Speed: {num_evaluations/solve_time:.1f} evals/s")
+                self._log(
+                    f"    Time: {solve_time:.4f}s, Memory: {peak_memory:.2f}MB, Speed: {num_evaluations/solve_time:.1f} evals/s"
+                )
 
             except Exception as e:
                 self._log(f"    GA benchmark failed: {e}")
-                discovery_results["genetic_algorithm"].append({
-                    "configuration": config,
-                    "error": str(e)
-                })
+                discovery_results["genetic_algorithm"].append(
+                    {"configuration": config, "error": str(e)}
+                )
 
         # Benchmark Monte Carlo
         self._log("Benchmarking Monte Carlo Engine...")
@@ -435,20 +476,22 @@ class BenchmarkRunner:
         mc_configs = [
             {"samples": 100, "dimensions": 2, "method": "lhs"},
             {"samples": 500, "dimensions": 5, "method": "lhs"},
-            {"samples": 1000, "dimensions": 10, "method": "sobol"}
+            {"samples": 1000, "dimensions": 10, "method": "sobol"},
         ]
 
         for config in mc_configs:
-            self._log(f"  MC: samples={config['samples']}, dim={config['dimensions']}, method={config['method']}")
+            self._log(
+                f"  MC: samples={config['samples']}, dim={config['dimensions']}, method={config['method']}"
+            )
 
             try:
                 if real_discovery:
                     mc_config = MonteCarloConfig(
-                        dimensions=config['dimensions'],
-                        bounds=[(0, 100)] * config['dimensions'],
-                        population_size=config['samples'],
-                        sampling_method=config['method'],
-                        confidence_levels=[0.05, 0.95]
+                        dimensions=config["dimensions"],
+                        bounds=[(0, 100)] * config["dimensions"],
+                        population_size=config["samples"],
+                        sampling_method=config["method"],
+                        confidence_levels=[0.05, 0.95],
                     )
 
                     mc_engine = MonteCarloEngine(mc_config)
@@ -456,9 +499,9 @@ class BenchmarkRunner:
                     # Simple test function
                     def fitness_function(x):
                         return {
-                            'fitness': np.sum(x**2) + np.random.normal(0, 10),
-                            'objectives': [np.sum(x**2)],
-                            'valid': True
+                            "fitness": np.sum(x**2) + np.random.normal(0, 10),
+                            "objectives": [np.sum(x**2)],
+                            "valid": True,
                         }
 
                     gc.collect()
@@ -470,32 +513,35 @@ class BenchmarkRunner:
 
                 else:
                     # Mock benchmark
-                    time.sleep(0.001 * config['samples'])
-                    solve_time = 0.001 * config['samples']
-                    peak_memory = config['dimensions'] * config['samples'] * 0.0001
+                    time.sleep(0.001 * config["samples"])
+                    solve_time = 0.001 * config["samples"]
+                    peak_memory = config["dimensions"] * config["samples"] * 0.0001
                     result = {
-                        'uncertainty_analysis': {
-                            'statistics': {'mean': 50, 'std': 10}
-                        }
+                        "uncertainty_analysis": {"statistics": {"mean": 50, "std": 10}}
                     }
 
-                discovery_results["monte_carlo"].append({
-                    "configuration": config,
-                    "solve_time_s": round(solve_time, 4),
-                    "peak_memory_mb": round(peak_memory, 2),
-                    "samples_per_second": round(config['samples'] / solve_time, 2),
-                    "statistics": result.get('uncertainty_analysis', {}).get('statistics', {}),
-                    "error": None
-                })
+                discovery_results["monte_carlo"].append(
+                    {
+                        "configuration": config,
+                        "solve_time_s": round(solve_time, 4),
+                        "peak_memory_mb": round(peak_memory, 2),
+                        "samples_per_second": round(config["samples"] / solve_time, 2),
+                        "statistics": result.get("uncertainty_analysis", {}).get(
+                            "statistics", {}
+                        ),
+                        "error": None,
+                    }
+                )
 
-                self._log(f"    Time: {solve_time:.4f}s, Memory: {peak_memory:.2f}MB, Speed: {config['samples']/solve_time:.1f} samples/s")
+                self._log(
+                    f"    Time: {solve_time:.4f}s, Memory: {peak_memory:.2f}MB, Speed: {config['samples']/solve_time:.1f} samples/s"
+                )
 
             except Exception as e:
                 self._log(f"    MC benchmark failed: {e}")
-                discovery_results["monte_carlo"].append({
-                    "configuration": config,
-                    "error": str(e)
-                })
+                discovery_results["monte_carlo"].append(
+                    {"configuration": config, "error": str(e)}
+                )
 
         return discovery_results
 
@@ -506,86 +552,139 @@ class BenchmarkRunner:
             "rolling_horizon_performance": {},
             "discovery_engine_performance": {
                 "genetic_algorithm": {},
-                "monte_carlo": {}
+                "monte_carlo": {},
             },
-            "recommendations": []
+            "recommendations": [],
         }
 
         # Analyze fidelity benchmarks
-        successful_fidelity = [b for b in self.results["fidelity_benchmarks"] if b["error"] is None]
+        successful_fidelity = [
+            b for b in self.results["fidelity_benchmarks"] if b["error"] is None
+        ]
 
         if successful_fidelity:
-            solve_times = [b["solve_time_s"] for b in successful_fidelity if b["solve_time_s"] is not None]
-            memory_usage = [b["peak_memory_mb"] for b in successful_fidelity if b["peak_memory_mb"] is not None]
+            solve_times = [
+                b["solve_time_s"]
+                for b in successful_fidelity
+                if b["solve_time_s"] is not None
+            ]
+            memory_usage = [
+                b["peak_memory_mb"]
+                for b in successful_fidelity
+                if b["peak_memory_mb"] is not None
+            ]
 
             summary["fidelity_performance"] = {
                 "successful_levels": len(successful_fidelity),
                 "total_levels": len(self.results["fidelity_benchmarks"]),
                 "fastest_solve_s": min(solve_times) if solve_times else None,
                 "slowest_solve_s": max(solve_times) if solve_times else None,
-                "peak_memory_mb": max(memory_usage) if memory_usage else None
+                "peak_memory_mb": max(memory_usage) if memory_usage else None,
             }
 
         # Analyze rolling horizon benchmarks
-        successful_rolling = [b for b in self.results["rolling_horizon_benchmarks"] if b["error"] is None]
+        successful_rolling = [
+            b for b in self.results["rolling_horizon_benchmarks"] if b["error"] is None
+        ]
 
         if len(successful_rolling) == 2:  # Both warm-start configs
-            no_warm = next((b for b in successful_rolling if not b["warm_start_enabled"]), None)
-            with_warm = next((b for b in successful_rolling if b["warm_start_enabled"]), None)
+            no_warm = next(
+                (b for b in successful_rolling if not b["warm_start_enabled"]), None
+            )
+            with_warm = next(
+                (b for b in successful_rolling if b["warm_start_enabled"]), None
+            )
 
-            if no_warm and with_warm and with_warm["solve_time_s"] and with_warm["solve_time_s"] > 0:
+            if (
+                no_warm
+                and with_warm
+                and with_warm["solve_time_s"]
+                and with_warm["solve_time_s"] > 0
+            ):
                 speedup = no_warm["solve_time_s"] / with_warm["solve_time_s"]
                 summary["rolling_horizon_performance"] = {
                     "warm_start_speedup": round(speedup, 2),
-                    "memory_overhead_mb": with_warm["peak_memory_mb"] - no_warm["peak_memory_mb"]
+                    "memory_overhead_mb": with_warm["peak_memory_mb"]
+                    - no_warm["peak_memory_mb"],
                 }
 
         # Analyze Discovery Engine benchmarks
-        ga_benchmarks = self.results.get("discovery_engine_benchmarks", {}).get("genetic_algorithm", [])
+        ga_benchmarks = self.results.get("discovery_engine_benchmarks", {}).get(
+            "genetic_algorithm", []
+        )
         successful_ga = [b for b in ga_benchmarks if b.get("error") is None]
 
         if successful_ga:
-            eval_rates = [b["evaluations_per_second"] for b in successful_ga if "evaluations_per_second" in b]
+            eval_rates = [
+                b["evaluations_per_second"]
+                for b in successful_ga
+                if "evaluations_per_second" in b
+            ]
             if eval_rates:
                 summary["discovery_engine_performance"]["genetic_algorithm"] = {
                     "successful_configs": len(successful_ga),
                     "total_configs": len(ga_benchmarks),
                     "min_eval_rate": min(eval_rates),
                     "max_eval_rate": max(eval_rates),
-                    "avg_eval_rate": sum(eval_rates) / len(eval_rates)
+                    "avg_eval_rate": sum(eval_rates) / len(eval_rates),
                 }
 
-        mc_benchmarks = self.results.get("discovery_engine_benchmarks", {}).get("monte_carlo", [])
+        mc_benchmarks = self.results.get("discovery_engine_benchmarks", {}).get(
+            "monte_carlo", []
+        )
         successful_mc = [b for b in mc_benchmarks if b.get("error") is None]
 
         if successful_mc:
-            sample_rates = [b["samples_per_second"] for b in successful_mc if "samples_per_second" in b]
+            sample_rates = [
+                b["samples_per_second"]
+                for b in successful_mc
+                if "samples_per_second" in b
+            ]
             if sample_rates:
                 summary["discovery_engine_performance"]["monte_carlo"] = {
                     "successful_configs": len(successful_mc),
                     "total_configs": len(mc_benchmarks),
                     "min_sample_rate": min(sample_rates),
                     "max_sample_rate": max(sample_rates),
-                    "avg_sample_rate": sum(sample_rates) / len(sample_rates)
+                    "avg_sample_rate": sum(sample_rates) / len(sample_rates),
                 }
 
         # Generate recommendations
-        success_rate = summary.get("fidelity_performance", {}).get("successful_levels", 0)
+        success_rate = summary.get("fidelity_performance", {}).get(
+            "successful_levels", 0
+        )
         if success_rate >= 3:
-            summary["recommendations"].append("Majority of fidelity levels functional - foundation is solid")
+            summary["recommendations"].append(
+                "Majority of fidelity levels functional - foundation is solid"
+            )
 
-        if summary.get("rolling_horizon_performance", {}).get("warm_start_speedup", 1.0) > 1.1:
-            summary["recommendations"].append("Warm-starting provides performance benefit - enable by default")
+        if (
+            summary.get("rolling_horizon_performance", {}).get(
+                "warm_start_speedup", 1.0
+            )
+            > 1.1
+        ):
+            summary["recommendations"].append(
+                "Warm-starting provides performance benefit - enable by default"
+            )
 
-        ga_perf = summary.get("discovery_engine_performance", {}).get("genetic_algorithm", {})
+        ga_perf = summary.get("discovery_engine_performance", {}).get(
+            "genetic_algorithm", {}
+        )
         if ga_perf.get("avg_eval_rate", 0) > 100:
-            summary["recommendations"].append("GA optimization performance sufficient for production use")
+            summary["recommendations"].append(
+                "GA optimization performance sufficient for production use"
+            )
 
         mc_perf = summary.get("discovery_engine_performance", {}).get("monte_carlo", {})
         if mc_perf.get("avg_sample_rate", 0) > 500:
-            summary["recommendations"].append("MC uncertainty analysis meets performance targets")
+            summary["recommendations"].append(
+                "MC uncertainty analysis meets performance targets"
+            )
 
-        summary["recommendations"].append("v3.0 foundation benchmark completed - Discovery Engine validated")
+        summary["recommendations"].append(
+            "v3.0 foundation benchmark completed - Discovery Engine validated"
+        )
 
         return summary
 
@@ -604,11 +703,15 @@ class BenchmarkRunner:
 
         # Run rolling horizon benchmarks
         self._log("\nRunning rolling horizon benchmarks...")
-        self.results["rolling_horizon_benchmarks"] = self.benchmark_rolling_horizon(system)
+        self.results["rolling_horizon_benchmarks"] = self.benchmark_rolling_horizon(
+            system
+        )
 
         # Run Discovery Engine benchmarks
         self._log("\nRunning Discovery Engine benchmarks...")
-        self.results["discovery_engine_benchmarks"] = self.benchmark_discovery_engine(system)
+        self.results["discovery_engine_benchmarks"] = self.benchmark_discovery_engine(
+            system
+        )
 
         # Generate summary
         self._log("\nGenerating benchmark summary...")
@@ -616,6 +719,7 @@ class BenchmarkRunner:
 
         self._log("Benchmark suite completed successfully")
         return self.results
+
 
 def main():
     """Main benchmark execution"""
@@ -636,7 +740,7 @@ def main():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_file = benchmark_dir / f"baseline_v3.0_{timestamp}.json"
 
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(results, f, indent=2)
 
         print(f"\nBenchmark results saved to: {output_file}")
@@ -650,10 +754,14 @@ def main():
         fidelity_perf = summary.get("fidelity_performance", {})
         rolling_perf = summary.get("rolling_horizon_performance", {})
 
-        print(f"Fidelity Levels: {fidelity_perf.get('successful_levels', 0)}/{fidelity_perf.get('total_levels', 4)} successful")
+        print(
+            f"Fidelity Levels: {fidelity_perf.get('successful_levels', 0)}/{fidelity_perf.get('total_levels', 4)} successful"
+        )
 
         if fidelity_perf.get("fastest_solve_s"):
-            print(f"Solve Time Range: {fidelity_perf['fastest_solve_s']:.4f}s - {fidelity_perf['slowest_solve_s']:.4f}s")
+            print(
+                f"Solve Time Range: {fidelity_perf['fastest_solve_s']:.4f}s - {fidelity_perf['slowest_solve_s']:.4f}s"
+            )
 
         if rolling_perf.get("warm_start_speedup"):
             print(f"Warm-start Speedup: {rolling_perf['warm_start_speedup']:.2f}x")
@@ -664,7 +772,9 @@ def main():
                 print(f"  - {rec}")
 
         print(f"\nBaseline file: {output_file}")
-        print("\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity")
+        print(
+            "\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity"
+        )
 
         return 0
 
@@ -672,6 +782,7 @@ def main():
         print(f"Benchmark failed: {e}")
         traceback.print_exc()
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1,13 +1,24 @@
 """Power demand component with MILP optimization support and hierarchical fidelity."""
+
+from typing import Any, Dict, List, Optional
+
 import cvxpy as cp
 import numpy as np
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from hive_logging import get_logger
+from ecosystemiser.system_model.components.shared.archetypes import (
+    DemandTechnicalParams,
+    FidelityLevel,
+)
+from ecosystemiser.system_model.components.shared.base_classes import (
+    BaseDemandOptimization,
+    BaseDemandPhysics,
+)
+from ecosystemiser.system_model.components.shared.component import (
+    Component,
+    ComponentParams,
+)
 from ecosystemiser.system_model.components.shared.registry import register_component
-from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
-from ecosystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
-from ecosystemiser.system_model.components.shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -15,33 +26,31 @@ logger = get_logger(__name__)
 # POWER DEMAND-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
 # =============================================================================
 
+
 class PowerDemandTechnicalParams(DemandTechnicalParams):
     """Power demand-specific technical parameters extending demand archetype.
 
     This model inherits from DemandTechnicalParams and adds electricity-specific
     parameters for different fidelity levels.
     """
+
     # STANDARD fidelity additions
-    power_factor: Optional[float] = Field(
-        0.95,
-        description="Power factor for the load"
-    )
+    power_factor: Optional[float] = Field(0.95, description="Power factor for the load")
 
     # DETAILED fidelity parameters
     demand_flexibility: Optional[Dict[str, float]] = Field(
         None,
-        description="Demand response capabilities {shift_capacity_kw, shed_capacity_kw}"
+        description="Demand response capabilities {shift_capacity_kw, shed_capacity_kw}",
     )
 
     # RESEARCH fidelity parameters
     stochastic_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Stochastic demand model parameters"
+        None, description="Stochastic demand model parameters"
     )
     occupancy_coupling: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Coupling to occupancy patterns"
+        None, description="Coupling to occupancy patterns"
     )
+
 
 class PowerDemandParams(ComponentParams):
     """Power demand parameters using the hierarchical technical parameter system.
@@ -49,19 +58,22 @@ class PowerDemandParams(ComponentParams):
     Profile data should be provided separately through the system's
     profile loading mechanism, not as a component parameter.
     """
+
     technical: PowerDemandTechnicalParams = Field(
         default_factory=lambda: PowerDemandTechnicalParams(
             capacity_nominal=5.0,  # Required by base archetype
             peak_demand=5.0,  # Default 5 kW peak
             load_profile_type="variable",
-            fidelity_level=FidelityLevel.STANDARD
+            fidelity_level=FidelityLevel.STANDARD,
         ),
-        description="Technical parameters following the hierarchical archetype system"
+        description="Technical parameters following the hierarchical archetype system",
     )
+
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
+
 
 class PowerDemandPhysicsSimple(BaseDemandPhysics):
     """Implements the SIMPLE rule-based physics for power demand.
@@ -86,6 +98,7 @@ class PowerDemandPhysicsSimple(BaseDemandPhysics):
 
         return max(0.0, base_demand)
 
+
 class PowerDemandPhysicsStandard(PowerDemandPhysicsSimple):
     """Implements the STANDARD rule-based physics for power demand.
 
@@ -104,7 +117,7 @@ class PowerDemandPhysicsStandard(PowerDemandPhysicsSimple):
         demand_after_simple = super().rule_based_demand(t, profile_value)
 
         # 2. Add STANDARD-specific physics: power factor considerations
-        power_factor = getattr(self.params.technical, 'power_factor', 0.95)
+        power_factor = getattr(self.params.technical, "power_factor", 0.95)
         if power_factor and power_factor != 1.0:
             # For now, keep active power the same but note reactive power would be calculated
             # In a more detailed implementation, we might adjust for apparent power needs
@@ -112,9 +125,11 @@ class PowerDemandPhysicsStandard(PowerDemandPhysicsSimple):
 
         return max(0.0, demand_after_simple)
 
+
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
+
 
 class PowerDemandOptimizationSimple(BaseDemandOptimization):
     """Implements the SIMPLE MILP optimization constraints for power demand.
@@ -139,7 +154,7 @@ class PowerDemandOptimizationSimple(BaseDemandOptimization):
         constraints = []
         comp = self.component
 
-        if comp.P_in is not None and hasattr(comp, 'profile'):
+        if comp.P_in is not None and hasattr(comp, "profile"):
             # SIMPLE MODEL: Fixed demand must be met exactly
             # P_in = profile * P_max
             demand_exact = comp.profile * comp.P_max
@@ -148,6 +163,7 @@ class PowerDemandOptimizationSimple(BaseDemandOptimization):
             constraints.append(comp.P_in == demand_exact)
 
         return constraints
+
 
 class PowerDemandOptimizationStandard(PowerDemandOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for power demand.
@@ -169,25 +185,29 @@ class PowerDemandOptimizationStandard(PowerDemandOptimizationSimple):
         constraints = []
         comp = self.component
 
-        if comp.P_in is not None and hasattr(comp, 'profile'):
+        if comp.P_in is not None and hasattr(comp, "profile"):
             # STANDARD MODEL: Same as SIMPLE for real power
             # but acknowledges power factor for future enhancements
             demand_exact = comp.profile * comp.P_max
 
             # Log power factor awareness (but don't modify constraints)
-            power_factor = getattr(comp.technical, 'power_factor', 1.0)
+            power_factor = getattr(comp.technical, "power_factor", 1.0)
             if power_factor < 1.0:
-                logger.debug(f"STANDARD fidelity: Acknowledging power factor of {power_factor}, "
-                           f"but not modifying real power constraints.")
+                logger.debug(
+                    f"STANDARD fidelity: Acknowledging power factor of {power_factor}, "
+                    f"but not modifying real power constraints."
+                )
 
             # Apply exact demand constraint (same as SIMPLE)
             constraints.append(comp.P_in == demand_exact)
 
         return constraints
 
+
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
 # =============================================================================
+
 
 @register_component("PowerDemand")
 class PowerDemand(Component):
@@ -223,9 +243,11 @@ class PowerDemand(Component):
 
         # Profile should be assigned by the system/builder
         # Initialize as None, will be set by assign_profiles
-        if not hasattr(self, 'profile') or self.profile is None:
-            logger.warning(f"No demand profile assigned to {self.name}. Using zero demand.")
-            self.profile = np.zeros(getattr(self, 'N', 24))
+        if not hasattr(self, "profile") or self.profile is None:
+            logger.warning(
+                f"No demand profile assigned to {self.name}. Using zero demand."
+            )
+            self.profile = np.zeros(getattr(self, "N", 24))
         else:
             self.profile = np.array(self.profile)
 
@@ -268,7 +290,9 @@ class PowerDemand(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return PowerDemandOptimizationStandard(self.params, self)
         else:
-            raise ValueError(f"Unknown fidelity level for PowerDemand optimization: {fidelity}")
+            raise ValueError(
+                f"Unknown fidelity level for PowerDemand optimization: {fidelity}"
+            )
 
     def rule_based_demand(self, t: int) -> float:
         """
@@ -278,7 +302,11 @@ class PowerDemand(Component):
         delegates the actual physics calculation to the strategy object.
         """
         # Check bounds
-        if not hasattr(self, 'profile') or self.profile is None or t >= len(self.profile):
+        if (
+            not hasattr(self, "profile")
+            or self.profile is None
+            or t >= len(self.profile)
+        ):
             return 0.0
 
         # Get normalized profile value for this timestep
@@ -299,13 +327,13 @@ class PowerDemand(Component):
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""
         # For demand, input is fixed by profile (unless flexible)
-        self.P_in = cp.Variable(N, name=f'{self.name}_P_in', nonneg=True)
+        self.P_in = cp.Variable(N, name=f"{self.name}_P_in", nonneg=True)
 
         # Add as flow
-        self.flows['sink']['P_in'] = {
-            'type': 'electricity',
-            'value': self.P_in,
-            'profile': self.profile
+        self.flows["sink"]["P_in"] = {
+            "type": "electricity",
+            "value": self.P_in,
+            "profile": self.profile,
         }
 
     def set_constraints(self) -> List:

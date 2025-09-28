@@ -3,8 +3,8 @@
 Standalone entry point for AI Reviewer Agent
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Now import and run

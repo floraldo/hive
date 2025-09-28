@@ -1,9 +1,13 @@
 """System class - container for components and flows."""
-import numpy as np
+
+from typing import Any, Dict, List, Optional
+
 import cvxpy as cp
-from typing import Dict, Any, Optional, List
+import numpy as np
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
+
 
 class System:
     """Container class for system components and their connections."""
@@ -32,9 +36,9 @@ class System:
 
         # Flow type definitions
         self.flow_types = {
-            'electricity': {'unit': 'kWh', 'color': '#FFA500'},  # Orange
-            'heat': {'unit': 'kWh', 'color': '#FF0000'},        # Red
-            'water': {'unit': 'm³', 'color': '#0000FF'}         # Blue
+            "electricity": {"unit": "kWh", "color": "#FFA500"},  # Orange
+            "heat": {"unit": "kWh", "color": "#FF0000"},  # Red
+            "water": {"unit": "m³", "color": "#0000FF"},  # Blue
         }
 
         # Tracking totals (for objective functions)
@@ -61,16 +65,22 @@ class System:
             self.components.pop(component_name)
             # Also remove associated flows
             flows_to_remove = [
-                k for k, v in self.flows.items()
-                if v['source'] == component_name or v['target'] == component_name
+                k
+                for k, v in self.flows.items()
+                if v["source"] == component_name or v["target"] == component_name
             ]
             for flow_key in flows_to_remove:
                 del self.flows[flow_key]
 
             logger.debug(f"Removed component: {component_name}")
 
-    def connect(self, component1_name: str, component2_name: str,
-                flow_type: str, bidirectional: bool = False):
+    def connect(
+        self,
+        component1_name: str,
+        component2_name: str,
+        flow_type: str,
+        bidirectional: bool = False,
+    ):
         """Create a connection between two components.
 
         Args:
@@ -80,7 +90,9 @@ class System:
             bidirectional: If True, create flow in both directions
         """
         if flow_type not in self.flow_types:
-            raise ValueError(f"Invalid flow type: {flow_type}. Must be one of: {list(self.flow_types.keys())}")
+            raise ValueError(
+                f"Invalid flow type: {flow_type}. Must be one of: {list(self.flow_types.keys())}"
+            )
 
         if component1_name not in self.components:
             raise ValueError(f"Component not found: {component1_name}")
@@ -91,17 +103,17 @@ class System:
         component2 = self.components[component2_name]
 
         # Determine flow variable name based on medium
-        var_prefix = 'W' if flow_type == 'water' else 'P'
+        var_prefix = "W" if flow_type == "water" else "P"
 
         # Create flow dictionary entry
-        flow_key = f'{component1_name}_{var_prefix}_{component2_name}'
+        flow_key = f"{component1_name}_{var_prefix}_{component2_name}"
         flow = {
-            'source': component1_name,
-            'target': component2_name,
-            'type': flow_type,
-            'unit': self.flow_types[flow_type]['unit'],
-            'color': self.flow_types[flow_type]['color'],
-            'value': np.zeros(self.N)  # Initialize as numpy array
+            "source": component1_name,
+            "target": component2_name,
+            "type": flow_type,
+            "unit": self.flow_types[flow_type]["unit"],
+            "color": self.flow_types[flow_type]["color"],
+            "value": np.zeros(self.N),  # Initialize as numpy array
         }
 
         # Add to system flows
@@ -109,31 +121,33 @@ class System:
 
         # Add references to component flow dictionaries
         # Source component outputs to target
-        if 'output' not in component1.flows:
-            component1.flows['output'] = {}
-        component1.flows['output'][f'{var_prefix}_{component2_name}'] = flow
+        if "output" not in component1.flows:
+            component1.flows["output"] = {}
+        component1.flows["output"][f"{var_prefix}_{component2_name}"] = flow
 
         # Target component receives input from source
-        if 'input' not in component2.flows:
-            component2.flows['input'] = {}
-        component2.flows['input'][f'{var_prefix}_{component1_name}'] = flow
+        if "input" not in component2.flows:
+            component2.flows["input"] = {}
+        component2.flows["input"][f"{var_prefix}_{component1_name}"] = flow
 
         # Handle special component types
-        if component1.type == 'transmission':
-            if 'source' not in component1.flows:
-                component1.flows['source'] = {}
-            component1.flows['source'][f'{var_prefix}_draw'] = flow
+        if component1.type == "transmission":
+            if "source" not in component1.flows:
+                component1.flows["source"] = {}
+            component1.flows["source"][f"{var_prefix}_draw"] = flow
 
-        if component2.type == 'transmission':
-            if 'sink' not in component2.flows:
-                component2.flows['sink'] = {}
-            component2.flows['sink'][f'{var_prefix}_feed'] = flow
+        if component2.type == "transmission":
+            if "sink" not in component2.flows:
+                component2.flows["sink"] = {}
+            component2.flows["sink"][f"{var_prefix}_feed"] = flow
 
         logger.debug(f"Connected {component1_name} -> {component2_name} ({flow_type})")
 
         # Handle bidirectional connection
         if bidirectional:
-            self.connect(component2_name, component1_name, flow_type, bidirectional=False)
+            self.connect(
+                component2_name, component1_name, flow_type, bidirectional=False
+            )
 
     def get_flows_by_type(self, flow_type: str) -> Dict[str, Any]:
         """Get all flows of a specific type.
@@ -144,10 +158,7 @@ class System:
         Returns:
             Dictionary of flows of the specified type
         """
-        return {
-            k: v for k, v in self.flows.items()
-            if v['type'] == flow_type
-        }
+        return {k: v for k, v in self.flows.items() if v["type"] == flow_type}
 
     def get_component_by_type(self, component_type: str) -> List:
         """Get all components of a specific type.
@@ -159,8 +170,7 @@ class System:
             List of components of the specified type
         """
         return [
-            comp for comp in self.components.values()
-            if comp.type == component_type
+            comp for comp in self.components.values() if comp.type == component_type
         ]
 
     def validate_connections(self) -> List[str]:
@@ -173,20 +183,20 @@ class System:
 
         for comp_name, component in self.components.items():
             # Check that generation components have outputs
-            if component.type == 'generation':
-                has_output = any(
-                    f['source'] == comp_name for f in self.flows.values()
-                )
+            if component.type == "generation":
+                has_output = any(f["source"] == comp_name for f in self.flows.values())
                 if not has_output:
-                    issues.append(f"Generation component {comp_name} has no output connections")
+                    issues.append(
+                        f"Generation component {comp_name} has no output connections"
+                    )
 
             # Check that consumption components have inputs
-            elif component.type == 'consumption':
-                has_input = any(
-                    f['target'] == comp_name for f in self.flows.values()
-                )
+            elif component.type == "consumption":
+                has_input = any(f["target"] == comp_name for f in self.flows.values())
                 if not has_input:
-                    issues.append(f"Consumption component {comp_name} has no input connections")
+                    issues.append(
+                        f"Consumption component {comp_name} has no input connections"
+                    )
 
         return issues
 
@@ -197,23 +207,25 @@ class System:
             Dictionary with system information
         """
         info = {
-            'system_id': self.system_id,
-            'timesteps': self.N,
-            'num_components': len(self.components),
-            'num_flows': len(self.flows),
-            'component_types': {},
-            'flow_types': {}
+            "system_id": self.system_id,
+            "timesteps": self.N,
+            "num_components": len(self.components),
+            "num_flows": len(self.flows),
+            "component_types": {},
+            "flow_types": {},
         }
 
         # Count components by type
         for component in self.components.values():
             comp_type = component.type
-            info['component_types'][comp_type] = info['component_types'].get(comp_type, 0) + 1
+            info["component_types"][comp_type] = (
+                info["component_types"].get(comp_type, 0) + 1
+            )
 
         # Count flows by type
         for flow in self.flows.values():
-            flow_type = flow['type']
-            info['flow_types'][flow_type] = info['flow_types'].get(flow_type, 0) + 1
+            flow_type = flow["type"]
+            info["flow_types"][flow_type] = info["flow_types"].get(flow_type, 0) + 1
 
         return info
 
@@ -225,12 +237,8 @@ class System:
         """
         # Convert flow values to CVXPY variables
         for flow_key, flow_data in self.flows.items():
-            if not isinstance(flow_data['value'], cp.Variable):
-                flow_data['value'] = cp.Variable(
-                    self.N,
-                    nonneg=True,
-                    name=flow_key
-                )
+            if not isinstance(flow_data["value"], cp.Variable):
+                flow_data["value"] = cp.Variable(self.N, nonneg=True, name=flow_key)
 
         # Initialize component optimization variables
         for component in self.components.values():
@@ -279,7 +287,9 @@ class System:
         else:
             raise ValueError(f"Unknown objective type: {objective_type}")
 
-    def get_component_cost_contributions(self, timestep: Optional[int] = None) -> Dict[str, Any]:
+    def get_component_cost_contributions(
+        self, timestep: Optional[int] = None
+    ) -> Dict[str, Any]:
         """Get cost contributions from all components.
 
         The System exposes component cost contributions for the solver to aggregate.
@@ -297,43 +307,56 @@ class System:
             comp_costs = {}
 
             # Operational costs
-            if hasattr(component, 'economic') and component.economic:
+            if hasattr(component, "economic") and component.economic:
                 # Import costs for transmission components
-                if component.type == "transmission" and hasattr(component, 'import_tariff'):
-                    comp_costs['import_cost'] = {
-                        'rate': component.import_tariff,
-                        'variable': getattr(component, 'P_import', None)
+                if component.type == "transmission" and hasattr(
+                    component, "import_tariff"
+                ):
+                    comp_costs["import_cost"] = {
+                        "rate": component.import_tariff,
+                        "variable": getattr(component, "P_import", None),
                     }
 
                 # Export revenues for transmission components
-                if component.type == "transmission" and hasattr(component, 'export_tariff'):
-                    comp_costs['export_revenue'] = {
-                        'rate': -component.export_tariff,  # Negative cost (revenue)
-                        'variable': getattr(component, 'P_export', None)
+                if component.type == "transmission" and hasattr(
+                    component, "export_tariff"
+                ):
+                    comp_costs["export_revenue"] = {
+                        "rate": -component.export_tariff,  # Negative cost (revenue)
+                        "variable": getattr(component, "P_export", None),
                     }
 
                 # Generation costs
-                if component.type == "generation" and hasattr(component, 'operating_cost'):
-                    comp_costs['generation_cost'] = {
-                        'rate': component.operating_cost,
-                        'variable': getattr(component, 'P_gen', None)
+                if component.type == "generation" and hasattr(
+                    component, "operating_cost"
+                ):
+                    comp_costs["generation_cost"] = {
+                        "rate": component.operating_cost,
+                        "variable": getattr(component, "P_gen", None),
                     }
 
                 # Storage degradation costs
-                if component.type == "storage" and hasattr(component, 'degradation_cost'):
-                    comp_costs['degradation_cost'] = {
-                        'rate': component.degradation_cost,
-                        'variable': getattr(component, 'P_cha', None)  # Cost per charge cycle
+                if component.type == "storage" and hasattr(
+                    component, "degradation_cost"
+                ):
+                    comp_costs["degradation_cost"] = {
+                        "rate": component.degradation_cost,
+                        "variable": getattr(
+                            component, "P_cha", None
+                        ),  # Cost per charge cycle
                     }
 
                 # Variable operational costs for all flows
-                if hasattr(component.economic, 'opex_var') and component.economic.opex_var > 0:
+                if (
+                    hasattr(component.economic, "opex_var")
+                    and component.economic.opex_var > 0
+                ):
                     for flow_dict in component.flows.values():
                         for flow_name, flow in flow_dict.items():
-                            if 'value' in flow and flow['value'] is not None:
-                                comp_costs[f'{flow_name}_variable'] = {
-                                    'rate': component.economic.opex_var,
-                                    'variable': flow['value']
+                            if "value" in flow and flow["value"] is not None:
+                                comp_costs[f"{flow_name}_variable"] = {
+                                    "rate": component.economic.opex_var,
+                                    "variable": flow["value"],
                                 }
 
             if comp_costs:
@@ -341,7 +364,9 @@ class System:
 
         return cost_contributions
 
-    def get_component_emission_contributions(self, timestep: Optional[int] = None) -> Dict[str, Any]:
+    def get_component_emission_contributions(
+        self, timestep: Optional[int] = None
+    ) -> Dict[str, Any]:
         """Get emission contributions from all components.
 
         Args:
@@ -355,29 +380,36 @@ class System:
         for comp_name, component in self.components.items():
             comp_emissions = {}
 
-            if hasattr(component, 'environmental') and component.environmental:
+            if hasattr(component, "environmental") and component.environmental:
                 # Grid import emissions
-                if component.type == "transmission" and hasattr(component, 'grid_emission_factor'):
-                    comp_emissions['grid_emissions'] = {
-                        'factor': component.grid_emission_factor,  # kg CO2/kWh
-                        'variable': getattr(component, 'P_import', None)
+                if component.type == "transmission" and hasattr(
+                    component, "grid_emission_factor"
+                ):
+                    comp_emissions["grid_emissions"] = {
+                        "factor": component.grid_emission_factor,  # kg CO2/kWh
+                        "variable": getattr(component, "P_import", None),
                     }
 
                 # Generation emissions
-                if component.type == "generation" and hasattr(component, 'emission_factor'):
-                    comp_emissions['generation_emissions'] = {
-                        'factor': component.emission_factor,
-                        'variable': getattr(component, 'P_gen', None)
+                if component.type == "generation" and hasattr(
+                    component, "emission_factor"
+                ):
+                    comp_emissions["generation_emissions"] = {
+                        "factor": component.emission_factor,
+                        "variable": getattr(component, "P_gen", None),
                     }
 
                 # Operational emissions for all flows
-                if hasattr(component.environmental, 'co2_operational') and component.environmental.co2_operational > 0:
+                if (
+                    hasattr(component.environmental, "co2_operational")
+                    and component.environmental.co2_operational > 0
+                ):
                     for flow_dict in component.flows.values():
                         for flow_name, flow in flow_dict.items():
-                            if 'value' in flow and flow['value'] is not None:
-                                comp_emissions[f'{flow_name}_operational'] = {
-                                    'factor': component.environmental.co2_operational,
-                                    'variable': flow['value']
+                            if "value" in flow and flow["value"] is not None:
+                                comp_emissions[f"{flow_name}_operational"] = {
+                                    "factor": component.environmental.co2_operational,
+                                    "variable": flow["value"],
                                 }
 
             if comp_emissions:
@@ -397,16 +429,16 @@ class System:
             if component.type == "transmission" and component.medium == "electricity":
                 comp_usage = {}
 
-                if hasattr(component, 'P_import'):
-                    comp_usage['import'] = getattr(component, 'P_import', None)
-                if hasattr(component, 'P_export'):
-                    comp_usage['export'] = getattr(component, 'P_export', None)
+                if hasattr(component, "P_import"):
+                    comp_usage["import"] = getattr(component, "P_import", None)
+                if hasattr(component, "P_export"):
+                    comp_usage["export"] = getattr(component, "P_export", None)
 
                 # Include all electricity flows for grid components
                 for flow_dict in component.flows.values():
                     for flow_name, flow in flow_dict.items():
-                        if 'value' in flow and flow['value'] is not None:
-                            comp_usage[flow_name] = flow['value']
+                        if "value" in flow and flow["value"] is not None:
+                            comp_usage[flow_name] = flow["value"]
 
                 if comp_usage:
                     grid_usage[comp_name] = comp_usage
@@ -431,13 +463,17 @@ class System:
         # Check for missing data
         for comp_name, comp_data in contributions.items():
             for contrib_type, contrib_data in comp_data.items():
-                if contrib_data.get('variable') is None:
-                    warnings.append(f"Component {comp_name} {contrib_type} has no optimization variable")
+                if contrib_data.get("variable") is None:
+                    warnings.append(
+                        f"Component {comp_name} {contrib_type} has no optimization variable"
+                    )
 
         return warnings
 
     def __repr__(self):
         """String representation of system."""
-        return (f"System(id='{self.system_id}', "
-                f"components={len(self.components)}, "
-                f"flows={len(self.flows)})")
+        return (
+            f"System(id='{self.system_id}', "
+            f"components={len(self.components)}, "
+            f"flows={len(self.flows)})"
+        )

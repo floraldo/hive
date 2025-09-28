@@ -7,17 +7,18 @@ operations transparently during the migration period. Ensures zero breaking chan
 """
 
 import asyncio
-import threading
-from hive_logging import get_logger
 import functools
-from typing import Any, Callable, TypeVar, Union
+import threading
 from contextlib import contextmanager
+from typing import Any, Callable, TypeVar, Union
 
-from .async_connection_pool import get_async_connection, close_async_pool
+from hive_logging import get_logger
+
+from .async_connection_pool import close_async_pool, get_async_connection
 
 logger = get_logger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class AsyncEventLoopManager:
@@ -104,6 +105,7 @@ def sync_wrapper(async_func: Callable[..., Any]) -> Callable[..., Any]:
     Returns:
         Sync wrapper function
     """
+
     @functools.wraps(async_func)
     def wrapper(*args, **kwargs):
         coro = async_func(*args, **kwargs)
@@ -125,6 +127,7 @@ def get_sync_async_connection():
             cursor = conn.execute("SELECT * FROM tasks")
             results = cursor.fetchall()
     """
+
     class AsyncConnectionWrapper:
         """Wrapper that makes async connection look sync."""
 
@@ -133,6 +136,7 @@ def get_sync_async_connection():
 
         def execute(self, sql, parameters=None):
             """Sync wrapper for async execute."""
+
             async def _execute():
                 if parameters:
                     return await self._async_conn.execute(sql, parameters)
@@ -144,6 +148,7 @@ def get_sync_async_connection():
 
         def executemany(self, sql, parameters_list):
             """Sync wrapper for async executemany."""
+
             async def _executemany():
                 return await self._async_conn.executemany(sql, parameters_list)
 
@@ -151,6 +156,7 @@ def get_sync_async_connection():
 
         def commit(self):
             """Sync wrapper for async commit."""
+
             async def _commit():
                 await self._async_conn.commit()
 
@@ -158,6 +164,7 @@ def get_sync_async_connection():
 
         def rollback(self):
             """Sync wrapper for async rollback."""
+
             async def _rollback():
                 await self._async_conn.rollback()
 
@@ -165,6 +172,7 @@ def get_sync_async_connection():
 
         def close(self):
             """Sync wrapper for async close."""
+
             async def _close():
                 await self._async_conn.close()
 
@@ -178,6 +186,7 @@ def get_sync_async_connection():
 
         def fetchone(self):
             """Sync wrapper for async fetchone."""
+
             async def _fetchone():
                 return await self._async_cursor.fetchone()
 
@@ -185,6 +194,7 @@ def get_sync_async_connection():
 
         def fetchall(self):
             """Sync wrapper for async fetchall."""
+
             async def _fetchall():
                 return await self._async_cursor.fetchall()
 
@@ -192,6 +202,7 @@ def get_sync_async_connection():
 
         def fetchmany(self, size=None):
             """Sync wrapper for async fetchmany."""
+
             async def _fetchmany():
                 if size:
                     return await self._async_cursor.fetchmany(size)
@@ -292,6 +303,7 @@ def async_database_enabled() -> bool:
     """Check if async database operations are available."""
     try:
         import aiosqlite
+
         return True
     except ImportError:
         return False
@@ -299,4 +311,5 @@ def async_database_enabled() -> bool:
 
 # Register cleanup function for graceful shutdown
 import atexit
+
 atexit.register(cleanup_async_compat)

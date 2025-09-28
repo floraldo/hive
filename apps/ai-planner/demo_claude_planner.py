@@ -6,11 +6,11 @@ This script demonstrates the complete Claude-powered planning workflow
 from task submission to intelligent plan generation and sub-task creation.
 """
 
-import sys
 import json
+import sys
 import uuid
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import RobustClaudePlannerBridge
@@ -43,8 +43,8 @@ def demonstrate_claude_planning() -> None:
     print("-" * 30)
 
     complex_task = {
-        'id': f'demo-{datetime.now().strftime("%Y%m%d-%H%M%S")}',
-        'task_description': """
+        "id": f'demo-{datetime.now().strftime("%Y%m%d-%H%M%S")}',
+        "task_description": """
         Design and implement a complete real-time collaboration platform with the following features:
         - Multi-user document editing with operational transforms
         - Real-time video/audio conferencing with WebRTC
@@ -55,50 +55,66 @@ def demonstrate_claude_planning() -> None:
         - API for third-party integrations
         - Microservices architecture with Docker deployment
         """.strip(),
-        'priority': 90,
-        'requestor': 'product_team',
-        'context_data': {
-            'files_affected': 50,
-            'dependencies': [
-                'websockets', 'webrtc', 'operational-transforms',
-                'jwt', 'redis', 'postgres', 'docker', 'kubernetes',
-                'react', 'typescript', 'fastapi', 'socketio'
+        "priority": 90,
+        "requestor": "product_team",
+        "context_data": {
+            "files_affected": 50,
+            "dependencies": [
+                "websockets",
+                "webrtc",
+                "operational-transforms",
+                "jwt",
+                "redis",
+                "postgres",
+                "docker",
+                "kubernetes",
+                "react",
+                "typescript",
+                "fastapi",
+                "socketio",
             ],
-            'tech_stack': ['python', 'javascript', 'typescript', 'react', 'fastapi'],
-            'constraints': [
-                'Real-time performance (<100ms latency)',
-                'Support 1000+ concurrent users',
-                'GDPR compliance for user data',
-                'Cross-browser compatibility',
-                'Mobile responsiveness'
+            "tech_stack": ["python", "javascript", "typescript", "react", "fastapi"],
+            "constraints": [
+                "Real-time performance (<100ms latency)",
+                "Support 1000+ concurrent users",
+                "GDPR compliance for user data",
+                "Cross-browser compatibility",
+                "Mobile responsiveness",
             ],
-            'estimated_timeline': '12 weeks',
-            'team_size': 6
-        }
+            "estimated_timeline": "12 weeks",
+            "team_size": 6,
+        },
     }
 
     print(f"Task ID: {complex_task['id']}")
     print(f"Description: {complex_task['task_description'][:100]}...")
     print(f"Priority: {complex_task['priority']}/100")
-    print(f"Dependencies: {len(complex_task['context_data']['dependencies'])} technologies")
-    print(f"Constraints: {len(complex_task['context_data']['constraints'])} requirements")
+    print(
+        f"Dependencies: {len(complex_task['context_data']['dependencies'])} technologies"
+    )
+    print(
+        f"Constraints: {len(complex_task['context_data']['constraints'])} requirements"
+    )
     print()
 
     # Insert task into planning queue
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO planning_queue
         (id, task_description, priority, requestor, context_data, status)
         VALUES (?, ?, ?, ?, ?, ?)
-    """, (
-        complex_task['id'],
-        complex_task['task_description'],
-        complex_task['priority'],
-        complex_task['requestor'],
-        json.dumps(complex_task['context_data']),
-        'pending'
-    ))
+    """,
+        (
+            complex_task["id"],
+            complex_task["task_description"],
+            complex_task["priority"],
+            complex_task["requestor"],
+            json.dumps(complex_task["context_data"]),
+            "pending",
+        ),
+    )
     conn.commit()
     print("SUCCESS: Complex task submitted to planning queue")
     print()
@@ -109,7 +125,7 @@ def demonstrate_claude_planning() -> None:
 
     # Retrieve and process the task
     task = agent.get_next_task()
-    if task and task['id'] == complex_task['id']:
+    if task and task["id"] == complex_task["id"]:
         print("SUCCESS: Task retrieved from queue")
         print(f"Task status: {task.get('status', 'unknown')} -> assigned")
         print()
@@ -127,16 +143,20 @@ def demonstrate_claude_planning() -> None:
             print()
 
             print("PLAN METRICS:")
-            metrics = plan.get('metrics', {})
-            print(f"  Total Duration: {metrics.get('total_estimated_duration', 'N/A')} minutes")
-            print(f"  Critical Path: {metrics.get('critical_path_duration', 'N/A')} minutes")
+            metrics = plan.get("metrics", {})
+            print(
+                f"  Total Duration: {metrics.get('total_estimated_duration', 'N/A')} minutes"
+            )
+            print(
+                f"  Critical Path: {metrics.get('critical_path_duration', 'N/A')} minutes"
+            )
             print(f"  Complexity: {metrics.get('complexity_breakdown', {})}")
             print(f"  Skills Required: {metrics.get('skill_requirements', {})}")
             print(f"  Confidence Score: {metrics.get('confidence_score', 'N/A')}")
             print()
 
             print("SUB-TASKS GENERATED:")
-            sub_tasks = plan.get('sub_tasks', [])
+            sub_tasks = plan.get("sub_tasks", [])
             for i, subtask in enumerate(sub_tasks[:5], 1):  # Show first 5
                 print(f"  {i}. {subtask['title']}")
                 print(f"     Assignee: {subtask['assignee']}")
@@ -164,10 +184,13 @@ def demonstrate_claude_planning() -> None:
         print("SUCCESS: Execution plan saved to database")
 
         # Update task status
-        agent.update_task_status(task['id'], 'planned')
+        agent.update_task_status(task["id"], "planned")
 
         # Verify persistence
-        cursor.execute("SELECT COUNT(*) FROM execution_plans WHERE planning_task_id = ?", (task['id'],))
+        cursor.execute(
+            "SELECT COUNT(*) FROM execution_plans WHERE planning_task_id = ?",
+            (task["id"],),
+        )
         plan_count = cursor.fetchone()[0]
 
         cursor.execute("SELECT COUNT(*) FROM tasks WHERE task_type = 'planned_subtask'")
@@ -194,8 +217,10 @@ def demonstrate_claude_planning() -> None:
     print()
 
     # Cleanup
-    cursor.execute("DELETE FROM planning_queue WHERE id = ?", (task['id'],))
-    cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (task['id'],))
+    cursor.execute("DELETE FROM planning_queue WHERE id = ?", (task["id"],))
+    cursor.execute(
+        "DELETE FROM execution_plans WHERE planning_task_id = ?", (task["id"],)
+    )
     cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
     conn.commit()
     conn.close()
@@ -233,5 +258,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"DEMONSTRATION ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

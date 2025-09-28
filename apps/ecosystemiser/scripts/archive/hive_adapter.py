@@ -7,30 +7,37 @@ capabilities, enabling the AI app to execute meaningful ecosystem analysis
 and optimization tasks.
 """
 
-import json
-import sys
-import os
 import argparse
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Any, List, Optional
+import json
+import os
 
 # Temporary path setup until package installation completes
 import sys
-# Import from properly installed packages
-from hive_logging import setup_logging, get_logger
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from ecosystemiser.hive_env import get_app_config, get_app_settings
+
+# Import from properly installed packages
+from hive_logging import get_logger, setup_logging
 
 # Import real EcoSystemiser components for climate service
 try:
-    from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+    from ecosystemiser.profile_loader.climate.data_models import (
+        ClimateRequest,
+        ClimateResponse,
+    )
     from ecosystemiser.profile_loader.climate.service import ClimateService
     CLIMATE_SERVICE_AVAILABLE = True
 except Exception as e:
     CLIMATE_SERVICE_AVAILABLE = False
     # Check if we can at least import the data models
     try:
-        from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+        from ecosystemiser.profile_loader.climate.data_models import (
+            ClimateRequest,
+            ClimateResponse,
+        )
         CLIMATE_MODELS_AVAILABLE = True
     except ImportError as import_err:
         CLIMATE_MODELS_AVAILABLE = False

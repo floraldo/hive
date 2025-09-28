@@ -6,12 +6,14 @@ Provides type-safe request/response models with validation for all API endpoints
 
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel, Field, validator
 
 
 class ModuleStatus(str, Enum):
     """Module status enumeration"""
+
     ACTIVE = "active"
     PLANNED = "planned"
     MAINTENANCE = "maintenance"
@@ -20,6 +22,7 @@ class ModuleStatus(str, Enum):
 
 class ModuleInfo(BaseModel):
     """Module information model"""
+
     status: ModuleStatus
     endpoints: List[str] = Field(default_factory=list)
     version: Optional[str] = None
@@ -28,6 +31,7 @@ class ModuleInfo(BaseModel):
 
 class PlatformInfo(BaseModel):
     """Root endpoint response model"""
+
     platform: str = Field(default="EcoSystemiser")
     version: str
     modules: Dict[str, ModuleInfo]
@@ -37,6 +41,7 @@ class PlatformInfo(BaseModel):
 
 class HealthCheck(BaseModel):
     """Health check response model"""
+
     status: str = Field(default="healthy")
     platform: str = Field(default="EcoSystemiser")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -46,6 +51,7 @@ class HealthCheck(BaseModel):
 
 class APIError(BaseModel):
     """Standard API error response"""
+
     error: str
     message: str
     details: Optional[Dict[str, Any]] = None
@@ -55,6 +61,7 @@ class APIError(BaseModel):
 
 class APIResponse(BaseModel):
     """Standard API response wrapper"""
+
     success: bool = True
     data: Optional[Any] = None
     error: Optional[APIError] = None
@@ -63,6 +70,7 @@ class APIResponse(BaseModel):
 
 class ValidationError(BaseModel):
     """Validation error details"""
+
     field: str
     message: str
     invalid_value: Optional[Any] = None
@@ -70,6 +78,7 @@ class ValidationError(BaseModel):
 
 class ServiceStatus(BaseModel):
     """Service status response"""
+
     module: str
     status: str
     version: Optional[str] = None
@@ -80,12 +89,14 @@ class ServiceStatus(BaseModel):
 # Solver Module Models
 class SolverStatus(ServiceStatus):
     """Solver module status"""
+
     solver_type: Optional[str] = None
     optimization_engines: Optional[List[str]] = None
 
 
 class SolverRequest(BaseModel):
     """Solver request model"""
+
     system_config: Dict[str, Any]
     optimization_targets: List[str]
     constraints: Optional[Dict[str, Any]] = None
@@ -95,6 +106,7 @@ class SolverRequest(BaseModel):
 
 class SolverResponse(BaseModel):
     """Solver response model"""
+
     job_id: str
     status: str
     optimal_solution: Optional[Dict[str, Any]] = None
@@ -106,12 +118,14 @@ class SolverResponse(BaseModel):
 # Analyser Module Models
 class AnalyserStatus(ServiceStatus):
     """Analyser module status"""
+
     analysis_strategies: Optional[List[str]] = None
     supported_formats: Optional[List[str]] = None
 
 
 class AnalysisRequest(BaseModel):
     """Analysis request model"""
+
     data_path: str
     strategies: Optional[List[str]] = None
     output_format: str = Field(default="json")
@@ -121,6 +135,7 @@ class AnalysisRequest(BaseModel):
 
 class AnalysisResponse(BaseModel):
     """Analysis response model"""
+
     analysis_id: str
     summary: Dict[str, Any]
     analyses: Dict[str, Any]
@@ -132,12 +147,14 @@ class AnalysisResponse(BaseModel):
 # Reporting Module Models
 class ReportingStatus(ServiceStatus):
     """Reporting module status"""
+
     report_types: Optional[List[str]] = None
     export_formats: Optional[List[str]] = None
 
 
 class ReportRequest(BaseModel):
     """Report generation request"""
+
     analysis_id: str
     report_type: str = Field(default="comprehensive")
     format: str = Field(default="html")
@@ -146,6 +163,7 @@ class ReportRequest(BaseModel):
 
 class ReportResponse(BaseModel):
     """Report generation response"""
+
     report_id: str
     download_url: str
     format: str
@@ -156,6 +174,7 @@ class ReportResponse(BaseModel):
 # Job Management Models (for async operations)
 class JobPriority(int, Enum):
     """Job priority levels"""
+
     LOW = 1
     NORMAL = 5
     HIGH = 8
@@ -164,6 +183,7 @@ class JobPriority(int, Enum):
 
 class JobRequest(BaseModel):
     """Generic job request model"""
+
     job_type: str
     parameters: Dict[str, Any]
     priority: JobPriority = Field(default=JobPriority.NORMAL)
@@ -174,6 +194,7 @@ class JobRequest(BaseModel):
 
 class JobStatus(str, Enum):
     """Job status enumeration"""
+
     QUEUED = "queued"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -184,6 +205,7 @@ class JobStatus(str, Enum):
 
 class JobInfo(BaseModel):
     """Job information model"""
+
     job_id: str
     job_type: str
     status: JobStatus
@@ -198,6 +220,7 @@ class JobInfo(BaseModel):
 
 class JobListResponse(BaseModel):
     """Job list response model"""
+
     jobs: List[JobInfo]
     total: int
     limit: int
@@ -208,6 +231,7 @@ class JobListResponse(BaseModel):
 # Configuration Models
 class DatabaseConfig(BaseModel):
     """Database configuration model"""
+
     url: str
     pool_size: Optional[int] = Field(default=10, ge=1, le=50)
     timeout: Optional[int] = Field(default=30, ge=5, le=300)
@@ -216,6 +240,7 @@ class DatabaseConfig(BaseModel):
 
 class CacheConfig(BaseModel):
     """Cache configuration model"""
+
     enabled: bool = Field(default=True)
     ttl_seconds: int = Field(default=3600, ge=60, le=86400)
     max_size: int = Field(default=1000, ge=10, le=10000)
@@ -223,17 +248,21 @@ class CacheConfig(BaseModel):
 
 class APIConfig(BaseModel):
     """API configuration model"""
+
     title: str = Field(default="EcoSystemiser API")
     description: str = Field(default="Sustainable Energy System Analysis Platform")
     version: str = Field(default="3.0.0")
     cors_origins: List[str] = Field(default_factory=lambda: ["*"])
-    cors_methods: List[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE"])
+    cors_methods: List[str] = Field(
+        default_factory=lambda: ["GET", "POST", "PUT", "DELETE"]
+    )
     cors_headers: List[str] = Field(default_factory=lambda: ["*"])
     rate_limit: Optional[str] = Field(default="100/hour")
 
 
 class SystemConfig(BaseModel):
     """System configuration model"""
+
     debug: bool = Field(default=False)
     log_level: str = Field(default="INFO")
     database: DatabaseConfig
@@ -244,6 +273,7 @@ class SystemConfig(BaseModel):
 # Metrics and Monitoring Models
 class SystemMetrics(BaseModel):
     """System metrics model"""
+
     cpu_usage: float = Field(ge=0, le=100)
     memory_usage: float = Field(ge=0, le=100)
     disk_usage: float = Field(ge=0, le=100)
@@ -255,6 +285,7 @@ class SystemMetrics(BaseModel):
 
 class PerformanceMetrics(BaseModel):
     """Performance metrics model"""
+
     avg_response_time: float = Field(ge=0)
     p95_response_time: float = Field(ge=0)
     p99_response_time: float = Field(ge=0)
@@ -264,6 +295,7 @@ class PerformanceMetrics(BaseModel):
 
 class MonitoringResponse(BaseModel):
     """Monitoring response model"""
+
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     system_metrics: SystemMetrics
     performance_metrics: PerformanceMetrics
@@ -274,6 +306,7 @@ class MonitoringResponse(BaseModel):
 # Legacy API Models
 class LegacyRedirect(BaseModel):
     """Legacy API redirect response"""
+
     message: str
     redirect: str
     deprecated_version: str
@@ -284,6 +317,7 @@ class LegacyRedirect(BaseModel):
 # Batch Processing Models
 class BatchRequest(BaseModel):
     """Batch processing request"""
+
     requests: List[Dict[str, Any]] = Field(min_items=1, max_items=100)
     parallel: bool = Field(default=True)
     partial_success: bool = Field(default=True)
@@ -292,6 +326,7 @@ class BatchRequest(BaseModel):
 
 class BatchResponse(BaseModel):
     """Batch processing response"""
+
     batch_id: str
     total_requests: int
     successful: int
@@ -304,6 +339,7 @@ class BatchResponse(BaseModel):
 # Export Models
 class ExportFormat(str, Enum):
     """Export format enumeration"""
+
     JSON = "json"
     CSV = "csv"
     XLSX = "xlsx"
@@ -314,6 +350,7 @@ class ExportFormat(str, Enum):
 
 class ExportRequest(BaseModel):
     """Export request model"""
+
     data_id: str
     format: ExportFormat
     compression: bool = Field(default=False)
@@ -323,6 +360,7 @@ class ExportRequest(BaseModel):
 
 class ExportResponse(BaseModel):
     """Export response model"""
+
     export_id: str
     download_url: str
     format: ExportFormat

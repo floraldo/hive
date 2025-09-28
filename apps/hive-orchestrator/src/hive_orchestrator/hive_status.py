@@ -8,17 +8,18 @@ Shows tasks, active workers, results, and events without any scheduling logic
 """
 
 import json
-import time
-import sys
 import os
-from pathlib import Path
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
+import sys
+import time
 from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Windows console color support
 if sys.platform == "win32":
     os.system("color")
+
 
 class HiveStatus:
     """Pure read-only status viewer for Hive MAS with DI support"""
@@ -44,35 +45,35 @@ class HiveStatus:
             "cyan": "\033[96m",
             "white": "\033[97m",
             "reset": "\033[0m",
-            "bold": "\033[1m"
+            "bold": "\033[1m",
         }
 
         # Emoji toggle for Windows compatibility
         # Check config first, then default to enabled
         self.use_emoji = self.config.get("use_emoji", True)
-    
+
     def get_events_file(self) -> Path:
         """Get today's events file"""
         date_suffix = datetime.now().strftime("%Y%m%d")
         return self.hive_dir / "bus" / f"events_{date_suffix}.jsonl"
-    
+
     def color(self, text: str, color_name: str) -> str:
         """Add color to text for terminal display"""
         if color_name in self.colors:
             return f"{self.colors[color_name]}{text}{self.colors['reset']}"
         return text
-    
+
     def load_tasks(self) -> Dict[str, Dict[str, Any]]:
         """Load all tasks from per-task files"""
         tasks = {}
-        
+
         if not self.tasks_dir.exists():
             return tasks
-        
+
         for task_file in self.tasks_dir.glob("*.json"):
             if task_file.stem == "index":
                 continue
-            
+
             try:
                 with open(task_file, "r") as f:
                     task = json.load(f)
@@ -80,9 +81,9 @@ class HiveStatus:
             except (json.JSONDecodeError, KeyError, IOError) as e:
                 # Silently skip corrupted task files
                 pass
-        
+
         return tasks
-    
+
     def load_queue(self) -> List[str]:
         """Load task queue order"""
         index_file = self.tasks_dir / "index.json"
@@ -95,14 +96,14 @@ class HiveStatus:
                 # Silently skip if queue file not readable
                 pass
         return []
-    
+
     def load_results(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Load latest result for a task"""
         results_dir = self.results_dir / task_id
-        
+
         if not results_dir.exists():
             return None
-        
+
         # Get latest result
         result_files = sorted(results_dir.glob("*.json"))
         if result_files:
@@ -112,22 +113,22 @@ class HiveStatus:
             except (json.JSONDecodeError, IOError, IndexError) as e:
                 # Silently skip if result file not readable
                 pass
-        
+
         return None
-    
+
     def tail_events(self) -> List[Dict[str, Any]]:
         """Tail new events from the event bus"""
         events = []
-        
+
         # Check if we need to switch to new day's file
         current_file = self.get_events_file()
         if current_file != self.events_file:
             self.events_file = current_file
             self.last_event_pos = 0
-        
+
         if not self.events_file.exists():
             return events
-        
+
         try:
             with open(self.events_file, "r") as f:
                 f.seek(self.last_event_pos)
@@ -141,16 +142,16 @@ class HiveStatus:
         except (IOError, OSError) as e:
             # Event file not accessible
             pass
-        
+
         return events
-    
+
     def format_time_ago(self, iso_time: str) -> str:
         """Format ISO time as 'X ago'"""
         try:
             dt = datetime.fromisoformat(iso_time.replace("Z", "+00:00"))
             now = datetime.now(timezone.utc)
             delta = now - dt
-            
+
             if delta.days > 0:
                 return f"{delta.days}d"
             elif delta.seconds > 3600:
@@ -161,7 +162,7 @@ class HiveStatus:
                 return f"{delta.seconds}s"
         except (ValueError, TypeError, AttributeError) as e:
             return "?"
-    
+
     def format_duration(self, ms: int) -> str:
         """Format duration in milliseconds"""
         if ms < 1000:
@@ -170,7 +171,7 @@ class HiveStatus:
             return f"{ms / 1000:.1f}s"
         else:
             return f"{ms / 60000:.1f}m"
-    
+
     def get_status_icon(self, status: str) -> str:
         """Get colored status icon with emoji/ASCII fallback"""
         if self.use_emoji:
@@ -183,7 +184,7 @@ class HiveStatus:
                 "pr_open": self.color("🔗", "cyan"),
                 "completed": self.color("✅", "green"),
                 "failed": self.color("❌", "red"),
-                "blocked": self.color("🚫", "red")
+                "blocked": self.color("🚫", "red"),
             }
         else:
             icons = {
@@ -195,10 +196,10 @@ class HiveStatus:
                 "pr_open": self.color("PR", "cyan"),
                 "completed": self.color("OK", "green"),
                 "failed": self.color("X", "red"),
-                "blocked": self.color("BLK", "red")
+                "blocked": self.color("BLK", "red"),
             }
         return icons.get(status, "?")
-    
+
     def get_border_char(self, char_type: str) -> str:
         """Get border character with ASCII fallback"""
         if self.use_emoji:
@@ -206,28 +207,30 @@ class HiveStatus:
         else:
             borders = {"double": "=", "single": "-"}
         return borders.get(char_type, "-")
-    
+
     def print_dashboard(self):
         """Print the status dashboard"""
         # Clear screen
         logger.info("\033[2J\033[H", end="")
-        
+
         # Header
         logger.info(self.color(self.get_border_char("double") * 80, "cyan"))
         logger.info(self.color("HIVE FLEET STATUS - READ-ONLY VIEWER", "bold"))
         logger.info(self.color(self.get_border_char("double") * 80, "cyan"))
-        logger.info(f"Time: {datetime.now().strftime('%H:%M:%S')} | Events: {self.events_file.name}")
+        logger.info(
+            f"Time: {datetime.now().strftime('%H:%M:%S')} | Events: {self.events_file.name}"
+        )
         logger.info()
-        
+
         # Load data
         tasks = self.load_tasks()
         queue = self.load_queue()
-        
+
         # Task statistics
         stats = defaultdict(int)
         for task in tasks.values():
             stats[task.get("status", "unknown")] += 1
-        
+
         # Status bar
         logger.info(self.color("TASK PIPELINE", "bold"))
         logger.info(self.get_border_char("single") * 40)
@@ -242,13 +245,14 @@ class HiveStatus:
         )
         logger.info(status_line)
         logger.info()
-        
+
         # Active tasks
         active_tasks = [
-            t for t in tasks.values() 
+            t
+            for t in tasks.values()
             if t.get("status") in ["assigned", "in_progress", "testing", "reviewing"]
         ]
-        
+
         if active_tasks:
             logger.info(self.color("ACTIVE TASKS", "bold"))
             logger.info(self.get_border_char("single") * 40)
@@ -258,7 +262,7 @@ class HiveStatus:
                 assignee = task.get("assignee", "?")
                 started = task.get("started_at", "")
                 ago = self.format_time_ago(started) if started else "?"
-                
+
                 # Check for result
                 result = self.load_results(task["id"])
                 if result:
@@ -267,92 +271,108 @@ class HiveStatus:
                 else:
                     duration = ago
                     notes = ""
-                
-                logger.info(f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | "
-                      f"{assignee:8} | {duration:6} | {notes}")
+
+                logger.info(
+                    f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | "
+                    f"{assignee:8} | {duration:6} | {notes}"
+                )
             logger.info()
-        
+
         # Recent completions
         completed = [
-            t for t in tasks.values()
-            if t.get("status") in ["completed", "pr_open"]
+            t for t in tasks.values() if t.get("status") in ["completed", "pr_open"]
         ]
-        
+
         if completed:
             logger.info(self.color("RECENT COMPLETIONS", "bold"))
             logger.info(self.get_border_char("single") * 40)
-            for task in sorted(completed, key=lambda t: t.get("completed_at", ""), reverse=True)[:3]:
+            for task in sorted(
+                completed, key=lambda t: t.get("completed_at", ""), reverse=True
+            )[:3]:
                 icon = self.get_status_icon(task.get("status"))
                 pr = task.get("pr", "")
-                
+
                 result = self.load_results(task["id"])
                 if result:
                     duration = self.format_duration(result.get("duration_ms", 0))
                 else:
                     duration = "?"
-                
+
                 if pr:
                     pr_short = pr.split("/")[-1] if "/" in pr else pr[:20]
-                    logger.info(f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | "
-                          f"{duration:6} | PR: {self.color(pr_short, 'cyan')}")
+                    logger.info(
+                        f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | "
+                        f"{duration:6} | PR: {self.color(pr_short, 'cyan')}"
+                    )
                 else:
-                    logger.info(f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | {duration:6}")
+                    logger.info(
+                        f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | {duration:6}"
+                    )
             logger.info()
-        
+
         # Recent failures
-        failed = [
-            t for t in tasks.values()
-            if t.get("status") in ["failed", "blocked"]
-        ]
-        
+        failed = [t for t in tasks.values() if t.get("status") in ["failed", "blocked"]]
+
         if failed:
             logger.error(self.color("FAILURES & BLOCKS", "bold"))
             logger.info(self.get_border_char("single") * 40)
-            for task in sorted(failed, key=lambda t: t.get("failed_at", ""), reverse=True)[:3]:
+            for task in sorted(
+                failed, key=lambda t: t.get("failed_at", ""), reverse=True
+            )[:3]:
                 icon = self.get_status_icon(task.get("status"))
                 reason = task.get("failure_reason", "Unknown")[:40]
-                
+
                 # Check if inspector task created
                 fix_task_id = f"fix_{task['id']}"
                 has_fix = fix_task_id in tasks
-                
+
                 if has_fix:
-                    logger.info(f"{icon} [{task['id']}] {reason} | "
-                          f"Fix: {self.color(fix_task_id, 'yellow')}")
+                    logger.info(
+                        f"{icon} [{task['id']}] {reason} | "
+                        f"Fix: {self.color(fix_task_id, 'yellow')}"
+                    )
                 else:
                     logger.info(f"{icon} [{task['id']}] {reason}")
             logger.info()
-        
+
         # Recent events
         if self.recent_events:
             logger.info(self.color("EVENT STREAM", "bold"))
             logger.info(self.get_border_char("single") * 40)
-            
+
             for event in self.recent_events[-8:]:
                 evt_type = event.get("type", "")
                 worker = event.get("worker", event.get("component", "?"))
                 task_id = event.get("task_id", "")
                 ts = self.format_time_ago(event.get("ts", ""))
-                
+
                 # Format by type
                 if evt_type == "worker_spawned":
                     rocket = "🚀" if self.use_emoji else ">"
-                    logger.info(f"  {rocket} {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)")
+                    logger.info(
+                        f"  {rocket} {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)"
+                    )
                 elif evt_type == "task_execution_complete":
                     status = event.get("status", "?")
                     color = "green" if status == "success" else "red"
                     check = "✓" if self.use_emoji else "+"
-                    logger.info(f"  {check} {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)")
+                    logger.info(
+                        f"  {check} {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)"
+                    )
                 elif evt_type == "task_complete":
                     check = "✅" if self.use_emoji else "OK"
                     logger.info(f"  {check} {task_id} completed ({ts} ago)")
                 elif evt_type == "task_failed":
                     x = "❌" if self.use_emoji else "X"
-                    logger.error(f"  {x} {task_id} failed: {event.get('notes', '')[:30]} ({ts} ago)")
+                    logger.error(
+                        f"  {x} {task_id} failed: {event.get('notes', '')[:30]} ({ts} ago)"
+                    )
                 elif evt_type == "inspector_task_created":
                     tool = "🔧" if self.use_emoji else "FIX"
-                    logger.info(f"  {tool} Inspector {self.color(event.get('inspector', '?'), 'yellow')} "
-                          f"for {event.get('parent_task', '?')} ({ts} ago)")
+                    logger.info(
+                        f"  {tool} Inspector {self.color(event.get('inspector', '?'), 'yellow')} "
+                        f"for {event.get('parent_task', '?')} ({ts} ago)"
+                    )
                 elif evt_type == "queen_started":
                     crown = "👑" if self.use_emoji else "Q"
                     logger.info(f"  {crown} Queen orchestrator started ({ts} ago)")
@@ -362,38 +382,48 @@ class HiveStatus:
                 else:
                     logger.info(f"  • {evt_type} from {worker} ({ts} ago)")
             logger.info()
-        
+
         # Footer
         logger.info(self.get_border_char("single") * 80)
         logger.info("Press Ctrl+C to exit | Updates every 2 seconds | Read-only viewer")
-    
+
     def run(self, refresh_seconds: int = 2):
         """Run the dashboard with periodic refresh"""
         logger.info("Starting Hive Status Dashboard v2...")
-        
+
         try:
             while True:
                 # Get new events
                 new_events = self.tail_events()
                 self.recent_events.extend(new_events)
-                
+
                 # Keep only last 100 events
                 if len(self.recent_events) > 100:
                     self.recent_events = self.recent_events[-100:]
-                
+
                 # Print dashboard
                 self.print_dashboard()
-                
+
                 # Wait
                 time.sleep(refresh_seconds)
-                
+
         except KeyboardInterrupt:
             logger.info("\n\nDashboard stopped.")
 
+
 def main():
     """Main entry point"""
-    dashboard = HiveStatus()
+    # For production, pass environment variables via config
+    # For now, using defaults which enable emoji by default
+    import os
+
+    config = {}
+    if "HIVE_EMOJI" in os.environ:
+        config["use_emoji"] = os.environ["HIVE_EMOJI"] != "0"
+
+    dashboard = HiveStatus(config)
     dashboard.run()
+
 
 if __name__ == "__main__":
     main()

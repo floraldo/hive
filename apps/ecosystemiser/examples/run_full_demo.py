@@ -410,10 +410,10 @@ class MicrogridDemoRunner:
 
     def run(self):
         """Execute the complete demonstration workflow."""
-        logger.info("\n" + "🌟" * 35)
+        logger.info("\n" + "=" * 70)
         logger.info(" " * 20 + "ECOSYSTEMISER v3.0 - FULL DEMONSTRATION")
         logger.info(" " * 15 + "Intelligent Energy System Design & Optimization")
-        logger.info("🌟" * 35)
+        logger.info("=" * 70)
 
         try:
             # Step 1: Define the problem
@@ -451,7 +451,7 @@ class MicrogridDemoRunner:
 
         except Exception as e:
             logger.error(f"Error during demonstration: {e}")
-            logger.error(f"\n❌ Error: {e}")
+            logger.error(f"\nERROR: {e}")
             return 1
 
         return 0

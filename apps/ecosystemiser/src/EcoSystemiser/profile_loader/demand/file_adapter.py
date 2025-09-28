@@ -1,10 +1,14 @@
 """File adapter for loading demand profiles."""
-import pandas as pd
-import numpy as np
+
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
+import numpy as np
+import pandas as pd
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
+
 
 class DemandFileAdapter:
     """Adapter for loading demand profiles from files."""
@@ -22,7 +26,7 @@ class DemandFileAdapter:
         """
         profiles = {}
 
-        file_path = config.get('file_path')
+        file_path = config.get("file_path")
         if not file_path:
             logger.warning("No demand file path specified")
             return profiles
@@ -37,19 +41,21 @@ class DemandFileAdapter:
             df = pd.read_csv(file_path)
 
             # Map columns to profile names
-            column_mapping = config.get('column_mapping', {})
+            column_mapping = config.get("column_mapping", {})
 
             for profile_name, column_name in column_mapping.items():
                 if column_name in df.columns:
                     profiles[profile_name] = df[column_name].values
-                    logger.info(f"Loaded demand profile '{profile_name}' from column '{column_name}'")
+                    logger.info(
+                        f"Loaded demand profile '{profile_name}' from column '{column_name}'"
+                    )
                 else:
                     logger.warning(f"Column '{column_name}' not found in demand file")
 
             # If no mapping provided, use all columns
             if not column_mapping:
                 for col in df.columns:
-                    if col not in ['time', 'timestamp', 'index']:  # Skip time columns
+                    if col not in ["time", "timestamp", "index"]:  # Skip time columns
                         profiles[col] = df[col].values
                         logger.info(f"Loaded demand profile '{col}'")
 

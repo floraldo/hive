@@ -1,13 +1,24 @@
 """Heat pump component with MILP optimization support and hierarchical fidelity."""
+
+from typing import Any, Dict, List, Optional
+
 import cvxpy as cp
 import numpy as np
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from hive_logging import get_logger
+from ecosystemiser.system_model.components.shared.archetypes import (
+    FidelityLevel,
+    GenerationTechnicalParams,
+)
+from ecosystemiser.system_model.components.shared.base_classes import (
+    BaseConversionOptimization,
+    BaseConversionPhysics,
+)
+from ecosystemiser.system_model.components.shared.component import (
+    Component,
+    ComponentParams,
+)
 from ecosystemiser.system_model.components.shared.registry import register_component
-from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
-from ecosystemiser.system_model.components.shared.archetypes import GenerationTechnicalParams, FidelityLevel
-from ecosystemiser.system_model.components.shared.base_classes import BaseConversionPhysics, BaseConversionOptimization
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -15,49 +26,45 @@ logger = get_logger(__name__)
 # HEAT PUMP-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
 # =============================================================================
 
+
 class HeatPumpTechnicalParams(GenerationTechnicalParams):
     """Heat pump-specific technical parameters extending generation archetype.
 
     This model inherits from GenerationTechnicalParams and adds heat pump-specific
     parameters for different fidelity levels.
     """
+
     # Core heat pump parameters
     cop_nominal: float = Field(3.5, description="Nominal Coefficient of Performance")
     technology: str = Field("air_to_water", description="Heat pump technology type")
 
     # STANDARD fidelity additions
     cop_temperature_curve: Optional[Dict[str, float]] = Field(
-        None,
-        description="COP variation with temperature {slope, intercept}"
+        None, description="COP variation with temperature {slope, intercept}"
     )
     defrost_power_penalty: Optional[float] = Field(
-        None,
-        description="Power penalty during defrost cycles [%]"
+        None, description="Power penalty during defrost cycles [%]"
     )
 
     # DETAILED fidelity parameters
     refrigerant_type: Optional[str] = Field(
-        None,
-        description="Refrigerant type (R410A, R32, etc.)"
+        None, description="Refrigerant type (R410A, R32, etc.)"
     )
     compressor_map: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Detailed compressor performance map"
+        None, description="Detailed compressor performance map"
     )
     heat_exchanger_effectiveness: Optional[float] = Field(
-        None,
-        description="Heat exchanger effectiveness"
+        None, description="Heat exchanger effectiveness"
     )
 
     # RESEARCH fidelity parameters
     detailed_refrigerant_model: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Detailed refrigerant cycle modeling parameters"
+        None, description="Detailed refrigerant cycle modeling parameters"
     )
     control_algorithm: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Advanced control algorithm parameters"
+        None, description="Advanced control algorithm parameters"
     )
+
 
 class HeatPumpParams(ComponentParams):
     """Heat pump parameters using the hierarchical technical parameter system.
@@ -65,19 +72,22 @@ class HeatPumpParams(ComponentParams):
     COP and capacity are now specified through the technical parameter block,
     following the archetype inheritance pattern.
     """
+
     technical: HeatPumpTechnicalParams = Field(
         default_factory=lambda: HeatPumpTechnicalParams(
             capacity_nominal=10.0,  # Default 10 kW heat output
             efficiency_nominal=0.90,  # Pump electrical efficiency
             cop_nominal=3.5,  # Default COP
-            fidelity_level=FidelityLevel.STANDARD
+            fidelity_level=FidelityLevel.STANDARD,
         ),
-        description="Technical parameters following the hierarchical archetype system"
+        description="Technical parameters following the hierarchical archetype system",
     )
+
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
 # =============================================================================
+
 
 class HeatPumpPhysicsSimple(BaseConversionPhysics):
     """Implements the SIMPLE rule-based physics for a heat pump.
@@ -87,7 +97,9 @@ class HeatPumpPhysicsSimple(BaseConversionPhysics):
     - Basic energy conversion with constant efficiency
     """
 
-    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+    def rule_based_conversion_capacity(
+        self, t: int, from_medium: str, to_medium: str
+    ) -> dict:
         """
         Calculate conversion capacities for SIMPLE heat pump physics.
 
@@ -101,12 +113,14 @@ class HeatPumpPhysicsSimple(BaseConversionPhysics):
         P_max_elec = P_max_heat / COP if COP > 0 else 0
 
         return {
-            'max_input': P_max_elec,     # Maximum electrical input (kW)
-            'max_output': P_max_heat,    # Maximum heat output (kW)
-            'efficiency': COP            # COP (heat out / electrical in)
+            "max_input": P_max_elec,  # Maximum electrical input (kW)
+            "max_output": P_max_heat,  # Maximum heat output (kW)
+            "efficiency": COP,  # COP (heat out / electrical in)
         }
 
-    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
+    def rule_based_conversion_dispatch(
+        self, t: int, requested_output: float, from_medium: str, to_medium: str
+    ) -> dict:
         """
         Calculate actual input/output for requested heat output.
 
@@ -122,25 +136,23 @@ class HeatPumpPhysicsSimple(BaseConversionPhysics):
         capacity = self.rule_based_conversion_capacity(t, from_medium, to_medium)
 
         # Limit output to maximum capacity
-        actual_output = min(requested_output, capacity['max_output'])
+        actual_output = min(requested_output, capacity["max_output"])
 
         # Calculate required electrical input based on COP
-        if capacity['efficiency'] > 0:
-            required_input = actual_output / capacity['efficiency']
+        if capacity["efficiency"] > 0:
+            required_input = actual_output / capacity["efficiency"]
         else:
             required_input = 0.0
 
         # Ensure input doesn't exceed capacity
-        if required_input > capacity['max_input']:
+        if required_input > capacity["max_input"]:
             # Scale back both input and output proportionally
-            scale_factor = capacity['max_input'] / required_input
-            required_input = capacity['max_input']
+            scale_factor = capacity["max_input"] / required_input
+            required_input = capacity["max_input"]
             actual_output = actual_output * scale_factor
 
-        return {
-            'input_required': required_input,
-            'output_delivered': actual_output
-        }
+        return {"input_required": required_input, "output_delivered": actual_output}
+
 
 class HeatPumpPhysicsStandard(HeatPumpPhysicsSimple):
     """Implements the STANDARD rule-based physics for a heat pump.
@@ -150,7 +162,9 @@ class HeatPumpPhysicsStandard(HeatPumpPhysicsSimple):
     - Defrost cycle power penalties
     """
 
-    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+    def rule_based_conversion_capacity(
+        self, t: int, from_medium: str, to_medium: str
+    ) -> dict:
         """
         Calculate conversion capacities with temperature effects.
 
@@ -160,32 +174,34 @@ class HeatPumpPhysicsStandard(HeatPumpPhysicsSimple):
         capacity = super().rule_based_conversion_capacity(t, from_medium, to_medium)
 
         # 2. Add STANDARD-specific physics: temperature-dependent COP
-        COP_adjusted = capacity['efficiency']
+        COP_adjusted = capacity["efficiency"]
 
         # Apply temperature variation if available
-        cop_curve = getattr(self.params.technical, 'cop_temperature_curve', None)
+        cop_curve = getattr(self.params.technical, "cop_temperature_curve", None)
         if cop_curve:
             # Simplified temperature adjustment
             # In real implementation, would use actual ambient temperature
-            temp_adjustment = cop_curve.get('slope', 0) * 5  # Assume 5°C deviation
-            COP_adjusted = capacity['efficiency'] * (1 + temp_adjustment)
+            temp_adjustment = cop_curve.get("slope", 0) * 5  # Assume 5°C deviation
+            COP_adjusted = capacity["efficiency"] * (1 + temp_adjustment)
 
         # Apply defrost penalty if configured
-        defrost_penalty = getattr(self.params.technical, 'defrost_power_penalty', 0)
+        defrost_penalty = getattr(self.params.technical, "defrost_power_penalty", 0)
         if defrost_penalty:
             COP_adjusted = COP_adjusted * (1 - defrost_penalty / 100)
 
         # Update capacity with adjusted COP
-        capacity['efficiency'] = max(COP_adjusted, 0.5)  # Minimum COP for stability
+        capacity["efficiency"] = max(COP_adjusted, 0.5)  # Minimum COP for stability
 
         # Recalculate max_input with adjusted COP
-        capacity['max_input'] = capacity['max_output'] / capacity['efficiency']
+        capacity["max_input"] = capacity["max_output"] / capacity["efficiency"]
 
         return capacity
+
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
 # =============================================================================
+
 
 class HeatPumpOptimizationSimple(BaseConversionOptimization):
     """Implements the SIMPLE MILP optimization constraints for heat pump.
@@ -210,7 +226,7 @@ class HeatPumpOptimizationSimple(BaseConversionOptimization):
         constraints = []
         comp = self.component
 
-        if hasattr(comp, 'P_heatsource') and comp.P_heatsource is not None:
+        if hasattr(comp, "P_heatsource") and comp.P_heatsource is not None:
             # Core heat pump constraints
             N = comp.P_heatsource.shape[0]
 
@@ -230,6 +246,7 @@ class HeatPumpOptimizationSimple(BaseConversionOptimization):
 
         return constraints
 
+
 class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
     """Implements the STANDARD MILP optimization constraints for heat pump.
 
@@ -247,7 +264,7 @@ class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
         constraints = []
         comp = self.component
 
-        if hasattr(comp, 'P_heatsource') and comp.P_heatsource is not None:
+        if hasattr(comp, "P_heatsource") and comp.P_heatsource is not None:
             # Core heat pump constraints
             N = comp.P_heatsource.shape[0]
 
@@ -255,10 +272,10 @@ class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
             COP = comp.COP
 
             # STANDARD enhancement: temperature-dependent COP adjustments
-            cop_curve = getattr(comp.technical, 'cop_temperature_curve', None)
+            cop_curve = getattr(comp.technical, "cop_temperature_curve", None)
             if cop_curve:
                 # Simplified adjustment for optimization
-                temp_factor = cop_curve.get('slope', 0) * 5 + 1
+                temp_factor = cop_curve.get("slope", 0) * 5 + 1
                 COP = COP * max(temp_factor, 0.5)
 
             # Energy balance with adjusted COP
@@ -274,9 +291,11 @@ class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
 
         return constraints
 
+
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
 # =============================================================================
+
 
 @register_component("HeatPump")
 class HeatPump(Component):
@@ -358,9 +377,13 @@ class HeatPump(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return HeatPumpOptimizationStandard(self.params, self)
         else:
-            raise ValueError(f"Unknown fidelity level for HeatPump optimization: {fidelity}")
+            raise ValueError(
+                f"Unknown fidelity level for HeatPump optimization: {fidelity}"
+            )
 
-    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
+    def rule_based_conversion_capacity(
+        self, t: int, from_medium: str, to_medium: str
+    ) -> dict:
         """
         Delegate to physics strategy for conversion capacity calculation.
 
@@ -369,34 +392,34 @@ class HeatPump(Component):
         """
         return self.physics.rule_based_conversion_capacity(t, from_medium, to_medium)
 
-    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
+    def rule_based_conversion_dispatch(
+        self, t: int, requested_output: float, from_medium: str, to_medium: str
+    ) -> dict:
         """
         Delegate to physics strategy for conversion dispatch calculation.
 
         This maintains the same interface as BaseConversionComponent but
         delegates the actual physics calculation to the strategy object.
         """
-        return self.physics.rule_based_conversion_dispatch(t, requested_output, from_medium, to_medium)
+        return self.physics.rule_based_conversion_dispatch(
+            t, requested_output, from_medium, to_medium
+        )
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""
-        self.P_heatsource = cp.Variable(N, name=f'{self.name}_P_heatsource', nonneg=True)
-        self.P_loss = cp.Variable(N, name=f'{self.name}_P_loss', nonneg=True)
-        self.P_pump = cp.Variable(N, name=f'{self.name}_P_pump', nonneg=True)
+        self.P_heatsource = cp.Variable(
+            N, name=f"{self.name}_P_heatsource", nonneg=True
+        )
+        self.P_loss = cp.Variable(N, name=f"{self.name}_P_loss", nonneg=True)
+        self.P_pump = cp.Variable(N, name=f"{self.name}_P_pump", nonneg=True)
 
         # Add flows
-        self.flows['source']['P_heatsource'] = {
-            'type': 'heat',
-            'value': self.P_heatsource
+        self.flows["source"]["P_heatsource"] = {
+            "type": "heat",
+            "value": self.P_heatsource,
         }
-        self.flows['sink']['P_loss'] = {
-            'type': 'electricity',
-            'value': self.P_loss
-        }
-        self.flows['sink']['P_pump'] = {
-            'type': 'electricity',
-            'value': self.P_pump
-        }
+        self.flows["sink"]["P_loss"] = {"type": "electricity", "value": self.P_loss}
+        self.flows["sink"]["P_pump"] = {"type": "electricity", "value": self.P_pump}
 
     def set_constraints(self) -> List:
         """Delegate constraint creation to optimization strategy."""
@@ -411,10 +434,17 @@ class HeatPump(Component):
         effective_cop = self.COP
 
         # Apply temperature effects if available
-        if self.cop_temperature_curve and hasattr(self, 'system'):
-            if hasattr(self.system, 'profiles') and 'ambient_temperature' in self.system.profiles:
-                temp = self.system.profiles['ambient_temperature'][t] if t < len(self.system.profiles['ambient_temperature']) else 20
-                slope = self.cop_temperature_curve.get('slope', 0)
+        if self.cop_temperature_curve and hasattr(self, "system"):
+            if (
+                hasattr(self.system, "profiles")
+                and "ambient_temperature" in self.system.profiles
+            ):
+                temp = (
+                    self.system.profiles["ambient_temperature"][t]
+                    if t < len(self.system.profiles["ambient_temperature"])
+                    else 20
+                )
+                slope = self.cop_temperature_curve.get("slope", 0)
                 temp_factor = 1 + slope * (temp - 7) / 100
                 effective_cop = self.COP * max(0.5, temp_factor)
 

@@ -38,6 +38,7 @@ queen = "hive_orchestrator.queen:main"
 hive-clean = "hive_orchestrator.clean_hive:main"
 ai-reviewer = "ai_reviewer.agent:main"
 ai-planner = "ai_planner.agent:main"
+ai-deployer = "ai_deployer.agent:main"
 golden-test = "hive_tests.golden_runner:main"
 
 [tool.ruff.lint]
@@ -106,4 +107,8 @@ develop = true
 
 [tool.poetry.group.workspace.dependencies.ai-reviewer]
 path = "apps/ai-reviewer"
+develop = true
+
+[tool.poetry.group.workspace.dependencies.ai-deployer]
+path = "apps/ai-deployer"
 develop = true

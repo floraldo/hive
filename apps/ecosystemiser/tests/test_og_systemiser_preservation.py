@@ -7,17 +7,35 @@ while STANDARD+ levels add realistic complexity on top.
 
 import sys
 from pathlib import Path
+
 import numpy as np
 import pytest
 
 # Add path for imports
-eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from ecosystemiser.system_model.system import System
-from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
-from ecosystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams, HeatBufferTechnicalParams
-from ecosystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
-from ecosystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpParams, HeatPumpTechnicalParams
+eco_path = Path(__file__).parent.parent / "src" / "EcoSystemiser"
+from ecosystemiser.system_model.components.energy.battery import (
+    Battery,
+    BatteryParams,
+    BatteryTechnicalParams,
+)
+from ecosystemiser.system_model.components.energy.heat_buffer import (
+    HeatBuffer,
+    HeatBufferParams,
+    HeatBufferTechnicalParams,
+)
+from ecosystemiser.system_model.components.energy.heat_pump import (
+    HeatPump,
+    HeatPumpParams,
+    HeatPumpTechnicalParams,
+)
+from ecosystemiser.system_model.components.energy.solar_pv import (
+    SolarPV,
+    SolarPVParams,
+    SolarPVTechnicalParams,
+)
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
+from ecosystemiser.system_model.system import System
+
 
 class TestOGSystemiserPreservation:
     """Test that SIMPLE fidelity preserves the elegant OG Systemiser equations."""
@@ -37,7 +55,7 @@ class TestOGSystemiserPreservation:
                 max_discharge_rate=5.0,
                 efficiency_roundtrip=0.90,
                 initial_soc_pct=0.5,
-                fidelity_level=FidelityLevel.SIMPLE
+                fidelity_level=FidelityLevel.SIMPLE,
             )
         )
 
@@ -50,7 +68,7 @@ class TestOGSystemiserPreservation:
                 efficiency_roundtrip=0.90,
                 initial_soc_pct=0.5,
                 self_discharge_rate=0.001,  # 0.1% per hour
-                fidelity_level=FidelityLevel.STANDARD
+                fidelity_level=FidelityLevel.STANDARD,
             )
         )
 
@@ -65,7 +83,9 @@ class TestOGSystemiserPreservation:
 
         # STANDARD should have more constraints than SIMPLE (adds self-discharge)
         assert len(standard_constraints) > len(simple_constraints)
-        print(f"✅ Battery: SIMPLE={len(simple_constraints)} constraints, STANDARD={len(standard_constraints)} constraints")
+        print(
+            f"✅ Battery: SIMPLE={len(simple_constraints)} constraints, STANDARD={len(standard_constraints)} constraints"
+        )
 
     def test_heat_buffer_simple_vs_standard_fidelity(self):
         """Test that HeatBuffer SIMPLE is perfect thermal storage, STANDARD adds heat losses."""
@@ -78,7 +98,7 @@ class TestOGSystemiserPreservation:
                 max_discharge_rate=5.0,
                 efficiency_roundtrip=0.98,
                 initial_soc_pct=0.5,
-                fidelity_level=FidelityLevel.SIMPLE
+                fidelity_level=FidelityLevel.SIMPLE,
             )
         )
 
@@ -91,7 +111,7 @@ class TestOGSystemiserPreservation:
                 efficiency_roundtrip=0.98,
                 initial_soc_pct=0.5,
                 heat_loss_coefficient=0.1,  # Heat loss parameter
-                fidelity_level=FidelityLevel.STANDARD
+                fidelity_level=FidelityLevel.STANDARD,
             )
         )
 
@@ -99,7 +119,7 @@ class TestOGSystemiserPreservation:
         standard_buffer = HeatBuffer("standard", standard_params, self.system.N)
 
         # Add ambient temperature profile for STANDARD heat loss calculations
-        self.system.profiles = {'ambient_temperature': np.ones(self.system.N) * 20}
+        self.system.profiles = {"ambient_temperature": np.ones(self.system.N) * 20}
 
         simple_buffer.add_optimization_vars(self.system.N)
         standard_buffer.add_optimization_vars(self.system.N)
@@ -109,7 +129,9 @@ class TestOGSystemiserPreservation:
 
         # Both should have the same number of constraints, but STANDARD should apply heat losses
         # (The difference is in the energy balance equation, not the constraint count)
-        print(f"✅ HeatBuffer: SIMPLE={len(simple_constraints)} constraints, STANDARD={len(standard_constraints)} constraints")
+        print(
+            f"✅ HeatBuffer: SIMPLE={len(simple_constraints)} constraints, STANDARD={len(standard_constraints)} constraints"
+        )
 
         # Verify fidelity levels are set correctly
         assert simple_buffer.fidelity_level == FidelityLevel.SIMPLE
@@ -119,14 +141,39 @@ class TestOGSystemiserPreservation:
         """Test that SolarPV SIMPLE is direct profile scaling, STANDARD adds inverter losses."""
 
         # Create test profile
-        solar_profile = np.array([0, 0, 0, 0, 0, 0, 0.2, 0.5, 0.8, 1.0, 1.0, 1.0,
-                                  1.0, 1.0, 0.8, 0.5, 0.2, 0, 0, 0, 0, 0, 0, 0])
+        solar_profile = np.array(
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0.2,
+                0.5,
+                0.8,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                0.8,
+                0.5,
+                0.2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ]
+        )
 
         # Create SIMPLE solar (should be direct profile * capacity)
         simple_params = SolarPVParams(
             technical=SolarPVTechnicalParams(
-                capacity_nominal=10.0,
-                fidelity_level=FidelityLevel.SIMPLE
+                capacity_nominal=10.0, fidelity_level=FidelityLevel.SIMPLE
             )
         )
 
@@ -135,7 +182,7 @@ class TestOGSystemiserPreservation:
             technical=SolarPVTechnicalParams(
                 capacity_nominal=10.0,
                 inverter_efficiency=0.98,  # 2% inverter losses
-                fidelity_level=FidelityLevel.STANDARD
+                fidelity_level=FidelityLevel.STANDARD,
             )
         )
 
@@ -168,7 +215,7 @@ class TestOGSystemiserPreservation:
             technical=HeatPumpTechnicalParams(
                 capacity_nominal=10.0,
                 cop_nominal=3.5,
-                fidelity_level=FidelityLevel.SIMPLE
+                fidelity_level=FidelityLevel.SIMPLE,
             )
         )
 
@@ -177,8 +224,8 @@ class TestOGSystemiserPreservation:
             technical=HeatPumpTechnicalParams(
                 capacity_nominal=10.0,
                 cop_nominal=3.5,
-                cop_temperature_curve={'slope': 0.05, 'intercept': 3.5},
-                fidelity_level=FidelityLevel.STANDARD
+                cop_temperature_curve={"slope": 0.05, "intercept": 3.5},
+                fidelity_level=FidelityLevel.STANDARD,
             )
         )
 
@@ -186,7 +233,9 @@ class TestOGSystemiserPreservation:
         standard_hp = HeatPump("standard", standard_params, self.system.N)
 
         # Add temperature profile for STANDARD COP calculations
-        self.system.profiles = {'ambient_temperature': np.ones(self.system.N) * 7}  # 7°C
+        self.system.profiles = {
+            "ambient_temperature": np.ones(self.system.N) * 7
+        }  # 7°C
 
         simple_hp.add_optimization_vars(self.system.N)
         standard_hp.add_optimization_vars(self.system.N)
@@ -196,17 +245,26 @@ class TestOGSystemiserPreservation:
 
         # Both should have the same constraint structure
         # The difference is in the effective COP calculation within the constraints
-        print(f"✅ HeatPump: SIMPLE={len(simple_constraints)} constraints, STANDARD={len(standard_constraints)} constraints")
+        print(
+            f"✅ HeatPump: SIMPLE={len(simple_constraints)} constraints, STANDARD={len(standard_constraints)} constraints"
+        )
 
         # Verify the baseline COP is preserved
         assert simple_hp.COP == 3.5
-        assert standard_hp.COP == 3.5  # Base COP should be same, temperature effects applied in constraints
+        assert (
+            standard_hp.COP == 3.5
+        )  # Base COP should be same, temperature effects applied in constraints
 
     def test_progressive_enhancement_principle(self):
         """Test that fidelity levels follow the progressive enhancement principle."""
 
         # Create battery with all fidelity levels
-        fidelity_levels = [FidelityLevel.SIMPLE, FidelityLevel.STANDARD, FidelityLevel.DETAILED, FidelityLevel.RESEARCH]
+        fidelity_levels = [
+            FidelityLevel.SIMPLE,
+            FidelityLevel.STANDARD,
+            FidelityLevel.DETAILED,
+            FidelityLevel.RESEARCH,
+        ]
         constraint_counts = []
 
         for fidelity in fidelity_levels:
@@ -219,8 +277,8 @@ class TestOGSystemiserPreservation:
                     initial_soc_pct=0.5,
                     self_discharge_rate=0.001,
                     temperature_coefficient_charge=-0.003,
-                    degradation_model={'calendar_fade_rate': 0.02},
-                    fidelity_level=fidelity
+                    degradation_model={"calendar_fade_rate": 0.02},
+                    fidelity_level=fidelity,
                 )
             )
 
@@ -229,13 +287,17 @@ class TestOGSystemiserPreservation:
             constraints = battery.set_constraints()
             constraint_counts.append(len(constraints))
 
-        print(f"✅ Progressive Enhancement: {dict(zip([f.value for f in fidelity_levels], constraint_counts))}")
+        print(
+            f"✅ Progressive Enhancement: {dict(zip([f.value for f in fidelity_levels], constraint_counts))}"
+        )
 
         # Constraint count should generally increase with fidelity (or stay same if features not enabled)
         # SIMPLE ≤ STANDARD ≤ DETAILED ≤ RESEARCH
         for i in range(1, len(constraint_counts)):
-            assert constraint_counts[i] >= constraint_counts[i-1], \
-                f"Constraint count should not decrease with higher fidelity: {constraint_counts}"
+            assert (
+                constraint_counts[i] >= constraint_counts[i - 1]
+            ), f"Constraint count should not decrease with higher fidelity: {constraint_counts}"
+
 
 def test_og_systemiser_baseline_validation():
     """Main validation test that our fixes preserve OG Systemiser elegance."""
@@ -253,6 +315,7 @@ def test_og_systemiser_baseline_validation():
     print("\n✅ SUCCESS: SIMPLE fidelity preserves OG Systemiser baseline behavior")
     print("✅ SUCCESS: STANDARD+ levels add complexity through progressive enhancement")
     print("✅ SUCCESS: Golden Rule of fidelity logic is restored!")
+
 
 if __name__ == "__main__":
     test_og_systemiser_baseline_validation()

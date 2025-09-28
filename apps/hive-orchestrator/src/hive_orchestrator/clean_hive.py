@@ -8,14 +8,15 @@ Clears all database tasks, runs, workers, logs, and results for a fresh start.
 Updated for database-driven architecture.
 """
 
+import argparse
 import os
 import shutil
 import subprocess
-import argparse
 from pathlib import Path
 
 # Import database functions from the orchestrator's core
-from hive_orchestrator.core.db import get_connection, close_connection, transaction
+from hive_orchestrator.core.db import close_connection, get_connection, transaction
+
 
 def run_command(cmd, description):
     """Run a command and report results"""
@@ -25,9 +26,12 @@ def run_command(cmd, description):
         if result.returncode == 0:
             logger.info(f"[OK] {description} completed")
         else:
-            logger.warning(f"[WARN] {description} completed with warnings: {result.stderr}")
+            logger.warning(
+                f"[WARN] {description} completed with warnings: {result.stderr}"
+            )
     except Exception as e:
         logger.error(f"[ERROR] {description} failed: {e}")
+
 
 def clean_directory(path, description):
     """Clean a directory if it exists"""
@@ -40,6 +44,7 @@ def clean_directory(path, description):
             logger.error(f"[ERROR] {description} failed: {e}")
     else:
         logger.info(f"[INFO] {description} - directory doesn't exist")
+
 
 def clean_database():
     """Clean the database tables using hive_core_db functions"""
@@ -78,7 +83,9 @@ def clean_database():
             logger.warning(f"[WARN] Could not count workers: {e}")
             worker_count = 0
 
-        logger.info(f"  Found: {task_count} tasks, {run_count} runs, {worker_count} workers")
+        logger.info(
+            f"  Found: {task_count} tasks, {run_count} runs, {worker_count} workers"
+        )
 
         # Clear all tables in transaction with error handling
         try:
@@ -87,7 +94,9 @@ def clean_database():
                 conn.execute("DELETE FROM runs")
                 conn.execute("DELETE FROM workers")
                 conn.execute("DELETE FROM tasks")
-            logger.info(f"[OK] Database cleaned - removed {task_count} tasks, {run_count} runs, {worker_count} workers")
+            logger.info(
+                f"[OK] Database cleaned - removed {task_count} tasks, {run_count} runs, {worker_count} workers"
+            )
         except Exception as e:
             logger.error(f"[ERROR] Failed to delete database records: {e}")
             return
@@ -103,6 +112,7 @@ def clean_database():
         except Exception as e:
             logger.error(f"[WARN] Error closing database connection: {e}")
 
+
 def clean_git_branches(preserve=False):
     """Clean up agent git branches unless preserve flag is set"""
     if preserve:
@@ -112,22 +122,32 @@ def clean_git_branches(preserve=False):
     logger.info("Cleaning agent git branches...")
     try:
         # First, remove any worktrees
-        result = subprocess.run("git worktree prune", shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            "git worktree prune", shell=True, capture_output=True, text=True
+        )
 
         # Get list of agent branches (Windows compatible)
-        result = subprocess.run('git branch | findstr "agent/"',
-                              shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            'git branch | findstr "agent/"', shell=True, capture_output=True, text=True
+        )
 
         if result.returncode == 0 and result.stdout.strip():
-            branches = [line.strip().replace('*', '').strip() for line in result.stdout.strip().split('\n')]
-            branches = [b for b in branches if b and 'agent/' in b]
+            branches = [
+                line.strip().replace("*", "").strip()
+                for line in result.stdout.strip().split("\n")
+            ]
+            branches = [b for b in branches if b and "agent/" in b]
 
             if branches:
                 logger.info(f"  Found {len(branches)} agent branches to clean")
                 for branch in branches:
                     try:
-                        subprocess.run(f'git branch -D "{branch}"', shell=True,
-                                     capture_output=True, check=True)
+                        subprocess.run(
+                            f'git branch -D "{branch}"',
+                            shell=True,
+                            capture_output=True,
+                            check=True,
+                        )
                         logger.info(f"  [OK] Deleted branch: {branch}")
                     except subprocess.CalledProcessError:
                         logger.warning(f"  [WARN] Could not delete branch: {branch}")
@@ -140,33 +160,47 @@ def clean_git_branches(preserve=False):
     except Exception as e:
         logger.warning(f"[WARN] Git branch cleanup: {e}")
 
+
 def kill_processes():
     """Kill any running Queen or worker processes"""
     logger.info("Cleaning running processes...")
     try:
         # Kill Python processes that might be Queen or workers (Windows compatible)
-        processes_to_kill = ['queen.py', 'worker.py', 'cc_worker.py']
+        processes_to_kill = ["queen.py", "worker.py", "cc_worker.py"]
         killed_any = False
 
         for process_name in processes_to_kill:
             try:
                 # Windows tasklist and taskkill
-                result = subprocess.run(f'tasklist /FI "IMAGENAME eq python.exe" /FO CSV | findstr "{process_name}"',
-                                      shell=True, capture_output=True, text=True, timeout=10)
+                result = subprocess.run(
+                    f'tasklist /FI "IMAGENAME eq python.exe" /FO CSV | findstr "{process_name}"',
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
                 if result.returncode == 0 and result.stdout.strip():
                     logger.info(f"  Found running {process_name} processes")
                     # Use wmic to kill by command line (more precise)
-                    kill_result = subprocess.run(f'wmic process where "commandline like \'%{process_name}%\'" delete',
-                                                shell=True, capture_output=True, timeout=10)
+                    kill_result = subprocess.run(
+                        f"wmic process where \"commandline like '%{process_name}%'\" delete",
+                        shell=True,
+                        capture_output=True,
+                        timeout=10,
+                    )
                     if kill_result.returncode == 0:
                         logger.info(f"  [OK] Killed {process_name} processes")
                         killed_any = True
                     else:
-                        logger.error(f"  [WARN] Failed to kill {process_name} processes: {kill_result.stderr}")
+                        logger.error(
+                            f"  [WARN] Failed to kill {process_name} processes: {kill_result.stderr}"
+                        )
             except subprocess.TimeoutExpired:
                 logger.warning(f"  [WARN] Timeout while processing {process_name}")
             except FileNotFoundError:
-                logger.info(f"  [INFO] Process management commands not available (tasklist/wmic)")
+                logger.info(
+                    f"  [INFO] Process management commands not available (tasklist/wmic)"
+                )
                 break
             except Exception as e:
                 logger.warning(f"  [WARN] Could not kill {process_name}: {e}")
@@ -176,6 +210,7 @@ def kill_processes():
         logger.info("[OK] Process cleanup completed")
     except Exception as e:
         logger.error(f"[WARN] Process cleanup failed: {e}")
+
 
 def clean_results_and_logs():
     """Clean results and logs directories"""
@@ -187,7 +222,10 @@ def clean_results_and_logs():
             ("hive/results", "Clearing results"),
             ("hive/operator/hints", "Clearing hints"),
             ("hive/logs", "Clearing logs"),
-            ("apps/ecosystemiser/ecosystemiser_results", "Clearing EcoSystemiser results")
+            (
+                "apps/ecosystemiser/ecosystemiser_results",
+                "Clearing EcoSystemiser results",
+            ),
         ]
 
         for directory, description in directories_to_clean:
@@ -210,14 +248,20 @@ def clean_results_and_logs():
                                 logger.info(f"  [OK] Removed {file_path}")
                                 files_removed += 1
                         except PermissionError:
-                            logger.warning(f"  [WARN] Permission denied: {file_path} (file may be in use)")
+                            logger.warning(
+                                f"  [WARN] Permission denied: {file_path} (file may be in use)"
+                            )
                         except Exception as e:
-                            logger.warning(f"  [WARN] Could not remove {file_path}: {e}")
+                            logger.warning(
+                                f"  [WARN] Could not remove {file_path}: {e}"
+                            )
                 except Exception as e:
                     logger.error(f"  [WARN] Error processing pattern {pattern}: {e}")
 
             if files_removed > 0:
-                logger.info(f"[OK] Log file cleanup completed - removed {files_removed} files")
+                logger.info(
+                    f"[OK] Log file cleanup completed - removed {files_removed} files"
+                )
             else:
                 logger.info("[INFO] No log files found to remove")
         except Exception as e:
@@ -225,14 +269,23 @@ def clean_results_and_logs():
     except Exception as e:
         logger.error(f"[ERROR] Results and logs cleanup failed: {e}")
 
+
 def main():
     try:
         # Parse arguments
-        parser = argparse.ArgumentParser(description="Clean Hive workspace and database for fresh start")
-        parser.add_argument("--keep-branches", action="store_true",
-                           help="Preserve git branches (don't delete agent/* branches)")
-        parser.add_argument("--db-only", action="store_true",
-                           help="Only clean database, skip files and processes")
+        parser = argparse.ArgumentParser(
+            description="Clean Hive workspace and database for fresh start"
+        )
+        parser.add_argument(
+            "--keep-branches",
+            action="store_true",
+            help="Preserve git branches (don't delete agent/* branches)",
+        )
+        parser.add_argument(
+            "--db-only",
+            action="store_true",
+            help="Only clean database, skip files and processes",
+        )
         args = parser.parse_args()
 
         logger.info("Hive Cleanup Script v2.0 - Database Edition")
@@ -298,7 +351,11 @@ def main():
             if "Process cleanup" in operations_success:
                 logger.info("  ✓ Processes terminated")
             if "Git branch cleanup" in operations_success:
-                logger.info("  ✓ Git branches cleaned" if not args.keep_branches else "  ✓ Git branches preserved")
+                logger.info(
+                    "  ✓ Git branches cleaned"
+                    if not args.keep_branches
+                    else "  ✓ Git branches preserved"
+                )
             if "Files cleanup" in operations_success:
                 logger.info("  ✓ Worktrees, logs, results, and hints cleared")
         if "Database cleanup" in operations_success:
@@ -317,6 +374,7 @@ def main():
     except Exception as e:
         logger.error(f"\n[ERROR] Unexpected error during cleanup: {e}")
         return 1
+
 
 if __name__ == "__main__":
     main()

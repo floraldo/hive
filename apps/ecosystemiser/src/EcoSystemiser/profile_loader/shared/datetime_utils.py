@@ -9,14 +9,19 @@ pandas best practices and performance optimizations.
 import warnings
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
-from hive_logging import get_logger
+
 import numpy as np
 import pandas as pd
 import xarray as xr
-
-from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler, to_utc, ensure_utc
+from ecosystemiser.profile_loader.shared.timezone import (
+    TimezoneHandler,
+    ensure_utc,
+    to_utc,
+)
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 class DateTimeProcessor:
     """
@@ -40,7 +45,7 @@ class DateTimeProcessor:
         "weekly": "1W",
         "monthly": "1M",
         "yearly": "1Y",
-        "annual": "1Y"
+        "annual": "1Y",
     }
 
     @classmethod
@@ -82,23 +87,33 @@ class DateTimeProcessor:
 
                 # End of last month
                 if end_month == 12:
-                    normalized["end"] = pd.Timestamp(year + 1, 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
+                    normalized["end"] = pd.Timestamp(
+                        year + 1, 1, 1, tz="UTC"
+                    ) - pd.Timedelta(seconds=1)
                 else:
-                    normalized["end"] = pd.Timestamp(year, end_month + 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
+                    normalized["end"] = pd.Timestamp(
+                        year, end_month + 1, 1, tz="UTC"
+                    ) - pd.Timedelta(seconds=1)
 
             elif "month" in period:
                 # Single month
                 month = int(period["month"])
                 normalized["start"] = pd.Timestamp(year, month, 1, tz="UTC")
                 if month == 12:
-                    normalized["end"] = pd.Timestamp(year + 1, 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
+                    normalized["end"] = pd.Timestamp(
+                        year + 1, 1, 1, tz="UTC"
+                    ) - pd.Timedelta(seconds=1)
                 else:
-                    normalized["end"] = pd.Timestamp(year, month + 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
+                    normalized["end"] = pd.Timestamp(
+                        year, month + 1, 1, tz="UTC"
+                    ) - pd.Timedelta(seconds=1)
 
             else:
                 # Full year
                 normalized["start"] = pd.Timestamp(year, 1, 1, tz="UTC")
-                normalized["end"] = pd.Timestamp(year + 1, 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
+                normalized["end"] = pd.Timestamp(
+                    year + 1, 1, 1, tz="UTC"
+                ) - pd.Timedelta(seconds=1)
 
         elif "duration" in period:
             # Duration-based period
@@ -111,7 +126,9 @@ class DateTimeProcessor:
             # Default to current year
             current_year = datetime.now().year
             normalized["start"] = pd.Timestamp(current_year, 1, 1, tz="UTC")
-            normalized["end"] = pd.Timestamp(current_year + 1, 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
+            normalized["end"] = pd.Timestamp(
+                current_year + 1, 1, 1, tz="UTC"
+            ) - pd.Timedelta(seconds=1)
 
         return normalized
 
@@ -143,7 +160,7 @@ class DateTimeProcessor:
         start: Union[str, datetime, pd.Timestamp],
         end: Union[str, datetime, pd.Timestamp],
         freq: str = "1H",
-        timezone: str = "UTC"
+        timezone: str = "UTC",
     ) -> pd.DatetimeIndex:
         """
         Create optimized pandas DatetimeIndex.
@@ -239,7 +256,7 @@ class DateTimeProcessor:
         cls,
         time_index: pd.DatetimeIndex,
         expected_freq: Optional[str] = None,
-        tolerance_factor: float = 1.5
+        tolerance_factor: float = 1.5,
     ) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
         """
         Detect gaps in time series.
@@ -283,7 +300,7 @@ class DateTimeProcessor:
         data: Union[pd.DataFrame, pd.Series, xr.Dataset],
         target_freq: str,
         method: str = "mean",
-        preserve_attrs: bool = True
+        preserve_attrs: bool = True,
     ) -> Union[pd.DataFrame, pd.Series, xr.Dataset]:
         """
         Resample data with metadata preservation.
@@ -356,7 +373,7 @@ class DateTimeProcessor:
         cls,
         *datasets: Union[pd.DataFrame, pd.Series, xr.Dataset],
         method: str = "outer",
-        fill_value: Optional[Any] = None
+        fill_value: Optional[Any] = None,
     ) -> List[Union[pd.DataFrame, pd.Series, xr.Dataset]]:
         """
         Align multiple time series to common time index.
@@ -425,7 +442,7 @@ class DateTimeProcessor:
         cls,
         data: Union[pd.DataFrame, pd.Series, xr.Dataset],
         expected_freq: Optional[str] = None,
-        timezone: str = "UTC"
+        timezone: str = "UTC",
     ) -> Dict[str, Any]:
         """
         Validate temporal consistency of dataset.
@@ -438,12 +455,7 @@ class DateTimeProcessor:
         Returns:
             Validation report with issues and metrics
         """
-        report = {
-            "valid": True,
-            "issues": [],
-            "metrics": {},
-            "recommendations": []
-        }
+        report = {"valid": True, "issues": [], "metrics": {}, "recommendations": []}
 
         # Get time index
         if isinstance(data, (pd.DataFrame, pd.Series)):
@@ -511,9 +523,7 @@ class DateTimeProcessor:
 
     @classmethod
     def optimize_time_index(
-        cls,
-        time_index: pd.DatetimeIndex,
-        target_memory_mb: float = 100.0
+        cls, time_index: pd.DatetimeIndex, target_memory_mb: float = 100.0
     ) -> pd.DatetimeIndex:
         """
         Optimize DatetimeIndex for memory efficiency.
@@ -559,46 +569,51 @@ class DateTimeProcessor:
 
         return time_index
 
+
 # Convenience functions for common operations
+
 
 def create_time_range(
     start: Union[str, datetime],
     end: Union[str, datetime],
     freq: str = "1H",
-    timezone: str = "UTC"
+    timezone: str = "UTC",
 ) -> pd.DatetimeIndex:
     """Create optimized time range."""
     return DateTimeProcessor.create_time_index(start, end, freq, timezone)
 
+
 def resample_data(
     data: Union[pd.DataFrame, pd.Series, xr.Dataset],
     target_freq: str,
-    method: str = "mean"
+    method: str = "mean",
 ) -> Union[pd.DataFrame, pd.Series, xr.Dataset]:
     """Resample data with metadata preservation."""
     return DateTimeProcessor.resample_with_metadata(data, target_freq, method)
 
+
 def align_datasets(
-    *datasets: Union[pd.DataFrame, pd.Series, xr.Dataset],
-    method: str = "outer"
+    *datasets: Union[pd.DataFrame, pd.Series, xr.Dataset], method: str = "outer"
 ) -> List[Union[pd.DataFrame, pd.Series, xr.Dataset]]:
     """Align multiple datasets to common time index."""
     return DateTimeProcessor.align_time_series(*datasets, method=method)
 
+
 def validate_time_data(
     data: Union[pd.DataFrame, pd.Series, xr.Dataset],
-    expected_freq: Optional[str] = None
+    expected_freq: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Validate temporal consistency."""
     return DateTimeProcessor.validate_temporal_consistency(data, expected_freq)
+
 
 def normalize_period_spec(period: Dict[str, Any]) -> Dict[str, pd.Timestamp]:
     """Normalize period specification."""
     return DateTimeProcessor.normalize_period(period)
 
+
 def detect_time_gaps(
-    time_index: pd.DatetimeIndex,
-    expected_freq: Optional[str] = None
+    time_index: pd.DatetimeIndex, expected_freq: Optional[str] = None
 ) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
     """Detect gaps in time series."""
     return DateTimeProcessor.detect_gaps(time_index, expected_freq)

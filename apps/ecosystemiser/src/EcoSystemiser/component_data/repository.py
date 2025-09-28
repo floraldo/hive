@@ -1,11 +1,15 @@
 """Repository for component data definitions."""
-from pathlib import Path
-from typing import Dict, Any, Optional, List
-import yaml
+
 import json
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
 from ecosystemiser.db import ecosystemiser_transaction, get_ecosystemiser_db_path
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
+
 
 class ComponentRepository:
     """Repository for component data definitions."""
@@ -18,10 +22,7 @@ class ComponentRepository:
             base_path: Base path for file-based loading
         """
         self.data_source = data_source
-        self.loaders = {
-            "file": FileLoader(base_path),
-            "database": SQLiteLoader()
-        }
+        self.loaders = {"file": FileLoader(base_path), "database": SQLiteLoader()}
         self._cache = {}
 
     def get_component_data(self, component_id: str) -> Dict[str, Any]:
@@ -67,6 +68,7 @@ class ComponentRepository:
         self._cache.clear()
         logger.debug("Component cache cleared")
 
+
 class FileLoader:
     """Load component data from YAML files."""
 
@@ -98,18 +100,20 @@ class FileLoader:
             file_path = self.base_path / category / f"{component_id}.yml"
             if file_path.exists():
                 try:
-                    with open(file_path, 'r') as f:
+                    with open(file_path, "r") as f:
                         data = yaml.safe_load(f)
 
                     # Validate basic structure
                     if not data:
                         raise ValueError(f"Empty YAML file: {file_path}")
 
-                    if 'component_class' not in data:
+                    if "component_class" not in data:
                         raise ValueError(f"Missing 'component_class' in {file_path}")
 
-                    if 'technical' not in data:
-                        raise ValueError(f"Missing 'technical' parameters in {file_path}")
+                    if "technical" not in data:
+                        raise ValueError(
+                            f"Missing 'technical' parameters in {file_path}"
+                        )
 
                     return data
 
@@ -156,10 +160,11 @@ class SQLiteLoader:
     def _ensure_tables(self):
         """Create component tables if they don't exist."""
         try:
-            with ecosystemiser_transaction(Path(self.db_path)) as conn:
+            with ecosystemiser_transaction() as conn:
                 # Create components table
                 # Create components table
-                conn.execute("""
+                conn.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS components (
                         id TEXT PRIMARY KEY,
                         category TEXT NOT NULL,
@@ -170,11 +175,16 @@ class SQLiteLoader:
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """)
+                """
+                )
 
                 # Create indexes for performance
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)")
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_class ON components(component_class)")
+                conn.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)"
+                )
+                conn.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_components_class ON components(component_class)"
+                )
 
                 logger.debug("Component database tables ensured")
 
@@ -196,21 +206,22 @@ class SQLiteLoader:
             ValueError: If component data is malformed
         """
         try:
-            with ecosystemiser_transaction(Path(self.db_path)) as conn:
+            with ecosystemiser_transaction() as conn:
                 cursor = conn.execute(
-                    "SELECT * FROM components WHERE id = ?",
-                    (component_id,)
+                    "SELECT * FROM components WHERE id = ?", (component_id,)
                 )
                 row = cursor.fetchone()
 
                 if not row:
-                    raise FileNotFoundError(f"Component data not found in database: {component_id}")
+                    raise FileNotFoundError(
+                        f"Component data not found in database: {component_id}"
+                    )
 
                 # Reconstruct component data structure
                 data = {
                     "component_class": row["component_class"],
                     "technical": json.loads(row["technical_data"]),
-                    "category": row["category"]
+                    "category": row["category"],
                 }
 
                 # Add optional fields if present
@@ -243,11 +254,11 @@ class SQLiteLoader:
             List of component IDs
         """
         try:
-            with ecosystemiser_transaction(Path(self.db_path)) as conn:
+            with ecosystemiser_transaction() as conn:
                 if category:
                     cursor = conn.execute(
                         "SELECT id FROM components WHERE category = ? ORDER BY id",
-                        (category,)
+                        (category,),
                     )
                 else:
                     cursor = conn.execute("SELECT id FROM components ORDER BY id")
@@ -281,20 +292,35 @@ class SQLiteLoader:
             component_class = data["component_class"]
             category = data.get("category", "unknown")
             technical_data = json.dumps(data["technical"])
-            economic_data = json.dumps(data.get("economic", {})) if "economic" in data else None
+            economic_data = (
+                json.dumps(data.get("economic", {})) if "economic" in data else None
+            )
 
             # Extract metadata (everything except known fields)
-            metadata = {k: v for k, v in data.items()
-                       if k not in ["component_class", "technical", "economic", "category"]}
+            metadata = {
+                k: v
+                for k, v in data.items()
+                if k not in ["component_class", "technical", "economic", "category"]
+            }
             metadata_json = json.dumps(metadata) if metadata else None
 
-            with ecosystemiser_transaction(Path(self.db_path)) as conn:
+            with ecosystemiser_transaction() as conn:
                 # Insert or update component
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT OR REPLACE INTO components
                     (id, category, component_class, technical_data, economic_data, metadata, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                """, (component_id, category, component_class, technical_data, economic_data, metadata_json))
+                """,
+                    (
+                        component_id,
+                        category,
+                        component_class,
+                        technical_data,
+                        economic_data,
+                        metadata_json,
+                    ),
+                )
 
                 logger.info(f"Saved component to database: {component_id}")
 
@@ -304,7 +330,7 @@ class SQLiteLoader:
             logger.error(f"Failed to save component {component_id} to database: {e}")
             raise
 
-    def migrate_from_files(self, file_loader: 'FileLoader') -> int:
+    def migrate_from_files(self, file_loader: "FileLoader") -> int:
         """Migrate component data from YAML files to SQLite database.
 
         Args:
@@ -328,7 +354,9 @@ class SQLiteLoader:
                 except Exception as e:
                     logger.warning(f"Failed to migrate component {component_id}: {e}")
 
-            logger.info(f"Successfully migrated {migrated_count} components to database")
+            logger.info(
+                f"Successfully migrated {migrated_count} components to database"
+            )
             return migrated_count
 
         except Exception as e:

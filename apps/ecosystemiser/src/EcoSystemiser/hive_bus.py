@@ -6,10 +6,7 @@ All new code should import directly from ecosystemiser.core.bus.
 """
 
 # Import everything from the new core module
-from ecosystemiser.core.bus import (
-    EcoSystemiserEventBus,
-    get_ecosystemiser_event_bus
-)
+from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
 
 # Legacy aliases for backward compatibility
 Bus = EcoSystemiserEventBus
@@ -20,5 +17,5 @@ __all__ = [
     "EcoSystemiserEventBus",
     "get_ecosystemiser_event_bus",
     "Bus",  # Legacy alias
-    "get_bus"  # Legacy alias
+    "get_bus",  # Legacy alias
 ]

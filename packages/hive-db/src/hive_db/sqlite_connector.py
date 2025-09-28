@@ -5,18 +5,17 @@ Provides simple, reliable SQLite connectivity for development and lightweight pr
 """
 
 import sqlite3
-from hive_logging import get_logger
-from pathlib import Path
-from typing import Optional, Dict, Any
 from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 
 def get_sqlite_connection(
-    db_path: Optional[str] = None,
-    config: Optional[Dict[str, Any]] = None,
-    **kwargs
+    db_path: Optional[str] = None, config: Optional[Dict[str, Any]] = None, **kwargs
 ) -> sqlite3.Connection:
     """
     Get a SQLite database connection.
@@ -45,9 +44,11 @@ def get_sqlite_connection(
         config = {}
 
     # Determine database path from parameter or config
-    final_db_path = db_path or config.get('db_path')
+    final_db_path = db_path or config.get("db_path")
     if not final_db_path:
-        raise ValueError("Database path must be provided either directly or via config['db_path']")
+        raise ValueError(
+            "Database path must be provided either directly or via config['db_path']"
+        )
 
     # Ensure parent directory exists
     db_file = Path(final_db_path)
@@ -55,9 +56,9 @@ def get_sqlite_connection(
 
     # Default connection parameters for reliability
     defaults = {
-        'timeout': config.get('timeout', 30.0),
-        'check_same_thread': config.get('check_same_thread', False),
-        'isolation_level': config.get('isolation_level', None)  # Autocommit mode
+        "timeout": config.get("timeout", 30.0),
+        "check_same_thread": config.get("check_same_thread", False),
+        "isolation_level": config.get("isolation_level", None),  # Autocommit mode
     }
     defaults.update(kwargs)
 
@@ -66,10 +67,10 @@ def get_sqlite_connection(
         conn.row_factory = sqlite3.Row  # Enable row access by column name
 
         # Enable WAL mode for better concurrency
-        conn.execute('PRAGMA journal_mode=WAL')
+        conn.execute("PRAGMA journal_mode=WAL")
 
         # Enable foreign key constraints
-        conn.execute('PRAGMA foreign_keys=ON')
+        conn.execute("PRAGMA foreign_keys=ON")
 
         logger.info(f"SQLite connection established: {final_db_path}")
         return conn
@@ -81,9 +82,7 @@ def get_sqlite_connection(
 
 @contextmanager
 def sqlite_transaction(
-    db_path: Optional[str] = None,
-    config: Optional[Dict[str, Any]] = None,
-    **kwargs
+    db_path: Optional[str] = None, config: Optional[Dict[str, Any]] = None, **kwargs
 ):
     """
     Context manager for SQLite transactions.
@@ -106,7 +105,7 @@ def sqlite_transaction(
     conn = None
     try:
         conn = get_sqlite_connection(db_path, config, **kwargs)
-        conn.execute('BEGIN')
+        conn.execute("BEGIN")
         yield conn
         conn.commit()
         logger.debug("SQLite transaction committed")
@@ -120,10 +119,6 @@ def sqlite_transaction(
     finally:
         if conn:
             conn.close()
-
-
-
-
 
 
 # Convenience aliases

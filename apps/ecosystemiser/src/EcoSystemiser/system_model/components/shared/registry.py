@@ -4,12 +4,15 @@ This module implements a self-registering component pattern that allows
 components to automatically register themselves for dynamic instantiation.
 """
 
-from typing import Dict, Type, Optional
+from typing import Dict, Optional, Type
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 # The global registry dictionary - this is our central lookup table
 COMPONENT_REGISTRY: Dict[str, Type["Component"]] = {}
+
 
 def register_component(name: str):
     """
@@ -29,15 +32,20 @@ def register_component(name: str):
         class Battery(Component):
             pass
     """
+
     def decorator(cls: Type["Component"]):
         if name in COMPONENT_REGISTRY:
-            raise ValueError(f"Component '{name}' is already registered. "
-                           f"Existing: {COMPONENT_REGISTRY[name]}, "
-                           f"Attempted: {cls}")
+            raise ValueError(
+                f"Component '{name}' is already registered. "
+                f"Existing: {COMPONENT_REGISTRY[name]}, "
+                f"Attempted: {cls}"
+            )
         COMPONENT_REGISTRY[name] = cls
         logger.debug(f"Registered component: {name} -> {cls.__name__}")
         return cls
+
     return decorator
+
 
 def get_component_class(name: str) -> Type["Component"]:
     """
@@ -54,9 +62,12 @@ def get_component_class(name: str) -> Type["Component"]:
     """
     if name not in COMPONENT_REGISTRY:
         available = list(COMPONENT_REGISTRY.keys())
-        raise ValueError(f"Component class '{name}' not found in registry. "
-                       f"Available components: {available}")
+        raise ValueError(
+            f"Component class '{name}' not found in registry. "
+            f"Available components: {available}"
+        )
     return COMPONENT_REGISTRY[name]
+
 
 def list_registered_components() -> Dict[str, str]:
     """
@@ -66,6 +77,7 @@ def list_registered_components() -> Dict[str, str]:
         Dictionary mapping component names to their class names
     """
     return {name: cls.__name__ for name, cls in COMPONENT_REGISTRY.items()}
+
 
 def is_component_registered(name: str) -> bool:
     """
@@ -78,6 +90,7 @@ def is_component_registered(name: str) -> bool:
         True if the component is registered, False otherwise
     """
     return name in COMPONENT_REGISTRY
+
 
 def clear_registry():
     """

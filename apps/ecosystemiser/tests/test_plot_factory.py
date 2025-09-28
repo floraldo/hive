@@ -1,9 +1,9 @@
 """Tests for PlotFactory."""
 
-import pytest
-import numpy as np
 from unittest.mock import Mock
 
+import numpy as np
+import pytest
 from ecosystemiser.datavis.plot_factory import PlotFactory
 
 
@@ -19,8 +19,8 @@ def sample_economic_data():
         "payback_period_years": 8.5,
         "component_costs": {
             "battery": {"capex": 50000, "opex_annual": 1000},
-            "solar_pv": {"capex": 100000, "opex_annual": 1500}
-        }
+            "solar_pv": {"capex": 100000, "opex_annual": 1500},
+        },
     }
 
 
@@ -29,21 +29,15 @@ def sample_sensitivity_data():
     """Sample sensitivity analysis data for testing."""
     return {
         "parameter_sensitivities": {
-            "battery_capacity": {
-                "total_cost": 0.8,
-                "renewable_fraction": 0.3
-            },
-            "solar_capacity": {
-                "total_cost": 0.6,
-                "renewable_fraction": 0.9
-            }
+            "battery_capacity": {"total_cost": 0.8, "renewable_fraction": 0.3},
+            "solar_capacity": {"total_cost": 0.6, "renewable_fraction": 0.9},
         },
         "most_influential_parameters": [
             {
                 "parameter": "solar_capacity",
                 "average_sensitivity": 0.75,
                 "max_sensitivity": 0.9,
-                "most_affected_kpi": "renewable_fraction"
+                "most_affected_kpi": "renewable_fraction",
             }
         ],
         "trade_off_analysis": {
@@ -51,9 +45,9 @@ def sample_sensitivity_data():
             "pareto_frontier": [
                 {"cost": 100000, "renewable": 0.4},
                 {"cost": 150000, "renewable": 0.6},
-                {"cost": 200000, "renewable": 0.8}
-            ]
-        }
+                {"cost": 200000, "renewable": 0.8},
+            ],
+        },
     }
 
 
@@ -65,18 +59,14 @@ def sample_kpi_data():
         "renewable_fraction": 0.6,
         "battery_efficiency": 0.9,
         "load_factor": 0.65,
-        "system_efficiency": 0.85
+        "system_efficiency": 0.85,
     }
 
 
 @pytest.fixture
 def sample_solver_metrics():
     """Sample solver metrics for testing."""
-    return {
-        "status": "optimal",
-        "solve_time": 1.234,
-        "objective_value": 1000.0
-    }
+    return {"status": "optimal", "solve_time": 1.234, "objective_value": 1000.0}
 
 
 class TestPlotFactory:
@@ -85,8 +75,8 @@ class TestPlotFactory:
     def test_initialization(self):
         """Test factory initialization."""
         factory = PlotFactory()
-        assert hasattr(factory, 'default_layout')
-        assert factory.default_layout['template'] == 'plotly_white'
+        assert hasattr(factory, "default_layout")
+        assert factory.default_layout["template"] == "plotly_white"
 
     def test_economic_summary_plot(self, sample_economic_data):
         """Test economic summary plot generation."""
@@ -94,12 +84,12 @@ class TestPlotFactory:
         plot_dict = factory.create_economic_summary_plot(sample_economic_data)
 
         assert isinstance(plot_dict, dict)
-        assert 'data' in plot_dict
-        assert 'layout' in plot_dict
-        assert plot_dict['layout']['title']['text'] == 'Economic Analysis Summary'
+        assert "data" in plot_dict
+        assert "layout" in plot_dict
+        assert plot_dict["layout"]["title"]["text"] == "Economic Analysis Summary"
 
         # Check that data traces are present
-        assert len(plot_dict['data']) > 0
+        assert len(plot_dict["data"]) > 0
 
     def test_economic_summary_plot_missing_data(self):
         """Test economic summary plot with missing data."""
@@ -108,8 +98,8 @@ class TestPlotFactory:
 
         # Should still create a plot structure, even with empty data
         assert isinstance(plot_dict, dict)
-        assert 'data' in plot_dict
-        assert 'layout' in plot_dict
+        assert "data" in plot_dict
+        assert "layout" in plot_dict
 
     def test_sensitivity_heatmap(self, sample_sensitivity_data):
         """Test sensitivity heatmap generation."""
@@ -117,16 +107,16 @@ class TestPlotFactory:
         plot_dict = factory.create_sensitivity_heatmap(sample_sensitivity_data)
 
         assert isinstance(plot_dict, dict)
-        assert 'data' in plot_dict
-        assert 'layout' in plot_dict
-        assert plot_dict['layout']['title']['text'] == 'Parameter Sensitivity Analysis'
+        assert "data" in plot_dict
+        assert "layout" in plot_dict
+        assert plot_dict["layout"]["title"]["text"] == "Parameter Sensitivity Analysis"
 
         # Check heatmap data
-        heatmap_data = plot_dict['data'][0]
-        assert heatmap_data['type'] == 'heatmap'
-        assert 'z' in heatmap_data  # Matrix data
-        assert 'x' in heatmap_data  # KPI names
-        assert 'y' in heatmap_data  # Parameter names
+        heatmap_data = plot_dict["data"][0]
+        assert heatmap_data["type"] == "heatmap"
+        assert "z" in heatmap_data  # Matrix data
+        assert "x" in heatmap_data  # KPI names
+        assert "y" in heatmap_data  # Parameter names
 
     def test_sensitivity_heatmap_no_data(self):
         """Test sensitivity heatmap with no sensitivity data."""
@@ -141,15 +131,18 @@ class TestPlotFactory:
         plot_dict = factory.create_pareto_frontier_plot(sample_sensitivity_data)
 
         assert isinstance(plot_dict, dict)
-        assert 'data' in plot_dict
-        assert 'layout' in plot_dict
-        assert plot_dict['layout']['title']['text'] == 'Cost vs Renewable Fraction Trade-off'
+        assert "data" in plot_dict
+        assert "layout" in plot_dict
+        assert (
+            plot_dict["layout"]["title"]["text"]
+            == "Cost vs Renewable Fraction Trade-off"
+        )
 
         # Check scatter plot data
-        scatter_data = plot_dict['data'][0]
-        assert scatter_data['type'] == 'scatter'
-        assert 'x' in scatter_data  # Costs
-        assert 'y' in scatter_data  # Renewable fractions
+        scatter_data = plot_dict["data"][0]
+        assert scatter_data["type"] == "scatter"
+        assert "x" in scatter_data  # Costs
+        assert "y" in scatter_data  # Renewable fractions
 
     def test_pareto_frontier_plot_no_data(self):
         """Test Pareto frontier plot with no data."""
@@ -170,20 +163,24 @@ class TestPlotFactory:
         plot_dict = factory.create_technical_kpi_gauges(sample_kpi_data)
 
         assert isinstance(plot_dict, dict)
-        assert 'data' in plot_dict
-        assert 'layout' in plot_dict
-        assert plot_dict['layout']['title']['text'] == 'Technical Performance Indicators'
+        assert "data" in plot_dict
+        assert "layout" in plot_dict
+        assert (
+            plot_dict["layout"]["title"]["text"] == "Technical Performance Indicators"
+        )
 
         # Check that gauge indicators are created
-        gauge_count = len([trace for trace in plot_dict['data'] if trace.get('type') == 'indicator'])
+        gauge_count = len(
+            [trace for trace in plot_dict["data"] if trace.get("type") == "indicator"]
+        )
         assert gauge_count > 0
 
         # Verify gauge properties
-        for trace in plot_dict['data']:
-            if trace.get('type') == 'indicator':
-                assert 'mode' in trace
-                assert 'gauge' in trace
-                assert 'value' in trace
+        for trace in plot_dict["data"]:
+            if trace.get("type") == "indicator":
+                assert "mode" in trace
+                assert "gauge" in trace
+                assert "value" in trace
 
     def test_technical_kpi_gauges_no_data(self):
         """Test KPI gauges with no matching data."""
@@ -198,55 +195,55 @@ class TestPlotFactory:
         plot_dict = factory.create_optimization_convergence_plot(sample_solver_metrics)
 
         assert isinstance(plot_dict, dict)
-        assert 'data' in plot_dict
-        assert 'layout' in plot_dict
-        assert plot_dict['layout']['title']['text'] == 'Optimization Results'
+        assert "data" in plot_dict
+        assert "layout" in plot_dict
+        assert plot_dict["layout"]["title"]["text"] == "Optimization Results"
 
         # Check indicator data
-        indicator_data = plot_dict['data'][0]
-        assert indicator_data['type'] == 'indicator'
-        assert indicator_data['value'] == sample_solver_metrics['objective_value']
+        indicator_data = plot_dict["data"][0]
+        assert indicator_data["type"] == "indicator"
+        assert indicator_data["value"] == sample_solver_metrics["objective_value"]
 
     def test_kpi_dashboard(self):
         """Test KPI dashboard creation."""
         factory = PlotFactory()
 
         kpis = {
-            'grid_import': 1000,
-            'grid_export': 200,
-            'solar_generation': 800,
-            'self_consumption': 0.8,
-            'renewable_fraction': 0.6,
-            'capex_total': 150000,
-            'co2_emissions': 500
+            "grid_import": 1000,
+            "grid_export": 200,
+            "solar_generation": 800,
+            "self_consumption": 0.8,
+            "renewable_fraction": 0.6,
+            "capex_total": 150000,
+            "co2_emissions": 500,
         }
 
         plot_dict = factory.create_kpi_dashboard(kpis)
 
         assert isinstance(plot_dict, dict)
-        assert 'data' in plot_dict
-        assert 'layout' in plot_dict
-        assert plot_dict['layout']['title']['text'] == 'KPI Dashboard'
+        assert "data" in plot_dict
+        assert "layout" in plot_dict
+        assert plot_dict["layout"]["title"]["text"] == "KPI Dashboard"
 
     def test_load_profile_plot(self):
         """Test load profile plot creation."""
         factory = PlotFactory()
 
         profiles = {
-            'electricity_demand': np.array([20, 30, 40, 35, 25]),
-            'solar_generation': np.array([0, 10, 30, 20, 5]),
-            'wind_generation': np.array([15, 20, 10, 15, 20])
+            "electricity_demand": np.array([20, 30, 40, 35, 25]),
+            "solar_generation": np.array([0, 10, 30, 20, 5]),
+            "wind_generation": np.array([15, 20, 10, 15, 20]),
         }
 
         plot_dict = factory.create_load_profile_plot(profiles)
 
         assert isinstance(plot_dict, dict)
-        assert 'data' in plot_dict
-        assert 'layout' in plot_dict
-        assert plot_dict['layout']['title']['text'] == 'Load and Generation Profiles'
+        assert "data" in plot_dict
+        assert "layout" in plot_dict
+        assert plot_dict["layout"]["title"]["text"] == "Load and Generation Profiles"
 
         # Should have traces for each profile
-        assert len(plot_dict['data']) == len(profiles)
+        assert len(plot_dict["data"]) == len(profiles)
 
     def test_color_schemes(self, sample_economic_data):
         """Test that plots use appropriate color schemes."""
@@ -254,8 +251,8 @@ class TestPlotFactory:
         plot_dict = factory.create_economic_summary_plot(sample_economic_data)
 
         # Verify layout uses default styling
-        assert plot_dict['layout']['template'] == 'plotly_white'
-        assert 'font' in plot_dict['layout']
+        assert plot_dict["layout"]["template"] == "plotly_white"
+        assert "font" in plot_dict["layout"]
 
     def test_plot_responsiveness(self, sample_kpi_data):
         """Test that plots are configured for responsiveness."""
@@ -263,7 +260,7 @@ class TestPlotFactory:
         plot_dict = factory.create_technical_kpi_gauges(sample_kpi_data)
 
         # Check that layout includes responsive settings
-        assert 'margin' in plot_dict['layout']
+        assert "margin" in plot_dict["layout"]
 
     def test_gauge_thresholds(self):
         """Test gauge threshold coloring."""
@@ -271,18 +268,18 @@ class TestPlotFactory:
 
         # High performance KPIs
         high_kpis = {
-            'grid_self_sufficiency': 0.9,
-            'renewable_fraction': 0.8,
-            'battery_efficiency': 0.95
+            "grid_self_sufficiency": 0.9,
+            "renewable_fraction": 0.8,
+            "battery_efficiency": 0.95,
         }
 
         plot_dict = factory.create_technical_kpi_gauges(high_kpis)
 
         # Check that gauges are created with proper threshold settings
-        for trace in plot_dict['data']:
-            if trace.get('type') == 'indicator':
-                assert 'gauge' in trace
-                assert 'threshold' in trace['gauge']
+        for trace in plot_dict["data"]:
+            if trace.get("type") == "indicator":
+                assert "gauge" in trace
+                assert "threshold" in trace["gauge"]
 
     def test_annotation_formatting(self, sample_sensitivity_data):
         """Test that annotations are properly formatted."""
@@ -290,11 +287,11 @@ class TestPlotFactory:
         plot_dict = factory.create_pareto_frontier_plot(sample_sensitivity_data)
 
         # Check for correlation annotation
-        annotations = plot_dict['layout'].get('annotations', [])
+        annotations = plot_dict["layout"].get("annotations", [])
         if annotations:
             correlation_annotation = annotations[0]
-            assert 'text' in correlation_annotation
-            assert 'Correlation:' in correlation_annotation['text']
+            assert "text" in correlation_annotation
+            assert "Correlation:" in correlation_annotation["text"]
 
     def test_empty_system_handling(self):
         """Test handling of empty system data."""
@@ -314,9 +311,9 @@ class TestPlotFactory:
         plot_dict = factory.create_economic_summary_plot(sample_economic_data)
 
         # Verify that numeric data is properly formatted
-        for trace in plot_dict['data']:
-            if 'values' in trace:
-                for value in trace['values']:
+        for trace in plot_dict["data"]:
+            if "values" in trace:
+                for value in trace["values"]:
                     assert isinstance(value, (int, float))
 
     def test_layout_configuration(self):
@@ -324,7 +321,7 @@ class TestPlotFactory:
         factory = PlotFactory()
 
         # Test default layout properties
-        assert factory.default_layout['template'] == 'plotly_white'
-        assert factory.default_layout['font']['size'] == 12
-        assert 'margin' in factory.default_layout
-        assert factory.default_layout['hovermode'] == 'x unified'
+        assert factory.default_layout["template"] == "plotly_white"
+        assert factory.default_layout["font"]["size"] == 12
+        assert "margin" in factory.default_layout
+        assert factory.default_layout["hovermode"] == "x unified"

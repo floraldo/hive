@@ -7,12 +7,11 @@ EcoSystemiser's core database service, maintaining proper architectural layering
 
 # Import from ecosystemiser core database service
 from ecosystemiser.core.db import (
-    get_ecosystemiser_db_path,
-    get_db_connection,
     ecosystemiser_transaction,
-    get_ecosystemiser_connection
+    get_db_connection,
+    get_ecosystemiser_connection,
+    get_ecosystemiser_db_path,
 )
-
 
 # DEPRECATED: Custom ConnectionPool class removed
 # EcoSystemiser uses its own dedicated database connection management.

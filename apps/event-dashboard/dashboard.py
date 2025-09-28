@@ -7,24 +7,24 @@ enabling monitoring of workflow patterns, agent activity, and system health.
 """
 
 import asyncio
-import time
 import json
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
-from pathlib import Path
 import sys
+import time
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from rich.console import Console
-from rich.live import Live
-from rich.table import Table
-from rich.panel import Panel
 from rich.columns import Columns
-from rich.text import Text
+from rich.console import Console
 from rich.layout import Layout
+from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 try:
-    from hive_orchestrator.core.bus import get_event_bus, EventSubscriber
     from hive_logging import get_logger
+    from hive_orchestrator.core.bus import EventSubscriber, get_event_bus
 except ImportError as e:
     logger.error(f"Failed to import Hive packages: {e}")
     sys.exit(1)
@@ -50,7 +50,7 @@ class EventDashboard:
             "events_per_minute": 0,
             "active_workflows": 0,
             "agents_online": set(),
-            "last_update": datetime.now()
+            "last_update": datetime.now(),
         }
         self.running = False
 
@@ -67,7 +67,7 @@ class EventDashboard:
             subscription_id = self.event_bus.subscribe(
                 pattern="*",
                 callback=self._handle_event,
-                subscriber_name="event-dashboard"
+                subscriber_name="event-dashboard",
             )
             logger.info(f"Subscribed to all events: {subscription_id}")
             return subscription_id
@@ -79,17 +79,20 @@ class EventDashboard:
         """Handle incoming events for dashboard display"""
         try:
             # Add to recent events
-            self.recent_events.insert(0, {
-                "timestamp": datetime.now(),
-                "event_type": event.event_type,
-                "source_agent": event.source_agent,
-                "payload": event.payload,
-                "correlation_id": getattr(event, 'correlation_id', None)
-            })
+            self.recent_events.insert(
+                0,
+                {
+                    "timestamp": datetime.now(),
+                    "event_type": event.event_type,
+                    "source_agent": event.source_agent,
+                    "payload": event.payload,
+                    "correlation_id": getattr(event, "correlation_id", None),
+                },
+            )
 
             # Limit recent events list
             if len(self.recent_events) > self.max_recent_events:
-                self.recent_events = self.recent_events[:self.max_recent_events]
+                self.recent_events = self.recent_events[: self.max_recent_events]
 
             # Update agent activity
             agent = event.source_agent
@@ -97,7 +100,7 @@ class EventDashboard:
                 self.agent_activity[agent] = {
                     "last_seen": datetime.now(),
                     "event_count": 0,
-                    "event_types": set()
+                    "event_types": set(),
                 }
 
             self.agent_activity[agent]["last_seen"] = datetime.now()
@@ -105,22 +108,24 @@ class EventDashboard:
             self.agent_activity[agent]["event_types"].add(event.event_type)
 
             # Update workflow states
-            correlation_id = getattr(event, 'correlation_id', None)
+            correlation_id = getattr(event, "correlation_id", None)
             if correlation_id:
                 if correlation_id not in self.workflow_states:
                     self.workflow_states[correlation_id] = {
                         "start_time": datetime.now(),
                         "last_update": datetime.now(),
                         "events": [],
-                        "status": "active"
+                        "status": "active",
                     }
 
                 self.workflow_states[correlation_id]["last_update"] = datetime.now()
-                self.workflow_states[correlation_id]["events"].append({
-                    "timestamp": datetime.now(),
-                    "event_type": event.event_type,
-                    "source": event.source_agent
-                })
+                self.workflow_states[correlation_id]["events"].append(
+                    {
+                        "timestamp": datetime.now(),
+                        "event_type": event.event_type,
+                        "source": event.source_agent,
+                    }
+                )
 
             # Update system stats
             self.system_stats["total_events"] += 1
@@ -211,7 +216,8 @@ class EventDashboard:
         cutoff = now - timedelta(hours=1)
 
         active_workflows = {
-            wf_id: wf_data for wf_id, wf_data in self.workflow_states.items()
+            wf_id: wf_data
+            for wf_id, wf_data in self.workflow_states.items()
             if wf_data["last_update"] > cutoff
         }
 
@@ -237,7 +243,7 @@ class EventDashboard:
                 duration_str,
                 str(event_count),
                 last_activity,
-                status
+                status,
             )
 
         return table
@@ -249,16 +255,14 @@ class EventDashboard:
 
         # Calculate events per minute
         window_start = now - timedelta(minutes=self.stats_window_minutes)
-        recent_events = [
-            e for e in self.recent_events
-            if e["timestamp"] > window_start
-        ]
+        recent_events = [e for e in self.recent_events if e["timestamp"] > window_start]
         events_per_minute = len(recent_events) / self.stats_window_minutes
 
         # Active workflows in last hour
         cutoff = now - timedelta(hours=1)
         active_workflows = sum(
-            1 for wf_data in self.workflow_states.values()
+            1
+            for wf_data in self.workflow_states.values()
             if wf_data["last_update"] > cutoff
         )
 
@@ -280,26 +284,24 @@ class EventDashboard:
         layout.split_column(
             Layout(name="header", size=3),
             Layout(name="main"),
-            Layout(name="footer", size=3)
+            Layout(name="footer", size=3),
         )
 
-        layout["main"].split_row(
-            Layout(name="left"),
-            Layout(name="right")
-        )
+        layout["main"].split_row(Layout(name="left"), Layout(name="right"))
 
         layout["left"].split_column(
-            Layout(name="events"),
-            Layout(name="stats", size=10)
+            Layout(name="events"), Layout(name="stats", size=10)
         )
 
-        layout["right"].split_column(
-            Layout(name="agents"),
-            Layout(name="workflows")
-        )
+        layout["right"].split_column(Layout(name="agents"), Layout(name="workflows"))
 
         # Populate layout
-        layout["header"].update(Panel("🚀 Hive V4.0 Event Dashboard - Real-time Agent Communication", style="bold blue"))
+        layout["header"].update(
+            Panel(
+                "🚀 Hive V4.0 Event Dashboard - Real-time Agent Communication",
+                style="bold blue",
+            )
+        )
         layout["events"].update(self._create_recent_events_table())
         layout["stats"].update(self._create_system_stats_panel())
         layout["agents"].update(self._create_agent_activity_table())
@@ -321,8 +323,12 @@ class EventDashboard:
         self.running = True
 
         try:
-            with Live(self._create_dashboard_layout(), refresh_per_second=2, screen=True) as live:
-                console.logger.info("[green]Event Dashboard started. Monitoring event flow...[/green]")
+            with Live(
+                self._create_dashboard_layout(), refresh_per_second=2, screen=True
+            ) as live:
+                console.logger.info(
+                    "[green]Event Dashboard started. Monitoring event flow...[/green]"
+                )
 
                 while self.running:
                     # Update the dashboard layout
