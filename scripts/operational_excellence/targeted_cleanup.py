@@ -8,9 +8,10 @@ Performs focused cleanup avoiding problematic directories like .venv
 import os
 import shutil
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set
-from datetime import datetime
+
 
 def should_skip_directory(path: Path) -> bool:
     """Check if directory should be skipped"""

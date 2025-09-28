@@ -13,10 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from hive_cli import create_cli, add_command, run_cli
-from hive_cli.decorators import command, option
-from hive_cli.output import success, error, info, warning
-
+import click
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -25,15 +22,15 @@ from .queen import main as queen_main
 from .worker import main as worker_main
 
 
-@create_cli()
+@click.group()
 def cli():
     """Hive Orchestrator - Manage Queen and Workers."""
     pass
 
 
 @cli.command()
-@option("--config", "-c", type=click.Path(exists=True), help="Path to configuration file")
-@option("--debug", is_flag=True, help="Enable debug logging")
+@click.option("--config", "-c", type=click.Path(exists=True), help="Path to configuration file")
+@click.option("--debug", is_flag=True, help="Enable debug logging")
 def start_queen(config: Optional[str], debug: bool):
     """Start the Queen orchestrator."""
     try:
@@ -59,24 +56,24 @@ def start_queen(config: Optional[str], debug: bool):
         finally:
             sys.argv = original_argv
     except ImportError as e:
-        info(f"Error importing queen module: {e}", err=True)
+        click.echo(f"Error importing queen module: {e}", err=True)
         raise click.Exit(1)
     except Exception as e:
-        info(f"Error starting queen: {e}", err=True)
+        click.echo(f"Error starting queen: {e}", err=True)
         logger.error(f"Queen startup error: {e}")
         raise click.Exit(1)
 
 
 @cli.command()
-@option(
+@click.option(
     "--mode",
     "-m",
     type=click.Choice(["backend", "frontend", "infra", "general"]),
     default="general",
     help="Worker mode",
 )
-@option("--name", "-n", help="Worker name")
-@option("--debug", is_flag=True, help="Enable debug logging")
+@click.option("--name", "-n", help="Worker name")
+@click.option("--debug", is_flag=True, help="Enable debug logging")
 def start_worker(mode: str, name: Optional[str], debug: bool):
     """Start a Worker agent."""
     try:
@@ -101,10 +98,10 @@ def start_worker(mode: str, name: Optional[str], debug: bool):
         finally:
             sys.argv = original_argv
     except ImportError as e:
-        info(f"Error importing worker module: {e}", err=True)
+        click.echo(f"Error importing worker module: {e}", err=True)
         raise click.Exit(1)
     except Exception as e:
-        info(f"Error starting worker: {e}", err=True)
+        click.echo(f"Error starting worker: {e}", err=True)
         logger.error(f"Worker startup error: {e}")
         raise click.Exit(1)
 
@@ -146,23 +143,23 @@ def status():
         result = cursor.fetchone()
         total_runs = result[0] if result else 0
 
-        info("=== Hive Orchestrator Status ===")
-        info(f"\nTasks:")
-        info(f"  Queued:    {queued}")
-        info(f"  Running:   {running}")
-        info(f"  Completed: {completed}")
-        info(f"  Failed:    {failed}")
-        info(f"\nWorkers:")
-        info(f"  Active:    {active_workers}")
-        info(f"\nRuns:")
-        info(f"  Total:     {total_runs}")
+        click.echo("=== Hive Orchestrator Status ===")
+        click.echo(f"\nTasks:")
+        click.echo(f"  Queued:    {queued}")
+        click.echo(f"  Running:   {running}")
+        click.echo(f"  Completed: {completed}")
+        click.echo(f"  Failed:    {failed}")
+        click.echo(f"\nWorkers:")
+        click.echo(f"  Active:    {active_workers}")
+        click.echo(f"\nRuns:")
+        click.echo(f"  Total:     {total_runs}")
 
     except ImportError as e:
-        info(f"Database module not available: {e}", err=True)
-        info("Make sure hive-core-db package is installed", err=True)
+        click.echo(f"Database module not available: {e}", err=True)
+        click.echo("Make sure hive-core-db package is installed", err=True)
         raise click.Exit(1)
     except Exception as e:
-        info(f"Error getting status: {e}", err=True)
+        click.echo(f"Error getting status: {e}", err=True)
         logger.error(f"Status command error: {e}")
         raise click.Exit(1)
 
@@ -197,7 +194,7 @@ def review_escalated(task_id: str):
         task = cursor.fetchone()
 
         if not task:
-            info(f"Error: Task {task_id} not found or not escalated", err=True)
+            click.echo(f"Error: Task {task_id} not found or not escalated", err=True)
             raise click.Exit(1)
 
         # Parse result data for AI review information
@@ -325,10 +322,10 @@ def review_escalated(task_id: str):
             console.logger.info(f"[dim]Notes recorded: {notes}[/dim]")
 
     except ImportError as e:
-        info(f"Required module not available: {e}", err=True)
+        click.echo(f"Required module not available: {e}", err=True)
         raise click.Exit(1)
     except Exception as e:
-        info(f"Error reviewing task: {e}", err=True)
+        click.echo(f"Error reviewing task: {e}", err=True)
         logger.error(f"Review escalated error: {e}")
         raise click.Exit(1)
 
@@ -428,18 +425,18 @@ def list_escalated():
         console.logger.info(f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]")
 
     except ImportError as e:
-        info(f"Required module not available: {e}", err=True)
+        click.echo(f"Required module not available: {e}", err=True)
         raise click.Exit(1)
     except Exception as e:
-        info(f"Error listing escalated tasks: {e}", err=True)
+        click.echo(f"Error listing escalated tasks: {e}", err=True)
         logger.error(f"List escalated error: {e}")
         raise click.Exit(1)
 
 
 @cli.command()
 @click.argument("task_description")
-@option("--role", "-r", help="Target worker role")
-@option("--priority", "-p", type=int, default=1, help="Task priority")
+@click.option("--role", "-r", help="Target worker role")
+@click.option("--priority", "-p", type=int, default=1, help="Task priority")
 def queue_task(task_description: str, role: Optional[str], priority: int):
     """Queue a new task for processing."""
     try:
@@ -463,16 +460,16 @@ def queue_task(task_description: str, role: Optional[str], priority: int):
             priority=priority,
         )
 
-        info(f"Task queued with ID: {task_id}")
+        click.echo(f"Task queued with ID: {task_id}")
 
     except ImportError as e:
-        info(f"Database module not available: {e}", err=True)
-        info("Make sure hive-core-db package is installed", err=True)
+        click.echo(f"Database module not available: {e}", err=True)
+        click.echo("Make sure hive-core-db package is installed", err=True)
         raise click.Exit(1)
     except click.ClickException:
         raise  # Re-raise click exceptions as-is
     except Exception as e:
-        info(f"Error queuing task: {e}", err=True)
+        click.echo(f"Error queuing task: {e}", err=True)
         logger.error(f"Queue task error: {e}")
         raise click.Exit(1)
 

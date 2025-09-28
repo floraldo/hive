@@ -1,0 +1,41 @@
+# Hive Platform Performance Configuration
+
+connection_pool:
+  min_size: 5
+  max_size: 20
+  max_idle_time: 300
+  connection_timeout: 10
+  retry_attempts: 3
+  retry_delay: 0.5
+  enable_metrics: true
+  log_slow_queries: true
+  slow_query_threshold: 1.0
+
+circuit_breaker:
+  failure_threshold: 5
+  recovery_timeout: 60
+  expected_exceptions:
+    - ConnectionError
+    - TimeoutError
+
+timeout:
+  default_timeout: 30.0
+  operation_timeouts:
+    database_query: 5.0
+    external_api_call: 10.0
+    file_processing: 60.0
+    batch_operation: 120.0
+
+monitoring:
+  enable_metrics: true
+  metrics_interval: 60
+  log_level: INFO
+  slow_operation_threshold: 1.0
+
+optimization:
+  enable_connection_pooling: true
+  enable_circuit_breaker: true
+  enable_timeout_handling: true
+  enable_async_optimization: true
+  batch_size: 100
+  parallel_workers: 4

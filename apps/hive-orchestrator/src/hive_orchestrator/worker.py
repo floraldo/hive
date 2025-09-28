@@ -713,7 +713,7 @@ CRITICAL PATH CONSTRAINT:
                 # Give process a moment to fail if it's going to fail immediately
                 import time
 
-                time.sleep(0.5)
+                await asyncio.sleep(0.5)
                 initial_poll = process.poll()
                 if initial_poll is not None:
                     self.log.error(f"[ERROR] Process died immediately with exit code: {initial_poll}")
@@ -748,7 +748,7 @@ CRITICAL PATH CONSTRAINT:
                             # No more output but process still running, wait a bit
                             import time
 
-                            time.sleep(0.1)
+                            await asyncio.sleep(0.1)
                             continue
 
                         output_lines.append(line.rstrip())
@@ -787,7 +787,7 @@ CRITICAL PATH CONSTRAINT:
                             exit_code = poll_result
                             self.log.info(f"[DEBUG] Process exited with code: {exit_code}")
                             break
-                        time.sleep(0.5)  # Check every 500ms
+                        await asyncio.sleep(0.5)  # Check every 500ms
 
                 # Process should have already exited in the loop above
                 if exit_code is None:
