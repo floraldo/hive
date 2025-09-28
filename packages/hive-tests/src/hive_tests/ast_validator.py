@@ -17,7 +17,8 @@ import ast
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional, Any
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 import toml
 
 

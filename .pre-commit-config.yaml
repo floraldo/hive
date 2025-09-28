@@ -6,62 +6,8 @@ repos:
   - repo: local
     hooks:
       - id: enhanced-golden-rules
-        name: 🏆 Enhanced Golden Rules Validation
-        entry: python -c "
-import sys
-import time
-from pathlib import Path
-sys.path.insert(0, 'packages/hive-tests/src')
-
-print('🏆 Enhanced Golden Rules - Architectural Immune System')
-print('=' * 55)
-
-try:
-    from hive_tests.ast_validator import EnhancedValidator
-    
-    start_time = time.time()
-    validator = EnhancedValidator(Path('.'))
-    is_valid, violations_by_rule = validator.validate_all()
-    end_time = time.time()
-    
-    # Focus on critical violations for pre-commit
-    critical_violations = []
-    for rule_name, violations in violations_by_rule.items():
-        if any(keyword in rule_name for keyword in ['Unsafe', 'Security', 'Synchronous Calls']):
-            critical_violations.extend([(rule_name, v) for v in violations])
-    
-    print(f'⚡ Validation completed in {end_time - start_time:.2f}s')
-    print(f'🔍 Critical violations: {len(critical_violations)}')
-    
-    if critical_violations:
-        print()
-        print('❌ CRITICAL violations detected:')
-        for rule_name, violation in critical_violations[:5]:
-            print(f'  • [{rule_name}] {violation}')
-        if len(critical_violations) > 5:
-            print(f'  ... and {len(critical_violations) - 5} more')
-        print()
-        print('🛡️ Pre-commit blocked - fix critical violations first')
-        print('💡 Use: # golden-rule-ignore: rule-X - Justification')
-        sys.exit(1)
-    
-    # Check for new violations in changed files only
-    total_violations = sum(len(v) for v in violations_by_rule.values())
-    if total_violations > 0:
-        print(f'⚠️  Non-critical violations: {total_violations}')
-        print('💡 Consider fixing during development')
-    
-    print('✅ Pre-commit validation passed')
-    
-except ImportError as e:
-    print('⚠️  Enhanced Golden Rules not available, skipping...')
-    print(f'   Error: {e}')
-    print('💡 Run: poetry install')
-except Exception as e:
-    print(f'❌ Validation error: {e}')
-    print('💡 Run validation manually to debug')
-    sys.exit(1)
-"
+        name: Enhanced Golden Rules Validation
+        entry: python scripts/validate_golden_rules.py
         language: system
         files: \.py$
         pass_filenames: false
@@ -71,19 +17,19 @@ except Exception as e:
     rev: 23.12.1
     hooks:
       - id: black
-        name: 🎨 Black Code Formatting
-        
+        name: Black Code Formatting
+
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
-        name: 📦 Import Sorting
-        
+        name: Import Sorting
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.15
     hooks:
       - id: ruff
-        name: ⚡ Ruff Linting
+        name: Ruff Linting
         args: [--fix, --exit-non-zero-on-fix]
         
   # Security scanning
@@ -91,15 +37,15 @@ except Exception as e:
     rev: 1.7.5
     hooks:
       - id: bandit
-        name: 🔒 Security Scanning
+        name: Security Scanning
         args: [-r, -x, tests/]
-        
+
   # Documentation and typing
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
     hooks:
       - id: mypy
-        name: 🔍 Type Checking
+        name: Type Checking
         additional_dependencies: [types-all]
         args: [--ignore-missing-imports]
         
@@ -109,15 +55,15 @@ fail_fast: true
 # Configuration
 ci:
     autofix_commit_msg: |
-        🤖 Auto-fix by pre-commit hooks
-        
+        Auto-fix by pre-commit hooks
+
         Applied automatic fixes from pre-commit hooks:
         - Code formatting (black)
-        - Import sorting (isort)  
+        - Import sorting (isort)
         - Linting fixes (ruff)
-        
-        Architectural validation passed ✅
+
+        Architectural validation passed
     autofix_prs: true
     autoupdate_branch: ''
-    autoupdate_commit_msg: '🔄 Pre-commit autoupdate'
+    autoupdate_commit_msg: 'Pre-commit autoupdate'
     autoupdate_schedule: weekly
