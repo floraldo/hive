@@ -65,7 +65,7 @@ class V3CertificationTest:
     def test_1_configuration_centralization(self) -> bool:
         """Test centralized configuration system"""
         try:
-            from hive_db.config import get_config
+            from hive_config import get_config
 
             config = get_config()
 
@@ -137,7 +137,7 @@ class V3CertificationTest:
             self.log("Testing Claude service integration...")
             from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
             from hive_claude_bridge.bridge import ClaudeBridgeConfig
-            from hive_db.config import get_config
+            from hive_config import get_config
 
             # Reset for clean test
             self.log("Resetting Claude service...")
@@ -241,7 +241,7 @@ class V3CertificationTest:
         """Test integration between all components"""
         try:
             # Test that all components can work together
-            from hive_db.config import get_config
+            from hive_config import get_config
             from hive_db import get_pooled_connection
             from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
 
@@ -276,7 +276,7 @@ class V3CertificationTest:
         """Test environment-specific configuration"""
         try:
             import os
-            from hive_db.config import get_config
+            from hive_config import get_config
 
             config = get_config()
 

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 
 from hive_errors import BaseErrorReporter
-from hive_db import get_config
+from hive_config import get_config
 
 from .hive_exceptions import HiveError
 

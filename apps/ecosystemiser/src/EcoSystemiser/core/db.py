@@ -1,7 +1,7 @@
 """
 EcoSystemiser Core Database Service
 
-This module extends the generic hive-db-utils package with EcoSystemiser-specific
+This module extends the generic hive-db package with EcoSystemiser-specific
 database functionality, following the inherit→extend pattern.
 """
 
@@ -11,7 +11,8 @@ from typing import Optional
 import os
 import sqlite3
 
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
+from hive_db import get_sqlite_connection, sqlite_transaction, create_table_if_not_exists
 
 logger = get_logger(__name__)
 

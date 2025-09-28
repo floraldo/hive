@@ -13,12 +13,16 @@ from typing import Optional, Dict, Any, Tuple
 from .ssh_client import SSHClient, create_ssh_client_from_config
 from .remote_utils import run_remote_command, upload_directory, find_available_port
 
-# --- Constants (customizable for different deployments) ---
-BASE_REMOTE_APPS_DIR = "/home/smarthoo/apps"
-NGINX_CONF_D_DIR = "/etc/nginx/conf.d"
-SYSTEMD_SERVICE_DIR = "/etc/systemd/system"
-SERVER_USER = "smarthoo"
-NGINX_USER_GROUP = "www-data"
+# --- Configuration (load from environment or config) ---
+def get_deployment_config() -> Dict[str, str]:
+    """Get deployment configuration from environment variables."""
+    return {
+        "base_remote_apps_dir": os.environ.get("BASE_REMOTE_APPS_DIR", "/home/deploy/apps"),
+        "nginx_conf_d_dir": os.environ.get("NGINX_CONF_D_DIR", "/etc/nginx/conf.d"),
+        "systemd_service_dir": os.environ.get("SYSTEMD_SERVICE_DIR", "/etc/systemd/system"),
+        "server_user": os.environ.get("SERVER_USER", "deploy"),
+        "nginx_user_group": os.environ.get("NGINX_USER_GROUP", "www-data")
+    }
 
 # Configure a logger for this module
 log = get_logger("hive_deployment")
@@ -48,24 +52,28 @@ def connect_to_server(config: Dict[str, Any]) -> Optional[SSHClient]:
         return None
 
 
-def determine_deployment_paths(app_name: str) -> Dict[str, str]:
+def determine_deployment_paths(app_name: str, deployment_config: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     """
     Determines all necessary paths for deployment.
-    
+
     Args:
         app_name: The name of the application
-        
+        deployment_config: Optional deployment configuration. If None, loads from environment.
+
     Returns:
         A dictionary containing various deployment paths
     """
-    remote_app_dir = f"{BASE_REMOTE_APPS_DIR}/{app_name}"
+    if deployment_config is None:
+        deployment_config = get_deployment_config()
+
+    remote_app_dir = f"{deployment_config['base_remote_apps_dir']}/{app_name}"
     paths = {
         "remote_app_dir": remote_app_dir,
         "venv_path": f"{remote_app_dir}/venv",
         "req_path": f"{remote_app_dir}/requirements.txt",
         "env_file_path": f"{remote_app_dir}/instance/.env",
-        "systemd_service_path": f"{SYSTEMD_SERVICE_DIR}/{app_name}.service",
-        "nginx_conf_path": f"{NGINX_CONF_D_DIR}/{app_name}.conf"
+        "systemd_service_path": f"{deployment_config['systemd_service_dir']}/{app_name}.service",
+        "nginx_conf_path": f"{deployment_config['nginx_conf_d_dir']}/{app_name}.conf"
     }
     return paths
 
@@ -429,9 +437,9 @@ location /{app_name}/ {{
 
 
 def verify_deployment(
-    ssh: SSHClient, 
-    app_name: str, 
-    base_url: str = "https://tasks.smarthoods.eco",
+    ssh: SSHClient,
+    app_name: str,
+    base_url: Optional[str] = None,
     config: Dict[str, Any] = None,
     timeout: int = 20,
     wait_time: int = 5,
@@ -439,20 +447,27 @@ def verify_deployment(
 ) -> bool:
     """
     Verifies that the application is running correctly after deployment.
-    
+
     Args:
         ssh: The SSH client
         app_name: The name of the application
-        base_url: The base URL where the application is hosted
+        base_url: The base URL where the application is hosted (defaults to BASE_URL env var)
         config: The application configuration dictionary
         timeout: Timeout in seconds for HTTP requests
         wait_time: Wait time in seconds before verification
         expected_content: Optional custom content to verify on root page
-        
+
     Returns:
         True if verification passes, False otherwise
     """
     import requests
+
+    # Get base_url from environment if not provided
+    if base_url is None:
+        base_url = os.environ.get("BASE_URL")
+        if base_url is None:
+            log.error("base_url not provided and BASE_URL environment variable not set")
+            return False
     
     log.info(f"Verifying deployment for {app_name}...")
     
@@ -502,7 +517,7 @@ def execute_deployment_steps(
     local_app_path: Path,
     config: Dict[str, Any],
     app_specific_function=None,
-    base_url: str = "https://tasks.smarthoods.eco",
+    base_url: Optional[str] = None,
     start_port: int = 5001,
     max_ports: int = 50
 ) -> bool:
@@ -522,7 +537,14 @@ def execute_deployment_steps(
         True if the deployment was successful, False otherwise
     """
     log.info(f"--- Starting Deployment for {app_name} ---")
-    
+
+    # Get base_url from environment if not provided
+    if base_url is None:
+        base_url = os.environ.get("BASE_URL")
+        if base_url is None:
+            log.error("base_url not provided and BASE_URL environment variable not set")
+            return False
+
     ssh = None
     assigned_port = None
     success = False

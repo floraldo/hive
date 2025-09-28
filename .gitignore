@@ -17,6 +17,7 @@ venv/
 .claude/
 ENV/
 env/
+*.egg-info/
 
 # IDE
 .vscode/

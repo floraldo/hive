@@ -7,7 +7,7 @@ import click
 import json
 import sys
 from pathlib import Path
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 import yaml
 from typing import Dict, Any
 

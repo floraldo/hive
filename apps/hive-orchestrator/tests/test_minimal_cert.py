@@ -17,7 +17,7 @@ def test_1_configuration():
     """Test configuration system"""
     print("Testing configuration...")
     try:
-        from hive_db.config import get_config
+        from hive_config import get_config
         config = get_config()
         assert config.env in ["development", "testing", "production"]
         claude_config = config.get_claude_config()

@@ -14,7 +14,7 @@ from typing import Dict, Any, List, Optional, Union
 from datetime import datetime, timezone
 
 from hive_bus import BaseBus, BaseEvent
-from hive_db import get_config
+from hive_config import get_config
 from hive_errors import BaseError
 
 from .hive_events import TaskEvent, AgentEvent, WorkflowEvent

@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 """
-Shared Database Connection Service
+Database connection pooling utilities for Hive applications.
 
-Provides connection pooling for multiple SQLite databases across the Hive platform.
-Consolidates connection management while maintaining database isolation.
+Provides both sync and async connection pooling with automatic
+resource management and health monitoring.
 """
 
 import sqlite3
@@ -14,13 +13,11 @@ from contextlib import contextmanager
 from queue import Queue, Empty, Full
 
 from hive_logging import get_logger
-from hive_config.paths import ensure_directory
-from hive_config import get_config
 
 logger = get_logger(__name__)
 
 
-class DatabaseConnectionPool:
+class ConnectionPool:
     """
     Thread-safe SQLite connection pool for a specific database file.
 
@@ -68,7 +65,8 @@ class DatabaseConnectionPool:
     def _create_connection(self) -> Optional[sqlite3.Connection]:
         """Create a new database connection with optimal settings."""
         try:
-            ensure_directory(self.db_path.parent)
+            # Ensure database directory exists
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
             conn = sqlite3.connect(
                 str(self.db_path),
@@ -181,60 +179,56 @@ class DatabaseConnectionPool:
         }
 
 
-class SharedDatabaseService:
+class DatabaseManager:
     """
-    Service managing multiple database connection pools.
+    Manager for multiple database connection pools.
 
     Provides a unified interface for accessing different SQLite databases
     while maintaining connection pooling and proper resource management.
     """
 
     def __init__(self):
-        """Initialize the shared database service."""
-        self._pools: Dict[str, DatabaseConnectionPool] = {}
+        """Initialize the database manager."""
+        self._pools: Dict[str, ConnectionPool] = {}
         self._lock = threading.RLock()
-        self._config = get_config()
 
-    def get_pool(self, db_name: str, db_path: Path) -> DatabaseConnectionPool:
+    def get_pool(self, db_name: str, db_path: Path, **pool_kwargs) -> ConnectionPool:
         """
         Get or create a connection pool for a specific database.
 
         Args:
             db_name: Unique identifier for the database
             db_path: Path to the SQLite database file
+            **pool_kwargs: Additional arguments for ConnectionPool
 
         Returns:
-            DatabaseConnectionPool for the specified database
+            ConnectionPool for the specified database
         """
         if db_name not in self._pools:
             with self._lock:
                 if db_name not in self._pools:
-                    # Get database-specific configuration
-                    db_config = self._config.get_database_config()
-
-                    self._pools[db_name] = DatabaseConnectionPool(
+                    self._pools[db_name] = ConnectionPool(
                         db_path=db_path,
-                        min_connections=2,
-                        max_connections=db_config.get("max_connections", 10),
-                        connection_timeout=db_config.get("connection_timeout", 30.0)
+                        **pool_kwargs
                     )
                     logger.info(f"Created connection pool for database: {db_name}")
 
         return self._pools[db_name]
 
     @contextmanager
-    def get_connection(self, db_name: str, db_path: Path):
+    def get_connection(self, db_name: str, db_path: Path, **pool_kwargs):
         """
         Get a connection for a specific database.
 
         Args:
             db_name: Unique identifier for the database
             db_path: Path to the SQLite database file
+            **pool_kwargs: Additional arguments for ConnectionPool
 
         Yields:
             sqlite3.Connection: Database connection from appropriate pool
         """
-        pool = self.get_pool(db_name, db_path)
+        pool = self.get_pool(db_name, db_path, **pool_kwargs)
         with pool.get_connection() as conn:
             yield conn
 
@@ -271,62 +265,63 @@ class SharedDatabaseService:
         return results
 
 
-# Global shared database service instance
-_shared_service: Optional[SharedDatabaseService] = None
-_service_lock = threading.Lock()
+# Global database manager instance
+_database_manager: Optional[DatabaseManager] = None
+_manager_lock = threading.Lock()
 
 
-def get_shared_database_service() -> SharedDatabaseService:
-    """Get or create the global shared database service."""
-    global _shared_service
+def get_database_manager() -> DatabaseManager:
+    """Get or create the global database manager."""
+    global _database_manager
 
-    if _shared_service is None:
-        with _service_lock:
-            if _shared_service is None:
-                _shared_service = SharedDatabaseService()
-                logger.info("Shared database service initialized")
+    if _database_manager is None:
+        with _manager_lock:
+            if _database_manager is None:
+                _database_manager = DatabaseManager()
+                logger.info("Database manager initialized")
 
-    return _shared_service
+    return _database_manager
 
 
 @contextmanager
-def get_database_connection(db_name: str, db_path: Path):
+def get_pooled_connection(db_name: str, db_path: Path, **pool_kwargs):
     """
-    Get a connection from the shared database service.
+    Get a pooled connection for a specific database.
 
-    This is the main interface for getting database connections.
+    This is the main interface for getting pooled database connections.
 
     Args:
         db_name: Unique identifier for the database
         db_path: Path to the SQLite database file
+        **pool_kwargs: Additional arguments for ConnectionPool
 
     Example:
-        with get_database_connection("ecosystemiser", ecosystemiser_db_path) as conn:
+        with get_pooled_connection("app_db", Path("./app.db")) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM components")
+            cursor.execute("SELECT * FROM users")
     """
-    service = get_shared_database_service()
-    with service.get_connection(db_name, db_path) as conn:
+    manager = get_database_manager()
+    with manager.get_connection(db_name, db_path, **pool_kwargs) as conn:
         yield conn
 
 
-def close_all_database_pools():
+def close_all_pools():
     """Close all database connection pools."""
-    global _shared_service
+    global _database_manager
 
-    if _shared_service:
-        _shared_service.close_all_pools()
-        _shared_service = None
+    if _database_manager:
+        _database_manager.close_all_pools()
+        _database_manager = None
         logger.info("All database connection pools closed")
 
 
-def get_database_stats() -> Dict[str, Dict[str, Any]]:
+def get_pool_stats() -> Dict[str, Dict[str, Any]]:
     """Get statistics for all database connection pools."""
-    service = get_shared_database_service()
-    return service.get_all_stats()
+    manager = get_database_manager()
+    return manager.get_all_stats()
 
 
-def database_health_check() -> Dict[str, Any]:
+def pool_health_check() -> Dict[str, Any]:
     """Perform health check on all database connection pools."""
-    service = get_shared_database_service()
-    return service.health_check()
+    manager = get_database_manager()
+    return manager.health_check()

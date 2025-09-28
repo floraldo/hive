@@ -1,8 +1,0 @@
-pyproject.toml
-src/hive_logging/__init__.py
-src/hive_logging/logger.py
-src/hive_logging.egg-info/PKG-INFO
-src/hive_logging.egg-info/SOURCES.txt
-src/hive_logging.egg-info/dependency_links.txt
-src/hive_logging.egg-info/requires.txt
-src/hive_logging.egg-info/top_level.txt
