@@ -14,15 +14,10 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 import json
 
-from EcoSystemiser.hive_bus import Event
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.event_bus import EcoSystemiserEventBus, ecosystemiser_event_bus
-from EcoSystemiser.events import (
-    EcoSystemiserEventType,
-    create_analysis_event,
-    AnalysisEvent
-)
+from EcoSystemiser.core.events import SimulationEvent as Event, AnalysisEvent
+from EcoSystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
 from EcoSystemiser.core.errors import ProfileError as ProcessingError
+from EcoSystemiser.hive_logging_adapter import get_logger
 from EcoSystemiser.analyser.service import AnalyserService
 
 logger = get_logger(__name__)
@@ -47,7 +42,7 @@ class AnalyserWorker:
             analyser_service: Analysis service for executing strategies
             auto_analysis_strategies: List of strategies to run automatically
         """
-        self.event_bus = event_bus or EcoSystemiserEventBus()
+        self.event_bus = event_bus or get_ecosystemiser_event_bus()
         self.analyser_service = analyser_service or AnalyserService()
         self.auto_analysis_strategies = auto_analysis_strategies or [
             'technical_kpi',
@@ -67,14 +62,14 @@ class AnalyserWorker:
 
         # Subscribe to study completion events
         study_completed_id = await self.event_bus.subscribe(
-            event_type=EcoSystemiserEventType.STUDY_COMPLETED,
+            event_type="simulation.study_completed",
             handler=self._handle_study_completed
         )
         self._subscription_ids.append(study_completed_id)
 
         # Subscribe to simulation completion events (for individual analysis)
         simulation_completed_id = await self.event_bus.subscribe(
-            event_type=EcoSystemiserEventType.SIMULATION_COMPLETED,
+            event_type="simulation.completed",
             handler=self._handle_simulation_completed
         )
         self._subscription_ids.append(simulation_completed_id)
@@ -179,12 +174,14 @@ class AnalyserWorker:
         start_time = datetime.now()
 
         # Publish analysis started event using EcoSystemiser event bus
-        analysis_started_event = create_analysis_event(
-            event_type=EcoSystemiserEventType.ANALYSIS_STARTED,
+        analysis_started_event = AnalysisEvent.started(
             analysis_id=analysis_id,
-            source_agent="AnalyserWorker",
-            source_results_path=results_path,
-            strategies_executed=strategies
+            analysis_type="automated_analysis",
+            parameters={
+                "source_agent": "AnalyserWorker",
+                "source_results_path": str(results_path),
+                "strategies_executed": strategies
+            }
         )
         await self.event_bus.publish_analysis_event(analysis_started_event)
 
@@ -214,14 +211,15 @@ class AnalyserWorker:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             # Publish analysis completed event
-            analysis_completed_event = create_analysis_event(
-                event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
+            analysis_completed_event = AnalysisEvent.completed(
                 analysis_id=analysis_id,
-                source_agent="AnalyserWorker",
-                source_results_path=results_path,
-                analysis_results_path=output_path,
-                strategies_executed=strategies,
-                duration_seconds=execution_time
+                results={
+                    "source_agent": "AnalyserWorker",
+                    "source_results_path": str(results_path),
+                    "analysis_results_path": str(output_path),
+                    "strategies_executed": strategies,
+                    "duration_seconds": execution_time
+                }
             )
             await self.event_bus.publish_analysis_event(analysis_completed_event)
 
@@ -231,13 +229,15 @@ class AnalyserWorker:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             # Publish analysis failed event
-            analysis_failed_event = create_analysis_event(
-                event_type=EcoSystemiserEventType.ANALYSIS_FAILED,
+            analysis_failed_event = AnalysisEvent.failed(
                 analysis_id=analysis_id,
-                source_agent="AnalyserWorker",
-                source_results_path=results_path,
-                strategies_executed=strategies,
-                duration_seconds=execution_time
+                error_message=str(e),
+                error_details={
+                    "source_agent": "AnalyserWorker",
+                    "source_results_path": str(results_path),
+                    "strategies_executed": strategies,
+                    "duration_seconds": execution_time
+                }
             )
             await self.event_bus.publish_analysis_event(analysis_failed_event)
 
@@ -343,7 +343,7 @@ class AnalyserWorkerPool:
             event_bus: Shared EcoSystemiser event bus instance
         """
         self.pool_size = pool_size
-        self.event_bus = event_bus or EcoSystemiserEventBus()
+        self.event_bus = event_bus or get_ecosystemiser_event_bus()
         self.workers: List[AnalyserWorker] = []
         self.current_worker_index = 0
 

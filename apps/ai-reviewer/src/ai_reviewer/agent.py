@@ -12,10 +12,6 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 from pathlib import Path
 
-# Use centralized path manager for proper imports
-from hive_config.path_manager import setup_hive_paths
-setup_hive_paths()
-
 # Import hive logging
 from hive_logging import get_logger
 logger = get_logger(__name__)

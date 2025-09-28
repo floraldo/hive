@@ -11,10 +11,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any
 
-# Add paths for imports
-# Use centralized path manager for imports
-from hive_config.path_manager import setup_hive_paths
-setup_hive_paths()
+# Imports now handled by Poetry workspace dependencies
 # Import from orchestrator core for Hive-specific database access
 from hive_orchestrator.core.db import get_database, get_pooled_connection
 from ai_reviewer.database_adapter import DatabaseAdapter

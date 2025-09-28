@@ -237,6 +237,27 @@ class AnalysisEvent(EcoSystemiserEvent):
         )
 
     @classmethod
+    def failed(
+        cls,
+        analysis_id: str,
+        error_message: str,
+        error_details: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ) -> "AnalysisEvent":
+        """Create analysis failed event"""
+        return cls(
+            event_type="failed",
+            analysis_id=analysis_id,
+            payload={
+                "analysis_id": analysis_id,
+                "error_message": error_message,
+                "error_details": error_details or {},
+                "status": "failed"
+            },
+            **kwargs
+        )
+
+    @classmethod
     def metric_calculated(
         cls,
         analysis_id: str,

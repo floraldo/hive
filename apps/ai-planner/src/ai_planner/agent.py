@@ -139,10 +139,6 @@ def with_recovery(strategy, operation):
 # Initialize error reporter following the pattern
 ErrorReporter = get_error_reporter  # Use the core error reporter
 
-# Use path manager for proper import resolution
-from hive_config.path_manager import setup_hive_paths
-setup_hive_paths()
-
 # Database imports - use orchestrator's extended database layer for Hive schema
 try:
     # Import the orchestrator's Hive-specific database layer (extends hive-db-utils)

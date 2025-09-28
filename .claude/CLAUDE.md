@@ -200,3 +200,296 @@ MISSION COMPLETE: Health check API implemented, tested, and deployed.
 
 ## Windows Terminal Note
 If running in Windows (non-WSL), emojis may not display correctly. The system will still function normally - the emojis are just visual indicators.
+
+# ═══════════════════════════════════════════════════
+# HIVE MODULAR MONOLITH ARCHITECTURE
+# ═══════════════════════════════════════════════════
+
+## Architecture Overview
+
+Hive uses a **Modular Monolith** architecture with Poetry workspace dependencies, following the **"inherit → extend"** pattern to ensure clean separation between generic infrastructure and app-specific business logic.
+
+### Core Principles
+
+1. **Poetry Workspace Dependencies**: All imports handled via path references in pyproject.toml
+2. **Dependency Direction**: Apps → Packages ✅ | Packages → Apps ❌
+3. **Core Service Layer**: Each app has `core/` modules that extend generic packages
+4. **Golden Rules Enforcement**: 10+ architectural rules prevent pattern violations
+5. **No Path Manipulation**: Never use `sys.path` - Poetry handles all imports
+
+## Project Structure
+
+```
+C:\git\hive\
+├── apps/                           # Application services
+│   ├── ai-planner/                 # AI planning service
+│   │   ├── src/ai_planner/
+│   │   │   ├── core/               # ⭐ Core extensions
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── error.py        # Extends hive-error-handling
+│   │   │   ├── agent.py            # Main business logic
+│   │   │   └── ...
+│   │   └── pyproject.toml          # Poetry deps with path refs
+│   ├── ai-reviewer/                # Code review service
+│   │   ├── src/ai_reviewer/
+│   │   │   ├── core/               # ⭐ Core extensions
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── error.py        # Extends hive-error-handling
+│   │   │   └── ...
+│   │   └── pyproject.toml
+│   ├── ecosystemiser/              # Energy system modeling
+│   │   ├── src/EcoSystemiser/
+│   │   │   ├── core/               # ⭐ Reference implementation
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── errors.py       # Pattern example
+│   │   │   └── ...
+│   │   └── pyproject.toml
+│   └── hive-orchestrator/          # System orchestration
+│       ├── src/hive_orchestrator/
+│       │   ├── core/               # ⭐ Core extensions
+│       │   │   └── db/             # Extended database layer
+│       │   └── ...
+│       └── pyproject.toml
+└── packages/                       # Generic infrastructure
+    ├── hive-config/                # Configuration management
+    ├── hive-db-utils/              # Database utilities
+    ├── hive-error-handling/        # Error handling framework
+    ├── hive-logging/               # Logging infrastructure
+    ├── hive-messaging/             # Event bus and messaging
+    └── hive-testing-utils/         # Testing framework
+```
+
+## "Inherit → Extend" Pattern
+
+### ✅ CORRECT Pattern Implementation
+
+**1. Apps extend packages in their core/ modules:**
+
+```python
+# apps/ai-planner/src/ai_planner/core/error.py
+from hive_error_handling import BaseError, BaseErrorReporter
+
+class PlannerError(BaseError):
+    """Extends BaseError with AI Planner-specific context"""
+    def __init__(self, message: str, component: str = "ai-planner",
+                 task_id: Optional[str] = None, plan_id: Optional[str] = None, **kwargs):
+        super().__init__(message=message, component=component, **kwargs)
+        self.task_id = task_id
+        self.plan_id = plan_id
+```
+
+**2. Business logic imports from core/ extensions:**
+
+```python
+# apps/ai-planner/src/ai_planner/agent.py
+from ai_planner.core.error import PlannerError, TaskProcessingError
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+```
+
+**3. Poetry workspace dependencies:**
+
+```toml
+# apps/ai-planner/pyproject.toml
+[tool.poetry.dependencies]
+python = "^3.11"
+
+# Hive workspace dependencies
+hive-config = {path = "../../packages/hive-config", develop = true}
+hive-db-utils = {path = "../../packages/hive-db-utils", develop = true}
+hive-logging = {path = "../../packages/hive-logging", develop = true}
+hive-error-handling = {path = "../../packages/hive-error-handling", develop = true}
+hive-messaging = {path = "../../packages/hive-messaging", develop = true}
+```
+
+### ❌ ANTI-PATTERNS (Forbidden)
+
+```python
+# ❌ NEVER: Direct import of generic classes in business logic
+from hive_error_handling import BaseError  # Use core.error.PlannerError instead
+
+# ❌ NEVER: Path manipulation
+import sys
+sys.path.insert(0, "../../packages")  # Poetry handles this
+
+# ❌ NEVER: Direct logging import
+import logging  # Use hive_logging.get_logger() instead
+
+# ❌ NEVER: Package imports app
+# packages/hive-logging/src/hive_logging/logger.py
+from ai_planner.agent import AIPlanner  # Violates dependency direction
+```
+
+## Core Service Layer Pattern
+
+Each app MUST implement a `core/` directory with extensions:
+
+### Required Core Modules
+
+```python
+# apps/{app}/src/{app}/core/__init__.py
+"""
+{App} Core Components.
+
+Contains the core infrastructure that extends generic Hive packages:
+- Error handling (extends hive-error-handling)
+- Event bus (extends hive-messaging)
+- Database layer (extends hive-db-utils)
+- {App}-specific service interfaces
+
+This follows the "inherit → extend" pattern:
+- Generic packages provide reusable infrastructure
+- Core components add {App}-specific business logic
+"""
+
+# Core modules are imported as needed by specific components
+# No re-exports at this level to maintain clear module boundaries
+```
+
+```python
+# apps/{app}/src/{app}/core/error.py
+"""
+{App}-specific error handling implementation.
+
+Extends the generic error handling toolkit with {App} capabilities.
+"""
+
+from hive_error_handling import BaseError, BaseErrorReporter
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
+class {App}Error(BaseError):
+    """Base error class for all {App}-specific errors."""
+    def __init__(self, message: str, component: str = "{app}", **kwargs):
+        super().__init__(message=message, component=component, **kwargs)
+        # Add app-specific attributes
+```
+
+## Golden Rules Enforcement
+
+The following rules are automatically tested and MUST be followed:
+
+### 1. **App Contract**: Apps must have proper pyproject.toml structure
+### 2. **Colocated Tests**: Tests in tests/ directories, not alongside source
+### 3. **No Path Hacks**: Never use `sys.path.insert()` or `sys.path.append()`
+### 4. **No Direct App Imports**: Packages cannot import from apps
+### 5. **Logging Standards**: Use `hive_logging.get_logger()`, never direct `logging`
+### 6. **Error Handling**: Use core error classes, extend `hive_error_handling`
+
+**Test Location**: `apps/hive-orchestrator/tests/test_golden_rules.py`
+
+## Development Workflow
+
+### 1. Creating New Apps
+
+```bash
+# 1. Create app structure
+mkdir -p apps/my-app/src/my_app/core
+mkdir -p apps/my-app/tests
+
+# 2. Create pyproject.toml with workspace deps
+cd apps/my-app
+# Add Poetry dependencies using path references
+
+# 3. Implement core/ extensions
+# Create core/__init__.py and core/error.py following pattern
+
+# 4. Implement business logic importing from core/
+# Import from my_app.core.error, not hive_error_handling directly
+
+# 5. Run golden rules tests
+cd ../..
+python -m pytest apps/hive-orchestrator/tests/test_golden_rules.py -v
+```
+
+### 2. Adding New Packages
+
+```bash
+# 1. Create package in packages/
+mkdir -p packages/hive-new-feature/src/hive_new_feature
+
+# 2. Design generic, reusable interfaces
+# NO app-specific logic in packages
+
+# 3. Add to workspace dependencies in apps that need it
+# Update app pyproject.toml files with path reference
+
+# 4. Extend in app core/ modules as needed
+```
+
+### 3. Code Quality Checks
+
+```bash
+# Run golden rules (architectural compliance)
+python -m pytest apps/hive-orchestrator/tests/test_golden_rules.py -v
+
+# Run app-specific tests
+python -m pytest apps/ai-planner/tests/ -v
+python -m pytest apps/ai-reviewer/tests/ -v
+
+# Check import violations
+grep -r "from hive_error_handling import" apps/*/src/*/
+# Should only find imports in core/ modules
+```
+
+## Import Strategy
+
+### ✅ Correct Import Patterns
+
+```python
+# In app business logic (e.g., agent.py)
+from ai_planner.core.error import PlannerError, TaskProcessingError
+from hive_logging import get_logger
+from hive_config import get_config
+
+# In app core/ modules (e.g., core/error.py)
+from hive_error_handling import BaseError, BaseErrorReporter
+from hive_logging import get_logger
+
+# In packages (generic infrastructure)
+from typing import Dict, Any, Optional
+# NO imports from apps/ directory
+```
+
+### ❌ Forbidden Import Patterns
+
+```python
+# ❌ Business logic importing generic classes directly
+from hive_error_handling import BaseError  # Use core.error.AppError
+
+# ❌ Any sys.path manipulation
+import sys
+sys.path.insert(0, "...")
+
+# ❌ Direct logging imports
+import logging  # Use hive_logging.get_logger()
+
+# ❌ Packages importing from apps
+from ai_planner.agent import AIPlanner  # Violates dependency direction
+```
+
+## Key Architecture Benefits
+
+1. **Clean Separation**: Generic infrastructure vs app-specific logic
+2. **Reusability**: Packages can be used across multiple apps
+3. **Maintainability**: Clear dependency direction prevents circular imports
+4. **Testability**: Each layer can be tested independently
+5. **Extensibility**: New apps follow established patterns
+6. **Compliance**: Golden rules enforce architectural consistency
+
+## Memory Notes for Agent
+
+When working on Hive codebase:
+
+1. **ALWAYS** check if core/ modules exist before creating error classes
+2. **NEVER** import `hive_error_handling.BaseError` directly in business logic
+3. **ALWAYS** use `hive_logging.get_logger()` instead of `logging`
+4. **NEVER** use `sys.path` manipulation - Poetry handles imports
+5. **ALWAYS** run golden rules tests after architectural changes
+6. **FOLLOW** the ecosystemiser core/errors.py pattern for new apps
+7. **MAINTAIN** dependency direction: Apps → Packages only
+8. **USE** Poetry workspace path dependencies for all internal imports
+
+This architecture ensures clean, maintainable, and scalable code that follows established patterns and prevents common architectural anti-patterns.

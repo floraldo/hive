@@ -12,11 +12,6 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 
-# Setup Hive paths using centralized path manager
-# Note: This assumes the workspace has been properly installed with Poetry
-from hive_config.path_manager import setup_hive_paths
-setup_hive_paths()
-
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import RobustClaudePlannerBridge
 from hive_core_db.database import get_connection, init_db

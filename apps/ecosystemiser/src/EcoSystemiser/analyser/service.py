@@ -8,8 +8,8 @@ import pandas as pd
 from datetime import datetime
 
 from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.event_bus import EcoSystemiserEventBus, sync_event_publisher
-from EcoSystemiser.events import EcoSystemiserEventType, create_analysis_event
+from EcoSystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
+from EcoSystemiser.core.events import AnalysisEvent
 from EcoSystemiser.analyser.strategies import BaseAnalysis, TechnicalKPIAnalysis, EconomicAnalysis, SensitivityAnalysis
 
 logger = get_logger(__name__)
@@ -31,7 +31,7 @@ class AnalyserService:
             event_bus: Optional EcoSystemiser event bus for publishing events
         """
         self.strategies: Dict[str, BaseAnalysis] = {}
-        self.event_bus = event_bus or EcoSystemiserEventBus()
+        self.event_bus = event_bus or get_ecosystemiser_event_bus()
         self._register_default_strategies()
 
     def _register_default_strategies(self):

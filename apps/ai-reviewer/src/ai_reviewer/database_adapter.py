@@ -8,10 +8,6 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
 
-# Configure all Hive paths centrally
-from hive_config import setup_hive_paths
-setup_hive_paths()
-
 import hive_core_db
 from hive_logging import get_logger
 

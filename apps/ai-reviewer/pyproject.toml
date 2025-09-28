@@ -7,11 +7,13 @@ packages = [{include = "ai_reviewer", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-hive-core-db = {path = "../../packages/hive-core-db", develop = true}
+
+# Hive workspace dependencies
 hive-config = {path = "../../packages/hive-config", develop = true}
+hive-db-utils = {path = "../../packages/hive-db-utils", develop = true}
 hive-logging = {path = "../../packages/hive-logging", develop = true}
-hive-claude-bridge = {path = "../../packages/hive-claude-bridge", develop = true}
-hive-errors = {path = "../../packages/hive-errors", develop = true}
+hive-error-handling = {path = "../../packages/hive-error-handling", develop = true}
+hive-messaging = {path = "../../packages/hive-messaging", develop = true}
 anthropic = "^0.39.0"
 pydantic = "^2.5.0"
 rich = "^13.7.0"

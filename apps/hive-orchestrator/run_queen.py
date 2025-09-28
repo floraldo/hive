@@ -11,10 +11,6 @@ import sys
 import os
 from pathlib import Path
 
-# Configure all Hive paths centrally
-from hive_config import setup_hive_paths
-setup_hive_paths()
-
 # Now import HiveCore and Queen
 from hive_orchestrator.hive_core import HiveCore
 from hive_orchestrator.queen import QueenLite

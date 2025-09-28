@@ -8,10 +8,7 @@ import json
 import uuid
 from pathlib import Path
 
-# Add src path for imports
-# Use centralized path manager for imports
-from hive_config.path_manager import setup_hive_paths
-setup_hive_paths()
+# Imports now handled by Poetry workspace dependencies
 
 try:
     from ai_planner.agent import AIPlanner

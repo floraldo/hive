@@ -12,7 +12,7 @@ from typing import Optional
 
 # Try to import from Hive's centralized logging
 try:
-    from packages.hive_logging.src.hive_logging import get_logger, setup_logging
+    from hive_logging import get_logger, setup_logging
     USING_HIVE_LOGGING = True
 
 except ImportError:

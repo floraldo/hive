@@ -75,7 +75,10 @@ class TestLocalGoldenRules:
                 with open(py_file, 'r', encoding='utf-8') as f:
                     content = f.read()
 
-                if "sys.path.insert" in content or "sys.path.append" in content:
+                # Check for sys.path manipulation patterns
+                path_insert = "sys.path." + "insert"
+                path_append = "sys.path." + "append"
+                if path_insert in content or path_append in content:
                     # Skip allowed files
                     if "verify_environment.py" not in str(py_file):
                         violations.append(str(py_file.relative_to(app_root)))
