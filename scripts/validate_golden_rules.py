@@ -18,7 +18,7 @@ from hive_tests import run_all_golden_rules
 
 def main():
     """Run all golden rules validation and report results."""
-    print("🏗️  Running Hive Platform Golden Rules Validation")
+    print("Building - Running Hive Platform Golden Rules Validation")
     print("=" * 60)
 
     project_root = workspace_root
@@ -26,7 +26,7 @@ def main():
 
     # Report results
     for rule_name, result in results.items():
-        status = "✅ PASS" if result["passed"] else "❌ FAIL"
+        status = "PASS PASS" if result["passed"] else "FAIL FAIL"
         print(f"{status} {rule_name}")
 
         if not result["passed"] and result["violations"]:
@@ -36,11 +36,11 @@ def main():
 
     print("=" * 60)
     if all_passed:
-        print("✅ All Golden Rules validation passed!")
+        print("PASS All Golden Rules validation passed!")
         return 0
     else:
         failed_count = sum(1 for r in results.values() if not r["passed"])
-        print(f"❌ {failed_count} Golden Rules failed validation")
+        print(f"FAIL {failed_count} Golden Rules failed validation")
         return 1
 
 

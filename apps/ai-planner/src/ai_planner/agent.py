@@ -71,7 +71,7 @@ class ClaudeBridgeConfig:
 
 def get_claude_service(config=None, rate_config=None):
     return ClaudeService(config, rate_config)
-# Import error classes from our core module following the "inherit → extend" pattern
+# Import error classes from our core module following the "inherit -> extend" pattern
 from ai_planner.core.errors import (
     PlannerError,
     TaskProcessingError,
@@ -84,7 +84,7 @@ from ai_planner.core.errors import (
     get_error_reporter
 )
 
-# Import recovery strategies from core module (follows "inherit → extend" pattern)
+# Import recovery strategies from core module (follows "inherit -> extend" pattern)
 from ai_planner.core.errors import ExponentialBackoffStrategy, with_recovery
 
 # Initialize error reporter following the pattern

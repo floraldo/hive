@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pipeline Monitor for AI Planner → Queen → Worker Integration
+Pipeline Monitor for AI Planner -> Queen -> Worker Integration
 
 Provides comprehensive monitoring, logging, and reporting for the complete
 autonomous task execution pipeline to ensure reliable operation.
@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 
 
 class PipelineStage(Enum):
-    """Stages in the AI Planner → Queen → Worker pipeline"""
+    """Stages in the AI Planner -> Queen -> Worker pipeline"""
     PLANNING_QUEUE = "planning_queue"
     AI_PLANNER = "ai_planner"
     EXECUTION_PLAN = "execution_plan"
@@ -91,7 +91,7 @@ class PipelineAlert:
 
 
 class PipelineMonitor:
-    """Comprehensive monitor for the AI Planner → Queen → Worker pipeline"""
+    """Comprehensive monitor for the AI Planner -> Queen -> Worker pipeline"""
 
     def __init__(self, alert_thresholds: Optional[Dict[str, Any]] = None):
         """
@@ -359,7 +359,7 @@ class PipelineMonitor:
         """Generate human-readable pipeline status report"""
         report_lines = [
             "=" * 70,
-            "AI PLANNER → QUEEN → WORKER PIPELINE STATUS REPORT",
+            "AI PLANNER -> QUEEN -> WORKER PIPELINE STATUS REPORT",
             "=" * 70,
             f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
             f"Overall Health: {health.value.upper()}",
@@ -382,24 +382,24 @@ class PipelineMonitor:
         report_lines.extend([
             "📊 PIPELINE FLOW SUMMARY",
             "-" * 30,
-            f"Planning Queue → AI Planner:",
+            f"Planning Queue -> AI Planner:",
             f"  📝 Pending: {metrics.pending_planning_tasks}",
             f"  🤖 Processing: {metrics.assigned_planning_tasks}",
-            f"  ✅ Completed: {metrics.completed_planning_tasks}",
-            f"  ❌ Failed: {metrics.failed_planning_tasks}",
+            f"  OK Completed: {metrics.completed_planning_tasks}",
+            f"  FAIL Failed: {metrics.failed_planning_tasks}",
             "",
             f"Execution Plans:",
             f"  📋 Generated: {metrics.generated_plans}",
             f"  🔄 Executing: {metrics.executing_plans}",
-            f"  ✅ Completed: {metrics.completed_plans}",
-            f"  ❌ Failed: {metrics.failed_plans}",
+            f"  OK Completed: {metrics.completed_plans}",
+            f"  FAIL Failed: {metrics.failed_plans}",
             "",
             f"Subtask Execution:",
             f"  📥 Queued: {metrics.queued_subtasks}",
             f"  👤 Assigned: {metrics.assigned_subtasks}",
             f"  ⚙️ In Progress: {metrics.in_progress_subtasks}",
-            f"  ✅ Completed: {metrics.completed_subtasks}",
-            f"  ❌ Failed: {metrics.failed_subtasks}",
+            f"  OK Completed: {metrics.completed_subtasks}",
+            f"  FAIL Failed: {metrics.failed_subtasks}",
             ""
         ])
 
@@ -427,7 +427,7 @@ class PipelineMonitor:
             report_lines.append("")
         else:
             report_lines.extend([
-                "✅ NO ACTIVE ALERTS",
+                "OK NO ACTIVE ALERTS",
                 ""
             ])
 

@@ -1010,7 +1010,7 @@ class QueenLite:
         if self.is_app_task(task) or current_phase == "execute":
             # App tasks are completed directly without phases
             hive_core_db.update_task_status(task_id, "completed", {})
-            self.log.info(f"✅ App task {task_id} COMPLETED successfully")
+            self.log.info(f"OK App task {task_id} COMPLETED successfully")
             # Publish task completion event
             self._publish_task_event(
                 TaskEventType.COMPLETED,
@@ -1028,7 +1028,7 @@ class QueenLite:
         # Handle regular worker tasks with phases
         if current_phase == "apply":
             # Advance to TEST phase
-            self.log.info(f"✅ Task {task_id} APPLY succeeded, starting TEST phase")
+            self.log.info(f"OK Task {task_id} APPLY succeeded, starting TEST phase")
             if self.live_output:
                 logger.info("-" * 70)
             worker = task.get("assignee", "backend")
@@ -1068,7 +1068,7 @@ class QueenLite:
         else:
             # TEST phase completed successfully
             hive_core_db.update_task_status(task_id, "completed", {})
-            self.log.info(f"✅ Task {task_id} TEST succeeded - COMPLETED")
+            self.log.info(f"OK Task {task_id} TEST succeeded - COMPLETED")
             # Publish task completion event
             self._publish_task_event(
                 TaskEventType.COMPLETED,
@@ -1827,7 +1827,7 @@ class QueenLite:
                         )
                         await self.event_bus.publish_async(event)
 
-                    self.log.info(f"✅ Async task {task_id} completed successfully")
+                    self.log.info(f"OK Async task {task_id} completed successfully")
 
             except Exception as e:
                 self.log.error(f"Error handling async worker success for {task_id}: {e}")
@@ -1852,7 +1852,7 @@ class QueenLite:
                     )
                     await self.event_bus.publish_async(event)
 
-                self.log.error(f"❌ Async task {task_id} failed with return code {return_code}")
+                self.log.error(f"FAIL Async task {task_id} failed with return code {return_code}")
 
             except Exception as e:
                 self.log.error(f"Error handling async worker failure for {task_id}: {e}")

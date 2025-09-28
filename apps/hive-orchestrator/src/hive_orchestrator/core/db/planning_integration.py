@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced Planning Integration for AI Planner → Queen → Worker Pipeline
+Enhanced Planning Integration for AI Planner -> Queen -> Worker Pipeline
 
 Provides robust communication protocols and status synchronization between
 AI Planner and Queen to enable reliable autonomous task execution.
@@ -232,7 +232,7 @@ class PlanningIntegration:
                             subtask['status'] = new_status
                             subtask['updated_at'] = datetime.now(timezone.utc).isoformat()
                             updated = True
-                            logger.debug(f"Updated subtask {subtask_id}: {old_status} → {new_status}")
+                            logger.debug(f"Updated subtask {subtask_id}: {old_status} -> {new_status}")
 
                 if updated:
                     # Calculate overall plan status
