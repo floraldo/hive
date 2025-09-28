@@ -1,4 +1,4 @@
-from hive_logging import get_logger
+from EcoSystemiser.hive_logging_adapter import get_logger
 #!/usr/bin/env python3
 """
 Performance Benchmarking Script for EcoSystemiser

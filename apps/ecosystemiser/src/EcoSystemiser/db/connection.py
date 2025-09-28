@@ -10,8 +10,6 @@ import os
 from pathlib import Path
 from typing import Optional
 from contextlib import contextmanager
-from hive_logging import get_logger
-
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)

@@ -8,8 +8,6 @@ including tables for simulations, studies, analysis results, and optimization ru
 import sqlite3
 from pathlib import Path
 from typing import Optional
-from hive_logging import get_logger
-
 from EcoSystemiser.db.connection import get_db_connection
 from EcoSystemiser.hive_logging_adapter import get_logger
 
