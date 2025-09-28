@@ -315,10 +315,10 @@ class HiveStatus:
                 has_fix = fix_task_id in tasks
                 
                 if has_fix:
-                    print(f"{icon} [{task['id']}] {reason} | "
+                    logger.info(f"{icon} [{task['id']}] {reason} | "
                           f"Fix: {self.color(fix_task_id, 'yellow')}")
                 else:
-                    logger.info(f"{icon} [{task['id']}] {reason}")
+                    print(f"{icon} [{task['id']}] {reason}")
             logger.info()
         
         # Recent events

@@ -189,7 +189,7 @@ def review_escalated(task_id: str):
         review = result_data.get('review', {})
 
         # Display task header
-        console.print(Panel.fit(
+        logger.info(Panel.fit(
             f"[bold red]ESCALATED TASK REVIEW[/bold red]\n"
             f"[yellow]Task ID:[/yellow] {task['id']}\n"
             f"[yellow]Title:[/yellow] {task['title']}\n"

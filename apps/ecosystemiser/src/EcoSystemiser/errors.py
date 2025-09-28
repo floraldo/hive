@@ -13,21 +13,13 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 import json
 
-# from hive_error_handling import BaseError as HiveError
-
-class HiveError(Exception):
-    """Temporary local HiveError class for build validation"""
-    pass
+from EcoSystemiser.hive_error_handling import BaseError as HiveError, ErrorSeverity as HiveErrorSeverity
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
 
-class ErrorSeverity(Enum):
-    """Error severity levels"""
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-    CRITICAL = "critical"
+# Use HiveErrorSeverity from hive_error_handling
+ErrorSeverity = HiveErrorSeverity
 
 class ErrorCode(Enum):
     """Standardized error codes for the platform"""

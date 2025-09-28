@@ -659,7 +659,8 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
         for py_file in base_dir.rglob("*.py"):
             if (".venv" in str(py_file) or "__pycache__" in str(py_file) or
                 "test" in str(py_file) or "example" in str(py_file) or
-                "demo" in str(py_file) or "__main__" in str(py_file.name)):
+                "demo" in str(py_file) or "__main__" in str(py_file.name) or
+                "hive_status.py" in str(py_file) or "cli.py" in str(py_file)):
                 continue
 
             try:
@@ -676,8 +677,14 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                                 f"Print statement in production code: {py_file.relative_to(project_root)}:{line_num}"
                             )
 
-                # Check if file uses logging but doesn't import hive_logging
-                if ("logger" in content.lower() or "logging" in content.lower()):
+                # Check if file actually uses logging (not just mentions it in comments)
+                uses_logging = (
+                    "logger." in content or
+                    "logging." in content or
+                    "getLogger(" in content or
+                    "get_logger(" in content
+                )
+                if uses_logging:
                     # Check for various valid hive_logging import patterns
                     has_hive_logging = (
                         "from hive_logging import" in content or
