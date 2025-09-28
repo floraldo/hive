@@ -5,10 +5,10 @@ simulation results and produces structured JSON data. It follows
 the Strategy Pattern for extensible analysis capabilities.
 """
 
-from EcoSystemiser.analyser.service import AnalyserService
-from EcoSystemiser.analyser.factory import AnalyserFactory
-from EcoSystemiser.analyser.worker import AnalyserWorker, AnalyserWorkerPool
-from EcoSystemiser.analyser.strategies import (
+from ecosystemiser.analyser.service import AnalyserService
+from ecosystemiser.analyser.factory import AnalyserFactory
+from ecosystemiser.analyser.worker import AnalyserWorker, AnalyserWorkerPool
+from ecosystemiser.analyser.strategies import (
     BaseAnalysis,
     TechnicalKPIAnalysis,
     EconomicAnalysis,

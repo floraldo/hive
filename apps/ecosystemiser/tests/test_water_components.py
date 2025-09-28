@@ -3,10 +3,10 @@ import sys
 import os
 import pytest
 import numpy as np
-from EcoSystemiser.system_model.components.shared.registry import (
+from ecosystemiser.system_model.components.shared.registry import (
     COMPONENT_REGISTRY, get_component_class, list_registered_components
 )
-from EcoSystemiser.system_model.components.water import (
+from ecosystemiser.system_model.components.water import (
     WaterStorage, WaterStorageParams,
     WaterDemand, WaterDemandParams,
     WaterGrid, WaterGridParams,

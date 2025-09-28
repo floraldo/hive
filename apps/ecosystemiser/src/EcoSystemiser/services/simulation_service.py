@@ -1,5 +1,5 @@
 """Main simulation service orchestrator."""
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from pathlib import Path
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
@@ -7,13 +7,13 @@ import json
 import yaml
 from typing import List
 
-from EcoSystemiser.system_model.system import System
-from EcoSystemiser.utils.system_builder import SystemBuilder
-from EcoSystemiser.component_data.repository import ComponentRepository
-from EcoSystemiser.solver.factory import SolverFactory
-from EcoSystemiser.solver.base import SolverConfig
-from EcoSystemiser.profile_loader import get_profile_sync, ClimateRequest
-from EcoSystemiser.results_io import ResultsIO
+from ecosystemiser.system_model.system import System
+from ecosystemiser.utils.system_builder import SystemBuilder
+from ecosystemiser.component_data.repository import ComponentRepository
+from ecosystemiser.solver.factory import SolverFactory
+from ecosystemiser.solver.base import SolverConfig
+from ecosystemiser.profile_loader import get_profile_sync, ClimateRequest
+from ecosystemiser.results_io import ResultsIO
 
 logger = get_logger(__name__)
 
@@ -259,7 +259,7 @@ class SimulationService:
         # Load demand profiles if configured
         if config.demand_input:
             try:
-                from EcoSystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
+                from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
                 adapter = DemandFileAdapter()
                 demand_profiles = adapter.fetch(config.demand_input)
                 profiles.update(demand_profiles)

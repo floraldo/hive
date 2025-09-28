@@ -26,12 +26,12 @@ def run_server():
 
     try:
         # Import after path setup
-        from EcoSystemiser.main import app
-        from EcoSystemiser.hive_env import get_app_config
+        from ecosystemiser.main import app
+        from ecosystemiser.hive_env import get_app_config
         import uvicorn
 
         # Get configuration using simplified settings
-        from EcoSystemiser.hive_env import get_app_settings
+        from ecosystemiser.hive_env import get_app_settings
         settings = get_app_settings()
         host = settings.get('HOST', '0.0.0.0')
         port = int(settings.get('PORT', '8001'))
@@ -68,7 +68,7 @@ def run_cli():
 
     try:
         # Import after path setup
-        from EcoSystemiser.cli import main as cli_main
+        from ecosystemiser.cli import main as cli_main
 
         # Remove script name and pass remaining args to CLI
         cli_args = sys.argv[2:] if len(sys.argv) > 2 else []

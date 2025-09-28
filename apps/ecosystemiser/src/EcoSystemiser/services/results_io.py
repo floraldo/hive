@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import numpy as np
 import pandas as pd
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from datetime import datetime
 
 logger = get_logger(__name__)

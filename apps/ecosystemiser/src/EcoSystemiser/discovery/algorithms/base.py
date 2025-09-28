@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 from enum import Enum
 
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
 

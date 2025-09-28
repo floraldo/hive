@@ -28,10 +28,10 @@ def test_component_creation():
 
     try:
         # Import components directly from where we created them
-        from EcoSystemiser.system_model.components.battery import Battery, BatteryParams
-        from EcoSystemiser.system_model.components.grid import Grid, GridParams
-        from EcoSystemiser.system_model.components.solar_pv import SolarPV, SolarPVParams
-        from EcoSystemiser.system_model.components.power_demand import PowerDemand, PowerDemandParams
+        from ecosystemiser.system_model.components.battery import Battery, BatteryParams
+        from ecosystemiser.system_model.components.grid import Grid, GridParams
+        from ecosystemiser.system_model.components.solar_pv import SolarPV, SolarPVParams
+        from ecosystemiser.system_model.components.power_demand import PowerDemand, PowerDemandParams
 
         # Create each component
         battery = Battery(
@@ -94,7 +94,7 @@ def test_system_creation(components):
         return None
 
     try:
-        from EcoSystemiser.system_model.system import System
+        from ecosystemiser.system_model.system import System
 
         battery, grid, solar, demand = components
 

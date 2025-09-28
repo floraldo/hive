@@ -4,8 +4,8 @@ from typing import Dict, Any, Optional
 import numpy as np
 import pandas as pd
 
-from EcoSystemiser.analyser.strategies.base import BaseAnalysis
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.analyser.strategies.base import BaseAnalysis
+from ecosystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
 

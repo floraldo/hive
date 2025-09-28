@@ -6,8 +6,8 @@ This script tests that the rolling horizon solver consolidation is working
 correctly and that the SolverFactory can create the unified implementation.
 """
 
-from EcoSystemiser.solver.factory import SolverFactory
-from EcoSystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
+from ecosystemiser.solver.factory import SolverFactory
+from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
 
 
 def test_solver_factory_consolidation():
@@ -74,14 +74,14 @@ def test_no_ambiguity():
     try:
         # Try to import the old implementation - should fail
         try:
-            from EcoSystemiser.solver.rolling_horizon_solver import RollingHorizonMILPSolver as OldSolver
+            from ecosystemiser.solver.rolling_horizon_solver import RollingHorizonMILPSolver as OldSolver
             print("[FAIL] Old rolling_horizon_solver.py still importable - should have been removed")
             return False
         except ImportError:
             print("[SUCCESS] Old implementation no longer importable - correctly removed")
 
         # Import the unified implementation - should work
-        from EcoSystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver as UnifiedSolver
+        from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver as UnifiedSolver
         print("[SUCCESS] Unified implementation successfully importable")
 
         # Verify they're the same implementation the factory uses

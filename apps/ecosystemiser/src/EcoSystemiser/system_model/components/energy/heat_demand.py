@@ -3,11 +3,11 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.system_model.components.shared.registry import register_component
-from EcoSystemiser.system_model.components.shared.component import Component, ComponentParams
-from EcoSystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
-from EcoSystemiser.system_model.components.shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.system_model.components.shared.registry import register_component
+from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
+from ecosystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
+from ecosystemiser.system_model.components.shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
 
 logger = get_logger(__name__)
 

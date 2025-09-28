@@ -11,14 +11,14 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
-from EcoSystemiser.profile_loader.climate.service import ClimateService
-from EcoSystemiser.profile_loader.climate.adapters.factory import get_adapter, list_available_adapters
-from EcoSystemiser.profile_loader.climate.processing.pipeline import ProcessingPipeline
-from EcoSystemiser.profile_loader.climate.processing.validation import apply_quality_control
-from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
-from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler
-# from EcoSystemiser.profile_loader.climate.config import ClimateConfig
+from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+from ecosystemiser.profile_loader.climate.service import ClimateService
+from ecosystemiser.profile_loader.climate.adapters.factory import get_adapter, list_available_adapters
+from ecosystemiser.profile_loader.climate.processing.pipeline import ProcessingPipeline
+from ecosystemiser.profile_loader.climate.processing.validation import apply_quality_control
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
+from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler
+# from ecosystemiser.profile_loader.climate.config import ClimateConfig
 # from observability import get_logger
 
 
@@ -225,7 +225,7 @@ class TestDataConsistencyIntegration:
     
     def test_variable_consistency_across_components(self):
         """Test that variable definitions are consistent."""
-        from EcoSystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+        from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
         
         # Test that canonical variables are available
         assert 'temp_air' in CANONICAL_VARIABLES

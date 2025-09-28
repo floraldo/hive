@@ -19,18 +19,18 @@ from typing import Dict, Any, List, Optional
 import sys
 # Import from properly installed packages
 from hive_logging import setup_logging, get_logger
-from EcoSystemiser.hive_env import get_app_config, get_app_settings
+from ecosystemiser.hive_env import get_app_config, get_app_settings
 
 # Import real EcoSystemiser components for climate service
 try:
-    from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
-    from EcoSystemiser.profile_loader.climate.service import ClimateService
+    from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+    from ecosystemiser.profile_loader.climate.service import ClimateService
     CLIMATE_SERVICE_AVAILABLE = True
 except Exception as e:
     CLIMATE_SERVICE_AVAILABLE = False
     # Check if we can at least import the data models
     try:
-        from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+        from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
         CLIMATE_MODELS_AVAILABLE = True
     except ImportError as import_err:
         CLIMATE_MODELS_AVAILABLE = False

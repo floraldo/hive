@@ -7,10 +7,10 @@ from typing import Dict, Any, Optional
 import tempfile
 from datetime import datetime
 
-from EcoSystemiser.analyser import AnalyserService
-from EcoSystemiser.datavis.plot_factory import PlotFactory
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.reporting.generator import HTMLReportGenerator
+from ecosystemiser.analyser import AnalyserService
+from ecosystemiser.datavis.plot_factory import PlotFactory
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.reporting.generator import HTMLReportGenerator
 
 logger = get_logger(__name__)
 

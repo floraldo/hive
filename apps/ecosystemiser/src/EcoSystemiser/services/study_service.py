@@ -1,5 +1,5 @@
 """Multi-simulation orchestration service for parametric studies and optimization workflows."""
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Union
 from pydantic import BaseModel, Field
@@ -11,16 +11,16 @@ from datetime import datetime
 import itertools
 from typing import Callable
 
-from EcoSystemiser.services.simulation_service import SimulationService, SimulationConfig, SimulationResult
-from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
-from EcoSystemiser.discovery.algorithms.genetic_algorithm import GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
-from EcoSystemiser.discovery.algorithms.monte_carlo import MonteCarloEngine, UncertaintyAnalyzer, MonteCarloConfig
-from EcoSystemiser.discovery.encoders.parameter_encoder import SystemConfigEncoder, ParameterSpec, EncodingSpec
-from EcoSystemiser.discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
+from ecosystemiser.services.simulation_service import SimulationService, SimulationConfig, SimulationResult
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
+from ecosystemiser.discovery.algorithms.genetic_algorithm import GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
+from ecosystemiser.discovery.algorithms.monte_carlo import MonteCarloEngine, UncertaintyAnalyzer, MonteCarloConfig
+from ecosystemiser.discovery.encoders.parameter_encoder import SystemConfigEncoder, ParameterSpec, EncodingSpec
+from ecosystemiser.discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
 
 # EcoSystemiser Event Bus integration
-from EcoSystemiser.core.bus import get_ecosystemiser_event_bus
-from EcoSystemiser.core.events import SimulationEvent, StudyEvent
+from ecosystemiser.core.bus import get_ecosystemiser_event_bus
+from ecosystemiser.core.events import SimulationEvent, StudyEvent
 
 logger = get_logger(__name__)
 

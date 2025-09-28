@@ -15,7 +15,7 @@ from typing import Dict, Any, List, Optional, Callable, Union
 from contextlib import contextmanager
 
 from hive_db import get_connection, get_pooled_connection
-from hive_db.config import get_config
+from hive_config import get_config
 from hive_orchestrator.core.errors.hive_exceptions import EventBusError, EventPublishError, EventSubscribeError
 
 # Async imports for Phase 4.1

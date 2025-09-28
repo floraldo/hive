@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 import yaml
 import json
-from EcoSystemiser.db import ecosystemiser_transaction, get_ecosystemiser_db_path
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.db import ecosystemiser_transaction, get_ecosystemiser_db_path
+from ecosystemiser.hive_logging_adapter import get_logger
 logger = get_logger(__name__)
 
 class ComponentRepository:

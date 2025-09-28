@@ -35,10 +35,10 @@ except ImportError:
     PSUTIL_AVAILABLE = False
     logger.warning("Warning: psutil not available. Memory monitoring will be limited.")
 
-from EcoSystemiser.services.simulation_service import SimulationService, FidelityLevel
-from EcoSystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
-from EcoSystemiser.utils.system_builder import SystemBuilder
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.services.simulation_service import SimulationService, FidelityLevel
+from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
+from ecosystemiser.utils.system_builder import SystemBuilder
+from ecosystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
 

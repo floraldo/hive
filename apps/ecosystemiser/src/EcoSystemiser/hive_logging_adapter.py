@@ -18,7 +18,7 @@ try:
 except ImportError:
     # Fallback to local structlog-based logging
     try:
-        from EcoSystemiser.profile_loader.climate.logging_config import get_logger, setup_logging
+        from ecosystemiser.profile_loader.climate.logging_config import get_logger, setup_logging
         USING_HIVE_LOGGING = False
     except ImportError:
         # Last resort: basic Python logging

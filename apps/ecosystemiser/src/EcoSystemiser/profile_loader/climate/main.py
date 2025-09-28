@@ -9,7 +9,7 @@ Initializes all components with the new architecture:
 - API versioning
 """
 
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 
 import asyncio
 from contextlib import asynccontextmanager
@@ -18,9 +18,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-from EcoSystemiser.settings import get_settings
-from EcoSystemiser.profile_loader.logging_config import setup_logging, get_logger
-from EcoSystemiser.observability import init_observability, shutdown_observability
+from ecosystemiser.settings import get_settings
+from ecosystemiser.profile_loader.logging_config import setup_logging, get_logger
+from ecosystemiser.observability import init_observability, shutdown_observability
 
 # Initialize logging first
 setup_logging()
@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
         logger.info("Observability initialized")
     
     # Initialize job service
-    from EcoSystemiser.profile_loader.services.job_service import JobService
+    from ecosystemiser.profile_loader.services.job_service import JobService
     job_service = JobService()
     await job_service.initialize()
     logger.info("Job service initialized")
@@ -110,8 +110,8 @@ def create_app() -> FastAPI:
     @app.middleware("http")
     async def correlation_id_middleware(request, call_next):
         """Add correlation ID to requests"""
-        from EcoSystemiser.core.errors import CorrelationIDMiddleware
-        from EcoSystemiser.profile_loader.logging_config import set_correlation_id, clear_context
+        from ecosystemiser.core.errors import CorrelationIDMiddleware
+        from ecosystemiser.profile_loader.logging_config import set_correlation_id, clear_context
         
         # Get or create correlation ID
         correlation_id = CorrelationIDMiddleware.get_or_create_correlation_id(

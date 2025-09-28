@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 from unittest.mock import Mock
 
-from EcoSystemiser.datavis.plot_factory import PlotFactory
+from ecosystemiser.datavis.plot_factory import PlotFactory
 
 
 @pytest.fixture

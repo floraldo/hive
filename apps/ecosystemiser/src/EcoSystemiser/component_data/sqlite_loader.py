@@ -12,8 +12,8 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from contextlib import contextmanager
 
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.db import get_ecosystemiser_connection
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.db import get_ecosystemiser_connection
 
 logger = get_logger(__name__)
 

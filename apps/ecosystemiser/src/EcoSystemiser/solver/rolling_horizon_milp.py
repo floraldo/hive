@@ -1,13 +1,13 @@
 """Rolling horizon MILP solver for large-scale optimization problems."""
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Any, Optional, List
 import numpy as np
 import cvxpy as cp
 from datetime import datetime, timedelta
 
-from EcoSystemiser.solver.base import BaseSolver, SolverConfig, SolverResult
-from EcoSystemiser.solver.milp_solver import MILPSolver
-from EcoSystemiser.system_model.system import System
+from ecosystemiser.solver.base import BaseSolver, SolverConfig, SolverResult
+from ecosystemiser.solver.milp_solver import MILPSolver
+from ecosystemiser.system_model.system import System
 
 logger = get_logger(__name__)
 

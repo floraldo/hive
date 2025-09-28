@@ -83,7 +83,7 @@ class EnvironmentVerifier:
     def check_logging_integration(self) -> bool:
         """Verify logging is using Hive adapter."""
         try:
-            from EcoSystemiser.hive_logging_adapter import get_logger, USING_HIVE_LOGGING
+            from ecosystemiser.hive_logging_adapter import get_logger, USING_HIVE_LOGGING
 
             logger = get_logger(__name__)
 
@@ -116,7 +116,7 @@ class EnvironmentVerifier:
     def check_configuration(self) -> bool:
         """Verify configuration is centralized."""
         try:
-            from EcoSystemiser.hive_env import get_app_config, get_app_settings
+            from ecosystemiser.hive_env import get_app_config, get_app_settings
 
             config = get_app_config()
             settings = get_app_settings()

@@ -4,14 +4,14 @@ Arq worker configuration for processing climate jobs.
 Run with: arq ecosystemiser.worker.WorkerSettings
 """
 
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from typing import Any, Dict
 
 from arq import cron
 from arq.connections import RedisSettings
 
-from EcoSystemiser.settings import get_settings
-from EcoSystemiser.services.job_service import process_climate_job, cleanup_old_jobs, collect_metrics, startup, shutdown
+from ecosystemiser.settings import get_settings
+from ecosystemiser.services.job_service import process_climate_job, cleanup_old_jobs, collect_metrics, startup, shutdown
 
 logger = get_logger(__name__)
 

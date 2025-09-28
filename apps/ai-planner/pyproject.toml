@@ -7,7 +7,6 @@ name = "ai-planner"
 version = "1.0.0"
 description = "Intelligent task planning and workflow generation agent for Hive system"
 authors = ["Hive Team"]
-readme = "README.md"
 packages = [{include = "ai_planner", from = "src"}]
 
 [tool.poetry.dependencies]

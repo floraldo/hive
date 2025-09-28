@@ -10,14 +10,14 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse, CANONICAL_VARIABLES
-from EcoSystemiser.profile_loader.climate.service import ClimateService
-from EcoSystemiser.profile_loader.climate.adapters.factory import get_adapter, list_available_adapters
-from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerAdapter
-from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
-from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler
-from EcoSystemiser.core.errors import AdapterError, ValidationError
+from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse, CANONICAL_VARIABLES
+from ecosystemiser.profile_loader.climate.service import ClimateService
+from ecosystemiser.profile_loader.climate.adapters.factory import get_adapter, list_available_adapters
+from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from ecosystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerAdapter
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
+from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler
+from ecosystemiser.core.errors import AdapterError, ValidationError
 
 
 class TestAdapterFactory:

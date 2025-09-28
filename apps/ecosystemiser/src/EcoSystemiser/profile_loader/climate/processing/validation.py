@@ -1,4 +1,4 @@
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 """
 Comprehensive validation and quality control module for climate data.
 
@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import json
 
 logger = get_logger(__name__)
@@ -542,7 +542,7 @@ QC_PROFILES = {
 def _get_pvgis_qc_profile():
     """Dynamically load PVGIS QC profile from adapter"""
     try:
-        from EcoSystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
+        from ecosystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
         return get_qc_profile()
     except ImportError:
         logger.warning("Could not import PVGIS QC profile from adapter")
@@ -551,7 +551,7 @@ def _get_pvgis_qc_profile():
 def _get_epw_qc_profile():
     """Dynamically load EPW QC profile from adapter"""
     try:
-        from EcoSystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
+        from ecosystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
         return get_qc_profile()
     except ImportError:
         logger.warning("Could not import EPW QC profile from adapter")
@@ -1692,7 +1692,7 @@ def clip_physical_bounds(
     return ds_clipped, report
 
 # Import the superior solar-position-based implementation from shared utilities
-from EcoSystemiser.profile_loader.shared.timeseries import zero_night_irradiance
+from ecosystemiser.profile_loader.shared.timeseries import zero_night_irradiance
 
 def filter_spikes(
     ds: xr.Dataset,

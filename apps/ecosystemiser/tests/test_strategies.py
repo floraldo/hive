@@ -4,9 +4,9 @@ import pytest
 import numpy as np
 from unittest.mock import Mock
 
-from EcoSystemiser.analyser.strategies.technical_kpi import TechnicalKPIAnalysis
-from EcoSystemiser.analyser.strategies.economic import EconomicAnalysis
-from EcoSystemiser.analyser.strategies.sensitivity import SensitivityAnalysis
+from ecosystemiser.analyser.strategies.technical_kpi import TechnicalKPIAnalysis
+from ecosystemiser.analyser.strategies.economic import EconomicAnalysis
+from ecosystemiser.analyser.strategies.sensitivity import SensitivityAnalysis
 
 
 @pytest.fixture

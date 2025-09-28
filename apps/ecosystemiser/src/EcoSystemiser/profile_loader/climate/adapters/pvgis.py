@@ -9,13 +9,13 @@ from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from ecosystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
 
 # Import QC classes
 try:
-    from EcoSystemiser.profile_loader.climate.processing.validation import QCProfile, QCIssue, QCSeverity, QCReport
+    from ecosystemiser.profile_loader.climate.processing.validation import QCProfile, QCIssue, QCSeverity, QCReport
 except ImportError:
     # Fallback: Define minimal QC classes for testing
     from abc import ABC, abstractmethod
@@ -133,7 +133,7 @@ class PVGISAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize PVGIS adapter"""
-        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from ecosystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (PVGIS is free but be reasonable)
         rate_config = RateLimitConfig(

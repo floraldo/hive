@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 
 def test_complete_strategy_pattern():
     """Test that all components have complete Strategy Pattern implementation."""

@@ -10,14 +10,14 @@ from pathlib import Path
 import tempfile
 import json
 
-from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
-from EcoSystemiser.profile_loader.climate.service import ClimateService
-from EcoSystemiser.profile_loader.climate.processing.pipeline import ProcessingPipeline
-from EcoSystemiser.profile_loader.climate.processing.validation import validate_complete, apply_quality_control
-from EcoSystemiser.profile_loader.climate.processing.resampling import resample_dataset
-from EcoSystemiser.profile_loader.climate.adapters.factory import get_adapter
-from EcoSystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
-from EcoSystemiser.core.errors import DataSourceError
+from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+from ecosystemiser.profile_loader.climate.service import ClimateService
+from ecosystemiser.profile_loader.climate.processing.pipeline import ProcessingPipeline
+from ecosystemiser.profile_loader.climate.processing.validation import validate_complete, apply_quality_control
+from ecosystemiser.profile_loader.climate.processing.resampling import resample_dataset
+from ecosystemiser.profile_loader.climate.adapters.factory import get_adapter
+from ecosystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
+from ecosystemiser.core.errors import DataSourceError
 
 
 class TestRealServiceIntegration:
@@ -93,7 +93,7 @@ class TestRealServiceIntegration:
         pipeline = ProcessingPipeline()
         
         # Use the actual pipeline methods
-        from EcoSystemiser.profile_loader.climate.processing.resampling import resample_dataset
+        from ecosystemiser.profile_loader.climate.processing.resampling import resample_dataset
         
         # Process with preprocessing first
         result = pipeline.execute_preprocessing(ds)
@@ -334,7 +334,7 @@ class TestRealFileOperations:
     
     def test_real_epw_file_handling(self):
         """Test EPW adapter with real file content."""
-        from EcoSystemiser.profile_loader.climate.adapters.file_epw import EPWAdapter
+        from ecosystemiser.profile_loader.climate.adapters.file_epw import EPWAdapter
         
         adapter = EPWAdapter()
         
@@ -363,12 +363,12 @@ class TestRealFileOperations:
             assert "time" in df.index.name
         except Exception as e:
             # If parsing fails, it should be a specific error
-            from EcoSystemiser.core.errors import DataParseError
+            from ecosystemiser.core.errors import DataParseError
             assert isinstance(e, DataParseError)
     
     def test_real_cache_operations(self):
         """Test cache operations with real file system."""
-        from EcoSystemiser.profile_loader.climate.cache.store import CacheStore
+        from ecosystemiser.profile_loader.climate.cache.store import CacheStore
         
         with tempfile.TemporaryDirectory() as temp_dir:
             cache = CacheStore(cache_dir=temp_dir)

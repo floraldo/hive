@@ -7,18 +7,18 @@ from datetime import datetime, date
 from typing import List, Dict, Optional, Union, Tuple, Any
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import os
 from io import StringIO
 import urllib.request
 
-from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-from EcoSystemiser.profile_loader.climate.adapters.errors import DataParseError
+from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from ecosystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from ecosystemiser.profile_loader.climate.adapters.errors import DataParseError
 
 # Import QC classes
 try:
-    from EcoSystemiser.profile_loader.climate.processing.validation import QCProfile, QCIssue, QCSeverity, QCReport
+    from ecosystemiser.profile_loader.climate.processing.validation import QCProfile, QCIssue, QCSeverity, QCReport
 except ImportError:
     # Fallback: Define minimal QC classes for testing
     from abc import ABC, abstractmethod
@@ -217,7 +217,7 @@ class FileEPWAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize EPW file adapter"""
-        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from ecosystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure minimal settings (file-based, no HTTP rate limits needed)
         rate_config = RateLimitConfig(

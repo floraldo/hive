@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "hive-cli"
+version = "1.0.0"
+description = "Common CLI utilities and patterns for Hive platform applications"
+authors = ["Hive Platform Team <hive@example.com>"]
+packages = [{include = "hive_cli", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+click = "^8.1.0"
+pydantic = "^2.0.0"
+pyyaml = "^6.0.0"
+rich = "^13.0.0"
+
+# Hive workspace dependencies
+hive-logging = {path = "../hive-logging", develop = true}
+hive-config = {path = "../hive-config", develop = true}
+hive-errors = {path = "../hive-errors", develop = true}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-cov = "*"
+mypy = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true

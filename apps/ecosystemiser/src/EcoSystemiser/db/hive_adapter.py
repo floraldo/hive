@@ -1,12 +1,12 @@
 """
 EcoSystemiser Database Adapter
 
-This module provides database functionality by importing from EcoSystemiser's
+This module provides database functionality by importing from ecosystemiser's
 core database service, following the inherit→extend pattern.
 """
 
-# Import from EcoSystemiser core database service
-from EcoSystemiser.core.db import (
+# Import from ecosystemiser core database service
+from ecosystemiser.core.db import (
     get_ecosystemiser_db_path,
     get_ecosystemiser_connection,
     ecosystemiser_transaction,

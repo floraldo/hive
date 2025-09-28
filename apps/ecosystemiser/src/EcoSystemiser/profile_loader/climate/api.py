@@ -18,7 +18,7 @@ from datetime import datetime
 from enum import Enum
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Union, AsyncIterator, Tuple
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Header, Response, Depends
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,14 +28,14 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 
-from EcoSystemiser.profile_loader.data_models import ClimateRequest, ClimateResponse, Mode, Resolution
-from EcoSystemiser.profile_loader.job_manager import JobManager, JobStatus, get_job_manager
-from EcoSystemiser.core.errors import (
+from ecosystemiser.profile_loader.data_models import ClimateRequest, ClimateResponse, Mode, Resolution
+from ecosystemiser.profile_loader.job_manager import JobManager, JobStatus, get_job_manager
+from ecosystemiser.core.errors import (
     ProfileError as ClimateError,
     ProfileValidationError as ValidationError,
     ProfileLoadError as DataFetchError
 )
-from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler
+from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler
 
 logger = get_logger(__name__)
 
@@ -528,7 +528,7 @@ async def process_climate_request(
     Process single climate request using the actual climate service.
     """
     # Get the enhanced climate service
-    from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
+    from ecosystemiser.profile_loader.service import get_enhanced_climate_service
     
     service = get_enhanced_climate_service()
     
@@ -760,10 +760,10 @@ async def analyze_climate_data(
     
     try:
         # Import processing modules
-        from EcoSystemiser.profile_loader.analysis.statistics import calculate_statistics
-        from EcoSystemiser.profile_loader.analysis.extremes import analyze_extremes
-        from EcoSystemiser.profile_loader.analysis.building_science import derive_building_variables, calculate_design_conditions
-        from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
+        from ecosystemiser.profile_loader.analysis.statistics import calculate_statistics
+        from ecosystemiser.profile_loader.analysis.extremes import analyze_extremes
+        from ecosystemiser.profile_loader.analysis.building_science import derive_building_variables, calculate_design_conditions
+        from ecosystemiser.profile_loader.service import get_enhanced_climate_service
         
         # Get data using climate service (will be preprocessed)
         service = get_enhanced_climate_service()
@@ -852,7 +852,7 @@ async def get_climate_profile(
         correlation_id = str(uuid.uuid4())
     
     try:
-        from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
+        from ecosystemiser.profile_loader.service import get_enhanced_climate_service
         
         # Configure service with processing options
         service = get_enhanced_climate_service()

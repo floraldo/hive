@@ -14,11 +14,11 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 import json
 
-from EcoSystemiser.core.events import SimulationEvent as Event, AnalysisEvent
-from EcoSystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
-from EcoSystemiser.core.errors import ProfileError as ProcessingError
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.analyser.service import AnalyserService
+from ecosystemiser.core.events import SimulationEvent as Event, AnalysisEvent
+from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
+from ecosystemiser.core.errors import ProfileError as ProcessingError
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.analyser.service import AnalyserService
 
 logger = get_logger(__name__)
 

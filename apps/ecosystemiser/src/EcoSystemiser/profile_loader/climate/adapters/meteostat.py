@@ -5,11 +5,11 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-from EcoSystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
-from EcoSystemiser.profile_loader.climate.adapters.errors import (
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from ecosystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+from ecosystemiser.profile_loader.climate.adapters.errors import (
     DataFetchError,
     DataParseError,
     ValidationError
@@ -94,7 +94,7 @@ class MeteostatAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize Meteostat adapter"""
-        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from ecosystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (Meteostat has limits)
         rate_config = RateLimitConfig(

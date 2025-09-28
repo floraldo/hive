@@ -12,12 +12,12 @@ import pytest
 
 # Add path for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from EcoSystemiser.system_model.system import System
-from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
-from EcoSystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams, HeatBufferTechnicalParams
-from EcoSystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
-from EcoSystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpParams, HeatPumpTechnicalParams
-from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from ecosystemiser.system_model.system import System
+from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
+from ecosystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferParams, HeatBufferTechnicalParams
+from ecosystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
+from ecosystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpParams, HeatPumpTechnicalParams
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 
 class TestOGSystemiserPreservation:
     """Test that SIMPLE fidelity preserves the elegant OG Systemiser equations."""

@@ -18,13 +18,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 log = logging.getLogger(__name__)
 
 # Use proper absolute imports following Golden Rules
-from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, CANONICAL_VARIABLES
-from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.adapters.capabilities import (
+from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, CANONICAL_VARIABLES
+from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities, TemporalCoverage, SpatialCoverage,
     DataFrequency, AuthType, RateLimits, QualityFeatures
 )
-from EcoSystemiser.core.errors import ProfileLoadError as DataFetchError, ProfileValidationError as DataParseError, ComponentValidationError as ValidationError
+from ecosystemiser.core.errors import ProfileLoadError as DataFetchError, ProfileValidationError as DataParseError, ComponentValidationError as ValidationError
 
 def test_direct_adapter():
     """Test creating a simple mock adapter directly."""

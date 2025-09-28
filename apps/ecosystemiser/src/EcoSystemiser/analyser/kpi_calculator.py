@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from typing import Dict, Any, Optional, List
 import json
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 logger = get_logger(__name__)
 
 class KPICalculator:

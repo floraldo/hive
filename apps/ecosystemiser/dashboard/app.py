@@ -32,13 +32,13 @@ try:
     from apps.EcoSystemiser.src.EcoSystemiser.profile_loader.climate.adapters.factory import list_available_adapters
 except ImportError:
     # Try direct import
-    from EcoSystemiser.profile_loader.climate import (
+    from ecosystemiser.profile_loader.climate import (
         get_profile_sync, 
         ClimateRequest,
         ClimateResponse
     )
-    from EcoSystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
-    from EcoSystemiser.profile_loader.climate.adapters.factory import list_available_adapters
+    from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+    from ecosystemiser.profile_loader.climate.adapters.factory import list_available_adapters
 
 # Page configuration
 st.set_page_config(

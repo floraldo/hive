@@ -3,13 +3,13 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
 import numpy as np
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.system_model.system import System
-from EcoSystemiser.component_data.repository import ComponentRepository
-from EcoSystemiser.system_model.components.shared.registry import get_component_class, COMPONENT_REGISTRY
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.system_model.system import System
+from ecosystemiser.component_data.repository import ComponentRepository
+from ecosystemiser.system_model.components.shared.registry import get_component_class, COMPONENT_REGISTRY
 
 # Import all components to ensure they are registered
-from EcoSystemiser.system_model.components.energy import (
+from ecosystemiser.system_model.components.energy import (
     Battery, BatteryParams, Grid, GridParams, SolarPV, SolarPVParams,
     PowerDemand, PowerDemandParams, HeatPump, HeatPumpParams,
     ElectricBoiler, ElectricBoilerParams, HeatBuffer, HeatBufferParams,

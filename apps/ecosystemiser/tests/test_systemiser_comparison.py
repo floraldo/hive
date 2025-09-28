@@ -104,14 +104,14 @@ def run_ecosystemiser_milp():
     """Run MILP optimization with EcoSystemiser."""
     logger.info("Running EcoSystemiser MILP...")
 
-    # Import from EcoSystemiser
-    from EcoSystemiser.system_model.system import System
-    from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryParams
-    from EcoSystemiser.system_model.components.energy.grid import Grid, GridParams
-    from EcoSystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams
-    from EcoSystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
-    from EcoSystemiser.solver.milp_solver import MILPSolver
-    from EcoSystemiser.solver.base import SolverConfig
+    # Import from ecosystemiser
+    from ecosystemiser.system_model.system import System
+    from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams
+    from ecosystemiser.system_model.components.energy.grid import Grid, GridParams
+    from ecosystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams
+    from ecosystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandParams
+    from ecosystemiser.solver.milp_solver import MILPSolver
+    from ecosystemiser.solver.base import SolverConfig
 
     N = 24
     system = System('eco_test', N)

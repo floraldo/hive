@@ -6,7 +6,7 @@ through Hive's centralized configuration management.
 """
 
 from typing import Dict, Optional, List
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import os
 
 try:

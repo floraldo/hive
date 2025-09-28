@@ -5,12 +5,12 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import os
 
-from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-from EcoSystemiser.profile_loader.climate.adapters.errors import (
+from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from ecosystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from ecosystemiser.profile_loader.climate.adapters.errors import (
     DataFetchError,
     DataParseError,
     ValidationError
@@ -140,7 +140,7 @@ class ERA5Adapter(BaseAdapter):
     
     def __init__(self):
         """Initialize ERA5 adapter"""
-        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from ecosystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (CDS API has no strict limits but be reasonable)
         rate_config = RateLimitConfig(

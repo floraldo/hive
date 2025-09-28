@@ -128,7 +128,7 @@ def create_minimal_ecosystemiser():
     return system
 
 def extract_ecosystemiser_results(system):
-    """Extract results from EcoSystemiser in the same format as golden dataset."""
+    """Extract results from ecosystemiser in the same format as golden dataset."""
 
     results = {
         "metadata": {

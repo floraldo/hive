@@ -9,8 +9,8 @@ import json
 import uuid
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.hive_env import get_app_settings
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_env import get_app_settings
 try:
     import redis
     from redis import Redis

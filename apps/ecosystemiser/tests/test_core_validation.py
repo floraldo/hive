@@ -24,7 +24,7 @@ def test_component_data_loading():
     logger.info("\n1. Testing Component Data Loading...")
 
     try:
-        from EcoSystemiser.component_data import ComponentRepository
+        from ecosystemiser.component_data import ComponentRepository
 
         repo = ComponentRepository(
             library_path=project_root / 'src' / 'EcoSystemiser' / 'component_data' / 'library'
@@ -51,8 +51,8 @@ def test_system_builder():
     logger.info("\n2. Testing System Builder...")
 
     try:
-        from EcoSystemiser.system_model.system_builder import SystemBuilder
-        from EcoSystemiser.system_model.components import Battery, Grid, SolarPV, PowerDemand
+        from ecosystemiser.system_model.system_builder import SystemBuilder
+        from ecosystemiser.system_model.components import Battery, Grid, SolarPV, PowerDemand
 
         # Register components (normally done in __init__)
         SystemBuilder.COMPONENT_CLASSES = {
@@ -103,9 +103,9 @@ def test_solver_factory():
     logger.info("\n3. Testing Solver Factory...")
 
     try:
-        from EcoSystemiser.solver import SolverFactory
-        from EcoSystemiser.solver.rule_based_engine import RuleBasedEngine
-        from EcoSystemiser.solver.milp_solver import MILPSolver
+        from ecosystemiser.solver import SolverFactory
+        from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
+        from ecosystemiser.solver.milp_solver import MILPSolver
 
         # Register solvers (normally done in __init__)
         SolverFactory._solvers = {

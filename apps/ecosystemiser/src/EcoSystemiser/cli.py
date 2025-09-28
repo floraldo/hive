@@ -7,12 +7,12 @@ import click
 import json
 import sys
 from pathlib import Path
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import yaml
 from typing import Dict, Any
 
-from EcoSystemiser.profile_loader.climate import get_profile_sync, ClimateRequest
-from EcoSystemiser.reporting.generator import create_standalone_html_report
+from ecosystemiser.profile_loader.climate import get_profile_sync, ClimateRequest
+from ecosystemiser.reporting.generator import create_standalone_html_report
 
 logger = get_logger(__name__)
 
@@ -202,9 +202,9 @@ def run(config, output, solver, verbose):
         ecosys simulate run config.yaml
         ecosys simulate run config.yaml -o results.json --solver milp
     """
-    from EcoSystemiser.services.simulation_service import SimulationService
-    from EcoSystemiser.solver.base import SolverConfig
-    from EcoSystemiser.component_data.repository import ComponentRepository
+    from ecosystemiser.services.simulation_service import SimulationService
+    from ecosystemiser.solver.base import SolverConfig
+    from ecosystemiser.component_data.repository import ComponentRepository
 
     try:
         # Load configuration
@@ -269,8 +269,8 @@ def validate(config):
     Examples:
         ecosys simulate validate config.yaml
     """
-    from EcoSystemiser.utils.system_builder import SystemBuilder
-    from EcoSystemiser.component_data.repository import ComponentRepository
+    from ecosystemiser.utils.system_builder import SystemBuilder
+    from ecosystemiser.component_data.repository import ComponentRepository
 
     click.echo(f"[INFO] Validating configuration from {config}")
 
@@ -361,7 +361,7 @@ def optimize(config, objectives, population, generations, variables, multi_objec
         # With custom variables definition
         ecosys discover optimize config.yaml --variables variables.json --output results/
     """
-    from EcoSystemiser.services.study_service import StudyService
+    from ecosystemiser.services.study_service import StudyService
     import json
 
     try:
@@ -500,7 +500,7 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
         # Comprehensive analysis with risk metrics
         ecosys discover uncertainty config.yaml -u params.json --sensitivity --risk --output results/
     """
-    from EcoSystemiser.services.study_service import StudyService
+    from ecosystemiser.services.study_service import StudyService
     import json
 
     try:
@@ -674,7 +674,7 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
         # Custom objectives and output
         ecosys discover explore config.yaml -v vars.json --objectives "cost,emissions,efficiency" -o results/
     """
-    from EcoSystemiser.services.study_service import StudyService
+    from ecosystemiser.services.study_service import StudyService
     import json
 
     try:
@@ -791,7 +791,7 @@ def show(results_file, format):
         ecosys results show results.json
         ecosys results show results.json --format detailed
     """
-    from EcoSystemiser.services.results_io import ResultsIO
+    from ecosystemiser.services.results_io import ResultsIO
 
     try:
         # Load results
@@ -849,7 +849,7 @@ def show(results_file, format):
               default='json', help='Output format')
 def analyze(results_file, output, strategies, output_format):
     """Analyze simulation results and generate report data."""
-    from EcoSystemiser.analyser import AnalyserService
+    from ecosystemiser.analyser import AnalyserService
 
     try:
         # Initialize analyser
@@ -892,7 +892,7 @@ def analyze(results_file, output, strategies, output_format):
 @click.option('--debug', is_flag=True, help='Enable debug mode')
 def server(host, port, debug):
     """Start the reporting web server."""
-    from EcoSystemiser.reporting import run_server
+    from ecosystemiser.reporting import run_server
 
     click.echo(f"Starting EcoSystemiser Reporting Server...")
     click.echo(f"Server will be available at: http://{host}:{port}")
@@ -914,8 +914,8 @@ def server(host, port, debug):
               help='Output HTML file path')
 def generate(results_file, output):
     """Generate a standalone HTML report."""
-    from EcoSystemiser.analyser import AnalyserService
-    from EcoSystemiser.datavis.plot_factory import PlotFactory
+    from ecosystemiser.analyser import AnalyserService
+    from ecosystemiser.datavis.plot_factory import PlotFactory
 
     try:
         # Run analysis

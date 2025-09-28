@@ -7,13 +7,13 @@ import sys
 
 # Test imports
 try:
-    from EcoSystemiser.profile_loader.climate import (
+    from ecosystemiser.profile_loader.climate import (
         get_profile_sync, 
         ClimateRequest,
         ClimateResponse
     )
-    from EcoSystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
-    from EcoSystemiser.profile_loader.climate.adapters.factory import list_available_adapters
+    from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+    from ecosystemiser.profile_loader.climate.adapters.factory import list_available_adapters
     
     print("[OK] All EcoSystemiser imports successful")
     

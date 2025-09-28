@@ -8,7 +8,7 @@ This module defines the common service interface that all profile loaders
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, Union
 import xarray as xr
-from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
 
 
 class BaseProfileService(ABC):

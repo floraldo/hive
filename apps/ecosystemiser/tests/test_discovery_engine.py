@@ -8,18 +8,18 @@ from unittest.mock import Mock, patch, MagicMock
 import tempfile
 import os
 
-from EcoSystemiser.services.study_service import (
+from ecosystemiser.services.study_service import (
     StudyService, StudyConfig, SimulationConfig
 )
-from EcoSystemiser.services.simulation_service import SimulationResult
-from EcoSystemiser.discovery.algorithms.genetic_algorithm import (
+from ecosystemiser.services.simulation_service import SimulationResult
+from ecosystemiser.discovery.algorithms.genetic_algorithm import (
     GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
 )
-from EcoSystemiser.discovery.algorithms.monte_carlo import (
+from ecosystemiser.discovery.algorithms.monte_carlo import (
     MonteCarloEngine, MonteCarloConfig
 )
-from EcoSystemiser.discovery.algorithms.base import BaseOptimizationAlgorithm
-from EcoSystemiser.discovery.encoders.parameter_encoder import ParameterEncoder
+from ecosystemiser.discovery.algorithms.base import BaseOptimizationAlgorithm
+from ecosystemiser.discovery.encoders.parameter_encoder import ParameterEncoder
 
 
 class TestGeneticAlgorithm:

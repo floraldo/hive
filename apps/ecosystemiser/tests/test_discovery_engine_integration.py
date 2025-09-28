@@ -5,17 +5,17 @@ import numpy as np
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from EcoSystemiser.services.study_service import (
+from ecosystemiser.services.study_service import (
     StudyService, StudyConfig, SimulationConfig
 )
-from EcoSystemiser.services.simulation_service import SimulationResult
-from EcoSystemiser.discovery.algorithms.genetic_algorithm import (
+from ecosystemiser.services.simulation_service import SimulationResult
+from ecosystemiser.discovery.algorithms.genetic_algorithm import (
     GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
 )
-from EcoSystemiser.discovery.algorithms.monte_carlo import (
+from ecosystemiser.discovery.algorithms.monte_carlo import (
     MonteCarloEngine, MonteCarloConfig
 )
-from EcoSystemiser.discovery.encoders.parameter_encoder import ParameterEncoder, SystemConfigEncoder
+from ecosystemiser.discovery.encoders.parameter_encoder import ParameterEncoder, SystemConfigEncoder
 
 
 class TestDiscoveryEngineIntegration:
@@ -244,7 +244,7 @@ class TestDiscoveryEngineIntegration:
 
     def test_discovery_cli_integration(self):
         """Test that discovery CLI commands are available."""
-        from EcoSystemiser.cli import cli
+        from ecosystemiser.cli import cli
 
         # Test that discover command group exists
         discover_cmd = None
@@ -263,7 +263,7 @@ class TestDiscoveryEngineIntegration:
 
     def test_visualization_integration(self):
         """Test that discovery visualizations are available."""
-        from EcoSystemiser.datavis.plot_factory import PlotFactory
+        from ecosystemiser.datavis.plot_factory import PlotFactory
 
         plot_factory = PlotFactory()
 

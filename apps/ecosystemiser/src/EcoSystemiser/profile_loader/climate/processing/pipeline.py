@@ -6,12 +6,12 @@ with configurable steps and proper error handling.
 """
 
 import xarray as xr
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from typing import List, Callable, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 
-from EcoSystemiser.settings import get_settings
+from ecosystemiser.settings import get_settings
 
 # Compatibility alias
 get_config = get_settings
@@ -60,7 +60,7 @@ class ProcessingStep:
                 report = {"success": True}
             
             # Handle QCReport objects
-            from EcoSystemiser.profile_loader.climate.validation import QCReport
+            from ecosystemiser.profile_loader.climate.validation import QCReport
             if isinstance(report, QCReport):
                 report_dict = {
                     "qc_report": report,
@@ -112,9 +112,9 @@ class ProcessingPipeline:
     def _setup_default_preprocessing(self):
         """Set up default preprocessing pipeline based on config"""
         try:
-            from EcoSystemiser.profile_loader.climate.validation import apply_quality_control
-            from EcoSystemiser.profile_loader.climate.gap_filling import smart_fill_gaps
-            from EcoSystemiser.profile_loader.climate.resampling import resample_dataset
+            from ecosystemiser.profile_loader.climate.validation import apply_quality_control
+            from ecosystemiser.profile_loader.climate.gap_filling import smart_fill_gaps
+            from ecosystemiser.profile_loader.climate.resampling import resample_dataset
             # from .timezone import convert_timezone, attach_units
             # from ..analysis.building_science import derive_basic_variables
         except ImportError as e:

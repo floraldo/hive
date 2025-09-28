@@ -1,0 +1,69 @@
+"""Base CLI classes for Hive applications."""
+
+import click
+from typing import Any, Dict, Optional
+from pathlib import Path
+from hive_logging import get_logger
+from hive_errors import BaseError
+
+
+class HiveError(BaseError):
+    """Base error for Hive CLI operations."""
+    pass
+
+
+class HiveCommand(click.Command):
+    """Base command class with Hive-specific functionality."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.logger = get_logger(self.name or __name__)
+
+    def invoke(self, ctx):
+        """Override invoke to add standard error handling."""
+        try:
+            return super().invoke(ctx)
+        except BaseError as e:
+            self.logger.error(f"Hive error: {e}")
+            ctx.exit(1)
+        except Exception as e:
+            self.logger.error(f"Unexpected error: {e}")
+            if ctx.obj and ctx.obj.get('debug'):
+                raise
+            ctx.exit(1)
+
+
+class HiveGroup(click.Group):
+    """Base group class with Hive-specific functionality."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.logger = get_logger(self.name or __name__)
+
+    def command(self, *args, **kwargs):
+        """Create a command using HiveCommand by default."""
+        kwargs.setdefault('cls', HiveCommand)
+        return super().command(*args, **kwargs)
+
+    def group(self, *args, **kwargs):
+        """Create a subgroup using HiveGroup by default."""
+        kwargs.setdefault('cls', HiveGroup)
+        return super().group(*args, **kwargs)
+
+
+class HiveContext:
+    """Shared context for Hive CLI commands."""
+
+    def __init__(self):
+        self.config: Optional[Dict[str, Any]] = None
+        self.debug: bool = False
+        self.verbose: bool = False
+        self.config_path: Optional[Path] = None
+
+    def load_config(self, config_path: Optional[Path] = None):
+        """Load configuration from file."""
+        if config_path:
+            self.config_path = config_path
+            # Implementation would load from config file
+            # This is a placeholder for the pattern
+            pass

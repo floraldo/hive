@@ -2,11 +2,11 @@
 Legacy alias for EcoSystemiser event bus.
 
 This module provides backward compatibility by importing from the new core module.
-All new code should import directly from EcoSystemiser.core.bus.
+All new code should import directly from ecosystemiser.core.bus.
 """
 
 # Import everything from the new core module
-from EcoSystemiser.core.bus import (
+from ecosystemiser.core.bus import (
     EcoSystemiserEventBus,
     get_ecosystemiser_event_bus
 )

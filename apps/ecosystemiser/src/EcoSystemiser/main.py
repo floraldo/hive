@@ -8,7 +8,7 @@ This module provides the FastAPI application and API routers for all modules:
 - Reporting (future)
 """
 
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,9 +17,9 @@ import uvicorn
 from contextlib import asynccontextmanager
 import sys
 
-from EcoSystemiser.settings import get_settings
-from EcoSystemiser.observability import init_observability, get_logger
-from EcoSystemiser.core.errors import ProfileError as ClimateError
+from ecosystemiser.settings import get_settings
+from ecosystemiser.observability import init_observability, get_logger
+from ecosystemiser.core.errors import ProfileError as ClimateError
 
 # Get settings and logger
 settings = get_settings()
@@ -99,7 +99,7 @@ profile_router = APIRouter(prefix="/profile", tags=["Profile Loader"])
 
 try:
     # Import climate API endpoints
-    from EcoSystemiser.profile_loader.climate.api import router
+    from ecosystemiser.profile_loader.climate.api import router
     profile_router.include_router(climate_router, prefix="/climate", tags=["Climate"])
     logger.info("Climate module loaded successfully")
 except ImportError as e:

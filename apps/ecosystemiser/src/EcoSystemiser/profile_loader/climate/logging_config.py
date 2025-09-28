@@ -8,7 +8,7 @@ Provides consistent, structured logging across the platform with:
 - Error context preservation
 """
 
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import sys
 from typing import Any, Dict, Optional
 from contextvars import ContextVar
@@ -16,7 +16,7 @@ from contextvars import ContextVar
 import structlog
 from structlog.types import EventDict, Processor
 
-from EcoSystemiser.settings import get_settings
+from ecosystemiser.settings import get_settings
 
 # Context variable for correlation ID
 correlation_id_var: ContextVar[Optional[str]] = ContextVar('correlation_id', default=None)

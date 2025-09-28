@@ -12,14 +12,14 @@ This module provides the foundation for all climate data adapters with:
 import asyncio
 import hashlib
 import json
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import httpx
 import xarray as xr
 import numpy as np
@@ -32,9 +32,9 @@ from tenacity import (
 )
 
 # Import centralized settings
-from EcoSystemiser.settings import get_settings, Settings
+from ecosystemiser.settings import get_settings, Settings
 # Import config models from centralized location to avoid circular dependency
-from EcoSystemiser.profile_loader.climate.config_models import HTTPConfig, RateLimitConfig, CacheConfig, RateLimitStrategy
+from ecosystemiser.profile_loader.climate.config_models import HTTPConfig, RateLimitConfig, CacheConfig, RateLimitStrategy
 
 logger = get_logger(__name__)
 

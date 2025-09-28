@@ -1,9 +1,9 @@
 """Rule-based solver for system simulation - SIMPLIFIED VERSION."""
 import numpy as np
 import time
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Any
-from EcoSystemiser.solver.base import BaseSolver, SolverResult
+from ecosystemiser.solver.base import BaseSolver, SolverResult
 
 logger = get_logger(__name__)
 

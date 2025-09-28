@@ -6,8 +6,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from EcoSystemiser.analyser.service import AnalyserService
-from EcoSystemiser.analyser.strategies.base import BaseAnalysis
+from ecosystemiser.analyser.service import AnalyserService
+from ecosystemiser.analyser.strategies.base import BaseAnalysis
 
 
 class MockStrategy(BaseAnalysis):
@@ -196,9 +196,9 @@ class TestAnalyserService:
         try:
             service = AnalyserService()
             # Use real strategies for parametric study or register them
-            from EcoSystemiser.analyser.strategies.sensitivity import SensitivityAnalysis
-            from EcoSystemiser.analyser.strategies.economic import EconomicAnalysis
-            from EcoSystemiser.analyser.strategies.technical_kpi import TechnicalKPIAnalysis
+            from ecosystemiser.analyser.strategies.sensitivity import SensitivityAnalysis
+            from ecosystemiser.analyser.strategies.economic import EconomicAnalysis
+            from ecosystemiser.analyser.strategies.technical_kpi import TechnicalKPIAnalysis
 
             service.register_strategy("sensitivity", SensitivityAnalysis())
             service.register_strategy("economic", EconomicAnalysis())

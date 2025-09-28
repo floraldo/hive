@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from EcoSystemiser.component_data.repository import ComponentRepository, SQLiteLoader, FileLoader
+from ecosystemiser.component_data.repository import ComponentRepository, SQLiteLoader, FileLoader
 
 
 class TestSQLiteLoader:

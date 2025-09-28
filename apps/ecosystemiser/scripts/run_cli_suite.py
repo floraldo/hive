@@ -55,7 +55,7 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
             text=True,
             check=not expected_to_fail,  # Don't raise on expected failures
             shell=platform.system() == 'Windows',  # Use shell on Windows
-            cwd=PROJECT_ROOT  # Run from EcoSystemiser directory
+            cwd=PROJECT_ROOT  # Run from ecosystemiser directory
         )
         
         elapsed = time.time() - start_time

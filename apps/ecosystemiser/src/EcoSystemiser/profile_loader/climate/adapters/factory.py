@@ -9,12 +9,12 @@ with support for:
 - Resource pooling and cleanup
 """
 
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Type, Optional, Any
 
-from EcoSystemiser.settings import get_settings
-from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.config_models import HTTPConfig, RateLimitConfig, CacheConfig
+from ecosystemiser.settings import get_settings
+from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from ecosystemiser.profile_loader.climate.config_models import HTTPConfig, RateLimitConfig, CacheConfig
 
 logger = get_logger(__name__)
 
@@ -152,11 +152,11 @@ def _auto_register_adapters():
     # Import adapters to trigger their registration decorators
     try:
         # Use proper relative imports - no sys.path manipulation needed
-        from EcoSystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerAdapter
-        from EcoSystemiser.profile_loader.climate.adapters.meteostat import MeteostatAdapter
-        from EcoSystemiser.profile_loader.climate.adapters.era5 import ERA5Adapter
-        from EcoSystemiser.profile_loader.climate.adapters.pvgis import PVGISAdapter
-        from EcoSystemiser.profile_loader.climate.adapters.file_epw import FileEPWAdapter
+        from ecosystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerAdapter
+        from ecosystemiser.profile_loader.climate.adapters.meteostat import MeteostatAdapter
+        from ecosystemiser.profile_loader.climate.adapters.era5 import ERA5Adapter
+        from ecosystemiser.profile_loader.climate.adapters.pvgis import PVGISAdapter
+        from ecosystemiser.profile_loader.climate.adapters.file_epw import FileEPWAdapter
         
         # Manual registration as fallback if decorators weren't used
         if "nasa_power" not in _adapter_registry:

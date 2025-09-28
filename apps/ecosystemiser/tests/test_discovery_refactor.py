@@ -11,7 +11,7 @@ import tempfile
 import os
 from pathlib import Path
 
-from EcoSystemiser.discovery.encoders.parameter_encoder import SystemConfigEncoder
+from ecosystemiser.discovery.encoders.parameter_encoder import SystemConfigEncoder
 
 
 def create_test_system_config():

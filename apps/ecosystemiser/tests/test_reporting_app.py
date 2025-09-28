@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from EcoSystemiser.reporting.app import create_app, generate_plots
+from ecosystemiser.reporting.app import create_app, generate_plots
 
 
 @pytest.fixture

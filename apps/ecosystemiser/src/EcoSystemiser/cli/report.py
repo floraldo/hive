@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from EcoSystemiser.analyser import AnalyserService
-from EcoSystemiser.reporting import create_app, run_server
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.analyser import AnalyserService
+from ecosystemiser.reporting import create_app, run_server
+from ecosystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
 
@@ -57,7 +57,7 @@ def analyze(results_file: str, output: Optional[str], strategies: tuple,
 
         elif output_format == 'html':
             # Generate HTML report (simplified)
-            from EcoSystemiser.datavis.plot_factory import PlotFactory
+            from ecosystemiser.datavis.plot_factory import PlotFactory
 
             plot_factory = PlotFactory()
 
@@ -143,7 +143,7 @@ def generate(results_file: str, output: str):
             raw_results = json.load(f)
 
         # Generate plots
-        from EcoSystemiser.datavis.plot_factory import PlotFactory
+        from ecosystemiser.datavis.plot_factory import PlotFactory
         plot_factory = PlotFactory()
 
         plots = {}

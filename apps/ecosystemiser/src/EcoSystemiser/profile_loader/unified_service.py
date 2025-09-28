@@ -6,13 +6,13 @@ This module provides a single entry point for all profile services
 """
 
 from typing import Dict, Type, Optional, Any, List
-from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.profile_loader.shared.service import BaseProfileService
-from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
-from EcoSystemiser.profile_loader.climate.service import ClimateService
-from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest
-from EcoSystemiser.profile_loader.demand.service import DemandService
-from EcoSystemiser.profile_loader.demand.models import DemandRequest
+from ecosystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.profile_loader.shared.service import BaseProfileService
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
+from ecosystemiser.profile_loader.climate.service import ClimateService
+from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
+from ecosystemiser.profile_loader.demand.service import DemandService
+from ecosystemiser.profile_loader.demand.models import DemandRequest
 
 logger = get_logger(__name__)
 

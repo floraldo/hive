@@ -97,7 +97,7 @@ try:
     DATABASE_AVAILABLE = True
 except ImportError:
     # Fallback to generic database utilities if orchestrator not available
-    from hive_db import get_config
+    from hive_config import get_config
     DATABASE_AVAILABLE = False
 
 # Note: AI Planner communicates with orchestrator through shared database
@@ -105,7 +105,7 @@ except ImportError:
 
 # Configure logging using hive-logging following golden rule 9
 from hive_logging import setup_logging
-setup_logging(level="INFO", handlers=["console", "file"], log_file="ai-planner.log")
+setup_logging(name='ai-planner', level="INFO", log_to_file=True, log_file_path="ai-planner.log")
 logger = get_logger('ai-planner')
 
 class AIPlanner:

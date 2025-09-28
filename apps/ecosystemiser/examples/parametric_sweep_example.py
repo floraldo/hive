@@ -10,10 +10,10 @@ import yaml
 from pathlib import Path
 from datetime import datetime
 
-from EcoSystemiser.services.study_service import (
+from ecosystemiser.services.study_service import (
     StudyService, StudyConfig, ParameterSweepSpec, SimulationConfig
 )
-from EcoSystemiser.services.study_service_enhanced import (
+from ecosystemiser.services.study_service_enhanced import (
     ParametricSweepEnhancement
 )
 

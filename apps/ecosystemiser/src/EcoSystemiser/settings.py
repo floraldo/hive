@@ -5,7 +5,7 @@ Combines all configuration needs for the modular architecture including
 profile_loader (climate, demand), solver, analyser, and reporting modules.
 """
 
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
 
@@ -303,7 +303,7 @@ class Settings(BaseSettings):
     
     def get_cache_config(self):
         """Get cache configuration for adapters"""
-        from EcoSystemiser.profile_loader.climate.config_models import CacheConfig
+        from ecosystemiser.profile_loader.climate.config_models import CacheConfig
         
         return CacheConfig(
             memory_size=self.cache.memory_size,
@@ -316,7 +316,7 @@ class Settings(BaseSettings):
     
     def get_http_config(self):
         """Get HTTP configuration for adapters"""
-        from EcoSystemiser.profile_loader.climate.config_models import HTTPConfig
+        from ecosystemiser.profile_loader.climate.config_models import HTTPConfig
         
         return HTTPConfig(
             timeout=self.http.timeout,
@@ -329,7 +329,7 @@ class Settings(BaseSettings):
     def get_rate_limit_config(self):
         """Get rate limit configuration for adapters"""
         # Import here to avoid circular dependency
-        from EcoSystemiser.profile_loader.climate.config_models import RateLimitConfig
+        from ecosystemiser.profile_loader.climate.config_models import RateLimitConfig
         
         return RateLimitConfig(
             requests_per_minute=self.rate_limit.requests_per_minute,

@@ -9,18 +9,18 @@ from unittest.mock import Mock, patch
 
 import sys
 eco_path = Path(__file__).parent.parent / 'src'
-from EcoSystemiser.services.simulation_service import (
+from ecosystemiser.services.simulation_service import (
     SimulationService, SimulationConfig, SimulationResult
 )
-from EcoSystemiser.services.study_service import (
+from ecosystemiser.services.study_service import (
     StudyService, StudyConfig, ParameterSweepSpec, FidelitySweepSpec
 )
-from EcoSystemiser.solver.rolling_horizon_milp import (
+from ecosystemiser.solver.rolling_horizon_milp import (
     RollingHorizonMILPSolver, RollingHorizonConfig
 )
-from EcoSystemiser.system_model.system import System
-from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryParams
-from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from ecosystemiser.system_model.system import System
+from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 
 class TestSimulationService:
     """Test suite for SimulationService orchestration."""

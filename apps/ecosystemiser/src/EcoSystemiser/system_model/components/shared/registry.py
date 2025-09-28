@@ -5,7 +5,7 @@ components to automatically register themselves for dynamic instantiation.
 """
 
 from typing import Dict, Type, Optional
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 logger = get_logger(__name__)
 
 # The global registry dictionary - this is our central lookup table

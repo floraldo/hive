@@ -79,7 +79,7 @@ class BaseProfileRequest(BaseModel):
             raise ValueError("Period must be a dictionary")
 
         # Import here to avoid circular imports
-        from EcoSystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
+        from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
 
         try:
             # Validate by attempting to normalize
@@ -95,7 +95,7 @@ class BaseProfileRequest(BaseModel):
             return v
 
         # Import here to avoid circular imports
-        from EcoSystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
+        from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
 
         try:
             normalized = DateTimeProcessor.normalize_frequency(v)
@@ -121,12 +121,12 @@ class BaseProfileRequest(BaseModel):
 
     def get_normalized_period(self) -> Dict[str, pd.Timestamp]:
         """Get normalized period with pandas Timestamps."""
-        from EcoSystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
+        from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
         return DateTimeProcessor.normalize_period(self.period)
 
     def get_normalized_frequency(self) -> str:
         """Get normalized frequency string."""
-        from EcoSystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
+        from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
         return DateTimeProcessor.normalize_frequency(self.resolution)
 
 

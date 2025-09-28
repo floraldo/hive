@@ -16,8 +16,8 @@ def test_climate_response_validation():
     import xarray as xr
     import pandas as pd
     import numpy as np
-    from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
-    from EcoSystemiser.profile_loader.climate.service import ClimateService
+    from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+    from ecosystemiser.profile_loader.climate.service import ClimateService
     
     # Create a mock dataset
     times = pd.date_range("2023-01-01", periods=24, freq="h")
@@ -62,7 +62,7 @@ def test_job_manager():
     """Test the production-ready job manager."""
     logger.info("\nTesting JobManager...")
     
-    from EcoSystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
+    from ecosystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
     
     # Create manager without Redis (fallback to memory)
     os.environ['REDIS_URL'] = ''  # Ensure we use memory fallback
@@ -101,8 +101,8 @@ def test_epw_error_handling():
     """Test EPW file parser error handling."""
     logger.error("\nTesting EPW error handling...")
     
-    from EcoSystemiser.profile_loader.climate.adapters.file_epw import EPWAdapter
-    from EcoSystemiser.errors import DataParseError
+    from ecosystemiser.profile_loader.climate.adapters.file_epw import EPWAdapter
+    from ecosystemiser.errors import DataParseError
     
     adapter = EPWAdapter()
     
@@ -138,7 +138,7 @@ def test_time_gap_detection():
     import xarray as xr
     import pandas as pd
     import numpy as np
-    from EcoSystemiser.profile_loader.climate.processing.validation import ValidationProcessor
+    from ecosystemiser.profile_loader.climate.processing.validation import ValidationProcessor
     
     processor = ValidationProcessor()
     
@@ -179,7 +179,7 @@ def test_factory_no_sys_path():
     original_path = sys.path.copy()
     
     # Import should not modify sys.path
-    from EcoSystemiser.profile_loader.climate.adapters.factory import _auto_register_adapters
+    from ecosystemiser.profile_loader.climate.adapters.factory import _auto_register_adapters
     
     # Check path wasn't modified
     assert sys.path == original_path, "sys.path was modified on import"

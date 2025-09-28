@@ -12,15 +12,15 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 
-from EcoSystemiser.profile_loader.climate.processing.validation import (
+from ecosystemiser.profile_loader.climate.processing.validation import (
     validate_complete, apply_quality_control, apply_corrections, 
     QCReport, QCSeverity, QCIssue
 )
-from EcoSystemiser.profile_loader.climate.processing.pipeline import ProcessingPipeline
-from EcoSystemiser.profile_loader.climate.processing.resampling import resample_dataset
-from EcoSystemiser.profile_loader.climate.processing.gap_filling import GapFiller
-from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler
-from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest
+from ecosystemiser.profile_loader.climate.processing.pipeline import ProcessingPipeline
+from ecosystemiser.profile_loader.climate.processing.resampling import resample_dataset
+from ecosystemiser.profile_loader.climate.processing.gap_filling import GapFiller
+from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler
+from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
 
 
 class TestValidation:

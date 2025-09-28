@@ -16,7 +16,7 @@ from typing import Optional, Dict, Any, Set
 from dataclasses import dataclass
 
 from hive_config.paths import DB_PATH, ensure_directory
-from hive_db.config import get_config
+from hive_config import get_config
 
 logger = get_logger(__name__)
 

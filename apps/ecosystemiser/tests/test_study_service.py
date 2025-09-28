@@ -6,14 +6,14 @@ from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 import numpy as np
 
-from EcoSystemiser.services.study_service import (
+from ecosystemiser.services.study_service import (
     StudyService, StudyConfig, ParameterSweepSpec, SimulationConfig
 )
-from EcoSystemiser.services.study_service_enhanced import (
+from ecosystemiser.services.study_service_enhanced import (
     apply_parameter_to_config, generate_parameter_report,
     ParametricSweepEnhancement
 )
-from EcoSystemiser.services.simulation_service import SimulationResult
+from ecosystemiser.services.simulation_service import SimulationResult
 
 
 class TestParametricSweep:

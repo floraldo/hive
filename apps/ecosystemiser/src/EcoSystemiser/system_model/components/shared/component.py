@@ -3,8 +3,8 @@ import cvxpy as cp
 import numpy as np
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
-from EcoSystemiser.system_model.components.shared.economic_params import EconomicParamsModel
-from EcoSystemiser.system_model.components.shared.environmental_params import EnvironmentalParamsModel
+from ecosystemiser.system_model.components.shared.economic_params import EconomicParamsModel
+from ecosystemiser.system_model.components.shared.environmental_params import EnvironmentalParamsModel
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

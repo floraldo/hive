@@ -8,7 +8,7 @@ building-specific derived variables for comprehensive building energy analysis.
 import xarray as xr
 import numpy as np
 import pandas as pd
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Optional, Tuple, List
 
 logger = get_logger(__name__)

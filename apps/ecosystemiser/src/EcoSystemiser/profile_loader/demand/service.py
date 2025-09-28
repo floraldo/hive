@@ -6,16 +6,16 @@ This service handles loading and processing of energy demand profiles
 """
 
 import asyncio
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import xarray as xr
 
-from EcoSystemiser.profile_loader.shared.service import BaseProfileService, ProfileServiceError, ProfileValidationError
-from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
-from EcoSystemiser.profile_loader.demand.models import DemandRequest, DemandResponse, DEMAND_VARIABLES
-from EcoSystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
+from ecosystemiser.profile_loader.shared.service import BaseProfileService, ProfileServiceError, ProfileValidationError
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
+from ecosystemiser.profile_loader.demand.models import DemandRequest, DemandResponse, DEMAND_VARIABLES
+from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
 
 logger = get_logger(__name__)
 

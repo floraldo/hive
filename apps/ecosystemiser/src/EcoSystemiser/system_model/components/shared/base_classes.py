@@ -1,6 +1,6 @@
 """Strategy Pattern base classes for component physics and optimization."""
 from abc import ABC, abstractmethod
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 logger = get_logger(__name__)
 
 # =============================================================================

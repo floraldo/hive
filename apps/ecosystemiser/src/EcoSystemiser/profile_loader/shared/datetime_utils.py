@@ -9,12 +9,12 @@ pandas best practices and performance optimizations.
 import warnings
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
-from EcoSystemiser.hive_logging_adapter import get_logger
+from ecosystemiser.hive_logging_adapter import get_logger
 import numpy as np
 import pandas as pd
 import xarray as xr
 
-from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler, to_utc, ensure_utc
+from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler, to_utc, ensure_utc
 
 logger = get_logger(__name__)
 

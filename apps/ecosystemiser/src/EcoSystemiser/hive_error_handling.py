@@ -2,13 +2,13 @@
 Legacy alias for EcoSystemiser error handling.
 
 This module provides backward compatibility by importing from the new core module.
-All new code should import directly from EcoSystemiser.core.errors.
+All new code should import directly from ecosystemiser.core.errors.
 """
 
 from typing import Optional
 
 # Import everything from the new core module
-from EcoSystemiser.core.errors import (
+from ecosystemiser.core.errors import (
     # Base classes
     EcoSystemiserError,
 

@@ -11,10 +11,10 @@ import numpy as np
 from datetime import datetime
 from unittest.mock import Mock, patch, MagicMock
 
-from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
-from EcoSystemiser.profile_loader.climate.service import ClimateService
-from EcoSystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
-from EcoSystemiser.core.errors import DataParseError
+from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
+from ecosystemiser.profile_loader.climate.service import ClimateService
+from ecosystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
+from ecosystemiser.core.errors import DataParseError
 
 
 class TestClimateResponseValidation:
@@ -140,7 +140,7 @@ class TestEPWErrorHandling:
     
     def test_epw_parser_handles_malformed_file(self):
         """Test that EPW parser raises specific errors for malformed files."""
-        from EcoSystemiser.profile_loader.climate.adapters.file_epw import EPWAdapter
+        from ecosystemiser.profile_loader.climate.adapters.file_epw import EPWAdapter
         
         adapter = EPWAdapter()
         
@@ -164,7 +164,7 @@ class TestTimeGapDetection:
     
     def test_time_gaps_with_explicit_frequency(self):
         """Test that time gap detection uses provided frequency."""
-        from EcoSystemiser.profile_loader.climate.processing.validation import ValidationProcessor
+        from ecosystemiser.profile_loader.climate.processing.validation import ValidationProcessor
         
         processor = ValidationProcessor()
         
@@ -200,7 +200,7 @@ class TestFactoryCleanup:
         original_path = sys.path.copy()
         
         # Import should not modify sys.path
-        from EcoSystemiser.profile_loader.climate.adapters.factory import _auto_register_adapters
+        from ecosystemiser.profile_loader.climate.adapters.factory import _auto_register_adapters
         
         # Check path wasn't modified
         assert sys.path == original_path

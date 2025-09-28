@@ -7,10 +7,10 @@ from pathlib import Path
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from EcoSystemiser.core.bus import (
+from ecosystemiser.core.bus import (
     get_ecosystemiser_event_bus, EcoSystemiserEventBus
 )
-from EcoSystemiser.core.events import (
+from ecosystemiser.core.events import (
     SimulationEvent, StudyEvent, AnalysisEvent
 )
 
