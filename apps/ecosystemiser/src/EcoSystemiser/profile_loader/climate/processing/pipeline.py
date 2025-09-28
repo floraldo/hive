@@ -60,7 +60,7 @@ class ProcessingStep:
                 report = {"success": True}
             
             # Handle QCReport objects
-            from .validation import QCReport
+            from EcoSystemiser.profile_loader.climate.validation import QCReport
             if isinstance(report, QCReport):
                 report_dict = {
                     "qc_report": report,
@@ -112,9 +112,9 @@ class ProcessingPipeline:
     def _setup_default_preprocessing(self):
         """Set up default preprocessing pipeline based on config"""
         try:
-            from .validation import apply_quality_control
-            from .gap_filling import smart_fill_gaps
-            from .resampling import resample_dataset
+            from EcoSystemiser.profile_loader.climate.validation import apply_quality_control
+            from EcoSystemiser.profile_loader.climate.gap_filling import smart_fill_gaps
+            from EcoSystemiser.profile_loader.climate.resampling import resample_dataset
             # from .timezone import convert_timezone, attach_units
             # from ..analysis.building_science import derive_basic_variables
         except ImportError as e:

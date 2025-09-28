@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 """
 Weather Utilities for Systemiser
 
@@ -363,10 +366,10 @@ if __name__ == '__main__':
     
     profiles = create_component_profiles_from_weather(sample_weather, component_configs)
     
-    print(f"Created profiles for: {list(profiles.keys())}")
+    logger.info(f"Created profiles for: {list(profiles.keys())}")
     for name, profile in profiles.items():
-        print(f"{name}: mean={profile.mean():.2f}, max={profile.max():.2f}")
+        logger.info(f"{name}: mean={profile.mean():.2f}, max={profile.max():.2f}")
     
     # Test weather statistics
     stats = calculate_weather_statistics(sample_weather)
-    print(f"\nWeather statistics: {stats}") 
+    logger.info(f"\nWeather statistics: {stats}") 

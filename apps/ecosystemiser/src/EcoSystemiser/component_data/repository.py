@@ -3,18 +3,18 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 import yaml
 import json
-from hive_db_utils import get_sqlite_connection, sqlite_transaction, create_table_if_not_exists
+from EcoSystemiser.db.connection import ecosystemiser_transaction, get_ecosystemiser_db_path
 from EcoSystemiser.hive_logging_adapter import get_logger
 logger = get_logger(__name__)
 
 class ComponentRepository:
     """Repository for component data definitions."""
 
-    def __init__(self, data_source: str = "file", base_path: Optional[Path] = None):
+    def __init__(self, data_source: str = "database", base_path: Optional[Path] = None):
         """Initialize component repository.
 
         Args:
-            data_source: Source type ('file' or 'database')
+            data_source: Source type ('file' or 'database') - defaults to 'database'
             base_path: Base path for file-based loading
         """
         self.data_source = data_source
@@ -146,29 +146,31 @@ class SQLiteLoader:
         """Initialize SQLite loader.
 
         Args:
-            db_path: Path to SQLite database file. Defaults to data/components.db
+            db_path: Path to SQLite database file. Defaults to ecosystemiser.db
         """
         if db_path is None:
-            db_path = Path(__file__).parent.parent.parent.parent / "data" / "components.db"
+            db_path = get_ecosystemiser_db_path()
         self.db_path = str(db_path)
         self._ensure_tables()
 
     def _ensure_tables(self):
         """Create component tables if they don't exist."""
         try:
-            with sqlite_transaction(self.db_path) as conn:
+            with ecosystemiser_transaction(Path(self.db_path)) as conn:
                 # Create components table
-                components_schema = """
-                    id TEXT PRIMARY KEY,
-                    category TEXT NOT NULL,
-                    component_class TEXT NOT NULL,
-                    technical_data TEXT NOT NULL,
-                    economic_data TEXT,
-                    metadata TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                """
-                create_table_if_not_exists(conn, "components", components_schema)
+                # Create components table
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS components (
+                        id TEXT PRIMARY KEY,
+                        category TEXT NOT NULL,
+                        component_class TEXT NOT NULL,
+                        technical_data TEXT NOT NULL,
+                        economic_data TEXT,
+                        metadata TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
 
                 # Create indexes for performance
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)")
@@ -194,7 +196,7 @@ class SQLiteLoader:
             ValueError: If component data is malformed
         """
         try:
-            with sqlite_transaction(self.db_path) as conn:
+            with ecosystemiser_transaction(Path(self.db_path)) as conn:
                 cursor = conn.execute(
                     "SELECT * FROM components WHERE id = ?",
                     (component_id,)
@@ -217,7 +219,10 @@ class SQLiteLoader:
 
                 if row["metadata"]:
                     metadata = json.loads(row["metadata"])
-                    data.update(metadata)
+                    # Merge metadata fields into data
+                    for key, value in metadata.items():
+                        if key not in data:
+                            data[key] = value
 
                 logger.debug(f"Loaded component from database: {component_id}")
                 return data
@@ -238,7 +243,7 @@ class SQLiteLoader:
             List of component IDs
         """
         try:
-            with sqlite_transaction(self.db_path) as conn:
+            with ecosystemiser_transaction(Path(self.db_path)) as conn:
                 if category:
                     cursor = conn.execute(
                         "SELECT id FROM components WHERE category = ? ORDER BY id",
@@ -283,7 +288,7 @@ class SQLiteLoader:
                        if k not in ["component_class", "technical", "economic", "category"]}
             metadata_json = json.dumps(metadata) if metadata else None
 
-            with sqlite_transaction(self.db_path) as conn:
+            with ecosystemiser_transaction(Path(self.db_path)) as conn:
                 # Insert or update component
                 conn.execute("""
                     INSERT OR REPLACE INTO components
@@ -293,7 +298,7 @@ class SQLiteLoader:
 
                 logger.info(f"Saved component to database: {component_id}")
 
-        except json.JSONEncodeError as e:
+        except (TypeError, ValueError) as e:
             raise ValueError(f"Failed to serialize component data: {e}")
         except Exception as e:
             logger.error(f"Failed to save component {component_id} to database: {e}")

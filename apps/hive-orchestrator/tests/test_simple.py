@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 # Add the source path for testing
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# No sys.path manipulation needed - use Poetry workspace imports
 
 
 def test_module_imports():

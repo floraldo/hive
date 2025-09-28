@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .timezone import TimezoneHandler, to_utc, ensure_utc
+from EcoSystemiser.profile_loader.timezone import TimezoneHandler, to_utc, ensure_utc
 
 logger = get_logger(__name__)
 
@@ -193,7 +193,7 @@ class DateTimeProcessor:
             inferred = pd.infer_freq(time_index)
             if inferred:
                 return inferred
-        except:
+        except Exception as e:
             pass
 
         # Manual inference for common cases

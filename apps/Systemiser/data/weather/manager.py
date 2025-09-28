@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 """
 Weather Data Manager
 
@@ -390,7 +393,7 @@ class WeatherDataManager:
                     with open(metadata_file, 'r') as f:
                         metadata = json.load(f)
                     file_info['metadata'] = metadata
-                except:
+                except Exception as e:
                     pass
             
             cache_info['files'].append(file_info)
@@ -413,13 +416,13 @@ if __name__ == '__main__':
     df = manager.get_data(lat, lon, "20220101", "20220107")
     
     if df is not None:
-        print(f"Retrieved weather data: {df.shape}")
-        print(f"Columns: {df.columns.tolist()}")
-        print("\nFirst few rows:")
-        print(df.head())
+        logger.info(f"Retrieved weather data: {df.shape}")
+        logger.info(f"Columns: {df.columns.tolist()}")
+        logger.info("\nFirst few rows:")
+        logger.info(df.head())
         
         # Test cache info
         cache_info = manager.get_cache_info()
-        print(f"\nCache info: {cache_info['total_files']} files, {cache_info['total_size_mb']:.2f} MB")
+        logger.info(f"\nCache info: {cache_info['total_files']} files, {cache_info['total_size_mb']:.2f} MB")
     else:
-        print("Failed to retrieve weather data") 
+        logger.error("Failed to retrieve weather data") 

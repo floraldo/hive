@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 """
 Profile Manager for Systemiser
 
@@ -352,16 +355,16 @@ if __name__ == '__main__':
     manager = ProfileManager(ProfileSource.LEGACY)
     try:
         legacy_profiles = manager.load_profiles(N=24)
-        print(f"Legacy profiles loaded: {list(legacy_profiles.keys())}")
+        logger.info(f"Legacy profiles loaded: {list(legacy_profiles.keys())}")
     except Exception as e:
-        print(f"Legacy loading failed: {e}")
+        logger.error(f"Legacy loading failed: {e}")
     
     # Test weather-based loading
     weather_config = manager.create_weather_config_template(51.97, 5.66)
-    print(f"\nWeather config template: {json.dumps(weather_config, indent=2)}")
+    logger.info(f"\nWeather config template: {json.dumps(weather_config, indent=2)}")
     
     try:
         weather_profiles = manager.load_profiles(N=24, source=ProfileSource.WEATHER, weather_config=weather_config)
-        print(f"Weather profiles loaded: {list(weather_profiles.keys())}")
+        logger.info(f"Weather profiles loaded: {list(weather_profiles.keys())}")
     except Exception as e:
-        print(f"Weather loading failed: {e}") 
+        logger.error(f"Weather loading failed: {e}") 

@@ -11,8 +11,9 @@ from pathlib import Path
 from datetime import datetime, timezone
 import pytest
 
-# Add src path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Use centralized path manager for imports
+from hive_config.path_manager import setup_hive_paths
+setup_hive_paths()
 
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import RobustClaudePlannerBridge, ClaudePlanningResponse

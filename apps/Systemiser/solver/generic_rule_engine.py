@@ -1,14 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Dict, Any
 import numpy as np
-import logging
+from hive_logging import get_logger
 
 # Integrate with existing logger setup
 try:
     from Systemiser.utils.logger import setup_logging
     logger = setup_logging("GenericRuleEngine", level=logging.INFO) # Use specific logger
 except ImportError:
-    logger = logging.getLogger("GenericRuleEngine_Fallback") # Fallback logger
+    logger = get_logger("GenericRuleEngine_Fallback") # Fallback logger
     logger.warning("Could not import Systemiser logger, using fallback.")
     if not logger.handlers:
         handler = logging.StreamHandler()

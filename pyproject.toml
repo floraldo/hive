@@ -8,6 +8,21 @@ packages = []
 [tool.poetry.dependencies]
 python = "^3.10"
 
+[tool.poetry.scripts]
+# Core Hive Services
+queen = "hive_orchestrator.queen:main"
+hive-clean = "hive_orchestrator.clean_hive:main"
+
+# AI Agents
+ai-reviewer = "ai_reviewer.agent:main"
+ai-planner = "ai_planner.agent:main"
+
+# EcoSystemiser Application
+ecosystemiser = "EcoSystemiser.cli:cli"
+
+# Testing & Quality Tools
+golden-test = "hive_testing_utils.golden_runner:main"
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
 pytest-cov = "^4.1.0"
@@ -28,15 +43,15 @@ build-backend = "poetry.core.masonry.api"
 optional = true
 
 [tool.poetry.group.workspace.dependencies]
-# Core packages
+# Generic Infrastructure Packages (True inherit layer)
 hive-logging = {path = "packages/hive-logging", develop = true}
 hive-db-utils = {path = "packages/hive-db-utils", develop = true}
-hive-core-db = {path = "packages/hive-core-db", develop = true}
 hive-deployment = {path = "packages/hive-deployment", develop = true}
 hive-config = {path = "packages/hive-config", develop = true}
-hive-claude-bridge = {path = "packages/hive-claude-bridge", develop = true}
-hive-errors = {path = "packages/hive-errors", develop = true}
 hive-utils = {path = "packages/hive-utils", develop = true}
+hive-testing-utils = {path = "packages/hive-testing-utils", develop = true}
+hive-messaging = {path = "packages/hive-messaging", develop = true}
+hive-error-handling = {path = "packages/hive-error-handling", develop = true}
 
 # Applications
 ecosystemiser = {path = "apps/ecosystemiser", develop = true}
@@ -77,3 +92,23 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "apps",
+    "packages"
+]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = [
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "-v"
+]
+markers = [
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "slow: marks tests as slow running"
+]

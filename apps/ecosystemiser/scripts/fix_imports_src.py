@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Fix all imports in the src/EcoSystemiser package to use absolute imports.
@@ -62,7 +65,7 @@ def main():
     src_dir = Path(__file__).parent / "src" / "EcoSystemiser"
     
     if not src_dir.exists():
-        print(f"Error: Directory {src_dir} does not exist!")
+        logger.error(f"Error: Directory {src_dir} does not exist!")
         return
     
     fixed_files = []
@@ -78,14 +81,14 @@ def main():
                 if fix_imports_in_file(file_path):
                     relative_path = file_path.relative_to(src_dir)
                     fixed_files.append(str(relative_path))
-                    print(f"Fixed: {relative_path}")
+                    logger.info(f"Fixed: {relative_path}")
     
-    print(f"\nFixed {len(fixed_files)} files")
+    logger.info(f"\nFixed {len(fixed_files)} files")
     
     if fixed_files:
-        print("\nFiles modified:")
+        logger.info("\nFiles modified:")
         for f in sorted(fixed_files):
-            print(f"  - {f}")
+            logger.info(f"  - {f}")
 
 if __name__ == "__main__":
     main()

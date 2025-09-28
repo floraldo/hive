@@ -1,3 +1,4 @@
+from hive_logging import get_logger
 #!/usr/bin/env python3
 """
 Migrate all EcoSystemiser logging to use the centralized Hive logging adapter.
@@ -132,37 +133,37 @@ def main():
     """Main execution for logging migration."""
     ecosystemiser_dir = Path(__file__).parent.parent
 
-    print("EcoSystemiser Hive Integration - Logging Migration")
-    print("=" * 60)
-    print(f"Working directory: {ecosystemiser_dir}")
-    print()
+    logger.info("EcoSystemiser Hive Integration - Logging Migration")
+    logger.info("=" * 60)
+    logger.info(f"Working directory: {ecosystemiser_dir}")
+    logger.info()
 
     # Process all Python files
-    print("Analyzing and migrating logging...")
+    logger.info("Analyzing and migrating logging...")
     migrated, skipped, stats = process_directory(ecosystemiser_dir / 'src')
 
     # Print statistics
-    print(f"\nStatistics:")
-    print(f"  Total source files: {stats['total_files']}")
-    print(f"  Already using Hive adapter: {stats['already_migrated']}")
-    print(f"  No logging used: {stats['no_logging']}")
-    print(f"  Test files skipped: {stats['test_files']}")
-    print(f"  Files migrated: {stats['migrated']}")
+    logger.info(f"\nStatistics:")
+    logger.info(f"  Total source files: {stats['total_files']}")
+    logger.info(f"  Already using Hive adapter: {stats['already_migrated']}")
+    logger.info(f"  No logging used: {stats['no_logging']}")
+    logger.info(f"  Test files skipped: {stats['test_files']}")
+    logger.info(f"  Files migrated: {stats['migrated']}")
 
     if migrated:
-        print("\nMigrated files:")
+        logger.info("\nMigrated files:")
         for f in sorted(migrated):
             rel_path = f.relative_to(ecosystemiser_dir)
-            print(f"  - {rel_path}")
+            logger.info(f"  - {rel_path}")
 
-    print("\nLogging migration complete!")
-    print("All source files now use the Hive logging adapter.")
+    logger.info("\nLogging migration complete!")
+    logger.info("All source files now use the Hive logging adapter.")
 
     # Next steps
-    print("\nNext steps:")
-    print("1. Review migrated files to ensure logging still works")
-    print("2. Run tests to verify no logging issues")
-    print("3. Continue with Phase 3: Configuration centralization")
+    logger.info("\nNext steps:")
+    logger.info("1. Review migrated files to ensure logging still works")
+    logger.info("2. Run tests to verify no logging issues")
+    logger.info("3. Continue with Phase 3: Configuration centralization")
 
 if __name__ == "__main__":
     main()

@@ -11,16 +11,16 @@ from datetime import datetime
 import itertools
 from typing import Callable
 
-from .simulation_service import SimulationService, SimulationConfig, SimulationResult
-from ..system_model.components.shared.archetypes import FidelityLevel
-from ..discovery.algorithms.genetic_algorithm import GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
-from ..discovery.algorithms.monte_carlo import MonteCarloEngine, UncertaintyAnalyzer, MonteCarloConfig
-from ..discovery.encoders.parameter_encoder import SystemConfigEncoder, ParameterSpec, EncodingSpec
-from ..discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
+from EcoSystemiser.services.simulation_service import SimulationService, SimulationConfig, SimulationResult
+from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
+from EcoSystemiser.discovery.algorithms.genetic_algorithm import GeneticAlgorithm, NSGAIIOptimizer, GeneticAlgorithmConfig
+from EcoSystemiser.discovery.algorithms.monte_carlo import MonteCarloEngine, UncertaintyAnalyzer, MonteCarloConfig
+from EcoSystemiser.discovery.encoders.parameter_encoder import SystemConfigEncoder, ParameterSpec, EncodingSpec
+from EcoSystemiser.discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
 
 # EcoSystemiser Event Bus integration
-from ..event_bus import EcoSystemiserEventBus, sync_event_publisher
-from ..events import (
+from EcoSystemiser.event_bus import EcoSystemiserEventBus, sync_event_publisher
+from EcoSystemiser.events import (
     EcoSystemiserEventType,
     create_study_event,
     create_simulation_event

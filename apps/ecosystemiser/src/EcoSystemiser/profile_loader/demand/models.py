@@ -7,7 +7,7 @@ for electricity, heating, cooling, and other energy demands.
 
 from typing import Dict, List, Literal, Optional, Tuple, Any
 from pydantic import BaseModel, Field
-from ..shared.models import BaseProfileRequest, BaseProfileResponse, ProfileMode
+from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse, ProfileMode
 
 
 # Demand types

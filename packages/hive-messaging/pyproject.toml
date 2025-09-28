@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "hive-messaging"
+version = "0.1.0"
+description = "Generic messaging and event bus toolkit"
+authors = ["Hive System <hive@example.com>"]
+packages = [{include = "hive_messaging", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

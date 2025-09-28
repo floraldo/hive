@@ -8,11 +8,8 @@ from typing import List, Dict, Optional, Tuple, Any
 from EcoSystemiser.hive_logging_adapter import get_logger
 import os
 
-from .base import BaseAdapter
-from .capabilities import (
-    AdapterCapabilities, TemporalCoverage, SpatialCoverage,
-    DataFrequency, AuthType, RateLimits, QualityFeatures
-)
+from EcoSystemiser.profile_loader.climate.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
 from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError
 
 logger = get_logger(__name__)
@@ -139,7 +136,7 @@ class ERA5Adapter(BaseAdapter):
     
     def __init__(self):
         """Initialize ERA5 adapter"""
-        from .base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (CDS API has no strict limits but be reasonable)
         rate_config = RateLimitConfig(
@@ -889,3 +886,55 @@ class ERA5Adapter(BaseAdapter):
             
             data_products=["Reanalysis", "ERA5-Land", "Ensemble", "Pressure Levels"]
         )
+
+class ERA5QCProfile:
+    """QC profile for ERA5 reanalysis data - co-located with adapter for better cohesion."""
+
+    def __init__(self):
+        self.name = "ERA5"
+        self.description = "ECMWF's fifth-generation atmospheric reanalysis"
+        self.known_issues = [
+            "Smoothed data due to reanalysis model constraints",
+            "May not capture extreme local weather events accurately",
+            "Precipitation and cloud fields have known biases",
+            "Surface variables affected by model topography vs real topography"
+        ]
+        self.recommended_variables = [
+            "temp_air", "dewpoint", "wind_speed", "wind_dir", "pressure", "rel_humidity"
+        ]
+        self.temporal_resolution_limits = {
+            "all": "hourly"
+        }
+        self.spatial_accuracy = "0.25deg x 0.25deg (~30km resolution)"
+
+    def validate_source_specific(self, ds: xr.Dataset, report) -> None:
+        """ERA5 specific validation"""
+
+        # Check for over-smoothed data (typical of reanalysis)
+        for var_name in ['temp_air', 'wind_speed']:
+            if var_name not in ds:
+                continue
+
+            data = ds[var_name].values
+            valid_data = data[~np.isnan(data)]
+
+            if len(valid_data) > 24:  # At least 24 hours
+                # Check for unnaturally smooth data
+                # Calculate second derivative to detect lack of high-frequency variation
+                second_derivative = np.abs(np.diff(valid_data, n=2))
+                smooth_ratio = np.mean(second_derivative < 0.01)  # Very small changes
+
+                if smooth_ratio > 0.8:  # 80% of changes are very small
+                    report.warnings.append(
+                        f"Data appears over-smoothed in {var_name} (smooth ratio={smooth_ratio:.2f}) - typical of reanalysis"
+                    )
+
+        # Warn about precipitation biases
+        if 'precip' in ds:
+            report.warnings.append(
+                "ERA5 precipitation has known regional biases and may not represent local extremes"
+            )
+
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
+        """Get source-specific adjusted bounds"""
+        return base_bounds

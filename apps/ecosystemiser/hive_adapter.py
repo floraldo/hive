@@ -32,9 +32,9 @@ except Exception as e:
     try:
         from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
         CLIMATE_MODELS_AVAILABLE = True
-    except Exception:
+    except ImportError as import_err:
         CLIMATE_MODELS_AVAILABLE = False
-    print(f"Warning: EcoSystemiser climate service not available: {e}")
+    logger.warning(f"Warning: EcoSystemiser climate service not available: {e}")
 
 class EcoSystemiserAdapter:
     """Adapter for EcoSystemiser tasks within Hive"""
@@ -411,7 +411,7 @@ def main():
     try:
         payload = json.loads(args.payload)
     except json.JSONDecodeError as e:
-        print(f"Error parsing payload: {e}")
+        logger.error(f"Error parsing payload: {e}")
         sys.exit(1)
 
     # Execute task
@@ -419,7 +419,7 @@ def main():
     result = adapter.execute_task(args.task, payload)
 
     # Output result
-    print(json.dumps(result, indent=2))
+    logger.info(json.dumps(result, indent=2))
 
     # Exit with appropriate code
     sys.exit(0 if result["status"] == "success" else 1)

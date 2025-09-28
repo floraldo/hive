@@ -1,3 +1,4 @@
+from hive_logging import get_logger
 #!/usr/bin/env python3
 """
 EcoSystemiser Environment Verification Script
@@ -161,6 +162,40 @@ class EnvironmentVerifier:
 
         return all_good
 
+    def check_import_consistency(self) -> bool:
+        """Verify no relative imports cross module boundaries."""
+        import ast
+
+        src_dir = self.ecosystemiser_dir / 'src' / 'EcoSystemiser'
+        py_files = list(src_dir.rglob('*.py'))
+
+        relative_imports = []
+        for py_file in py_files:
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                tree = ast.parse(content)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.ImportFrom):
+                        if node.level > 0:  # Relative import
+                            # Check if it crosses module boundaries
+                            module_parts = py_file.relative_to(src_dir).parts[:-1]
+                            if node.level > len(module_parts):
+                                relative_imports.append(str(py_file.relative_to(self.ecosystemiser_dir)))
+            except (SyntaxError, ValueError) as parse_error:
+                # Skip files that can't be parsed
+                continue
+
+        if relative_imports:
+            self.errors.append(f"[ERROR] Found {len(relative_imports)} files with boundary-crossing relative imports")
+            for file in relative_imports[:3]:
+                self.errors.append(f"  - {file}")
+            return False
+        else:
+            self.results.append("[OK] No boundary-crossing relative imports found")
+            return True
+
     def check_test_environment(self) -> bool:
         """Verify test environment is set up correctly."""
         try:
@@ -195,15 +230,16 @@ class EnvironmentVerifier:
 
     def run_verification(self) -> bool:
         """Run all verification checks."""
-        print("EcoSystemiser Environment Verification")
-        print("=" * 60)
-        print(f"Working directory: {self.ecosystemiser_dir}")
-        print()
+        logger.info("EcoSystemiser Environment Verification")
+        logger.info("=" * 60)
+        logger.info(f"Working directory: {self.ecosystemiser_dir}")
+        logger.info()
 
         checks = [
             ("Editable Install", self.check_editable_install),
             ("Hive Packages", self.check_hive_packages),
             ("Import Cleanliness", self.check_no_sys_path_hacks),
+            ("Import Consistency", self.check_import_consistency),
             ("Logging Integration", self.check_logging_integration),
             ("Configuration", self.check_configuration),
             ("Module Imports", self.check_imports),
@@ -212,7 +248,7 @@ class EnvironmentVerifier:
 
         all_passed = True
         for name, check_func in checks:
-            print(f"\nChecking {name}...")
+            logger.info(f"\nChecking {name}...")
             try:
                 result = check_func()
                 if not result:
@@ -222,38 +258,38 @@ class EnvironmentVerifier:
                 all_passed = False
 
         # Print summary
-        print("\n" + "=" * 60)
-        print("VERIFICATION SUMMARY")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("VERIFICATION SUMMARY")
+        logger.info("=" * 60)
 
         if self.results:
-            print("\nPASSED:")
+            logger.info("\nPASSED:")
             for result in self.results:
-                print(f"  {result}")
+                logger.info(f"  {result}")
 
         if self.warnings:
-            print("\nWARNINGS:")
+            logger.warning("\nWARNINGS:")
             for warning in self.warnings:
-                print(f"  {warning}")
+                logger.warning(f"  {warning}")
 
         if self.errors:
-            print("\nERRORS:")
+            logger.error("\nERRORS:")
             for error in self.errors:
-                print(f"  {error}")
+                logger.error(f"  {error}")
 
         # Overall status
-        print("\n" + "=" * 60)
+        logger.info("\n" + "=" * 60)
         if not self.errors:
             if self.warnings:
-                print("[OK] Environment MOSTLY READY (with warnings)")
-                print("  The system will work but some features may be limited")
+                logger.warning("[OK] Environment MOSTLY READY (with warnings)")
+                logger.info("  The system will work but some features may be limited")
             else:
-                print("[OK] Environment FULLY READY")
-                print("  EcoSystemiser is a model citizen of the Hive ecosystem!")
+                logger.info("[OK] Environment FULLY READY")
+                logger.info("  EcoSystemiser is a model citizen of the Hive ecosystem!")
             return True
         else:
-            print("[FAILED] Environment NOT READY")
-            print("  Please fix the errors above before proceeding")
+            logger.error("[FAILED] Environment NOT READY")
+            logger.error("  Please fix the errors above before proceeding")
             return False
 
 def main():

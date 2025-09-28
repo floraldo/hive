@@ -40,7 +40,9 @@
       "Bash(apps/ai-reviewer/start_reviewer.sh status:*)",
       "Bash(poetry run:*)",
       "Bash(git add:*)",
-      "Bash(git -C /c/git/hive ls-files)"
+      "Bash(git -C /c/git/hive ls-files)",
+      "Bash(PYTHONPATH=packages/hive-testing-utils/src python -c:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

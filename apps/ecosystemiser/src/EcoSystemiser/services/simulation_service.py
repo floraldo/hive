@@ -7,13 +7,13 @@ import json
 import yaml
 from typing import List
 
-from ..system_model.system import System
-from ..utils.system_builder import SystemBuilder
-from ..component_data.repository import ComponentRepository
-from ..solver.factory import SolverFactory
-from ..solver.base import SolverConfig
-from ..profile_loader import get_profile_sync, ClimateRequest
-from .results_io import ResultsIO
+from EcoSystemiser.system_model.system import System
+from EcoSystemiser.utils.system_builder import SystemBuilder
+from EcoSystemiser.component_data.repository import ComponentRepository
+from EcoSystemiser.solver.factory import SolverFactory
+from EcoSystemiser.solver.base import SolverConfig
+from EcoSystemiser.profile_loader import get_profile_sync, ClimateRequest
+from EcoSystemiser.results_io import ResultsIO
 
 logger = get_logger(__name__)
 
@@ -259,7 +259,7 @@ class SimulationService:
         # Load demand profiles if configured
         if config.demand_input:
             try:
-                from ..profile_loader.demand.file_adapter import DemandFileAdapter
+                from EcoSystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
                 adapter = DemandFileAdapter()
                 demand_profiles = adapter.fetch(config.demand_input)
                 profiles.update(demand_profiles)

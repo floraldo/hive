@@ -3,6 +3,9 @@ import pandas as pd
 import time
 import numpy as np
 import logging
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 # from model import Battery, Grid, HeatBuffer, HeatDemand, HeatPump, PowerDemand, SolarPV
 # from model import EconomicParameters
@@ -95,7 +98,7 @@ class System:
         self.flows[f'{component1.name}_{"W" if flow_type=="water" else "P"}_{component2.name}'] = flow
     
         if print_connection:
-            print(f"Connected {component1_name} to {component2_name} with {flow_type}")
+            logger.info(f"Connected {component1_name} to {component2_name} with {flow_type}")
     
         if bidirectional:
             self.connect(component2_name, component1_name, flow_type, bidirectional=False, 
@@ -127,7 +130,7 @@ class System:
         return constraints_info if return_constraints else None
 
     def print_all_constraints(self):
-        print("\n---Constraints---")
+        logger.info("\n---Constraints---")
         for component in self.components.values():
             component.print_constraints()
 
@@ -163,8 +166,8 @@ class System:
     def solve(self):
         start_time = time.time()
         self.problem.solve(solver=cp.GLPK)
-        print(f"Time taken for optimization: {time.time() - start_time} seconds")
-        print("Problem status: ", self.problem.status)
+        logger.info(f"Time taken for optimization: {time.time() - start_time} seconds")
+        logger.info("Problem status: ", self.problem.status)
 
     def convert_results_to_numeric(self):
         for component_name, component in self.components.items():
@@ -266,45 +269,45 @@ class System:
                 component.E[t] = component.E[t-1]
 
     def print_component_results(self):       
-        print("Component Technical Results:")
-        print(self.component_technicals)
+        logger.info("Component Technical Results:")
+        logger.info(self.component_technicals)
 
-        print("\nComponent Economic Results:")
-        print(self.component_economics)
+        logger.info("\nComponent Economic Results:")
+        logger.info(self.component_economics)
 
-        print("\nComponent Environmental Results:")
-        print(self.component_environmentals)
+        logger.info("\nComponent Environmental Results:")
+        logger.info(self.component_environmentals)
 
     def debug_component(self, component_name, timestep=0):
         """Debug helper for a single component."""
         component = self.components[component_name]
-        print(f"\n=== {component.name} at timestep {timestep} ===")
-        print(f"Type: {component.type}")
-        print(f"W_max: {component.W_max if hasattr(component, 'W_max') else 'N/A'}")
+        logger.info(f"\n=== {component.name} at timestep {timestep} ===")
+        logger.info(f"Type: {component.type}")
+        logger.info(f"W_max: {component.W_max if hasattr(component, 'W_max') else 'N/A'}")
 
         # Print flows at timestep
-        print("\nFlows:")
+        logger.info("\nFlows:")
         for flow_type in ['input', 'output', 'source', 'sink']:
             if flow_type in component.flows:
-                print(f"\n{flow_type.upper()}:")
+                logger.info(f"\n{flow_type.upper()}:")
                 for name, flow in component.flows[flow_type].items():
                     value = None
                     if isinstance(flow['value'], cp.Variable):
                         value = flow['value'][timestep].value if hasattr(flow['value'], 'value') else 'Not solved'
                     elif isinstance(flow['value'], np.ndarray):
                         value = flow['value'][timestep]
-                    print(f"  {name} = {value}")
+                    logger.info(f"  {name} = {value}")
 
         # Print relevant constraints
-        print("\nConstraints affecting timestep {}:".format(timestep))
+        logger.info("\nConstraints affecting timestep {}:".format(timestep))
         for constraint in component.constraints:
             if f'[{timestep}]' in str(constraint):
-                print(f"  {constraint}")
+                logger.info(f"  {constraint}")
 
     def debug_system_flows(self, timestep=0):
         """Debug helper for system-level flows."""
-        print("\n=== System Flow Analysis ===")
-        print(f"Timestep: {timestep}")
+        logger.info("\n=== System Flow Analysis ===")
+        logger.info(f"Timestep: {timestep}")
         
         for flow_name, flow in self.flows.items():
             value = None
@@ -313,14 +316,14 @@ class System:
             elif isinstance(flow['value'], np.ndarray):
                 value = flow['value'][timestep]
             
-            print(f"\n{flow['source']} -> {flow['target']}:")
-            print(f"  Value: {value}")
-            print(f"  Type: {flow['type']}")
+            logger.info(f"\n{flow['source']} -> {flow['target']}:")
+            logger.info(f"  Value: {value}")
+            logger.info(f"  Type: {flow['type']}")
 
     def debug_water_system(self, timestep=0):
         """Comprehensive debug helper for water system."""
-        print("\n=== Water System Debug ===")
-        print(f"Timestep: {timestep}")
+        logger.debug("\n=== Water System Debug ===")
+        logger.info(f"Timestep: {timestep}")
         
         # Debug storage components
         for name, component in self.components.items():
@@ -331,7 +334,7 @@ class System:
         self.debug_system_flows(timestep)
         
         # Print balance equations
-        print("\nBalance Equations:")
+        logger.info("\nBalance Equations:")
         for component_name, component in self.components.items():
             if component.type == "storage":
                 input_flows = []
@@ -355,9 +358,9 @@ class System:
                         output_flows.append(flow['value'][timestep])
                 
                 if input_flows or output_flows:
-                    print(f"\n{component_name}:")
-                    print(f"  Sum of inputs: {[-f for f in input_flows]}")
-                    print(f"  Sum of outputs: {output_flows}")
+                    logger.info(f"\n{component_name}:")
+                    logger.info(f"  Sum of inputs: {[-f for f in input_flows]}")
+                    logger.info(f"  Sum of outputs: {output_flows}")
 
     def construct_problem(self):
         """Construct the optimization problem."""

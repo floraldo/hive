@@ -10,8 +10,8 @@ from typing import Any, Dict
 from arq import cron
 from arq.connections import RedisSettings
 
-from .settings import get_settings
-from .services.job_service import process_climate_job, cleanup_old_jobs, collect_metrics, startup, shutdown
+from EcoSystemiser.settings import get_settings
+from EcoSystemiser.services.job_service import process_climate_job, cleanup_old_jobs, collect_metrics, startup, shutdown
 
 logger = get_logger(__name__)
 

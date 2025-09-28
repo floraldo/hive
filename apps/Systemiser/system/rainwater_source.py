@@ -1,6 +1,9 @@
 import cvxpy as cp
 import numpy as np
 from .water_component import WaterComponent
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 class RainwaterSource(WaterComponent):
     def __init__(self, name, W_profile, n, W_max=None, economic=None, environmental=None):
@@ -24,7 +27,7 @@ class RainwaterSource(WaterComponent):
     
     def print_stats(self):
         """Print component-specific statistics."""
-        print(f"\nRainwater Collection Statistics for {self.name}:")
-        print(f"Maximum Collection Rate: {self.W_max:.3f} m³/hour")
-        print(f"Average Collection Rate: {np.mean(W_profile):.3f} m³/hour")
-        print(f"Total Annual Collection: {np.sum(W_profile):.1f} m³") 
+        logger.info(f"\nRainwater Collection Statistics for {self.name}:")
+        logger.info(f"Maximum Collection Rate: {self.W_max:.3f} m³/hour")
+        logger.info(f"Average Collection Rate: {np.mean(W_profile):.3f} m³/hour")
+        logger.info(f"Total Annual Collection: {np.sum(W_profile):.1f} m³") 

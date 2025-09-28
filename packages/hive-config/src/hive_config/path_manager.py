@@ -35,16 +35,19 @@ def get_hive_paths() -> List[Path]:
         logger.warning(f"Could not find project root, using fallback: {root}")
 
     paths = [
-        # Core packages
+        # Generic Infrastructure Packages (True inherit layer)
         root / "packages" / "hive-config" / "src",
-        root / "packages" / "hive-core-db" / "src",
-        root / "packages" / "hive-utils" / "src",
-        root / "packages" / "hive-logging" / "src",
         root / "packages" / "hive-db-utils" / "src",
         root / "packages" / "hive-deployment" / "src",
+        root / "packages" / "hive-error-handling" / "src",
+        root / "packages" / "hive-logging" / "src",
+        root / "packages" / "hive-messaging" / "src",
+        root / "packages" / "hive-testing-utils" / "src",
+        root / "packages" / "hive-utils" / "src",
 
-        # Applications
+        # Applications (Business logic - extend layer)
         root / "apps" / "hive-orchestrator" / "src",
+        root / "apps" / "ai-planner" / "src",
         root / "apps" / "ai-reviewer" / "src",
         root / "apps" / "ecosystemiser" / "src",
     ]
@@ -150,10 +153,15 @@ def validate_hive_imports() -> dict:
         Dictionary with import test results
     """
     test_imports = [
+        # Generic packages
         "hive_config",
-        "hive_core_db",
-        "hive_utils",
-        "hive_logging"
+        "hive_db_utils",
+        "hive_deployment",
+        "hive_error_handling",
+        "hive_logging",
+        "hive_messaging",
+        "hive_testing_utils",
+        "hive_utils"
     ]
 
     results = {}

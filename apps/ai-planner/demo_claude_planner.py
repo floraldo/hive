@@ -12,10 +12,10 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 
-# Add src path for imports
-hive_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(hive_root / "packages" / "hive-core-db" / "src"))
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+# Setup Hive paths using centralized path manager
+# Note: This assumes the workspace has been properly installed with Poetry
+from hive_config.path_manager import setup_hive_paths
+setup_hive_paths()
 
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import RobustClaudePlannerBridge

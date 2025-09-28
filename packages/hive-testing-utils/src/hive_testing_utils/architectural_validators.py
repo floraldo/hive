@@ -1,0 +1,715 @@
+"""
+Architectural Validators - Core validation functions for Hive platform standards.
+
+These validators are used by the Golden Tests to enforce architectural
+gravity across the entire platform.
+"""
+
+import ast
+from pathlib import Path
+from typing import List, Tuple
+import toml
+
+
+def validate_app_contracts(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Validate that all apps have proper hive-app.toml contracts.
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    apps_dir = project_root / "apps"
+
+    if not apps_dir.exists():
+        return False, ["apps/ directory does not exist"]
+
+    for app_dir in apps_dir.iterdir():
+        if app_dir.is_dir() and not app_dir.name.startswith('.'):
+            app_name = app_dir.name
+            contract_file = app_dir / "hive-app.toml"
+
+            # Check if contract file exists
+            if not contract_file.exists():
+                violations.append(f"App '{app_name}' missing hive-app.toml")
+                continue
+
+            try:
+                contract = toml.load(contract_file)
+
+                # Validate required sections
+                if "app" not in contract:
+                    violations.append(f"App '{app_name}' missing [app] section in hive-app.toml")
+                elif "name" not in contract["app"]:
+                    violations.append(f"App '{app_name}' missing app.name in hive-app.toml")
+
+                # Ensure at least one service definition
+                service_sections = ["daemons", "tasks", "endpoints"]
+                has_service = any(section in contract for section in service_sections)
+                if not has_service:
+                    violations.append(f"App '{app_name}' missing service definitions (daemons/tasks/endpoints)")
+
+            except Exception as e:
+                violations.append(f"App '{app_name}' has invalid hive-app.toml: {str(e)}")
+
+    return len(violations) == 0, violations
+
+
+def validate_colocated_tests(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Validate that all apps and packages have co-located tests directories.
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    base_dirs = [project_root / "apps", project_root / "packages"]
+
+    for base_dir in base_dirs:
+        if not base_dir.exists():
+            continue
+
+        for component_dir in base_dir.iterdir():
+            if component_dir.is_dir() and not component_dir.name.startswith('.'):
+                component_name = f"{base_dir.name}/{component_dir.name}"
+                tests_dir = component_dir / "tests"
+
+                if not tests_dir.exists():
+                    violations.append(f"{component_name} missing tests/ directory")
+                elif not (tests_dir / "__init__.py").exists():
+                    violations.append(f"{component_name} missing tests/__init__.py")
+
+    return len(violations) == 0, violations
+
+
+def validate_no_syspath_hacks(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Validate that no sys.path hacks exist in the codebase.
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    base_dirs = [project_root / "apps", project_root / "packages"]
+
+    for base_dir in base_dirs:
+        if not base_dir.exists():
+            continue
+
+        for py_file in base_dir.rglob("*.py"):
+            # Skip the path manager itself, verification scripts, and virtual environments
+            if ("path_manager.py" in str(py_file) or
+                "verify_environment.py" in str(py_file) or
+                "architectural_validators.py" in str(py_file) or
+                ".venv" in str(py_file) or
+                "__pycache__" in str(py_file)):
+                continue
+
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Check for actual sys.path manipulation (not just strings)
+                lines = content.split('\n')
+                for line in lines:
+                    # Skip comments and strings
+                    if not line.strip().startswith('#'):
+                        if "sys.path.insert(" in line or "sys.path.append(" in line:
+                            violations.append(str(py_file.relative_to(project_root)))
+                            break
+
+            except Exception as e:
+                # Skip files that can't be read
+                continue
+
+    return len(violations) == 0, violations
+
+
+def validate_single_config_source(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Validate that pyproject.toml is the single source of configuration truth.
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    # Check for setup.py files
+    setup_files = list(project_root.rglob("setup.py"))
+    # Filter out virtual environments and worktrees
+    setup_files = [f for f in setup_files
+                   if ".venv" not in str(f) and
+                   ".worktrees" not in str(f) and
+                   "site-packages" not in str(f)]
+
+    if setup_files:
+        violations.extend([f"Found setup.py file: {f.relative_to(project_root)}"
+                          for f in setup_files])
+
+    # Ensure root pyproject.toml exists
+    root_config = project_root / "pyproject.toml"
+    if not root_config.exists():
+        violations.append("Root pyproject.toml missing")
+    else:
+        try:
+            config = toml.load(root_config)
+            # Check for workspace configuration
+            has_workspace = False
+            if "tool" in config and "poetry" in config["tool"] and "group" in config["tool"]["poetry"]:
+                if "workspace" in config["tool"]["poetry"]["group"]:
+                    has_workspace = True
+
+            if not has_workspace:
+                violations.append("Workspace configuration missing from root pyproject.toml")
+        except Exception as e:
+            violations.append(f"Root pyproject.toml is invalid: {str(e)}")
+
+    return len(violations) == 0, violations
+
+
+def validate_package_app_discipline(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 5: Package vs App Discipline
+
+    Validate that packages contain only generic infrastructure,
+    and apps contain business logic extending packages.
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    # Check packages for business logic indicators
+    packages_dir = project_root / "packages"
+    if packages_dir.exists():
+        business_logic_indicators = [
+            "workflow", "task", "agent", "orchestrat", "business",
+            "domain", "service", "controller", "api", "endpoint"
+        ]
+
+        for package_dir in packages_dir.iterdir():
+            if package_dir.is_dir() and not package_dir.name.startswith('.'):
+                package_name = package_dir.name
+
+                # Skip known infrastructure packages
+                if package_name in ["hive-utils", "hive-logging", "hive-testing-utils",
+                                   "hive-db-utils", "hive-config", "hive-deployment",
+                                   "hive-messaging", "hive-error-handling"]:
+                    continue
+
+                # Check for business logic in package names or files
+                for py_file in package_dir.rglob("*.py"):
+                    if ".venv" in str(py_file) or "__pycache__" in str(py_file):
+                        continue
+
+                    file_name = py_file.stem.lower()
+                    for indicator in business_logic_indicators:
+                        if indicator in file_name and "test" not in file_name:
+                            violations.append(
+                                f"Package '{package_name}' may contain business logic: {py_file.name}"
+                            )
+                            break
+
+    return len(violations) == 0, violations
+
+
+def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 6: Dependency Direction
+
+    Validate that:
+    - Apps can depend on infrastructure packages
+    - Apps can import from other apps' core/ service layers
+    - Packages cannot depend on apps
+    - Apps cannot import from other apps' internal implementation
+    - Business logic stays in apps, service interfaces in core/
+
+    Allowed patterns:
+    - App → Infrastructure Package (hive-utils, hive-logging)
+    - App → Other App's core/ service layer (hive_orchestrator.core)
+    - Package → Other Infrastructure Package
+
+    Forbidden patterns:
+    - Package → App (breaks reusability)
+    - App → Other App's internal src/ (creates tight coupling)
+    - Business logic in packages (violates app ownership)
+
+    Service Layer Pattern:
+    - Apps can expose services via app/src/app_name/core/ subdirectory
+    - Core modules provide service interfaces, not business logic
+    - Communication via: Database queues, Event bus, REST APIs
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    # Check package imports for app dependencies
+    packages_dir = project_root / "packages"
+    if packages_dir.exists():
+        for package_dir in packages_dir.iterdir():
+            if package_dir.is_dir() and not package_dir.name.startswith('.'):
+                package_name = package_dir.name
+
+                for py_file in package_dir.rglob("*.py"):
+                    if ".venv" in str(py_file) or "__pycache__" in str(py_file):
+                        continue
+
+                    try:
+                        with open(py_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+
+                        # Check for imports from apps (always forbidden for packages)
+                        # But skip if it's just a string literal (like in this validator itself)
+                        app_imports = [
+                            "from ai_planner", "from ai_reviewer",
+                            "from hive_orchestrator", "from EcoSystemiser",
+                            "from Systemiser", "from event_dashboard"
+                        ]
+
+                        for app_import in app_imports:
+                            # Check if it's an actual import line, not just a string
+                            if app_import in content:
+                                # Verify it's at the start of a line (actual import)
+                                for line in content.split('\n'):
+                                    if line.strip().startswith(app_import):
+                                        violations.append(
+                                            f"Package '{package_name}' imports from app: {py_file.relative_to(project_root)}"
+                                        )
+                                        break
+
+                    except Exception as e:
+                        continue
+
+    # Check apps for direct app-to-app dependencies
+    apps_dir = project_root / "apps"
+    if apps_dir.exists():
+        for app_dir in apps_dir.iterdir():
+            if app_dir.is_dir() and not app_dir.name.startswith('.'):
+                app_name = app_dir.name
+
+                for py_file in app_dir.rglob("*.py"):
+                    if ".venv" in str(py_file) or "__pycache__" in str(py_file):
+                        continue
+
+                    try:
+                        with open(py_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+
+                        # Get list of other apps
+                        other_apps = [d.name for d in apps_dir.iterdir()
+                                    if d.is_dir() and d.name != app_name and not d.name.startswith('.')]
+
+                        for other_app in other_apps:
+                            # Convert app names to import patterns
+                            app_module = other_app.replace('-', '_')
+                            import_patterns = [
+                                f"from {other_app}",
+                                f"import {other_app}",
+                                f"from {app_module}",
+                                f"import {app_module}"
+                            ]
+
+                            for pattern in import_patterns:
+                                if pattern in content:
+                                    # Check if it's importing from core/ service layer (allowed)
+                                    # Look for patterns like "from hive_orchestrator.core" or "from app.core"
+                                    core_import_patterns = [
+                                        f"from {app_module}.core",
+                                        f"import {app_module}.core"
+                                    ]
+
+                                    is_core_import = any(core_pattern in content for core_pattern in core_import_patterns)
+
+                                    # Also check for client/api patterns (allowed)
+                                    client_patterns = [".client", ".Client", ".api", ".API"]
+                                    is_client = any(cp in content for cp in client_patterns)
+
+                                    if not is_core_import and not is_client:
+                                        # Check if this specific line is importing from core
+                                        for line in content.split('\n'):
+                                            if pattern in line and ".core" not in line:
+                                                violations.append(
+                                                    f"App '{app_name}' directly imports from app '{other_app}' (non-core): {py_file.relative_to(project_root)}"
+                                                )
+                                                break
+
+                    except Exception as e:
+                        continue
+
+    return len(violations) == 0, violations
+
+
+def validate_service_layer_discipline(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 10: Service Layer Discipline
+
+    Validate that:
+    - Service layers (core/ directories) contain only interfaces
+    - No business logic in service layers
+    - Service layers are properly documented
+    - Service layers expose clear contracts
+
+    Allowed in core/:
+    - Service interfaces and abstract base classes
+    - Event definitions and data models
+    - Database/bus/API service extensions
+    - Type definitions and enums
+
+    Forbidden in core/:
+    - Business logic implementation
+    - Workflow orchestration
+    - Domain-specific algorithms
+    - Complex processing logic
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    # Check apps for core/ directories
+    apps_dir = project_root / "apps"
+    if apps_dir.exists():
+        for app_dir in apps_dir.iterdir():
+            if app_dir.is_dir() and not app_dir.name.startswith('.'):
+                app_name = app_dir.name
+
+                # Look for core/ directory in the app
+                core_patterns = [
+                    app_dir / "src" / app_name.replace('-', '_') / "core",
+                    app_dir / "src" / app_name / "core",
+                ]
+
+                for core_dir in core_patterns:
+                    if core_dir.exists() and core_dir.is_dir():
+                        # Check files in core/ for business logic indicators
+                        for py_file in core_dir.rglob("*.py"):
+                            if "__pycache__" in str(py_file):
+                                continue
+
+                            try:
+                                with open(py_file, 'r', encoding='utf-8') as f:
+                                    content = f.read()
+
+                                # Check for business logic indicators
+                                business_logic_indicators = [
+                                    "def process_",
+                                    "def calculate_",
+                                    "def analyze_",
+                                    "def generate_",
+                                    "def orchestrate_",
+                                    "def execute_workflow",
+                                    "def run_algorithm",
+                                    "# Business logic",
+                                    "# TODO: Implement",
+                                    "# Algorithm:",
+                                ]
+
+                                for indicator in business_logic_indicators:
+                                    if indicator in content:
+                                        violations.append(
+                                            f"Service layer contains business logic: {py_file.relative_to(project_root)}"
+                                        )
+                                        break
+
+                                # Check if service interfaces are documented
+                                if "class " in content:
+                                    # Simple check for docstrings on classes
+                                    lines = content.split('\n')
+                                    for i, line in enumerate(lines):
+                                        if line.strip().startswith("class ") and not line.strip().startswith("class _"):
+                                            # Check if next line has docstring
+                                            if i + 1 < len(lines):
+                                                next_line = lines[i + 1].strip()
+                                                if not (next_line.startswith('"""') or next_line.startswith("'''")):
+                                                    class_name = line.strip().split()[1].split('(')[0].rstrip(':')
+                                                    violations.append(
+                                                        f"Service class '{class_name}' missing docstring: {py_file.relative_to(project_root)}"
+                                                    )
+
+                            except Exception as e:
+                                continue
+
+    return len(violations) == 0, violations
+
+
+def validate_communication_patterns(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 11: Communication Patterns
+
+    Validate that:
+    - Apps use approved communication patterns
+    - No synchronous circular dependencies
+    - Background processes are properly managed
+    - API endpoints follow REST conventions
+
+    Approved patterns:
+    - Database queues (async task processing)
+    - Event bus (pub/sub messaging)
+    - REST APIs (HTTP endpoints)
+    - Service layers (core/ imports)
+
+    Forbidden patterns:
+    - Direct socket communication between apps
+    - Shared memory or files for IPC
+    - Undocumented communication channels
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    apps_dir = project_root / "apps"
+    if apps_dir.exists():
+        for app_dir in apps_dir.iterdir():
+            if app_dir.is_dir() and not app_dir.name.startswith('.'):
+                app_name = app_dir.name
+
+                # Check hive-app.toml for proper daemon configuration
+                app_contract = app_dir / "hive-app.toml"
+                if app_contract.exists():
+                    try:
+                        contract = toml.load(app_contract)
+
+                        # Check daemon configurations
+                        if "daemons" in contract:
+                            for daemon_name, daemon_config in contract["daemons"].items():
+                                if "restart_on_failure" not in daemon_config:
+                                    violations.append(
+                                        f"Daemon '{daemon_name}' in {app_name} missing restart_on_failure setting"
+                                    )
+                                if "command" not in daemon_config:
+                                    violations.append(
+                                        f"Daemon '{daemon_name}' in {app_name} missing command specification"
+                                    )
+
+                    except Exception as e:
+                        pass
+
+                # Check for forbidden communication patterns
+                for py_file in app_dir.rglob("*.py"):
+                    if ".venv" in str(py_file) or "__pycache__" in str(py_file):
+                        continue
+
+                    try:
+                        with open(py_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+
+                        # Check for raw socket usage (forbidden unless in infrastructure)
+                        forbidden_patterns = [
+                            "socket.socket(",
+                            "multiprocessing.Queue(",
+                            "multiprocessing.Pipe(",
+                            "mmap.mmap(",  # Memory-mapped files
+                            "SharedMemory(",  # Shared memory
+                        ]
+
+                        for pattern in forbidden_patterns:
+                            if pattern in content:
+                                violations.append(
+                                    f"Forbidden IPC pattern '{pattern}' found: {py_file.relative_to(project_root)}"
+                                )
+
+                    except Exception as e:
+                        continue
+
+    return len(violations) == 0, violations
+
+
+def validate_interface_contracts(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 7: Interface Contracts
+
+    Validate that:
+    - All public APIs have type hints
+    - All public functions have docstrings
+    - All async functions follow naming convention (suffix _async)
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    for base_dir in [project_root / "apps", project_root / "packages"]:
+        if not base_dir.exists():
+            continue
+
+        for py_file in base_dir.rglob("*.py"):
+            if (".venv" in str(py_file) or "__pycache__" in str(py_file) or
+                "test" in str(py_file) or "conftest" in str(py_file)):
+                continue
+
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Parse the AST
+                tree = ast.parse(content)
+
+                for node in ast.walk(tree):
+                    # Check public functions (not starting with _)
+                    if isinstance(node, ast.FunctionDef):
+                        if not node.name.startswith('_'):
+                            # Check for docstring
+                            if not ast.get_docstring(node):
+                                violations.append(
+                                    f"Public function '{node.name}' missing docstring: {py_file.relative_to(project_root)}:{node.lineno}"
+                                )
+
+                            # Check for type hints on parameters
+                            for arg in node.args.args:
+                                if arg.arg != 'self' and arg.arg != 'cls' and not arg.annotation:
+                                    violations.append(
+                                        f"Parameter '{arg.arg}' missing type hint in '{node.name}': {py_file.relative_to(project_root)}:{node.lineno}"
+                                    )
+
+                            # Check for return type hint
+                            if not node.returns and node.name != '__init__':
+                                violations.append(
+                                    f"Function '{node.name}' missing return type hint: {py_file.relative_to(project_root)}:{node.lineno}"
+                                )
+
+                    # Check async function naming
+                    elif isinstance(node, ast.AsyncFunctionDef):
+                        if not node.name.startswith('_') and not node.name.endswith('_async'):
+                            violations.append(
+                                f"Async function '{node.name}' should end with '_async': {py_file.relative_to(project_root)}:{node.lineno}"
+                            )
+
+            except Exception as e:
+                # Skip files that can't be parsed
+                continue
+
+    return len(violations) == 0, violations
+
+
+def validate_error_handling_standards(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 8: Error Handling Standards
+
+    Validate that:
+    - All apps use hive-error-handling base classes
+    - No bare exceptions in production code
+    - All errors include context and recovery strategies
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    for base_dir in [project_root / "apps", project_root / "packages"]:
+        if not base_dir.exists():
+            continue
+
+        for py_file in base_dir.rglob("*.py"):
+            if (".venv" in str(py_file) or "__pycache__" in str(py_file) or
+                "test" in str(py_file)):
+                continue
+
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Check for bare except clauses (except: without any exception type)
+                line_num = 0
+                for line in content.split('\n'):
+                    line_num += 1
+                    stripped = line.strip()
+                    if stripped == "except:" or (stripped.startswith("except:") and stripped[7:].strip().startswith("#")):
+                        violations.append(
+                            f"Bare except clause found: {py_file.relative_to(project_root)}:{line_num}"
+                        )
+
+                # Parse AST for more detailed checks
+                tree = ast.parse(content)
+
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.ExceptHandler):
+                        # Check if exception is re-raised or properly handled
+                        if node.type is None:  # bare except
+                            violations.append(
+                                f"Bare except without type: {py_file.relative_to(project_root)}:{node.lineno}"
+                            )
+
+            except Exception as e:
+                # Skip files that can't be parsed
+                continue
+
+    return len(violations) == 0, violations
+
+
+def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 9: Logging Standards
+
+    Validate that:
+    - All components use hive-logging
+    - No print statements in production code
+    - Structured logging with appropriate levels
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    for base_dir in [project_root / "apps", project_root / "packages"]:
+        if not base_dir.exists():
+            continue
+
+        for py_file in base_dir.rglob("*.py"):
+            if (".venv" in str(py_file) or "__pycache__" in str(py_file) or
+                "test" in str(py_file) or "example" in str(py_file) or
+                "demo" in str(py_file) or "__main__" in str(py_file.name) or
+                "hive_status.py" in str(py_file) or "cli.py" in str(py_file)):
+                continue
+
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Check for print statements in non-test, non-demo files
+                if "print(" in content:
+                    line_num = 0
+                    for line in content.split('\n'):
+                        line_num += 1
+                        if "print(" in line and not line.strip().startswith('#'):
+                            violations.append(
+                                f"Print statement in production code: {py_file.relative_to(project_root)}:{line_num}"
+                            )
+
+                # Check if file actually uses logging (not just mentions it in comments)
+                uses_logging = (
+                    "logger." in content or
+                    "logging." in content or
+                    "getLogger(" in content or
+                    "get_logger(" in content
+                )
+                if uses_logging:
+                    # Check for various valid hive_logging import patterns
+                    has_hive_logging = (
+                        "from hive_logging import" in content or
+                        "import hive_logging" in content or
+                        "from EcoSystemiser.hive_logging_adapter import" in content or
+                        "from .hive_logging_adapter import" in content or
+                        "hive_logging_adapter" in content
+                    )
+
+                    if not has_hive_logging:
+                        # Allow standard logging in infrastructure packages
+                        # Check if this is an infrastructure package
+                        is_infrastructure = False
+                        for part in py_file.parts:
+                            if part in ["hive-logging", "hive-testing-utils", "hive-config"]:
+                                is_infrastructure = True
+                                break
+
+                        if not is_infrastructure:
+                            violations.append(
+                                f"Uses logging but doesn't import hive_logging: {py_file.relative_to(project_root)}"
+                            )
+
+            except Exception as e:
+                # Skip files that can't be read
+                continue
+
+    return len(violations) == 0, violations

@@ -3,14 +3,14 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import sys, os, json
-import logging
+from hive_logging import get_logger
 
 # Attempt to import Systemiser logger, otherwise use fallback
 try:
     from Systemiser.utils.logger import setup_logging
     system_logger = setup_logging("SystemSetup", level=logging.INFO)
 except ImportError:
-    system_logger = logging.getLogger("SystemSetup_Fallback")
+    system_logger = get_logger("SystemSetup_Fallback")
     system_logger.warning("Could not import Systemiser logger, using fallback.")
     if not system_logger.handlers:
         handler = logging.StreamHandler()

@@ -14,11 +14,6 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 import sys
 
-# Add paths for Hive packages
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "packages" / "hive-bus" / "src"))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "packages" / "hive-core-db" / "src"))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "packages" / "hive-logging" / "src"))
-
 from rich.console import Console
 from rich.live import Live
 from rich.table import Table
@@ -28,10 +23,10 @@ from rich.text import Text
 from rich.layout import Layout
 
 try:
-    from hive_bus import get_event_bus, EventSubscriber
+    from hive_orchestrator.core.bus import get_event_bus, EventSubscriber
     from hive_logging import get_logger
 except ImportError as e:
-    print(f"Failed to import Hive packages: {e}")
+    logger.error(f"Failed to import Hive packages: {e}")
     sys.exit(1)
 
 console = Console()
@@ -320,14 +315,14 @@ class EventDashboard:
         # Subscribe to events
         subscription_id = self._subscribe_to_events()
         if not subscription_id:
-            console.print("[red]Failed to subscribe to events. Exiting.[/red]")
+            console.logger.error("[red]Failed to subscribe to events. Exiting.[/red]")
             return
 
         self.running = True
 
         try:
             with Live(self._create_dashboard_layout(), refresh_per_second=2, screen=True) as live:
-                console.print("[green]Event Dashboard started. Monitoring event flow...[/green]")
+                console.logger.info("[green]Event Dashboard started. Monitoring event flow...[/green]")
 
                 while self.running:
                     # Update the dashboard layout
@@ -335,10 +330,10 @@ class EventDashboard:
                     await asyncio.sleep(0.5)
 
         except KeyboardInterrupt:
-            console.print("\n[yellow]Dashboard stopped by user[/yellow]")
+            console.logger.info("\n[yellow]Dashboard stopped by user[/yellow]")
         except Exception as e:
             logger.error(f"Dashboard error: {e}")
-            console.print(f"[red]Dashboard error: {e}[/red]")
+            console.logger.error(f"[red]Dashboard error: {e}[/red]")
         finally:
             self.running = False
             logger.info("Event Dashboard stopped")
@@ -346,7 +341,7 @@ class EventDashboard:
     def show_workflow_trace(self, correlation_id: str):
         """Show detailed trace for a specific workflow"""
         if correlation_id not in self.workflow_states:
-            console.print(f"[red]Workflow {correlation_id} not found[/red]")
+            console.logger.info(f"[red]Workflow {correlation_id} not found[/red]")
             return
 
         workflow = self.workflow_states[correlation_id]
@@ -360,20 +355,20 @@ class EventDashboard:
             time_str = event["timestamp"].strftime("%H:%M:%S")
             table.add_row(time_str, event["event_type"], event["source"])
 
-        console.print(table)
+        console.logger.info(table)
 
     def show_agent_details(self, agent_name: str):
         """Show detailed information for a specific agent"""
         if agent_name not in self.agent_activity:
-            console.print(f"[red]Agent {agent_name} not found[/red]")
+            console.logger.info(f"[red]Agent {agent_name} not found[/red]")
             return
 
         activity = self.agent_activity[agent_name]
 
-        console.print(f"\n[bold cyan]Agent: {agent_name}[/bold cyan]")
-        console.print(f"Last Seen: {activity['last_seen']}")
-        console.print(f"Total Events: {activity['event_count']}")
-        console.print(f"Event Types: {', '.join(activity['event_types'])}")
+        console.logger.info(f"\n[bold cyan]Agent: {agent_name}[/bold cyan]")
+        console.logger.info(f"Last Seen: {activity['last_seen']}")
+        console.logger.info(f"Total Events: {activity['event_count']}")
+        console.logger.info(f"Event Types: {', '.join(activity['event_types'])}")
 
 
 def main():
@@ -383,9 +378,9 @@ def main():
     try:
         asyncio.run(dashboard.run())
     except KeyboardInterrupt:
-        console.print("\n[yellow]Goodbye![/yellow]")
+        console.logger.info("\n[yellow]Goodbye![/yellow]")
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.logger.error(f"[red]Error: {e}[/red]")
         logger.error(f"Dashboard startup error: {e}")
 
 

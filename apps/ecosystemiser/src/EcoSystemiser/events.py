@@ -10,8 +10,8 @@ from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from hive_bus import Event, create_workflow_event
-from hive_bus.events import WorkflowEventType
+# Import from our local hive_bus module
+from EcoSystemiser.hive_bus import Event, create_workflow_event, WorkflowEventType
 
 
 class EcoSystemiserEventType:

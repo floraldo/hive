@@ -7,7 +7,7 @@ executable plans for complex tasks submitted to the Hive system.
 """
 
 import time
-import logging
+from hive_logging import get_logger
 import sqlite3
 import json
 import uuid
@@ -44,24 +44,22 @@ from hive_errors import (
     with_recovery
 )
 
-# Event bus imports for explicit agent communication
+# Use path manager for proper import resolution
+from hive_config.path_manager import setup_hive_paths
+setup_hive_paths()
+
+# Database imports - use orchestrator's extended database layer for Hive schema
 try:
-    from hive_bus import get_event_bus, create_workflow_event, WorkflowEventType, create_task_event, TaskEventType
-    # Try to import async event bus operations
-    try:
-        from hive_bus.event_bus import get_async_event_bus, publish_event_async
-        ASYNC_EVENTS_AVAILABLE = True
-    except ImportError:
-        ASYNC_EVENTS_AVAILABLE = False
+    # Import the orchestrator's Hive-specific database layer (extends hive-db-utils)
+    from hive_orchestrator.core.db import get_database, get_pooled_connection
+    DATABASE_AVAILABLE = True
 except ImportError:
-    # Fallback for development environments
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "packages" / "hive-bus" / "src"))
-    from hive_bus import get_event_bus, create_workflow_event, WorkflowEventType, create_task_event, TaskEventType
-    try:
-        from hive_bus.event_bus import get_async_event_bus, publish_event_async
-        ASYNC_EVENTS_AVAILABLE = True
-    except ImportError:
-        ASYNC_EVENTS_AVAILABLE = False
+    # Fallback to generic database utilities if orchestrator not available
+    from hive_db_utils import get_config
+    DATABASE_AVAILABLE = False
+
+# Note: AI Planner communicates with orchestrator through shared database
+# This maintains app independence while accessing Hive-specific schema
 
 # Configure logging
 logging.basicConfig(
@@ -72,7 +70,7 @@ logging.basicConfig(
         logging.FileHandler('ai-planner.log')
     ]
 )
-logger = logging.getLogger('ai-planner')
+logger = get_logger('ai-planner')
 
 class AIPlanner:
     """
@@ -968,7 +966,7 @@ def main():
     args = parser.parse_args()
 
     if args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
+        get_logger().setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled")
 
     try:

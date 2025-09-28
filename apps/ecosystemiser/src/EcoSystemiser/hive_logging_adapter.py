@@ -6,7 +6,7 @@ centralized logging infrastructure while maintaining backward compatibility.
 """
 
 import sys
-import logging
+from hive_logging import get_logger
 from pathlib import Path
 from typing import Optional
 
@@ -18,13 +18,13 @@ try:
 except ImportError:
     # Fallback to local structlog-based logging
     try:
-        from .profile_loader.climate.logging_config import get_logger, setup_logging
+        from EcoSystemiser.profile_loader.climate.logging_config import get_logger, setup_logging
         USING_HIVE_LOGGING = False
     except ImportError:
         # Last resort: basic Python logging
         def get_logger(name: str) -> logging.Logger:
             """Get a basic logger"""
-            return logging.getLogger(name)
+            return get_logger(name)
 
         def setup_logging(
             name: str = "ecosystemiser",

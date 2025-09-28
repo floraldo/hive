@@ -5,7 +5,7 @@ Adapted from SmartHoodsOptimisationTool Apper project
 """
 
 import os
-import logging
+from hive_logging import get_logger
 import time
 from pathlib import Path
 from typing import Optional, Dict, Any, Tuple
@@ -21,7 +21,7 @@ SERVER_USER = "smarthoo"
 NGINX_USER_GROUP = "www-data"
 
 # Configure a logger for this module
-log = logging.getLogger("hive_deployment")
+log = get_logger("hive_deployment")
 
 # --- Core Deployment Functions ---
 

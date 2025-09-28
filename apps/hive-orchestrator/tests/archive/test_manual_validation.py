@@ -14,10 +14,10 @@ import time
 
 # Setup paths
 project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root / "apps" / "hive-orchestrator" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-utils" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-logging" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-core-db" / "src"))
+# No sys.path manipulation needed - use Poetry workspace imports
+# No sys.path manipulation needed - use Poetry workspace imports
+# No sys.path manipulation needed - use Poetry workspace imports
+# No sys.path manipulation needed - use Poetry workspace imports
 
 from hive_utils.paths import DB_PATH
 

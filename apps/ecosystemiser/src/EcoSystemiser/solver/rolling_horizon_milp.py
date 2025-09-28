@@ -5,9 +5,9 @@ import numpy as np
 import cvxpy as cp
 from datetime import datetime, timedelta
 
-from .base import BaseSolver, SolverConfig, SolverResult
-from .milp_solver import MILPSolver
-from ..system_model.system import System
+from EcoSystemiser.solver.base import BaseSolver, SolverConfig, SolverResult
+from EcoSystemiser.solver.milp_solver import MILPSolver
+from EcoSystemiser.system_model.system import System
 
 logger = get_logger(__name__)
 
@@ -123,6 +123,9 @@ class RollingHorizonMILPSolver(BaseSolver):
                 violations = self._update_storage_states(window_result, window)
                 storage_violations.extend(violations)
 
+                # Enhanced: Store solution vectors for warm-starting
+                solution_vectors = self._extract_solution_vectors(window_result, window)
+
                 all_window_results.append({
                     'window_index': window_idx,
                     'start_time': window['start'],
@@ -130,7 +133,8 @@ class RollingHorizonMILPSolver(BaseSolver):
                     'status': window_result.status,
                     'solve_time': window_result.solve_time,
                     'objective_value': window_result.objective_value,
-                    'iterations': window_result.iterations
+                    'iterations': window_result.iterations,
+                    'solution_vectors': solution_vectors  # Store for warm-starting
                 })
 
                 self.total_solve_time += window_result.solve_time
@@ -321,37 +325,106 @@ class RollingHorizonMILPSolver(BaseSolver):
             logger.debug("No previous solution for warmstart")
             return
 
-        # Get the last successful window result
+        # Get the last successful window result with solution vectors
         last_result = None
         for result_data in reversed(self.window_results):
-            if result_data.get('status') in ['optimal', 'feasible']:
+            if (result_data.get('status') in ['optimal', 'feasible'] and
+                'solution_vectors' in result_data):
                 last_result = result_data
                 break
 
-        if not last_result:
-            logger.debug("No successful previous solution for warmstart")
+        if not last_result or 'solution_vectors' not in last_result:
+            logger.debug("No successful previous solution with vectors for warmstart")
             return
 
         try:
             # Get overlap region indices
-            overlap_start = max(0, window['start'] - self.rh_config.overlap_hours)
-            overlap_length = min(self.rh_config.overlap_hours, window['start'])
+            overlap_start = window['start'] - last_result['start_time']
+            overlap_length = min(
+                self.rh_config.overlap_hours,
+                last_result['end_time'] - window['start']
+            )
 
             if overlap_length <= 0:
                 logger.debug("No overlap region for warmstart")
                 return
 
-            # Apply warmstart values to overlapping variables
-            for comp_name, comp in solver.system.components.items():
-                if comp_name in self.storage_states:
-                    # Warmstart storage variables if available
-                    if hasattr(comp, 'E_opt') and hasattr(comp, 'E_opt'):
-                        # Set initial guess for storage levels
-                        # CVXPY warmstart would use: comp.E_opt.value = warmstart_values
-                        # For now, we rely on initial storage state setting
-                        logger.debug(f"Warmstart prepared for storage {comp_name}")
+            solution_vectors = last_result.get('solution_vectors', {})
+            warmstart_count = 0
 
-            logger.debug(f"Applied warmstart for window starting at {window['start']}")
+            # Apply warmstart values to all components
+            for comp_name, comp in solver.system.components.items():
+                if comp_name not in solution_vectors:
+                    continue
+
+                comp_vectors = solution_vectors[comp_name]
+
+                # Enhanced warm-starting: Apply solution vectors as initial values
+                # This provides the solver with a good starting point
+
+                # Warmstart power input variables
+                if 'P_in' in comp_vectors and hasattr(comp, 'P_in_opt'):
+                    try:
+                        # Shift the solution vector to align with new window
+                        shifted_values = comp_vectors['P_in'][overlap_start:overlap_start+overlap_length]
+                        if len(shifted_values) > 0:
+                            # CVXPY warm-start: set initial value
+                            if hasattr(comp.P_in_opt, 'value'):
+                                comp.P_in_opt.value = np.pad(
+                                    shifted_values,
+                                    (0, max(0, window['length'] - len(shifted_values))),
+                                    'constant'
+                                )
+                                warmstart_count += 1
+                    except Exception as e:
+                        logger.debug(f"Could not warmstart P_in for {comp_name}: {e}")
+
+                # Warmstart power output variables
+                if 'P_out' in comp_vectors and hasattr(comp, 'P_out_opt'):
+                    try:
+                        shifted_values = comp_vectors['P_out'][overlap_start:overlap_start+overlap_length]
+                        if len(shifted_values) > 0 and hasattr(comp.P_out_opt, 'value'):
+                            comp.P_out_opt.value = np.pad(
+                                shifted_values,
+                                (0, max(0, window['length'] - len(shifted_values))),
+                                'constant'
+                            )
+                            warmstart_count += 1
+                    except Exception as e:
+                        logger.debug(f"Could not warmstart P_out for {comp_name}: {e}")
+
+                # Warmstart energy/storage variables
+                if 'E' in comp_vectors and hasattr(comp, 'E_opt'):
+                    try:
+                        shifted_values = comp_vectors['E'][overlap_start:overlap_start+overlap_length]
+                        if len(shifted_values) > 0 and hasattr(comp.E_opt, 'value'):
+                            # For storage, also use the final value to extend
+                            final_value = comp_vectors['E'][-1] if len(comp_vectors['E']) > 0 else 0
+                            comp.E_opt.value = np.pad(
+                                shifted_values,
+                                (0, max(0, window['length'] - len(shifted_values))),
+                                'constant',
+                                constant_values=final_value
+                            )
+                            warmstart_count += 1
+                    except Exception as e:
+                        logger.debug(f"Could not warmstart E for {comp_name}: {e}")
+
+                # Warmstart binary variables (on/off states)
+                if 'on' in comp_vectors and hasattr(comp, 'on_opt'):
+                    try:
+                        shifted_values = comp_vectors['on'][overlap_start:overlap_start+overlap_length]
+                        if len(shifted_values) > 0 and hasattr(comp.on_opt, 'value'):
+                            comp.on_opt.value = np.pad(
+                                shifted_values,
+                                (0, max(0, window['length'] - len(shifted_values))),
+                                'constant'
+                            )
+                            warmstart_count += 1
+                    except Exception as e:
+                        logger.debug(f"Could not warmstart on for {comp_name}: {e}")
+
+            logger.info(f"Applied warmstart to {warmstart_count} variables for window starting at {window['start']}")
 
         except Exception as e:
             logger.warning(f"Warmstart failed: {e}, continuing without warmstart")
@@ -714,3 +787,48 @@ class RollingHorizonMILPSolver(BaseSolver):
             validation['status'] = 'error'
 
         return validation
+
+    def _extract_solution_vectors(self, window_result: SolverResult, window: Dict[str, int]) -> Dict[str, Any]:
+        """Extract solution vectors from window result for warm-starting.
+
+        Args:
+            window_result: Result from window optimization
+            window: Window specification
+
+        Returns:
+            Dictionary of solution vectors by component and variable
+        """
+        solution_vectors = {}
+
+        try:
+            # Extract solution vectors from each component
+            for comp_name, comp in self.system.components.items():
+                comp_vectors = {}
+
+                # Extract energy/power decision variables
+                if hasattr(comp, 'P_in') and hasattr(comp.P_in, 'value') and comp.P_in.value is not None:
+                    comp_vectors['P_in'] = np.array(comp.P_in.value).copy()
+
+                if hasattr(comp, 'P_out') and hasattr(comp.P_out, 'value') and comp.P_out.value is not None:
+                    comp_vectors['P_out'] = np.array(comp.P_out.value).copy()
+
+                if hasattr(comp, 'E') and hasattr(comp.E, 'value') and comp.E.value is not None:
+                    comp_vectors['E'] = np.array(comp.E.value).copy()
+
+                # Extract binary decision variables
+                if hasattr(comp, 'on') and hasattr(comp.on, 'value') and comp.on.value is not None:
+                    comp_vectors['on'] = np.array(comp.on.value).copy()
+
+                if hasattr(comp, 'startup') and hasattr(comp.startup, 'value') and comp.startup.value is not None:
+                    comp_vectors['startup'] = np.array(comp.startup.value).copy()
+
+                if hasattr(comp, 'shutdown') and hasattr(comp.shutdown, 'value') and comp.shutdown.value is not None:
+                    comp_vectors['shutdown'] = np.array(comp.shutdown.value).copy()
+
+                if comp_vectors:
+                    solution_vectors[comp_name] = comp_vectors
+
+        except Exception as e:
+            logger.warning(f"Failed to extract solution vectors: {e}")
+
+        return solution_vectors

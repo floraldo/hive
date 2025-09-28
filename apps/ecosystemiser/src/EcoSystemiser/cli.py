@@ -12,6 +12,7 @@ import yaml
 from typing import Dict, Any
 
 from EcoSystemiser.profile_loader.climate import get_profile_sync, ClimateRequest
+from EcoSystemiser.reporting.generator import create_standalone_html_report
 
 logger = get_logger(__name__)
 
@@ -937,8 +938,8 @@ def generate(results_file, output):
         if 'economic' in analyses:
             plots['economic_summary'] = plot_factory.create_economic_summary_plot(analyses['economic'])
 
-        # Create basic HTML report
-        html_content = _create_standalone_html_report(analysis_results, plots)
+        # Create HTML report using centralized generator
+        html_content = create_standalone_html_report(analysis_results, plots)
 
         # Save report
         output_path = Path(output)
@@ -957,104 +958,6 @@ def generate(results_file, output):
         logger.error(f"Report generation failed: {e}")
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
-
-def _create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
-    """Create a basic standalone HTML report."""
-    summary = analysis_results.get('summary', {})
-
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>EcoSystemiser Analysis Report</title>
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            .metric {{ display: inline-block; margin: 20px; text-align: center; }}
-            .metric-value {{ font-size: 2em; font-weight: bold; color: #2E7D32; }}
-            .metric-label {{ color: #666; }}
-            .plot {{ margin: 30px 0; }}
-            table {{ border-collapse: collapse; width: 100%; }}
-            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #f2f2f2; }}
-        </style>
-    </head>
-    <body>
-        <h1>EcoSystemiser Analysis Report</h1>
-
-        <h2>Summary</h2>
-        <div class="metric">
-            <div class="metric-value">{summary.get('successful_analyses', 0)}</div>
-            <div class="metric-label">Successful Analyses</div>
-        </div>
-        <div class="metric">
-            <div class="metric-value">{summary.get('failed_analyses', 0)}</div>
-            <div class="metric-label">Failed Analyses</div>
-        </div>
-    """
-
-    # Add key metrics if available
-    key_metrics = summary.get('key_metrics', {})
-    if key_metrics:
-        if 'grid_self_sufficiency' in key_metrics:
-            html += f"""
-        <div class="metric">
-            <div class="metric-value">{key_metrics['grid_self_sufficiency']:.1%}</div>
-            <div class="metric-label">Grid Self-Sufficiency</div>
-        </div>
-            """
-        if 'renewable_fraction' in key_metrics:
-            html += f"""
-        <div class="metric">
-            <div class="metric-value">{key_metrics['renewable_fraction']:.1%}</div>
-            <div class="metric-label">Renewable Fraction</div>
-        </div>
-            """
-
-    # Add plots
-    html += '<h2>Visualizations</h2>'
-    for plot_name in plots.keys():
-        html += f'<div id="{plot_name}" class="plot"></div>'
-
-    # Add analysis results in tables
-    analyses = analysis_results.get('analyses', {})
-    if analyses:
-        html += '<h2>Detailed Results</h2>'
-
-        for analysis_name, analysis_data in analyses.items():
-            if 'error' not in analysis_data:
-                html += f'<h3>{analysis_name.replace("_", " ").title()}</h3>'
-                html += '<table>'
-
-                for key, value in analysis_data.items():
-                    if key not in ['analysis_type', 'analysis_version']:
-                        if isinstance(value, (int, float)):
-                            if 0 <= value <= 1:
-                                formatted_value = f"{value:.1%}"
-                            else:
-                                formatted_value = f"{value:.2f}"
-                        else:
-                            formatted_value = str(value)[:100]  # Truncate long values
-
-                        html += f'<tr><td>{key.replace("_", " ").title()}</td><td>{formatted_value}</td></tr>'
-
-                html += '</table>'
-
-    # Add script to render plots
-    html += f"""
-        <script>
-        const plots = {json.dumps(plots)};
-        Object.keys(plots).forEach(key => {{
-            if (plots[key] && document.getElementById(key)) {{
-                Plotly.newPlot(key, plots[key], {{}}, {{responsive: true}});
-            }}
-        }});
-        </script>
-    </body>
-    </html>
-    """
-
-    return html
 
 if __name__ == '__main__':
     cli()

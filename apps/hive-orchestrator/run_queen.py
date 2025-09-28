@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Run the Queen orchestrator as a module with proper Python paths.
@@ -7,10 +10,6 @@ This is the recommended way to run Queen on Windows.
 import sys
 import os
 from pathlib import Path
-
-# Add packages path first for hive-config
-project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root / "packages" / "hive-config" / "src"))
 
 # Configure all Hive paths centrally
 from hive_config import setup_hive_paths
@@ -29,13 +28,13 @@ def main():
     parser.add_argument("--live", action="store_true", help="Enable live streaming output from workers")
     args = parser.parse_args()
 
-    print("=" * 70)
-    print("Starting Hive Queen Orchestrator")
-    print("=" * 70)
-    print(f"Project root: {project_root}")
-    print(f"Python: {sys.executable}")
-    print(f"Live output: {args.live}")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("Starting Hive Queen Orchestrator")
+    logger.info("=" * 70)
+    logger.info(f"Project root: {project_root}")
+    logger.info(f"Python: {sys.executable}")
+    logger.info(f"Live output: {args.live}")
+    logger.info("=" * 70)
 
     # Create HiveCore instance (the shared Hive Mind)
     hive_core = HiveCore()
@@ -46,10 +45,10 @@ def main():
     try:
         queen.run_forever()
     except KeyboardInterrupt:
-        print("\n[QUEEN] Shutting down gracefully...")
+        logger.info("\n[QUEEN] Shutting down gracefully...")
         sys.exit(0)
     except Exception as e:
-        print(f"[QUEEN] Fatal error: {e}")
+        logger.error(f"[QUEEN] Fatal error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

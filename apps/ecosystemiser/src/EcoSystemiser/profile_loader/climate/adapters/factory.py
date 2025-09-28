@@ -13,8 +13,8 @@ from EcoSystemiser.hive_logging_adapter import get_logger
 from typing import Dict, Type, Optional, Any
 
 from EcoSystemiser.settings import get_settings
-from .base import BaseAdapter
-from ..config_models import HTTPConfig, RateLimitConfig, CacheConfig
+from EcoSystemiser.profile_loader.climate.base import BaseAdapter
+from EcoSystemiser.profile_loader.config_models import HTTPConfig, RateLimitConfig, CacheConfig
 
 logger = get_logger(__name__)
 
@@ -152,11 +152,11 @@ def _auto_register_adapters():
     # Import adapters to trigger their registration decorators
     try:
         # Use proper relative imports - no sys.path manipulation needed
-        from .nasa_power import NASAPowerAdapter
-        from .meteostat import MeteostatAdapter
-        from .era5 import ERA5Adapter
-        from .pvgis import PVGISAdapter
-        from .file_epw import EPWAdapter as FileEPWAdapter
+        from EcoSystemiser.profile_loader.climate.nasa_power import NASAPowerAdapter
+        from EcoSystemiser.profile_loader.climate.meteostat import MeteostatAdapter
+        from EcoSystemiser.profile_loader.climate.era5 import ERA5Adapter
+        from EcoSystemiser.profile_loader.climate.pvgis import PVGISAdapter
+        from EcoSystemiser.profile_loader.climate.file_epw import EPWAdapter
         
         # Manual registration as fallback if decorators weren't used
         if "nasa_power" not in _adapter_registry:

@@ -1,9 +1,9 @@
 """Factory for creating solver instances."""
 from typing import Optional, Dict, Type
-from .base import BaseSolver, SolverConfig
-from .rule_based_engine import RuleBasedEngine
-from .milp_solver import MILPSolver
-from .rolling_horizon_milp import RollingHorizonMILPSolver
+from EcoSystemiser.solver.base import BaseSolver, SolverConfig
+from EcoSystemiser.solver.rule_based_engine import RuleBasedEngine
+from EcoSystemiser.solver.milp_solver import MILPSolver
+from EcoSystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
 
 class SolverFactory:
     """Factory for creating solver instances based on type."""

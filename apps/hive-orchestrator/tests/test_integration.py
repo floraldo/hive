@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock
 import sys
 
 # Add the source path for testing
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# No sys.path manipulation needed - use Poetry workspace imports
 
 from hive_orchestrator.cli import cli
 from hive_orchestrator.clean_hive import clean_database, main as clean_main

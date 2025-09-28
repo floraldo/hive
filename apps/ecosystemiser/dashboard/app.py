@@ -123,7 +123,7 @@ with st.sidebar:
     # Data source
     try:
         available_sources = list_available_adapters()
-    except:
+    except Exception as e:
         available_sources = ["nasa_power", "meteostat", "pvgis", "era5", "epw"]
     
     source = st.selectbox("Data Source", available_sources, index=0)

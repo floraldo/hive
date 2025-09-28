@@ -7,12 +7,54 @@ import requests
 import json
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
+from dataclasses import dataclass, field
+from abc import ABC, abstractmethod
 from EcoSystemiser.hive_logging_adapter import get_logger
-from .base import BaseAdapter
-from .capabilities import (
-    AdapterCapabilities, TemporalCoverage, SpatialCoverage,
-    DataFrequency, AuthType, RateLimits, QualityFeatures
-)
+from EcoSystemiser.profile_loader.climate.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+
+# Import QC classes
+try:
+    from EcoSystemiser.profile_loader.climate.processing.validation import QCProfile, QCIssue, QCSeverity, QCReport
+except ImportError:
+    # Fallback: Define minimal QC classes for testing
+    from abc import ABC, abstractmethod
+    from enum import Enum
+
+    class QCSeverity(Enum):
+        LOW = "low"
+        MEDIUM = "medium"
+        HIGH = "high"
+
+    @dataclass
+    class QCIssue:
+        type: str
+        message: str
+        severity: QCSeverity
+        affected_variables: List[str]
+        suggested_action: str
+
+    @dataclass
+    class QCReport:
+        passed_checks: List[str] = field(default_factory=list)
+
+        def add_issue(self, issue: QCIssue):
+            pass
+
+    class QCProfile(ABC):
+        def __init__(self, name: str, description: str, known_issues: List[str],
+                     recommended_variables: List[str], temporal_resolution_limits: Dict[str, str],
+                     spatial_accuracy: Optional[str] = None):
+            self.name = name
+            self.description = description
+            self.known_issues = known_issues
+            self.recommended_variables = recommended_variables
+            self.temporal_resolution_limits = temporal_resolution_limits
+            self.spatial_accuracy = spatial_accuracy
+
+        @abstractmethod
+        def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
+            pass
 
 logger = get_logger(__name__)
 
@@ -91,7 +133,7 @@ class PVGISAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize PVGIS adapter"""
-        from .base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (PVGIS is free but be reasonable)
         rate_config = RateLimitConfig(
@@ -702,3 +744,119 @@ class PVGISAdapter(BaseAdapter):
             
             data_products=["Hourly", "Daily", "Monthly", "TMY", "PV Performance"]
         )
+
+class PVGISQCProfile:
+    """QC profile for PVGIS solar data - co-located with adapter for better cohesion."""
+
+    def __init__(self):
+        self.name = "PVGIS"
+        self.description = "Photovoltaic Geographical Information System - optimized for solar applications"
+        self.known_issues = [
+            "Limited to solar radiation and basic meteorological variables",
+            "Regional variations in satellite data quality",
+            "May not include latest years of data",
+            "Optimized for PV applications, may not suit other uses"
+        ]
+        self.recommended_variables = [
+            "ghi", "dni", "dhi", "temp_air", "wind_speed"
+        ]
+        self.temporal_resolution_limits = {
+            "solar": "hourly",
+            "temp_air": "hourly"
+        }
+        self.spatial_accuracy = "Varies by region: 1-5km resolution"
+
+    def validate_source_specific(self, ds: xr.Dataset, report) -> None:
+        """PVGIS specific validation"""
+
+        # Check solar radiation quality (PVGIS specialty)
+        solar_vars = ['ghi', 'dni', 'dhi']
+        present_solar = [var for var in solar_vars if var in ds]
+
+        if present_solar:
+            # PVGIS should have high-quality solar data
+            for var in present_solar:
+                data = ds[var].values
+                missing_percent = (np.sum(np.isnan(data)) / len(data)) * 100
+
+                if missing_percent > 5:  # PVGIS should have minimal gaps
+                    report.warnings.append(
+                        f"Unexpected missing data in PVGIS {var}: {missing_percent:.1f}% - verify data completeness"
+                    )
+
+        # Check for non-solar variables (limited in PVGIS)
+        non_solar_vars = [var for var in ds.data_vars if var not in ['ghi', 'dni', 'dhi', 'temp_air', 'wind_speed']]
+        if non_solar_vars:
+            report.warnings.append(
+                f"PVGIS has limited non-solar variables: {non_solar_vars} - consider additional data sources"
+            )
+
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
+        """Get source-specific adjusted bounds"""
+        return base_bounds
+
+
+class PVGISQCProfile(QCProfile):
+    """QC profile for PVGIS solar data"""
+
+    def __init__(self):
+        super().__init__(
+            name="PVGIS",
+            description="Photovoltaic Geographical Information System - optimized for solar applications",
+            known_issues=[
+                "Limited to solar radiation and basic meteorological variables",
+                "Regional variations in satellite data quality",
+                "May not include latest years of data",
+                "Optimized for PV applications, may not suit other uses"
+            ],
+            recommended_variables=[
+                "ghi", "dni", "dhi", "temp_air", "wind_speed"
+            ],
+            temporal_resolution_limits={
+                "solar": "hourly",
+                "temp_air": "hourly"
+            },
+            spatial_accuracy="Varies by region: 1-5km resolution"
+        )
+
+    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
+        """PVGIS specific validation"""
+
+        # Check solar radiation quality (PVGIS specialty)
+        solar_vars = ['ghi', 'dni', 'dhi']
+        present_solar = [var for var in solar_vars if var in ds]
+
+        if present_solar:
+            # PVGIS should have high-quality solar data
+            for var in present_solar:
+                data = ds[var].values
+                missing_percent = (np.sum(np.isnan(data)) / len(data)) * 100
+
+                if missing_percent > 5:  # PVGIS should have minimal gaps
+                    issue = QCIssue(
+                        type="data_completeness",
+                        message=f"Unexpected missing data in PVGIS {var}: {missing_percent:.1f}%",
+                        severity=QCSeverity.MEDIUM,
+                        affected_variables=[var],
+                        suggested_action="Verify PVGIS data completeness for this location/period"
+                    )
+                    report.add_issue(issue)
+
+        # Check for non-solar variables (limited in PVGIS)
+        non_solar_vars = [var for var in ds.data_vars if var not in ['ghi', 'dni', 'dhi', 'temp_air', 'wind_speed']]
+        if non_solar_vars:
+            issue = QCIssue(
+                type="source_limitation",
+                message=f"PVGIS has limited non-solar variables: {non_solar_vars}",
+                severity=QCSeverity.LOW,
+                affected_variables=non_solar_vars,
+                suggested_action="Consider additional data sources for comprehensive meteorological data"
+            )
+            report.add_issue(issue)
+
+        report.passed_checks.append("pvgis_specific_validation")
+
+
+def get_qc_profile() -> PVGISQCProfile:
+    """Get the QC profile for PVGIS adapter"""
+    return PVGISQCProfile()

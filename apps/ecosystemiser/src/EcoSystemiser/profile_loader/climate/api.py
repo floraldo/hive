@@ -28,8 +28,8 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 
-from .data_models import ClimateRequest, ClimateResponse, Mode, Resolution
-from .job_manager import JobManager, JobStatus as JobStatusEnum, get_job_manager
+from EcoSystemiser.profile_loader.data_models import ClimateRequest, ClimateResponse, Mode, Resolution
+from EcoSystemiser.profile_loader.job_manager import JobManager, JobStatus, get_job_manager
 from EcoSystemiser.errors import (
     ClimateError,
     ValidationError,
@@ -528,7 +528,7 @@ async def process_climate_request(
     Process single climate request using the actual climate service.
     """
     # Get the enhanced climate service
-    from .service import get_enhanced_climate_service
+    from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
     
     service = get_enhanced_climate_service()
     
@@ -572,12 +572,25 @@ async def stream_as_ndjson(
         end_idx = min(i + chunk_size, total_size)
         chunk_ds = ds.isel({time_dim: slice(i, end_idx)})
         
-        # Convert only this chunk to DataFrame
-        chunk_df = chunk_ds.to_dataframe()
-        
-        # Stream each row as JSON
-        for _, row in chunk_df.iterrows():
-            json_line = row.to_json() + "\n"
+        # Optimized: Stream each time point as JSON using xarray native operations
+        for time_idx in range(len(chunk_ds[time_dim])):
+            # Select single time point using xarray
+            time_point = chunk_ds.isel({time_dim: time_idx})
+
+            # Build JSON record directly from xarray data
+            record = {}
+            record['time'] = str(time_point[time_dim].values)
+
+            for var_name in time_point.data_vars:
+                var_data = time_point[var_name]
+                if var_data.dims:  # Has spatial dimensions
+                    # Convert to dict maintaining spatial structure
+                    record[var_name] = var_data.to_dict()['data']
+                else:  # Scalar value
+                    val = float(var_data.values)
+                    record[var_name] = val if not np.isnan(val) else None
+
+            json_line = json.dumps(record, default=str) + "\n"
             yield json_line.encode()
 
 async def stream_as_csv(
@@ -589,9 +602,19 @@ async def stream_as_csv(
     time_dim = 'time' if 'time' in ds.dims else list(ds.dims)[0]
     total_size = len(ds[time_dim])
     
-    # Yield header from first small chunk
-    first_chunk = ds.isel({time_dim: slice(0, 1)}).to_dataframe()
-    header = ",".join(first_chunk.columns) + "\n"
+    # Yield header using xarray metadata (avoid DataFrame conversion)
+    # Build header from dataset variables and dimensions
+    header_cols = []
+
+    # Add dimension columns first (e.g., time, lat, lon if they exist)
+    for dim in ds.dims:
+        if dim != time_dim:  # Time is typically the index, not a column
+            header_cols.append(dim)
+
+    # Add data variable columns
+    header_cols.extend(ds.data_vars.keys())
+
+    header = ",".join(header_cols) + "\n"
     yield header.encode()
     
     # Yield data chunks without loading entire dataset
@@ -737,10 +760,10 @@ async def analyze_climate_data(
     
     try:
         # Import processing modules
-        from .analysis.statistics import calculate_statistics
-        from .analysis.extremes import analyze_extremes
-        from .analysis.building_science import derive_building_variables, calculate_design_conditions
-        from .service import get_enhanced_climate_service
+        from EcoSystemiser.profile_loader.analysis.statistics import calculate_statistics
+        from EcoSystemiser.profile_loader.analysis.extremes import analyze_extremes
+        from EcoSystemiser.profile_loader.analysis.building_science import derive_building_variables, calculate_design_conditions
+        from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
         
         # Get data using climate service (will be preprocessed)
         service = get_enhanced_climate_service()
@@ -829,7 +852,7 @@ async def get_climate_profile(
         correlation_id = str(uuid.uuid4())
     
     try:
-        from .service import get_enhanced_climate_service
+        from EcoSystemiser.profile_loader.service import get_enhanced_climate_service
         
         # Configure service with processing options
         service = get_enhanced_climate_service()

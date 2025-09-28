@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Literal
 from EcoSystemiser.hive_logging_adapter import get_logger
-from ..data_models import CANONICAL_VARIABLES
+from EcoSystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
 from EcoSystemiser.profile_loader.shared.timeseries import zero_night_irradiance
 
 logger = get_logger(__name__)

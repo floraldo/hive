@@ -7,7 +7,7 @@ import random
 from concurrent.futures import ThreadPoolExecutor
 import copy
 
-from .base import BaseOptimizationAlgorithm, OptimizationConfig, OptimizationResult
+from EcoSystemiser.discovery.base import BaseOptimizationAlgorithm, OptimizationConfig, OptimizationResult
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)

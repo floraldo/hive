@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Fix Unicode symbols in Python source files to prevent encoding issues.
@@ -46,7 +49,7 @@ def fix_unicode_in_file(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
     except UnicodeDecodeError:
-        print(f"Skipping {filepath} - encoding issue")
+        logger.info(f"Skipping {filepath} - encoding issue")
         return False
     
     original_content = content
@@ -56,7 +59,7 @@ def fix_unicode_in_file(filepath):
     if content != original_content:
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
-        print(f"Fixed: {filepath}")
+        logger.info(f"Fixed: {filepath}")
         return True
     return False
 
@@ -65,7 +68,7 @@ def main():
     src_dir = Path(__file__).parent / 'src'
     
     if not src_dir.exists():
-        print(f"Source directory not found: {src_dir}")
+        logger.info(f"Source directory not found: {src_dir}")
         return 1
     
     fixed_count = 0
@@ -76,7 +79,7 @@ def main():
         if fix_unicode_in_file(py_file):
             fixed_count += 1
     
-    print(f"\nProcessed {total_count} files, fixed {fixed_count} files")
+    logger.info(f"\nProcessed {total_count} files, fixed {fixed_count} files")
     return 0
 
 if __name__ == '__main__':

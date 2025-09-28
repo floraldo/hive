@@ -1,0 +1,29 @@
+[app]
+name = "systemiser"
+version = "0.1.0"
+description = "Legacy system analysis and optimization toolkit"
+type = "utility"
+
+[tasks.analyze]
+description = "Analyze system performance and generate optimization recommendations"
+command = "python -m Systemiser.main analyze"
+timeout_seconds = 600
+
+[tasks.optimize]
+description = "Apply optimization recommendations to system configuration"
+command = "python -m Systemiser.main optimize"
+timeout_seconds = 300
+
+[tasks.report]
+description = "Generate system analysis reports"
+command = "python -m Systemiser.main report"
+timeout_seconds = 120
+
+[capabilities]
+analysis = ["system-performance", "resource-utilization", "bottleneck-detection"]
+optimization = ["configuration-tuning", "resource-allocation", "performance-enhancement"]
+reporting = ["performance-reports", "optimization-recommendations", "system-health"]
+
+[dependencies]
+requires = ["hive-config"]
+optional = ["hive-logging", "hive-core-db"]

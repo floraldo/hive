@@ -17,27 +17,27 @@ from pathlib import Path
 import pandas as pd
 import re
 
-from .data_models import ClimateRequest, ClimateResponse, CANONICAL_VARIABLES
+from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse, CANONICAL_VARIABLES
 from EcoSystemiser.errors import (
     ClimateError, AdapterError, ValidationError,
     ProcessingError, TemporalError, LocationError, ErrorCode
 )
-from .processing.resampling import resample_dataset
-from .processing.validation import apply_quality_control
+from EcoSystemiser.profile_loader.climate.processing.resampling import resample_dataset
+from EcoSystemiser.profile_loader.climate.processing.validation import apply_quality_control
 from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler
-from .analysis.building_science import derive_building_variables
-from .analysis.synthetic.bootstrap import multivariate_block_bootstrap
-from .analysis.synthetic.copula import copula_synthetic_generation
-from .analysis.synthetic.tmy import TMYGenerator, TMYMethod
-from .analysis.statistics import describe as describe_stats
-from .subsets import apply_subset
-from .cache import cache_key_from_request, save_parquet_and_manifest, load_from_cache
-from .manifest import build_manifest
+from EcoSystemiser.profile_loader.climate.analysis.building_science import derive_building_variables
+from EcoSystemiser.profile_loader.climate.analysis.synthetic.bootstrap import multivariate_block_bootstrap
+from EcoSystemiser.profile_loader.climate.analysis.synthetic.copula import copula_synthetic_generation
+from EcoSystemiser.profile_loader.climate.analysis.synthetic.tmy import TMYGenerator, TMYMethod
+from EcoSystemiser.profile_loader.climate.analysis.statistics import describe
+from EcoSystemiser.profile_loader.climate.subsets import apply_subset
+from EcoSystemiser.profile_loader.climate.cache import cache_key_from_request, save_parquet_and_manifest, load_from_cache
+from EcoSystemiser.profile_loader.climate.manifest import build_manifest
 from EcoSystemiser.settings import get_settings
-from .adapters.factory import get_adapter, list_available_adapters, get_enabled_adapters
-from .processing.pipeline import ProcessingPipeline
-from ..shared.service import BaseProfileService, ProfileServiceError, ProfileValidationError
-from ..shared.models import BaseProfileRequest
+from EcoSystemiser.profile_loader.climate.adapters.factory import get_adapter, list_available_adapters, get_enabled_adapters
+from EcoSystemiser.profile_loader.climate.processing.pipeline import ProcessingPipeline
+from EcoSystemiser.profile_loader.shared.service import BaseProfileService, ProfileServiceError, ProfileValidationError
+from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest
 
 # Compatibility aliases
 get_config = get_settings
@@ -955,7 +955,7 @@ class ClimateService(BaseProfileService):
 
     def get_source_coverage(self, source: str) -> Dict[str, Any]:
         """Get geographical and temporal coverage for climate source (unified interface)."""
-        from .adapters.capabilities import get_adapter_capabilities
+        from EcoSystemiser.profile_loader.climate.adapters.capabilities import get_adapter_capabilities
 
         try:
             capabilities = get_adapter_capabilities(source)
@@ -965,7 +965,7 @@ class ClimateService(BaseProfileService):
                 "resolution": capabilities.get("resolutions", ["1H"]),
                 "variables": capabilities.get("variables", [])
             }
-        except Exception:
+        except Exception as e:
             return {
                 "spatial_coverage": "Unknown",
                 "temporal_coverage": "Unknown",
@@ -977,7 +977,7 @@ class ClimateService(BaseProfileService):
         """Shutdown service and cleanup resources"""
         logger.info("Shutting down Enhanced ClimateService")
         # Cleanup adapter factory resources
-        from .adapters.factory import cleanup
+        from EcoSystemiser.profile_loader.climate.adapters.factory import cleanup
         cleanup()
 
 # Global service instance

@@ -11,8 +11,7 @@ import os
 import logging
 from datetime import datetime
 
-# Add Systemiser to path (adjust for new location in tests/data/)
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+# No sys.path manipulation needed - use Poetry workspace imports
 
 # Configure logging
 logging.basicConfig(

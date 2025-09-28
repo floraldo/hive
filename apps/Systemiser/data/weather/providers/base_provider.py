@@ -8,14 +8,14 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Tuple
 import pandas as pd
 from datetime import datetime
-import logging
+from hive_logging import get_logger
 
 # Use Systemiser logger
 try:
     from Systemiser.utils.logger import setup_logging
     logger = setup_logging("WeatherProvider", level=logging.INFO)
 except ImportError:
-    logger = logging.getLogger("WeatherProvider_Fallback")
+    logger = get_logger("WeatherProvider_Fallback")
     logger.warning("Could not import Systemiser logger, using fallback.")
     if not logger.handlers:
         handler = logging.StreamHandler()

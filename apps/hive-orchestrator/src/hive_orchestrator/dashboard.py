@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Hive Real-Time Dashboard
@@ -20,19 +23,8 @@ from rich.columns import Columns
 from rich.text import Text
 from rich import box
 
-# Import database functions
-try:
-    from hive_core_db import (
-        close_connection
-    )
-    from hive_core_db.database import get_connection
-except ImportError:
-    import sys
-    sys.path.insert(0, str(Path(__file__).parents[4] / "packages" / "hive-core-db" / "src"))
-    from hive_core_db import (
-        close_connection
-    )
-    from hive_core_db.database import get_connection
+# Import database functions from the orchestrator's core
+from hive_orchestrator.core.db import get_connection, close_connection
 
 
 class HiveDashboard:
@@ -452,10 +444,10 @@ class HiveDashboard:
                     live.update(self.create_dashboard())
 
         except KeyboardInterrupt:
-            self.console.print("\n[yellow]Dashboard stopped by user.[/yellow]")
+            self.console.logger.info("\n[yellow]Dashboard stopped by user.[/yellow]")
         finally:
             close_connection()
-            self.console.print("[green]Database connection closed.[/green]")
+            self.console.logger.info("[green]Database connection closed.[/green]")
 
 
 def main():

@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Complete Strategy Pattern implementation for the remaining 6 components.
@@ -52,12 +55,12 @@ COMPONENTS = [
 ]
 
 # Print summary
-print("Components to update:")
+logger.info("Components to update:")
 for comp in COMPONENTS:
-    print(f"  - {comp['name']} ({comp['file']})")
-print(f"\nTotal: {len(COMPONENTS)} components")
-print("\nNote: Manual updates will be more reliable than automated scripting.")
-print("Each component needs:")
-print("  1. Split monolithic Optimization class into Simple and Standard")
-print("  2. Update factory method to select based on fidelity")
-print("  3. Ensure proper inheritance (Standard inherits from Simple)")
+    logger.info(f"  - {comp['name']} ({comp['file']})")
+logger.info(f"\nTotal: {len(COMPONENTS)} components")
+logger.info("\nNote: Manual updates will be more reliable than automated scripting.")
+logger.info("Each component needs:")
+logger.info("  1. Split monolithic Optimization class into Simple and Standard")
+logger.info("  2. Update factory method to select based on fidelity")
+logger.info("  3. Ensure proper inheritance (Standard inherits from Simple)")

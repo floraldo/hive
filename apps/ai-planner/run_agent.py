@@ -10,15 +10,8 @@ import sys
 import os
 from pathlib import Path
 
-# Add packages path first for hive-config
-hive_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(hive_root / "packages" / "hive-config" / "src"))
-
-# Add local src directory for ai_planner module
-app_root = Path(__file__).parent
-sys.path.insert(0, str(app_root / "src"))
-
-# Configure all Hive paths centrally
+# Configure all Hive paths centrally using path manager
+# Note: This assumes the workspace has been properly installed with Poetry
 from hive_config import setup_hive_paths
 setup_hive_paths()
 

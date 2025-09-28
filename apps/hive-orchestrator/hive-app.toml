@@ -1,0 +1,37 @@
+[app]
+name = "hive-orchestrator"
+version = "0.1.0"
+description = "Central orchestration engine for Hive multi-agent coordination"
+type = "daemon"
+
+[daemons.queen]
+description = "Main Queen orchestrator daemon for task coordination"
+command = "python src/hive_orchestrator/queen.py"
+restart_on_failure = true
+restart_delay_seconds = 10
+critical = true
+
+[daemons.worker-pool]
+description = "Worker pool manager for distributed task execution"
+command = "python src/hive_orchestrator/worker_pool.py"
+restart_on_failure = true
+restart_delay_seconds = 15
+
+[tasks.orchestrate]
+description = "Orchestrate a multi-agent workflow"
+command = "python src/hive_orchestrator/cli.py orchestrate"
+timeout_seconds = 300
+
+[tasks.status]
+description = "Get orchestration status and health check"
+command = "python src/hive_orchestrator/cli.py status"
+timeout_seconds = 30
+
+[capabilities]
+orchestration = ["multi-agent-coordination", "task-distribution", "workflow-management"]
+coordination = ["agent-communication", "task-queuing", "result-aggregation"]
+monitoring = ["agent-health", "task-progress", "system-metrics"]
+
+[dependencies]
+requires = ["hive-core-db", "hive-bus", "hive-config"]
+optional = ["hive-logging", "ai-planner", "ai-reviewer"]

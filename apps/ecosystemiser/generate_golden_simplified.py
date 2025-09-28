@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Simplified golden dataset generation - run original Systemiser to get baseline results.
@@ -134,9 +137,9 @@ if __name__ == "__main__":
     try:
         output_path = main()
         if output_path:
-            print(f"\nSUCCESS: Golden dataset generated at {output_path}")
+            logger.info(f"\nSUCCESS: Golden dataset generated at {output_path}")
         else:
-            print("\nFAILED: Could not generate golden dataset")
+            logger.error("\nFAILED: Could not generate golden dataset")
             sys.exit(1)
     except Exception as e:
         logger.error(f"Failed to generate golden dataset: {e}")

@@ -5,9 +5,11 @@ analysis reports from EcoSystemiser simulation results. It integrates
 with the Analyser and DataVis modules to provide comprehensive reporting.
 """
 
-from .app import create_app, run_server
+from EcoSystemiser.reporting.app import create_app
+from EcoSystemiser.reporting.generator import HTMLReportGenerator, create_standalone_html_report
 
 __all__ = [
     'create_app',
-    'run_server'
+    'HTMLReportGenerator',
+    'create_standalone_html_report'
 ]

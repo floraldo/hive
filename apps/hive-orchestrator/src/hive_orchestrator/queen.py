@@ -28,30 +28,21 @@ from .config import get_config
 # Hive utilities for path management
 from hive_utils.paths import PROJECT_ROOT, LOGS_DIR, ensure_directory
 
-# Hive database system
-try:
-    import hive_core_db
-except ImportError:
-    sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
-    import hive_core_db
+# Hive database system - use orchestrator's core layer
+from hive_orchestrator.core import db as hive_core_db
+from hive_orchestrator.core.db import (
+    get_queued_tasks_async, update_task_status_async, get_task_async,
+    get_tasks_by_status_async, create_run_async, ASYNC_AVAILABLE
+)
 
-# Hive event bus for explicit communication
-try:
-    from hive_bus import get_event_bus, create_task_event, TaskEventType, create_workflow_event, WorkflowEventType
-except ImportError:
-    sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-bus" / "src"))
-    from hive_bus import get_event_bus, create_task_event, TaskEventType, create_workflow_event, WorkflowEventType
+# Hive event bus for explicit communication - use orchestrator's core layer
+from hive_orchestrator.core.bus import (
+    get_event_bus, create_task_event, TaskEventType, create_workflow_event, WorkflowEventType,
+    get_async_event_bus, publish_event_async
+)
 
 # Async support for Phase 4.1
-try:
-    from hive_core_db import (
-        get_queued_tasks_async, update_task_status_async, get_task_async,
-        get_tasks_by_status_async, create_run_async, ASYNC_AVAILABLE
-    )
-    from hive_bus import get_async_event_bus, publish_event_async
-    ASYNC_ENABLED = ASYNC_AVAILABLE
-except ImportError:
-    ASYNC_ENABLED = False
+ASYNC_ENABLED = ASYNC_AVAILABLE
 
 class Phase(Enum):
     """Task execution phases"""
@@ -523,7 +514,7 @@ class QueenLite:
             
             self.log.info(f"[SPAWN] Spawned {worker} for {task_id} phase:{phase.value} (PID: {process.pid})")
             if self.live_output:
-                print("-" * 70)
+                logger.info("-" * 70)
             return process, run_id
             
         except FileNotFoundError as e:
@@ -1030,7 +1021,7 @@ class QueenLite:
                 task_type="app_task"
             )
             if self.live_output:
-                print("-" * 70)
+                logger.info("-" * 70)
             completed.append(task_id)
             return True
 
@@ -1039,7 +1030,7 @@ class QueenLite:
             # Advance to TEST phase
             self.log.info(f"✅ Task {task_id} APPLY succeeded, starting TEST phase")
             if self.live_output:
-                print("-" * 70)
+                logger.info("-" * 70)
             worker = task.get("assignee", "backend")
             result = self.spawn_worker(task, worker, Phase.TEST)
 
@@ -1087,7 +1078,7 @@ class QueenLite:
                 current_phase="TEST"
             )
             if self.live_output:
-                print("-" * 70)
+                logger.info("-" * 70)
             completed.append(task_id)
 
         return True
@@ -1220,17 +1211,17 @@ class QueenLite:
                 
                 # Handle phase as either string or Enum
                 phase_str = phase.value if hasattr(phase, 'value') else phase
-                print(f"  [WORK] [{worker_type.upper()}] {task_id} ({phase_str}, {runtime_str}, PID: {pid})")
+                logger.info(f"  [WORK] [{worker_type.upper()}] {task_id} ({phase_str}, {runtime_str}, PID: {pid})")
         
         # Show queued workers
         if queued_workers:
             queued_str = ', '.join(queued_workers[:3])  # Show max 3
             if len(queued_workers) > 3:
                 queued_str += f"+{len(queued_workers)-3}"
-            print(f"  [QUEUE] Queued: {queued_str}")
+            logger.info(f"  [QUEUE] Queued: {queued_str}")
         
         # Clear separator for worker output
-        print("-" * 70)
+        logger.info("-" * 70)
 
     # ================================================================================
     # WORKFLOW MANAGEMENT (Multi-step Task Orchestration)
@@ -1396,8 +1387,8 @@ class QueenLite:
     def run_forever(self):
         """Main orchestration loop - event-driven state machine"""
         self.log.info("QueenLite starting (Stateful Workflow Mode)...")
-        print("Workflow-driven task orchestration enabled")
-        print("="*50)
+        logger.info("Workflow-driven task orchestration enabled")
+        logger.info("="*50)
         
         # Initialize database
         hive_core_db.init_db()
@@ -1556,7 +1547,7 @@ class QueenLite:
 
                 self.log.info(f"[SPAWN-ASYNC] Spawned {worker} for {task_id} phase:{phase.value} (PID: {process.pid})")
                 if self.live_output:
-                    print("-" * 70)
+                    logger.info("-" * 70)
                 return process, run_id
 
             except FileNotFoundError as e:
@@ -1590,8 +1581,8 @@ class QueenLite:
             - Event-driven coordination with async event bus
             """
             self.log.info("QueenLite starting (Async Mode - Phase 4.1)...")
-            print("🚀 High-performance async orchestration enabled")
-            print("="*50)
+            logger.info("🚀 High-performance async orchestration enabled")
+            logger.info("="*50)
 
             # Initialize database
             hive_core_db.init_db()

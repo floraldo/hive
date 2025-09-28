@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 """
 Standard Weather Data Processor
 
@@ -300,15 +303,15 @@ if __name__ == '__main__':
     
     # Test validation
     is_valid, issues = processor.validate_data(test_data)
-    print(f"Validation result: {is_valid}")
-    print(f"Issues found: {issues}")
+    logger.info(f"Validation result: {is_valid}")
+    logger.info(f"Issues found: {issues}")
     
     # Test cleaning
     cleaned_data = processor.clean_data(test_data)
-    print(f"\nCleaned data shape: {cleaned_data.shape}")
-    print("\nCleaned data sample:")
-    print(cleaned_data.head())
+    logger.info(f"\nCleaned data shape: {cleaned_data.shape}")
+    logger.info("\nCleaned data sample:")
+    logger.info(cleaned_data.head())
     
     # Test quality metrics
     quality = processor.get_quality_metrics(cleaned_data)
-    print(f"\nQuality metrics: {quality}") 
+    logger.info(f"\nQuality metrics: {quality}") 

@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Re-validation test comparing EcoSystemiser against the golden Systemiser dataset.
@@ -172,14 +175,14 @@ def extract_ecosystemiser_results(system):
 def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
     """Compare EcoSystemiser results against golden dataset with strict tolerance."""
 
-    print("Performing numerical comparison...")
-    print(f"Tolerance: {tolerance}")
+    logger.info("Performing numerical comparison...")
+    logger.info(f"Tolerance: {tolerance}")
 
     failures = []
     total_comparisons = 0
 
     # Compare flows
-    print("\nComparing flows...")
+    logger.info("\nComparing flows...")
     for flow_key in golden_data["flows"]:
         if flow_key not in ecosystemiser_data["flows"]:
             failures.append(f"Flow {flow_key} missing in EcoSystemiser results")
@@ -192,12 +195,12 @@ def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
             max_diff = np.max(np.abs(golden_values - eco_values))
             failures.append(f"Flow {flow_key}: max difference = {max_diff:.2e}")
         else:
-            print(f"  OK {flow_key}: MATCH")
+            logger.info(f"  OK {flow_key}: MATCH")
 
         total_comparisons += 1
 
     # Compare storage
-    print("\nComparing storage...")
+    logger.info("\nComparing storage...")
     for storage_key in golden_data["storage"]:
         if storage_key not in ecosystemiser_data["storage"]:
             failures.append(f"Storage {storage_key} missing in EcoSystemiser results")
@@ -210,7 +213,7 @@ def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
             max_diff = np.max(np.abs(golden_values - eco_values))
             failures.append(f"Storage {storage_key}: max difference = {max_diff:.2e}")
         else:
-            print(f"  OK {storage_key}: MATCH")
+            logger.info(f"  OK {storage_key}: MATCH")
 
         total_comparisons += 1
 
@@ -219,64 +222,64 @@ def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
 def main():
     """Main validation function."""
 
-    print("="*80)
-    print("ECOSYSTEMISER vs SYSTEMISER VALIDATION TEST")
-    print("="*80)
+    logger.info("="*80)
+    logger.info("ECOSYSTEMISER vs SYSTEMISER VALIDATION TEST")
+    logger.info("="*80)
 
     try:
         # Step 1: Load golden dataset
-        print("\nLoading golden dataset...")
+        logger.info("\nLoading golden dataset...")
         golden_data = load_golden_dataset()
-        print(f"  OK Loaded {len(golden_data['flows'])} flows and {len(golden_data['storage'])} storage components")
+        logger.info(f"  OK Loaded {len(golden_data['flows'])} flows and {len(golden_data['storage'])} storage components")
 
         # Step 2: Create minimal EcoSystemiser system
-        print("\nCreating minimal EcoSystemiser system...")
+        logger.info("\nCreating minimal EcoSystemiser system...")
         system = create_minimal_ecosystemiser()
-        print(f"  OK Created system with {len(system.components)} components")
+        logger.info(f"  OK Created system with {len(system.components)} components")
 
         # Step 3: Run EcoSystemiser simulation
-        print("\nRunning EcoSystemiser simulation...")
+        logger.info("\nRunning EcoSystemiser simulation...")
 
         # Debug: Check profiles before solving
-        print("\nDebug - Component profiles:")
+        logger.debug("\nDebug - Component profiles:")
         for name, comp in system.components.items():
             if hasattr(comp, 'profile') and comp.profile is not None:
-                print(f"  {name}: profile shape={comp.profile.shape}, P_max={getattr(comp, 'P_max', 'N/A')}")
+                logger.info(f"  {name}: profile shape={comp.profile.shape}, P_max={getattr(comp, 'P_max', 'N/A')}")
                 if name == "SolarPV":
-                    print(f"    Sample values: {comp.profile[:5]}")
+                    logger.info(f"    Sample values: {comp.profile[:5]}")
             else:
-                print(f"  {name}: no profile or profile is None")
+                logger.info(f"  {name}: no profile or profile is None")
 
         solver = RuleBasedEngine(system)
 
         # Run the actual simulation
         result = solver.solve()
-        print(f"  OK Solver completed with status: {result.status}")
-        print(f"  OK Solve time: {result.solve_time:.4f} seconds")
+        logger.info(f"  OK Solver completed with status: {result.status}")
+        logger.info(f"  OK Solve time: {result.solve_time:.4f} seconds")
 
         # Step 4: Extract results from solved system
-        print("\nExtracting results...")
+        logger.info("\nExtracting results...")
         ecosystemiser_data = extract_ecosystemiser_results(system)
-        print(f"  OK Extracted {len(ecosystemiser_data['flows'])} flows and {len(ecosystemiser_data['storage'])} storage components")
+        logger.info(f"  OK Extracted {len(ecosystemiser_data['flows'])} flows and {len(ecosystemiser_data['storage'])} storage components")
 
         # Step 5: Compare results
-        print("\nComparing results...")
+        logger.info("\nComparing results...")
         failures, total_comparisons = compare_results(golden_data, ecosystemiser_data)
 
         # Step 6: Report outcome
-        print("\n" + "="*80)
+        logger.info("\n" + "="*80)
         if not failures:
-            print("SUCCESS: Numerical equivalence with the original Systemiser is confirmed.")
-            print(f"All {total_comparisons} comparisons passed within tolerance.")
+            logger.info("SUCCESS: Numerical equivalence with the original Systemiser is confirmed.")
+            logger.info(f"All {total_comparisons} comparisons passed within tolerance.")
         else:
-            print("VALIDATION FAILED:")
+            logger.error("VALIDATION FAILED:")
             for failure in failures:
-                print(f"  FAIL {failure}")
-            print(f"\n{len(failures)} failures out of {total_comparisons} comparisons")
-        print("="*80)
+                logger.error(f"  FAIL {failure}")
+            logger.error(f"\n{len(failures)} failures out of {total_comparisons} comparisons")
+        logger.info("="*80)
 
     except Exception as e:
-        print(f"\nVALIDATION ERROR: {str(e)}")
+        logger.error(f"\nVALIDATION ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
 

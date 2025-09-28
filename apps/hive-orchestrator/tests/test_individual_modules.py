@@ -11,14 +11,14 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 # Add the source path for testing
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# No sys.path manipulation needed - use Poetry workspace imports
 
 
 def test_cli_module_direct():
     """Test CLI module directly"""
     try:
         # Import CLI module directly without going through __init__.py
-        sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "hive_orchestrator"))
+        # No sys.path manipulation needed - use Poetry workspace imports
         import cli
 
         # Check that CLI function exists
@@ -36,7 +36,7 @@ def test_clean_hive_module_direct():
     """Test clean_hive module directly"""
     try:
         # Import clean_hive module directly
-        sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "hive_orchestrator"))
+        # No sys.path manipulation needed - use Poetry workspace imports
         import clean_hive
 
         # Test that functions exist and are callable
@@ -56,7 +56,7 @@ def test_dashboard_module_direct():
     """Test dashboard module directly"""
     try:
         # Import dashboard module directly
-        sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "hive_orchestrator"))
+        # No sys.path manipulation needed - use Poetry workspace imports
         import dashboard
 
         # Test that HiveDashboard class exists
@@ -73,7 +73,7 @@ def test_dashboard_module_direct():
 def test_error_handling_patterns():
     """Test error handling patterns in modules"""
     try:
-        sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "hive_orchestrator"))
+        # No sys.path manipulation needed - use Poetry workspace imports
         import clean_hive
 
         # Test that clean_database has proper error handling

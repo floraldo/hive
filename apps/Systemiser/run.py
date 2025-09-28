@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-import logging
+from hive_logging import get_logger
 import numpy as np
 import cvxpy as cp
 
@@ -237,7 +237,7 @@ if __name__ == "__main__" or __name__ == "Systemiser.run": # Allow running as sc
     output_path.mkdir(parents=True, exist_ok=True)
     
     # Get logger instance (assuming setup_logging is defined above)
-    logger = logging.getLogger("SystemiserRun") # Get the logger configured earlier
+    logger = get_logger("SystemiserRun") # Get the logger configured earlier
     logger.info(f"Starting simulation. Output will be saved to {output_path}")
     
     try:

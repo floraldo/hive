@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 import json
 
-from hive_bus import Event
+from EcoSystemiser.hive_bus import Event
 from EcoSystemiser.hive_logging_adapter import get_logger
 from EcoSystemiser.event_bus import EcoSystemiserEventBus, ecosystemiser_event_bus
 from EcoSystemiser.events import (
@@ -23,7 +23,7 @@ from EcoSystemiser.events import (
     AnalysisEvent
 )
 from EcoSystemiser.errors import ProcessingError, ErrorCode
-from .service import AnalyserService
+from EcoSystemiser.analyser.service import AnalyserService
 
 logger = get_logger(__name__)
 
