@@ -37,6 +37,18 @@ class ClaudeService:
         self.mock_mode = getattr(config, 'mock_mode', True)
 
     def generate_execution_plan(self, task_description: str, context_data: Dict[str, Any], priority: int, requestor: str, use_cache: bool = True) -> Dict[str, Any]:
+        """Generate an execution plan for a task.
+
+        Args:
+            task_description: Description of the task to plan
+            context_data: Additional context and metadata for planning
+            priority: Task priority (0-100)
+            requestor: ID of the requesting entity
+            use_cache: Whether to use cached plans if available
+
+        Returns:
+            Dict containing plan_id, plan_name, sub_tasks, and metrics
+        """
         # Mock implementation - replace with actual Claude integration
         return {
             'plan_id': f"plan_{uuid.uuid4().hex[:8]}",
@@ -730,8 +742,12 @@ class AIPlanner:
 
             return False
 
-    def run(self):
-        """Main agent execution loop"""
+    def run(self) -> int:
+        """Main agent execution loop.
+
+        Returns:
+            Exit code (0 for success, non-zero for failure)
+        """
         logger.info("AI Planner Agent starting...")
 
         # Connect to database
@@ -1032,7 +1048,16 @@ def create_workflow_event(event_type: WorkflowEventType, workflow_id: str, task_
 
 class MockEventBus:
     """Mock event bus for development"""
-    def publish(self, event, correlation_id=None):
+    def publish(self, event: Dict[str, Any], correlation_id: Optional[str] = None) -> str:
+        """Publish an event to the mock event bus.
+
+        Args:
+            event: Event data to publish
+            correlation_id: Optional correlation ID for event tracking
+
+        Returns:
+            Mock event ID
+        """
         # Mock implementation - just log the event
         logger.debug(f"Mock event published: {event['event_type']} for task {event.get('task_id', 'unknown')}")
         return f"mock_event_{int(time.time())}"

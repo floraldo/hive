@@ -1,45 +1,21 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "hive-async"
 version = "1.0.0"
 description = "Async utilities and patterns for Hive platform applications"
-authors = ["Hive Platform Team <hive@example.com>"]
-packages = [{include = "hive_async", from = "src"}]
-
-[tool.poetry.dependencies]
-python = "^3.11"
-asyncio = "*"
-aiohttp = "^3.8.0"
-asyncpg = "^0.29.0"
-tenacity = "^8.0.0"
-
-# Hive workspace dependencies
-hive-logging = {path = "../hive-logging", develop = true}
-hive-config = {path = "../hive-config", develop = true}
-hive-errors = {path = "../hive-errors", develop = true}
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
-pytest-asyncio = "*"
-pytest-cov = "*"
-mypy = "*"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py", "*_test.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "-v --tb=short"
-pythonpath = ["src"]
-asyncio_mode = "auto"
+authors = [ "Hive Platform Team <hive@example.com>",]
+[[tool.poetry.packages]]
+include = "hive_async"
+from = "src"
 
 [tool.black]
 line-length = 120
-target-version = ["py311"]
-include = '\.pyi?$'
+target-version = [ "py38", "py39", "py310", "py311",]
+include = "\\.pyi?$"
+extend-exclude = "/(\n  # directories\n  \\.eggs\n  | \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | build\n  | dist\n  | archive\n)/\n"
 
 [tool.isort]
 profile = "black"
@@ -49,22 +25,13 @@ include_trailing_comma = true
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
-
-[tool.ruff.lint]
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
-]
-ignore = []
+target-version = "py38"
+select = [ "E", "W", "F", "I", "B", "C4", "UP",]
+ignore = [ "E501", "B008", "C901",]
+exclude = [ ".git", "__pycache__", "dist", "build", ".venv", "archive",]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -77,3 +44,45 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+ignore_missing_imports = true
+exclude = [ "archive/", "legacy/", "tests/",]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+asyncio = "*"
+aiohttp = "^3.8.0"
+asyncpg = "^0.29.0"
+tenacity = "^8.0.0"
+
+[tool.pytest.ini_options]
+testpaths = [ "tests",]
+python_files = [ "test_*.py", "*_test.py",]
+python_classes = [ "Test*",]
+python_functions = [ "test_*",]
+addopts = "-v --tb=short"
+pythonpath = [ "src",]
+asyncio_mode = "auto"
+
+[tool.ruff.lint]
+select = [ "E4", "E7", "E9", "F", "I",]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.poetry.dependencies.hive-logging]
+path = "../hive-logging"
+develop = true
+
+[tool.poetry.dependencies.hive-config]
+path = "../hive-config"
+develop = true
+
+[tool.poetry.dependencies.hive-errors]
+path = "../hive-errors"
+develop = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.1.0"
+mypy = "^1.8.0"

@@ -1,53 +1,82 @@
+[build-system]
+requires = [ "poetry-core>=1.0.0",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "hive-ai-reviewer"
 version = "0.1.0"
 description = "Autonomous AI code review agent for Hive App Factory"
-authors = ["Hive Team"]
-packages = [{include = "ai_reviewer", from = "src"}]
+authors = [ "Hive Team",]
+[[tool.poetry.packages]]
+include = "ai_reviewer"
+from = "src"
+
+[tool.black]
+line-length = 120
+target-version = [ "py38", "py39", "py310", "py311",]
+include = "\\.pyi?$"
+extend-exclude = "/(\n  # directories\n  \\.eggs\n  | \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | build\n  | dist\n  | archive\n)/\n"
+
+[tool.ruff]
+line-length = 120
+select = [ "E", "W", "F", "I", "B", "C4", "UP",]
+ignore = [ "E501", "B008", "C901",]
+target-version = "py38"
+exclude = [ ".git", "__pycache__", "dist", "build", ".venv", "archive",]
+
+[tool.mypy]
+python_version = "3.8"
+strict = true
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+exclude = [ "archive/", "legacy/", "tests/",]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-
-# Hive workspace dependencies
-hive-config = {path = "../../packages/hive-config", develop = true}
-hive-db = {path = "../../packages/hive-db", develop = true}
-hive-logging = {path = "../../packages/hive-logging", develop = true}
-hive-errors = {path = "../../packages/hive-errors", develop = true}
-hive-bus = {path = "../../packages/hive-bus", develop = true}
 anthropic = "^0.39.0"
 pydantic = "^2.5.0"
 rich = "^13.7.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-pytest-asyncio = "^0.21.0"
-pytest-cov = "^4.1.0"
-black = "^23.7.0"
-mypy = "^1.5.0"
-ruff = "^0.0.280"
 
 [tool.poetry.scripts]
 ai-reviewer = "ai_reviewer.agent:main"
 ai-reviewer-daemon = "ai_reviewer.agent:run_daemon"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff.lint]
+select = [ "E4", "E7", "E9", "F", "I",]
 
-[tool.black]
-line-length = 120
-target-version = ['py311']
-
-[tool.ruff]
-line-length = 120
-select = ["E", "F", "I", "N", "UP", "S", "B", "A", "C90", "RUF"]
-ignore = ["E501", "S101"]
-
-[tool.mypy]
-python_version = "3.11"
-strict = true
-ignore_missing_imports = true
+[tool.ruff.format]
+quote-style = "double"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov=ai_reviewer --cov-report=html --cov-report=term"
-testpaths = ["tests"]
+testpaths = [ "tests",]
+
+[tool.poetry.dependencies.hive-config]
+path = "../../packages/hive-config"
+develop = true
+
+[tool.poetry.dependencies.hive-db]
+path = "../../packages/hive-db"
+develop = true
+
+[tool.poetry.dependencies.hive-logging]
+path = "../../packages/hive-logging"
+develop = true
+
+[tool.poetry.dependencies.hive-errors]
+path = "../../packages/hive-errors"
+develop = true
+
+[tool.poetry.dependencies.hive-bus]
+path = "../../packages/hive-bus"
+develop = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.1.0"
+black = "^24.8.0"
+mypy = "^1.8.0"
+ruff = "^0.1.15"

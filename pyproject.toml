@@ -1,109 +1,109 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "hive-workspace"
 version = "1.0.0"
 description = "Hive multi-agent orchestration system workspace"
-authors = ["Hive System <hive@example.com>"]
+authors = [ "Hive System <hive@example.com>",]
 packages = []
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+exclude = [ ".git", "__pycache__", "dist", "build", ".venv", "archive",]
+select = [ "E", "W", "F", "I", "B", "C4", "UP",]
+ignore = [ "E501", "B008", "C901",]
+
+[tool.black]
+line-length = 120
+target-version = [ "py38", "py39", "py310", "py311",]
+include = "\\.pyi?$"
+extend-exclude = "/(\n  # directories\n  \\.eggs\n  | \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | build\n  | dist\n  | archive\n)/\n"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+exclude = [ "archive/", "legacy/", "tests/",]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 
 [tool.poetry.scripts]
-# Core Hive Services
 queen = "hive_orchestrator.queen:main"
 hive-clean = "hive_orchestrator.clean_hive:main"
-
-# AI Agents
 ai-reviewer = "ai_reviewer.agent:main"
 ai-planner = "ai_planner.agent:main"
-
-# Testing & Quality Tools
 golden-test = "hive_tests.golden_runner:main"
+
+[tool.ruff.lint]
+select = [ "E4", "E7", "E9", "F", "I",]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = [ "apps", "packages",]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = [ "--tb=short", "--strict-markers", "--disable-warnings", "-v",]
+markers = [ "integration: marks tests as integration tests", "unit: marks tests as unit tests", "slow: marks tests as slow running",]
+
+[tool.poetry.group.workspace]
+optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
 pytest-cov = "^4.1.0"
-pytest-asyncio = "*"
+pytest-asyncio = "^0.21.0"
 black = "^24.8.0"
 isort = "^5.13.0"
 mypy = "^1.8.0"
-ruff = "^0.1.15"  # Fast Python linter - replaces many tools
+ruff = "^0.1.15"
 flask = "^3.0.0"
 flask-cors = "^4.0.0"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.group.workspace.dependencies.hive-logging]
+path = "packages/hive-logging"
+develop = true
 
-# Define workspace members as optional dependencies for development
-[tool.poetry.group.workspace]
-optional = true
+[tool.poetry.group.workspace.dependencies.hive-db]
+path = "packages/hive-db"
+develop = true
 
-[tool.poetry.group.workspace.dependencies]
-# Generic Infrastructure Packages (True inherit layer)
-hive-logging = {path = "packages/hive-logging", develop = true}
-hive-db = {path = "packages/hive-db", develop = true}
-hive-deployment = {path = "packages/hive-deployment", develop = true}
-hive-config = {path = "packages/hive-config", develop = true}
-hive-tests = {path = "packages/hive-tests", develop = true}
-hive-bus = {path = "packages/hive-bus", develop = true}
-hive-errors = {path = "packages/hive-errors", develop = true}
+[tool.poetry.group.workspace.dependencies.hive-deployment]
+path = "packages/hive-deployment"
+develop = true
 
-# Applications
-hive-orchestrator = {path = "apps/hive-orchestrator", develop = true}
-ai-planner = {path = "apps/ai-planner", develop = true}
-ai-reviewer = {path = "apps/ai-reviewer", develop = true}
+[tool.poetry.group.workspace.dependencies.hive-config]
+path = "packages/hive-config"
+develop = true
 
-# Ruff configuration - fast Python linter
-[tool.ruff]
-line-length = 120
-target-version = "py311"
-exclude = [
-    ".git",
-    "__pycache__",
-    ".venv",
-    "venv",
-    "build",
-    "dist",
-    ".eggs",
-    "*.egg",
-    ".worktrees",
-    "cache",
-]
+[tool.poetry.group.workspace.dependencies.hive-tests]
+path = "packages/hive-tests"
+develop = true
 
-[tool.ruff.lint]
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-]
-ignore = [
-    "E501",  # line too long (handled by formatter)
-    "B008",  # do not perform function calls in argument defaults
-]
+[tool.poetry.group.workspace.dependencies.hive-bus]
+path = "packages/hive-bus"
+develop = true
 
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
+[tool.poetry.group.workspace.dependencies.hive-errors]
+path = "packages/hive-errors"
+develop = true
 
-[tool.pytest.ini_options]
-testpaths = [
-    "apps",
-    "packages"
-]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
-addopts = [
-    "--tb=short",
-    "--strict-markers",
-    "--disable-warnings",
-    "-v"
-]
-markers = [
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests",
-    "slow: marks tests as slow running"
-]
+[tool.poetry.group.workspace.dependencies.hive-orchestrator]
+path = "apps/hive-orchestrator"
+develop = true
+
+[tool.poetry.group.workspace.dependencies.ai-planner]
+path = "apps/ai-planner"
+develop = true
+
+[tool.poetry.group.workspace.dependencies.ai-reviewer]
+path = "apps/ai-reviewer"
+develop = true

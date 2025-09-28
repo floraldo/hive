@@ -21,19 +21,20 @@ if sys.platform == "win32":
     os.system("color")
 
 class HiveStatus:
-    """Pure read-only status viewer for Hive MAS"""
-    
-    def __init__(self):
+    """Pure read-only status viewer for Hive MAS with DI support"""
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = config or {}
         self.root = Path.cwd()
         self.hive_dir = self.root / "hive"
         self.tasks_dir = self.hive_dir / "tasks"
         self.results_dir = self.hive_dir / "results"
         self.events_file = self.get_events_file()
-        
+
         # Track state for display
         self.recent_events = []
         self.last_event_pos = 0
-        
+
         # Colors for terminal (ANSI codes)
         self.colors = {
             "green": "\033[92m",
@@ -45,9 +46,10 @@ class HiveStatus:
             "reset": "\033[0m",
             "bold": "\033[1m"
         }
-        
+
         # Emoji toggle for Windows compatibility
-        self.use_emoji = os.getenv("HIVE_EMOJI", "1") != "0"
+        # Check config first, then default to enabled
+        self.use_emoji = self.config.get("use_emoji", True)
     
     def get_events_file(self) -> Path:
         """Get today's events file"""
