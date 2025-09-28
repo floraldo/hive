@@ -5,11 +5,11 @@ All notable changes to EcoSystemiser will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0] - 2024-09-28
+## [3.0.0] - 2025-09-28
 
 ### 🎉 Major Release: Production-Ready Platform
 
-This release marks the completion of EcoSystemiser's transformation into a production-ready platform for energy system design and optimization.
+This release marks the completion of EcoSystemiser's transformation into a production-ready platform for energy system design and optimization, featuring complete end-to-end functionality from optimization through interactive HTML report generation.
 
 ### Added
 
@@ -25,14 +25,16 @@ This release marks the completion of EcoSystemiser's transformation into a produ
   - Sensitivity analysis with tornado plots
 
 #### Presentation Layer
-- **Flask-based reporting application** with Bootstrap 5
+- **HTMLReportGenerator** with Bootstrap 5 and Plotly.js integration
   - Interactive HTML reports for GA and MC studies
-  - Real-time Plotly.js visualizations
-  - Print-friendly professional layouts
-- **Enhanced CLI** with report generation commands
-  - `--report` flag for automatic report creation
-  - Auto-detection of study types
-  - Streamlined user workflow
+  - Real-time Plotly.js visualizations for Pareto fronts and distributions
+  - Professional layouts with responsive design
+  - Automatic generation in `run_full_demo.py` workflow
+- **End-to-End Demo Script**
+  - Complete 5-step workflow: Problem Definition → GA Optimization → Design Selection → MC Analysis → Report Generation
+  - Structured JSON output with optimization results
+  - Automatic HTML report generation with visualization
+  - Berlin microgrid case study with 3 Pareto-optimal solutions
 
 #### Infrastructure
 - **Docker deployment** with multi-service orchestration
@@ -51,10 +53,16 @@ This release marks the completion of EcoSystemiser's transformation into a produ
 - Standardized logging across all modules
 
 ### Fixed
-- Database connection pool management
-- Memory leaks in long-running simulations
-- Race conditions in async workers
-- Import path inconsistencies
+- **Critical Runtime Stabilization**
+  - Fixed `ecosystemiser_transaction()` function signature mismatches across all modules
+  - Resolved `JobService` class missing import causing service initialization failures
+  - Fixed discovery module import hierarchy preventing algorithm instantiation
+  - Corrected HTMLReportGenerator CSS f-string syntax errors
+  - Fixed Monte Carlo report generation data structure handling
+- **Service Layer Integration**
+  - StudyService now properly instantiates with event bus integration
+  - All core services (StudyService, SimulationService, ComponentRepository) operational
+  - Database transaction management and data persistence working correctly
 
 ### Performance
 - 10x improvement in large-scale optimizations
