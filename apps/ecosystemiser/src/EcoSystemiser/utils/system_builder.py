@@ -9,7 +9,12 @@ from EcoSystemiser.component_data.repository import ComponentRepository
 from EcoSystemiser.system_model.components.shared.registry import get_component_class, COMPONENT_REGISTRY
 
 # Import all components to ensure they are registered
-from EcoSystemiser.system_model.components.energy import *
+from EcoSystemiser.system_model.components.energy import (
+    Battery, BatteryParams, Grid, GridParams, SolarPV, SolarPVParams,
+    PowerDemand, PowerDemandParams, HeatPump, HeatPumpParams,
+    ElectricBoiler, ElectricBoilerParams, HeatBuffer, HeatBufferParams,
+    HeatDemand, HeatDemandParams
+)
 
 logger = get_logger(__name__)
 

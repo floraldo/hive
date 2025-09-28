@@ -29,7 +29,7 @@ except ImportError:
 
     class BaseErrorReporter:
         def report_error(self, error: BaseError):
-            print(f"Error in {error.component}: {error.message}")
+            logger.error(f"Error in {error.component}: {error.message}")
 
     class RecoveryStrategy:
         pass
