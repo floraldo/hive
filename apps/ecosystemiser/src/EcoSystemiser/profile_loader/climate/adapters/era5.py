@@ -10,9 +10,6 @@ import os
 
 from EcoSystemiser.profile_loader.climate.base import BaseAdapter
 from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-    AdapterCapabilities, TemporalCoverage, SpatialCoverage,
-    DataFrequency, AuthType, RateLimits, QualityFeatures
-)
 from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError
 
 logger = get_logger(__name__)

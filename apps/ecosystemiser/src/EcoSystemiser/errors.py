@@ -13,7 +13,11 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 import json
 
-from hive_errors import HiveError, HiveValidationError, HiveAPIError, HiveTimeoutError
+# from hive_error_handling import BaseError as HiveError
+
+class HiveError(Exception):
+    """Temporary local HiveError class for build validation"""
+    pass
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)

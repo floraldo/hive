@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Script to convert all relative imports to absolute imports in the EcoSystemiser codebase.
@@ -28,7 +31,7 @@ def analyze_imports(file_path: Path) -> List[Tuple[int, str, str]]:
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
     except Exception as e:
-        print(f"Could not read {file_path}: {e}")
+        logger.info(f"Could not read {file_path}: {e}")
         return []
 
     try:
@@ -117,21 +120,21 @@ def main():
     # Find all Python files
     python_files = list(src_root.glob('**/*.py'))
 
-    print(f"Analyzing {len(python_files)} Python files for relative imports...")
+    logger.info(f"Analyzing {len(python_files)} Python files for relative imports...")
 
     for file_path in python_files:
         fixes = analyze_imports(file_path)
         if fixes:
-            print(f"\n{file_path.relative_to(src_root)}:")
+            logger.info(f"\n{file_path.relative_to(src_root)}:")
             for line_no, old, new in fixes:
-                print(f"  Line {line_no}: {old}")
-                print(f"         -> {new}")
+                logger.info(f"  Line {line_no}: {old}")
+                logger.info(f"         -> {new}")
 
             if fix_file(file_path, fixes):
                 files_fixed += 1
                 total_fixes += len(fixes)
 
-    print(f"\nFixed {total_fixes} relative imports in {files_fixed} files")
+    logger.info(f"\nFixed {total_fixes} relative imports in {files_fixed} files")
 
     # Validate no relative imports remain
     remaining_relative = 0
@@ -142,10 +145,10 @@ def main():
             remaining_relative += 1
 
     if remaining_relative > 0:
-        print(f"WARNING: {remaining_relative} files still have relative imports")
+        logger.warning(f"WARNING: {remaining_relative} files still have relative imports")
         return 1
     else:
-        print("SUCCESS: All relative imports successfully converted to absolute imports")
+        logger.info("SUCCESS: All relative imports successfully converted to absolute imports")
         return 0
 
 if __name__ == '__main__':

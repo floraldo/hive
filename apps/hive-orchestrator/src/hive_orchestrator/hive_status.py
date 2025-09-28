@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Hive Status Dashboard - Read-only viewer for new architecture
@@ -205,14 +208,14 @@ class HiveStatus:
     def print_dashboard(self):
         """Print the status dashboard"""
         # Clear screen
-        print("\033[2J\033[H", end="")
+        logger.info("\033[2J\033[H", end="")
         
         # Header
-        print(self.color(self.get_border_char("double") * 80, "cyan"))
-        print(self.color("HIVE FLEET STATUS - READ-ONLY VIEWER", "bold"))
-        print(self.color(self.get_border_char("double") * 80, "cyan"))
-        print(f"Time: {datetime.now().strftime('%H:%M:%S')} | Events: {self.events_file.name}")
-        print()
+        logger.info(self.color(self.get_border_char("double") * 80, "cyan"))
+        logger.info(self.color("HIVE FLEET STATUS - READ-ONLY VIEWER", "bold"))
+        logger.info(self.color(self.get_border_char("double") * 80, "cyan"))
+        logger.info(f"Time: {datetime.now().strftime('%H:%M:%S')} | Events: {self.events_file.name}")
+        logger.info()
         
         # Load data
         tasks = self.load_tasks()
@@ -224,8 +227,8 @@ class HiveStatus:
             stats[task.get("status", "unknown")] += 1
         
         # Status bar
-        print(self.color("TASK PIPELINE", "bold"))
-        print(self.get_border_char("single") * 40)
+        logger.info(self.color("TASK PIPELINE", "bold"))
+        logger.info(self.get_border_char("single") * 40)
         status_line = (
             f"Queued: {self.color(str(stats['queued']), 'white'):>3} | "
             f"Assigned: {self.color(str(stats['assigned']), 'cyan'):>3} | "
@@ -235,8 +238,8 @@ class HiveStatus:
             f"Completed: {self.color(str(stats['completed']), 'green'):>3} | "
             f"Failed: {self.color(str(stats['failed']), 'red'):>3}"
         )
-        print(status_line)
-        print()
+        logger.info(status_line)
+        logger.info()
         
         # Active tasks
         active_tasks = [
@@ -245,8 +248,8 @@ class HiveStatus:
         ]
         
         if active_tasks:
-            print(self.color("ACTIVE TASKS", "bold"))
-            print(self.get_border_char("single") * 40)
+            logger.info(self.color("ACTIVE TASKS", "bold"))
+            logger.info(self.get_border_char("single") * 40)
             for task in sorted(active_tasks, key=lambda t: t.get("started_at", ""))[:5]:
                 status = task.get("status", "unknown")
                 icon = self.get_status_icon(status)
@@ -263,9 +266,9 @@ class HiveStatus:
                     duration = ago
                     notes = ""
                 
-                print(f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | "
+                logger.info(f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | "
                       f"{assignee:8} | {duration:6} | {notes}")
-            print()
+            logger.info()
         
         # Recent completions
         completed = [
@@ -274,8 +277,8 @@ class HiveStatus:
         ]
         
         if completed:
-            print(self.color("RECENT COMPLETIONS", "bold"))
-            print(self.get_border_char("single") * 40)
+            logger.info(self.color("RECENT COMPLETIONS", "bold"))
+            logger.info(self.get_border_char("single") * 40)
             for task in sorted(completed, key=lambda t: t.get("completed_at", ""), reverse=True)[:3]:
                 icon = self.get_status_icon(task.get("status"))
                 pr = task.get("pr", "")
@@ -288,11 +291,11 @@ class HiveStatus:
                 
                 if pr:
                     pr_short = pr.split("/")[-1] if "/" in pr else pr[:20]
-                    print(f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | "
+                    logger.info(f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | "
                           f"{duration:6} | PR: {self.color(pr_short, 'cyan')}")
                 else:
-                    print(f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | {duration:6}")
-            print()
+                    logger.info(f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | {duration:6}")
+            logger.info()
         
         # Recent failures
         failed = [
@@ -301,8 +304,8 @@ class HiveStatus:
         ]
         
         if failed:
-            print(self.color("FAILURES & BLOCKS", "bold"))
-            print(self.get_border_char("single") * 40)
+            logger.error(self.color("FAILURES & BLOCKS", "bold"))
+            logger.info(self.get_border_char("single") * 40)
             for task in sorted(failed, key=lambda t: t.get("failed_at", ""), reverse=True)[:3]:
                 icon = self.get_status_icon(task.get("status"))
                 reason = task.get("failure_reason", "Unknown")[:40]
@@ -315,13 +318,13 @@ class HiveStatus:
                     print(f"{icon} [{task['id']}] {reason} | "
                           f"Fix: {self.color(fix_task_id, 'yellow')}")
                 else:
-                    print(f"{icon} [{task['id']}] {reason}")
-            print()
+                    logger.info(f"{icon} [{task['id']}] {reason}")
+            logger.info()
         
         # Recent events
         if self.recent_events:
-            print(self.color("EVENT STREAM", "bold"))
-            print(self.get_border_char("single") * 40)
+            logger.info(self.color("EVENT STREAM", "bold"))
+            logger.info(self.get_border_char("single") * 40)
             
             for event in self.recent_events[-8:]:
                 evt_type = event.get("type", "")
@@ -332,39 +335,39 @@ class HiveStatus:
                 # Format by type
                 if evt_type == "worker_spawned":
                     rocket = "🚀" if self.use_emoji else ">"
-                    print(f"  {rocket} {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)")
+                    logger.info(f"  {rocket} {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)")
                 elif evt_type == "task_execution_complete":
                     status = event.get("status", "?")
                     color = "green" if status == "success" else "red"
                     check = "✓" if self.use_emoji else "+"
-                    print(f"  {check} {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)")
+                    logger.info(f"  {check} {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)")
                 elif evt_type == "task_complete":
                     check = "✅" if self.use_emoji else "OK"
-                    print(f"  {check} {task_id} completed ({ts} ago)")
+                    logger.info(f"  {check} {task_id} completed ({ts} ago)")
                 elif evt_type == "task_failed":
                     x = "❌" if self.use_emoji else "X"
-                    print(f"  {x} {task_id} failed: {event.get('notes', '')[:30]} ({ts} ago)")
+                    logger.error(f"  {x} {task_id} failed: {event.get('notes', '')[:30]} ({ts} ago)")
                 elif evt_type == "inspector_task_created":
                     tool = "🔧" if self.use_emoji else "FIX"
-                    print(f"  {tool} Inspector {self.color(event.get('inspector', '?'), 'yellow')} "
+                    logger.info(f"  {tool} Inspector {self.color(event.get('inspector', '?'), 'yellow')} "
                           f"for {event.get('parent_task', '?')} ({ts} ago)")
                 elif evt_type == "queen_started":
                     crown = "👑" if self.use_emoji else "Q"
-                    print(f"  {crown} Queen orchestrator started ({ts} ago)")
+                    logger.info(f"  {crown} Queen orchestrator started ({ts} ago)")
                 elif evt_type == "queen_stopped":
                     crown = "👑" if self.use_emoji else "Q"
-                    print(f"  {crown} Queen orchestrator stopped ({ts} ago)")
+                    logger.info(f"  {crown} Queen orchestrator stopped ({ts} ago)")
                 else:
-                    print(f"  • {evt_type} from {worker} ({ts} ago)")
-            print()
+                    logger.info(f"  • {evt_type} from {worker} ({ts} ago)")
+            logger.info()
         
         # Footer
-        print(self.get_border_char("single") * 80)
-        print("Press Ctrl+C to exit | Updates every 2 seconds | Read-only viewer")
+        logger.info(self.get_border_char("single") * 80)
+        logger.info("Press Ctrl+C to exit | Updates every 2 seconds | Read-only viewer")
     
     def run(self, refresh_seconds: int = 2):
         """Run the dashboard with periodic refresh"""
-        print("Starting Hive Status Dashboard v2...")
+        logger.info("Starting Hive Status Dashboard v2...")
         
         try:
             while True:
@@ -383,7 +386,7 @@ class HiveStatus:
                 time.sleep(refresh_seconds)
                 
         except KeyboardInterrupt:
-            print("\n\nDashboard stopped.")
+            logger.info("\n\nDashboard stopped.")
 
 def main():
     """Main entry point"""

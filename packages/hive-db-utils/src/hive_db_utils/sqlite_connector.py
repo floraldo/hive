@@ -5,12 +5,12 @@ Provides simple, reliable SQLite connectivity for development and lightweight pr
 """
 
 import sqlite3
-import logging
+from hive_logging import get_logger
 from pathlib import Path
 from typing import Optional, Dict, Any
 from contextlib import contextmanager
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_sqlite_connection(db_path: str, **kwargs) -> sqlite3.Connection:

@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 """
 Temporary mock implementations for Hive packages during development.
 
@@ -96,7 +99,7 @@ class EventBus:
                 try:
                     await handler(event)
                 except Exception as e:
-                    print(f"Error in event handler: {e}")
+                    logger.error(f"Error in event handler: {e}")
 
 
 def create_workflow_event(**kwargs) -> Event:

@@ -193,7 +193,7 @@ class DateTimeProcessor:
             inferred = pd.infer_freq(time_index)
             if inferred:
                 return inferred
-        except:
+        except Exception as e:
             pass
 
         # Manual inference for common cases

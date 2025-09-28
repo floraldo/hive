@@ -12,9 +12,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from EcoSystemiser.shared.service import BaseProfileService, ProfileServiceError, ProfileValidationError
-from EcoSystemiser.shared.models import BaseProfileRequest, ProfileMode
-from EcoSystemiser.profile_loader.models import DemandRequest, DemandResponse, DEMAND_VARIABLES
+from EcoSystemiser.profile_loader.shared.service import BaseProfileService, ProfileServiceError, ProfileValidationError
+from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
+from EcoSystemiser.profile_loader.shared.models import DemandRequest, DemandResponse, DEMAND_VARIABLES
 from EcoSystemiser.profile_loader.file_adapter import DemandFileAdapter
 
 logger = get_logger(__name__)

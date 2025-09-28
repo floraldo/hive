@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Fix import issues and remove sys.path hacks in EcoSystemiser.
@@ -84,32 +87,32 @@ def main():
     """Main execution to fix all import issues."""
     ecosystemiser_dir = Path(__file__).parent.parent
 
-    print("EcoSystemiser Hive Integration - Import Fix")
-    print("=" * 60)
-    print(f"Working directory: {ecosystemiser_dir}")
-    print()
+    logger.info("EcoSystemiser Hive Integration - Import Fix")
+    logger.info("=" * 60)
+    logger.info(f"Working directory: {ecosystemiser_dir}")
+    logger.info()
 
     # Process all Python files
-    print("Scanning for sys.path hacks...")
+    logger.info("Scanning for sys.path hacks...")
     fixed_files, total_scanned = scan_and_fix_directory(ecosystemiser_dir)
 
-    print(f"\nScanned {total_scanned} Python files")
-    print(f"Fixed {len(fixed_files)} files with sys.path hacks")
+    logger.info(f"\nScanned {total_scanned} Python files")
+    logger.info(f"Fixed {len(fixed_files)} files with sys.path hacks")
 
     if fixed_files:
-        print("\nFiles fixed:")
+        logger.info("\nFiles fixed:")
         for f in sorted(fixed_files):
             rel_path = f.relative_to(ecosystemiser_dir)
-            print(f"  - {rel_path}")
+            logger.info(f"  - {rel_path}")
 
-    print("\nImport standardization complete!")
-    print("All files now use proper imports compatible with Hive's editable installs.")
+    logger.info("\nImport standardization complete!")
+    logger.info("All files now use proper imports compatible with Hive's editable installs.")
 
     # Provide next steps
-    print("\nNext steps:")
-    print("1. Run tests to verify imports still work: python -m pytest")
-    print("2. Check that the application starts properly")
-    print("3. Continue with Phase 2: Logging consolidation")
+    logger.info("\nNext steps:")
+    logger.info("1. Run tests to verify imports still work: python -m pytest")
+    logger.info("2. Check that the application starts properly")
+    logger.info("3. Continue with Phase 2: Logging consolidation")
 
 if __name__ == "__main__":
     main()

@@ -111,7 +111,8 @@ def setup_logging(
     format_type = log_format or settings.observability.log_format
     
     # Set up stdlib logging
-    s",
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         stream=sys.stdout,
         level=getattr(logging, level.upper())
     )

@@ -1,6 +1,9 @@
 import cvxpy as cp
 import numpy as np
 from .water_component import WaterComponent
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 class EvaporationDemand(WaterComponent):
     def __init__(self, name, temp_profile, n, W_max=None, economic=None, environmental=None):
@@ -38,6 +41,6 @@ if __name__ == "__main__":
     temp = np.linspace(0, 30, n)  # Test temperature range
     surface_area = 100  # m²
     evap = EvaporationDemand("TEST", temp, n, surface_area)
-    print("Evaporation profile created successfully")
-    print(f"Maximum evaporation rate: {evap.W_max:.3f} m³/hour")
-    print(f"Daily maximum evaporation: {evap.W_max * 24:.1f} m³/day")
+    logger.info("Evaporation profile created successfully")
+    logger.info(f"Maximum evaporation rate: {evap.W_max:.3f} m³/hour")
+    logger.info(f"Daily maximum evaporation: {evap.W_max * 24:.1f} m³/day")

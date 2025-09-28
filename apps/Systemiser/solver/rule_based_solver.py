@@ -1,14 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Any
 import numpy as np
-import logging
+from hive_logging import get_logger
 
 # Use logger from Systemiser utils
 try:
     from Systemiser.utils.logger import setup_logging
     system_logger = setup_logging("Systemiser", level=logging.DEBUG) # Specific logger
 except ImportError:
-    system_logger = logging.getLogger("Systemiser_Fallback")
+    system_logger = get_logger("Systemiser_Fallback")
     system_logger.warning("Could not import Systemiser logger, using fallback.")
     # Basic fallback config if needed
     if not system_logger.handlers:

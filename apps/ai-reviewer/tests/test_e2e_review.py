@@ -12,11 +12,11 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 # Add paths for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "packages" / "hive-core-db" / "src"))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "packages" / "hive-logging" / "src"))
-
-import hive_core_db
+# Use centralized path manager for imports
+from hive_config.path_manager import setup_hive_paths
+setup_hive_paths()
+# Import from orchestrator core for Hive-specific database access
+from hive_orchestrator.core.db import get_database, get_pooled_connection
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewEngine
 from ai_reviewer.robust_claude_bridge import RobustClaudeBridge, ClaudeReviewResponse

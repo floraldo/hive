@@ -2,14 +2,14 @@ import cvxpy as cp
 import numpy as np
 from pathlib import Path
 import json
-import logging
+from hive_logging import get_logger
 
 # Attempt to import Systemiser logger, otherwise use fallback
 try:
     from Systemiser.utils.logger import setup_logging
     system_logger = setup_logging("ResultsIO", level=logging.INFO)
 except ImportError:
-    system_logger = logging.getLogger("ResultsIO_Fallback")
+    system_logger = get_logger("ResultsIO_Fallback")
     system_logger.warning("Could not import Systemiser logger, using fallback.")
     if not system_logger.handlers:
         handler = logging.StreamHandler()

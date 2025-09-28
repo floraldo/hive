@@ -4,10 +4,10 @@ import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.system_model.shared.registry import register_component
-from EcoSystemiser.system_model.shared.component import Component, ComponentParams
-from EcoSystemiser.system_model.shared.archetypes import DemandTechnicalParams, FidelityLevel
-from EcoSystemiser.system_model.shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
+from EcoSystemiser.system_model.components.shared.registry import register_component
+from EcoSystemiser.system_model.components.shared.component import Component, ComponentParams
+from EcoSystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
+from EcoSystemiser.system_model.components.shared.base_classes import BaseDemandPhysics, BaseDemandOptimization
 
 logger = get_logger(__name__)
 
@@ -194,7 +194,7 @@ class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
             seasonal_variation = getattr(comp.technical, 'seasonal_variation', None)
             if seasonal_variation:
                 # Log awareness but maintain exact demand for now
-                import logging
+                from hive_logging import get_logger
                 logger = get_logger(__name__)
                 logger.debug(f"STANDARD: Seasonal variation acknowledged for {comp.name}")
 

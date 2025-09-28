@@ -195,7 +195,14 @@ class TestAnalyserService:
 
         try:
             service = AnalyserService()
-            service.strategies = {"mock": MockStrategy("mock")}
+            # Use real strategies for parametric study or register them
+            from EcoSystemiser.analyser.strategies.sensitivity import SensitivityAnalysis
+            from EcoSystemiser.analyser.strategies.economic import EconomicAnalysis
+            from EcoSystemiser.analyser.strategies.technical_kpi import TechnicalKPIAnalysis
+
+            service.register_strategy("sensitivity", SensitivityAnalysis())
+            service.register_strategy("economic", EconomicAnalysis())
+            service.register_strategy("technical_kpi", TechnicalKPIAnalysis())
 
             results = service.analyse_parametric_study(temp_path)
 

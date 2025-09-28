@@ -1,6 +1,9 @@
 import cvxpy as cp
 import numpy as np
 from .water_component import WaterComponent
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 class WaterPond(WaterComponent):
     def __init__(self, name, W_cha_max, E_max, E_init, infiltration_rate, n, economic=None, environmental=None):
@@ -40,7 +43,7 @@ class WaterPond(WaterComponent):
 
     def debug_flows(self, timestep):
         """Debug helper to check flow constraints."""
-        print(f"\n=== Water Pond Flow Analysis at t={timestep} ===")
+        logger.info(f"\n=== Water Pond Flow Analysis at t={timestep} ===")
         
         # Get actual values after solving
         input_sum = sum(flow['value'][timestep] for flow in self.flows['input'].values())
@@ -48,13 +51,13 @@ class WaterPond(WaterComponent):
         charging = self.flows['sink']['W_cha']['value'][timestep]
         discharging = self.flows['source']['W_dis']['value'][timestep]
         
-        print(f"Sum of input flows: {input_sum}")
-        print(f"Sum of output flows: {output_sum}")
-        print(f"Charging rate (W_cha): {charging}")
-        print(f"Discharging rate (W_dis): {discharging}")
-        print(f"Maximum charging rate: {self.W_cha_max}")
-        print(f"Storage level: {self.E[timestep]}")
-        print(f"Mass balance check: input_flows = {input_sum} ?= W_cha + output - W_dis = {charging + output_sum - discharging}")
+        logger.info(f"Sum of input flows: {input_sum}")
+        logger.info(f"Sum of output flows: {output_sum}")
+        logger.info(f"Charging rate (W_cha): {charging}")
+        logger.info(f"Discharging rate (W_dis): {discharging}")
+        logger.info(f"Maximum charging rate: {self.W_cha_max}")
+        logger.info(f"Storage level: {self.E[timestep]}")
+        logger.info(f"Mass balance check: input_flows = {input_sum} ?= W_cha + output - W_dis = {charging + output_sum - discharging}")
         
         if charging > self.W_cha_max:
-            print("WARNING: Charging rate exceeds maximum!")
+            logger.warning("WARNING: Charging rate exceeds maximum!")

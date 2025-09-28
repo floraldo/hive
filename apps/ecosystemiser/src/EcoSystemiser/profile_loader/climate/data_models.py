@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Literal, Optional, Tuple, Any
 from pydantic import BaseModel, Field
-from EcoSystemiser.shared.models import BaseProfileRequest, BaseProfileResponse, ProfileMode
+from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse, ProfileMode
 
 # Climate-specific types for validation
 ClimateSource = Literal["nasa_power", "meteostat", "pvgis", "era5", "file_epw"]

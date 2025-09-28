@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Update the remaining 4 components with separate optimization strategies.
@@ -31,13 +34,13 @@ COMPONENTS = [
     }
 ]
 
-print("Components to update:")
+logger.info("Components to update:")
 for comp in COMPONENTS:
-    print(f"  - {comp['component']}: {comp['file']}")
+    logger.info(f"  - {comp['component']}: {comp['file']}")
 
-print(f"\nTotal: {len(COMPONENTS)} components remaining")
-print("\nEach component needs:")
-print("1. Split monolithic Optimization class into Simple and Standard")
-print("2. Update factory method to select based on fidelity")
-print("3. Ensure Standard inherits from Simple")
-print("\nManual update recommended for accuracy.")
+logger.info(f"\nTotal: {len(COMPONENTS)} components remaining")
+logger.info("\nEach component needs:")
+logger.info("1. Split monolithic Optimization class into Simple and Standard")
+logger.info("2. Update factory method to select based on fidelity")
+logger.info("3. Ensure Standard inherits from Simple")
+logger.info("\nManual update recommended for accuracy.")

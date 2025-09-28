@@ -42,6 +42,10 @@ htmlcov/
 .coverage
 .tox/
 *.cover
+temp/
+tmp/
+*.tmp
+*.bak
 
 # OS
 .DS_Store

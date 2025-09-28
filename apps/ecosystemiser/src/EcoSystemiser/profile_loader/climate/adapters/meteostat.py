@@ -8,9 +8,6 @@ from typing import List, Dict, Optional, Tuple, Any
 from EcoSystemiser.hive_logging_adapter import get_logger
 from EcoSystemiser.profile_loader.climate.base import BaseAdapter
 from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-    AdapterCapabilities, TemporalCoverage, SpatialCoverage,
-    DataFrequency, AuthType, RateLimits, QualityFeatures
-)
 from EcoSystemiser.profile_loader.data_models import CANONICAL_VARIABLES
 from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError, ErrorCode
 

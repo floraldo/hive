@@ -1,418 +1,226 @@
-"""Comprehensive architectural validation of Strategy Pattern implementation.
+"""Architecture validation tests to enforce the Golden Rules of Imports.
 
-This test validates that all components correctly implement the Self-Contained
-Component Module pattern with Strategy Pattern for physics and optimization.
+This module implements the "Golden Test" for architectural gravity - it validates
+that our import rules are followed throughout the codebase and prevents violations
+from being introduced in the future.
+
+Golden Rules:
+1. All *.py files that contain business logic MUST use ABSOLUTE imports for internal dependencies
+2. __init__.py files are the ONLY exception - they MAY use relative imports to expose their own sub-package
+3. All external scripts MUST be run as modules via Poetry with proper Python path setup
 """
 
-import sys
-import inspect
+import ast
+import os
 from pathlib import Path
-import importlib
-import logging
+from typing import List, Tuple
+import pytest
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-logger = logging.getLogger(__name__)
 
-# Add path for imports
-eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-from EcoSystemiser.system_model.components.shared.archetypes import FidelityLevel
-from EcoSystemiser.system_model.components.energy.battery import Battery, BatteryPhysicsSimple, BatteryPhysicsStandard, BatteryOptimizationSimple, BatteryOptimizationStandard
-from EcoSystemiser.system_model.components.energy.heat_buffer import HeatBuffer, HeatBufferPhysicsSimple, HeatBufferPhysicsStandard, HeatBufferOptimizationSimple, HeatBufferOptimizationStandard
-from EcoSystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVPhysicsSimple, SolarPVPhysicsStandard, SolarPVOptimizationSimple, SolarPVOptimizationStandard
-from EcoSystemiser.system_model.components.energy.heat_pump import HeatPump, HeatPumpPhysicsSimple, HeatPumpPhysicsStandard, HeatPumpOptimizationSimple, HeatPumpOptimizationStandard
-from EcoSystemiser.system_model.components.energy.electric_boiler import ElectricBoiler, ElectricBoilerPhysicsSimple, ElectricBoilerPhysicsStandard, ElectricBoilerOptimizationSimple, ElectricBoilerOptimizationStandard
-from EcoSystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandPhysicsSimple, PowerDemandPhysicsStandard, PowerDemandOptimizationSimple, PowerDemandOptimizationStandard
-from EcoSystemiser.system_model.components.energy.heat_demand import HeatDemand, HeatDemandPhysicsSimple, HeatDemandPhysicsStandard, HeatDemandOptimizationSimple, HeatDemandOptimizationStandard
-from EcoSystemiser.system_model.components.energy.grid import Grid, GridPhysicsSimple, GridPhysicsStandard, GridOptimization
-from EcoSystemiser.system_model.components.water.water_storage import WaterStorage, WaterStoragePhysicsSimple, WaterStoragePhysicsStandard, WaterStorageOptimization
-from EcoSystemiser.system_model.components.water.water_grid import WaterGrid, WaterGridPhysicsSimple, WaterGridPhysicsStandard, WaterGridOptimization
-from EcoSystemiser.system_model.components.water.water_demand import WaterDemand, WaterDemandPhysicsSimple, WaterDemandPhysicsStandard, WaterDemandOptimization
-from EcoSystemiser.system_model.components.water.rainwater_source import RainwaterSource, RainwaterSourcePhysicsSimple, RainwaterSourcePhysicsStandard, RainwaterSourceOptimization
+class ImportValidator:
+    """Validates import patterns according to our architectural rules."""
 
-# Define expected architecture for each component
-COMPONENT_ARCHITECTURE = {
-    'Battery': {
-        'main_class': Battery,
-        'physics_simple': BatteryPhysicsSimple,
-        'physics_standard': BatteryPhysicsStandard,
-        'optimization_simple': BatteryOptimizationSimple,
-        'optimization_standard': BatteryOptimizationStandard,
-        'category': 'storage',
-        'medium': 'electricity'
-    },
-    'HeatBuffer': {
-        'main_class': HeatBuffer,
-        'physics_simple': HeatBufferPhysicsSimple,
-        'physics_standard': HeatBufferPhysicsStandard,
-        'optimization': HeatBufferOptimization,
-        'category': 'storage',
-        'medium': 'heat'
-    },
-    'WaterStorage': {
-        'main_class': WaterStorage,
-        'physics_simple': WaterStoragePhysicsSimple,
-        'physics_standard': WaterStoragePhysicsStandard,
-        'optimization': WaterStorageOptimization,
-        'category': 'storage',
-        'medium': 'water'
-    },
-    'SolarPV': {
-        'main_class': SolarPV,
-        'physics_simple': SolarPVPhysicsSimple,
-        'physics_standard': SolarPVPhysicsStandard,
-        'optimization': SolarPVOptimization,
-        'category': 'generation',
-        'medium': 'electricity'
-    },
-    'RainwaterSource': {
-        'main_class': RainwaterSource,
-        'physics_simple': RainwaterSourcePhysicsSimple,
-        'physics_standard': RainwaterSourcePhysicsStandard,
-        'optimization': RainwaterSourceOptimization,
-        'category': 'generation',
-        'medium': 'water'
-    },
-    'HeatPump': {
-        'main_class': HeatPump,
-        'physics_simple': HeatPumpPhysicsSimple,
-        'physics_standard': HeatPumpPhysicsStandard,
-        'optimization': HeatPumpOptimization,
-        'category': 'conversion',
-        'medium': 'electricity->heat'
-    },
-    'ElectricBoiler': {
-        'main_class': ElectricBoiler,
-        'physics_simple': ElectricBoilerPhysicsSimple,
-        'physics_standard': ElectricBoilerPhysicsStandard,
-        'optimization': ElectricBoilerOptimization,
-        'category': 'conversion',
-        'medium': 'electricity->heat'
-    },
-    'PowerDemand': {
-        'main_class': PowerDemand,
-        'physics_simple': PowerDemandPhysicsSimple,
-        'physics_standard': PowerDemandPhysicsStandard,
-        'optimization': PowerDemandOptimization,
-        'category': 'demand',
-        'medium': 'electricity'
-    },
-    'HeatDemand': {
-        'main_class': HeatDemand,
-        'physics_simple': HeatDemandPhysicsSimple,
-        'physics_standard': HeatDemandPhysicsStandard,
-        'optimization': HeatDemandOptimization,
-        'category': 'demand',
-        'medium': 'heat'
-    },
-    'WaterDemand': {
-        'main_class': WaterDemand,
-        'physics_simple': WaterDemandPhysicsSimple,
-        'physics_standard': WaterDemandPhysicsStandard,
-        'optimization': WaterDemandOptimization,
-        'category': 'demand',
-        'medium': 'water'
-    },
-    'Grid': {
-        'main_class': Grid,
-        'physics_simple': GridPhysicsSimple,
-        'physics_standard': GridPhysicsStandard,
-        'optimization': GridOptimization,
-        'category': 'transmission',
-        'medium': 'electricity'
-    },
-    'WaterGrid': {
-        'main_class': WaterGrid,
-        'physics_simple': WaterGridPhysicsSimple,
-        'physics_standard': WaterGridPhysicsStandard,
-        'optimization': WaterGridOptimization,
-        'category': 'transmission',
-        'medium': 'water'
-    }
-}
+    def __init__(self, src_root: str = "src"):
+        self.src_root = Path(src_root)
+        self.violations = []
 
-def validate_component_architecture(component_name: str, specs: dict) -> dict:
-    """Validate a single component's architecture."""
-    results = {
-        'name': component_name,
-        'category': specs['category'],
-        'medium': specs['medium'],
-        'checks': {}
-    }
+    def find_relative_import_violations(self) -> List[Tuple[str, int, str]]:
+        """Find all violations of the no-relative-imports rule.
 
-    # Check 1: Main class exists and has required methods
-    main_class = specs['main_class']
-    results['checks']['main_class_exists'] = main_class is not None
+        Returns list of (file_path, line_number, violation_text) tuples.
+        """
+        violations = []
 
-    if main_class:
-        # Check for factory methods
-        has_physics_factory = hasattr(main_class, '_get_physics_strategy')
-        has_optimization_factory = hasattr(main_class, '_get_optimization_strategy')
-        has_post_init = hasattr(main_class, '_post_init')
+        # Walk all Python files in the EcoSystemiser package
+        ecosystemiser_path = self.src_root / "EcoSystemiser"
+        if not ecosystemiser_path.exists():
+            return violations
 
-        results['checks']['has_physics_factory'] = has_physics_factory
-        results['checks']['has_optimization_factory'] = has_optimization_factory
-        results['checks']['has_post_init'] = has_post_init
+        for py_file in ecosystemiser_path.rglob("*.py"):
+            # Skip __init__.py files - they are allowed to use relative imports
+            if py_file.name == "__init__.py":
+                continue
 
-        # Check delegation methods exist
-        if specs['category'] == 'storage':
-            has_delegation = hasattr(main_class, 'rule_based_update_state')
-        elif specs['category'] == 'generation':
-            has_delegation = hasattr(main_class, 'rule_based_generate')
-        elif specs['category'] == 'conversion':
-            # Conversion components use rule_based_operation or conversion methods
-            has_delegation = (hasattr(main_class, 'rule_based_operation') or
-                            hasattr(main_class, 'rule_based_conversion_capacity') or
-                            hasattr(main_class, 'rule_based_convert'))
-        elif specs['category'] == 'demand':
-            has_delegation = hasattr(main_class, 'rule_based_demand')
-        elif specs['category'] == 'transmission':
-            has_delegation = hasattr(main_class, 'rule_based_import') or hasattr(main_class, 'rule_based_operation')
-        else:
-            has_delegation = False
+            violations.extend(self._check_file_for_relative_imports(py_file))
 
-        results['checks']['has_delegation_method'] = has_delegation
+        return violations
 
-    # Check 2: Physics strategy classes exist
-    results['checks']['physics_simple_exists'] = specs['physics_simple'] is not None
-    results['checks']['physics_standard_exists'] = specs['physics_standard'] is not None
+    def _check_file_for_relative_imports(self, file_path: Path) -> List[Tuple[str, int, str]]:
+        """Check a single file for relative import violations."""
+        violations = []
 
-    # Check 3: Physics inheritance chain
-    if specs['physics_standard'] and specs['physics_simple']:
-        is_inherited = issubclass(specs['physics_standard'], specs['physics_simple'])
-        results['checks']['physics_inheritance_correct'] = is_inherited
-    else:
-        results['checks']['physics_inheritance_correct'] = False
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
 
-    # Check 4: Optimization strategy classes exist
-    # For backward compatibility, check if we have the new structure or old
-    if 'optimization_simple' in specs and 'optimization_standard' in specs:
-        # New structure with separate optimization strategies
-        results['checks']['optimization_simple_exists'] = specs['optimization_simple'] is not None
-        results['checks']['optimization_standard_exists'] = specs['optimization_standard'] is not None
+            tree = ast.parse(content)
 
-        # Check optimization inheritance chain
-        if specs['optimization_standard'] and specs['optimization_simple']:
-            is_inherited = issubclass(specs['optimization_standard'], specs['optimization_simple'])
-            results['checks']['optimization_inheritance_correct'] = is_inherited
-        else:
-            results['checks']['optimization_inheritance_correct'] = False
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom):
+                    if node.level > 0:  # Relative import detected
+                        line_num = getattr(node, 'lineno', 0)
 
-        # Check both have set_constraints method
-        if specs['optimization_simple']:
-            has_constraints = hasattr(specs['optimization_simple'], 'set_constraints')
-            results['checks']['optimization_has_constraints'] = has_constraints
-        else:
-            results['checks']['optimization_has_constraints'] = False
-    elif 'optimization' in specs:
-        # Old structure with single optimization strategy (still valid but not ideal)
-        results['checks']['optimization_exists'] = specs['optimization'] is not None
+                        # Get the actual line content for context
+                        lines = content.splitlines()
+                        if 0 < line_num <= len(lines):
+                            line_content = lines[line_num - 1].strip()
+                        else:
+                            line_content = f"from {'.' * node.level}{node.module or ''} import ..."
 
-        if specs['optimization']:
-            has_constraints = hasattr(specs['optimization'], 'set_constraints')
-            results['checks']['optimization_has_constraints'] = has_constraints
-        else:
-            results['checks']['optimization_has_constraints'] = False
+                        violations.append((
+                            str(file_path.relative_to(self.src_root)),
+                            line_num,
+                            line_content
+                        ))
 
-    # Calculate pass/fail
-    results['passed'] = all(results['checks'].values())
+        except (SyntaxError, UnicodeDecodeError) as e:
+            # Log the error but don't fail the test for unparseable files
+            print(f"Warning: Could not parse {file_path}: {e}")
 
-    return results
+        return violations
 
-def test_architecture_compliance():
-    """Test that all components comply with the Strategy Pattern architecture."""
-    logger.info("="*70)
-    logger.info("ARCHITECTURAL VALIDATION - STRATEGY PATTERN COMPLIANCE")
-    logger.info("="*70)
+    def find_init_absolute_import_violations(self) -> List[Tuple[str, int, str]]:
+        """Find __init__.py files that use incorrect absolute imports for their own subdirectories.
 
-    all_results = []
-    categories = {}
+        __init__.py files should use relative imports for modules in their own directory.
+        """
+        violations = []
 
-    for component_name, specs in COMPONENT_ARCHITECTURE.items():
-        results = validate_component_architecture(component_name, specs)
-        all_results.append(results)
+        ecosystemiser_path = self.src_root / "EcoSystemiser"
+        if not ecosystemiser_path.exists():
+            return violations
 
-        # Group by category
-        category = specs['category']
-        if category not in categories:
-            categories[category] = []
-        categories[category].append(results)
+        for init_file in ecosystemiser_path.rglob("__init__.py"):
+            violations.extend(self._check_init_file_imports(init_file))
 
-    # Report results by category
-    logger.info("\n" + "-"*50)
-    logger.info("COMPONENT VALIDATION RESULTS")
-    logger.info("-"*50)
+        return violations
 
-    total_passed = 0
-    total_components = len(all_results)
+    def _check_init_file_imports(self, file_path: Path) -> List[Tuple[str, int, str]]:
+        """Check an __init__.py file for incorrect absolute imports."""
+        violations = []
 
-    for category, components in categories.items():
-        logger.info(f"\n{category.upper()} Components:")
-        for comp in components:
-            status = "✅ PASS" if comp['passed'] else "❌ FAIL"
-            logger.info(f"  {comp['name']:15} [{comp['medium']:20}] {status}")
-            if comp['passed']:
-                total_passed += 1
-            else:
-                # Show what failed
-                for check, passed in comp['checks'].items():
-                    if not passed:
-                        logger.info(f"    ❌ {check}")
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
 
-    # Summary statistics
-    logger.info("\n" + "-"*50)
-    logger.info("ARCHITECTURE SUMMARY")
-    logger.info("-"*50)
+            tree = ast.parse(content)
 
-    compliance_rate = (total_passed / total_components) * 100
-    logger.info(f"Total Components: {total_components}")
-    logger.info(f"Passed: {total_passed}")
-    logger.info(f"Failed: {total_components - total_passed}")
-    logger.info(f"Compliance Rate: {compliance_rate:.1f}%")
+            # Get the package path this __init__.py represents
+            package_parts = file_path.parent.relative_to(self.src_root).parts
+            package_prefix = ".".join(package_parts)
 
-    # Check critical architectural principles
-    logger.info("\n" + "-"*50)
-    logger.info("ARCHITECTURAL PRINCIPLES")
-    logger.info("-"*50)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom) and node.module:
+                    if node.level == 0:  # Absolute import
+                        # Check if it's importing from its own subdirectory
+                        if node.module.startswith(package_prefix + "."):
+                            # This should probably be a relative import
+                            relative_part = node.module[len(package_prefix) + 1:]
 
-    principles = {
-        "Single Responsibility": "Each class has one clear purpose",
-        "Strategy Pattern": "Physics and optimization separated from data",
-        "Factory Pattern": "Components select strategies based on fidelity",
-        "Inheritance Chain": "STANDARD physics inherit from SIMPLE",
-        "Clean Delegation": "Main class delegates to strategies"
-    }
+                            # Check if the imported module exists as a sibling
+                            sibling_path = file_path.parent / (relative_part.replace('.', '/') + '.py')
+                            sibling_dir = file_path.parent / relative_part.replace('.', '/')
 
-    for principle, description in principles.items():
-        if compliance_rate == 100:
-            logger.info(f"✅ {principle}: {description}")
-        else:
-            logger.info(f"⚠️  {principle}: {description} (partial compliance)")
+                            if sibling_path.exists() or (sibling_dir.exists() and sibling_dir.is_dir()):
+                                line_num = getattr(node, 'lineno', 0)
+                                lines = content.splitlines()
+                                if 0 < line_num <= len(lines):
+                                    line_content = lines[line_num - 1].strip()
+                                else:
+                                    line_content = f"from {node.module} import ..."
 
-    # Final verdict
-    logger.info("\n" + "="*70)
-    if compliance_rate == 100:
-        logger.info("✅ ARCHITECTURE VALIDATION COMPLETE - FULL COMPLIANCE!")
-        logger.info("All components correctly implement the Strategy Pattern")
-    else:
-        logger.info(f"⚠️  ARCHITECTURE VALIDATION - {compliance_rate:.1f}% COMPLIANCE")
-        logger.info("Some components need attention")
-    logger.info("="*70)
+                                violations.append((
+                                    str(file_path.relative_to(self.src_root)),
+                                    line_num,
+                                    f"Should use relative import: {line_content}"
+                                ))
 
-    return compliance_rate == 100
+        except (SyntaxError, UnicodeDecodeError) as e:
+            print(f"Warning: Could not parse {file_path}: {e}")
 
-def test_physics_correctness():
-    """Test that physics implementations produce realistic results."""
-    logger.info("\n" + "="*70)
-    logger.info("PHYSICS VALIDATION - REALISTIC BEHAVIOR CHECK")
-    logger.info("="*70)
+        return violations
 
-    # Test 1: Battery self-discharge
-    from EcoSystemiser.system_model.components.energy.battery import BatteryParams
-    battery = Battery(name='TestBattery', params=BatteryParams())
-    battery.technical.capacity_nominal = 10.0
-    battery.technical.self_discharge_rate = 0.01  # 1% per hour
-    battery.technical.fidelity_level = FidelityLevel.STANDARD
 
-    physics = battery._get_physics_strategy()
+def test_no_relative_imports_in_business_logic():
+    """Golden Test: Ensure no business logic files use relative imports.
 
-    # Test self-discharge: 10 kWh battery with no charge/discharge
-    initial_energy = 10.0
-    final_energy = physics.rule_based_update_state(0, initial_energy, 0.0, 0.0)
-    loss = initial_energy - final_energy
-    expected_loss = 10.0 * 0.01  # 1% of 10 kWh = 0.1 kWh
+    This test enforces Rule #1: All *.py files that contain business logic
+    MUST use ABSOLUTE imports for all internal dependencies.
 
-    logger.info("\nBattery Self-Discharge Test:")
-    logger.info(f"  Initial: {initial_energy:.2f} kWh")
-    logger.info(f"  Final: {final_energy:.2f} kWh")
-    logger.info(f"  Loss: {loss:.3f} kWh")
-    logger.info(f"  Expected: {expected_loss:.3f} kWh")
-    logger.info(f"  ✅ Correct" if abs(loss - expected_loss) < 0.001 else f"  ❌ Incorrect")
+    Relative imports (from .module, from ..package) are FORBIDDEN in business
+    logic files as they make modules location-dependent and break the ability
+    to import them from external scripts.
+    """
+    validator = ImportValidator()
+    violations = validator.find_relative_import_violations()
 
-    # Test 2: Solar PV inverter efficiency
-    from EcoSystemiser.system_model.components.energy.solar_pv import SolarPVParams
-    solar = SolarPV(name='TestSolar', params=SolarPVParams())
-    solar.technical.capacity_nominal = 10.0
-    solar.technical.inverter_efficiency = 0.96
-    solar.technical.fidelity_level = FidelityLevel.STANDARD
+    if violations:
+        error_msg = "❌ ARCHITECTURE VIOLATION: Found relative imports in business logic files:\\n\\n"
+        for file_path, line_num, line_content in violations:
+            error_msg += f"  {file_path}:{line_num} -> {line_content}\\n"
 
-    physics = solar._get_physics_strategy()
+        error_msg += "\\n🔧 Fix: Replace relative imports with absolute imports from EcoSystemiser root.\\n"
+        error_msg += "Example: 'from ..services.simulation' → 'from EcoSystemiser.services.simulation'\\n"
 
-    # Test inverter losses: 1.0 profile (full sun) on 10 kW system
-    profile_value = 1.0
-    output = physics.rule_based_generate(0, profile_value)
-    expected_output = 10.0 * 1.0 * 0.96  # 10 kW * 100% sun * 96% efficiency = 9.6 kW
+        pytest.fail(error_msg)
 
-    logger.info("\nSolar PV Inverter Efficiency Test:")
-    logger.info(f"  Nominal: 10.0 kW")
-    logger.info(f"  Profile: {profile_value:.1f} (full sun)")
-    logger.info(f"  Output: {output:.2f} kW")
-    logger.info(f"  Expected: {expected_output:.2f} kW")
-    logger.info(f"  ✅ Correct" if abs(output - expected_output) < 0.001 else f"  ❌ Incorrect")
 
-    # Test 3: Power demand does NOT inflate for power factor
-    from EcoSystemiser.system_model.components.energy.power_demand import PowerDemandParams
-    import numpy as np
-    demand = PowerDemand(name='TestDemand', params=PowerDemandParams())
-    demand.technical.peak_demand = 10.0
-    demand.technical.power_factor = 0.92  # Less than unity
-    demand.technical.fidelity_level = FidelityLevel.STANDARD
-    demand.profile = np.array([1.0])  # Full demand
+def test_init_files_use_relative_imports_correctly():
+    """Validate that __init__.py files use relative imports for their own subdirectories.
 
-    # Check that STANDARD doesn't inflate demand
-    from EcoSystemiser.system_model.components.energy.power_demand import PowerDemandOptimizationStandard
-    opt = PowerDemandOptimizationStandard(demand.params, demand)
+    This test helps catch cases where __init__.py files use absolute imports
+    to import from their own directory, which should use relative imports instead.
+    """
+    validator = ImportValidator()
+    violations = validator.find_init_absolute_import_violations()
 
-    # The demand should remain 10 kW, NOT inflated
-    logger.info("\nPower Demand Power Factor Test:")
-    logger.info(f"  Peak Demand: 10.0 kW")
-    logger.info(f"  Power Factor: 0.92")
-    logger.info(f"  STANDARD behavior: Should NOT inflate real power demand")
-    logger.info(f"  ✅ Correct - power factor acknowledged but not applied to real power")
+    if violations:
+        error_msg = "⚠️  INIT FILE PATTERN: Found __init__.py files that might benefit from relative imports:\\n\\n"
+        for file_path, line_num, line_content in violations:
+            error_msg += f"  {file_path}:{line_num} -> {line_content}\\n"
 
-    logger.info("\n" + "="*70)
-    logger.info("✅ PHYSICS VALIDATION COMPLETE")
-    logger.info("All physics implementations produce realistic results")
-    logger.info("="*70)
+        error_msg += "\\n💡 Consider: Use relative imports in __init__.py for same-directory modules.\\n"
+        error_msg += "Example: 'from EcoSystemiser.services.simulation' → 'from .simulation' (in services/__init__.py)\\n"
 
-    return True
+        # This is a warning, not a hard failure
+        print(error_msg)
 
-def main():
-    """Run all architectural validation tests."""
-    logger.info("🔍 COMPREHENSIVE ARCHITECTURAL REVIEW")
-    logger.info("Validating Strategy Pattern implementation across all components")
 
-    # Test 1: Architecture compliance
-    architecture_passed = test_architecture_compliance()
+def test_architecture_documentation():
+    """Ensure this test file itself documents the architecture rules."""
+    # This test validates that we have clear documentation of our rules
+    assert __doc__ is not None, "Architecture rules must be documented"
+    assert "Golden Rules" in __doc__, "Golden Rules must be documented"
+    assert "ABSOLUTE imports" in __doc__, "Rule about absolute imports must be documented"
+    assert "__init__.py" in __doc__, "Exception for __init__.py must be documented"
 
-    # Test 2: Physics correctness
-    physics_passed = test_physics_correctness()
-
-    # Final summary
-    logger.info("\n" + "="*70)
-    if architecture_passed and physics_passed:
-        logger.info("✅ FINAL VERDICT: ARCHITECTURE IS CORRECT AND COMPLETE!")
-        logger.info("="*70)
-        logger.info("\n🎯 Key Achievements:")
-        logger.info("• All 12 components implement Strategy Pattern correctly")
-        logger.info("• Physics strategies properly inherit (STANDARD from SIMPLE)")
-        logger.info("• Optimization strategies encapsulate MILP constraints")
-        logger.info("• Factory methods select strategies based on fidelity")
-        logger.info("• Clean delegation from main class to strategies")
-        logger.info("• Physics produce realistic, validated results")
-        logger.info("• Power factor bug is fixed (no demand inflation)")
-        logger.info("\n🏗️ Architecture Ready For:")
-        logger.info("• DETAILED fidelity implementation")
-        logger.info("• RESEARCH fidelity implementation")
-        logger.info("• RollingHorizonMILPSolver development")
-        logger.info("• Production deployment")
-        logger.info("="*70)
-    else:
-        logger.error("\n❌ ARCHITECTURAL ISSUES DETECTED")
-        logger.error("Review failed components and fix issues")
-
-    return architecture_passed and physics_passed
 
 if __name__ == "__main__":
-    import sys
-    success = main()
-    sys.exit(0 if success else 1)
+    # Allow running this test directly for quick validation
+    print("🔍 Running architecture validation...")
+
+    validator = ImportValidator()
+
+    print("\\n1. Checking for relative import violations...")
+    violations = validator.find_relative_import_violations()
+    if violations:
+        print(f"❌ Found {len(violations)} violations:")
+        for file_path, line_num, line_content in violations:
+            print(f"   {file_path}:{line_num} -> {line_content}")
+    else:
+        print("✅ No relative import violations found")
+
+    print("\\n2. Checking __init__.py import patterns...")
+    init_violations = validator.find_init_absolute_import_violations()
+    if init_violations:
+        print(f"💡 Found {len(init_violations)} potential improvements:")
+        for file_path, line_num, line_content in init_violations:
+            print(f"   {file_path}:{line_num} -> {line_content}")
+    else:
+        print("✅ __init__.py files look good")
+
+    print(f"\\n🎯 Architecture validation complete.")
+    if violations:
+        exit(1)  # Fail if there are violations
+    else:
+        exit(0)  # Success

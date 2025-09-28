@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "hive-error-handling"
+version = "0.1.0"
+description = "Generic error handling and reporting toolkit"
+authors = ["Hive System <hive@example.com>"]
+packages = [{include = "hive_error_handling", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

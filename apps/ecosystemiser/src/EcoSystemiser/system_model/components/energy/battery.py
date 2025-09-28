@@ -4,10 +4,10 @@ import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.system_model.shared.registry import register_component
-from EcoSystemiser.system_model.shared.component import Component, ComponentParams
-from EcoSystemiser.system_model.shared.archetypes import StorageTechnicalParams, FidelityLevel
-from EcoSystemiser.system_model.shared.base_classes import BaseStoragePhysics, BaseStorageOptimization
+from EcoSystemiser.system_model.components.shared.registry import register_component
+from EcoSystemiser.system_model.components.shared.component import Component, ComponentParams
+from EcoSystemiser.system_model.components.shared.archetypes import StorageTechnicalParams, FidelityLevel
+from EcoSystemiser.system_model.components.shared.base_classes import BaseStoragePhysics, BaseStorageOptimization
 
 logger = get_logger(__name__)
 
@@ -104,6 +104,22 @@ class BatteryPhysicsSimple(BaseStoragePhysics):
 
         # Enforce physical bounds
         return self.apply_bounds(next_state)
+
+    def apply_bounds(self, energy_level: float) -> float:
+        """
+        Apply physical energy bounds (0 <= E <= E_max).
+
+        Args:
+            energy_level: Energy level to bound
+
+        Returns:
+            float: Bounded energy level
+        """
+        # Get maximum capacity from params
+        E_max = self.params.technical.capacity_nominal
+
+        # Apply bounds
+        return max(0.0, min(energy_level, E_max))
 
 class BatteryPhysicsStandard(BatteryPhysicsSimple):
     """Implements the STANDARD rule-based physics for a battery.

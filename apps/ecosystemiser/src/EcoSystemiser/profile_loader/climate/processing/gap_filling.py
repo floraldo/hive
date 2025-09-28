@@ -358,7 +358,7 @@ class GapFiller:
                         ).values
                         if not np.isnan(pattern_val):
                             values[i] = pattern_val
-                    except:
+                    except Exception as e:
                         continue
             
             filled.values = values

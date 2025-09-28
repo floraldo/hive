@@ -1,0 +1,25 @@
+[app]
+name = "event-dashboard"
+version = "0.1.0"
+description = "Web dashboard for monitoring Hive platform events and system status"
+type = "web-service"
+
+[endpoints.dashboard]
+description = "Main dashboard web interface"
+path = "/"
+method = "GET"
+port = 8080
+
+[endpoints.api]
+description = "Events API for dashboard data"
+path = "/api/events"
+method = ["GET", "POST"]
+port = 8080
+
+[capabilities]
+monitoring = ["events", "system-status", "metrics"]
+visualization = ["real-time-dashboard", "event-timeline", "system-health"]
+
+[dependencies]
+requires = ["hive-core-db", "hive-bus"]
+optional = ["hive-logging"]

@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python
 """
 Ultimate CLI Test Suite for EcoSystemiser
@@ -32,8 +35,8 @@ class TColors:
 
 def run_command(name: str, command: str, expected_to_fail: bool = False) -> tuple[bool, float]:
     """Runs a command, captures its output, and reports success/failure."""
-    print(f"\n{TColors.HEADER}--- [RUNNING] {name} ---{TColors.ENDC}")
-    print(f"{TColors.OKBLUE}CMD: {command}{TColors.ENDC}")
+    logger.info(f"\n{TColors.HEADER}--- [RUNNING] {name} ---{TColors.ENDC}")
+    logger.info(f"{TColors.OKBLUE}CMD: {command}{TColors.ENDC}")
     
     # For Windows, we need to handle paths differently
     if platform.system() == 'Windows':
@@ -59,71 +62,71 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
         
         if expected_to_fail:
             if result.returncode != 0:
-                print(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}")
+                logger.error(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}")
                 return True, elapsed
             else:
-                print(f"{TColors.FAIL}[✗] FAIL: {name} (should have failed but succeeded){TColors.ENDC}")
+                logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (should have failed but succeeded){TColors.ENDC}")
                 return False, elapsed
         else:
-            print(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (completed in {elapsed:.2f}s){TColors.ENDC}")
+            logger.info(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (completed in {elapsed:.2f}s){TColors.ENDC}")
             # Print the last few lines of output for context
             if result.stdout:
                 output_lines = result.stdout.strip().split('\n')
                 for line in output_lines[-3:]:
-                    print(f"    {line}")
+                    logger.info(f"    {line}")
             return True, elapsed
             
     except FileNotFoundError:
         elapsed = time.time() - start_time
-        print(f"{TColors.FAIL}[✗] FAIL: {name} (FileNotFoundError){TColors.ENDC}")
-        print(f"    ERROR: Command not found. Is the package installed in editable mode?")
+        logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (FileNotFoundError){TColors.ENDC}")
+        logger.error(f"    ERROR: Command not found. Is the package installed in editable mode?")
         return False, elapsed
         
     except subprocess.CalledProcessError as e:
         elapsed = time.time() - start_time
         if expected_to_fail:
-            print(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}")
+            logger.error(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}")
             return True, elapsed
         else:
-            print(f"{TColors.FAIL}[✗] FAIL: {name} (exit code {e.returncode}){TColors.ENDC}")
-            print("    --- STDERR ---")
+            logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (exit code {e.returncode}){TColors.ENDC}")
+            logger.info("    --- STDERR ---")
             if e.stderr:
                 for line in e.stderr.split('\n')[:5]:  # First 5 lines of error
-                    print(f"    {line}")
+                    logger.info(f"    {line}")
             return False, elapsed
 
 def verify_output_file(filepath: Path, test_name: str) -> bool:
     """Verify that output file exists and has reasonable content."""
     if not filepath.exists():
-        print(f"    {TColors.WARNING}Warning: Output file not created: {filepath}{TColors.ENDC}")
+        logger.warning(f"    {TColors.WARNING}Warning: Output file not created: {filepath}{TColors.ENDC}")
         return False
     
     size = filepath.stat().st_size
     if size == 0:
-        print(f"    {TColors.WARNING}Warning: Output file is empty: {filepath}{TColors.ENDC}")
+        logger.warning(f"    {TColors.WARNING}Warning: Output file is empty: {filepath}{TColors.ENDC}")
         return False
     
-    print(f"    Output file created: {filepath.name} ({size:,} bytes)")
+    logger.info(f"    Output file created: {filepath.name} ({size:,} bytes)")
     return True
 
 def main():
     """Main function to run the test suite."""
     
-    print(f"{TColors.BOLD}========================================{TColors.ENDC}")
-    print(f"{TColors.BOLD}   EcoSystemiser CLI Test Suite{TColors.ENDC}")
-    print(f"{TColors.BOLD}   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{TColors.ENDC}")
-    print(f"{TColors.BOLD}========================================{TColors.ENDC}")
+    logger.info(f"{TColors.BOLD}========================================{TColors.ENDC}")
+    logger.info(f"{TColors.BOLD}   EcoSystemiser CLI Test Suite{TColors.ENDC}")
+    logger.info(f"{TColors.BOLD}   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{TColors.ENDC}")
+    logger.info(f"{TColors.BOLD}========================================{TColors.ENDC}")
     
     # --- Setup ---
-    print(f"\n{TColors.BOLD}--- Setting up test environment ---{TColors.ENDC}")
+    logger.info(f"\n{TColors.BOLD}--- Setting up test environment ---{TColors.ENDC}")
     if OUTPUT_DIR.exists():
         shutil.rmtree(OUTPUT_DIR)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"Test outputs will be saved to: {OUTPUT_DIR}")
+    logger.info(f"Test outputs will be saved to: {OUTPUT_DIR}")
     
     # Create minimal EPW test file if needed
     if not EPW_FILE.exists():
-        print(f"Creating sample EPW file at: {EPW_FILE}")
+        logger.info(f"Creating sample EPW file at: {EPW_FILE}")
         EPW_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(EPW_FILE, 'w') as f:
             f.write("""LOCATION,Chicago Ohare Intl Ap,IL,USA,TMY3,725300,41.98,-87.90,-6.0,201.0
@@ -185,7 +188,7 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
     timings = []
     
     # Run regular tests
-    print(f"\n{TColors.BOLD}--- Running Success Tests ---{TColors.ENDC}")
+    logger.info(f"\n{TColors.BOLD}--- Running Success Tests ---{TColors.ENDC}")
     for test in test_cases:
         success, elapsed = run_command(test["name"], test["command"])
         results.append(success)
@@ -196,7 +199,7 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
             verify_output_file(test["output_file"], test["name"])
     
     # Run failure tests
-    print(f"\n{TColors.BOLD}--- Running Expected Failure Tests ---{TColors.ENDC}")
+    logger.error(f"\n{TColors.BOLD}--- Running Expected Failure Tests ---{TColors.ENDC}")
     for test in failure_tests:
         success, elapsed = run_command(
             test["name"], 
@@ -211,34 +214,34 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
     failed = len(results) - passed
     total_time = sum(timings)
     
-    print(f"\n{TColors.BOLD}========================================{TColors.ENDC}")
-    print(f"{TColors.BOLD}         TEST SUITE SUMMARY{TColors.ENDC}")
-    print(f"{TColors.BOLD}========================================{TColors.ENDC}")
-    print(f"Total Tests: {len(results)}")
-    print(f"{TColors.OKGREEN}Passed: {passed}{TColors.ENDC}")
-    print(f"{TColors.FAIL}Failed: {failed}{TColors.ENDC}")
-    print(f"Total Runtime: {total_time:.2f} seconds")
+    logger.info(f"\n{TColors.BOLD}========================================{TColors.ENDC}")
+    logger.info(f"{TColors.BOLD}         TEST SUITE SUMMARY{TColors.ENDC}")
+    logger.info(f"{TColors.BOLD}========================================{TColors.ENDC}")
+    logger.info(f"Total Tests: {len(results)}")
+    logger.info(f"{TColors.OKGREEN}Passed: {passed}{TColors.ENDC}")
+    logger.error(f"{TColors.FAIL}Failed: {failed}{TColors.ENDC}")
+    logger.info(f"Total Runtime: {total_time:.2f} seconds")
     
     if OUTPUT_DIR.exists():
         output_files = list(OUTPUT_DIR.glob("*"))
         if output_files:
-            print(f"\nGenerated {len(output_files)} output files:")
+            logger.info(f"\nGenerated {len(output_files)} output files:")
             for f in output_files:
-                print(f"  - {f.name} ({f.stat().st_size:,} bytes)")
+                logger.info(f"  - {f.name} ({f.stat().st_size:,} bytes)")
     
     if failed == 0:
-        print(f"\n{TColors.BOLD}{TColors.OKGREEN}✅ All tests passed!{TColors.ENDC}")
+        logger.info(f"\n{TColors.BOLD}{TColors.OKGREEN}✅ All tests passed!{TColors.ENDC}")
         
         # Ask about cleanup
         cleanup = input(f"\n{TColors.BOLD}Delete test output directory? (y/N): {TColors.ENDC}")
         if cleanup.lower() == 'y':
             shutil.rmtree(OUTPUT_DIR)
-            print(f"Test output directory cleaned up.")
+            logger.info(f"Test output directory cleaned up.")
         
         sys.exit(0)
     else:
-        print(f"\n{TColors.BOLD}{TColors.FAIL}❌ Some tests failed.{TColors.ENDC}")
-        print(f"Output logs retained in: {OUTPUT_DIR}")
+        logger.error(f"\n{TColors.BOLD}{TColors.FAIL}❌ Some tests failed.{TColors.ENDC}")
+        logger.info(f"Output logs retained in: {OUTPUT_DIR}")
         sys.exit(1)
 
 if __name__ == "__main__":

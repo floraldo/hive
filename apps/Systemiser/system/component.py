@@ -5,6 +5,9 @@ import pandas as pd
 # Use relative imports for models within the same package
 from .economic_parameters import EconomicParameters 
 from .environmental_parameters import EnvironmentalParameters
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 class Component:
     def __init__(self, N, name, economic: EconomicParameters, environmental: EnvironmentalParameters):
@@ -147,15 +150,15 @@ class Component:
         return self.constraints
 
     def print_constraints(self):
-        print(f"\nConstraints for {self.name}")
+        logger.info(f"\nConstraints for {self.name}")
         for constraint in self.constraints:
-            print(constraint)
+            logger.info(constraint)
 
     def print_flows(self):
-        print(f"\nFlows to and from {self.name}")
+        logger.info(f"\nFlows to and from {self.name}")
         for direction, outer_dict in self.flows.items():
             for flow_name, flow in outer_dict.items():
-                print(f"{flow_name}: {direction} ({flow['value']})")
+                logger.info(f"{flow_name}: {direction} ({flow['value']})")
 
     def get_result(self):
         result = {}
@@ -222,28 +225,28 @@ class Component:
         def format_emissions(value):
             return f"{value:.1f} kg CO2"
     
-        print(f"{self.name.upper()}")
-        print("  Technical Results:")
-        print(f"    Energy Generated: {format_energy(self.energy_generated)}")
-        print(f"    Energy Stored:    {format_energy(self.energy_stored)}")
-        print(f"    Energy Consumed:  {format_energy(self.energy_consumed)}")
-        print(f"    Energy Loss:      {format_energy(self.energy_loss)}")
-        print(f"    Energy Throughput:{format_energy(self.energy_throughput)}")
-        print()
+        logger.info(f"{self.name.upper()}")
+        logger.info("  Technical Results:")
+        logger.info(f"    Energy Generated: {format_energy(self.energy_generated)}")
+        logger.info(f"    Energy Stored:    {format_energy(self.energy_stored)}")
+        logger.info(f"    Energy Consumed:  {format_energy(self.energy_consumed)}")
+        logger.info(f"    Energy Loss:      {format_energy(self.energy_loss)}")
+        logger.info(f"    Energy Throughput:{format_energy(self.energy_throughput)}")
+        logger.info()
     
-        print("  Economic Results:")
-        print(f"    CAPEX:                {format_currency(self.economic.capex)}")
-        print(f"    OPEX per Year:        {format_currency(self.economic.opex_per_year)}")
-        print(f"    OPEX over Lifetime:   {format_currency(self.economic.opex_lifetime)}")
-        print(f"    Revenue per Year:     {format_currency(self.economic.revenue_per_year)}")
-        print(f"    Revenue over Lifetime:{format_currency(self.economic.revenue_lifetime)}")
-        print(f"    Cash Flow:            {format_currency(self.economic.cash_flow)}")
-        print(f"    Lifecycle Cost:       {format_currency(self.economic.lifecycle_cost)}")
-        print(f"    ROI:                  {format_percentage(self.economic.roi)}")
-        print(f"    PBP:                  {format_years(self.economic.pbp)}")
-        print(f"    LCOE:                 {format_currency(self.economic.lcoe)}/kWh")
-        print(f"    LCOS:                 {format_currency(self.economic.lcos)}/kWh")
-        print()
+        logger.info("  Economic Results:")
+        logger.info(f"    CAPEX:                {format_currency(self.economic.capex)}")
+        logger.info(f"    OPEX per Year:        {format_currency(self.economic.opex_per_year)}")
+        logger.info(f"    OPEX over Lifetime:   {format_currency(self.economic.opex_lifetime)}")
+        logger.info(f"    Revenue per Year:     {format_currency(self.economic.revenue_per_year)}")
+        logger.info(f"    Revenue over Lifetime:{format_currency(self.economic.revenue_lifetime)}")
+        logger.info(f"    Cash Flow:            {format_currency(self.economic.cash_flow)}")
+        logger.info(f"    Lifecycle Cost:       {format_currency(self.economic.lifecycle_cost)}")
+        logger.info(f"    ROI:                  {format_percentage(self.economic.roi)}")
+        logger.info(f"    PBP:                  {format_years(self.economic.pbp)}")
+        logger.info(f"    LCOE:                 {format_currency(self.economic.lcoe)}/kWh")
+        logger.info(f"    LCOS:                 {format_currency(self.economic.lcos)}/kWh")
+        logger.info()
 
-        print("  Environmental Results:")
-        print(f"    Emissions Lifetime:   {format_emissions(self.environmental.co2_emissions_lifetime)}")
+        logger.info("  Environmental Results:")
+        logger.info(f"    Emissions Lifetime:   {format_emissions(self.environmental.co2_emissions_lifetime)}")

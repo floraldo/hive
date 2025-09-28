@@ -8,10 +8,6 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
 
-# Add packages path first for hive-config
-project_root = Path(__file__).parent.parent.parent.parent.parent
-sys.path.insert(0, str(project_root / "packages" / "hive-config" / "src"))
-
 # Configure all Hive paths centrally
 from hive_config import setup_hive_paths
 setup_hive_paths()

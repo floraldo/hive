@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 EcoSystemiser Standalone Runner
@@ -12,9 +15,9 @@ import os
 def setup_environment():
     """Setup environment for EcoSystemiser - now using proper package installation"""
 
-    print(f"🐝 EcoSystemiser starting in Hive ecosystem")
-    print(f"   Using installed package imports")
-    print(f"   Working directory: {os.getcwd()}")
+    logger.info(f"🐝 EcoSystemiser starting in Hive ecosystem")
+    logger.info(f"   Using installed package imports")
+    logger.info(f"   Working directory: {os.getcwd()}")
 
     # No more path manipulation - EcoSystemiser should be properly installed
 
@@ -35,9 +38,9 @@ def run_server():
         workers = int(settings.get('WORKERS', '1'))
         log_level = settings.get('LOG_LEVEL', 'info').lower()
 
-        print(f"🚀 Starting EcoSystemiser server on {host}:{port}")
-        print(f"   Workers: {workers}")
-        print(f"   Log level: {log_level}")
+        logger.info(f"🚀 Starting EcoSystemiser server on {host}:{port}")
+        logger.info(f"   Workers: {workers}")
+        logger.info(f"   Log level: {log_level}")
 
         # Run the server
         uvicorn.run(
@@ -51,13 +54,13 @@ def run_server():
         )
 
     except ImportError as e:
-        print(f"❌ Import error: {e}")
-        print("   Make sure EcoSystemiser is installed:")
-        print("   pip install -e apps/ecosystemiser")
+        logger.error(f"❌ Import error: {e}")
+        logger.info("   Make sure EcoSystemiser is installed:")
+        logger.info("   pip install -e apps/ecosystemiser")
         sys.exit(1)
 
     except Exception as e:
-        print(f"❌ Failed to start server: {e}")
+        logger.error(f"❌ Failed to start server: {e}")
         sys.exit(1)
 
 def run_cli():
@@ -70,18 +73,18 @@ def run_cli():
         # Remove script name and pass remaining args to CLI
         cli_args = sys.argv[2:] if len(sys.argv) > 2 else []
 
-        print(f"🔧 Running EcoSystemiser CLI: {' '.join(cli_args) if cli_args else 'help'}")
+        logger.info(f"🔧 Running EcoSystemiser CLI: {' '.join(cli_args) if cli_args else 'help'}")
 
         # Call CLI main with remaining arguments
         sys.argv = ['ecosystemiser'] + cli_args
         cli_main()
 
     except ImportError as e:
-        print(f"❌ CLI not available: {e}")
+        logger.info(f"❌ CLI not available: {e}")
         sys.exit(1)
 
     except Exception as e:
-        print(f"❌ CLI error: {e}")
+        logger.error(f"❌ CLI error: {e}")
         sys.exit(1)
 
 def main():
@@ -91,10 +94,10 @@ def main():
 
     # Check command line arguments
     if len(sys.argv) < 2:
-        print("Usage:")
-        print("  python run.py server    # Start FastAPI server")
-        print("  python run.py cli [...] # Run CLI commands")
-        print("  python run.py help      # Show this help")
+        logger.info("Usage:")
+        logger.info("  python run.py server    # Start FastAPI server")
+        logger.info("  python run.py cli [...] # Run CLI commands")
+        logger.info("  python run.py help      # Show this help")
         sys.exit(1)
 
     command = sys.argv[1].lower()
@@ -104,20 +107,20 @@ def main():
     elif command == 'cli':
         run_cli()
     elif command in ['help', '--help', '-h']:
-        print("EcoSystemiser Runner - Climate Data Platform")
-        print()
-        print("Commands:")
-        print("  server    Start the FastAPI web server")
-        print("  cli       Run CLI commands (pass additional args)")
-        print("  help      Show this help message")
-        print()
-        print("Examples:")
-        print("  python run.py server")
-        print("  python run.py cli --help")
-        print("  python run.py cli fetch-climate --location 'London, UK'")
+        logger.info("EcoSystemiser Runner - Climate Data Platform")
+        logger.info()
+        logger.info("Commands:")
+        logger.info("  server    Start the FastAPI web server")
+        logger.info("  cli       Run CLI commands (pass additional args)")
+        logger.info("  help      Show this help message")
+        logger.info()
+        logger.info("Examples:")
+        logger.info("  python run.py server")
+        logger.info("  python run.py cli --help")
+        logger.info("  python run.py cli fetch-climate --location 'London, UK'")
     else:
-        print(f"❌ Unknown command: {command}")
-        print("Use 'python run.py help' for available commands")
+        logger.info(f"❌ Unknown command: {command}")
+        logger.info("Use 'python run.py help' for available commands")
         sys.exit(1)
 
 if __name__ == '__main__':

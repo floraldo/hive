@@ -16,10 +16,8 @@ from typing import Dict, Any, List, Optional
 # Hive logging system
 from hive_logging import setup_logging, get_logger
 
-# Hive database system
-import sys
-sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
-import hive_core_db
+# Hive database system - use internal core database layer
+from .core.db import get_database, get_pooled_connection
 
 # Hive utilities for path management
 from hive_utils.paths import PROJECT_ROOT, HIVE_DIR, WORKTREES_DIR, LOGS_DIR
@@ -82,7 +80,7 @@ class HiveCore:
                 # Merge with defaults
                 default_config.update(file_config)
             except Exception as e:
-                print(f"Warning: Could not load config: {e}")
+                logger.warning(f"Warning: Could not load config: {e}")
         
         return default_config
     
@@ -256,7 +254,7 @@ class HiveCore:
     
     def clean_fresh_environment(self):
         """Clean all state for fresh environment testing"""
-        print(f"[{self.timestamp()}] Cleaning fresh environment...")
+        logger.info(f"[{self.timestamp()}] Cleaning fresh environment...")
         
         # Reset all task statuses to queued
         reset_count = 0
@@ -294,7 +292,7 @@ class HiveCore:
                     try:
                         result_file.unlink()
                     except Exception as e:
-                        print(f"[{self.timestamp()}] Error removing result {result_file}: {e}")
+                        logger.error(f"[{self.timestamp()}] Error removing result {result_file}: {e}")
 
         # Clear all worker worktrees created by WorkerCore (.worktrees/<worker>/<task>)
         if self.worktrees_dir.exists():
@@ -310,7 +308,7 @@ class HiveCore:
         """Clean a specific task's workspace"""
         task = self.load_task(task_id)
         if not task:
-            print(f"[{self.timestamp()}] Task {task_id} not found")
+            logger.info(f"[{self.timestamp()}] Task {task_id} not found")
             return False
 
         # Prefer the recorded workspace from the latest result
@@ -327,9 +325,9 @@ class HiveCore:
         if worktree and worktree.exists():
             try:
                 shutil.rmtree(worktree)
-                print(f"[{self.timestamp()}] Cleared workspace for {task_id} at {worktree}")
+                logger.info(f"[{self.timestamp()}] Cleared workspace for {task_id} at {worktree}")
             except Exception as e:
-                print(f"[{self.timestamp()}] Error clearing workspace: {e}")
+                logger.error(f"[{self.timestamp()}] Error clearing workspace: {e}")
                 return False
         
         # Clear task results
@@ -337,18 +335,18 @@ class HiveCore:
         if task_results.exists():
             try:
                 shutil.rmtree(task_results)
-                print(f"[{self.timestamp()}] Cleared results for {task_id}")
+                logger.info(f"[{self.timestamp()}] Cleared results for {task_id}")
             except Exception as e:
-                print(f"[{self.timestamp()}] Error clearing results: {e}")
+                logger.error(f"[{self.timestamp()}] Error clearing results: {e}")
         
         # Clear task logs
         task_logs = self.root / "hive" / "logs" / task_id
         if task_logs.exists():
             try:
                 shutil.rmtree(task_logs)
-                print(f"[{self.timestamp()}] Cleared logs for {task_id}")
+                logger.info(f"[{self.timestamp()}] Cleared logs for {task_id}")
             except Exception as e:
-                print(f"[{self.timestamp()}] Error clearing logs: {e}")
+                logger.error(f"[{self.timestamp()}] Error clearing logs: {e}")
         
         # Reset task status
         task["status"] = "queued"
@@ -358,7 +356,7 @@ class HiveCore:
                 del task[key]
         
         self.save_task(task)
-        print(f"[{self.timestamp()}] Task {task_id} reset to queued")
+        logger.info(f"[{self.timestamp()}] Task {task_id} reset to queued")
         return True
     
     def get_task_stats(self) -> Dict[str, int]:
@@ -394,7 +392,7 @@ class HiveCore:
             with open(events_file, "a") as f:
                 f.write(json.dumps(event) + "\n")
         except Exception as e:
-            print(f"[{self.timestamp()}] Error emitting event: {e}")
+            logger.error(f"[{self.timestamp()}] Error emitting event: {e}")
     
     # === Status Transition Helpers ===
     
@@ -449,43 +447,43 @@ class HiveCore:
 
 def cmd_init(args, core: HiveCore):
     """Initialize hive environment"""
-    print("Initializing Hive environment...")
+    logger.info("Initializing Hive environment...")
     core.ensure_directories()
     
     # Create empty queue if none exists
     if not core.load_task_queue():
         core.save_task_queue([])
-        print("Created empty task queue")
+        logger.info("Created empty task queue")
     
-    print("Hive initialized successfully")
+    logger.info("Hive initialized successfully")
 
 def cmd_clean(args, core: HiveCore):
     """Clean fresh environment"""
     if args.fresh_env:
         core.clean_fresh_environment()
     else:
-        print("Use --fresh-env flag to clean environment")
+        logger.info("Use --fresh-env flag to clean environment")
 
 def cmd_status(args, core: HiveCore):
     """Show hive status"""
     stats = core.get_task_stats()
     queue = core.load_task_queue()
     
-    print(f"\n=== HIVE STATUS ===")
-    print(f"Queue Length: {len(queue)}")
-    print(f"Total Tasks: {stats['total']}")
-    print(f"  Queued: {stats['queued']}")
-    print(f"  Assigned: {stats['assigned']}")
-    print(f"  In Progress: {stats['in_progress']}")
-    print(f"  Completed: {stats['completed']}")
-    print(f"  Failed: {stats['failed']}")
+    logger.info(f"\n=== HIVE STATUS ===")
+    logger.info(f"Queue Length: {len(queue)}")
+    logger.info(f"Total Tasks: {stats['total']}")
+    logger.info(f"  Queued: {stats['queued']}")
+    logger.info(f"  Assigned: {stats['assigned']}")
+    logger.info(f"  In Progress: {stats['in_progress']}")
+    logger.info(f"  Completed: {stats['completed']}")
+    logger.error(f"  Failed: {stats['failed']}")
     
     if args.verbose:
-        print(f"\n=== TASK DETAILS ===")
+        logger.info(f"\n=== TASK DETAILS ===")
         for task in core.get_all_tasks():
             status = task.get("status", "unknown")
             assignee = task.get("assignee", "unassigned")
-            print(f"  {task['id']}: {status} ({assignee})")
+            logger.info(f"  {task['id']}: {status} ({assignee})")
 
 def cmd_queue(args, core: HiveCore):
     """Add task to queue"""
@@ -493,16 +491,16 @@ def cmd_queue(args, core: HiveCore):
     task_file = core.tasks_dir / f"{task_id}.json"
     
     if not task_file.exists():
-        print(f"Error: Task {task_id} not found")
+        logger.error(f"Error: Task {task_id} not found")
         return
     
     queue = core.load_task_queue()
     if task_id not in queue:
         queue.append(task_id)
         core.save_task_queue(queue)
-        print(f"Added {task_id} to queue")
+        logger.info(f"Added {task_id} to queue")
     else:
-        print(f"Task {task_id} already in queue")
+        logger.info(f"Task {task_id} already in queue")
 
 def cmd_logs(args, core: HiveCore):
     """Show task logs"""
@@ -510,25 +508,25 @@ def cmd_logs(args, core: HiveCore):
     logs_dir = core.root / "hive" / "logs" / task_id
     
     if not logs_dir.exists():
-        print(f"No logs found for task {task_id}")
+        logger.info(f"No logs found for task {task_id}")
         return
     
     log_files = sorted(logs_dir.glob("*.log"))
     if not log_files:
-        print(f"No log files found for task {task_id}")
+        logger.info(f"No log files found for task {task_id}")
         return
     
     if args.latest:
         log_files = [log_files[-1]]
     
     for log_file in log_files:
-        print(f"\n=== LOG: {log_file.name} ===")
+        logger.info(f"\n=== LOG: {log_file.name} ===")
         with open(log_file, "r", encoding="utf-8") as f:
             if args.tail:
                 lines = f.readlines()
-                print("".join(lines[-args.tail:]))
+                logger.info("".join(lines[-args.tail:]))
             else:
-                print(f.read())
+                logger.info(f.read())
 
 def cmd_list(args, core: HiveCore):
     """List all tasks"""
@@ -537,25 +535,25 @@ def cmd_list(args, core: HiveCore):
     if args.status:
         tasks = [t for t in tasks if t.get("status") == args.status]
     
-    print(f"\n=== TASKS ({len(tasks)} total) ===")
+    logger.info(f"\n=== TASKS ({len(tasks)} total) ===")
     for task in tasks:
         status = task.get("status", "unknown")
         title = task.get("title", task["id"])
-        print(f"  [{status:12}] {task['id']:30} - {title}")
+        logger.info(f"  [{status:12}] {task['id']:30} - {title}")
 
 def cmd_clear(args, core: HiveCore):
     """Clear a specific task's workspace"""
     task_id = args.task_id
     if core.clean_task_workspace(task_id):
-        print(f"Successfully cleared workspace for {task_id}")
+        logger.info(f"Successfully cleared workspace for {task_id}")
     else:
-        print(f"Failed to clear workspace for {task_id}")
+        logger.error(f"Failed to clear workspace for {task_id}")
 
 def cmd_reset(args, core: HiveCore):
     """Reset a task to queued status"""
     task = core.load_task(args.task_id)
     if not task:
-        print(f"Task {args.task_id} not found")
+        logger.info(f"Task {args.task_id} not found")
         return
     
     task["status"] = "queued"
@@ -565,7 +563,7 @@ def cmd_reset(args, core: HiveCore):
             del task[key]
     
     core.save_task(task)
-    print(f"Task {args.task_id} reset to queued")
+    logger.info(f"Task {args.task_id} reset to queued")
 
 def cmd_get_transcript(args, core: HiveCore):
     """Get transcript for a specific run"""
@@ -575,31 +573,31 @@ def cmd_get_transcript(args, core: HiveCore):
     run = hive_core_db.get_run(run_id)
 
     if not run:
-        print(f"Run {run_id} not found")
+        logger.info(f"Run {run_id} not found")
         return
 
     transcript = run.get('transcript')
 
     if not transcript:
-        print(f"No transcript found for run {run_id}")
+        logger.info(f"No transcript found for run {run_id}")
         # Suggest checking log files if transcript not in database
         task_id = run.get('task_id')
         if task_id:
             log_file = core.root / "hive" / "logs" / task_id / f"{run_id}.log"
             if log_file.exists():
-                print(f"Legacy log file exists at: {log_file}")
-                print("Run 'hive logs' command to view legacy logs")
+                logger.info(f"Legacy log file exists at: {log_file}")
+                logger.info("Run 'hive logs' command to view legacy logs")
         return
 
     # Display transcript
-    print(f"=== Transcript for run {run_id} ===")
-    print(f"Task: {run.get('task_id', 'unknown')}")
-    print(f"Worker: {run.get('worker_id', 'unknown')}")
-    print(f"Status: {run.get('status', 'unknown')}")
-    print(f"Started: {run.get('started_at', 'unknown')}")
-    print(f"Completed: {run.get('completed_at', 'unknown')}")
-    print("\n=== Claude Conversation ===\n")
-    print(transcript)
+    logger.info(f"=== Transcript for run {run_id} ===")
+    logger.info(f"Task: {run.get('task_id', 'unknown')}")
+    logger.info(f"Worker: {run.get('worker_id', 'unknown')}")
+    logger.info(f"Status: {run.get('status', 'unknown')}")
+    logger.info(f"Started: {run.get('started_at', 'unknown')}")
+    logger.info(f"Completed: {run.get('completed_at', 'unknown')}")
+    logger.info("\n=== Claude Conversation ===\n")
+    logger.info(transcript)
 
 def cmd_review_next_task(args, core: HiveCore):
     """Get the next task awaiting review (for AI reviewer)"""
@@ -610,7 +608,7 @@ def cmd_review_next_task(args, core: HiveCore):
     tasks = hive_core_db.get_tasks_by_status("review_pending")
 
     if not tasks:
-        print("No tasks awaiting review")
+        logger.info("No tasks awaiting review")
         return
 
     # Find the first task with runs (FIFO)
@@ -627,7 +625,7 @@ def cmd_review_next_task(args, core: HiveCore):
             break
 
     if not task:
-        print("No review tasks have runs to inspect")
+        logger.info("No review tasks have runs to inspect")
         return
 
     latest_run = runs[-1]  # Most recent run
@@ -660,38 +658,38 @@ def cmd_review_next_task(args, core: HiveCore):
             "transcript_available": bool(transcript),
             "transcript_length": len(transcript) if transcript else 0
         }
-        print(json.dumps(review_data, indent=2))
+        logger.info(json.dumps(review_data, indent=2))
     else:
         # Summary format
-        print(f"\n{'='*60}")
-        print(f"TASK AWAITING REVIEW")
-        print(f"{'='*60}")
-        print(f"Task ID: {task_id}")
-        print(f"Title: {task.get('title', 'Unknown')}")
-        print(f"Description: {task.get('description', '')}")
-        print(f"Current Phase: {task.get('current_phase', 'unknown')}")
-        print(f"Run ID: {run_id}")
+        logger.info(f"\n{'='*60}")
+        logger.info(f"TASK AWAITING REVIEW")
+        logger.info(f"{'='*60}")
+        logger.info(f"Task ID: {task_id}")
+        logger.info(f"Title: {task.get('title', 'Unknown')}")
+        logger.info(f"Description: {task.get('description', '')}")
+        logger.info(f"Current Phase: {task.get('current_phase', 'unknown')}")
+        logger.info(f"Run ID: {run_id}")
 
         if inspection_report:
             summary = inspection_report.get("summary", {})
-            print(f"\nInspection Results:")
-            print(f"  Quality Score: {summary.get('quality_score', 'N/A')}/100")
-            print(f"  Recommendation: {summary.get('recommendation', 'unknown').upper()}")
-            print(f"  Issues Found: {summary.get('total_issues', 0)}")
+            logger.info(f"\nInspection Results:")
+            logger.info(f"  Quality Score: {summary.get('quality_score', 'N/A')}/100")
+            logger.info(f"  Recommendation: {summary.get('recommendation', 'unknown').upper()}")
+            logger.info(f"  Issues Found: {summary.get('total_issues', 0)}")
 
             if inspection_report.get("issues"):
-                print(f"\nTop Issues:")
+                logger.info(f"\nTop Issues:")
                 for issue in inspection_report["issues"][:3]:
-                    print(f"  - {issue}")
+                    logger.info(f"  - {issue}")
 
         if transcript:
-            print(f"\nTranscript: {len(transcript)} characters available")
-            print("Use 'hive get-transcript' to view full transcript")
+            logger.info(f"\nTranscript: {len(transcript)} characters available")
+            logger.info("Use 'hive get-transcript' to view full transcript")
 
-        print(f"\n{'='*60}")
-        print("To complete review, use:")
-        print(f"  hive complete-review {task_id} --decision [approve|reject|rework]")
-        print(f"{'='*60}\n")
+        logger.info(f"\n{'='*60}")
+        logger.info("To complete review, use:")
+        logger.info(f"  hive complete-review {task_id} --decision [approve|reject|rework]")
+        logger.info(f"{'='*60}\n")
 
 def cmd_complete_review(args, core: HiveCore):
     """Complete review of a task and transition to next phase"""
@@ -706,17 +704,17 @@ def cmd_complete_review(args, core: HiveCore):
     # Get task
     task = hive_core_db.get_task(task_id)
     if not task:
-        print(f"Error: Task {task_id} not found")
+        logger.error(f"Error: Task {task_id} not found")
         return
 
     if task["status"] != "review_pending":
-        print(f"Error: Task {task_id} is not awaiting review (status: {task['status']})")
+        logger.error(f"Error: Task {task_id} is not awaiting review (status: {task['status']})")
         return
 
     # Get workflow
     workflow = task.get("workflow")
     if not workflow:
-        print(f"Error: Task {task_id} has no workflow definition")
+        logger.error(f"Error: Task {task_id} has no workflow definition")
         return
 
     # Determine next phase based on decision
@@ -753,15 +751,15 @@ def cmd_complete_review(args, core: HiveCore):
     success = hive_core_db.update_task_status(task_id, new_status, metadata)
 
     if success:
-        print(f"\nReview completed successfully!")
-        print(f"Task ID: {task_id}")
-        print(f"Decision: {decision.upper()}")
-        print(f"New Phase: {new_phase}")
-        print(f"New Status: {new_status}")
+        logger.info(f"\nReview completed successfully!")
+        logger.info(f"Task ID: {task_id}")
+        logger.info(f"Decision: {decision.upper()}")
+        logger.info(f"New Phase: {new_phase}")
+        logger.info(f"New Status: {new_status}")
         if reason:
-            print(f"Reason: {reason}")
+            logger.info(f"Reason: {reason}")
     else:
-        print(f"Error: Failed to update task {task_id}")
+        logger.error(f"Error: Failed to update task {task_id}")
 
 def main():
     """Main CLI entry point"""

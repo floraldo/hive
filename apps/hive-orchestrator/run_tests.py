@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Test runner for Hive Orchestrator
@@ -13,11 +16,11 @@ def run_tests():
     test_dir = Path(__file__).parent / "tests"
 
     if not test_dir.exists():
-        print("❌ Test directory not found")
+        logger.info("❌ Test directory not found")
         return 1
 
-    print("🧪 Running Hive Orchestrator Integration Tests")
-    print("=" * 50)
+    logger.info("🧪 Running Hive Orchestrator Integration Tests")
+    logger.info("=" * 50)
 
     try:
         # Try to run with pytest if available
@@ -28,31 +31,31 @@ def run_tests():
             "--tb=short"
         ], capture_output=True, text=True)
 
-        print(result.stdout)
+        logger.info(result.stdout)
         if result.stderr:
-            print("STDERR:", result.stderr)
+            logger.info("STDERR:", result.stderr)
 
         if result.returncode == 0:
-            print("✅ All tests passed!")
+            logger.info("✅ All tests passed!")
         else:
-            print("❌ Some tests failed")
+            logger.error("❌ Some tests failed")
 
         return result.returncode
 
     except FileNotFoundError:
         # Fallback to running tests directly without pytest
-        print("⚠️  pytest not found, running tests directly...")
+        logger.info("⚠️  pytest not found, running tests directly...")
 
         test_file = test_dir / "test_integration.py"
         if test_file.exists():
             result = subprocess.run([sys.executable, str(test_file)],
                                   capture_output=True, text=True)
-            print(result.stdout)
+            logger.info(result.stdout)
             if result.stderr:
-                print("STDERR:", result.stderr)
+                logger.info("STDERR:", result.stderr)
             return result.returncode
         else:
-            print("❌ Test file not found")
+            logger.info("❌ Test file not found")
             return 1
 
 if __name__ == "__main__":

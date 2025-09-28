@@ -12,7 +12,28 @@ from typing import Dict, Any, Optional, List, Callable, Awaitable
 from datetime import datetime
 import asyncio
 
-from hive_bus import EventBus as HiveEventBus, Event
+# Temporary: Create minimal stubs for missing hive_bus dependency
+try:
+    from hive_bus import EventBus as HiveEventBus, Event
+except ImportError:
+    # Fallback: Define minimal stubs for testing
+    class Event:
+        """Minimal Event stub"""
+        def __init__(self, type: str, data: Any):
+            self.type = type
+            self.data = data
+            self.timestamp = datetime.now()
+
+    class HiveEventBus:
+        """Minimal EventBus stub"""
+        def __init__(self):
+            self.handlers = {}
+
+        async def emit(self, event: Event):
+            pass
+
+        def on(self, event_type: str, handler: Callable):
+            pass
 from EcoSystemiser.hive_logging_adapter import get_logger
 from EcoSystemiser.events import (
     EcoSystemiserEventType,

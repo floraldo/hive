@@ -5,6 +5,10 @@ Combines all configuration needs for the modular architecture including
 profile_loader (climate, demand), solver, analyser, and reporting modules.
 """
 
+from EcoSystemiser.hive_logging_adapter import get_logger
+
+logger = get_logger(__name__)
+
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 from functools import lru_cache

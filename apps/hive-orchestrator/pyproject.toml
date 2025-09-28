@@ -7,11 +7,14 @@ packages = [{include = "hive_orchestrator", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+# Generic infrastructure packages (inherit layer)
 hive-utils = {path = "../../packages/hive-utils", develop = true}
-hive-core-db = {path = "../../packages/hive-core-db", develop = true}
+hive-db-utils = {path = "../../packages/hive-db-utils", develop = true}
 hive-logging = {path = "../../packages/hive-logging", develop = true}
 hive-config = {path = "../../packages/hive-config", develop = true}
 hive-deployment = {path = "../../packages/hive-deployment", develop = true}
+hive-messaging = {path = "../../packages/hive-messaging", develop = true}
+hive-error-handling = {path = "../../packages/hive-error-handling", develop = true}
 asyncio = "^3.4.3"
 colorama = "^0.4.5"
 pydantic = "^2.0.0"

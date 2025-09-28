@@ -3,8 +3,11 @@ import cvxpy as cp
 import numpy as np
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
-from EcoSystemiser.system_model.components.economic_params import EconomicParamsModel
-from EcoSystemiser.system_model.components.environmental_params import EnvironmentalParamsModel
+from EcoSystemiser.system_model.components.shared.economic_params import EconomicParamsModel
+from EcoSystemiser.system_model.components.shared.environmental_params import EnvironmentalParamsModel
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 class ComponentParams(BaseModel):
     """Base parameters for all components."""
@@ -128,16 +131,16 @@ class Component:
 
     def print_info(self):
         """Print component information for debugging."""
-        print(f"\n=== Component: {self.name} ===")
-        print(f"Type: {self.type}")
-        print(f"Medium: {self.medium}")
+        logger.info(f"\n=== Component: {self.name} ===")
+        logger.info(f"Type: {self.type}")
+        logger.info(f"Medium: {self.medium}")
 
         if self.technical:
-            print(f"Technical params: {self.technical}")
+            logger.info(f"Technical params: {self.technical}")
         if self.economic:
-            print(f"Economic params: {self.economic}")
+            logger.info(f"Economic params: {self.economic}")
         if self.environmental:
-            print(f"Environmental params: {self.environmental}")
+            logger.info(f"Environmental params: {self.environmental}")
 
     def __repr__(self):
         """String representation of component."""

@@ -283,7 +283,7 @@ class TimezoneHandler:
                             ambiguous='infer',
                             nonexistent='shift_forward'
                         )
-                    except:
+                    except Exception as e:
                         # Last resort - force UTC
                         logger.warning(f"DST handling failed for {tz_name}, using UTC")
                         return timestamps.tz_localize('UTC')

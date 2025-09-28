@@ -15,12 +15,9 @@ from pathlib import Path
 from datetime import datetime, timezone
 import uuid
 
-# Setup paths
+# No sys.path manipulation needed - use Poetry workspace imports
 project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root / "apps" / "hive-orchestrator" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-utils" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-logging" / "src"))
-sys.path.insert(0, str(project_root / "packages" / "hive-core-db" / "src"))
+# All packages available through Poetry workspace imports
 
 from hive_orchestrator.hive_core import HiveCore
 import hive_core_db

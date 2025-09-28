@@ -5,7 +5,7 @@ Provides production-ready PostgreSQL connectivity with connection pooling and en
 """
 
 import os
-import logging
+from hive_logging import get_logger
 from typing import Optional, Dict, Any, Union
 from contextlib import contextmanager
 
@@ -18,7 +18,7 @@ except ImportError:
     PSYCOPG2_AVAILABLE = False
     psycopg2 = None
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_postgres_connection(

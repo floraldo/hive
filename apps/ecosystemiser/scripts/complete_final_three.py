@@ -1,12 +1,15 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Quick reference for completing the final 3 water components.
 Each needs the same pattern as the others.
 """
 
-print("=" * 70)
-print("FINAL 3 COMPONENTS TO UPDATE")
-print("=" * 70)
+logger.info("=" * 70)
+logger.info("FINAL 3 COMPONENTS TO UPDATE")
+logger.info("=" * 70)
 
 components = [
     {
@@ -30,15 +33,15 @@ components = [
 ]
 
 for comp in components:
-    print(f"\n{comp['name']}:")
-    print(f"  File: {comp['file']}")
-    print(f"  Base: {comp['base']}")
-    print(f"  Pattern: {comp['description']}")
+    logger.info(f"\n{comp['name']}:")
+    logger.info(f"  File: {comp['file']}")
+    logger.info(f"  Base: {comp['base']}")
+    logger.info(f"  Pattern: {comp['description']}")
 
-print("\n" + "=" * 70)
-print("Each component needs:")
-print("1. Split {Component}Optimization into:")
-print("   - {Component}OptimizationSimple")
-print("   - {Component}OptimizationStandard (inherits from Simple)")
-print("2. Update _get_optimization_strategy() factory method")
-print("=" * 70)
+logger.info("\n" + "=" * 70)
+logger.info("Each component needs:")
+logger.info("1. Split {Component}Optimization into:")
+logger.info("   - {Component}OptimizationSimple")
+logger.info("   - {Component}OptimizationStandard (inherits from Simple)")
+logger.info("2. Update _get_optimization_strategy() factory method")
+logger.info("=" * 70)

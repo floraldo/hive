@@ -12,7 +12,7 @@ This module provides the foundation for all climate data adapters with:
 import asyncio
 import hashlib
 import json
-import logging
+from hive_logging import get_logger
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -448,9 +448,12 @@ class BaseAdapter(ABC):
             if ds[var_name].isnull().all():
                 self.logger.warning(f"Variable '{var_name}' contains only null values")
         
-        # Ensure time is sorted
-        if not ds.time.to_pandas().is_monotonic_increasing:
-            ds = ds.sortby('time')
+        # Ensure time is sorted (optimized: avoid pandas conversion)
+        # Check if time dimension is sorted using xarray native operations
+        if len(ds.time) > 1:
+            time_diffs = ds.time.diff('time')
+            if (time_diffs < 0).any():
+                ds = ds.sortby('time')
         
         return ds
     

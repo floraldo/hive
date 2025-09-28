@@ -6,7 +6,7 @@ Adapted from SmartHoodsOptimisationTool Apper project.
 
 import os
 import paramiko
-import logging
+from hive_logging import get_logger
 import time
 from typing import Tuple, Optional, Dict, Any, Union
 

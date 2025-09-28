@@ -14,18 +14,11 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 
-# Hive logging system (with local dev fallback for import path)
-try:
-    from hive_logging import setup_logging, get_logger
-except ImportError:
-    sys.path.append(str(Path(__file__).resolve().parent.parent / "packages" / "hive-logging" / "src"))
-    from hive_logging import setup_logging, get_logger
-# Hive database system
-try:
-    import hive_core_db
-except ImportError:
-    sys.path.insert(0, str(Path(__file__).parent / "packages" / "hive-core-db" / "src"))
-    import hive_core_db
+# Hive logging system
+from hive_logging import setup_logging, get_logger
+
+# Hive database system - use orchestrator's core layer
+from hive_orchestrator.core import db as hive_core_db
 
 # Hive utilities for path management
 from hive_utils.paths import (
@@ -84,11 +77,11 @@ class WorkerCore:
         # Logging
         self.log.info(f"Worker {worker_id} ready")
         if self.task_id:
-            print(f"         [INFO] Task: {self.task_id}")
-            print(f"         [INFO] Run ID: {self.run_id}")
-            print(f"         [INFO] Phase: {self.phase}")
-        print(f"         [INFO] Workspace: {self.workspace}")
-        print(f"         [INFO] Claude: {self.claude_cmd or 'SIMULATION MODE'}")
+            logger.info(f"         [INFO] Task: {self.task_id}")
+            logger.info(f"         [INFO] Run ID: {self.run_id}")
+            logger.info(f"         [INFO] Phase: {self.phase}")
+        logger.info(f"         [INFO] Workspace: {self.workspace}")
+        logger.info(f"         [INFO] Claude: {self.claude_cmd or 'SIMULATION MODE'}")
 
 
 
@@ -187,7 +180,7 @@ class WorkerCore:
         if os.getenv("CLAUDE_BIN"):
             claude_path = Path(os.getenv("CLAUDE_BIN"))
             if claude_path.exists():
-                print(f"[INFO] Using Claude from CLAUDE_BIN: {claude_path}")
+                logger.info(f"[INFO] Using Claude from CLAUDE_BIN: {claude_path}")
                 return str(claude_path)
 
         # Check common paths (case-sensitive on Windows)
@@ -202,7 +195,7 @@ class WorkerCore:
 
         for path in possible_paths:
             if path.exists():
-                print(f"[INFO] Using Claude from PATH: {path}")
+                logger.info(f"[INFO] Using Claude from PATH: {path}")
                 return str(path)
 
         # Try which/where command
@@ -213,12 +206,12 @@ class WorkerCore:
             )
             claude_path = result.stdout.strip().split('\n')[0]
             if claude_path:
-                print(f"[INFO] Using Claude from system PATH: {claude_path}")
+                logger.info(f"[INFO] Using Claude from system PATH: {claude_path}")
                 return claude_path
         except (subprocess.CalledProcessError, FileNotFoundError):
             pass
 
-        print("[WARN] Claude command not found - running in simulation mode")
+        logger.warning("[WARN] Claude command not found - running in simulation mode")
         return None
 
 
@@ -271,7 +264,7 @@ class WorkerCore:
                 return None
             return task
         except Exception as e:
-            print(f"[ERROR] Failed to load task {task_id}: {e}")
+            logger.error(f"[ERROR] Failed to load task {task_id}: {e}")
             return None
 
     def _load_context_from_tasks(self, context_from: List[str]) -> str:
@@ -535,9 +528,9 @@ CRITICAL PATH CONSTRAINT:
 
 
         self.log.info("[RUNNING] Claude is working...")
-        print(f"         [INFO] Workspace: {self.workspace}")
-        print(f"         [INFO] Command: {' '.join(cmd)}")
-        print(f"         [INFO] Prompt length: {len(prompt)} chars")
+        logger.info(f"         [INFO] Workspace: {self.workspace}")
+        logger.info(f"         [INFO] Command: {' '.join(cmd)}")
+        logger.info(f"         [INFO] Prompt length: {len(prompt)} chars")
 
         # Create log file for this run
         log_file = None
@@ -545,7 +538,7 @@ CRITICAL PATH CONSTRAINT:
             log_dir = get_task_log_dir(self.task_id)
             ensure_directory(log_dir)
             log_file = log_dir / f"{self.run_id}.log"
-            print(f"         [INFO] Logging to: {log_file}")
+            logger.info(f"         [INFO] Logging to: {log_file}")
 
         try:
             # Create isolated environment for workspace
@@ -569,7 +562,7 @@ CRITICAL PATH CONSTRAINT:
                         cwd=str(self.workspace), capture_output=True, text=True, check=True
                     )
                     self._baseline_commit = base.stdout.strip()
-                except Exception:
+                except Exception as e:
                     self._baseline_commit = None
 
             # Windows-specific fix: pipes cause Claude CLI to hang due to buffering deadlock
@@ -705,7 +698,7 @@ CRITICAL PATH CONSTRAINT:
                         if self.live_output:
                             formatted = self._format_live_output(line)
                             if formatted:
-                                print(formatted)
+                                logger.info(formatted)
 
                         # Parse JSON messages to track Claude's state
                         try:
@@ -819,7 +812,7 @@ CRITICAL PATH CONSTRAINT:
     def emit_result(self, result: Dict[str, Any]):
         """Save execution result"""
         if not self.task_id or not self.run_id:
-            print("[ERROR] Cannot emit result - missing task_id or run_id")
+            logger.error("[ERROR] Cannot emit result - missing task_id or run_id")
             return
 
         # Extract transcript before adding to result_data
@@ -866,7 +859,7 @@ CRITICAL PATH CONSTRAINT:
 
         # Create prompt
         prompt = self.create_prompt(task)
-        print(f"         [INFO] Using inline prompt")
+        logger.info(f"         [INFO] Using inline prompt")
 
         # Run Claude
         result = self.run_claude(prompt)
@@ -879,14 +872,14 @@ CRITICAL PATH CONSTRAINT:
     def run_one_shot(self):
         """Run in one-shot mode (called by Queen)"""
         if not self.task_id:
-            print("[ERROR] One-shot mode requires task_id")
+            logger.error("[ERROR] One-shot mode requires task_id")
             return {"status": "failed", "notes": "Missing task_id", "next_state": "failed"}
 
         # Load task
         task = self.load_task(self.task_id)
         if not task:
             error_msg = f"Task {self.task_id} not found"
-            print(f"[ERROR] {error_msg}")
+            logger.error(f"[ERROR] {error_msg}")
             return {"status": "failed", "notes": error_msg, "next_state": "failed"}
 
         # Execute task
@@ -930,15 +923,15 @@ def main():
     # Validate local mode arguments
     if args.local:
         if not args.task_id:
-            print("[ERROR] Local mode requires --task-id to be specified")
-            print("\nUsage example:")
-            print("  python worker.py backend --local --task-id hello_hive --phase apply")
+            logger.error("[ERROR] Local mode requires --task-id to be specified")
+            logger.info("\nUsage example:")
+            logger.info("  python worker.py backend --local --task-id hello_hive --phase apply")
             sys.exit(1)
 
         # Generate run_id if not provided in local mode
         if not args.run_id:
             args.run_id = f"local_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            print(f"[INFO] Generated run_id for local mode: {args.run_id}")
+            logger.info(f"[INFO] Generated run_id for local mode: {args.run_id}")
 
     # Create worker with error handling
     try:
@@ -963,13 +956,13 @@ def main():
     if args.one_shot or args.local:
         # One-shot execution for Queen or local development
         if args.local:
-            print(f"[INFO] Running in LOCAL DEVELOPMENT MODE")
-            print(f"[INFO] Task: {args.task_id}, Phase: {args.phase}")
+            logger.info(f"[INFO] Running in LOCAL DEVELOPMENT MODE")
+            logger.info(f"[INFO] Task: {args.task_id}, Phase: {args.phase}")
 
         result = worker.run_one_shot()
         sys.exit(0 if result.get("status") == "success" else 1)
     else:
-        print("Interactive mode not implemented - use --one-shot or --local")
+        logger.info("Interactive mode not implemented - use --one-shot or --local")
         sys.exit(1)
 
 if __name__ == "__main__":

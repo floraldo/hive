@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Script to complete the Strategy Pattern implementation for remaining components.
@@ -15,7 +18,7 @@ def refactor_component(component_file_path, component_name, base_class):
 
     # Check if already refactored
     if f"{component_name}OptimizationSimple" in content:
-        print(f"  {component_name} already has separate optimization strategies")
+        logger.info(f"  {component_name} already has separate optimization strategies")
         return False
 
     # Find the monolithic Optimization class
@@ -23,7 +26,7 @@ def refactor_component(component_file_path, component_name, base_class):
     match = re.search(opt_class_pattern, content, re.DOTALL)
 
     if not match:
-        print(f"  Could not find {component_name}Optimization class")
+        logger.info(f"  Could not find {component_name}Optimization class")
         return False
 
     old_class = match.group(0)
@@ -33,7 +36,7 @@ def refactor_component(component_file_path, component_name, base_class):
     constraints_match = re.search(constraints_pattern, old_class, re.DOTALL)
 
     if not constraints_match:
-        print(f"  Could not find set_constraints method in {component_name}Optimization")
+        logger.info(f"  Could not find set_constraints method in {component_name}Optimization")
         return False
 
     # Create new Simple and Standard classes
@@ -106,7 +109,7 @@ class {component_name}OptimizationStandard({component_name}OptimizationSimple):
     with open(component_file_path, 'w') as f:
         f.write(content)
 
-    print(f"  ✅ Refactored {component_name}")
+    logger.info(f"  ✅ Refactored {component_name}")
     return True
 
 
@@ -125,22 +128,22 @@ def main():
 
     base_path = Path('/c/git/hive/apps/ecosystemiser/src/EcoSystemiser/system_model/components')
 
-    print("Refactoring remaining components...")
-    print("=" * 70)
+    logger.info("Refactoring remaining components...")
+    logger.info("=" * 70)
 
     success_count = 0
     for rel_path, component_name, base_class in components_to_refactor:
         file_path = base_path / rel_path
-        print(f"\nProcessing {component_name} ({rel_path})...")
+        logger.info(f"\nProcessing {component_name} ({rel_path})...")
 
         if file_path.exists():
             if refactor_component(file_path, component_name, base_class):
                 success_count += 1
         else:
-            print(f"  ⚠️ File not found: {file_path}")
+            logger.info(f"  ⚠️ File not found: {file_path}")
 
-    print("\n" + "=" * 70)
-    print(f"Refactored {success_count}/{len(components_to_refactor)} components")
+    logger.info("\n" + "=" * 70)
+    logger.info(f"Refactored {success_count}/{len(components_to_refactor)} components")
 
 
 if __name__ == "__main__":

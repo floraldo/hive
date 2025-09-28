@@ -12,17 +12,21 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 from pathlib import Path
 
-# Add paths for Hive packages
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-core-db" / "src"))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-logging" / "src"))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "packages" / "hive-bus" / "src"))
+# Use centralized path manager for proper imports
+from hive_config.path_manager import setup_hive_paths
+setup_hive_paths()
 
-import hive_core_db
+# Import hive logging
+from hive_logging import get_logger
+logger = get_logger(__name__)
+
+# Import from orchestrator's extended database layer (proper app-to-app communication)
+from hive_orchestrator.core.db import get_database, get_pooled_connection
 from hive_logging import get_logger
 
 # Async database imports for Phase 4.1
 try:
-    from hive_core_db.database import (
+    from hive_orchestrator.core.db import (
         get_async_connection, get_tasks_by_status_async,
         update_task_status_async
     )
@@ -140,7 +144,7 @@ class ReviewAgent:
         self.stats["start_time"] = datetime.now()
 
         logger.info("AI Reviewer Agent started")
-        console.print(
+        logger.info(
             Panel.fit(
                 "[bold green]AI Reviewer Agent Active[/bold green]\n"
                 f"Polling interval: {self.polling_interval}s\n"
@@ -173,7 +177,7 @@ class ReviewAgent:
                 logger.debug("No tasks pending review")
                 return
 
-            console.print(f"\n[yellow]Found {len(pending_tasks)} tasks to review[/yellow]")
+            console.logger.info(f"\n[yellow]Found {len(pending_tasks)} tasks to review[/yellow]")
 
             for task in pending_tasks:
                 if not self.running:
@@ -188,7 +192,7 @@ class ReviewAgent:
     async def _review_task(self, task: Dict[str, Any]):
         """Review a single task"""
         try:
-            console.print(f"\n[cyan]Reviewing task {task['id']}: {task.get('description', 'No description')}[/cyan]")
+            console.logger.info(f"\n[cyan]Reviewing task {task['id']}: {task.get('description', 'No description')}[/cyan]")
 
             # Retrieve task artifacts
             code_files = self.adapter.get_task_code_files(task['id'])
@@ -270,7 +274,7 @@ class ReviewAgent:
         metrics_table.add_row("Architecture", f"{result.metrics.architecture:.0f}")
         metrics_table.add_row("Overall", f"[bold]{result.metrics.overall_score:.0f}[/bold]")
 
-        console.print(metrics_table)
+        console.logger.info(metrics_table)
 
         # Decision panel
         decision_color = {
@@ -280,7 +284,7 @@ class ReviewAgent:
             ReviewDecision.ESCALATE: "magenta"
         }[result.decision]
 
-        console.print(
+        logger.info(
             Panel(
                 f"[bold {decision_color}]Decision: {result.decision.value.upper()}[/bold {decision_color}]\n\n"
                 f"{result.summary}\n\n"
@@ -291,14 +295,14 @@ class ReviewAgent:
 
         # Issues and suggestions
         if result.issues:
-            console.print("\n[red]Issues Found:[/red]")
+            console.logger.info("\n[red]Issues Found:[/red]")
             for issue in result.issues:
-                console.print(f"  • {issue}")
+                console.logger.info(f"  • {issue}")
 
         if result.suggestions:
-            console.print("\n[yellow]Suggestions:[/yellow]")
+            console.logger.info("\n[yellow]Suggestions:[/yellow]")
             for suggestion in result.suggestions:
-                console.print(f"  • {suggestion}")
+                console.logger.info(f"  • {suggestion}")
 
     async def _execute_decision(self, task: Dict[str, Any], result):
         """Execute the review decision"""
@@ -376,7 +380,7 @@ class ReviewAgent:
             status_table.add_row("Errors", str(self.stats["errors"]))
             status_table.add_row("Review Rate", f"{rate:.1f} tasks/hour")
 
-            console.print("\n", status_table)
+            console.logger.info("\n", status_table)
 
     def _pct(self, stat: str) -> int:
         """Calculate percentage of a statistic"""
@@ -391,12 +395,12 @@ class ReviewAgent:
 
     async def _shutdown(self):
         """Graceful shutdown"""
-        console.print("\n[yellow]Shutting down AI Reviewer Agent...[/yellow]")
+        console.logger.info("\n[yellow]Shutting down AI Reviewer Agent...[/yellow]")
 
         # Final statistics
         if self.stats["start_time"]:
             runtime = (datetime.now() - self.stats["start_time"]).total_seconds()
-            console.print(
+            logger.info(
                 Panel(
                     f"Session Summary:\n"
                     f"Runtime: {runtime:.0f} seconds\n"
@@ -477,7 +481,7 @@ class ReviewAgent:
                 logger.debug("No tasks pending review (async)")
                 return
 
-            console.print(f"\n[yellow]Found {len(pending_tasks)} tasks to review (async)[/yellow]")
+            console.logger.info(f"\n[yellow]Found {len(pending_tasks)} tasks to review (async)[/yellow]")
 
             for task in pending_tasks:
                 if not self.running:
@@ -492,7 +496,7 @@ class ReviewAgent:
     async def _review_task_async(self, task: Dict[str, Any]):
         """Async version of reviewing a single task."""
         try:
-            console.print(f"\n[cyan]Reviewing task {task['id']} (async): {task.get('description', 'No description')}[/cyan]")
+            console.logger.info(f"\n[cyan]Reviewing task {task['id']} (async): {task.get('description', 'No description')}[/cyan]")
 
             # Retrieve task artifacts (these could be made async in future enhancement)
             code_files = self.adapter.get_task_code_files(task['id'])
@@ -611,7 +615,7 @@ class ReviewAgent:
                     escalated_by="ai-reviewer"
                 )
 
-        console.print(f"[green]Task {task['id']} reviewed: {result.decision.value}[/green]")
+        console.logger.info(f"[green]Task {task['id']} reviewed: {result.decision.value}[/green]")
 
     async def run_async(self):
         """Enhanced async version of main autonomous loop for 3-5x performance improvement."""
@@ -619,7 +623,7 @@ class ReviewAgent:
         self.stats["start_time"] = datetime.now()
 
         logger.info("AI Reviewer Agent started in async mode")
-        console.print(
+        logger.info(
             Panel.fit(
                 "[bold green]AI Reviewer Agent Active (Async Mode)[/bold green]\n"
                 f"Polling interval: {self.polling_interval}s\n"

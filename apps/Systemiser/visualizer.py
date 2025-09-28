@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Systemiser Data Visualization Tool
@@ -556,39 +559,39 @@ class SystemiserVisualizer:
 
 def run_visualization(output_dir: Optional[Path] = None):
     """Main function to run the visualization tool."""
-    print("🎨 SYSTEMISER DATA VISUALIZATION TOOL")
-    print("=" * 50)
+    logger.info("🎨 SYSTEMISER DATA VISUALIZATION TOOL")
+    logger.info("=" * 50)
     
     # Determine output directory
     if output_dir is None:
         output_dir = Path(__file__).parent / "output"
     
     if not output_dir.exists():
-        print(f"❌ Output directory not found: {output_dir}")
-        print("Please run the simulation first to generate data files.")
+        logger.info(f"❌ Output directory not found: {output_dir}")
+        logger.info("Please run the simulation first to generate data files.")
         return
     
     # Initialize visualizer
     viz = SystemiserVisualizer(output_dir)
     
     # Load data
-    print("📊 Loading simulation data...")
+    logger.info("📊 Loading simulation data...")
     if not viz.load_data():
-        print("❌ Failed to load data. Check that simulation output files exist.")
+        logger.error("❌ Failed to load data. Check that simulation output files exist.")
         return
     
     # Generate visualizations
-    print("🎨 Generating visualizations...")
+    logger.info("🎨 Generating visualizations...")
     saved_files = viz.save_visualizations()
     
     if saved_files:
-        print(f"\n✨ Successfully generated {len(saved_files)} visualizations!")
-        print("📁 Files saved to:")
+        logger.info(f"\n✨ Successfully generated {len(saved_files)} visualizations!")
+        logger.info("📁 Files saved to:")
         for file_path in saved_files:
-            print(f"   - {file_path}")
-        print(f"\n📊 Data exports and CSV files also saved to: {output_dir / 'visualizations'}")
+            logger.info(f"   - {file_path}")
+        logger.info(f"\n📊 Data exports and CSV files also saved to: {output_dir / 'visualizations'}")
     else:
-        print("❌ No visualizations were generated. Check the logs for errors.")
+        logger.error("❌ No visualizations were generated. Check the logs for errors.")
 
 if __name__ == "__main__":
     import sys

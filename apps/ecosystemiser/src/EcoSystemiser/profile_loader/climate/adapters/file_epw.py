@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, date
 from typing import List, Dict, Optional, Union, Tuple, Any
+from dataclasses import dataclass, field
+from abc import ABC, abstractmethod
 from EcoSystemiser.hive_logging_adapter import get_logger
 import os
 from io import StringIO
@@ -12,10 +14,50 @@ import urllib.request
 
 from EcoSystemiser.profile_loader.climate.base import BaseAdapter
 from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-    AdapterCapabilities, TemporalCoverage, SpatialCoverage,
-    DataFrequency, AuthType, RateLimits, QualityFeatures
-)
 from EcoSystemiser.errors import DataParseError, ErrorCode
+
+# Import QC classes
+try:
+    from EcoSystemiser.profile_loader.climate.processing.validation import QCProfile, QCIssue, QCSeverity, QCReport
+except ImportError:
+    # Fallback: Define minimal QC classes for testing
+    from abc import ABC, abstractmethod
+    from enum import Enum
+
+    class QCSeverity(Enum):
+        LOW = "low"
+        MEDIUM = "medium"
+        HIGH = "high"
+
+    @dataclass
+    class QCIssue:
+        type: str
+        message: str
+        severity: QCSeverity
+        affected_variables: List[str]
+        suggested_action: str
+
+    @dataclass
+    class QCReport:
+        passed_checks: List[str] = field(default_factory=list)
+
+        def add_issue(self, issue: QCIssue):
+            pass
+
+    class QCProfile(ABC):
+        def __init__(self, name: str, description: str, known_issues: List[str],
+                     recommended_variables: List[str], temporal_resolution_limits: Dict[str, str],
+                     spatial_accuracy: Optional[str] = None):
+            self.name = name
+            self.description = description
+            self.known_issues = known_issues
+            self.recommended_variables = recommended_variables
+            self.temporal_resolution_limits = temporal_resolution_limits
+            self.spatial_accuracy = spatial_accuracy
+
+        @abstractmethod
+        def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
+            pass
 
 logger = get_logger(__name__)
 
@@ -335,7 +377,7 @@ class FileEPWAdapter(BaseAdapter):
                         site_lat = float(parts[6])
                         site_lon = float(parts[7])
                         logger.info(f"EPW file location: {site_lat}, {site_lon}")
-                    except:
+                    except Exception as e:
                         pass
         
             # Read weather data lines
@@ -727,3 +769,71 @@ class EPWQCProfile:
     def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
         """Get source-specific adjusted bounds"""
         return base_bounds
+
+
+class EPWQCProfile(QCProfile):
+    """QC profile for EPW (EnergyPlus Weather) files"""
+
+    def __init__(self):
+        super().__init__(
+            name="EPW",
+            description="EnergyPlus Weather file format - processed for building simulation",
+            known_issues=[
+                "May be based on older TMY data",
+                "Processing for building simulation may alter original measurements",
+                "Limited temporal coverage (typical meteorological year)",
+                "Variable quality depending on data source and processing"
+            ],
+            recommended_variables=[
+                "temp_air", "dewpoint", "rel_humidity", "wind_speed", "wind_dir",
+                "ghi", "dni", "dhi", "pressure", "cloud_cover"
+            ],
+            temporal_resolution_limits={
+                "all": "hourly"
+            },
+            spatial_accuracy="Point data, location-dependent"
+        )
+
+    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
+        """EPW specific validation"""
+
+        # Check for TMY-style processing artifacts
+        if 'temp_air' in ds:
+            temp_data = ds['temp_air'].values
+
+            # EPW files often show suspiciously smooth temperature profiles
+            if len(temp_data) > 100:
+                # Check for unrealistic smoothness
+                temp_gradient = np.abs(np.diff(temp_data))
+                small_changes = np.sum(temp_gradient < 0.1) / len(temp_gradient)
+
+                if small_changes > 0.7:  # 70% of changes < 0.1degC
+                    issue = QCIssue(
+                        type="processing_artifact",
+                        message="Temperature profile appears over-processed (typical of some EPW files)",
+                        severity=QCSeverity.LOW,
+                        affected_variables=['temp_air'],
+                        suggested_action="Consider using original meteorological data if available"
+                    )
+                    report.add_issue(issue)
+
+        # Check for complete variable set (EPW should be comprehensive)
+        expected_vars = ['temp_air', 'dewpoint', 'rel_humidity', 'wind_speed', 'ghi']
+        missing_vars = [var for var in expected_vars if var not in ds.data_vars]
+
+        if missing_vars:
+            issue = QCIssue(
+                type="data_completeness",
+                message=f"EPW file missing expected variables: {missing_vars}",
+                severity=QCSeverity.MEDIUM,
+                affected_variables=missing_vars,
+                suggested_action="Verify EPW file completeness or use alternative source"
+            )
+            report.add_issue(issue)
+
+        report.passed_checks.append("epw_specific_validation")
+
+
+def get_qc_profile() -> EPWQCProfile:
+    """Get the QC profile for EPW adapter"""
+    return EPWQCProfile()

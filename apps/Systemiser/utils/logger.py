@@ -6,6 +6,9 @@ import traceback
 from collections import deque
 import os
 import pandas as pd # Added import for DataFrame type hint if needed
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 class SystemLogger:
     MAX_LOG_SESSIONS = 5
@@ -165,5 +168,5 @@ if __name__ == "__main__":
     debug_logger = setup_logging("debug_test", level=logging.DEBUG)
     debug_logger.debug("This debug message goes to file and console.")
     
-    print("\nLast few console messages from main_test:")
-    print(main_logger.handlers[0].__self__.get_console_history()) # Access via handler might be complex 
+    logger.info("\nLast few console messages from main_test:")
+    logger.info(main_logger.handlers[0].__self__.get_console_history()) # Access via handler might be complex 

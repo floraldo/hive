@@ -1,3 +1,4 @@
+from hive_logging import get_logger
 """
 Comprehensive validation and quality control module for climate data.
 
@@ -184,38 +185,38 @@ class QCReport:
             
     def print_report(self):
         """Print a human-readable report"""
-        print("\n" + "="*60)
-        print("CLIMATE DATA QUALITY CONTROL REPORT")
-        print("="*60)
+        logger.info("\n" + "="*60)
+        logger.info("CLIMATE DATA QUALITY CONTROL REPORT")
+        logger.info("="*60)
         
         summary = self.generate_summary()
         
-        print(f"Dataset ID: {self.dataset_id or 'Unknown'}")
-        print(f"QC Timestamp: {self.timestamp or 'Unknown'}")
-        print(f"Data Quality Score: {summary['quality_score']:.1f}/100")
-        print(f"Total Issues Found: {summary['total_issues']}")
-        print(f"Checks Passed: {summary['passed_checks']}")
+        logger.info(f"Dataset ID: {self.dataset_id or 'Unknown'}")
+        logger.info(f"QC Timestamp: {self.timestamp or 'Unknown'}")
+        logger.info(f"Data Quality Score: {summary['quality_score']:.1f}/100")
+        logger.info(f"Total Issues Found: {summary['total_issues']}")
+        logger.info(f"Checks Passed: {summary['passed_checks']}")
         
         if summary['total_issues'] > 0:
-            print("\nISSUES BY SEVERITY:")
+            logger.info("\nISSUES BY SEVERITY:")
             for severity in ['critical', 'high', 'medium', 'low']:
                 count = summary['severity_counts'][severity]
                 if count > 0:
-                    print(f"  {severity.upper()}: {count}")
+                    logger.info(f"  {severity.upper()}: {count}")
                     
-            print("\nDETAILED ISSUES:")
+            logger.info("\nDETAILED ISSUES:")
             for i, issue in enumerate(self.issues, 1):
-                print(f"\n{i}. [{issue.severity.value.upper()}] {issue.type}")
-                print(f"   {issue.message}")
-                print(f"   Affected variables: {', '.join(issue.affected_variables)}")
+                logger.info(f"\n{i}. [{issue.severity.value.upper()}] {issue.type}")
+                logger.info(f"   {issue.message}")
+                logger.info(f"   Affected variables: {', '.join(issue.affected_variables)}")
                 if issue.affected_count:
-                    print(f"   Affected data points: {issue.affected_count}")
+                    logger.info(f"   Affected data points: {issue.affected_count}")
                 if issue.suggested_action:
-                    print(f"   Suggested action: {issue.suggested_action}")
+                    logger.info(f"   Suggested action: {issue.suggested_action}")
         else:
-            print("\n[PASS] All quality control checks passed!")
+            logger.info("\n[PASS] All quality control checks passed!")
             
-        print("="*60)
+        logger.info("="*60)
     
     def merge(self, other: 'QCReport') -> None:
         """Merge another QC report into this one"""
@@ -527,156 +528,66 @@ class ERA5QCProfile(QCProfile):
             
         report.passed_checks.append("era5_specific_validation")
 
-class PVGISQCProfile(QCProfile):
-    """QC profile for PVGIS solar data"""
-    
-    def __init__(self):
-        super().__init__(
-            name="PVGIS",
-            description="Photovoltaic Geographical Information System - optimized for solar applications",
-            known_issues=[
-                "Limited to solar radiation and basic meteorological variables",
-                "Regional variations in satellite data quality",
-                "May not include latest years of data",
-                "Optimized for PV applications, may not suit other uses"
-            ],
-            recommended_variables=[
-                "ghi", "dni", "dhi", "temp_air", "wind_speed"
-            ],
-            temporal_resolution_limits={
-                "solar": "hourly",
-                "temp_air": "hourly"
-            },
-            spatial_accuracy="Varies by region: 1-5km resolution"
-        )
-        
-    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
-        """PVGIS specific validation"""
-        
-        # Check solar radiation quality (PVGIS specialty)
-        solar_vars = ['ghi', 'dni', 'dhi']
-        present_solar = [var for var in solar_vars if var in ds]
-        
-        if present_solar:
-            # PVGIS should have high-quality solar data
-            for var in present_solar:
-                data = ds[var].values
-                missing_percent = (np.sum(np.isnan(data)) / len(data)) * 100
-                
-                if missing_percent > 5:  # PVGIS should have minimal gaps
-                    issue = QCIssue(
-                        type="data_completeness",
-                        message=f"Unexpected missing data in PVGIS {var}: {missing_percent:.1f}%",
-                        severity=QCSeverity.MEDIUM,
-                        affected_variables=[var],
-                        suggested_action="Verify PVGIS data completeness for this location/period"
-                    )
-                    report.add_issue(issue)
-                    
-        # Check for non-solar variables (limited in PVGIS)
-        non_solar_vars = [var for var in ds.data_vars if var not in ['ghi', 'dni', 'dhi', 'temp_air', 'wind_speed']]
-        if non_solar_vars:
-            issue = QCIssue(
-                type="source_limitation",
-                message=f"PVGIS has limited non-solar variables: {non_solar_vars}",
-                severity=QCSeverity.LOW,
-                affected_variables=non_solar_vars,
-                suggested_action="Consider additional data sources for comprehensive meteorological data"
-            )
-            report.add_issue(issue)
-            
-        report.passed_checks.append("pvgis_specific_validation")
-
-class EPWQCProfile(QCProfile):
-    """QC profile for EPW (EnergyPlus Weather) files"""
-    
-    def __init__(self):
-        super().__init__(
-            name="EPW",
-            description="EnergyPlus Weather file format - processed for building simulation",
-            known_issues=[
-                "May be based on older TMY data",
-                "Processing for building simulation may alter original measurements",
-                "Limited temporal coverage (typical meteorological year)",
-                "Variable quality depending on data source and processing"
-            ],
-            recommended_variables=[
-                "temp_air", "dewpoint", "rel_humidity", "wind_speed", "wind_dir",
-                "ghi", "dni", "dhi", "pressure", "cloud_cover"
-            ],
-            temporal_resolution_limits={
-                "all": "hourly"
-            },
-            spatial_accuracy="Point data, location-dependent"
-        )
-        
-    def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
-        """EPW specific validation"""
-        
-        # Check for TMY-style processing artifacts
-        if 'temp_air' in ds:
-            temp_data = ds['temp_air'].values
-            
-            # EPW files often show suspiciously smooth temperature profiles
-            if len(temp_data) > 100:
-                # Check for unrealistic smoothness
-                temp_gradient = np.abs(np.diff(temp_data))
-                small_changes = np.sum(temp_gradient < 0.1) / len(temp_gradient)
-                
-                if small_changes > 0.7:  # 70% of changes < 0.1degC
-                    issue = QCIssue(
-                        type="processing_artifact",
-                        message="Temperature profile appears over-processed (typical of some EPW files)",
-                        severity=QCSeverity.LOW,
-                        affected_variables=['temp_air'],
-                        suggested_action="Consider using original meteorological data if available"
-                    )
-                    report.add_issue(issue)
-                    
-        # Check for complete variable set (EPW should be comprehensive)
-        expected_vars = ['temp_air', 'dewpoint', 'rel_humidity', 'wind_speed', 'ghi']
-        missing_vars = [var for var in expected_vars if var not in ds.data_vars]
-        
-        if missing_vars:
-            issue = QCIssue(
-                type="data_completeness", 
-                message=f"EPW file missing expected variables: {missing_vars}",
-                severity=QCSeverity.MEDIUM,
-                affected_variables=missing_vars,
-                suggested_action="Verify EPW file completeness or use alternative source"
-            )
-            report.add_issue(issue)
-            
-        report.passed_checks.append("epw_specific_validation")
+# Note: PVGISQCProfile and EPWQCProfile have been moved to their respective adapter files
+# for better co-location of adapter-specific QC logic
 
 # Registry of available QC profiles
 QC_PROFILES = {
     'nasa_power': NASAPowerQCProfile,
     'meteostat': MeteostatQCProfile,
     'era5': ERA5QCProfile,
-    'pvgis': PVGISQCProfile,
-    'epw': EPWQCProfile,
-    'file_epw': EPWQCProfile,  # Alias
+    # Note: pvgis and epw profiles are now dynamically loaded from adapter files
 }
+
+def _get_pvgis_qc_profile():
+    """Dynamically load PVGIS QC profile from adapter"""
+    try:
+        from EcoSystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
+        return get_qc_profile()
+    except ImportError:
+        logger.warning("Could not import PVGIS QC profile from adapter")
+        return None
+
+def _get_epw_qc_profile():
+    """Dynamically load EPW QC profile from adapter"""
+    try:
+        from EcoSystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
+        return get_qc_profile()
+    except ImportError:
+        logger.warning("Could not import EPW QC profile from adapter")
+        return None
 
 def get_source_profile(source: str) -> QCProfile:
     """
     Get QC profile for a data source.
-    
+
     Args:
         source: Data source identifier
-        
+
     Returns:
         QC profile instance
-        
+
     Raises:
         ValueError: If source is unknown
     """
-    if source not in QC_PROFILES:
-        available = list(QC_PROFILES.keys())
-        raise ValueError(f"Unknown data source: {source}. Available: {available}")
-        
-    return QC_PROFILES[source]()
+    # Handle standard profiles from registry
+    if source in QC_PROFILES:
+        return QC_PROFILES[source]()
+
+    # Handle dynamically loaded profiles
+    if source in ['pvgis']:
+        profile = _get_pvgis_qc_profile()
+        if profile:
+            return profile
+
+    if source in ['epw', 'file_epw']:
+        profile = _get_epw_qc_profile()
+        if profile:
+            return profile
+
+    # If we get here, the source is unknown
+    available = list(QC_PROFILES.keys()) + ['pvgis', 'epw', 'file_epw']
+    raise ValueError(f"Unknown data source: {source}. Available: {available}")
 
 # ============================================================================
 # METEOROLOGICAL VALIDATION

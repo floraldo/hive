@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Verify that all production fixes have been implemented correctly.
@@ -8,7 +11,7 @@ import os
 
 def test_climate_response_validation():
     """Test that ClimateResponse includes all required base fields."""
-    print("Testing ClimateResponse validation...")
+    logger.info("Testing ClimateResponse validation...")
     
     import xarray as xr
     import pandas as pd
@@ -49,15 +52,15 @@ def test_climate_response_validation():
         assert response.source == "nasa_power", "source mismatch"
         assert response.shape == (24, 2), "shape mismatch"
         
-        print("[PASS] ClimateResponse validation test PASSED")
+        logger.info("[PASS] ClimateResponse validation test PASSED")
         return True
     except Exception as e:
-        print(f"[FAIL] ClimateResponse validation test FAILED: {e}")
+        logger.error(f"[FAIL] ClimateResponse validation test FAILED: {e}")
         return False
 
 def test_job_manager():
     """Test the production-ready job manager."""
-    print("\nTesting JobManager...")
+    logger.info("\nTesting JobManager...")
     
     from EcoSystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
     
@@ -91,12 +94,12 @@ def test_job_manager():
     assert job["status"] == JobStatus.COMPLETED, "Status not updated"
     assert job["result"] == {"output": "result"}, "Result not stored"
     
-    print("[PASS] JobManager test PASSED")
+    logger.info("[PASS] JobManager test PASSED")
     return True
 
 def test_epw_error_handling():
     """Test EPW file parser error handling."""
-    print("\nTesting EPW error handling...")
+    logger.error("\nTesting EPW error handling...")
     
     from EcoSystemiser.profile_loader.climate.adapters.file_epw import EPWAdapter
     from EcoSystemiser.errors import DataParseError
@@ -107,30 +110,30 @@ def test_epw_error_handling():
     short_content = "LOCATION,Test\\nDATA"
     try:
         adapter._parse_epw_data(short_content)
-        print("[FAIL] EPW error handling test FAILED: Should have raised DataParseError for short file")
+        logger.error("[FAIL] EPW error handling test FAILED: Should have raised DataParseError for short file")
         return False
     except DataParseError as e:
         if "too short" not in str(e).lower():
-            print(f"[FAIL] EPW error handling test FAILED: Wrong error message: {e}")
+            logger.error(f"[FAIL] EPW error handling test FAILED: Wrong error message: {e}")
             return False
     
     # Test with invalid CSV data
     invalid_content = "\\n" * 10 + "not,valid,csv,data\\n,,,\\n"
     try:
         adapter._parse_epw_data(invalid_content)
-        print("[FAIL] EPW error handling test FAILED: Should have raised DataParseError for invalid CSV")
+        logger.error("[FAIL] EPW error handling test FAILED: Should have raised DataParseError for invalid CSV")
         return False
     except DataParseError as e:
         if "parse" not in str(e).lower() and "short" not in str(e).lower():
-            print(f"[FAIL] EPW error handling test FAILED: Wrong error message: {e}")
+            logger.error(f"[FAIL] EPW error handling test FAILED: Wrong error message: {e}")
             return False
     
-    print("[PASS] EPW error handling test PASSED")
+    logger.error("[PASS] EPW error handling test PASSED")
     return True
 
 def test_time_gap_detection():
     """Test improved time gap detection with explicit frequency."""
-    print("\nTesting time gap detection...")
+    logger.info("\nTesting time gap detection...")
     
     import xarray as xr
     import pandas as pd
@@ -165,12 +168,12 @@ def test_time_gap_detection():
     if 'expected_freq' in metadata:
         assert "1H" in str(metadata['expected_freq']), "Expected frequency not used"
     
-    print("[PASS] Time gap detection test PASSED")
+    logger.info("[PASS] Time gap detection test PASSED")
     return True
 
 def test_factory_no_sys_path():
     """Test that factory doesn't manipulate sys.path."""
-    print("\nTesting factory sys.path cleanup...")
+    logger.info("\nTesting factory sys.path cleanup...")
     
     import sys
     original_path = sys.path.copy()
@@ -187,14 +190,14 @@ def test_factory_no_sys_path():
     # Path should still be unchanged
     assert sys.path == original_path, "sys.path was modified by _auto_register_adapters"
     
-    print("[PASS] Factory sys.path test PASSED")
+    logger.info("[PASS] Factory sys.path test PASSED")
     return True
 
 def main():
     """Run all verification tests."""
-    print("=" * 60)
-    print("PRODUCTION FIXES VERIFICATION")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("PRODUCTION FIXES VERIFICATION")
+    logger.info("=" * 60)
     
     results = []
     
@@ -206,24 +209,24 @@ def main():
     results.append(("Factory sys.path cleanup", test_factory_no_sys_path()))
     
     # Summary
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info("SUMMARY")
+    logger.info("=" * 60)
     
     passed = sum(1 for _, result in results if result)
     total = len(results)
     
     for name, result in results:
         status = "[PASS] PASSED" if result else "[FAIL] FAILED"
-        print(f"{name}: {status}")
+        logger.info(f"{name}: {status}")
     
-    print(f"\nTotal: {passed}/{total} tests passed")
+    logger.info(f"\nTotal: {passed}/{total} tests passed")
     
     if passed == total:
-        print("\nSUCCESS: ALL PRODUCTION FIXES VERIFIED SUCCESSFULLY!")
+        logger.info("\nSUCCESS: ALL PRODUCTION FIXES VERIFIED SUCCESSFULLY!")
         return 0
     else:
-        print(f"\nWARNING:  {total - passed} tests failed. Please review the failures above.")
+        logger.error(f"\nWARNING:  {total - passed} tests failed. Please review the failures above.")
         return 1
 
 if __name__ == "__main__":

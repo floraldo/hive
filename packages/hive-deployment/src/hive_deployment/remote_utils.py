@@ -5,7 +5,7 @@ Adapted from SmartHoodsOptimisationTool Apper project.
 """
 
 import os
-import logging
+from hive_logging import get_logger
 import re
 import fnmatch
 from pathlib import Path

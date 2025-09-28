@@ -11,9 +11,9 @@ from typing import Dict, Any, List, Optional, Literal
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
 from datetime import datetime
-import logging
+from hive_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Pydantic models for strict contract enforcement

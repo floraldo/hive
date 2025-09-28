@@ -7,14 +7,14 @@ Abstract base class for weather data processing and validation.
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Tuple, List
 import pandas as pd
-import logging
+from hive_logging import get_logger
 
 # Use Systemiser logger
 try:
     from Systemiser.utils.logger import setup_logging
     logger = setup_logging("WeatherProcessor", level=logging.INFO)
 except ImportError:
-    logger = logging.getLogger("WeatherProcessor_Fallback")
+    logger = get_logger("WeatherProcessor_Fallback")
     logger.warning("Could not import Systemiser logger, using fallback.")
     if not logger.handlers:
         handler = logging.StreamHandler()

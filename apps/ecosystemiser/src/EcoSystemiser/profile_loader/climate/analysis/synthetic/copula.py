@@ -203,7 +203,7 @@ class CopulaSyntheticGenerator:
                         best_params = params
                         best_score = score
                         
-                except:
+                except Exception as e:
                     continue
             
             # Fallback to normal distribution

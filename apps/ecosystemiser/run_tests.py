@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python
 """
 Test runner for EcoSystemiser package.
@@ -19,10 +22,10 @@ if __name__ == "__main__":
     # Default to verbose mode and show all output
     args = sys.argv[1:] if len(sys.argv) > 1 else ["tests", "-v", "--tb=short"]
     
-    print(f"Running tests from: {Path.cwd()}")
-    print(f"Python path includes: {src_path}")
-    print(f"Running: pytest {' '.join(args)}")
-    print("-" * 60)
+    logger.info(f"Running tests from: {Path.cwd()}")
+    logger.info(f"Python path includes: {src_path}")
+    logger.info(f"Running: pytest {' '.join(args)}")
+    logger.info("-" * 60)
     
     exit_code = pytest.main(args)
     sys.exit(exit_code)

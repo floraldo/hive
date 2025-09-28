@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Debug service for EcoSystemiser - Targeted debugging without CLI overhead
@@ -104,36 +107,36 @@ def debug_single_request():
         
         # Dataset information
         log.info("\n--- Dataset Structure ---")
-        print(f"Dimensions: {dict(ds.dims)}")
-        print(f"Variables: {list(ds.data_vars)}")
-        print(f"Coordinates: {list(ds.coords)}")
-        print(f"Attributes: {dict(ds.attrs)}")
+        logger.info(f"Dimensions: {dict(ds.dims)}")
+        logger.info(f"Variables: {list(ds.data_vars)}")
+        logger.info(f"Coordinates: {list(ds.coords)}")
+        logger.info(f"Attributes: {dict(ds.attrs)}")
         
         # Show data sample
         log.info("\n--- Data Sample (first 5 records) ---")
         df = ds.to_dataframe()
-        print(df.head())
+        logger.info(df.head())
         
         # Show statistics
         log.info("\n--- Variable Statistics ---")
         for var in ds.data_vars:
             data = ds[var].values
-            print(f"{var}:")
-            print(f"  Min: {data.min():.2f}")
-            print(f"  Max: {data.max():.2f}")
-            print(f"  Mean: {data.mean():.2f}")
-            print(f"  Std: {data.std():.2f}")
-            print(f"  NaN count: {pd.isna(data).sum()}")
+            logger.info(f"{var}:")
+            logger.info(f"  Min: {data.min():.2f}")
+            logger.info(f"  Max: {data.max():.2f}")
+            logger.info(f"  Mean: {data.mean():.2f}")
+            logger.info(f"  Std: {data.std():.2f}")
+            logger.info(f"  NaN count: {pd.isna(data).sum()}")
         
         # Response information
         if response:
             log.info("\n--- Response Metadata ---")
             if hasattr(response, 'manifest'):
-                print(f"Manifest keys: {response.manifest.keys() if isinstance(response.manifest, dict) else 'N/A'}")
+                logger.info(f"Manifest keys: {response.manifest.keys() if isinstance(response.manifest, dict) else 'N/A'}")
             if hasattr(response, 'path_parquet'):
-                print(f"Output path: {response.path_parquet}")
+                logger.info(f"Output path: {response.path_parquet}")
             if hasattr(response, 'stats'):
-                print(f"Stats: {response.stats}")
+                logger.info(f"Stats: {response.stats}")
         
         # ===========================================================
         # INTERACTIVE DEBUGGING POINT
@@ -153,13 +156,13 @@ def debug_single_request():
         log.error("=" * 60)
         log.error("CLIMATE ERROR OCCURRED")
         log.error("=" * 60)
-        print(f"\nError Type: {e.__class__.__name__}")
-        print(f"Error Code: {e.code.value if hasattr(e, 'code') else 'N/A'}")
-        print(f"Message: {str(e)}")
+        logger.error(f"\nError Type: {e.__class__.__name__}")
+        logger.error(f"Error Code: {e.code.value if hasattr(e, 'code') else 'N/A'}")
+        logger.info(f"Message: {str(e)}")
         if hasattr(e, 'details') and e.details:
-            print(f"Details: {json.dumps(e.details, indent=2)}")
+            logger.info(f"Details: {json.dumps(e.details, indent=2)}")
         if hasattr(e, 'suggested_action') and e.suggested_action:
-            print(f"Suggested Action: {e.suggested_action}")
+            logger.info(f"Suggested Action: {e.suggested_action}")
         log.error("Full exception:", exc_info=True)
         
     except Exception as e:
@@ -256,7 +259,7 @@ if __name__ == "__main__":
             debug_processing_pipeline()
         else:
             log.error(f"Unknown mode: {mode}")
-            print("Usage: python debug_service.py [multi|pipeline]")
+            logger.debug("Usage: python debug_service.py [multi|pipeline]")
     else:
         # Default: single request debug
         debug_single_request()

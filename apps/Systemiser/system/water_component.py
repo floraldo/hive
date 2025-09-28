@@ -6,6 +6,9 @@ import pandas as pd
 from .component import Component 
 from .economic_parameters import EconomicParameters # Updated relative import
 from .environmental_parameters import EnvironmentalParameters # Updated relative import
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 class WaterComponent(Component):
     def __init__(self, N, name, economic: EconomicParameters, environmental: EnvironmentalParameters):
@@ -95,15 +98,15 @@ class WaterComponent(Component):
         return self.constraints
 
     def print_constraints(self):
-        print(f"\nConstraints for {self.name}")
+        logger.info(f"\nConstraints for {self.name}")
         for constraint in self.constraints:
-            print(constraint)
+            logger.info(constraint)
 
     def print_flows(self):
-        print(f"\nFlows to and from {self.name}")
+        logger.info(f"\nFlows to and from {self.name}")
         for direction, outer_dict in self.flows.items():
             for flow_name, flow in outer_dict.items():
-                print(f"{flow_name}: {direction} ({flow['value']})")
+                logger.info(f"{flow_name}: {direction} ({flow['value']})")
 
     def get_result(self):
         result = {}

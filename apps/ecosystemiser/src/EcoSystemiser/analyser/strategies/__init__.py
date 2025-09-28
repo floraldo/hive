@@ -1,9 +1,9 @@
 """Analysis strategies for the Analyser module."""
 
-from EcoSystemiser.analyser.base import BaseAnalysis
-from EcoSystemiser.analyser.technical_kpi import TechnicalKPIAnalysis
-from EcoSystemiser.analyser.economic import EconomicAnalysis
-from EcoSystemiser.analyser.sensitivity import SensitivityAnalysis
+from .base import BaseAnalysis
+from .technical_kpi import TechnicalKPIAnalysis
+from .economic import EconomicAnalysis
+from .sensitivity import SensitivityAnalysis
 
 __all__ = [
     'BaseAnalysis',

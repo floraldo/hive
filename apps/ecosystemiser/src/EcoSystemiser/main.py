@@ -8,6 +8,8 @@ This module provides the FastAPI application and API routers for all modules:
 - Reporting (future)
 """
 
+from EcoSystemiser.hive_logging_adapter import get_logger
+
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse

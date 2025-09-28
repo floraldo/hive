@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 """
 Command-line interface for Hive Orchestrator.
 
@@ -196,12 +199,12 @@ def review_escalated(task_id: str):
         ))
 
         # Display task description
-        console.print("\n[bold]Task Description:[/bold]")
-        console.print(task['description'])
+        console.logger.info("\n[bold]Task Description:[/bold]")
+        console.logger.info(task['description'])
 
         # Display AI analysis if available
         if review:
-            console.print("\n[bold]AI Review Analysis:[/bold]")
+            console.logger.info("\n[bold]AI Review Analysis:[/bold]")
 
             # Quality metrics table
             metrics_table = Table(title="Quality Metrics", box=box.ROUNDED)
@@ -216,39 +219,39 @@ def review_escalated(task_id: str):
             metrics_table.add_row("Architecture", f"{metrics.get('architecture', 0):.0f}")
             metrics_table.add_row("[bold]Overall[/bold]", f"[bold]{review.get('overall_score', 0):.0f}[/bold]")
 
-            console.print(metrics_table)
+            console.logger.info(metrics_table)
 
             # AI reasoning
-            console.print("\n[bold]AI Decision:[/bold]", review.get('decision', 'unknown'))
-            console.print("[bold]Confidence:[/bold]", f"{review.get('confidence', 0):.0%}")
-            console.print("\n[bold]Summary:[/bold]", review.get('summary', 'No summary available'))
+            console.logger.info("\n[bold]AI Decision:[/bold]", review.get('decision', 'unknown'))
+            console.logger.info("[bold]Confidence:[/bold]", f"{review.get('confidence', 0):.0%}")
+            console.logger.info("\n[bold]Summary:[/bold]", review.get('summary', 'No summary available'))
 
             # Issues found
             if review.get('issues'):
-                console.print("\n[bold red]Issues Found:[/bold red]")
+                console.logger.info("\n[bold red]Issues Found:[/bold red]")
                 for issue in review['issues']:
-                    console.print(f"  • {issue}")
+                    console.logger.info(f"  • {issue}")
 
             # Suggestions
             if review.get('suggestions'):
-                console.print("\n[bold yellow]AI Suggestions:[/bold yellow]")
+                console.logger.info("\n[bold yellow]AI Suggestions:[/bold yellow]")
                 for suggestion in review['suggestions']:
-                    console.print(f"  • {suggestion}")
+                    console.logger.info(f"  • {suggestion}")
 
             # Escalation reason
             if 'escalation_reason' in result_data:
-                console.print("\n[bold magenta]Escalation Reason:[/bold magenta]")
-                console.print(result_data['escalation_reason'])
+                console.logger.info("\n[bold magenta]Escalation Reason:[/bold magenta]")
+                console.logger.info(result_data['escalation_reason'])
 
         # Human decision prompt
-        console.print("\n" + "="*60 + "\n")
-        console.print("[bold cyan]HUMAN REVIEW DECISION REQUIRED[/bold cyan]")
-        console.print("\nAvailable actions:")
-        console.print("  [green]approve[/green]  - Override AI concerns and approve")
-        console.print("  [red]reject[/red]   - Confirm rejection")
-        console.print("  [yellow]rework[/yellow]   - Send back for improvements")
-        console.print("  [cyan]defer[/cyan]    - Need more information")
-        console.print("  [dim]cancel[/dim]   - Cancel review")
+        console.logger.info("\n" + "="*60 + "\n")
+        console.logger.info("[bold cyan]HUMAN REVIEW DECISION REQUIRED[/bold cyan]")
+        console.logger.info("\nAvailable actions:")
+        console.logger.info("  [green]approve[/green]  - Override AI concerns and approve")
+        console.logger.info("  [red]reject[/red]   - Confirm rejection")
+        console.logger.info("  [yellow]rework[/yellow]   - Send back for improvements")
+        console.logger.info("  [cyan]defer[/cyan]    - Need more information")
+        console.logger.info("  [dim]cancel[/dim]   - Cancel review")
 
         # Get human decision
         decision = Prompt.ask(
@@ -258,7 +261,7 @@ def review_escalated(task_id: str):
         )
 
         if decision == "cancel":
-            console.print("[yellow]Review cancelled[/yellow]")
+            console.logger.info("[yellow]Review cancelled[/yellow]")
             return
 
         # Get additional notes
@@ -292,10 +295,10 @@ def review_escalated(task_id: str):
 
         conn.commit()
 
-        console.print(f"\n[green]✓[/green] Task {task_id} updated to status: [bold]{new_status}[/bold]")
+        console.logger.info(f"\n[green]✓[/green] Task {task_id} updated to status: [bold]{new_status}[/bold]")
 
         if notes:
-            console.print(f"[dim]Notes recorded: {notes}[/dim]")
+            console.logger.info(f"[dim]Notes recorded: {notes}[/dim]")
 
     except ImportError as e:
         click.echo(f"Required module not available: {e}", err=True)
@@ -331,7 +334,7 @@ def list_escalated():
         tasks = cursor.fetchall()
 
         if not tasks:
-            console.print("[green]✓[/green] No escalated tasks requiring review")
+            console.logger.info("[green]✓[/green] No escalated tasks requiring review")
             return
 
         # Create table
@@ -388,8 +391,8 @@ def list_escalated():
                 reason[:30]
             )
 
-        console.print(table)
-        console.print(f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]")
+        console.logger.info(table)
+        console.logger.info(f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]")
 
     except ImportError as e:
         click.echo(f"Required module not available: {e}", err=True)

@@ -4,7 +4,7 @@ import cvxpy as cp
 import numpy as np
 import time
 from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.base import BaseSolver, SolverResult
+from EcoSystemiser.solver.base import BaseSolver, SolverResult
 
 logger = get_logger(__name__)
 
@@ -459,7 +459,7 @@ class MILPSolver(BaseSolver):
             import cvxpy.settings as s
             if s.GLPK in cp.installed_solvers():
                 return cp.GLPK
-        except:
+        except Exception as e:
             pass
 
         try:
@@ -467,7 +467,7 @@ class MILPSolver(BaseSolver):
             import cvxpy.settings as s
             if s.CBC in cp.installed_solvers():
                 return cp.CBC
-        except:
+        except Exception as e:
             pass
 
         # Fall back to default

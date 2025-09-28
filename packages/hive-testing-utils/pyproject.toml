@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "hive-testing-utils"
+version = "0.1.0"
+description = "Architectural validation and testing utilities for Hive platform"
+authors = ["Hive System <hive@example.com>"]
+packages = [{include = "hive_testing_utils", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pytest = "*"
+toml = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+black = "*"
+isort = "*"
+mypy = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

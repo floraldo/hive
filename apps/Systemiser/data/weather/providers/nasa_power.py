@@ -1,3 +1,6 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 """
 NASA POWER Weather Data Provider
 
@@ -237,11 +240,11 @@ if __name__ == '__main__':
     df = provider.get_data(lat_wageningen, lon_wageningen, start, end)
     
     if df is not None and not df.empty:
-        print("Successfully fetched and processed data:")
-        print(df.head())
-        print(f"\nDataFrame shape: {df.shape}")
-        print(f"Columns: {df.columns.tolist()}")
-        print("\nBasic statistics:")
-        print(df.describe())
+        logger.info("Successfully fetched and processed data:")
+        logger.info(df.head())
+        logger.info(f"\nDataFrame shape: {df.shape}")
+        logger.info(f"Columns: {df.columns.tolist()}")
+        logger.info("\nBasic statistics:")
+        logger.info(df.describe())
     else:
-        print("Failed to fetch or process data") 
+        logger.error("Failed to fetch or process data") 
