@@ -25,6 +25,15 @@ from .base_exceptions import (
 )
 from .error_reporter import BaseErrorReporter
 from .recovery import RecoveryStatus, RecoveryStrategy
+from .async_error_handler import (
+    AsyncErrorHandler,
+    ErrorContext,
+    ErrorStats,
+    error_context,
+    handle_async_errors,
+    create_error_context,
+)
+from .monitoring_error_reporter import MonitoringErrorReporter
 
 __all__ = [
     # Base error classes
@@ -43,6 +52,15 @@ __all__ = [
 
     # Error handling infrastructure
     "BaseErrorReporter",
+    "MonitoringErrorReporter",
     "RecoveryStrategy",
     "RecoveryStatus",
+
+    # Async error handling
+    "AsyncErrorHandler",
+    "ErrorContext",
+    "ErrorStats",
+    "error_context",
+    "handle_async_errors",
+    "create_error_context",
 ]

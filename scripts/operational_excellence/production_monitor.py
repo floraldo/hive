@@ -19,8 +19,10 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
 import requests
 from pydantic import BaseModel, HttpUrl, ValidationError
+
 
 class ServiceEndpoint(BaseModel):
     """Configuration for a monitored service endpoint"""

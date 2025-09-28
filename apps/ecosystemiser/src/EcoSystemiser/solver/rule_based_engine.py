@@ -1,5 +1,6 @@
 """Rule-based solver for system simulation - SIMPLIFIED VERSION."""
 
+import logging
 import time
 from typing import Any, Dict
 

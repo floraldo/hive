@@ -12,11 +12,12 @@ Part of the Production Shield Initiative for foundational chaos engineering.
 """
 
 import asyncio
-import pytest
 import time
-from unittest.mock import Mock, patch, AsyncMock
 from typing import Dict, List, Optional
+from unittest.mock import AsyncMock, Mock, patch
+
 import aiohttp
+import pytest
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 

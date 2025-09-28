@@ -22,6 +22,13 @@ from .resilience import (
     async_timeout,
     async_resilient,
 )
+from .advanced_timeout import (
+    AdvancedTimeoutManager,
+    TimeoutConfig,
+    TimeoutMetrics,
+    timeout_context,
+    with_adaptive_timeout,
+)
 
 __all__ = [
     # Context management
@@ -50,4 +57,11 @@ __all__ = [
     "async_circuit_breaker",
     "async_timeout",
     "async_resilient",
+
+    # Advanced timeout management
+    "AdvancedTimeoutManager",
+    "TimeoutConfig",
+    "TimeoutMetrics",
+    "timeout_context",
+    "with_adaptive_timeout",
 ]

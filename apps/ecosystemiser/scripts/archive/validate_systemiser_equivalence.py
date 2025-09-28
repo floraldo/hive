@@ -44,7 +44,7 @@ from ecosystemiser.system_model.system import System
 
 def load_golden_dataset():
     """Load the golden dataset from the Systemiser baseline."""
-    golden_path = Path(__file__).parent.parent / "tests" / "systemiser_minimal_golden.json"
+    golden_path = Path(__file__).parent.parent.parent / "tests" / "systemiser_minimal_golden.json"
     with open(golden_path, "r") as f:
         return json.load(f)
 
@@ -151,7 +151,10 @@ def create_minimal_ecosystemiser():
         )
     )
     solar = SolarPV("SolarPV", solar_params, system.N)
+    print(f"DEBUG: Before assignment - solar.profile: {getattr(solar, 'profile', 'NOT_SET')}")
+    print(f"DEBUG: Assigning solar_profile with values: {solar_profile[:5]}")
     solar.profile = solar_profile  # Already normalized (0-1)
+    print(f"DEBUG: After assignment - solar.profile: {solar.profile[:5] if solar.profile is not None else 'None'}")
 
     # Power demand component (12.5 kW peak, matching golden dataset)
     demand_params = PowerDemandParams(
@@ -163,7 +166,10 @@ def create_minimal_ecosystemiser():
         )
     )
     demand = PowerDemand("PowerDemand", demand_params, system.N)
+    print(f"DEBUG: Before assignment - demand.profile: {getattr(demand, 'profile', 'NOT_SET')}")
+    print(f"DEBUG: Assigning demand_profile with values: {demand_profile[:5]}")
     demand.profile = demand_profile  # Already normalized (0-1)
+    print(f"DEBUG: After assignment - demand.profile: {demand.profile[:5] if demand.profile is not None else 'None'}")
 
     # Add components to system
     system.add_component(grid)

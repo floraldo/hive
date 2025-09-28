@@ -229,13 +229,9 @@ class SolarPV(Component):
         self.temperature_coefficient = tech.temperature_coefficient
         self.degradation_rate = tech.degradation_rate_annual
 
-        # Profile should be assigned by the system/builder
-        # Initialize as None, will be set by assign_profiles
-        if not hasattr(self, "profile") or self.profile is None:
-            logger.warning(f"No generation profile assigned to {self.name}. Using zero output.")
-            self.profile = np.zeros(getattr(self, "N", 24))
-        else:
-            self.profile = np.array(self.profile)
+        # Profile should be assigned by the system/builder after initialization
+        # Initialize as None, will be set later by profile assignment
+        self.profile = None
 
         # CVXPY variable (for MILP solver)
         self.P_out = None

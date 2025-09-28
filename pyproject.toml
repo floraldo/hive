@@ -48,12 +48,12 @@ select = [ "E4", "E7", "E9", "F", "I",]
 quote-style = "double"
 
 [tool.pytest.ini_options]
-testpaths = [ "apps", "packages",]
+testpaths = [ "apps", "packages", "tests",]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 addopts = [ "--tb=short", "--strict-markers", "--disable-warnings", "-v",]
-markers = [ "integration: marks tests as integration tests", "unit: marks tests as unit tests", "slow: marks tests as slow running",]
+markers = [ "integration: marks tests as integration tests", "unit: marks tests as unit tests", "slow: marks tests as slow running", "asyncio: mark test as async",]
 
 [tool.poetry.group.workspace]
 optional = true

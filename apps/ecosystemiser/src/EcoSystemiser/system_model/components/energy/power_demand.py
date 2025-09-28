@@ -237,13 +237,9 @@ class PowerDemand(Component):
         self.stochastic_model = tech.stochastic_model
         self.occupancy_coupling = tech.occupancy_coupling
 
-        # Profile should be assigned by the system/builder
-        # Initialize as None, will be set by assign_profiles
-        if not hasattr(self, "profile") or self.profile is None:
-            logger.warning(f"No demand profile assigned to {self.name}. Using zero demand.")
-            self.profile = np.zeros(getattr(self, "N", 24))
-        else:
-            self.profile = np.array(self.profile)
+        # Profile should be assigned by the system/builder after initialization
+        # Initialize as None, will be set later by profile assignment
+        self.profile = None
 
         # CVXPY variables (for MILP solver)
         self.P_in = None
