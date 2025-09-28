@@ -152,14 +152,12 @@ class ProcessingPipeline:
                 config={
                     "max_linear_gap": (
                         profile_config.gap_fill_max_hours // 8
-                        if profile_config
-                        and hasattr(profile_config, "gap_fill_max_hours")
+                        if profile_config and hasattr(profile_config, "gap_fill_max_hours")
                         else 3
                     ),
                     "max_pattern_gap": (
                         profile_config.gap_fill_max_hours
-                        if profile_config
-                        and hasattr(profile_config, "gap_fill_max_hours")
+                        if profile_config and hasattr(profile_config, "gap_fill_max_hours")
                         else 24
                     ),
                     "preserve_extremes": True,
@@ -197,9 +195,7 @@ class ProcessingPipeline:
 
         # Get profile loader config if available
         profile_config = getattr(self.config, "profile_loader", None)
-        postprocessing_enabled = (
-            profile_config.postprocessing_enabled if profile_config else False
-        )
+        postprocessing_enabled = profile_config.postprocessing_enabled if profile_config else False
 
         # For now, keep postprocessing disabled by default to avoid import issues
         # Building-specific variables could be added here when modules are available
@@ -266,9 +262,7 @@ class ProcessingPipeline:
             ds_processed, report = step.execute(ds_processed)
             self.execution_reports.append(report)
 
-        logger.info(
-            f"Preprocessing complete: {len(self.preprocessing_steps)} steps executed"
-        )
+        logger.info(f"Preprocessing complete: {len(self.preprocessing_steps)} steps executed")
         return ds_processed
 
     def execute_postprocessing(self, ds: xr.Dataset) -> xr.Dataset:
@@ -288,9 +282,7 @@ class ProcessingPipeline:
             ds_processed, report = step.execute(ds_processed)
             self.execution_reports.append(report)
 
-        logger.info(
-            f"Postprocessing complete: {len(self.postprocessing_steps)} steps executed"
-        )
+        logger.info(f"Postprocessing complete: {len(self.postprocessing_steps)} steps executed")
         return ds_processed
 
     def execute(
@@ -323,12 +315,8 @@ class ProcessingPipeline:
     def get_execution_report(self) -> Dict[str, Any]:
         """Get detailed execution report"""
         return {
-            "preprocessing": [
-                r for r in self.execution_reports if r.get("stage") == "preprocessing"
-            ],
-            "postprocessing": [
-                r for r in self.execution_reports if r.get("stage") == "postprocessing"
-            ],
+            "preprocessing": [r for r in self.execution_reports if r.get("stage") == "preprocessing"],
+            "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"],
             "errors": [r for r in self.execution_reports if "error" in r],
             "skipped": [r for r in self.execution_reports if r.get("skipped")],
         }

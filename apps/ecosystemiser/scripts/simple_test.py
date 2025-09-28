@@ -15,9 +15,7 @@ import pandas as pd
 import xarray as xr
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 log = logging.getLogger(__name__)
 
 from ecosystemiser.core.errors import ComponentValidationError as ValidationError
@@ -54,13 +52,11 @@ def test_direct_adapter():
         ADAPTER_NAME = "mock"
         ADAPTER_VERSION = "1.0.0"
 
-        async def _fetch_raw(
-            self, lat, lon, variables, period, resolution="1H", **kwargs
-        ):
+        async def _fetch_raw_async(self, lat, lon, variables, period, resolution="1H", **kwargs):
             """Implementation of abstract method - returns raw data."""
             return await self.fetch_async(lat, lon, variables, period, resolution)
 
-        async def _transform_data(self, raw_data, target_variables, **kwargs):
+        async def _transform_data_async(self, raw_data, target_variables, **kwargs):
             """Implementation of abstract method - no transformation needed for mock."""
             return raw_data
 
@@ -133,9 +129,7 @@ def test_direct_adapter():
                     # Temperature with daily and seasonal variation
                     base_temp = 20.0
                     daily_cycle = 5 * np.sin(2 * np.pi * np.arange(n_times) / 24)
-                    seasonal_cycle = 10 * np.sin(
-                        2 * np.pi * np.arange(n_times) / (365 * 24)
-                    )
+                    seasonal_cycle = 10 * np.sin(2 * np.pi * np.arange(n_times) / (365 * 24))
                     noise = np.random.normal(0, 1, n_times)
                     data[var] = base_temp + daily_cycle + seasonal_cycle + noise
 
@@ -179,7 +173,7 @@ def test_direct_adapter():
         log.info(f"Adapter supports {len(caps.supported_variables)} variables")
 
         # Test async fetch
-        async def test_fetch():
+        async def test_fetch_async():
             ds = await adapter.fetch_async(
                 lat=51.5,
                 lon=-0.1,
@@ -191,7 +185,7 @@ def test_direct_adapter():
 
         # Run async test
         loop = asyncio.get_event_loop()
-        ds = loop.run_until_complete(test_fetch())
+        ds = loop.run_until_complete(test_fetch_async())
 
         log.info("\n" + "=" * 60)
         log.info("SUCCESS - Mock Adapter Test Results")
@@ -208,9 +202,7 @@ def test_direct_adapter():
         log.info("\nVariable statistics:")
         for var in ds.data_vars:
             data = ds[var].values
-            log.info(
-                f"{var}: min={data.min():.2f}, max={data.max():.2f}, mean={data.mean():.2f}"
-            )
+            log.info(f"{var}: min={data.min():.2f}, max={data.max():.2f}, mean={data.mean():.2f}")
 
         return True
 

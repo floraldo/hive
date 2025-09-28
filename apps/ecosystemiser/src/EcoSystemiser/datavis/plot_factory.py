@@ -87,18 +87,14 @@ class PlotFactory:
                 ]
             )
 
-            title = (
-                f"Energy Flows at t={timestep}" if timestep else "Average Energy Flows"
-            )
+            title = f"Energy Flows at t={timestep}" if timestep else "Average Energy Flows"
             fig.update_layout(title=title, **self.default_layout)
 
             return fig.to_dict()
 
         return {}
 
-    def create_timeseries_plot(
-        self, system, components: Optional[List[str]] = None
-    ) -> Dict:
+    def create_timeseries_plot(self, system, components: Optional[List[str]] = None) -> Dict:
         """Create time series plot of component states.
 
         Args:
@@ -208,9 +204,7 @@ class PlotFactory:
             row, col = row_col_map[idx]
 
             # Filter KPIs for this category
-            cat_kpis = {
-                k: v for k, v in kpis.items() if any(kw in k.lower() for kw in keywords)
-            }
+            cat_kpis = {k: v for k, v in kpis.items() if any(kw in k.lower() for kw in keywords)}
 
             if cat_kpis:
                 if category == "Environmental" and len(cat_kpis) == 1:
@@ -244,9 +238,7 @@ class PlotFactory:
                         col=col,
                     )
 
-        fig.update_layout(
-            title="KPI Dashboard", height=600, showlegend=False, **self.default_layout
-        )
+        fig.update_layout(title="KPI Dashboard", height=600, showlegend=False, **self.default_layout)
 
         return fig.to_dict()
 
@@ -339,9 +331,7 @@ class PlotFactory:
             frames=frames,
             layout=go.Layout(
                 title="Storage Levels Animation",
-                yaxis=dict(
-                    range=[0, max([getattr(c, "E_max", 100) for c in storage_comps])]
-                ),
+                yaxis=dict(range=[0, max([getattr(c, "E_max", 100) for c in storage_comps])]),
                 updatemenus=[
                     {
                         "type": "buttons",
@@ -407,9 +397,7 @@ class PlotFactory:
         # Create HTML with all plots
         html_parts = []
         for i, fig in enumerate(figures):
-            html_parts.append(
-                pyo.plot(fig, output_type="div", include_plotlyjs=(i == 0))
-            )
+            html_parts.append(pyo.plot(fig, output_type="div", include_plotlyjs=(i == 0)))
 
         # Combine into single HTML
         html_content = f"""
@@ -468,20 +456,11 @@ class PlotFactory:
         # Component costs bar chart
         if "component_costs" in economic_data:
             comp_names = list(economic_data["component_costs"].keys())
-            capex_values = [
-                c.get("capex", 0) for c in economic_data["component_costs"].values()
-            ]
-            opex_values = [
-                c.get("opex_annual", 0)
-                for c in economic_data["component_costs"].values()
-            ]
+            capex_values = [c.get("capex", 0) for c in economic_data["component_costs"].values()]
+            opex_values = [c.get("opex_annual", 0) for c in economic_data["component_costs"].values()]
 
-            fig.add_trace(
-                go.Bar(name="CAPEX", x=comp_names, y=capex_values), row=1, col=2
-            )
-            fig.add_trace(
-                go.Bar(name="OPEX", x=comp_names, y=opex_values), row=1, col=2
-            )
+            fig.add_trace(go.Bar(name="CAPEX", x=comp_names, y=capex_values), row=1, col=2)
+            fig.add_trace(go.Bar(name="OPEX", x=comp_names, y=opex_values), row=1, col=2)
 
         # NPV cash flow over time (simplified projection)
         if "npv" in economic_data and "payback_period_years" in economic_data:
@@ -617,10 +596,7 @@ class PlotFactory:
                 name="Pareto Frontier",
                 marker=dict(size=10, color="red"),
                 line=dict(color="red", dash="dash"),
-                text=[
-                    f"Cost: ${c:,.0f}<br>Renewable: {r:.2%}"
-                    for c, r in zip(costs, renewables)
-                ],
+                text=[f"Cost: ${c:,.0f}<br>Renewable: {r:.2%}" for c, r in zip(costs, renewables)],
                 hovertemplate="%{text}<extra></extra>",
             )
         )
@@ -670,9 +646,7 @@ class PlotFactory:
         ]
 
         # Filter available KPIs
-        available_gauges = [
-            (k, n, mi, ma, t) for k, n, mi, ma, t in gauge_kpis if k in kpi_data
-        ]
+        available_gauges = [(k, n, mi, ma, t) for k, n, mi, ma, t in gauge_kpis if k in kpi_data]
 
         if not available_gauges:
             return {}
@@ -689,9 +663,7 @@ class PlotFactory:
         )
 
         # Add gauge charts
-        for idx, (key, name, min_val, max_val, threshold) in enumerate(
-            available_gauges
-        ):
+        for idx, (key, name, min_val, max_val, threshold) in enumerate(available_gauges):
             row = idx // cols + 1
             col = idx % cols + 1
 
@@ -732,9 +704,7 @@ class PlotFactory:
 
         return fig.to_dict()
 
-    def create_optimization_convergence_plot(
-        self, solver_metrics: Dict[str, Any]
-    ) -> Dict:
+    def create_optimization_convergence_plot(self, solver_metrics: Dict[str, Any]) -> Dict:
         """Create optimization convergence visualization.
 
         Args:
@@ -781,9 +751,7 @@ class PlotFactory:
             font=dict(size=14),
         )
 
-        fig.update_layout(
-            title="Optimization Results", height=400, **self.default_layout
-        )
+        fig.update_layout(title="Optimization Results", height=400, **self.default_layout)
 
         return fig.to_dict()
 
@@ -825,8 +793,7 @@ class PlotFactory:
                 ),
                 line=dict(color="rgba(0,0,0,0.3)", width=1),
                 text=[
-                    f"Solution {i}<br>Obj1: {o1:.4f}<br>Obj2: {o2:.4f}"
-                    for i, (o1, o2) in enumerate(zip(obj1, obj2))
+                    f"Solution {i}<br>Obj1: {o1:.4f}<br>Obj2: {o2:.4f}" for i, (o1, o2) in enumerate(zip(obj1, obj2))
                 ],
                 hovertemplate="%{text}<extra></extra>",
             )
@@ -910,9 +877,7 @@ class PlotFactory:
 
         return fig.to_dict()
 
-    def create_parameter_space_heatmap(
-        self, mc_result: Dict[str, Any], param_names: List[str] = None
-    ) -> Dict:
+    def create_parameter_space_heatmap(self, mc_result: Dict[str, Any], param_names: List[str] = None) -> Dict:
         """Create parameter space exploration heatmap.
 
         Args:
@@ -937,9 +902,7 @@ class PlotFactory:
 
         # Prepare data for heatmap
         params = list(param_sensitivities.keys())
-        sensitivities = [
-            param_sensitivities[p].get("sensitivity_index", 0) for p in params
-        ]
+        sensitivities = [param_sensitivities[p].get("sensitivity_index", 0) for p in params]
 
         # Use provided names or default parameter names
         if param_names and len(param_names) >= len(params):
@@ -948,9 +911,7 @@ class PlotFactory:
             display_names = [p.replace("param_", "Parameter ") for p in params]
 
         # Sort by sensitivity
-        sorted_data = sorted(
-            zip(display_names, sensitivities), key=lambda x: abs(x[1]), reverse=True
-        )
+        sorted_data = sorted(zip(display_names, sensitivities), key=lambda x: abs(x[1]), reverse=True)
         sorted_names, sorted_sens = zip(*sorted_data)
 
         fig = go.Figure()
@@ -1011,9 +972,7 @@ class PlotFactory:
         else:
             cols = min(n_objectives, 2)
             rows = (n_objectives + 1) // 2
-            fig = make_subplots(
-                rows=rows, cols=cols, subplot_titles=objectives, vertical_spacing=0.1
-            )
+            fig = make_subplots(rows=rows, cols=cols, subplot_titles=objectives, vertical_spacing=0.1)
             single_plot = False
 
         for idx, (obj_name, obj_stats) in enumerate(statistics.items()):
@@ -1024,17 +983,13 @@ class PlotFactory:
 
             # Generate normal distribution for comparison
             x_range = np.linspace(min_val, max_val, 100)
-            normal_dist = (1 / (std * np.sqrt(2 * np.pi))) * np.exp(
-                -0.5 * ((x_range - mean) / std) ** 2
-            )
+            normal_dist = (1 / (std * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_range - mean) / std) ** 2)
 
             if single_plot:
                 # Single histogram
                 fig.add_trace(
                     go.Histogram(
-                        x=np.random.normal(
-                            mean, std, 1000
-                        ),  # Simulated data for visualization
+                        x=np.random.normal(mean, std, 1000),  # Simulated data for visualization
                         nbinsx=30,
                         name=f"{obj_name} Distribution",
                         opacity=0.7,
@@ -1102,11 +1057,7 @@ class PlotFactory:
                     col=col,
                 )
 
-        title = (
-            "Output Uncertainty Distributions"
-            if n_objectives > 1
-            else f"{objectives[0]} Uncertainty Distribution"
-        )
+        title = "Output Uncertainty Distributions" if n_objectives > 1 else f"{objectives[0]} Uncertainty Distribution"
 
         fig.update_layout(
             title=title,
@@ -1145,12 +1096,7 @@ class PlotFactory:
         # Risk metrics
         var_95 = risk_data.get("var_95", 0)
         cvar_95 = risk_data.get("cvar_95", 0)
-        mean_val = (
-            mc_result.get("uncertainty_analysis", {})
-            .get("statistics", {})
-            .get(first_obj, {})
-            .get("mean", 0)
-        )
+        mean_val = mc_result.get("uncertainty_analysis", {}).get("statistics", {}).get(first_obj, {}).get("mean", 0)
 
         # Create risk indicator
         fig.add_trace(
@@ -1202,9 +1148,7 @@ class PlotFactory:
             )
         )
 
-        fig.update_layout(
-            title=f"Risk Analysis: {first_obj}", height=400, **self.default_layout
-        )
+        fig.update_layout(title=f"Risk Analysis: {first_obj}", height=400, **self.default_layout)
 
         return fig.to_dict()
 
@@ -1219,9 +1163,7 @@ class PlotFactory:
             Plotly figure data for tornado plot
         """
         # Extract sensitivity data
-        sensitivity_data = mc_result.get("sensitivity_analysis") or mc_result.get(
-            "sensitivity", {}
-        )
+        sensitivity_data = mc_result.get("sensitivity_analysis") or mc_result.get("sensitivity", {})
 
         if not sensitivity_data:
             return {}
@@ -1246,9 +1188,7 @@ class PlotFactory:
                 colors.append("#1976d2")  # Default blue
 
         # Sort by sensitivity magnitude
-        sorted_indices = sorted(
-            range(len(sensitivities)), key=lambda i: sensitivities[i], reverse=True
-        )
+        sorted_indices = sorted(range(len(sensitivities)), key=lambda i: sensitivities[i], reverse=True)
         parameters = [parameters[i] for i in sorted_indices]
         sensitivities = [sensitivities[i] for i in sorted_indices]
         colors = [colors[i] for i in sorted_indices]
@@ -1265,9 +1205,7 @@ class PlotFactory:
                 marker=dict(color=colors, line=dict(width=1, color="rgba(0,0,0,0.3)")),
                 text=[f"{s:.3f}" for s in sensitivities],
                 textposition="outside",
-                hovertemplate="<b>%{y}</b><br>"
-                + "Sensitivity: %{x:.3f}<br>"
-                + "<extra></extra>",
+                hovertemplate="<b>%{y}</b><br>" + "Sensitivity: %{x:.3f}<br>" + "<extra></extra>",
             )
         )
 
@@ -1336,9 +1274,7 @@ class PlotFactory:
         scenario_data = scenarios[first_obj]
 
         scenario_names = list(scenario_data.keys())
-        scenario_means = [
-            scenario_data[s].get("mean_objective", 0) for s in scenario_names
-        ]
+        scenario_means = [scenario_data[s].get("mean_objective", 0) for s in scenario_names]
 
         fig = go.Figure()
 

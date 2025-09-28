@@ -38,8 +38,7 @@ def multivariate_block_bootstrap(
         np.random.seed(seed)
 
     logger.info(
-        f"Generating synthetic data: block={block}, seasons={season_bins}, "
-        f"overlap={overlap_hours}h, seed={seed}"
+        f"Generating synthetic data: block={block}, seasons={season_bins}, " f"overlap={overlap_hours}h, seed={seed}"
     )
 
     # Convert block size to timedelta
@@ -74,9 +73,7 @@ def multivariate_block_bootstrap(
     return synthetic
 
 
-def partition_into_blocks(
-    ds: xr.Dataset, block_size: pd.Timedelta, season_bins: int
-) -> list:
+def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins: int) -> list:
     """
     Partition dataset into blocks labeled by season.
 

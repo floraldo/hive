@@ -141,12 +141,10 @@ class MeteostatAdapter(BaseAdapter):
 
             return True
         except ImportError:
-            logger.warning(
-                "Meteostat library not installed. Install with: pip install meteostat"
-            )
+            logger.warning("Meteostat library not installed. Install with: pip install meteostat")
             return False
 
-    async def _fetch_raw(
+    async def _fetch_raw_async(
         self,
         location: Tuple[float, float],
         variables: List[str],
@@ -193,19 +191,15 @@ class MeteostatAdapter(BaseAdapter):
 
         # Get data from Meteostat
         weather_data = data_class(meteo_location, start_date, end_date)
-        df = weather_data.fetch()
+        df = weather_data.fetch_async()
 
         if df.empty:
-            self.logger.warning(
-                f"No data returned from Meteostat for location {lat:.3f},{lon:.3f}"
-            )
+            self.logger.warning(f"No data returned from Meteostat for location {lat:.3f},{lon:.3f}")
             return None
 
         return df
 
-    async def _transform_data(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
-    ) -> xr.Dataset:
+    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
         """Transform Meteostat DataFrame to xarray Dataset"""
         lat, lon = location
         df = raw_data
@@ -238,25 +232,19 @@ class MeteostatAdapter(BaseAdapter):
             }
         )
 
-        self.logger.info(
-            f"Successfully processed {len(ds.time)} time steps with {len(ds.data_vars)} variables"
-        )
+        self.logger.info(f"Successfully processed {len(ds.time)} time steps with {len(ds.data_vars)} variables")
         return ds
 
-    def _validate_request(
-        self, lat: float, lon: float, variables: List[str], period: Dict
-    ):
+    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict):
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValidationError(f"Invalid latitude: {lat}", field="lat", value=lat)
         if not (-180 <= lon <= 180):
             raise ValidationError(f"Invalid longitude: {lon}", field="lon", value=lon)
         if not variables:
-            raise ValidationError(
-                "Variables list cannot be empty", field="variables", value=variables
-            )
+            raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
-    async def fetch(
+    async def fetch_async(
         self,
         *,
         lat: float,
@@ -278,15 +266,11 @@ class MeteostatAdapter(BaseAdapter):
             regular_vars = [v for v in variables if v in self.VARIABLE_MAPPING]
             special_vars = [v for v in variables if v in self.SPECIAL_VARIABLES]
             unavailable_vars = [
-                v
-                for v in variables
-                if v not in self.VARIABLE_MAPPING and v not in self.SPECIAL_VARIABLES
+                v for v in variables if v not in self.VARIABLE_MAPPING and v not in self.SPECIAL_VARIABLES
             ]
 
             if unavailable_vars:
-                logger.warning(
-                    f"Variables not available in Meteostat: {unavailable_vars}"
-                )
+                logger.warning(f"Variables not available in Meteostat: {unavailable_vars}")
 
             if not regular_vars and not special_vars:
                 raise ValidationError(
@@ -294,7 +278,7 @@ class MeteostatAdapter(BaseAdapter):
                 )
 
             # Use base class fetch method
-            return await super().fetch(
+            return await super().fetch_async(
                 location=(lat, lon),
                 variables=variables,
                 period=period,
@@ -313,11 +297,7 @@ class MeteostatAdapter(BaseAdapter):
         if "year" in period:
             year = period["year"]
             if "month" in period:
-                month = (
-                    int(period["month"])
-                    if isinstance(period["month"], str)
-                    else period["month"]
-                )
+                month = int(period["month"]) if isinstance(period["month"], str) else period["month"]
                 start_date = datetime(year, month, 1)
                 # Get last day of month
                 if month == 12:
@@ -335,9 +315,7 @@ class MeteostatAdapter(BaseAdapter):
 
         return start_date, end_date
 
-    def _dataframe_to_xarray(
-        self, df: pd.DataFrame, variables: List[str], lat: float, lon: float
-    ) -> xr.Dataset:
+    def _dataframe_to_xarray(self, df: pd.DataFrame, variables: List[str], lat: float, lon: float) -> xr.Dataset:
         """Convert Meteostat DataFrame to xarray Dataset"""
 
         # Create Dataset with time coordinate
@@ -380,9 +358,7 @@ class MeteostatAdapter(BaseAdapter):
 
         return ds
 
-    def _convert_units(
-        self, data: np.ndarray, canonical_name: str, meteo_name: str
-    ) -> np.ndarray:
+    def _convert_units(self, data: np.ndarray, canonical_name: str, meteo_name: str) -> np.ndarray:
         """Convert Meteostat units to canonical units"""
 
         conversions = {
@@ -418,9 +394,7 @@ class MeteostatAdapter(BaseAdapter):
 
         return data
 
-    def _process_special_variables(
-        self, ds: xr.Dataset, df: pd.DataFrame, special_vars: List[str]
-    ) -> xr.Dataset:
+    def _process_special_variables(self, ds: xr.Dataset, df: pd.DataFrame, special_vars: List[str]) -> xr.Dataset:
         """Process special variables that need custom handling"""
 
         for var in special_vars:
@@ -432,9 +406,7 @@ class MeteostatAdapter(BaseAdapter):
                         try:
                             code_int = int(code)
                             if code_int in self.WEATHER_CONDITIONS:
-                                cloud_data[i] = self.WEATHER_CONDITIONS[code_int][
-                                    "cloud_cover"
-                                ]
+                                cloud_data[i] = self.WEATHER_CONDITIONS[code_int]["cloud_cover"]
                             else:
                                 cloud_data[i] = np.nan
                         except (ValueError, TypeError):
@@ -463,9 +435,7 @@ class MeteostatAdapter(BaseAdapter):
                         try:
                             code_int = int(code)
                             if code_int in self.WEATHER_CONDITIONS:
-                                vis_qual = self.WEATHER_CONDITIONS[code_int][
-                                    "visibility"
-                                ]
+                                vis_qual = self.WEATHER_CONDITIONS[code_int]["visibility"]
                                 visibility_data[i] = visibility_map.get(vis_qual, 10.0)
                             else:
                                 visibility_data[i] = np.nan
@@ -483,17 +453,13 @@ class MeteostatAdapter(BaseAdapter):
 
             elif var == "ghi" and "tsun" in df.columns:
                 # Convert sunshine duration to GHI using Ångström-Prescott model
-                ghi_data = self._sunshine_to_ghi(
-                    df["tsun"].values, ds.time.values, ds.attrs.get("latitude", 0)
-                )
+                ghi_data = self._sunshine_to_ghi(df["tsun"].values, ds.time.values, ds.attrs.get("latitude", 0))
                 ds[var] = xr.DataArray(
                     ghi_data,
                     coords={"time": ds.time},
                     attrs=self._get_variable_attrs(var),
                 )
-                logger.info(
-                    "Converted sunshine duration to GHI using Ångström-Prescott model"
-                )
+                logger.info("Converted sunshine duration to GHI using Ångström-Prescott model")
 
         return ds
 
@@ -556,9 +522,7 @@ class MeteostatAdapter(BaseAdapter):
             # Calibrated for Amazon, Congo Basin, Indonesia
             return (0.24, 0.46)
 
-    def _sunshine_to_ghi(
-        self, sunshine_minutes: np.ndarray, timestamps: np.ndarray, latitude: float
-    ) -> np.ndarray:
+    def _sunshine_to_ghi(self, sunshine_minutes: np.ndarray, timestamps: np.ndarray, latitude: float) -> np.ndarray:
         """
         Convert sunshine duration to GHI using Ångström-Prescott model.
 
@@ -589,9 +553,7 @@ class MeteostatAdapter(BaseAdapter):
             sunshine_fraction = np.clip(sunshine_hours / max_possible_sunshine, 0, 1)
 
             # Solar declination angle (radians)
-            declination = math.radians(
-                23.45 * math.sin(math.radians(360 * (284 + day_of_year) / 365))
-            )
+            declination = math.radians(23.45 * math.sin(math.radians(360 * (284 + day_of_year) / 365)))
 
             # Hour angle (radians)
             hour_angle = math.radians(15 * (hour - 12))
@@ -615,9 +577,7 @@ class MeteostatAdapter(BaseAdapter):
                 # Solar constant adjusted for Earth-Sun distance
                 solar_constant = 1367  # W/m2
                 earth_sun_factor = 1 + 0.033 * math.cos(2 * math.pi * day_of_year / 365)
-                extraterrestrial = (
-                    solar_constant * earth_sun_factor * math.sin(elevation)
-                )
+                extraterrestrial = solar_constant * earth_sun_factor * math.sin(elevation)
 
                 # Clear sky radiation (Beer's law approximation)
                 clear_sky_ghi = extraterrestrial * (0.75 ** (air_mass**0.678))
@@ -712,8 +672,7 @@ class MeteostatAdapter(BaseAdapter):
                 grid_based=False,
                 custom_locations=True,  # Finds nearest station
             ),
-            supported_variables=list(self.VARIABLE_MAPPING.keys())
-            + list(self.SPECIAL_VARIABLES.keys()),
+            supported_variables=list(self.VARIABLE_MAPPING.keys()) + list(self.SPECIAL_VARIABLES.keys()),
             primary_variables=[
                 "temp_air",
                 "precip",
@@ -836,8 +795,6 @@ class MeteostatQCProfile(QCProfile):
 
         return max_gap
 
-    def get_adjusted_bounds(
-        self, base_bounds: Dict[str, Tuple[float, float]]
-    ) -> Dict[str, Tuple[float, float]]:
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
         """Get source-specific adjusted bounds"""
         return base_bounds

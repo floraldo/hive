@@ -29,7 +29,7 @@ settings = get_settings()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan_async(app: FastAPI):
     """
     Application lifespan manager.
 
@@ -106,7 +106,7 @@ def create_app() -> FastAPI:
 
     # Add custom middleware for correlation IDs
     @app.middleware("http")
-    async def correlation_id_middleware(request, call_next):
+    async def correlation_id_middleware_async(request, call_next):
         """Add correlation ID to requests"""
         from ecosystemiser.core.errors import CorrelationIDMiddleware
         from ecosystemiser.profile_loader.logging_config import (
@@ -115,9 +115,7 @@ def create_app() -> FastAPI:
         )
 
         # Get or create correlation ID
-        correlation_id = CorrelationIDMiddleware.get_or_create_correlation_id(
-            dict(request.headers)
-        )
+        correlation_id = CorrelationIDMiddleware.get_or_create_correlation_id(dict(request.headers))
 
         # Set in logging context
         set_correlation_id(correlation_id)
@@ -175,11 +173,7 @@ if __name__ == "__main__":
         log_config={
             "version": 1,
             "disable_existing_loggers": False,
-            "formatters": {
-                "default": {
-                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-                }
-            },
+            "formatters": {"default": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
             "handlers": {
                 "default": {
                     "formatter": "default",

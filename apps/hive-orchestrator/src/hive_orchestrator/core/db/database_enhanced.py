@@ -12,9 +12,7 @@ from typing import Any, Dict, List, Optional
 from .database import get_connection
 
 
-def get_queued_tasks_with_planning(
-    limit: int = 10, task_type: Optional[str] = None
-) -> List[Dict[str, Any]]:
+def get_queued_tasks_with_planning(limit: int = 10, task_type: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Enhanced task selection that includes both regular queued tasks AND
     AI Planner-generated sub-tasks that are ready for execution.
@@ -285,9 +283,7 @@ def create_planned_subtasks_from_plan(plan_id: str) -> int:
     conn = get_connection()
 
     # Get the execution plan
-    cursor = conn.execute(
-        "SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,)
-    )
+    cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
     row = cursor.fetchone()
 
     if not row or not row[0]:

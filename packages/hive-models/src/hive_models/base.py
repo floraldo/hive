@@ -31,34 +31,28 @@ class BaseModel(PydanticBaseModel):
         json_encoders={
             datetime: lambda v: v.isoformat(),
             UUID: lambda v: str(v),
-        }
+        },
     )
 
     def dict(self, **kwargs) -> Dict[str, Any]:
         """Override dict() to ensure consistent serialization."""
         # Set defaults for common use cases
-        kwargs.setdefault('exclude_none', True)
-        kwargs.setdefault('exclude_unset', False)
+        kwargs.setdefault("exclude_none", True)
+        kwargs.setdefault("exclude_unset", False)
         return super().model_dump(**kwargs)
 
     def json(self, **kwargs) -> str:
         """Override json() to ensure consistent JSON serialization."""
-        kwargs.setdefault('exclude_none', True)
-        kwargs.setdefault('indent', 2)
+        kwargs.setdefault("exclude_none", True)
+        kwargs.setdefault("indent", 2)
         return super().model_dump_json(**kwargs)
 
 
 class TimestampMixin(BaseModel):
     """Mixin that adds timestamp fields to a model."""
 
-    created_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        description="Timestamp when the record was created"
-    )
-    updated_at: Optional[datetime] = Field(
-        default=None,
-        description="Timestamp when the record was last updated"
-    )
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp when the record was created")
+    updated_at: Optional[datetime] = Field(default=None, description="Timestamp when the record was last updated")
 
     def update_timestamp(self) -> None:
         """Update the updated_at timestamp to current time."""
@@ -68,10 +62,7 @@ class TimestampMixin(BaseModel):
 class IdentifiableMixin(BaseModel):
     """Mixin that adds a unique identifier to a model."""
 
-    id: UUID = Field(
-        default_factory=uuid4,
-        description="Unique identifier for the record"
-    )
+    id: UUID = Field(default_factory=uuid4, description="Unique identifier for the record")
 
     def __hash__(self) -> int:
         """Make model hashable based on ID."""
@@ -87,18 +78,9 @@ class IdentifiableMixin(BaseModel):
 class StatusMixin(BaseModel):
     """Mixin that adds status tracking to a model."""
 
-    status: str = Field(
-        default="pending",
-        description="Current status of the record"
-    )
-    status_message: Optional[str] = Field(
-        default=None,
-        description="Additional information about the current status"
-    )
-    status_updated_at: Optional[datetime] = Field(
-        default=None,
-        description="Timestamp when status was last changed"
-    )
+    status: str = Field(default="pending", description="Current status of the record")
+    status_message: Optional[str] = Field(default=None, description="Additional information about the current status")
+    status_updated_at: Optional[datetime] = Field(default=None, description="Timestamp when status was last changed")
 
     def update_status(self, status: str, message: Optional[str] = None) -> None:
         """
@@ -116,14 +98,8 @@ class StatusMixin(BaseModel):
 class MetadataMixin(BaseModel):
     """Mixin that adds flexible metadata storage to a model."""
 
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional metadata as key-value pairs"
-    )
-    tags: list[str] = Field(
-        default_factory=list,
-        description="Tags for categorization and filtering"
-    )
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata as key-value pairs")
+    tags: list[str] = Field(default_factory=list, description="Tags for categorization and filtering")
 
     def add_tag(self, tag: str) -> None:
         """Add a tag if it doesn't already exist."""

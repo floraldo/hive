@@ -25,9 +25,7 @@ class SensitivityAnalysis(BaseAnalysis):
         """Initialize sensitivity analysis."""
         super().__init__(name="Sensitivity")
 
-    def run(
-        self, results_data: Dict[str, Any], metadata: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
         """Perform sensitivity analysis on results.
 
         This expects results from a parametric study where multiple
@@ -52,9 +50,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         # Add metadata about the analysis
         analysis["num_simulations_analyzed"] = len(results_data.get("all_results", []))
-        analysis["analysis_method"] = (
-            "parametric" if "all_results" in results_data else "single"
-        )
+        analysis["analysis_method"] = "parametric" if "all_results" in results_data else "single"
 
         return analysis
 
@@ -79,15 +75,11 @@ class SensitivityAnalysis(BaseAnalysis):
 
         # Calculate sensitivity indices
         if param_data and kpi_data:
-            sensitivity_indices = self._calculate_sensitivity_indices(
-                param_data, kpi_data
-            )
+            sensitivity_indices = self._calculate_sensitivity_indices(param_data, kpi_data)
             metrics["parameter_sensitivities"] = sensitivity_indices
 
             # Identify most influential parameters
-            influential_params = self._identify_influential_parameters(
-                sensitivity_indices
-            )
+            influential_params = self._identify_influential_parameters(sensitivity_indices)
             metrics["most_influential_parameters"] = influential_params
 
         # Find optimal configurations
@@ -104,9 +96,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         return metrics
 
-    def _analyze_single_simulation(
-        self, results_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _analyze_single_simulation(self, results_data: Dict[str, Any]) -> Dict[str, Any]:
         """Perform limited sensitivity analysis on a single simulation.
 
         Args:
@@ -159,9 +149,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         return param_data, kpi_data
 
-    def _calculate_sensitivity_indices(
-        self, param_data: Dict, kpi_data: Dict
-    ) -> Dict[str, Dict[str, float]]:
+    def _calculate_sensitivity_indices(self, param_data: Dict, kpi_data: Dict) -> Dict[str, Dict[str, float]]:
         """Calculate sensitivity indices for each parameter-KPI pair.
 
         Args:
@@ -195,24 +183,16 @@ class SensitivityAnalysis(BaseAnalysis):
 
                     # Calculate elasticity (% change in KPI / % change in parameter)
                     if np.mean(param_array) > 0 and np.mean(kpi_array) > 0:
-                        param_pct_change = (
-                            np.max(param_array) - np.min(param_array)
-                        ) / np.mean(param_array)
-                        kpi_pct_change = (
-                            np.max(kpi_array) - np.min(kpi_array)
-                        ) / np.mean(kpi_array)
+                        param_pct_change = (np.max(param_array) - np.min(param_array)) / np.mean(param_array)
+                        kpi_pct_change = (np.max(kpi_array) - np.min(kpi_array)) / np.mean(kpi_array)
 
                         if param_pct_change > 0:
                             elasticity = kpi_pct_change / param_pct_change
-                            indices[param_name][f"{kpi_name}_elasticity"] = float(
-                                elasticity
-                            )
+                            indices[param_name][f"{kpi_name}_elasticity"] = float(elasticity)
 
         return indices
 
-    def _identify_influential_parameters(
-        self, sensitivity_indices: Dict
-    ) -> List[Dict[str, Any]]:
+    def _identify_influential_parameters(self, sensitivity_indices: Dict) -> List[Dict[str, Any]]:
         """Identify the most influential parameters.
 
         Args:
@@ -237,9 +217,7 @@ class SensitivityAnalysis(BaseAnalysis):
                         "max_sensitivity": float(max_sensitivity),
                         "most_affected_kpi": max(
                             indices.items(),
-                            key=lambda x: (
-                                abs(x[1]) if isinstance(x[1], (int, float)) else 0
-                            ),
+                            key=lambda x: (abs(x[1]) if isinstance(x[1], (int, float)) else 0),
                         )[0],
                     }
                 )
@@ -261,9 +239,7 @@ class SensitivityAnalysis(BaseAnalysis):
         optimal = {}
 
         # Filter successful results
-        successful = [
-            r for r in all_results if r.get("status") in ["optimal", "feasible"]
-        ]
+        successful = [r for r in all_results if r.get("status") in ["optimal", "feasible"]]
 
         if not successful:
             return optimal
@@ -273,33 +249,19 @@ class SensitivityAnalysis(BaseAnalysis):
         if cost_results:
             min_cost = min(cost_results, key=lambda r: r["kpis"]["total_cost"])
             optimal["minimum_cost"] = {
-                "parameters": min_cost.get("output_config", {}).get(
-                    "parameter_settings", {}
-                ),
+                "parameters": min_cost.get("output_config", {}).get("parameter_settings", {}),
                 "cost": min_cost["kpis"]["total_cost"],
-                "other_kpis": {
-                    k: v for k, v in min_cost["kpis"].items() if k != "total_cost"
-                },
+                "other_kpis": {k: v for k, v in min_cost["kpis"].items() if k != "total_cost"},
             }
 
         # Find maximum renewable configuration
-        renewable_results = [
-            r for r in successful if "renewable_fraction" in r.get("kpis", {})
-        ]
+        renewable_results = [r for r in successful if "renewable_fraction" in r.get("kpis", {})]
         if renewable_results:
-            max_renewable = max(
-                renewable_results, key=lambda r: r["kpis"]["renewable_fraction"]
-            )
+            max_renewable = max(renewable_results, key=lambda r: r["kpis"]["renewable_fraction"])
             optimal["maximum_renewable"] = {
-                "parameters": max_renewable.get("output_config", {}).get(
-                    "parameter_settings", {}
-                ),
+                "parameters": max_renewable.get("output_config", {}).get("parameter_settings", {}),
                 "renewable_fraction": max_renewable["kpis"]["renewable_fraction"],
-                "other_kpis": {
-                    k: v
-                    for k, v in max_renewable["kpis"].items()
-                    if k != "renewable_fraction"
-                },
+                "other_kpis": {k: v for k, v in max_renewable["kpis"].items() if k != "renewable_fraction"},
             }
 
         # Find best balanced configuration (multi-objective)
@@ -312,18 +274,12 @@ class SensitivityAnalysis(BaseAnalysis):
                 return -cost / 100000 + renewable
 
             balanced_results = [
-                r
-                for r in successful
-                if all(
-                    k in r.get("kpis", {}) for k in ["total_cost", "renewable_fraction"]
-                )
+                r for r in successful if all(k in r.get("kpis", {}) for k in ["total_cost", "renewable_fraction"])
             ]
             if balanced_results:
                 best_balanced = max(balanced_results, key=balanced_score)
                 optimal["balanced"] = {
-                    "parameters": best_balanced.get("output_config", {}).get(
-                        "parameter_settings", {}
-                    ),
+                    "parameters": best_balanced.get("output_config", {}).get("parameter_settings", {}),
                     "cost": best_balanced["kpis"]["total_cost"],
                     "renewable_fraction": best_balanced["kpis"]["renewable_fraction"],
                     "score": balanced_score(best_balanced),
@@ -371,14 +327,8 @@ class SensitivityAnalysis(BaseAnalysis):
                 for j, other in enumerate(cost_renewable):
                     if i != j:
                         # Check if 'other' dominates 'point'
-                        if (
-                            other["cost"] <= point["cost"]
-                            and other["renewable"] >= point["renewable"]
-                        ):
-                            if (
-                                other["cost"] < point["cost"]
-                                or other["renewable"] > point["renewable"]
-                            ):
+                        if other["cost"] <= point["cost"] and other["renewable"] >= point["renewable"]:
+                            if other["cost"] < point["cost"] or other["renewable"] > point["renewable"]:
                                 is_dominated = True
                                 break
 
@@ -390,9 +340,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         return trade_offs
 
-    def _calculate_robustness_metrics(
-        self, all_results: List[Dict]
-    ) -> Dict[str, float]:
+    def _calculate_robustness_metrics(self, all_results: List[Dict]) -> Dict[str, float]:
         """Calculate system robustness metrics.
 
         Args:
@@ -405,9 +353,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         # Success rate
         total = len(all_results)
-        successful = len(
-            [r for r in all_results if r.get("status") in ["optimal", "feasible"]]
-        )
+        successful = len([r for r in all_results if r.get("status") in ["optimal", "feasible"]])
 
         if total > 0:
             metrics["success_rate"] = successful / total
@@ -430,9 +376,7 @@ class SensitivityAnalysis(BaseAnalysis):
                 std_val = np.std(values)
                 if mean_val > 0:
                     cv = std_val / mean_val
-                    metrics[f"{kpi_name}_stability"] = 1 - min(
-                        cv, 1
-                    )  # Higher is more stable
+                    metrics[f"{kpi_name}_stability"] = 1 - min(cv, 1)  # Higher is more stable
 
         return metrics
 
@@ -492,9 +436,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
                     # Calculate peak-to-average ratio
                     if np.mean(values_array) > 0:
-                        peak_ratio = np.max(np.abs(values_array)) / np.mean(
-                            np.abs(values_array)
-                        )
+                        peak_ratio = np.max(np.abs(values_array)) / np.mean(np.abs(values_array))
                         metrics[f"{flow_name}_peak_ratio"] = float(peak_ratio)
 
         return metrics

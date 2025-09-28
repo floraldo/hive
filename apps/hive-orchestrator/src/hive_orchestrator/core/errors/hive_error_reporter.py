@@ -224,9 +224,7 @@ class HiveErrorReporter(BaseErrorReporter):
         """Get errors for a specific task"""
         return self._get_hive_errors(task_id=task_id, limit=limit)
 
-    def get_workflow_errors(
-        self, workflow_id: str, limit: int = 50
-    ) -> List[Dict[str, Any]]:
+    def get_workflow_errors(self, workflow_id: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Get errors for a specific workflow"""
         return self._get_hive_errors(workflow_id=workflow_id, limit=limit)
 

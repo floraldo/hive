@@ -173,21 +173,15 @@ class ERA5Adapter(BaseAdapter):
 
             # Check for API key in environment or config file
             if not os.path.exists(os.path.expanduser("~/.cdsapirc")):
-                logger.warning(
-                    "CDS API key not found. Create ~/.cdsapirc file with your credentials"
-                )
-                logger.warning(
-                    "Get your API key from: https://cds.climate.copernicus.eu/api-how-to"
-                )
+                logger.warning("CDS API key not found. Create ~/.cdsapirc file with your credentials")
+                logger.warning("Get your API key from: https://cds.climate.copernicus.eu/api-how-to")
                 return False
             return True
         except ImportError:
-            logger.warning(
-                "cdsapi library not installed. Install with: pip install cdsapi"
-            )
+            logger.warning("cdsapi library not installed. Install with: pip install cdsapi")
             return False
 
-    async def _fetch_raw(
+    async def _fetch_raw_async(
         self,
         location: Tuple[float, float],
         variables: List[str],
@@ -237,9 +231,7 @@ class ERA5Adapter(BaseAdapter):
             lat, lon, era5_params, start_date, end_date, kwargs.get("resolution", "1H")
         )
 
-        self.logger.info(
-            f"Fetching ERA5 data for {lat},{lon} from {start_date} to {end_date}"
-        )
+        self.logger.info(f"Fetching ERA5 data for {lat},{lon} from {start_date} to {end_date}")
         self.logger.info(f"Dataset: {dataset}, Variables: {era5_params}")
 
         # Download data to temporary file
@@ -282,9 +274,7 @@ class ERA5Adapter(BaseAdapter):
                 except OSError:
                     pass  # Ignore cleanup errors
 
-    async def _transform_data(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
-    ) -> xr.Dataset:
+    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
         """Transform raw ERA5 data to xarray Dataset"""
         lat, lon = location
         ds = raw_data
@@ -305,20 +295,16 @@ class ERA5Adapter(BaseAdapter):
 
         return ds
 
-    def _validate_request(
-        self, lat: float, lon: float, variables: List[str], period: Dict
-    ):
+    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict):
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValidationError(f"Invalid latitude: {lat}", field="lat", value=lat)
         if not (-180 <= lon <= 180):
             raise ValidationError(f"Invalid longitude: {lon}", field="lon", value=lon)
         if not variables:
-            raise ValidationError(
-                "Variables list cannot be empty", field="variables", value=variables
-            )
+            raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
-    async def fetch(
+    async def fetch_async(
         self,
         *,
         lat: float,
@@ -356,7 +342,7 @@ class ERA5Adapter(BaseAdapter):
 
         try:
             # Use base class fetch method
-            return await super().fetch(
+            return await super().fetch_async(
                 location=(lat, lon),
                 variables=variables,
                 period=period,
@@ -400,11 +386,7 @@ class ERA5Adapter(BaseAdapter):
                     )
 
                 if "month" in period:
-                    month = (
-                        int(period["month"])
-                        if isinstance(period["month"], str)
-                        else period["month"]
-                    )
+                    month = int(period["month"]) if isinstance(period["month"], str) else period["month"]
                     if not 1 <= month <= 12:
                         raise ValidationError(
                             "Month must be between 1 and 12",
@@ -475,9 +457,7 @@ class ERA5Adapter(BaseAdapter):
         except ValidationError:
             raise
         except Exception as e:
-            raise ValidationError(
-                f"Error parsing period: {str(e)}", field="period", value=period
-            )
+            raise ValidationError(f"Error parsing period: {str(e)}", field="period", value=period)
 
     def _map_variables(self, variables: List[str]) -> List[str]:
         """Map canonical variable names to ERA5 parameters"""
@@ -492,9 +472,7 @@ class ERA5Adapter(BaseAdapter):
                 # Handle derived variables
                 if var == "wind_speed" or var == "wind_dir":
                     # Need both u and v components
-                    era5_params.extend(
-                        ["10m_u_component_of_wind", "10m_v_component_of_wind"]
-                    )
+                    era5_params.extend(["10m_u_component_of_wind", "10m_v_component_of_wind"])
                 elif var == "rel_humidity":
                     # Need temperature and dewpoint for calculation
                     era5_params.extend(["2m_temperature", "2m_dewpoint_temperature"])
@@ -506,15 +484,11 @@ class ERA5Adapter(BaseAdapter):
 
         if unavailable_vars:
             logger.warning(f"Unavailable variables will be skipped: {unavailable_vars}")
-            logger.info(
-                f"Available ERA5 variables: {list(self.VARIABLE_MAPPING.keys())}"
-            )
+            logger.info(f"Available ERA5 variables: {list(self.VARIABLE_MAPPING.keys())}")
 
         # Remove duplicates while preserving order
         seen = set()
-        era5_params = [
-            param for param in era5_params if param not in seen and not seen.add(param)
-        ]
+        era5_params = [param for param in era5_params if param not in seen and not seen.add(param)]
 
         return era5_params
 
@@ -578,9 +552,7 @@ class ERA5Adapter(BaseAdapter):
 
         return request
 
-    def _select_nearest_coordinates(
-        self, ds: xr.Dataset, lat: float, lon: float
-    ) -> xr.Dataset:
+    def _select_nearest_coordinates(self, ds: xr.Dataset, lat: float, lon: float) -> xr.Dataset:
         """
         Robust coordinate selection that handles different ERA5 coordinate naming conventions.
 
@@ -665,9 +637,7 @@ class ERA5Adapter(BaseAdapter):
                 },
             )
 
-    def _process_era5_data(
-        self, ds: xr.Dataset, variables: List[str], lat: float, lon: float
-    ) -> xr.Dataset:
+    def _process_era5_data(self, ds: xr.Dataset, variables: List[str], lat: float, lon: float) -> xr.Dataset:
         """Process and standardize ERA5 data"""
 
         # Select nearest point to requested coordinates with robust coordinate handling
@@ -712,11 +682,7 @@ class ERA5Adapter(BaseAdapter):
                     # Magnus formula for relative humidity
                     T = ds["t2m"] - 273.15  # Convert K to C
                     Td = ds["d2m"] - 273.15
-                    RH = (
-                        100
-                        * np.exp((17.625 * Td) / (243.04 + Td))
-                        / np.exp((17.625 * T) / (243.04 + T))
-                    )
+                    RH = 100 * np.exp((17.625 * Td) / (243.04 + Td)) / np.exp((17.625 * T) / (243.04 + T))
                     out_ds[canonical_name] = RH
                     out_ds[canonical_name].attrs = {
                         "units": "%",
@@ -785,17 +751,9 @@ class ERA5Adapter(BaseAdapter):
                     data = ds[var_map[era5_name]]
 
                     # Unit conversions
-                    if (
-                        canonical_name == "temp_air"
-                        or canonical_name == "dewpoint"
-                        or canonical_name == "soil_temp"
-                    ):
+                    if canonical_name == "temp_air" or canonical_name == "dewpoint" or canonical_name == "soil_temp":
                         data = data - 273.15  # K to C
-                    elif (
-                        canonical_name == "precip"
-                        or canonical_name == "snow"
-                        or canonical_name == "evaporation"
-                    ):
+                    elif canonical_name == "precip" or canonical_name == "snow" or canonical_name == "evaporation":
                         # ERA5 provides accumulation over preceding hour in meters
                         # Convert to mm and treat as mm/h (since it's hourly accumulation)
                         # Note: For hourly data, mm accumulation = mm/h rate
@@ -807,9 +765,7 @@ class ERA5Adapter(BaseAdapter):
                         pass
 
                     out_ds[canonical_name] = data
-                    out_ds[canonical_name].attrs = self._get_variable_attrs(
-                        canonical_name
-                    )
+                    out_ds[canonical_name].attrs = self._get_variable_attrs(canonical_name)
 
         # Validate that we have at least one variable
         if not out_ds.data_vars:

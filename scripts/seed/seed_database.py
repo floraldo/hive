@@ -18,6 +18,7 @@ import hive_core_db
 sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-logging" / "src"))
 from hive_logging import setup_logging, get_logger
 
+
 def setup_sample_tasks():
     """Create sample tasks for testing the Hive system with stateful workflows."""
 
@@ -40,29 +41,27 @@ def setup_sample_tasks():
             "max_retries": 3,
             "tags": ["python", "simple", "test"],
             "workflow": {
-                "start": {
-                    "next_phase_on_success": "apply"
-                },
+                "start": {"next_phase_on_success": "apply"},
                 "apply": {
                     "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase apply --one-shot",
-                    "next_phase_on_success": "inspect"
+                    "next_phase_on_success": "inspect",
                 },
                 "inspect": {
                     "command_template": "python scripts/inspect_run.py --run-id {run_id}",
                     "next_phase_on_success": "review_pending",
-                    "next_phase_on_failure": "review_pending"
+                    "next_phase_on_failure": "review_pending",
                 },
                 "test": {
                     "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase test --one-shot",
                     "next_phase_on_success": "completed",
-                    "next_phase_on_failure": "apply"
-                }
+                    "next_phase_on_failure": "apply",
+                },
             },
             "payload": {
                 "requirements": ["Create hello.py", "Include main guard", "Add docstring"],
                 "output": "Hello, World!",
-                "framework": "Python"
-            }
+                "framework": "Python",
+            },
         },
         # Simple app task (single-step, no review needed)
         {
@@ -77,13 +76,10 @@ def setup_sample_tasks():
                 "start": {
                     "command_template": "python -c \"print('EcoSystemiser health check: OK')\"",
                     "next_phase_on_success": "completed",
-                    "next_phase_on_failure": "failed"
+                    "next_phase_on_failure": "failed",
                 }
             },
-            "payload": {
-                "app_name": "ecosystemiser",
-                "task_name": "health-check"
-            }
+            "payload": {"app_name": "ecosystemiser", "task_name": "health-check"},
         },
         # Standard worker task with full workflow
         {
@@ -94,28 +90,26 @@ def setup_sample_tasks():
             "max_retries": 2,
             "tags": ["api", "auth", "backend"],
             "workflow": {
-                "start": {
-                    "next_phase_on_success": "apply"
-                },
+                "start": {"next_phase_on_success": "apply"},
                 "apply": {
                     "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase apply --one-shot",
-                    "next_phase_on_success": "inspect"
+                    "next_phase_on_success": "inspect",
                 },
                 "inspect": {
                     "command_template": "python scripts/inspect_run.py --run-id {run_id}",
                     "next_phase_on_success": "review_pending",
-                    "next_phase_on_failure": "review_pending"
+                    "next_phase_on_failure": "review_pending",
                 },
                 "test": {
                     "command_template": "python worker.py backend --task-id {task_id} --run-id {run_id} --phase test --one-shot",
                     "next_phase_on_success": "completed",
-                    "next_phase_on_failure": "apply"
-                }
+                    "next_phase_on_failure": "apply",
+                },
             },
             "payload": {
                 "requirements": ["JWT implementation", "Login endpoint", "Logout endpoint"],
-                "framework": "Flask"
-            }
+                "framework": "Flask",
+            },
         },
         # Real EcoSystemiser climate data fetching task
         {
@@ -128,9 +122,9 @@ def setup_sample_tasks():
             "assignee": "app:ecosystemiser:fetch-climate-data",
             "workflow": {
                 "start": {
-                    "command_template": "python apps/ecosystemiser/hive_adapter.py --task fetch-climate-data --payload '{{\"location\": \"{location}\", \"start_date\": \"{start_date}\", \"end_date\": \"{end_date}\", \"source\": \"{source}\", \"variables\": {variables}}}'",
+                    "command_template": 'python apps/ecosystemiser/hive_adapter.py --task fetch-climate-data --payload \'{{"location": "{location}", "start_date": "{start_date}", "end_date": "{end_date}", "source": "{source}", "variables": {variables}}}\'',
                     "next_phase_on_success": "completed",
-                    "next_phase_on_failure": "failed"
+                    "next_phase_on_failure": "failed",
                 }
             },
             "payload": {
@@ -139,9 +133,9 @@ def setup_sample_tasks():
                 "end_date": "2023-07-07",
                 "source": "nasa_power",
                 "variables": ["temp_air", "ghi", "dni", "wind_speed", "rel_humidity"],
-                "description": "Fetching real weather data for London from NASA POWER database"
-            }
-        }
+                "description": "Fetching real weather data for London from NASA POWER database",
+            },
+        },
     ]
 
     # Create tasks in database
@@ -160,14 +154,12 @@ def setup_sample_tasks():
                 priority=task_data.get("priority", 1),
                 max_retries=task_data.get("max_retries", 3),
                 tags=task_data.get("tags", []),
-                current_phase="start"  # All tasks start in 'start' phase
+                current_phase="start",  # All tasks start in 'start' phase
             )
 
             # Handle app tasks that need assignee field set
             if "assignee" in task_data:
-                success = hive_core_db.update_task_status(task_id, "queued", {
-                    "assignee": task_data["assignee"]
-                })
+                success = hive_core_db.update_task_status(task_id, "queued", {"assignee": task_data["assignee"]})
                 if success:
                     logger.info(f"Set assignee for app task {task_id}: {task_data['assignee']}")
                 else:
@@ -180,6 +172,7 @@ def setup_sample_tasks():
 
     logger.info(f"Database seeding completed. Created {len(created_tasks)} tasks.")
     return created_tasks
+
 
 def clear_all_tasks():
     """Clear all tasks from the database for fresh start."""
@@ -200,6 +193,7 @@ def clear_all_tasks():
             logger.info("Successfully cleared all tasks from the database")
     except Exception as e:
         logger.error(f"Failed to clear tasks: {e}")
+
 
 def main():
     """Main seeding script entry point."""
@@ -225,6 +219,7 @@ def main():
         print(f"Successfully created {len(created_tasks)} sample tasks")
         for task_id in created_tasks:
             print(f"  - {task_id}")
+
 
 if __name__ == "__main__":
     main()

@@ -19,9 +19,7 @@ class SolverFactory:
     }
 
     @classmethod
-    def get_solver(
-        cls, solver_type: str, system, config: Optional[SolverConfig] = None
-    ) -> BaseSolver:
+    def get_solver(cls, solver_type: str, system, config: Optional[SolverConfig] = None) -> BaseSolver:
         """Get a solver instance of the specified type.
 
         Args:
@@ -37,9 +35,7 @@ class SolverFactory:
         """
         if solver_type not in cls._solvers:
             available = ", ".join(cls._solvers.keys())
-            raise ValueError(
-                f"Unknown solver type: {solver_type}. Available: {available}"
-            )
+            raise ValueError(f"Unknown solver type: {solver_type}. Available: {available}")
 
         solver_class = cls._solvers[solver_type]
         return solver_class(system, config)

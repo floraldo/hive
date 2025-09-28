@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 
 # Add path for imports
-eco_path = Path(__file__).parent / 'src' / 'EcoSystemiser'
+eco_path = Path(__file__).parent / "src" / "EcoSystemiser"
 from solver.rule_based_engine import RuleBasedEngine
 from system_model.components.energy.battery import (
     Battery,
@@ -42,9 +42,10 @@ from system_model.system import System
 
 def load_golden_dataset():
     """Load the golden dataset from the Systemiser baseline."""
-    golden_path = Path(__file__).parent / 'tests' / 'systemiser_minimal_golden.json'
-    with open(golden_path, 'r') as f:
+    golden_path = Path(__file__).parent / "tests" / "systemiser_minimal_golden.json"
+    with open(golden_path, "r") as f:
         return json.load(f)
+
 
 def create_minimal_ecosystemiser():
     """Create the minimal 4-component system matching the golden dataset configuration."""
@@ -55,22 +56,65 @@ def create_minimal_ecosystemiser():
     # Solar generation profile - NORMALIZED (0-1 scale) with PRECISE VALUES
     # These values will be scaled by P_max in the component's rule_based_generate method
     # Values extracted from golden dataset with full precision to eliminate numerical discrepancies
-    solar_profile = np.array([
-        0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000,
-        0.0000000000, 0.2588190451, 0.5000000000, 0.7071067812, 0.8660254038, 0.9659258263,
-        1.0000000000, 0.9659258263, 0.8660254038, 0.7071067812, 0.5000000000, 0.2588190451,
-        0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000,
-    ])
+    solar_profile = np.array(
+        [
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.2588190451,
+            0.5000000000,
+            0.7071067812,
+            0.8660254038,
+            0.9659258263,
+            1.0000000000,
+            0.9659258263,
+            0.8660254038,
+            0.7071067812,
+            0.5000000000,
+            0.2588190451,
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+        ]
+    )
 
     # Power demand profile - NORMALIZED (0-1 scale)
     # These values will be scaled by P_max in the component's rule_based_demand method
-    demand_profile = np.array([
-        0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4,  # Hours 0-6: night baseload (5/12.5)
-        0.8, 0.8,  # Hours 7-8: morning peak (10/12.5)
-        0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4,  # Hours 9-17: day baseload
-        1.0, 1.0, 1.0,  # Hours 18-20: evening peak (12.5/12.5)
-        0.4, 0.4, 0.4  # Hours 21-23: night baseload
-    ])
+    demand_profile = np.array(
+        [
+            0.4,
+            0.4,
+            0.4,
+            0.4,
+            0.4,
+            0.4,
+            0.4,  # Hours 0-6: night baseload (5/12.5)
+            0.8,
+            0.8,  # Hours 7-8: morning peak (10/12.5)
+            0.4,
+            0.4,
+            0.4,
+            0.4,
+            0.4,
+            0.4,
+            0.4,
+            0.4,
+            0.4,  # Hours 9-17: day baseload
+            1.0,
+            1.0,
+            1.0,  # Hours 18-20: evening peak (12.5/12.5)
+            0.4,
+            0.4,
+            0.4,  # Hours 21-23: night baseload
+        ]
+    )
 
     # Grid component (100 kW capacity, matching golden dataset)
     grid_params = GridParams(
@@ -78,7 +122,7 @@ def create_minimal_ecosystemiser():
             capacity_nominal=100.0,  # 100 kW grid capacity
             import_tariff=0.25,  # Import tariff
             export_tariff=0.10,  # Export tariff
-            fidelity_level=FidelityLevel.SIMPLE
+            fidelity_level=FidelityLevel.SIMPLE,
         )
     )
     grid = Grid("Grid", grid_params, system.N)
@@ -87,11 +131,11 @@ def create_minimal_ecosystemiser():
     battery_params = BatteryParams(
         technical=BatteryTechnicalParams(
             capacity_nominal=10.0,  # 10 kWh (E_max)
-            max_charge_rate=5.0,    # 5 kW (P_max)
-            max_discharge_rate=5.0, # 5 kW (P_max)
+            max_charge_rate=5.0,  # 5 kW (P_max)
+            max_discharge_rate=5.0,  # 5 kW (P_max)
             efficiency_roundtrip=0.95,  # 95% efficiency (eta)
-            initial_soc_pct=0.5,    # 50% initial SOC (E_init = 5 kWh)
-            fidelity_level=FidelityLevel.SIMPLE  # Use SIMPLE fidelity (OG Systemiser baseline)
+            initial_soc_pct=0.5,  # 50% initial SOC (E_init = 5 kWh)
+            fidelity_level=FidelityLevel.SIMPLE,  # Use SIMPLE fidelity (OG Systemiser baseline)
         )
     )
     battery = Battery("Battery", battery_params, system.N)
@@ -101,7 +145,7 @@ def create_minimal_ecosystemiser():
         technical=SolarPVTechnicalParams(
             capacity_nominal=50.0,  # 50 kW peak (P_max) - matches golden dataset
             efficiency_nominal=1.0,  # Direct profile scaling
-            fidelity_level=FidelityLevel.SIMPLE  # Use SIMPLE fidelity (no inverter losses)
+            fidelity_level=FidelityLevel.SIMPLE,  # Use SIMPLE fidelity (no inverter losses)
         )
     )
     solar = SolarPV("SolarPV", solar_params, system.N)
@@ -113,7 +157,7 @@ def create_minimal_ecosystemiser():
             capacity_nominal=12.5,  # Required field for the archetype
             peak_demand=12.5,  # 12.5 kW peak demand (P_max)
             load_profile_type="variable",  # Variable demand with peaks
-            fidelity_level=FidelityLevel.SIMPLE  # Use SIMPLE fidelity (fixed demand)
+            fidelity_level=FidelityLevel.SIMPLE,  # Use SIMPLE fidelity (fixed demand)
         )
     )
     demand = PowerDemand("PowerDemand", demand_params, system.N)
@@ -127,20 +171,21 @@ def create_minimal_ecosystemiser():
 
     # Connect components (matching golden dataset flow structure exactly)
     # Grid connections (bidirectional)
-    system.connect('Grid', 'PowerDemand', 'electricity')
-    system.connect('PowerDemand', 'Grid', 'electricity')  # Export back
-    system.connect('Grid', 'Battery', 'electricity')
-    system.connect('Battery', 'Grid', 'electricity')  # Export back
+    system.connect("Grid", "PowerDemand", "electricity")
+    system.connect("PowerDemand", "Grid", "electricity")  # Export back
+    system.connect("Grid", "Battery", "electricity")
+    system.connect("Battery", "Grid", "electricity")  # Export back
 
     # Solar connections
-    system.connect('SolarPV', 'PowerDemand', 'electricity')
-    system.connect('SolarPV', 'Battery', 'electricity')
-    system.connect('SolarPV', 'Grid', 'electricity')  # Export
+    system.connect("SolarPV", "PowerDemand", "electricity")
+    system.connect("SolarPV", "Battery", "electricity")
+    system.connect("SolarPV", "Grid", "electricity")  # Export
 
     # Battery to demand
-    system.connect('Battery', 'PowerDemand', 'electricity')
+    system.connect("Battery", "PowerDemand", "electricity")
 
     return system
+
 
 def extract_ecosystemiser_results(system):
     """Extract results from ecosystemiser in the same format as golden dataset."""
@@ -151,41 +196,42 @@ def extract_ecosystemiser_results(system):
             "solver": "RuleBasedEngine",
             "components": [comp.name for comp in system.components.values()],
             "timesteps": system.N,
-            "description": "EcoSystemiser validation against Systemiser golden dataset"
+            "description": "EcoSystemiser validation against Systemiser golden dataset",
         },
         "flows": {},
         "storage": {},
-        "summary": {}
+        "summary": {},
     }
 
     # Extract flow results from the solved system
     for flow_key, flow_data in system.flows.items():
         values = []
-        if isinstance(flow_data['value'], np.ndarray):
-            values = flow_data['value'].tolist()
+        if isinstance(flow_data["value"], np.ndarray):
+            values = flow_data["value"].tolist()
         else:
             values = [0.0] * system.N
 
         results["flows"][flow_key] = {
-            "source": flow_data['source'],
-            "target": flow_data['target'],
-            "type": flow_data.get('type', 'electricity'),
-            "values": values
+            "source": flow_data["source"],
+            "target": flow_data["target"],
+            "type": flow_data.get("type", "electricity"),
+            "values": values,
         }
 
     # Extract storage results
-    battery_comp = system.components.get('Battery')
-    if battery_comp and hasattr(battery_comp, 'E'):
+    battery_comp = system.components.get("Battery")
+    if battery_comp and hasattr(battery_comp, "E"):
         # Our E array now has N elements, E[t] = state at END of timestep t
         # The golden dataset has the same structure (24 values for 24 timesteps)
         results["storage"]["Battery"] = {
             "medium": "electricity",
             "E_max": battery_comp.E_max,
             "E_init": battery_comp.E_init,
-            "values": battery_comp.E.tolist()  # All N values: E[0] to E[N-1]
+            "values": battery_comp.E.tolist(),  # All N values: E[0] to E[N-1]
         }
 
     return results
+
 
 def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
     """Compare EcoSystemiser results against golden dataset with strict tolerance."""
@@ -234,18 +280,21 @@ def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
 
     return failures, total_comparisons
 
+
 def main():
     """Main validation function."""
 
-    logger.info("="*80)
+    logger.info("=" * 80)
     logger.info("ECOSYSTEMISER vs SYSTEMISER VALIDATION TEST")
-    logger.info("="*80)
+    logger.info("=" * 80)
 
     try:
         # Step 1: Load golden dataset
         logger.info("\nLoading golden dataset...")
         golden_data = load_golden_dataset()
-        logger.info(f"  OK Loaded {len(golden_data['flows'])} flows and {len(golden_data['storage'])} storage components")
+        logger.info(
+            f"  OK Loaded {len(golden_data['flows'])} flows and {len(golden_data['storage'])} storage components"
+        )
 
         # Step 2: Create minimal EcoSystemiser system
         logger.info("\nCreating minimal EcoSystemiser system...")
@@ -258,7 +307,7 @@ def main():
         # Debug: Check profiles before solving
         logger.debug("\nDebug - Component profiles:")
         for name, comp in system.components.items():
-            if hasattr(comp, 'profile') and comp.profile is not None:
+            if hasattr(comp, "profile") and comp.profile is not None:
                 logger.info(f"  {name}: profile shape={comp.profile.shape}, P_max={getattr(comp, 'P_max', 'N/A')}")
                 if name == "SolarPV":
                     logger.info(f"    Sample values: {comp.profile[:5]}")
@@ -275,14 +324,16 @@ def main():
         # Step 4: Extract results from solved system
         logger.info("\nExtracting results...")
         ecosystemiser_data = extract_ecosystemiser_results(system)
-        logger.info(f"  OK Extracted {len(ecosystemiser_data['flows'])} flows and {len(ecosystemiser_data['storage'])} storage components")
+        logger.info(
+            f"  OK Extracted {len(ecosystemiser_data['flows'])} flows and {len(ecosystemiser_data['storage'])} storage components"
+        )
 
         # Step 5: Compare results
         logger.info("\nComparing results...")
         failures, total_comparisons = compare_results(golden_data, ecosystemiser_data)
 
         # Step 6: Report outcome
-        logger.info("\n" + "="*80)
+        logger.info("\n" + "=" * 80)
         if not failures:
             logger.info("SUCCESS: Numerical equivalence with the original Systemiser is confirmed.")
             logger.info(f"All {total_comparisons} comparisons passed within tolerance.")
@@ -291,12 +342,14 @@ def main():
             for failure in failures:
                 logger.error(f"  FAIL {failure}")
             logger.error(f"\n{len(failures)} failures out of {total_comparisons} comparisons")
-        logger.info("="*80)
+        logger.info("=" * 80)
 
     except Exception as e:
         logger.error(f"\nVALIDATION ERROR: {str(e)}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()

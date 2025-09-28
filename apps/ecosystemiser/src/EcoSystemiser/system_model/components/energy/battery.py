@@ -35,9 +35,7 @@ class BatteryTechnicalParams(StorageTechnicalParams):
     max_discharge_rate: float = Field(..., description="Maximum discharge power [kW]")
 
     # STANDARD fidelity parameters
-    self_discharge_rate: float = Field(
-        0.0001, description="Self-discharge rate per timestep [fraction/hour]"
-    )
+    self_discharge_rate: float = Field(0.0001, description="Self-discharge rate per timestep [fraction/hour]")
 
     # Battery-specific additions (DETAILED fidelity)
     temperature_coefficient_capacity: Optional[float] = Field(
@@ -48,14 +46,10 @@ class BatteryTechnicalParams(StorageTechnicalParams):
     )
 
     # STANDARD fidelity additions
-    degradation_model: Optional[Dict[str, float]] = Field(
-        None, description="Battery degradation model parameters"
-    )
+    degradation_model: Optional[Dict[str, float]] = Field(None, description="Battery degradation model parameters")
 
     # DETAILED fidelity parameters
-    voltage_curve: Optional[Dict[str, Any]] = Field(
-        None, description="Voltage vs SOC curve for detailed modeling"
-    )
+    voltage_curve: Optional[Dict[str, Any]] = Field(None, description="Voltage vs SOC curve for detailed modeling")
 
     # RESEARCH fidelity parameters
     electrochemical_model: Optional[Dict[str, Any]] = Field(
@@ -93,9 +87,7 @@ class BatteryPhysicsSimple(BaseStoragePhysics):
     - Physical bounds enforcement (0 <= E <= E_max)
     """
 
-    def rule_based_update_state(
-        self, t: int, E_old: float, charge_power: float, discharge_power: float
-    ) -> float:
+    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
         """
         Implement SIMPLE battery physics with roundtrip efficiency.
 
@@ -145,24 +137,18 @@ class BatteryPhysicsStandard(BatteryPhysicsSimple):
     - Temperature-independent degradation modeling (future)
     """
 
-    def rule_based_update_state(
-        self, t: int, E_old: float, charge_power: float, discharge_power: float
-    ) -> float:
+    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
         """
         Implement STANDARD battery physics with self-discharge.
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.
         """
         # 1. Get the baseline result from SIMPLE physics
-        energy_after_simple = super().rule_based_update_state(
-            t, E_old, charge_power, discharge_power
-        )
+        energy_after_simple = super().rule_based_update_state(t, E_old, charge_power, discharge_power)
 
         # 2. Add STANDARD-specific physics: self-discharge
         # Self-discharge is based on energy level at START of timestep
-        self_discharge_rate = getattr(
-            self.params.technical, "self_discharge_rate", 0.0001
-        )
+        self_discharge_rate = getattr(self.params.technical, "self_discharge_rate", 0.0001)
         self_discharge_loss = E_old * self_discharge_rate
 
         # 3. Apply self-discharge to the result
@@ -269,9 +255,7 @@ class BatteryOptimizationStandard(BatteryOptimizationSimple):
                 energy_change = comp.eta * comp.P_cha[t] - comp.P_dis[t] / comp.eta
 
                 # STANDARD enhancement: add self-discharge
-                self_discharge_rate = getattr(
-                    comp.technical, "self_discharge_rate", 0.0001
-                )
+                self_discharge_rate = getattr(comp.technical, "self_discharge_rate", 0.0001)
                 # Self-discharge based on energy at start of timestep
                 energy_change -= comp.E_opt[t] * self_discharge_rate
 
@@ -358,13 +342,9 @@ class Battery(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return BatteryOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for Battery optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for Battery optimization: {fidelity}")
 
-    def rule_based_update_state(
-        self, t: int, charge_power: float, discharge_power: float
-    ):
+    def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float):
         """
         Delegate to physics strategy for state update.
 
@@ -381,9 +361,7 @@ class Battery(Component):
             initial_level = self.E[t - 1]
 
         # Delegate to physics strategy
-        new_energy = self.physics.rule_based_update_state(
-            t, initial_level, charge_power, discharge_power
-        )
+        new_energy = self.physics.rule_based_update_state(t, initial_level, charge_power, discharge_power)
 
         # Update the storage array
         self.E[t] = new_energy

@@ -195,9 +195,7 @@ def get_database_info(conn: sqlite3.Connection) -> Dict[str, Any]:
 
 
 @contextmanager
-def database_transaction(
-    conn: sqlite3.Connection, isolation_level: Optional[str] = None
-):
+def database_transaction(conn: sqlite3.Connection, isolation_level: Optional[str] = None):
     """
     Context manager for database transactions with automatic rollback on error.
 
@@ -259,9 +257,7 @@ def insert_or_update(
 
         # Build the ON CONFLICT clause
         conflict_sql = f"ON CONFLICT({', '.join(conflict_columns)}) DO UPDATE SET"
-        update_clauses = [
-            f"{col} = excluded.{col}" for col in columns if col not in conflict_columns
-        ]
+        update_clauses = [f"{col} = excluded.{col}" for col in columns if col not in conflict_columns]
 
         if update_clauses:
             sql = f"{insert_sql} {conflict_sql} {', '.join(update_clauses)}"
@@ -321,9 +317,7 @@ def batch_insert(
         raise
 
 
-def migrate_database(
-    conn: sqlite3.Connection, migrations_dir: Path, target_version: Optional[int] = None
-):
+def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_version: Optional[int] = None):
     """
     Apply database migrations from a directory.
 
@@ -376,7 +370,7 @@ def migrate_database(
 
 
 # Async versions of utility functions
-async def async_table_exists(conn, table_name: str) -> bool:
+async def table_exists_async(conn, table_name: str) -> bool:
     """Async version of table_exists."""
     try:
         cursor = await conn.execute(
@@ -390,7 +384,7 @@ async def async_table_exists(conn, table_name: str) -> bool:
         return False
 
 
-async def async_get_database_info(conn) -> Dict[str, Any]:
+async def get_database_info_async(conn) -> Dict[str, Any]:
     """Async version of get_database_info."""
     try:
         info = {}
@@ -423,9 +417,7 @@ async def async_get_database_info(conn) -> Dict[str, Any]:
         info["cache_size"] = (await cursor.fetchone())[0]
 
         # Get table count
-        cursor = await conn.execute(
-            "SELECT COUNT(*) FROM sqlite_master WHERE type='table'"
-        )
+        cursor = await conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table'")
         info["table_count"] = (await cursor.fetchone())[0]
 
         return info

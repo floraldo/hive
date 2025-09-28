@@ -24,9 +24,7 @@ def debug_option(f: Callable) -> Callable:
 
 def verbose_option(f: Callable) -> Callable:
     """Add standard verbose option."""
-    return click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")(
-        f
-    )
+    return click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")(f)
 
 
 def output_format_option(f: Callable) -> Callable:
@@ -75,9 +73,7 @@ def require_config(f: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         ctx = click.get_current_context()
         if not ctx.obj or not ctx.obj.config:
-            raise click.ClickException(
-                "Configuration required. Use --config to specify config file."
-            )
+            raise click.ClickException("Configuration required. Use --config to specify config file.")
         return f(*args, **kwargs)
 
     return wrapper

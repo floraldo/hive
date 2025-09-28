@@ -38,9 +38,7 @@ class QualityMetrics(BaseModel):
 
     code_quality: float = Field(ge=0, le=100, description="Code quality score")
     test_coverage: float = Field(ge=0, le=100, description="Test coverage score")
-    documentation: float = Field(
-        ge=0, le=100, description="Documentation quality score"
-    )
+    documentation: float = Field(ge=0, le=100, description="Documentation quality score")
     security: float = Field(ge=0, le=100, description="Security assessment score")
     architecture: float = Field(ge=0, le=100, description="Architecture quality score")
 
@@ -55,9 +53,7 @@ class QualityMetrics(BaseModel):
             "architecture": 0.1,
         }
 
-        total = sum(
-            getattr(self, metric) * weight for metric, weight in weights.items()
-        )
+        total = sum(getattr(self, metric) * weight for metric, weight in weights.items())
         return round(total, 2)
 
 

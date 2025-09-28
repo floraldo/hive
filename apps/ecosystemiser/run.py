@@ -76,9 +76,7 @@ def run_cli():
         # Remove script name and pass remaining args to CLI
         cli_args = sys.argv[2:] if len(sys.argv) > 2 else []
 
-        logger.info(
-            f"🔧 Running EcoSystemiser CLI: {' '.join(cli_args) if cli_args else 'help'}"
-        )
+        logger.info(f"🔧 Running EcoSystemiser CLI: {' '.join(cli_args) if cli_args else 'help'}")
 
         # Call CLI main with remaining arguments
         sys.argv = ["ecosystemiser"] + cli_args

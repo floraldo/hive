@@ -58,13 +58,13 @@ def process_data(x):
 import asyncio
 from typing import List, Dict, Any
 
-async def distributed_compute(tasks: List[Dict[str, Any]]) -> List[Any]:
+async def distributed_compute_async(tasks: List[Dict[str, Any]]) -> List[Any]:
     '''Complex distributed computation system'''
-    async def worker(task):
+    async def worker_async(task):
         # Complex logic here...
         return await process_task(task)
 
-    results = await asyncio.gather(*[worker(t) for t in tasks])
+    results = await asyncio.gather(*[worker_async(t) for t in tasks])
     return results
 """
         description = "Complex distributed computing system"
@@ -160,9 +160,7 @@ Hope this helps!""",
         try:
             result = bridge._extract_and_validate_json(test["output"])
             if result and result.decision == test["expected_decision"]:
-                print(
-                    f"  [PASS] {test['name']}: Correctly extracted '{result.decision}'"
-                )
+                print(f"  [PASS] {test['name']}: Correctly extracted '{result.decision}'")
                 passed += 1
             else:
                 print(f"  [FAIL] {test['name']}: Failed to extract correct decision")

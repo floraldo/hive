@@ -10,4 +10,4 @@ This module handles all data-related functionality including:
 
 from .weather import WeatherDataManager
 
-__all__ = ['WeatherDataManager'] 
+__all__ = ["WeatherDataManager"]

@@ -249,6 +249,7 @@ def generate_master_key() -> str:
         URL-safe base64 encoded key
     """
     import secrets
+
     key = secrets.token_urlsafe(32)
     print(f"Generated master key: {key}")
     print(f"Set this as environment variable: export HIVE_MASTER_KEY='{key}'")

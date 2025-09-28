@@ -237,9 +237,7 @@ class FileEPWAdapter(BaseAdapter):
         )
 
         # Configure minimal settings (file-based, no HTTP rate limits needed)
-        rate_config = RateLimitConfig(
-            requests_per_minute=60, burst_size=10  # For URL downloads
-        )
+        rate_config = RateLimitConfig(requests_per_minute=60, burst_size=10)  # For URL downloads
 
         # Configure caching (files don't change)
         cache_config = CacheConfig(
@@ -253,7 +251,7 @@ class FileEPWAdapter(BaseAdapter):
             cache_config=cache_config,
         )
 
-    async def _fetch_raw(
+    async def _fetch_raw_async(
         self,
         location: Tuple[float, float],
         variables: List[str],
@@ -269,7 +267,7 @@ class FileEPWAdapter(BaseAdapter):
             epw_data = self._read_epw_file(file_path)
         elif "url" in period:
             url = period["url"]
-            epw_data = await self._download_and_read_epw(url)
+            epw_data = await self._download_and_read_epw_async(url)
         else:
             raise ValueError("EPW adapter requires 'file' or 'url' in period dict")
 
@@ -282,9 +280,7 @@ class FileEPWAdapter(BaseAdapter):
 
         return df
 
-    async def _transform_data(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
-    ) -> xr.Dataset:
+    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
         """Transform EPW DataFrame to xarray Dataset"""
         lat, lon = location
         df = raw_data
@@ -304,7 +300,7 @@ class FileEPWAdapter(BaseAdapter):
 
         return ds
 
-    async def fetch(
+    async def fetch_async(
         self,
         *,
         lat: float,
@@ -322,7 +318,7 @@ class FileEPWAdapter(BaseAdapter):
         """
 
         # Use base class fetch method
-        ds = await super().fetch(
+        ds = await super().fetch_async(
             location=(lat, lon),
             variables=variables,
             period=period,
@@ -344,7 +340,7 @@ class FileEPWAdapter(BaseAdapter):
         with open(file_path, "r", encoding="latin-1") as f:
             return f.read()
 
-    async def _download_and_read_epw(self, url: str) -> str:
+    async def _download_and_read_epw_async(self, url: str) -> str:
         """Download EPW file from URL"""
 
         self.logger.info(f"Downloading EPW file from {url}")
@@ -407,9 +403,7 @@ class FileEPWAdapter(BaseAdapter):
             # Parse CSV data with error handling
             data_str = "\n".join(data_lines)
             try:
-                df = pd.read_csv(
-                    StringIO(data_str), header=None, names=self.EPW_COLUMNS
-                )
+                df = pd.read_csv(StringIO(data_str), header=None, names=self.EPW_COLUMNS)
             except pd.errors.ParserError as e:
                 raise DataParseError(
                     f"Failed to parse EPW CSV data: {str(e)}",
@@ -460,11 +454,7 @@ class FileEPWAdapter(BaseAdapter):
                 day = df_time.loc[idx, "Day"]
 
                 # Handle leap year for February
-                if (
-                    month == 2
-                    and year % 4 == 0
-                    and (year % 100 != 0 or year % 400 == 0)
-                ):
+                if month == 2 and year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
                     max_days = 29
                 else:
                     max_days = days_in_month.get(month, 31)
@@ -533,18 +523,12 @@ class FileEPWAdapter(BaseAdapter):
             df = df[df.index.year == year]
 
             if "month" in period:
-                month = (
-                    int(period["month"])
-                    if isinstance(period["month"], str)
-                    else period["month"]
-                )
+                month = int(period["month"]) if isinstance(period["month"], str) else period["month"]
                 df = df[df.index.month == month]
 
         return df
 
-    def _dataframe_to_xarray(
-        self, df: pd.DataFrame, variables: List[str], lat: float, lon: float
-    ) -> xr.Dataset:
+    def _dataframe_to_xarray(self, df: pd.DataFrame, variables: List[str], lat: float, lon: float) -> xr.Dataset:
         """Convert EPW DataFrame to xarray Dataset with canonical names"""
 
         # Create Dataset
@@ -580,9 +564,7 @@ class FileEPWAdapter(BaseAdapter):
 
         return ds
 
-    def _clean_missing_values(
-        self, data: np.ndarray, canonical_name: str
-    ) -> np.ndarray:
+    def _clean_missing_values(self, data: np.ndarray, canonical_name: str) -> np.ndarray:
         """Clean missing value indicators in EPW data"""
 
         # EPW missing value indicators
@@ -744,9 +726,7 @@ class EPWQCProfile:
 
     def __init__(self):
         self.name = "EPW"
-        self.description = (
-            "EnergyPlus Weather file format - processed for building simulation"
-        )
+        self.description = "EnergyPlus Weather file format - processed for building simulation"
         self.known_issues = [
             "May be based on older TMY data",
             "Processing for building simulation may alter original measurements",
@@ -788,13 +768,9 @@ class EPWQCProfile:
 
         # Check for temporal coverage (EPW should be full year)
         if len(ds.time) < 8000:  # Less than ~11 months of hourly data
-            report.warnings.append(
-                f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)"
-            )
+            report.warnings.append(f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)")
 
-    def get_adjusted_bounds(
-        self, base_bounds: Dict[str, Tuple[float, float]]
-    ) -> Dict[str, Tuple[float, float]]:
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
         """Get source-specific adjusted bounds"""
         return base_bounds
 

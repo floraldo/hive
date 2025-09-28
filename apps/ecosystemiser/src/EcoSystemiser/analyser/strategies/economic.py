@@ -27,9 +27,7 @@ class EconomicAnalysis(BaseAnalysis):
         self.discount_rate = 0.05  # Default 5% discount rate
         self.project_lifetime = 20  # Default 20 years
 
-    def run(
-        self, results_data: Dict[str, Any], metadata: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
         """Calculate economic metrics from results data.
 
         Args:
@@ -44,9 +42,7 @@ class EconomicAnalysis(BaseAnalysis):
         # Update parameters from metadata if provided
         if metadata:
             self.discount_rate = metadata.get("discount_rate", self.discount_rate)
-            self.project_lifetime = metadata.get(
-                "project_lifetime", self.project_lifetime
-            )
+            self.project_lifetime = metadata.get("project_lifetime", self.project_lifetime)
 
         # Calculate capital costs (CAPEX)
         capex = self._calculate_capex(results_data)
@@ -169,9 +165,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         return opex
 
-    def _calculate_energy_economics(
-        self, results_data: Dict[str, Any]
-    ) -> Dict[str, float]:
+    def _calculate_energy_economics(self, results_data: Dict[str, Any]) -> Dict[str, float]:
         """Calculate energy-related economic metrics.
 
         Args:
@@ -209,9 +203,7 @@ class EconomicAnalysis(BaseAnalysis):
 
             metrics["annual_grid_cost"] = grid_import * price_import * scale_factor
             metrics["annual_grid_revenue"] = grid_export * price_export * scale_factor
-            metrics["annual_net_energy_cost"] = (
-                metrics["annual_grid_cost"] - metrics["annual_grid_revenue"]
-            )
+            metrics["annual_net_energy_cost"] = metrics["annual_grid_cost"] - metrics["annual_grid_revenue"]
 
         else:
             metrics["annual_grid_cost"] = 0
@@ -220,9 +212,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         return metrics
 
-    def _calculate_lcoe(
-        self, capex: float, opex_annual: float, energy_metrics: Dict, results_data: Dict
-    ) -> float:
+    def _calculate_lcoe(self, capex: float, opex_annual: float, energy_metrics: Dict, results_data: Dict) -> float:
         """Calculate Levelized Cost of Energy.
 
         Args:
@@ -263,9 +253,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         return lcoe
 
-    def _calculate_npv(
-        self, capex: float, opex_annual: float, energy_metrics: Dict
-    ) -> float:
+    def _calculate_npv(self, capex: float, opex_annual: float, energy_metrics: Dict) -> float:
         """Calculate Net Present Value.
 
         Args:
@@ -288,9 +276,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         return npv
 
-    def _calculate_payback_period(
-        self, capex: float, opex_annual: float, energy_metrics: Dict
-    ) -> float:
+    def _calculate_payback_period(self, capex: float, opex_annual: float, energy_metrics: Dict) -> float:
         """Calculate simple payback period.
 
         Args:
@@ -311,9 +297,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         return min(payback, self.project_lifetime)
 
-    def _calculate_component_costs(
-        self, results_data: Dict[str, Any]
-    ) -> Dict[str, Dict[str, float]]:
+    def _calculate_component_costs(self, results_data: Dict[str, Any]) -> Dict[str, Dict[str, float]]:
         """Calculate cost breakdown by component.
 
         Args:
@@ -366,10 +350,7 @@ class EconomicAnalysis(BaseAnalysis):
         total = 0
 
         for flow_name, flow_data in flows.items():
-            if (
-                component.lower() in flow_name.lower()
-                and direction.lower() in flow_name.lower()
-            ):
+            if component.lower() in flow_name.lower() and direction.lower() in flow_name.lower():
                 if isinstance(flow_data, dict):
                     values = flow_data.get("values", [])
                     if len(values) > 0:

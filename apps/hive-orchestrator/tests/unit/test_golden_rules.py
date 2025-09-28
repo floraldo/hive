@@ -114,9 +114,7 @@ class TestLocalGoldenRules:
                             # Check if it's a shared package (allowed)
                             shared_patterns = ["_core", "_shared"]
                             if not any(sp in pattern for sp in shared_patterns):
-                                violations.append(
-                                    f"{py_file.relative_to(app_root)}: imports from {other_app}"
-                                )
+                                violations.append(f"{py_file.relative_to(app_root)}: imports from {other_app}")
                                 break
             except Exception:
                 continue
@@ -145,19 +143,12 @@ class TestLocalGoldenRules:
                     lines = content.split("\n")
                     for i, line in enumerate(lines, 1):
                         if "print(" in line and not line.strip().startswith("#"):
-                            violations.append(
-                                f"{py_file.relative_to(app_root)}:{i}: print statement"
-                            )
+                            violations.append(f"{py_file.relative_to(app_root)}:{i}: print statement")
 
                 # Check if uses logging but not hive_logging
                 if "logger" in content.lower() or "logging" in content.lower():
-                    if (
-                        "from hive_logging import" not in content
-                        and "import hive_logging" not in content
-                    ):
-                        violations.append(
-                            f"{py_file.relative_to(app_root)}: uses logging without hive_logging"
-                        )
+                    if "from hive_logging import" not in content and "import hive_logging" not in content:
+                        violations.append(f"{py_file.relative_to(app_root)}: uses logging without hive_logging")
             except Exception:
                 continue
 
@@ -172,11 +163,7 @@ class TestLocalGoldenRules:
         violations = []
 
         for py_file in app_root.rglob("*.py"):
-            if (
-                ".venv" in str(py_file)
-                or "__pycache__" in str(py_file)
-                or "test" in str(py_file)
-            ):
+            if ".venv" in str(py_file) or "__pycache__" in str(py_file) or "test" in str(py_file):
                 continue
 
             try:
@@ -187,9 +174,7 @@ class TestLocalGoldenRules:
                 lines = content.split("\n")
                 for i, line in enumerate(lines, 1):
                     if line.strip() == "except:" or line.strip() == "except Exception:":
-                        violations.append(
-                            f"{py_file.relative_to(app_root)}:{i}: bare except clause"
-                        )
+                        violations.append(f"{py_file.relative_to(app_root)}:{i}: bare except clause")
             except Exception:
                 continue
 

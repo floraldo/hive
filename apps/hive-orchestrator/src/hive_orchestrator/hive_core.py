@@ -28,9 +28,7 @@ from .core.db import get_connection, get_pooled_connection
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
 
-    def __init__(
-        self, root_dir: Optional[Path] = None, config: Optional[Dict[str, Any]] = None
-    ):
+    def __init__(self, root_dir: Optional[Path] = None, config: Optional[Dict[str, Any]] = None):
         # Use authoritative paths from singleton
         self.root = PROJECT_ROOT
         self.hive_dir = HIVE_DIR
@@ -114,9 +112,7 @@ class HiveCore:
                     if "config" in worker_data and key in worker_data["config"]:
                         return worker_data["config"][key]
                 except (json.JSONDecodeError, KeyError, IOError) as e:
-                    logger.debug(
-                        f"Could not load worker config from {worker_config_file}: {e}"
-                    )
+                    logger.debug(f"Could not load worker config from {worker_config_file}: {e}")
 
         # Return default from main config
         return self.config.get(key)
@@ -232,13 +228,9 @@ class HiveCore:
                 # Update existing task status
                 status = task.get("status", existing_task.get("status", "queued"))
                 assigned_worker = task.get("assignee")
-                success = hive_core_db.update_task_status(
-                    task_id, status, assigned_worker
-                )
+                success = hive_core_db.update_task_status(task_id, status, assigned_worker)
                 if not success:
-                    self.log.error(
-                        f"Failed to update task {task_id} status to {status}"
-                    )
+                    self.log.error(f"Failed to update task {task_id} status to {status}")
             else:
                 # Create new task
                 title = task.get("title", task_id)
@@ -273,9 +265,7 @@ class HiveCore:
                 )
 
                 if new_task_id != task_id:
-                    self.log.warning(
-                        f"Database assigned different task ID: {new_task_id} vs {task_id}"
-                    )
+                    self.log.warning(f"Database assigned different task ID: {new_task_id} vs {task_id}")
 
         except Exception as e:
             self.log.error(f"Error saving task {task_id} to database: {e}")
@@ -285,7 +275,7 @@ class HiveCore:
         try:
             # Get all tasks regardless of status
             all_tasks = []
-            for status in ['queued', 'running', 'completed', 'failed']:
+            for status in ["queued", "running", "completed", "failed"]:
                 tasks = hive_core_db.get_tasks_by_status(status)
                 all_tasks.extend(tasks)
             return all_tasks
@@ -339,9 +329,7 @@ class HiveCore:
                     try:
                         result_file.unlink()
                     except Exception as e:
-                        logger.error(
-                            f"[{self.timestamp()}] Error removing result {result_file}: {e}"
-                        )
+                        logger.error(f"[{self.timestamp()}] Error removing result {result_file}: {e}")
 
         # Clear all worker worktrees created by WorkerCore (.worktrees/<worker>/<task>)
         if self.worktrees_dir.exists():
@@ -374,9 +362,7 @@ class HiveCore:
         if worktree and worktree.exists():
             try:
                 shutil.rmtree(worktree)
-                logger.info(
-                    f"[{self.timestamp()}] Cleared workspace for {task_id} at {worktree}"
-                )
+                logger.info(f"[{self.timestamp()}] Cleared workspace for {task_id} at {worktree}")
             except Exception as e:
                 logger.error(f"[{self.timestamp()}] Error clearing workspace: {e}")
                 return False
@@ -740,9 +726,7 @@ def cmd_review_next_task(args, core: HiveCore):
             summary = inspection_report.get("summary", {})
             logger.info(f"\nInspection Results:")
             logger.info(f"  Quality Score: {summary.get('quality_score', 'N/A')}/100")
-            logger.info(
-                f"  Recommendation: {summary.get('recommendation', 'unknown').upper()}"
-            )
+            logger.info(f"  Recommendation: {summary.get('recommendation', 'unknown').upper()}")
             logger.info(f"  Issues Found: {summary.get('total_issues', 0)}")
 
             if inspection_report.get("issues"):
@@ -756,9 +740,7 @@ def cmd_review_next_task(args, core: HiveCore):
 
         logger.info(f"\n{'='*60}")
         logger.info("To complete review, use:")
-        logger.info(
-            f"  hive complete-review {task_id} --decision [approve|reject|rework]"
-        )
+        logger.info(f"  hive complete-review {task_id} --decision [approve|reject|rework]")
         logger.info(f"{'='*60}\n")
 
 
@@ -779,9 +761,7 @@ def cmd_complete_review(args, core: HiveCore):
         return
 
     if task["status"] != "review_pending":
-        logger.error(
-            f"Error: Task {task_id} is not awaiting review (status: {task['status']})"
-        )
+        logger.error(f"Error: Task {task_id} is not awaiting review (status: {task['status']})")
         return
 
     # Get workflow
@@ -810,11 +790,7 @@ def cmd_complete_review(args, core: HiveCore):
         new_phase = "apply" if "apply" in workflow else "start"
 
     # Update task status and phase
-    new_status = (
-        "completed"
-        if new_phase == "completed"
-        else "failed" if new_phase == "failed" else "queued"
-    )
+    new_status = "completed" if new_phase == "completed" else "failed" if new_phase == "failed" else "queued"
 
     metadata = {
         "current_phase": new_phase,
@@ -848,16 +824,12 @@ def main():
 
     # Clean command
     clean_parser = subparsers.add_parser("clean", help="Clean environment")
-    clean_parser.add_argument(
-        "--fresh-env", action="store_true", help="Clean fresh environment"
-    )
+    clean_parser.add_argument("--fresh-env", action="store_true", help="Clean fresh environment")
     clean_parser.set_defaults(func=cmd_clean)
 
     # Status command
     status_parser = subparsers.add_parser("status", help="Show hive status")
-    status_parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Verbose output"
-    )
+    status_parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     status_parser.set_defaults(func=cmd_status)
 
     # Queue command
@@ -868,9 +840,7 @@ def main():
     # Logs command
     logs_parser = subparsers.add_parser("logs", help="Show task logs")
     logs_parser.add_argument("task_id", help="Task ID to show logs for")
-    logs_parser.add_argument(
-        "--latest", action="store_true", help="Show only latest log"
-    )
+    logs_parser.add_argument("--latest", action="store_true", help="Show only latest log")
     logs_parser.add_argument("--tail", type=int, help="Show last N lines")
     logs_parser.set_defaults(func=cmd_logs)
 
@@ -880,9 +850,7 @@ def main():
     list_parser.set_defaults(func=cmd_list)
 
     # Clear command (clear specific task workspace)
-    clear_parser = subparsers.add_parser(
-        "clear", help="Clear a specific task's workspace"
-    )
+    clear_parser = subparsers.add_parser("clear", help="Clear a specific task's workspace")
     clear_parser.add_argument("task_id", help="Task ID to clear")
     clear_parser.set_defaults(func=cmd_clear)
 
@@ -892,16 +860,12 @@ def main():
     reset_parser.set_defaults(func=cmd_reset)
 
     # Get transcript command (retrieve Claude conversation transcript)
-    transcript_parser = subparsers.add_parser(
-        "get-transcript", help="Get transcript for a specific run"
-    )
+    transcript_parser = subparsers.add_parser("get-transcript", help="Get transcript for a specific run")
     transcript_parser.add_argument("run_id", help="Run ID to get transcript for")
     transcript_parser.set_defaults(func=cmd_get_transcript)
 
     # Review next task command (for AI reviewer)
-    review_next_parser = subparsers.add_parser(
-        "review-next-task", help="Get the next task awaiting review"
-    )
+    review_next_parser = subparsers.add_parser("review-next-task", help="Get the next task awaiting review")
     review_next_parser.add_argument(
         "--format",
         choices=["json", "summary"],
@@ -911,12 +875,8 @@ def main():
     review_next_parser.set_defaults(func=cmd_review_next_task)
 
     # Complete review command (for AI reviewer)
-    complete_review_parser = subparsers.add_parser(
-        "complete-review", help="Complete review of a task"
-    )
-    complete_review_parser.add_argument(
-        "task_id", help="Task ID to complete review for"
-    )
+    complete_review_parser = subparsers.add_parser("complete-review", help="Complete review of a task")
+    complete_review_parser.add_argument("task_id", help="Task ID to complete review for")
     complete_review_parser.add_argument(
         "--decision",
         choices=["approve", "reject", "rework"],
@@ -924,9 +884,7 @@ def main():
         help="Review decision",
     )
     complete_review_parser.add_argument("--reason", help="Reason for the decision")
-    complete_review_parser.add_argument(
-        "--next-phase", help="Override next phase (optional)"
-    )
+    complete_review_parser.add_argument("--next-phase", help="Override next phase (optional)")
     complete_review_parser.set_defaults(func=cmd_complete_review)
 
     args = parser.parse_args()

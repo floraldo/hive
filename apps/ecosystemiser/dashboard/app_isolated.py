@@ -82,7 +82,7 @@ def load_climate_data_from_file(file_path: Path) -> Optional[pd.DataFrame]:
     """Load climate data from a JSON or CSV file."""
     try:
         if file_path.suffix == ".json":
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 data = json.load(f)
 
             # Handle different JSON structures
@@ -113,7 +113,7 @@ def load_climate_data_from_file(file_path: Path) -> Optional[pd.DataFrame]:
                 try:
                     df[col] = pd.to_datetime(df[col])
                     df = df.set_index(col)
-                except:
+                except Exception:
                     pass
                 break
 
@@ -148,20 +148,16 @@ def plot_time_series(df: pd.DataFrame, variables: List[str], title: str = "Time 
 
     for var in variables:
         if var in df.columns:
-            fig.add_trace(go.Scatter(
-                x=df.index if isinstance(df.index, pd.DatetimeIndex) else df.index,
-                y=df[var],
-                mode='lines',
-                name=var,
-            ))
+            fig.add_trace(
+                go.Scatter(
+                    x=df.index if isinstance(df.index, pd.DatetimeIndex) else df.index,
+                    y=df[var],
+                    mode="lines",
+                    name=var,
+                )
+            )
 
-    fig.update_layout(
-        title=title,
-        xaxis_title="Time",
-        yaxis_title="Value",
-        hovermode='x unified',
-        height=400
-    )
+    fig.update_layout(title=title, xaxis_title="Time", yaxis_title="Value", hovermode="x unified", height=400)
 
     return fig
 
@@ -179,8 +175,9 @@ def plot_correlation_matrix(df: pd.DataFrame, variables: List[str]):
             x=numeric_vars,
             y=numeric_vars,
             color_continuous_scale="RdBu_r",
-            zmin=-1, zmax=1,
-            title="Variable Correlation Matrix"
+            zmin=-1,
+            zmax=1,
+            title="Variable Correlation Matrix",
         )
 
         return fig
@@ -195,7 +192,7 @@ def plot_distribution(df: pd.DataFrame, variable: str):
             x=variable,
             nbins=30,
             title=f"Distribution of {variable}",
-            labels={variable: variable, "count": "Frequency"}
+            labels={variable: variable, "count": "Frequency"},
         )
         return fig
     return None
@@ -220,7 +217,7 @@ def main():
             selected_file = st.selectbox(
                 "Select from existing outputs",
                 options=["None"] + output_files,
-                format_func=lambda x: "None" if x == "None" else f"{x.name} ({x.parent.name})"
+                format_func=lambda x: "None" if x == "None" else f"{x.name} ({x.parent.name})",
             )
 
             if selected_file != "None":
@@ -234,9 +231,7 @@ def main():
         # Option 2: Upload file
         st.subheader("Or Upload File")
         uploaded_file = st.file_uploader(
-            "Choose a climate data file",
-            type=["json", "csv"],
-            help="Upload JSON or CSV file with climate data"
+            "Choose a climate data file", type=["json", "csv"], help="Upload JSON or CSV file with climate data"
         )
 
         if uploaded_file is not None:
@@ -255,12 +250,12 @@ def main():
             st.subheader("Variable Selection")
 
             df = st.session_state.dataset
-            available_vars = [col for col in df.columns if not col.startswith('_')]
+            available_vars = [col for col in df.columns if not col.startswith("_")]
 
             selected_vars = st.multiselect(
                 "Select variables to visualize",
                 options=available_vars,
-                default=available_vars[:3] if len(available_vars) > 3 else available_vars
+                default=available_vars[:3] if len(available_vars) > 3 else available_vars,
             )
 
     # Main content area
@@ -307,13 +302,15 @@ def main():
                 quality_data = []
                 for var in selected_vars:
                     if var in df.columns:
-                        quality_data.append({
-                            "Variable": var,
-                            "Missing Values": df[var].isna().sum(),
-                            "Missing %": f"{df[var].isna().sum() / len(df) * 100:.1f}%",
-                            "Unique Values": df[var].nunique(),
-                            "Data Type": str(df[var].dtype)
-                        })
+                        quality_data.append(
+                            {
+                                "Variable": var,
+                                "Missing Values": df[var].isna().sum(),
+                                "Missing %": f"{df[var].isna().sum() / len(df) * 100:.1f}%",
+                                "Unique Values": df[var].nunique(),
+                                "Data Type": str(df[var].dtype),
+                            }
+                        )
 
                 if quality_data:
                     quality_df = pd.DataFrame(quality_data)
@@ -334,7 +331,7 @@ def main():
                         "Date range",
                         value=(df.index[0].date(), df.index[-1].date()),
                         min_value=df.index[0].date(),
-                        max_value=df.index[-1].date()
+                        max_value=df.index[-1].date(),
                     )
 
             # Display data
@@ -350,7 +347,7 @@ def main():
                 label="Download displayed data as CSV",
                 data=csv,
                 file_name=f"climate_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                mime="text/csv"
+                mime="text/csv",
             )
 
         with tab4:
@@ -383,7 +380,8 @@ def main():
         # Welcome message when no data is loaded
         st.info("👈 Please load a climate data file from the sidebar to begin")
 
-        st.markdown("""
+        st.markdown(
+            """
         ### About This Dashboard
 
         This is the **isolated version** of the EcoSystemiser Climate Dashboard.
@@ -406,7 +404,8 @@ def main():
            - Study correlations
 
         3. **Export**: Download filtered data as CSV for further analysis
-        """)
+        """
+        )
 
 
 if __name__ == "__main__":

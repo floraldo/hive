@@ -530,21 +530,15 @@ def validate_qr_generator(test_case):
             cwd=app_dir,
             capture_output=True,
             text=True,
-            timeout=120  # Longer timeout for downloading dependencies
+            timeout=120,  # Longer timeout for downloading dependencies
         )
 
         if install_result.returncode != 0:
-            return {
-                "success": False,
-                "error": f"Dependencies installation failed: {install_result.stderr}"
-            }
+            return {"success": False, "error": f"Dependencies installation failed: {install_result.stderr}"}
 
         # Start the service
         server_process = subprocess.Popen(
-            [sys.executable, "app.py"],
-            cwd=app_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            [sys.executable, "app.py"], cwd=app_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
         # Wait for service to start
@@ -578,7 +572,7 @@ def validate_qr_generator(test_case):
                 "http://localhost:5004/api/generate",
                 json={"text": "FAT Test Validation"},
                 headers={"Content-Type": "application/json"},
-                timeout=5
+                timeout=5,
             )
 
             if qr_response.status_code != 200:
@@ -600,7 +594,7 @@ def validate_qr_generator(test_case):
                 "http://localhost:5004/api/batch",
                 json={"items": ["Test1", "Test2", "Test3"]},
                 headers={"Content-Type": "application/json"},
-                timeout=5
+                timeout=5,
             )
 
             if batch_response.status_code != 200:
@@ -614,11 +608,7 @@ def validate_qr_generator(test_case):
 
             # Run test suite
             test_result = subprocess.run(
-                [sys.executable, "test_qr_generator.py"],
-                cwd=app_dir,
-                capture_output=True,
-                text=True,
-                timeout=60
+                [sys.executable, "test_qr_generator.py"], cwd=app_dir, capture_output=True, text=True, timeout=60
             )
 
             # Terminate server
@@ -626,21 +616,15 @@ def validate_qr_generator(test_case):
             server_process.wait(timeout=5)
 
             if test_result.returncode != 0:
-                return {
-                    "success": False,
-                    "error": f"Test suite failed: {test_result.stderr}"
-                }
+                return {"success": False, "error": f"Test suite failed: {test_result.stderr}"}
 
             # Check for test failures
             if "FAILED" in test_result.stderr or "ERROR" in test_result.stderr:
-                return {
-                    "success": False,
-                    "error": f"Some tests failed: {test_result.stderr}"
-                }
+                return {"success": False, "error": f"Some tests failed: {test_result.stderr}"}
 
             return {
                 "success": True,
-                "details": "QR generator service validated successfully with external dependencies (qrcode, Pillow) properly integrated"
+                "details": "QR generator service validated successfully with external dependencies (qrcode, Pillow) properly integrated",
             }
 
         except requests.RequestException as e:
@@ -673,24 +657,24 @@ def run_external_dependency_test():
                 "endpoints": [
                     "POST /api/generate - Generate single QR code",
                     "POST /api/batch - Generate multiple QR codes",
-                    "POST /api/validate - Validate dependencies"
+                    "POST /api/validate - Validate dependencies",
                 ],
                 "features": [
                     "Base64 image encoding",
                     "Custom QR code options",
                     "Batch processing",
-                    "Dependency validation"
-                ]
-            }
+                    "Dependency validation",
+                ],
+            },
         },
         "metadata": {
             "test_type": "factory_acceptance",
             "test_id": "FAT-03",
             "complexity_level": "external_dependency",
-            "autonomous_generation": True
+            "autonomous_generation": True,
         },
         "generator_function": generate_qr_code_service,
-        "validator_function": validate_qr_generator
+        "validator_function": validate_qr_generator,
     }
 
     fat = FactoryAcceptanceTest()

@@ -121,9 +121,7 @@ class FileAccessError(CodeAnalysisError):
 class SyntaxAnalysisError(CodeAnalysisError):
     """Error parsing or analyzing code syntax"""
 
-    def __init__(
-        self, message: str, syntax_errors: Optional[List[str]] = None, **kwargs
-    ):
+    def __init__(self, message: str, syntax_errors: Optional[List[str]] = None, **kwargs):
         details = kwargs.get("details", {})
         if syntax_errors:
             details["syntax_errors"] = syntax_errors
@@ -268,9 +266,7 @@ class DatabaseConnectionError(ReviewerError):
             ],
         )
 
-        super().__init__(
-            message=message, component="database", operation="connection", **kwargs
-        )
+        super().__init__(message=message, component="database", operation="connection", **kwargs)
         self.retry_count = retry_count
 
 

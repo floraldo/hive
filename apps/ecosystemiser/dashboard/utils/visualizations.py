@@ -67,9 +67,7 @@ def create_comparison_plot(
     return fig
 
 
-def create_heatmap(
-    df: pd.DataFrame, variable: str, time_resolution: str = "1D"
-) -> go.Figure:
+def create_heatmap(df: pd.DataFrame, variable: str, time_resolution: str = "1D") -> go.Figure:
     """
     Create a heatmap visualization for a single variable.
 
@@ -95,15 +93,11 @@ def create_heatmap(
 
     # Create pivot table for heatmap
     if len(df_resampled) <= 7 * 24:  # Less than a week of hourly data
-        pivot = df_resampled.pivot_table(
-            values=variable, index="hour", columns="day", aggfunc="mean"
-        )
+        pivot = df_resampled.pivot_table(values=variable, index="hour", columns="day", aggfunc="mean")
         x_label = "Day of Week"
         y_label = "Hour of Day"
     else:  # Longer periods
-        pivot = df_resampled.pivot_table(
-            values=variable, index="day_of_month", columns="month", aggfunc="mean"
-        )
+        pivot = df_resampled.pivot_table(values=variable, index="day_of_month", columns="month", aggfunc="mean")
         x_label = "Month"
         y_label = "Day of Month"
 
@@ -224,9 +218,7 @@ def create_wind_rose(df: pd.DataFrame) -> Optional[go.Figure]:
     # Create wind speed bins
     speed_bins = [0, 2, 4, 6, 8, 10, float("inf")]
     speed_labels = ["0-2", "2-4", "4-6", "6-8", "8-10", ">10"]
-    wind_data["speed_bin"] = pd.cut(
-        wind_data["wind_speed"], bins=speed_bins, labels=speed_labels
-    )
+    wind_data["speed_bin"] = pd.cut(wind_data["wind_speed"], bins=speed_bins, labels=speed_labels)
 
     # Create direction bins (16 compass points)
     dir_bins = np.arange(0, 361, 22.5)
@@ -248,9 +240,7 @@ def create_wind_rose(df: pd.DataFrame) -> Optional[go.Figure]:
         "NW",
         "NNW",
     ]
-    wind_data["dir_bin"] = pd.cut(
-        wind_data["wind_dir"], bins=dir_bins, labels=dir_labels
-    )
+    wind_data["dir_bin"] = pd.cut(wind_data["wind_dir"], bins=dir_bins, labels=dir_labels)
 
     # Calculate frequencies
     wind_rose = wind_data.groupby(["dir_bin", "speed_bin"]).size().unstack(fill_value=0)
@@ -265,9 +255,7 @@ def create_wind_rose(df: pd.DataFrame) -> Optional[go.Figure]:
                     r=wind_rose[speed_label],
                     theta=dir_labels,
                     name=f"{speed_label} m/s",
-                    marker_color=px.colors.sequential.Viridis[
-                        speed_labels.index(speed_label)
-                    ],
+                    marker_color=px.colors.sequential.Viridis[speed_labels.index(speed_label)],
                 )
             )
 
@@ -281,9 +269,7 @@ def create_wind_rose(df: pd.DataFrame) -> Optional[go.Figure]:
     return fig
 
 
-def create_daily_profile(
-    df: pd.DataFrame, variables: List[str], aggregation: str = "mean"
-) -> go.Figure:
+def create_daily_profile(df: pd.DataFrame, variables: List[str], aggregation: str = "mean") -> go.Figure:
     """
     Create average daily profiles for selected variables.
 

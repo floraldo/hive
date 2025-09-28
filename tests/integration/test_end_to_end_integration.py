@@ -27,13 +27,14 @@ test_root = Path(__file__).parent.parent
 sys.path.insert(0, str(test_root / "apps" / "hive-orchestrator" / "src"))
 sys.path.insert(0, str(test_root / "apps" / "ai-planner" / "src"))
 
+
 class EndToEndIntegrationTest:
     """Complete end-to-end test of the AI Planner → Queen → Worker pipeline"""
 
     def setup_method(self):
         """Setup test environment"""
         # Create temporary database
-        self.temp_db_fd, self.temp_db_path = tempfile.mkstemp(suffix='.db')
+        self.temp_db_fd, self.temp_db_path = tempfile.mkstemp(suffix=".db")
         os.close(self.temp_db_fd)
 
         # Initialize test database
@@ -42,22 +43,18 @@ class EndToEndIntegrationTest:
         # Mock configuration
         self.mock_config = {
             "max_parallel_per_role": {"backend": 2, "frontend": 1, "infra": 1},
-            "orchestration": {
-                "status_refresh_seconds": 1,
-                "task_retry_limit": 2,
-                "graceful_shutdown_seconds": 5
-            },
+            "orchestration": {"status_refresh_seconds": 1, "task_retry_limit": 2, "graceful_shutdown_seconds": 5},
             "worker_timeout_minutes": 30,
-            "zombie_detection_minutes": 5
+            "zombie_detection_minutes": 5,
         }
 
         # Statistics tracking
         self.test_stats = {
-            'tasks_created': 0,
-            'plans_generated': 0,
-            'subtasks_created': 0,
-            'tasks_completed': 0,
-            'errors': []
+            "tasks_created": 0,
+            "plans_generated": 0,
+            "subtasks_created": 0,
+            "tasks_completed": 0,
+            "errors": [],
         }
 
     def teardown_method(self):
@@ -70,7 +67,8 @@ class EndToEndIntegrationTest:
     def init_test_database(self):
         """Initialize test database with required schema"""
         conn = sqlite3.connect(self.temp_db_path)
-        conn.executescript('''
+        conn.executescript(
+            """
             -- Planning queue for AI Planner input
             CREATE TABLE planning_queue (
                 id TEXT PRIMARY KEY,
@@ -159,7 +157,8 @@ class EndToEndIntegrationTest:
             CREATE INDEX idx_tasks_status_type ON tasks (status, task_type);
             CREATE INDEX idx_tasks_payload_parent ON tasks (json_extract(payload, '$.parent_plan_id'));
             CREATE INDEX idx_runs_task_status ON runs (task_id, status);
-        ''')
+        """
+        )
         conn.commit()
         conn.close()
 
@@ -172,21 +171,18 @@ class EndToEndIntegrationTest:
         task_id = str(uuid.uuid4())
         conn = self.get_test_connection()
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO planning_queue (id, task_description, priority, requestor, context_data)
             VALUES (?, ?, ?, ?, ?)
-        ''', (
-            task_id,
-            description,
-            priority,
-            "test_system",
-            json.dumps(context or {})
-        ))
+        """,
+            (task_id, description, priority, "test_system", json.dumps(context or {})),
+        )
 
         conn.commit()
         conn.close()
 
-        self.test_stats['tasks_created'] += 1
+        self.test_stats["tasks_created"] += 1
         return task_id
 
     def simulate_ai_planner_processing(self, task_id: str) -> str:
@@ -194,11 +190,14 @@ class EndToEndIntegrationTest:
         conn = self.get_test_connection()
 
         # Mark task as assigned
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE planning_queue
             SET status = 'assigned', assigned_agent = 'ai-planner-test'
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         # Generate mock execution plan
         plan_id = f"plan_{uuid.uuid4()}"
@@ -217,7 +216,7 @@ class EndToEndIntegrationTest:
                     "workflow_phase": "design",
                     "required_skills": ["database_design", "api_design"],
                     "deliverables": ["auth_schema.sql", "auth_api.yaml"],
-                    "dependencies": []
+                    "dependencies": [],
                 },
                 {
                     "id": "auth_impl",
@@ -229,7 +228,7 @@ class EndToEndIntegrationTest:
                     "workflow_phase": "implementation",
                     "required_skills": ["python", "jwt", "flask"],
                     "deliverables": ["auth_service.py", "test_auth.py"],
-                    "dependencies": ["auth_design"]
+                    "dependencies": ["auth_design"],
                 },
                 {
                     "id": "auth_frontend",
@@ -241,29 +240,22 @@ class EndToEndIntegrationTest:
                     "workflow_phase": "implementation",
                     "required_skills": ["react", "javascript", "css"],
                     "deliverables": ["LoginForm.jsx", "AuthProvider.jsx"],
-                    "dependencies": ["auth_design"]
-                }
+                    "dependencies": ["auth_design"],
+                },
             ],
-            "metrics": {
-                "total_estimated_duration": 100,
-                "complexity_breakdown": {"simple": 1, "medium": 2}
-            },
+            "metrics": {"total_estimated_duration": 100, "complexity_breakdown": {"simple": 1, "medium": 2}},
             "status": "generated",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Insert execution plan
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO execution_plans (id, planning_task_id, plan_data, estimated_complexity, estimated_duration, status)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            plan_id,
-            task_id,
-            json.dumps(plan_data),
-            "medium",
-            100,
-            "generated"
-        ))
+        """,
+            (plan_id, task_id, json.dumps(plan_data), "medium", 100, "generated"),
+        )
 
         # Create subtasks
         for sub_task in plan_data["sub_tasks"]:
@@ -278,36 +270,42 @@ class EndToEndIntegrationTest:
                 "required_skills": sub_task["required_skills"],
                 "deliverables": sub_task["deliverables"],
                 "dependencies": sub_task["dependencies"],
-                "assignee": sub_task["assignee"]
+                "assignee": sub_task["assignee"],
             }
 
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (
                     id, title, description, task_type, priority, status,
                     assignee, payload, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            ''', (
-                subtask_id,
-                sub_task["title"],
-                sub_task["description"],
-                "planned_subtask",
-                50,
-                "queued",
-                sub_task["assignee"],
-                json.dumps(payload)
-            ))
+            """,
+                (
+                    subtask_id,
+                    sub_task["title"],
+                    sub_task["description"],
+                    "planned_subtask",
+                    50,
+                    "queued",
+                    sub_task["assignee"],
+                    json.dumps(payload),
+                ),
+            )
 
-            self.test_stats['subtasks_created'] += 1
+            self.test_stats["subtasks_created"] += 1
 
         # Mark planning task as completed
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE planning_queue SET status = 'planned', completed_at = CURRENT_TIMESTAMP WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         conn.commit()
         conn.close()
 
-        self.test_stats['plans_generated'] += 1
+        self.test_stats["plans_generated"] += 1
         return plan_id
 
     def get_ready_subtasks(self) -> List[Dict[str, Any]]:
@@ -315,7 +313,8 @@ class EndToEndIntegrationTest:
         conn = self.get_test_connection()
 
         # Query for ready subtasks with dependency checking
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             WITH ready_subtasks AS (
                 SELECT
                     t.*,
@@ -329,7 +328,8 @@ class EndToEndIntegrationTest:
             )
             SELECT * FROM ready_subtasks
             ORDER BY priority DESC, created_at ASC
-        ''')
+        """
+        )
 
         rows = cursor.fetchall()
         subtasks = []
@@ -345,7 +345,7 @@ class EndToEndIntegrationTest:
                 "status": row[5],
                 "assignee": row[6],
                 "payload": json.loads(row[10]) if row[10] else {},
-                "created_at": row[11]
+                "created_at": row[11],
             }
 
             # Check dependencies
@@ -356,14 +356,17 @@ class EndToEndIntegrationTest:
             if dependencies:
                 for dep_id in dependencies:
                     # Check if dependency is completed
-                    dep_cursor = conn.execute('''
+                    dep_cursor = conn.execute(
+                        """
                         SELECT status FROM tasks
                         WHERE json_extract(payload, '$.subtask_id') = ?
                         AND json_extract(payload, '$.parent_plan_id') = ?
-                    ''', (dep_id, payload.get("parent_plan_id")))
+                    """,
+                        (dep_id, payload.get("parent_plan_id")),
+                    )
 
                     dep_row = dep_cursor.fetchone()
-                    if not dep_row or dep_row[0] != 'completed':
+                    if not dep_row or dep_row[0] != "completed":
                         dependencies_met = False
                         break
 
@@ -387,31 +390,36 @@ class EndToEndIntegrationTest:
             task_id = subtask["id"]
 
             # Simulate Queen assigning task to worker
-            conn.execute('''
+            conn.execute(
+                """
                 UPDATE tasks
                 SET status = 'assigned', assigned_at = CURRENT_TIMESTAMP
                 WHERE id = ?
-            ''', (task_id,))
+            """,
+                (task_id,),
+            )
 
             # Simulate task starting
-            conn.execute('''
+            conn.execute(
+                """
                 UPDATE tasks
                 SET status = 'in_progress', started_at = CURRENT_TIMESTAMP
                 WHERE id = ?
-            ''', (task_id,))
+            """,
+                (task_id,),
+            )
 
             # Create run record
             run_id = f"run_{uuid.uuid4()}"
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO runs (id, task_id, worker_id, phase, status)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (run_id, task_id, "test_worker", "apply", "running"))
+            """,
+                (run_id, task_id, "test_worker", "apply", "running"),
+            )
 
-            processed_tasks.append({
-                "task_id": task_id,
-                "run_id": run_id,
-                "title": subtask["title"]
-            })
+            processed_tasks.append({"task_id": task_id, "run_id": run_id, "title": subtask["title"]})
 
         conn.commit()
         conn.close()
@@ -426,39 +434,48 @@ class EndToEndIntegrationTest:
         result = {
             "status": "success" if success else "failed",
             "output": "Task completed successfully" if success else "Task failed with error",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE runs
             SET status = ?, result = ?, completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', ("completed" if success else "failed", json.dumps(result), run_id))
+        """,
+            ("completed" if success else "failed", json.dumps(result), run_id),
+        )
 
         # Update task status
         task_status = "completed" if success else "failed"
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = ?, completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (task_status, task_id))
+        """,
+            (task_status, task_id),
+        )
 
         conn.commit()
         conn.close()
 
         if success:
-            self.test_stats['tasks_completed'] += 1
+            self.test_stats["tasks_completed"] += 1
 
     def check_plan_completion(self, plan_id: str) -> Dict[str, Any]:
         """Check if an execution plan is complete"""
         conn = self.get_test_connection()
 
         # Get all subtasks for this plan
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT status FROM tasks
             WHERE task_type = 'planned_subtask'
             AND json_extract(payload, '$.parent_plan_id') = ?
-        ''', (plan_id,))
+        """,
+            (plan_id,),
+        )
 
         statuses = [row[0] for row in cursor.fetchall()]
         total_tasks = len(statuses)
@@ -467,9 +484,9 @@ class EndToEndIntegrationTest:
             conn.close()
             return {"complete": False, "progress": 0, "total_tasks": 0}
 
-        completed_tasks = sum(1 for s in statuses if s == 'completed')
-        failed_tasks = sum(1 for s in statuses if s == 'failed')
-        in_progress_tasks = sum(1 for s in statuses if s in ['assigned', 'in_progress'])
+        completed_tasks = sum(1 for s in statuses if s == "completed")
+        failed_tasks = sum(1 for s in statuses if s == "failed")
+        in_progress_tasks = sum(1 for s in statuses if s in ["assigned", "in_progress"])
 
         progress = (completed_tasks / total_tasks) * 100
         is_complete = completed_tasks == total_tasks
@@ -482,7 +499,7 @@ class EndToEndIntegrationTest:
             "total_tasks": total_tasks,
             "completed_tasks": completed_tasks,
             "failed_tasks": failed_tasks,
-            "in_progress_tasks": in_progress_tasks
+            "in_progress_tasks": in_progress_tasks,
         }
 
     def test_complete_pipeline(self):
@@ -493,9 +510,7 @@ class EndToEndIntegrationTest:
         print("\n📋 Step 1: Creating planning task...")
         task_description = "Implement complete authentication system with JWT tokens"
         planning_task_id = self.create_planning_task(
-            task_description,
-            priority=75,
-            context={"complexity": "high", "estimated_hours": 8}
+            task_description, priority=75, context={"complexity": "high", "estimated_hours": 8}
         )
         print(f"✅ Created planning task: {planning_task_id}")
 
@@ -522,7 +537,9 @@ class EndToEndIntegrationTest:
                 print("   ⏸️ No ready subtasks, checking plan completion...")
                 completion = self.check_plan_completion(plan_id)
                 if completion["complete"]:
-                    print(f"   🎉 Plan completed! {completion['completed_tasks']}/{completion['total_tasks']} tasks done")
+                    print(
+                        f"   🎉 Plan completed! {completion['completed_tasks']}/{completion['total_tasks']} tasks done"
+                    )
                     break
                 else:
                     print(f"   ⏳ Plan in progress: {completion['progress']:.1f}% complete")
@@ -542,7 +559,9 @@ class EndToEndIntegrationTest:
 
             # Check progress
             completion = self.check_plan_completion(plan_id)
-            print(f"   📊 Plan progress: {completion['progress']:.1f}% ({completion['completed_tasks']}/{completion['total_tasks']})")
+            print(
+                f"   📊 Plan progress: {completion['progress']:.1f}% ({completion['completed_tasks']}/{completion['total_tasks']})"
+            )
 
         # Step 4: Verify final state
         print("\n🔍 Step 4: Verifying final state...")
@@ -550,8 +569,12 @@ class EndToEndIntegrationTest:
 
         # Assertions
         assert final_completion["complete"], f"Plan should be complete but is {final_completion['progress']:.1f}% done"
-        assert final_completion["failed_tasks"] == 0, f"No tasks should fail but {final_completion['failed_tasks']} failed"
-        assert self.test_stats['tasks_completed'] == 3, f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
+        assert (
+            final_completion["failed_tasks"] == 0
+        ), f"No tasks should fail but {final_completion['failed_tasks']} failed"
+        assert (
+            self.test_stats["tasks_completed"] == 3
+        ), f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
 
         print(f"✅ All assertions passed!")
         print(f"📊 Final Statistics:")
@@ -577,7 +600,9 @@ class EndToEndIntegrationTest:
 
         print(f"Initially ready tasks: {ready_titles}")
         assert "Design Authentication Schema" in ready_titles, "Design task should be ready (no dependencies)"
-        assert "Implement Authentication Service" not in ready_titles, "Implementation should not be ready (has dependencies)"
+        assert (
+            "Implement Authentication Service" not in ready_titles
+        ), "Implementation should not be ready (has dependencies)"
         assert "Create Login UI" not in ready_titles, "Frontend should not be ready (has dependencies)"
 
         # Complete the design task
@@ -628,6 +653,7 @@ class EndToEndIntegrationTest:
         except Exception as e:
             print(f"\n❌ INTEGRATION TEST FAILED: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 

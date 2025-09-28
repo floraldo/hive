@@ -9,9 +9,5 @@ class HeatDemand(Component):
         self.type = "consumption"
         self.medium = "heat"
         self.profile = P_profile
-        self.flows['sink']['P_in'] = {
-            'type': 'heat', 
-            'value': cp.Variable(n, name='P_in'),
-            'profile': P_profile
-        }
-        self.constraints += [self.flows['sink']['P_in']['value'] == P_profile * P_max]
+        self.flows["sink"]["P_in"] = {"type": "heat", "value": cp.Variable(n, name="P_in"), "profile": P_profile}
+        self.constraints += [self.flows["sink"]["P_in"]["value"] == P_profile * P_max]

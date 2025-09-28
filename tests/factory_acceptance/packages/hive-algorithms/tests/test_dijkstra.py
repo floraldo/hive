@@ -12,7 +12,7 @@ import os
 from math import inf
 
 # Add the src directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from hive_algorithms import Graph, Edge, dijkstra, find_shortest_path, DijkstraResult
 
@@ -84,7 +84,7 @@ class TestDijkstraAlgorithm:
             "B": 4,  # A -> B (direct)
             "C": 2,  # A -> C (direct)
             "D": 9,  # A -> B -> D (4 + 5)
-            "E": 11  # A -> B -> D -> E (4 + 5 + 2)
+            "E": 11,  # A -> B -> D -> E (4 + 5 + 2)
         }
 
         for vertex, expected_dist in expected_distances.items():
@@ -209,6 +209,7 @@ class TestPerformance:
 
         # This should complete quickly
         import time
+
         start = time.time()
         result = dijkstra(g, "v0")
         duration = time.time() - start

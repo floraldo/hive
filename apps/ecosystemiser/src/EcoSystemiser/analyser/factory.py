@@ -37,18 +37,13 @@ class AnalyserFactory:
             TypeError: If strategy_class doesn't inherit from BaseAnalysis
         """
         if not issubclass(strategy_class, BaseAnalysis):
-            raise TypeError(
-                f"Strategy class must inherit from BaseAnalysis, "
-                f"got {strategy_class}"
-            )
+            raise TypeError(f"Strategy class must inherit from BaseAnalysis, " f"got {strategy_class}")
 
         cls._strategies[name] = strategy_class
         logger.info(f"Registered strategy class: {name}")
 
     @classmethod
-    def create_strategy(
-        cls, name: str, config: Optional[Dict[str, Any]] = None
-    ) -> BaseAnalysis:
+    def create_strategy(cls, name: str, config: Optional[Dict[str, Any]] = None) -> BaseAnalysis:
         """Create an analysis strategy instance.
 
         Args:
@@ -63,9 +58,7 @@ class AnalyserFactory:
         """
         if name not in cls._strategies:
             available = ", ".join(cls._strategies.keys())
-            raise ValueError(
-                f"Unknown strategy: {name}. " f"Available strategies: {available}"
-            )
+            raise ValueError(f"Unknown strategy: {name}. " f"Available strategies: {available}")
 
         strategy_class = cls._strategies[name]
 
@@ -85,9 +78,7 @@ class AnalyserFactory:
         return instance
 
     @classmethod
-    def create_all_strategies(
-        cls, config: Optional[Dict[str, Dict[str, Any]]] = None
-    ) -> Dict[str, BaseAnalysis]:
+    def create_all_strategies(cls, config: Optional[Dict[str, Dict[str, Any]]] = None) -> Dict[str, BaseAnalysis]:
         """Create instances of all registered strategies.
 
         Args:
@@ -123,9 +114,7 @@ class AnalyserFactory:
         return info
 
     @classmethod
-    def create_strategy_for_system_type(
-        cls, system_type: str
-    ) -> Dict[str, BaseAnalysis]:
+    def create_strategy_for_system_type(cls, system_type: str) -> Dict[str, BaseAnalysis]:
         """Create appropriate strategies based on system type.
 
         Args:

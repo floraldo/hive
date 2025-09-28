@@ -115,14 +115,10 @@ class BaseErrorReporter(ABC):
         return {
             "total_errors": self.error_counts["total"],
             "errors_by_type": {
-                k: v
-                for k, v in self.error_counts.items()
-                if not k.startswith("component_") and k != "total"
+                k: v for k, v in self.error_counts.items() if not k.startswith("component_") and k != "total"
             },
             "errors_by_component": {
-                k.replace("component_", ""): v
-                for k, v in self.error_counts.items()
-                if k.startswith("component_")
+                k.replace("component_", ""): v for k, v in self.error_counts.items() if k.startswith("component_")
             },
             "recent_errors": self.error_history[-10:],
         }

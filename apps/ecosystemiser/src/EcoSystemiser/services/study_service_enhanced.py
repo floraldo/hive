@@ -52,9 +52,7 @@ def apply_parameter_to_config(
             old_value = current.get(final_key, "NOT_SET")
             current[final_key] = value
 
-            logger.debug(
-                f"Updated {component_name}.{parameter_path}: {old_value} -> {value}"
-            )
+            logger.debug(f"Updated {component_name}.{parameter_path}: {old_value} -> {value}")
             break
 
     if not component_found:
@@ -63,9 +61,7 @@ def apply_parameter_to_config(
     return config
 
 
-def generate_parameter_report(
-    parameter_settings: Dict[str, Any], results: Dict[str, Any]
-) -> Dict[str, Any]:
+def generate_parameter_report(parameter_settings: Dict[str, Any], results: Dict[str, Any]) -> Dict[str, Any]:
     """Generate a report for a parametric sweep result.
 
     Args:
@@ -85,9 +81,7 @@ def generate_parameter_report(
     # Calculate sensitivity score based on KPI variance
     if "kpis" in results:
         # Simple sensitivity metric: sum of normalized KPI values
-        kpi_values = [
-            v for v in results["kpis"].values() if isinstance(v, (int, float))
-        ]
+        kpi_values = [v for v in results["kpis"].values() if isinstance(v, (int, float))]
         if kpi_values:
             report["sensitivity_score"] = sum(kpi_values) / len(kpi_values)
 
@@ -119,9 +113,7 @@ class ParametricSweepEnhancement:
         return list(np.linspace(min_capacity, max_capacity, num_points))
 
     @staticmethod
-    def create_solar_capacity_sweep(
-        base_capacity: float, num_points: int = 5
-    ) -> List[float]:
+    def create_solar_capacity_sweep(base_capacity: float, num_points: int = 5) -> List[float]:
         """Create a sweep of solar PV capacity values.
 
         Args:
@@ -215,9 +207,7 @@ class ParametricSweepEnhancement:
                 cost = result.get("kpis", {}).get("total_cost", float("inf"))
                 if cost < best_cost:
                     best_cost = cost
-                    best_config = result.get("output_config", {}).get(
-                        "parameter_settings", {}
-                    )
+                    best_config = result.get("output_config", {}).get("parameter_settings", {})
 
         analysis["optimal_configuration"] = best_config
 
@@ -237,8 +227,6 @@ class ParametricSweepEnhancement:
                 analysis["recommendations"].append(
                     f"Parameter '{most_influential}' has the highest impact on system performance"
                 )
-                analysis["recommendations"].append(
-                    f"Consider fine-tuning '{most_influential}' for optimization"
-                )
+                analysis["recommendations"].append(f"Consider fine-tuning '{most_influential}' for optimization")
 
         return analysis

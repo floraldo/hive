@@ -185,9 +185,7 @@ class DatabaseAdapter:
             logger.error(f"Error fetching transcript for task {task_id}: {e}")
             return None
 
-    def update_task_status(
-        self, task_id: str, new_status: str, review_data: Dict[str, Any]
-    ) -> bool:
+    def update_task_status(self, task_id: str, new_status: str, review_data: Dict[str, Any]) -> bool:
         """
         Update task status after review
 
@@ -309,9 +307,7 @@ class DatabaseAdapter:
             with self.db.get_session() as session:
                 # Count tasks by review status
                 total_reviewed = (
-                    session.query(Task)
-                    .filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"}))
-                    .count()
+                    session.query(Task).filter(Task.result_data.contains({"reviewed_by": "ai-reviewer"})).count()
                 )
 
                 approved = (
@@ -335,11 +331,7 @@ class DatabaseAdapter:
                     .count()
                 )
 
-                pending = (
-                    session.query(Task)
-                    .filter(Task.status == TaskStatus.REVIEW_PENDING)
-                    .count()
-                )
+                pending = session.query(Task).filter(Task.status == TaskStatus.REVIEW_PENDING).count()
 
                 return {
                     "total_reviewed": total_reviewed,
@@ -347,9 +339,7 @@ class DatabaseAdapter:
                     "rejected": rejected,
                     "rework_needed": rework,
                     "pending_review": pending,
-                    "approval_rate": (
-                        (approved / total_reviewed * 100) if total_reviewed > 0 else 0
-                    ),
+                    "approval_rate": ((approved / total_reviewed * 100) if total_reviewed > 0 else 0),
                 }
 
         except Exception as e:

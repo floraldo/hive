@@ -9,6 +9,7 @@ import shutil
 from pathlib import Path
 from typing import List, Tuple
 
+
 def get_test_directories() -> List[Path]:
     """Find all test directories in apps and packages"""
     test_dirs = []
@@ -31,6 +32,7 @@ def get_test_directories() -> List[Path]:
 
     return test_dirs
 
+
 def classify_test_file(file_path: Path) -> str:
     """
     Classify a test file as unit, integration, or e2e based on its name and content
@@ -40,38 +42,39 @@ def classify_test_file(file_path: Path) -> str:
     name = file_path.name.lower()
 
     # E2E test patterns
-    if 'e2e' in name or 'end_to_end' in name or 'end-to-end' in name:
-        return 'e2e'
+    if "e2e" in name or "end_to_end" in name or "end-to-end" in name:
+        return "e2e"
 
     # Integration test patterns
-    if 'integration' in name or 'integr' in name:
-        return 'integration'
+    if "integration" in name or "integr" in name:
+        return "integration"
 
     # Check file content for classification hints
     try:
-        content = file_path.read_text(encoding='utf-8', errors='ignore').lower()
+        content = file_path.read_text(encoding="utf-8", errors="ignore").lower()
 
         # E2E indicators
-        if 'selenium' in content or 'playwright' in content or 'browser' in content:
-            return 'e2e'
-        if 'end to end' in content or 'e2e' in content:
-            return 'e2e'
+        if "selenium" in content or "playwright" in content or "browser" in content:
+            return "e2e"
+        if "end to end" in content or "e2e" in content:
+            return "e2e"
 
         # Integration indicators
-        if 'database' in content or 'api call' in content or 'external service' in content:
-            return 'integration'
-        if 'integration test' in content:
-            return 'integration'
+        if "database" in content or "api call" in content or "external service" in content:
+            return "integration"
+        if "integration test" in content:
+            return "integration"
 
         # Check for multiple component imports (likely integration)
-        if content.count('from apps.') > 2 or content.count('from packages.') > 2:
-            return 'integration'
+        if content.count("from apps.") > 2 or content.count("from packages.") > 2:
+            return "integration"
 
     except Exception:
         pass  # If we can't read the file, default to unit
 
     # Default to unit test
-    return 'unit'
+    return "unit"
+
 
 def standardize_test_directory(test_dir: Path) -> Tuple[int, int, int]:
     """
@@ -112,10 +115,10 @@ def standardize_test_directory(test_dir: Path) -> Tuple[int, int, int]:
         category = classify_test_file(test_file)
 
         # Determine target directory
-        if category == 'unit':
+        if category == "unit":
             target_dir = unit_dir
             unit_count += 1
-        elif category == 'integration':
+        elif category == "integration":
             target_dir = integration_dir
             integration_count += 1
         else:  # e2e
@@ -140,6 +143,7 @@ def standardize_test_directory(test_dir: Path) -> Tuple[int, int, int]:
                 print(f"  Copied conftest.py to {subdir.name}/")
 
     return unit_count, integration_count, e2e_count
+
 
 def create_test_readme(test_dir: Path):
     """Create a README explaining the test organization"""
@@ -202,6 +206,7 @@ pytest --cov=. --cov-report=html
         readme_path.write_text(readme_content)
         print(f"  Created README.md")
 
+
 def main():
     """Main execution"""
     print("=" * 60)
@@ -238,6 +243,7 @@ def main():
     print(f"  E2E tests:         {total_e2e}")
     print(f"  Total:             {total_unit + total_integration + total_e2e}")
     print("\nAll test directories now follow the standard structure!")
+
 
 if __name__ == "__main__":
     main()

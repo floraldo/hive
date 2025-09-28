@@ -25,6 +25,7 @@ class TestSecureConfigLoader:
         """Cleanup test environment"""
         # Clean up temp files
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_initialization_with_master_key(self):

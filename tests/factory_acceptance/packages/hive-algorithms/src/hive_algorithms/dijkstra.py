@@ -14,6 +14,7 @@ from dataclasses import dataclass
 @dataclass
 class Edge:
     """Represents a weighted edge in the graph"""
+
     destination: str
     weight: float
 
@@ -63,6 +64,7 @@ class Graph:
 @dataclass
 class DijkstraResult:
     """Result of Dijkstra's algorithm execution"""
+
     distances: Dict[str, float]
     previous: Dict[str, Optional[str]]
     source: str
@@ -80,7 +82,7 @@ class DijkstraResult:
         if destination not in self.distances:
             return None
 
-        if self.distances[destination] == float('inf'):
+        if self.distances[destination] == float("inf"):
             return None  # Destination is unreachable
 
         path = []
@@ -94,7 +96,7 @@ class DijkstraResult:
 
     def get_distance(self, destination: str) -> float:
         """Get shortest distance to destination"""
-        return self.distances.get(destination, float('inf'))
+        return self.distances.get(destination, float("inf"))
 
 
 def dijkstra(graph: Graph, source: str) -> DijkstraResult:
@@ -124,7 +126,7 @@ def dijkstra(graph: Graph, source: str) -> DijkstraResult:
 
     # Initialize all distances to infinity
     for vertex in graph.get_vertices():
-        distances[vertex] = float('inf')
+        distances[vertex] = float("inf")
         previous[vertex] = None
 
     # Distance to source is 0

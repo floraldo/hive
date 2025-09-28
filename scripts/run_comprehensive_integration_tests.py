@@ -31,6 +31,7 @@ import os
 @dataclass
 class TestRunResult:
     """Result of a test run"""
+
     name: str
     passed: bool
     duration: float
@@ -50,7 +51,7 @@ class ComprehensiveTestRunner:
     def run_all_comprehensive_tests(self) -> bool:
         """Run the complete comprehensive integration test suite"""
         print("[STAR] Running COMPLETE Comprehensive Integration Test Suite")
-        print("="*80)
+        print("=" * 80)
 
         # Set up environment
         self._setup_test_environment()
@@ -90,7 +91,7 @@ class ComprehensiveTestRunner:
     def run_quick_validation(self) -> bool:
         """Run quick validation tests for fast feedback"""
         print("[START] Running Quick Comprehensive Validation")
-        print("="*60)
+        print("=" * 60)
 
         self._setup_test_environment()
 
@@ -106,7 +107,7 @@ class ComprehensiveTestRunner:
     def run_performance_tests(self) -> bool:
         """Run performance-focused integration tests"""
         print("[FAST] Running Performance Integration Tests")
-        print("="*60)
+        print("=" * 60)
 
         self._setup_test_environment()
 
@@ -122,7 +123,7 @@ class ComprehensiveTestRunner:
     def run_validation_only(self) -> bool:
         """Run validation tests only (no performance benchmarks)"""
         print("[PASS] Running Validation Tests Only")
-        print("="*60)
+        print("=" * 60)
 
         self._setup_test_environment()
 
@@ -181,11 +182,20 @@ class ComprehensiveTestRunner:
     def _run_platform_validation(self) -> bool:
         """Run platform validation tests"""
         try:
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                str(self.project_root / "tests" / "test_hive_platform_validation.py"),
-                "-v", "--tb=short", "--timeout=300"
-            ], capture_output=True, text=True, timeout=300)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(self.project_root / "tests" / "test_hive_platform_validation.py"),
+                    "-v",
+                    "--tb=short",
+                    "--timeout=300",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=300,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -204,10 +214,13 @@ class ComprehensiveTestRunner:
         try:
             print("[TEST] Running comprehensive integration test suite...")
 
-            result = subprocess.run([
-                sys.executable,
-                str(self.project_root / "tests" / "test_comprehensive_hive_integration_complete.py")
-            ], capture_output=True, text=True, timeout=1800, cwd=self.project_root)
+            result = subprocess.run(
+                [sys.executable, str(self.project_root / "tests" / "test_comprehensive_hive_integration_complete.py")],
+                capture_output=True,
+                text=True,
+                timeout=1800,
+                cwd=self.project_root,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -228,10 +241,13 @@ class ComprehensiveTestRunner:
         try:
             print("[FAST] Running async performance validation...")
 
-            result = subprocess.run([
-                sys.executable,
-                str(self.project_root / "tests" / "test_async_performance_validation.py")
-            ], capture_output=True, text=True, timeout=600, cwd=self.project_root)
+            result = subprocess.run(
+                [sys.executable, str(self.project_root / "tests" / "test_async_performance_validation.py")],
+                capture_output=True,
+                text=True,
+                timeout=600,
+                cwd=self.project_root,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -253,10 +269,16 @@ class ComprehensiveTestRunner:
         try:
             print("[DB] Running database connection tests...")
 
-            result = subprocess.run([
-                sys.executable,
-                str(self.project_root / "apps" / "ecosystemiser" / "tests" / "test_database_connection_fix.py")
-            ], capture_output=True, text=True, timeout=300, cwd=self.project_root)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(self.project_root / "apps" / "ecosystemiser" / "tests" / "test_database_connection_fix.py"),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=300,
+                cwd=self.project_root,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -275,11 +297,20 @@ class ComprehensiveTestRunner:
         try:
             print("[BOT] Running AI Planner integration tests...")
 
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                str(self.project_root / "tests" / "test_ai_planner_queen_integration.py"),
-                "-v", "--tb=short"
-            ], capture_output=True, text=True, timeout=600, cwd=self.project_root)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(self.project_root / "tests" / "test_ai_planner_queen_integration.py"),
+                    "-v",
+                    "--tb=short",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=600,
+                cwd=self.project_root,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -296,8 +327,11 @@ class ComprehensiveTestRunner:
     def _run_platform_health_check(self) -> bool:
         """Run basic platform health check"""
         try:
-            result = subprocess.run([
-                sys.executable, "-c", """
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    """
 import sys
 from pathlib import Path
 
@@ -321,8 +355,13 @@ else:
     sys.exit(1)
 
 print("[PASS] Platform health check passed")
-"""
-            ], capture_output=True, text=True, timeout=30, cwd=self.project_root)
+""",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=self.project_root,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -336,8 +375,11 @@ print("[PASS] Platform health check passed")
     def _run_import_validation(self) -> bool:
         """Validate all critical imports work"""
         try:
-            result = subprocess.run([
-                sys.executable, "-c", """
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    """
 import sys
 from pathlib import Path
 
@@ -373,8 +415,13 @@ try:
 except ImportError as e:
     print(f"[FAIL] Critical import failed: {e}")
     sys.exit(1)
-"""
-            ], capture_output=True, text=True, timeout=30, cwd=self.project_root)
+""",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=self.project_root,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -388,8 +435,11 @@ except ImportError as e:
     def _run_database_connectivity_check(self) -> bool:
         """Check basic database connectivity"""
         try:
-            result = subprocess.run([
-                sys.executable, "-c", """
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    """
 import sqlite3
 import tempfile
 from pathlib import Path
@@ -421,8 +471,13 @@ try:
 except Exception as e:
     print(f"[FAIL] Database test failed: {e}")
     exit(1)
-"""
-            ], capture_output=True, text=True, timeout=30, cwd=self.project_root)
+""",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=self.project_root,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -436,8 +491,11 @@ except Exception as e:
     def _run_basic_integration_test(self) -> bool:
         """Run basic integration test"""
         try:
-            result = subprocess.run([
-                sys.executable, "-c", """
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    """
 import asyncio
 import sqlite3
 import tempfile
@@ -484,8 +542,13 @@ if async_result and count == 1:
 else:
     print("[FAIL] Basic integration test failed")
     exit(1)
-"""
-            ], capture_output=True, text=True, timeout=60, cwd=self.project_root)
+""",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60,
+                cwd=self.project_root,
+            )
 
             if result.stdout:
                 print(result.stdout)
@@ -520,11 +583,20 @@ else:
     def _run_core_integration_tests(self) -> bool:
         """Run core integration tests"""
         try:
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                str(self.project_root / "tests" / "test_integration_simple.py"),
-                "-v", "--tb=short"
-            ], capture_output=True, text=True, timeout=300, cwd=self.project_root)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(self.project_root / "tests" / "test_integration_simple.py"),
+                    "-v",
+                    "--tb=short",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=300,
+                cwd=self.project_root,
+            )
 
             return result.returncode == 0
 
@@ -540,11 +612,20 @@ else:
     def _run_cross_app_communication_tests(self) -> bool:
         """Run cross-app communication tests"""
         try:
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                str(self.project_root / "tests" / "test_end_to_end_integration.py"),
-                "-v", "--tb=short"
-            ], capture_output=True, text=True, timeout=300, cwd=self.project_root)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(self.project_root / "tests" / "test_end_to_end_integration.py"),
+                    "-v",
+                    "--tb=short",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=300,
+                cwd=self.project_root,
+            )
 
             return result.returncode == 0
 
@@ -554,31 +635,31 @@ else:
 
     def _extract_performance_metrics(self, output: str):
         """Extract performance metrics from test output"""
-        lines = output.split('\n')
+        lines = output.split("\n")
         metrics = {}
 
         for line in lines:
-            if 'improvement' in line.lower() and 'x' in line:
+            if "improvement" in line.lower() and "x" in line:
                 # Extract improvement factor
                 try:
                     parts = line.split()
                     for i, part in enumerate(parts):
-                        if 'x' in part and 'improvement' in line.lower():
-                            factor = float(part.replace('x', ''))
-                            metrics['improvement_factor'] = factor
+                        if "x" in part and "improvement" in line.lower():
+                            factor = float(part.replace("x", ""))
+                            metrics["improvement_factor"] = factor
                             break
                 except:
                     pass
 
-            elif 'ops/sec' in line or 'tasks/sec' in line:
+            elif "ops/sec" in line or "tasks/sec" in line:
                 # Extract throughput
                 try:
                     parts = line.split()
                     for i, part in enumerate(parts):
-                        if 'ops/sec' in line or 'tasks/sec' in line:
+                        if "ops/sec" in line or "tasks/sec" in line:
                             try:
-                                throughput = float(parts[i-1])
-                                metrics['throughput'] = throughput
+                                throughput = float(parts[i - 1])
+                                metrics["throughput"] = throughput
                                 break
                             except:
                                 pass
@@ -598,7 +679,7 @@ else:
 
         print(f"\n{'='*80}")
         print("[SUMMARY] COMPREHENSIVE INTEGRATION TEST REPORT")
-        print("="*80)
+        print("=" * 80)
 
         print(f"\n[STATS] Overall Results:")
         print(f"   Tests Passed: {passed_count}/{total_count}")
@@ -612,9 +693,9 @@ else:
 
             if result.performance_metrics:
                 for metric, value in result.performance_metrics.items():
-                    if metric == 'improvement_factor':
+                    if metric == "improvement_factor":
                         print(f"      [PERF] Performance: {value:.1f}x improvement")
-                    elif metric == 'throughput':
+                    elif metric == "throughput":
                         print(f"      [FAST] Throughput: {value:.2f} ops/sec")
 
             if result.error:
@@ -626,7 +707,7 @@ else:
             "total_duration": total_duration,
             "passed_count": passed_count,
             "total_count": total_count,
-            "success_rate": (passed_count/total_count)*100,
+            "success_rate": (passed_count / total_count) * 100,
             "all_passed": all_passed,
             "results": [
                 {
@@ -634,16 +715,16 @@ else:
                     "passed": r.passed,
                     "duration": r.duration,
                     "error": r.error,
-                    "performance_metrics": r.performance_metrics
+                    "performance_metrics": r.performance_metrics,
                 }
                 for r in self.results
-            ]
+            ],
         }
 
         report_file = self.project_root / "test-results" / "comprehensive_integration_report.json"
         report_file.parent.mkdir(exist_ok=True)
 
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report_data, f, indent=2)
 
         print(f"\n[FILE] Report saved to: {report_file}")
@@ -658,7 +739,7 @@ else:
             print("[FAIL] SOME COMPREHENSIVE INTEGRATION TESTS FAILED")
             print("[FIX] Platform needs attention before production deployment")
             print("[DOC] Review failed tests and fix issues")
-        print("="*80)
+        print("=" * 80)
 
 
 def main():
@@ -673,34 +754,21 @@ Examples:
   %(prog)s --mode performance             # Performance tests only
   %(prog)s --mode validation              # Validation tests only
   %(prog)s --output report.json           # Save report to file
-        """
+        """,
     )
 
     parser.add_argument(
         "--mode",
         choices=["all", "quick", "performance", "validation"],
         default="all",
-        help="Test mode to run (default: all)"
+        help="Test mode to run (default: all)",
     )
 
-    parser.add_argument(
-        "--output",
-        type=Path,
-        help="Output file for JSON test report"
-    )
+    parser.add_argument("--output", type=Path, help="Output file for JSON test report")
 
-    parser.add_argument(
-        "--timeout",
-        type=int,
-        default=3600,
-        help="Overall timeout in seconds (default: 3600)"
-    )
+    parser.add_argument("--timeout", type=int, default=3600, help="Overall timeout in seconds (default: 3600)")
 
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Enable verbose output"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 
     args = parser.parse_args()
 

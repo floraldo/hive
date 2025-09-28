@@ -309,9 +309,7 @@ class V3CertificationTest:
                 else:
                     os.environ.pop("test_override_key", None)
 
-            self.log(
-                "Environment configuration: Environment-aware configuration working"
-            )
+            self.log("Environment configuration: Environment-aware configuration working")
             return True
 
         except Exception as e:
@@ -325,15 +323,9 @@ class V3CertificationTest:
         self.log("=" * 70)
 
         total_tests = len(self.test_results)
-        passed_tests = len(
-            [r for r in self.test_results.values() if r["status"] == "PASSED"]
-        )
-        failed_tests = len(
-            [r for r in self.test_results.values() if r["status"] == "FAILED"]
-        )
-        error_tests = len(
-            [r for r in self.test_results.values() if r["status"] == "ERROR"]
-        )
+        passed_tests = len([r for r in self.test_results.values() if r["status"] == "PASSED"])
+        failed_tests = len([r for r in self.test_results.values() if r["status"] == "FAILED"])
+        error_tests = len([r for r in self.test_results.values() if r["status"] == "ERROR"])
 
         # Test summary
         self.log(f"Total Tests: {total_tests}")
@@ -352,12 +344,8 @@ class V3CertificationTest:
         self.log("-" * 50)
 
         for test_name, result in self.test_results.items():
-            status_icon = {"PASSED": "[PASS]", "FAILED": "[FAIL]", "ERROR": "[ERR]"}[
-                result["status"]
-            ]
-            self.log(
-                f"{status_icon} {test_name:<35} {result['status']:<8} ({result['duration']:.2f}s)"
-            )
+            status_icon = {"PASSED": "[PASS]", "FAILED": "[FAIL]", "ERROR": "[ERR]"}[result["status"]]
+            self.log(f"{status_icon} {test_name:<35} {result['status']:<8} ({result['duration']:.2f}s)")
             if result["status"] != "PASSED":
                 self.log(f"   -> {result['message']}")
 
@@ -386,9 +374,7 @@ class V3CertificationTest:
         if success_rate == 100:
             self.log("- All tests passed! Platform ready for V3.0 certification")
         else:
-            self.log(
-                f"- Achieve >=85% success rate for certification (current: {success_rate:.1f}%)"
-            )
+            self.log(f"- Achieve >=85% success rate for certification (current: {success_rate:.1f}%)")
 
     def run_all_tests(self):
         """Run all certification tests"""
@@ -416,9 +402,7 @@ class V3CertificationTest:
         self.print_final_report()
 
         # Return overall success
-        passed_tests = len(
-            [r for r in self.test_results.values() if r["status"] == "PASSED"]
-        )
+        passed_tests = len([r for r in self.test_results.values() if r["status"] == "PASSED"])
         total_tests = len(self.test_results)
         success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
 

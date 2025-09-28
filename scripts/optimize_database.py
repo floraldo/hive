@@ -43,31 +43,31 @@ class DatabaseOptimizer:
         cursor = self.conn.cursor()
 
         # Get table statistics
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT name, sql FROM sqlite_master
             WHERE type='table' AND name NOT LIKE 'sqlite_%'
-        """)
+        """
+        )
         tables = cursor.fetchall()
 
         # Get existing indexes
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT name, tbl_name, sql FROM sqlite_master
             WHERE type='index' AND name NOT LIKE 'sqlite_%'
-        """)
+        """
+        )
         indexes = cursor.fetchall()
 
         # Get row counts
         table_stats = {}
         for table in tables:
             cursor.execute(f"SELECT COUNT(*) as count FROM {table['name']}")
-            count = cursor.fetchone()['count']
-            table_stats[table['name']] = count
+            count = cursor.fetchone()["count"]
+            table_stats[table["name"]] = count
 
-        return {
-            'tables': [dict(t) for t in tables],
-            'indexes': [dict(i) for i in indexes],
-            'table_stats': table_stats
-        }
+        return {"tables": [dict(t) for t in tables], "indexes": [dict(i) for i in indexes], "table_stats": table_stats}
 
     def create_indexes(self) -> List[str]:
         """Create optimized indexes for common query patterns"""
@@ -101,10 +101,7 @@ class DatabaseOptimizer:
         for index_name, table_name, columns in all_indexes:
             try:
                 # Check if index already exists
-                cursor.execute(
-                    "SELECT name FROM sqlite_master WHERE type='index' AND name=?",
-                    (index_name,)
-                )
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name=?", (index_name,))
                 if cursor.fetchone():
                     logger.info(f"Index {index_name} already exists")
                     continue
@@ -151,39 +148,57 @@ class DatabaseOptimizer:
         benchmarks = {}
 
         test_queries = [
-            ("get_queued_tasks", """
+            (
+                "get_queued_tasks",
+                """
                 SELECT * FROM tasks
                 WHERE status = 'queued'
                 ORDER BY priority DESC, created_at
                 LIMIT 100
-            """),
-            ("get_task_by_id", """
+            """,
+            ),
+            (
+                "get_task_by_id",
+                """
                 SELECT * FROM tasks
                 WHERE task_id = (SELECT task_id FROM tasks LIMIT 1)
-            """),
-            ("get_tasks_by_status", """
+            """,
+            ),
+            (
+                "get_tasks_by_status",
+                """
                 SELECT * FROM tasks
                 WHERE status = 'running'
-            """),
-            ("get_recent_runs", """
+            """,
+            ),
+            (
+                "get_recent_runs",
+                """
                 SELECT r.*, t.type, t.description
                 FROM runs r
                 JOIN tasks t ON r.task_id = t.task_id
                 WHERE r.status = 'completed'
                 ORDER BY r.completed_at DESC
                 LIMIT 50
-            """),
-            ("get_worker_tasks", """
+            """,
+            ),
+            (
+                "get_worker_tasks",
+                """
                 SELECT COUNT(*) as task_count, worker_id
                 FROM runs
                 WHERE status = 'running'
                 GROUP BY worker_id
-            """),
-            ("get_task_statistics", """
+            """,
+            ),
+            (
+                "get_task_statistics",
+                """
                 SELECT status, COUNT(*) as count
                 FROM tasks
                 GROUP BY status
-            """),
+            """,
+            ),
         ]
 
         for query_name, query in test_queries:
@@ -212,7 +227,7 @@ class DatabaseOptimizer:
         # Current state
         state = self.analyze_current_state()
         report.append("DATABASE STATE:")
-        for table_name, count in state['table_stats'].items():
+        for table_name, count in state["table_stats"].items():
             report.append(f"  Table {table_name}: {count} rows")
         report.append(f"  Total indexes: {len(state['indexes'])}")
         report.append("")

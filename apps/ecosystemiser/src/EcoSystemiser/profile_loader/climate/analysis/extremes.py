@@ -164,9 +164,7 @@ def identify_heat_waves(
     return heat_waves
 
 
-def identify_cold_snaps(
-    ds: xr.Dataset, temp_threshold: float = -5, min_duration_days: int = 3
-) -> List[Dict]:
+def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration_days: int = 3) -> List[Dict]:
     """
     Identify cold snap events.
 
@@ -364,35 +362,23 @@ def summarize_extremes(ds: xr.Dataset) -> Dict:
         summary["temperature"] = {
             "n_heat_waves": len(heat_waves),
             "n_cold_snaps": len(cold_snaps),
-            "longest_heat_wave_days": (
-                max([h["duration_days"] for h in heat_waves]) if heat_waves else 0
-            ),
-            "longest_cold_snap_days": (
-                max([c["duration_days"] for c in cold_snaps]) if cold_snaps else 0
-            ),
-            "return_periods": calculate_return_periods(
-                ds, "temp_air", extreme_type="max"
-            ),
+            "longest_heat_wave_days": (max([h["duration_days"] for h in heat_waves]) if heat_waves else 0),
+            "longest_cold_snap_days": (max([c["duration_days"] for c in cold_snaps]) if cold_snaps else 0),
+            "return_periods": calculate_return_periods(ds, "temp_air", extreme_type="max"),
         }
 
     # Wind extremes
     if "wind_speed" in ds:
-        wind_extremes = find_extreme_events(
-            ds, "wind_speed", threshold_percentile=99, min_duration_hours=6
-        )
+        wind_extremes = find_extreme_events(ds, "wind_speed", threshold_percentile=99, min_duration_hours=6)
         summary["wind"] = {
             "n_high_wind_events": len(wind_extremes),
             "max_wind_speed": float(ds["wind_speed"].max()),
-            "return_periods": calculate_return_periods(
-                ds, "wind_speed", extreme_type="max"
-            ),
+            "return_periods": calculate_return_periods(ds, "wind_speed", extreme_type="max"),
         }
 
     # Precipitation extremes
     if "precip" in ds:
-        heavy_rain = find_extreme_events(
-            ds, "precip", threshold_percentile=95, min_duration_hours=1
-        )
+        heavy_rain = find_extreme_events(ds, "precip", threshold_percentile=95, min_duration_hours=1)
         summary["precipitation"] = {
             "n_heavy_rain_events": len(heavy_rain),
             "max_hourly_precip": float(ds["precip"].max()) if "precip" in ds else None,

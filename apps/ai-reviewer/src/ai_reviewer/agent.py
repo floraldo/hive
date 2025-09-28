@@ -104,9 +104,7 @@ class ReviewAgent:
             if self.event_bus:
                 logger.info("Event bus initialized for explicit agent communication")
         except Exception as e:
-            logger.warning(
-                f"Event bus initialization failed: {e} - continuing without events"
-            )
+            logger.warning(f"Event bus initialization failed: {e} - continuing without events")
             self.event_bus = None
 
     def _publish_task_event(
@@ -139,18 +137,14 @@ class ReviewAgent:
             )
 
             event_id = self.event_bus.publish(event, correlation_id=correlation_id)
-            logger.debug(
-                f"Published task event {event_type} for task {task_id}: {event_id}"
-            )
+            logger.debug(f"Published task event {event_type} for task {task_id}: {event_id}")
             return event_id
 
         except Exception as e:
-            logger.warning(
-                f"Failed to publish task event {event_type} for task {task_id}: {e}"
-            )
+            logger.warning(f"Failed to publish task event {event_type} for task {task_id}: {e}")
             return ""
 
-    async def run(self):
+    async def run_async(self):
         """Main autonomous loop"""
         self.running = True
         self.stats["start_time"] = datetime.now()
@@ -171,15 +165,15 @@ class ReviewAgent:
 
         try:
             while self.running:
-                await self._process_review_queue()
-                await self._report_status()
+                await self._process_review_queue_async()
+                await self._report_status_async()
                 await asyncio.sleep(self.polling_interval)
         except KeyboardInterrupt:
             logger.info("Received interrupt signal")
         finally:
-            await self._shutdown()
+            await self._shutdown_async()
 
-    async def _process_review_queue(self):
+    async def _process_review_queue_async(self):
         """Process all pending review tasks"""
         try:
             # Get pending review tasks
@@ -189,21 +183,19 @@ class ReviewAgent:
                 logger.debug("No tasks pending review")
                 return
 
-            console.logger.info(
-                f"\n[yellow]Found {len(pending_tasks)} tasks to review[/yellow]"
-            )
+            console.logger.info(f"\n[yellow]Found {len(pending_tasks)} tasks to review[/yellow]")
 
             for task in pending_tasks:
                 if not self.running:
                     break
 
-                await self._review_task(task)
+                await self._review_task_async(task)
 
         except Exception as e:
             logger.error(f"Error processing review queue: {e}")
             self.stats["errors"] += 1
 
-    async def _review_task(self, task: Dict[str, Any]):
+    async def _review_task_async(self, task: Dict[str, Any]):
         """Review a single task"""
         try:
             console.logger.info(
@@ -249,7 +241,7 @@ class ReviewAgent:
             self._display_review_result(result)
 
             # Execute decision
-            await self._execute_decision(task, result)
+            await self._execute_decision_async(task, result)
 
             # Update statistics
             self.stats["tasks_reviewed"] += 1
@@ -284,9 +276,7 @@ class ReviewAgent:
         metrics_table.add_row("Documentation", f"{result.metrics.documentation:.0f}")
         metrics_table.add_row("Security", f"{result.metrics.security:.0f}")
         metrics_table.add_row("Architecture", f"{result.metrics.architecture:.0f}")
-        metrics_table.add_row(
-            "Overall", f"[bold]{result.metrics.overall_score:.0f}[/bold]"
-        )
+        metrics_table.add_row("Overall", f"[bold]{result.metrics.overall_score:.0f}[/bold]")
 
         console.logger.info(metrics_table)
 
@@ -318,7 +308,7 @@ class ReviewAgent:
             for suggestion in result.suggestions:
                 console.logger.info(f"  • {suggestion}")
 
-    async def _execute_decision(self, task: Dict[str, Any], result):
+    async def _execute_decision_async(self, task: Dict[str, Any], result):
         """Execute the review decision"""
         new_status = {
             ReviewDecision.APPROVE: TaskStatus.APPROVED,
@@ -351,11 +341,11 @@ class ReviewAgent:
 
         # If approved, potentially trigger next phase
         if result.decision == ReviewDecision.APPROVE:
-            await self._trigger_next_phase(task)
+            await self._trigger_next_phase_async(task)
 
         logger.info(f"Task {task['id']} review completed: {result.decision.value}")
 
-    async def _trigger_next_phase(self, task: Dict[str, Any]):
+    async def _trigger_next_phase_async(self, task: Dict[str, Any]):
         """Trigger next phase for approved tasks"""
         # This would integrate with the broader Hive system
         # For now, just log it
@@ -372,7 +362,7 @@ class ReviewAgent:
         elif decision == ReviewDecision.ESCALATE:
             self.stats["escalated"] += 1
 
-    async def _report_status(self):
+    async def _report_status_async(self):
         """Report agent status periodically"""
         if self.stats["tasks_reviewed"] > 0 and self.stats["tasks_reviewed"] % 10 == 0:
             runtime = (datetime.now() - self.stats["start_time"]).total_seconds()
@@ -383,18 +373,10 @@ class ReviewAgent:
             status_table.add_column("Value", style="white")
 
             status_table.add_row("Total Reviewed", str(self.stats["tasks_reviewed"]))
-            status_table.add_row(
-                "Approved", f"{self.stats['approved']} ({self._pct('approved')}%)"
-            )
-            status_table.add_row(
-                "Rejected", f"{self.stats['rejected']} ({self._pct('rejected')}%)"
-            )
-            status_table.add_row(
-                "Rework", f"{self.stats['rework']} ({self._pct('rework')}%)"
-            )
-            status_table.add_row(
-                "Escalated", f"{self.stats['escalated']} ({self._pct('escalated')}%)"
-            )
+            status_table.add_row("Approved", f"{self.stats['approved']} ({self._pct('approved')}%)")
+            status_table.add_row("Rejected", f"{self.stats['rejected']} ({self._pct('rejected')}%)")
+            status_table.add_row("Rework", f"{self.stats['rework']} ({self._pct('rework')}%)")
+            status_table.add_row("Escalated", f"{self.stats['escalated']} ({self._pct('escalated')}%)")
             status_table.add_row("Errors", str(self.stats["errors"]))
             status_table.add_row("Review Rate", f"{rate:.1f} tasks/hour")
 
@@ -411,7 +393,7 @@ class ReviewAgent:
         logger.info(f"Received signal {signum}, initiating shutdown")
         self.running = False
 
-    async def _shutdown(self):
+    async def _shutdown_async(self):
         """Graceful shutdown"""
         console.logger.info("\n[yellow]Shutting down AI Reviewer Agent...[/yellow]")
 
@@ -444,12 +426,7 @@ class ReviewAgent:
         **additional_payload,
     ) -> str:
         """Async version of task event publishing."""
-        if (
-            not self.event_bus
-            or not create_task_event
-            or not TaskEventType
-            or not ASYNC_EVENTS_AVAILABLE
-        ):
+        if not self.event_bus or not create_task_event or not TaskEventType or not ASYNC_EVENTS_AVAILABLE:
             return ""
 
         try:
@@ -461,15 +438,11 @@ class ReviewAgent:
             )
 
             event_id = await publish_event_async(event, correlation_id=correlation_id)
-            logger.debug(
-                f"Published async task event {event_type} for task {task_id}: {event_id}"
-            )
+            logger.debug(f"Published async task event {event_type} for task {task_id}: {event_id}")
             return event_id
 
         except Exception as e:
-            logger.warning(
-                f"Failed to publish async task event {event_type} for task {task_id}: {e}"
-            )
+            logger.warning(f"Failed to publish async task event {event_type} for task {task_id}: {e}")
             return ""
 
     async def _get_pending_reviews_async(self) -> List[Dict[str, Any]]:
@@ -488,9 +461,7 @@ class ReviewAgent:
             logger.error(f"Error retrieving async pending reviews: {e}")
             return []
 
-    async def _update_task_status_async(
-        self, task_id: str, status: str, metadata: Dict[str, Any] = None
-    ) -> bool:
+    async def _update_task_status_async(self, task_id: str, status: str, metadata: Dict[str, Any] = None) -> bool:
         """Async version of updating task status."""
         if not ASYNC_DB_AVAILABLE:
             # Fallback to sync version
@@ -515,9 +486,7 @@ class ReviewAgent:
                 logger.debug("No tasks pending review (async)")
                 return
 
-            console.logger.info(
-                f"\n[yellow]Found {len(pending_tasks)} tasks to review (async)[/yellow]"
-            )
+            console.logger.info(f"\n[yellow]Found {len(pending_tasks)} tasks to review (async)[/yellow]")
 
             for task in pending_tasks:
                 if not self.running:
@@ -585,9 +554,7 @@ class ReviewAgent:
             logger.error(f"Error reviewing async task {task['id']}: {e}")
             self.stats["errors"] += 1
             # Mark task as escalated on error asynchronously
-            await self._update_task_status_async(
-                task["id"], "escalated", {"error": str(e)}
-            )
+            await self._update_task_status_async(task["id"], "escalated", {"error": str(e)})
 
             # Publish escalation event for error asynchronously
             if TaskEventType:
@@ -647,9 +614,7 @@ class ReviewAgent:
                     escalated_by="ai-reviewer",
                 )
 
-        console.logger.info(
-            f"[green]Task {task['id']} reviewed: {result.decision.value}[/green]"
-        )
+        console.logger.info(f"[green]Task {task['id']} reviewed: {result.decision.value}[/green]")
 
     async def run_async(self):
         """Enhanced async version of main autonomous loop for 3-5x performance improvement."""
@@ -678,14 +643,14 @@ class ReviewAgent:
                 if ASYNC_DB_AVAILABLE:
                     await self._process_review_queue_async()
                 else:
-                    await self._process_review_queue()
+                    await self._process_review_queue_async()
 
-                await self._report_status()
+                await self._report_status_async()
                 await asyncio.sleep(self.polling_interval)
         except KeyboardInterrupt:
             logger.info("Received interrupt signal")
         finally:
-            await self._shutdown()
+            await self._shutdown_async()
 
 
 def main() -> None:
@@ -693,9 +658,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="AI Reviewer Autonomous Agent")
     parser.add_argument("--test-mode", action="store_true", help="Run in test mode")
     parser.add_argument("--api-key", help="Anthropic API key")
-    parser.add_argument(
-        "--polling-interval", type=int, default=30, help="Polling interval in seconds"
-    )
+    parser.add_argument("--polling-interval", type=int, default=30, help="Polling interval in seconds")
     parser.add_argument(
         "--async-mode",
         action="store_true",
@@ -718,15 +681,13 @@ def main() -> None:
     if args.async_mode:
         if ASYNC_DB_AVAILABLE or ASYNC_EVENTS_AVAILABLE:
             logger.info("Starting AI Reviewer in async mode for enhanced performance")
-            asyncio.run(agent.run_async())
+            asyncio.run_async(agent.run_async())
         else:
-            logger.warning(
-                "Async mode requested but not available, falling back to sync mode"
-            )
-            asyncio.run(agent.run())
+            logger.warning("Async mode requested but not available, falling back to sync mode")
+            asyncio.run_async(agent.run_async())
     else:
         # Run the autonomous loop
-        asyncio.run(agent.run())
+        asyncio.run_async(agent.run_async())
 
 
 def run_daemon() -> None:

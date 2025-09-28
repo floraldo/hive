@@ -152,9 +152,7 @@ class LocationResolver:
                 lat = location.get("lat") or location.get("latitude")
                 lon = location.get("lon") or location.get("longitude")
                 if lat is None or lon is None:
-                    raise LocationError(
-                        "Dict location must contain 'lat'/'latitude' and 'lon'/'longitude'"
-                    )
+                    raise LocationError("Dict location must contain 'lat'/'latitude' and 'lon'/'longitude'")
                 self._validate_coordinates(lat, lon)
                 return lat, lon
 
@@ -259,9 +257,7 @@ class LocationResolver:
             logger.debug(f"Online geocoding failed for {location_str}: {e}")
             return None
 
-    def get_adapter_coverage_score(
-        self, lat: float, lon: float, adapter_name: str
-    ) -> float:
+    def get_adapter_coverage_score(self, lat: float, lon: float, adapter_name: str) -> float:
         """Get a coverage score for how well an adapter covers a location.
 
         This enables intelligent adapter selection based on geographical coverage.
@@ -350,14 +346,10 @@ class ClimateService(BaseProfileService):
 
         # Get available adapters
         available_adapters = get_enabled_adapters()
-        logger.info(
-            f"Enhanced ClimateService initialized with {len(available_adapters)} available adapters"
-        )
+        logger.info(f"Enhanced ClimateService initialized with {len(available_adapters)} available adapters")
         logger.info("Centralized location resolution enabled")
 
-    async def process_request_async(
-        self, req: ClimateRequest
-    ) -> Tuple[xr.Dataset, ClimateResponse]:
+    async def process_request_async(self, req: ClimateRequest) -> Tuple[xr.Dataset, ClimateResponse]:
         """
         Async version of process_request with adapter factory integration.
 
@@ -387,7 +379,7 @@ class ClimateService(BaseProfileService):
             preferred_adapters = [req.source] if req.source else []
 
             # Fetch data with fallback
-            ds = await self._fetch_data_with_fallback(lat, lon, req, preferred_adapters)
+            ds = await self._fetch_data_with_fallback_async(lat, lon, req, preferred_adapters)
 
             # Process data
             ds, processing_report = await self._process_data_async(ds, req)
@@ -407,9 +399,7 @@ class ClimateService(BaseProfileService):
             logger.error(f"Request failed: {e}")
             raise
 
-    def process_request(
-        self, req: ClimateRequest
-    ) -> Tuple[xr.Dataset, ClimateResponse]:
+    def process_request(self, req: ClimateRequest) -> Tuple[xr.Dataset, ClimateResponse]:
         """
         Synchronous wrapper for async process_request.
 
@@ -431,9 +421,7 @@ class ClimateService(BaseProfileService):
             import concurrent.futures
 
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(
-                    lambda: asyncio.run(self.process_request_async(req))
-                )
+                future = executor.submit(lambda: asyncio.run(self.process_request_async(req)))
                 return future.result()
         else:
             # Run in the current loop
@@ -478,9 +466,7 @@ class ClimateService(BaseProfileService):
         """
         return self.location_resolver.resolve_location(location)
 
-    def _select_best_adapter(
-        self, lat: float, lon: float, requested_source: Optional[str] = None
-    ) -> str:
+    def _select_best_adapter(self, lat: float, lon: float, requested_source: Optional[str] = None) -> str:
         """Select the best adapter for a given location based on coverage and availability.
 
         Args:
@@ -505,13 +491,9 @@ class ClimateService(BaseProfileService):
         adapter_scores = []
         for adapter_name in available_adapters:
             try:
-                coverage_score = self.location_resolver.get_adapter_coverage_score(
-                    lat, lon, adapter_name
-                )
+                coverage_score = self.location_resolver.get_adapter_coverage_score(lat, lon, adapter_name)
                 adapter_scores.append((adapter_name, coverage_score))
-                logger.debug(
-                    f"Adapter {adapter_name} coverage score: {coverage_score:.2f}"
-                )
+                logger.debug(f"Adapter {adapter_name} coverage score: {coverage_score:.2f}")
             except Exception as e:
                 logger.warning(f"Could not score adapter {adapter_name}: {e}")
                 adapter_scores.append((adapter_name, 0.1))  # Low fallback score
@@ -532,16 +514,12 @@ class ClimateService(BaseProfileService):
 
         # Log alternatives for debugging
         if len(adapter_scores) > 1:
-            alternatives = [
-                f"{name}({score:.2f})" for name, score in adapter_scores[1:3]
-            ]
+            alternatives = [f"{name}({score:.2f})" for name, score in adapter_scores[1:3]]
             logger.debug(f"Alternative adapters: {', '.join(alternatives)}")
 
         return best_adapter
 
-    def _check_cache(
-        self, req: ClimateRequest
-    ) -> Optional[Tuple[xr.Dataset, ClimateResponse]]:
+    def _check_cache(self, req: ClimateRequest) -> Optional[Tuple[xr.Dataset, ClimateResponse]]:
         """Check cache for existing data"""
         if not self.config.features.enable_caching:
             return None
@@ -555,12 +533,7 @@ class ClimateService(BaseProfileService):
                 ds, manifest = cached
                 logger.info("Returning cached data")
 
-                cache_path = (
-                    Path(self.config.cache.cache_dir)
-                    / "climate"
-                    / "data"
-                    / f"{cache_key}.parquet"
-                )
+                cache_path = Path(self.config.cache.cache_dir) / "climate" / "data" / f"{cache_key}.parquet"
                 response = ClimateResponse(
                     manifest=manifest,
                     path_parquet=str(cache_path),
@@ -581,7 +554,7 @@ class ClimateService(BaseProfileService):
             logger.warning(f"Cache check failed: {e}")
             return None
 
-    async def _fetch_data_with_fallback(
+    async def _fetch_data_with_fallback_async(
         self, lat: float, lon: float, req: ClimateRequest, preferred_adapters: List[str]
     ) -> xr.Dataset:
         """
@@ -616,7 +589,7 @@ class ClimateService(BaseProfileService):
             if adapter_name in available_adapters:
                 try:
                     logger.info(f"Trying preferred adapter: {adapter_name}")
-                    ds = await self._fetch_from_adapter(adapter_name, lat, lon, req)
+                    ds = await self._fetch_from_adapter_async(adapter_name, lat, lon, req)
                     logger.info(f"Successfully fetched data from {adapter_name}")
                     return ds
 
@@ -632,7 +605,7 @@ class ClimateService(BaseProfileService):
             if adapter_name not in preferred_adapters:
                 try:
                     logger.info(f"Trying fallback adapter: {adapter_name}")
-                    ds = await self._fetch_from_adapter(adapter_name, lat, lon, req)
+                    ds = await self._fetch_from_adapter_async(adapter_name, lat, lon, req)
                     logger.info(f"Successfully fetched data from {adapter_name}")
                     return ds
 
@@ -654,9 +627,7 @@ class ClimateService(BaseProfileService):
             recovery_suggestion="Check adapter configuration and try again later",
         )
 
-    async def _fetch_from_adapter(
-        self, adapter_name: str, lat: float, lon: float, req: ClimateRequest
-    ) -> xr.Dataset:
+    async def _fetch_from_adapter_async(self, adapter_name: str, lat: float, lon: float, req: ClimateRequest) -> xr.Dataset:
         """
         Fetch data from specific adapter using adapter factory.
 
@@ -697,9 +668,7 @@ class ClimateService(BaseProfileService):
 
         return ds
 
-    async def _process_data_async(
-        self, ds: xr.Dataset, req: ClimateRequest
-    ) -> Tuple[xr.Dataset, Dict[str, Any]]:
+    async def _process_data_async(self, ds: xr.Dataset, req: ClimateRequest) -> Tuple[xr.Dataset, Dict[str, Any]]:
         """Apply processing pipeline asynchronously.
 
         Returns:
@@ -802,9 +771,7 @@ class ClimateService(BaseProfileService):
 
         return tmy_dataset
 
-    def _compute_synthetic_mode(
-        self, ds: xr.Dataset, req: ClimateRequest
-    ) -> xr.Dataset:
+    def _compute_synthetic_mode(self, ds: xr.Dataset, req: ClimateRequest) -> xr.Dataset:
         """Generate synthetic data"""
         synth_options = getattr(req, "synthetic_options", {})
         method = synth_options.get("method", "bootstrap")
@@ -815,11 +782,7 @@ class ClimateService(BaseProfileService):
                 seed=getattr(req, "seed", None),
                 copula_type=synth_options.get("copula_type", "gaussian"),
                 target_length=synth_options.get("target_length", "1Y"),
-                **{
-                    k: v
-                    for k, v in synth_options.items()
-                    if k not in ["method", "copula_type", "target_length"]
-                },
+                **{k: v for k, v in synth_options.items() if k not in ["method", "copula_type", "target_length"]},
             )
         else:
             ds = multivariate_block_bootstrap(
@@ -866,12 +829,7 @@ class ClimateService(BaseProfileService):
                     cache_key = cache_key_from_request(req, "enhanced_v1")
                     save_parquet_and_manifest(ds, manifest, cache_key)
                     logger.info(f"Data cached with key: {cache_key}")
-                    cache_path = str(
-                        Path(self.config.cache.cache_dir)
-                        / "climate"
-                        / "data"
-                        / f"{cache_key}.parquet"
-                    )
+                    cache_path = str(Path(self.config.cache.cache_dir) / "climate" / "data" / f"{cache_key}.parquet")
                 except Exception as e:
                     logger.warning(f"Failed to cache data: {e}")
                     cache_path = None
@@ -917,8 +875,7 @@ class ClimateService(BaseProfileService):
             "service_name": "ClimateService",
             "version": "1.0.0",
             "config": {
-                "caching_enabled": hasattr(self.config, "features")
-                and self.config.features.enable_caching,
+                "caching_enabled": hasattr(self.config, "features") and self.config.features.enable_caching,
                 "preprocessing_enabled": hasattr(self.config, "profile_loader")
                 and self.config.profile_loader.preprocessing_enabled,
                 "postprocessing_enabled": hasattr(self.config, "profile_loader")
@@ -929,9 +886,7 @@ class ClimateService(BaseProfileService):
                 "successful_requests": self.successful_requests,
                 "failed_requests": self.failed_requests,
                 "success_rate": (
-                    self.successful_requests / self.total_requests * 100
-                    if self.total_requests > 0
-                    else 0
+                    self.successful_requests / self.total_requests * 100 if self.total_requests > 0 else 0
                 ),
             },
             "processing_pipeline": self.processing_pipeline.list_steps(),
@@ -952,9 +907,7 @@ class ClimateService(BaseProfileService):
         """Get list of available data sources"""
         return get_enabled_adapters()
 
-    def process_request(
-        self, request: BaseProfileRequest
-    ) -> Tuple[xr.Dataset, ClimateResponse]:
+    def process_request(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, ClimateResponse]:
         """
         Process climate request synchronously (unified interface).
 
@@ -1003,9 +956,7 @@ class ClimateService(BaseProfileService):
 
         return errors
 
-    def get_available_variables(
-        self, source: Optional[str] = None
-    ) -> Dict[str, Dict[str, str]]:
+    def get_available_variables(self, source: Optional[str] = None) -> Dict[str, Dict[str, str]]:
         """Get available climate variables (unified interface)."""
         return CANONICAL_VARIABLES
 
@@ -1031,7 +982,7 @@ class ClimateService(BaseProfileService):
                 "variables": [],
             }
 
-    async def shutdown(self):
+    async def shutdown_async(self):
         """Shutdown service and cleanup resources"""
         logger.info("Shutting down Enhanced ClimateService")
         # Cleanup adapter factory resources

@@ -53,15 +53,9 @@ class ConnectionPool:
             db_config = {"max_connections": 10, "connection_timeout": 30.0}
 
         self.min_connections = min_connections if min_connections is not None else 2
-        self.max_connections = (
-            max_connections
-            if max_connections is not None
-            else db_config.get("max_connections", 10)
-        )
+        self.max_connections = max_connections if max_connections is not None else db_config.get("max_connections", 10)
         self.connection_timeout = (
-            connection_timeout
-            if connection_timeout is not None
-            else db_config.get("connection_timeout", 30.0)
+            connection_timeout if connection_timeout is not None else db_config.get("connection_timeout", 30.0)
         )
 
         self._pool = Queue(maxsize=self.max_connections)
@@ -163,9 +157,7 @@ class ConnectionPool:
                     try:
                         conn.close()
                     except (sqlite3.Error, AttributeError) as close_error:
-                        logger.debug(
-                            f"Failed to close corrupted connection: {close_error}"
-                        )
+                        logger.debug(f"Failed to close corrupted connection: {close_error}")
                     with self._lock:
                         self._connections_created -= 1
 

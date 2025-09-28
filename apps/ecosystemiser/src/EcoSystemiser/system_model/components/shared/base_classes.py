@@ -28,9 +28,7 @@ class BaseStoragePhysics(ABC):
         self.params = params
 
     @abstractmethod
-    def rule_based_update_state(
-        self, t: int, E_old: float, charge_power: float, discharge_power: float
-    ) -> float:
+    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
         """
         Calculate new energy state based on physics model.
 
@@ -164,9 +162,7 @@ class BaseConversionPhysics(ABC):
         self.params = params
 
     @abstractmethod
-    def rule_based_conversion_capacity(
-        self, t: int, from_medium: str, to_medium: str
-    ) -> dict:
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
         """
         Calculate conversion capacities for the current timestep.
 
@@ -183,9 +179,7 @@ class BaseConversionPhysics(ABC):
         pass
 
     @abstractmethod
-    def rule_based_conversion_dispatch(
-        self, t: int, requested_output: float, from_medium: str, to_medium: str
-    ) -> dict:
+    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
         """
         Calculate actual input/output for a requested output.
 

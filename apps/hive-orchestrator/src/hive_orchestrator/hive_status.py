@@ -217,9 +217,7 @@ class HiveStatus:
         logger.info(self.color(self.get_border_char("double") * 80, "cyan"))
         logger.info(self.color("HIVE FLEET STATUS - READ-ONLY VIEWER", "bold"))
         logger.info(self.color(self.get_border_char("double") * 80, "cyan"))
-        logger.info(
-            f"Time: {datetime.now().strftime('%H:%M:%S')} | Events: {self.events_file.name}"
-        )
+        logger.info(f"Time: {datetime.now().strftime('%H:%M:%S')} | Events: {self.events_file.name}")
         logger.info()
 
         # Load data
@@ -248,9 +246,7 @@ class HiveStatus:
 
         # Active tasks
         active_tasks = [
-            t
-            for t in tasks.values()
-            if t.get("status") in ["assigned", "in_progress", "testing", "reviewing"]
+            t for t in tasks.values() if t.get("status") in ["assigned", "in_progress", "testing", "reviewing"]
         ]
 
         if active_tasks:
@@ -273,22 +269,17 @@ class HiveStatus:
                     notes = ""
 
                 logger.info(
-                    f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | "
-                    f"{assignee:8} | {duration:6} | {notes}"
+                    f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | " f"{assignee:8} | {duration:6} | {notes}"
                 )
             logger.info()
 
         # Recent completions
-        completed = [
-            t for t in tasks.values() if t.get("status") in ["completed", "pr_open"]
-        ]
+        completed = [t for t in tasks.values() if t.get("status") in ["completed", "pr_open"]]
 
         if completed:
             logger.info(self.color("RECENT COMPLETIONS", "bold"))
             logger.info(self.get_border_char("single") * 40)
-            for task in sorted(
-                completed, key=lambda t: t.get("completed_at", ""), reverse=True
-            )[:3]:
+            for task in sorted(completed, key=lambda t: t.get("completed_at", ""), reverse=True)[:3]:
                 icon = self.get_status_icon(task.get("status"))
                 pr = task.get("pr", "")
 
@@ -305,9 +296,7 @@ class HiveStatus:
                         f"{duration:6} | PR: {self.color(pr_short, 'cyan')}"
                     )
                 else:
-                    logger.info(
-                        f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | {duration:6}"
-                    )
+                    logger.info(f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | {duration:6}")
             logger.info()
 
         # Recent failures
@@ -316,9 +305,7 @@ class HiveStatus:
         if failed:
             logger.error(self.color("FAILURES & BLOCKS", "bold"))
             logger.info(self.get_border_char("single") * 40)
-            for task in sorted(
-                failed, key=lambda t: t.get("failed_at", ""), reverse=True
-            )[:3]:
+            for task in sorted(failed, key=lambda t: t.get("failed_at", ""), reverse=True)[:3]:
                 icon = self.get_status_icon(task.get("status"))
                 reason = task.get("failure_reason", "Unknown")[:40]
 
@@ -327,10 +314,7 @@ class HiveStatus:
                 has_fix = fix_task_id in tasks
 
                 if has_fix:
-                    logger.info(
-                        f"{icon} [{task['id']}] {reason} | "
-                        f"Fix: {self.color(fix_task_id, 'yellow')}"
-                    )
+                    logger.info(f"{icon} [{task['id']}] {reason} | " f"Fix: {self.color(fix_task_id, 'yellow')}")
                 else:
                     logger.info(f"{icon} [{task['id']}] {reason}")
             logger.info()
@@ -349,9 +333,7 @@ class HiveStatus:
                 # Format by type
                 if evt_type == "worker_spawned":
                     rocket = "🚀" if self.use_emoji else ">"
-                    logger.info(
-                        f"  {rocket} {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)"
-                    )
+                    logger.info(f"  {rocket} {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)")
                 elif evt_type == "task_execution_complete":
                     status = event.get("status", "?")
                     color = "green" if status == "success" else "red"
@@ -364,9 +346,7 @@ class HiveStatus:
                     logger.info(f"  {check} {task_id} completed ({ts} ago)")
                 elif evt_type == "task_failed":
                     x = "❌" if self.use_emoji else "X"
-                    logger.error(
-                        f"  {x} {task_id} failed: {event.get('notes', '')[:30]} ({ts} ago)"
-                    )
+                    logger.error(f"  {x} {task_id} failed: {event.get('notes', '')[:30]} ({ts} ago)")
                 elif evt_type == "inspector_task_created":
                     tool = "🔧" if self.use_emoji else "FIX"
                     logger.info(

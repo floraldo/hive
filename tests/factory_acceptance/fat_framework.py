@@ -63,21 +63,25 @@ class FactoryAcceptanceTest:
 
             now = datetime.now().isoformat()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO tasks (
                     title, description, created_at, updated_at,
                     priority, task_data, metadata, status, estimated_duration
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                test_case['title'],
-                test_case['description'],
-                now, now,
-                test_case['priority'],
-                json.dumps(test_case['task_data']),
-                json.dumps(test_case['metadata']),
-                "deployment_pending",
-                test_case['estimated_duration']
-            ))
+            """,
+                (
+                    test_case["title"],
+                    test_case["description"],
+                    now,
+                    now,
+                    test_case["priority"],
+                    json.dumps(test_case["task_data"]),
+                    json.dumps(test_case["metadata"]),
+                    "deployment_pending",
+                    test_case["estimated_duration"],
+                ),
+            )
 
             task_id = cursor.lastrowid
             conn.commit()
@@ -101,16 +105,19 @@ class FactoryAcceptanceTest:
 
         try:
             # Simulate autonomous workflow with test-specific stages
-            workflow_stages = test_case.get('workflow_stages', [
-                ("planning", "AI Planner analyzing requirements", 2),
-                ("specification", "Creating technical specifications", 1),
-                ("code_generation", "Backend Worker generating implementation", 4),
-                ("testing", "Backend Worker creating test suite", 2),
-                ("review_pending", "AI Reviewer analyzing code quality", 2),
-                ("review_approved", "AI Reviewer approving implementation", 1),
-                ("deployment", "AI Deployer executing deployment", 3),
-                ("completed", "Workflow completed", 1)
-            ])
+            workflow_stages = test_case.get(
+                "workflow_stages",
+                [
+                    ("planning", "AI Planner analyzing requirements", 2),
+                    ("specification", "Creating technical specifications", 1),
+                    ("code_generation", "Backend Worker generating implementation", 4),
+                    ("testing", "Backend Worker creating test suite", 2),
+                    ("review_pending", "AI Reviewer analyzing code quality", 2),
+                    ("review_approved", "AI Reviewer approving implementation", 1),
+                    ("deployment", "AI Deployer executing deployment", 3),
+                    ("completed", "Workflow completed", 1),
+                ],
+            )
 
             for i, (status, description, duration) in enumerate(workflow_stages, 1):
                 print(f"{i:2d}. [{status.upper()}] {description}")
@@ -147,9 +154,12 @@ class FactoryAcceptanceTest:
         try:
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?
-            """, (new_status, datetime.now().isoformat(), task_id))
+            """,
+                (new_status, datetime.now().isoformat(), task_id),
+            )
             conn.commit()
             conn.close()
         except Exception as e:
@@ -158,7 +168,7 @@ class FactoryAcceptanceTest:
     def _execute_test_generation(self, test_case: Dict[str, Any], task_id: int) -> bool:
         """Execute test-specific code generation"""
 
-        generator_func = test_case.get('generator_function')
+        generator_func = test_case.get("generator_function")
         if not generator_func:
             print("   [ERROR] No generator function specified")
             return False
@@ -184,7 +194,7 @@ class FactoryAcceptanceTest:
         print(f"\nValidating test result for: {test_case['name']}")
         print("-" * 40)
 
-        validator_func = test_case.get('validator_function')
+        validator_func = test_case.get("validator_function")
         if not validator_func:
             print("[ERROR] No validator function specified")
             return {"success": False, "error": "No validator"}
@@ -230,13 +240,13 @@ class FactoryAcceptanceTest:
         # Record test result
         test_duration = datetime.now() - test_start
         result = {
-            "test_name": test_case['name'],
+            "test_name": test_case["name"],
             "task_id": task_id,
             "success": validation_result.get("success", False),
             "duration": test_duration.total_seconds(),
             "details": validation_result.get("details", ""),
             "error": validation_result.get("error", ""),
-            "complexity": test_case['complexity']
+            "complexity": test_case["complexity"],
         }
 
         self.test_results.append(result)
@@ -286,7 +296,7 @@ class FactoryAcceptanceTest:
                 complexity_stats[complexity]["passed"] += 1
 
         for complexity, stats in complexity_stats.items():
-            success_rate = (stats["passed"] / stats["total"] * 100)
+            success_rate = stats["passed"] / stats["total"] * 100
             print(f"{complexity:<15}: {stats['passed']}/{stats['total']} ({success_rate:.1f}%)")
 
         # Overall Assessment
@@ -312,7 +322,7 @@ class FactoryAcceptanceTest:
             "passed_tests": len(passed_tests),
             "failed_tests": len(failed_tests),
             "assessment": assessment,
-            "ready_for_production": overall_success_rate >= 75
+            "ready_for_production": overall_success_rate >= 75,
         }
 
     def cleanup(self):

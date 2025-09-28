@@ -18,7 +18,6 @@ from hive_db import get_connection, init_db
 # Imports now handled by Poetry workspace dependencies
 
 
-
 class TestClaudeIntegration:
     """Test suite for Claude-powered AI Planner"""
 
@@ -95,9 +94,7 @@ class TestClaudeIntegration:
         assert plan["plan_id"].startswith("fallback-")
         assert "fallback" in plan["plan_name"].lower()
         assert len(plan["sub_tasks"]) == 3  # Standard fallback has 3 tasks
-        assert (
-            plan["metrics"]["confidence_score"] == 0.6
-        )  # Lower confidence for fallback
+        assert plan["metrics"]["confidence_score"] == 0.6  # Lower confidence for fallback
 
         print("OK Fallback plan generation validation")
 
@@ -229,9 +226,7 @@ class TestClaudeIntegration:
         assert subtask_count >= len(plan["sub_tasks"])
 
         # Cleanup - correct order to respect foreign keys
-        cursor.execute(
-            "DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task["id"],)
-        )
+        cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task["id"],))
         cursor.execute("DELETE FROM planning_queue WHERE id = ?", (test_task["id"],))
         cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
         agent.db_connection.commit()
@@ -298,9 +293,7 @@ class TestClaudeIntegration:
         assert success == True
 
         # Verify results
-        cursor.execute(
-            "SELECT status FROM planning_queue WHERE id = ?", (test_task_id,)
-        )
+        cursor.execute("SELECT status FROM planning_queue WHERE id = ?", (test_task_id,))
         final_status = cursor.fetchone()[0]
         assert final_status == "planned"
 
@@ -323,9 +316,7 @@ class TestClaudeIntegration:
 
         # Cleanup
         cursor.execute("DELETE FROM planning_queue WHERE id = ?", (test_task_id,))
-        cursor.execute(
-            "DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task_id,)
-        )
+        cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task_id,))
         cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
         conn.commit()
         conn.close()
@@ -356,9 +347,7 @@ class TestClaudeIntegration:
         agent.db_connection.close()
         agent.db_connection = None
 
-        save_result = agent.save_execution_plan(
-            {"plan_id": "test", "task_id": "test", "status": "test"}
-        )
+        save_result = agent.save_execution_plan({"plan_id": "test", "task_id": "test", "status": "test"})
         assert save_result == False  # Should fail gracefully
 
         print("OK Error handling and resilience")
@@ -371,9 +360,7 @@ class TestClaudeIntegration:
 
         # Measure plan generation time
         start_time = time.time()
-        plan = bridge.generate_execution_plan(
-            "Create a high-performance web application", {"files_affected": 15}
-        )
+        plan = bridge.generate_execution_plan("Create a high-performance web application", {"files_affected": 15})
         end_time = time.time()
 
         generation_time = end_time - start_time

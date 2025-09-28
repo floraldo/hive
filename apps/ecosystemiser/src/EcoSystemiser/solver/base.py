@@ -18,9 +18,7 @@ class SolverConfig(BaseModel):
     solver_specific: Dict[str, Any] = {}
 
     # Multi-objective configuration
-    objective_weights: Optional[Dict[str, float]] = (
-        None  # e.g., {"cost": 0.7, "emissions": 0.3}
-    )
+    objective_weights: Optional[Dict[str, float]] = None  # e.g., {"cost": 0.7, "emissions": 0.3}
     normalize_objectives: bool = True  # Normalize objectives before combining
     pareto_mode: bool = False  # Generate Pareto frontier instead of single solution
 

@@ -57,8 +57,7 @@ class TestArchitecturalCompliance:
 
         if not is_valid:
             failure_message = (
-                "❌ App Contract Compliance FAILED\n\n"
-                "The following apps violate the Hive app contract standard:\n\n"
+                "❌ App Contract Compliance FAILED\n\n" "The following apps violate the Hive app contract standard:\n\n"
             )
             for violation in violations:
                 failure_message += f"  • {violation}\n"
@@ -92,10 +91,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_service_layer_discipline(project_root)
 
         if not is_valid:
-            failure_message = (
-                "Service Layer Discipline FAILED\n\n"
-                "The following violations were found:\n\n"
-            )
+            failure_message = "Service Layer Discipline FAILED\n\n" "The following violations were found:\n\n"
             for violation in violations[:15]:
                 failure_message += f"  - {violation}\n"
 
@@ -131,10 +127,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_communication_patterns(project_root)
 
         if not is_valid:
-            failure_message = (
-                "Communication Patterns FAILED\n\n"
-                "The following violations were found:\n\n"
-            )
+            failure_message = "Communication Patterns FAILED\n\n" "The following violations were found:\n\n"
             for violation in violations[:15]:
                 failure_message += f"  - {violation}\n"
 
@@ -171,8 +164,7 @@ class TestArchitecturalCompliance:
 
         if not is_valid:
             failure_message = (
-                "❌ Co-located Tests Pattern FAILED\n\n"
-                "The following components lack proper test structure:\n\n"
+                "❌ Co-located Tests Pattern FAILED\n\n" "The following components lack proper test structure:\n\n"
             )
             for violation in violations:
                 failure_message += f"  • {violation}\n"
@@ -206,8 +198,7 @@ class TestArchitecturalCompliance:
 
         if not is_valid:
             failure_message = (
-                "❌ Path Import Violations FAILED\n\n"
-                "The following files contain path import manipulations:\n\n"
+                "❌ Path Import Violations FAILED\n\n" "The following files contain path import manipulations:\n\n"
             )
             for violation in violations[:10]:  # Show first 10
                 failure_message += f"  • {violation}\n"
@@ -244,10 +235,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_single_config_source(project_root)
 
         if not is_valid:
-            failure_message = (
-                "❌ Single Config Source FAILED\n\n"
-                "Configuration violations found:\n\n"
-            )
+            failure_message = "❌ Single Config Source FAILED\n\n" "Configuration violations found:\n\n"
             for violation in violations:
                 failure_message += f"  • {violation}\n"
 
@@ -281,10 +269,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_no_hardcoded_env_values(project_root)
 
         if not is_valid:
-            failure_message = (
-                "❌ Hardcoded Environment Values FOUND\n\n"
-                "Environment coupling violations found:\n\n"
-            )
+            failure_message = "❌ Hardcoded Environment Values FOUND\n\n" "Environment coupling violations found:\n\n"
             for violation in violations[:10]:
                 failure_message += f"  • {violation}\n"
 
@@ -320,10 +305,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_package_app_discipline(project_root)
 
         if not is_valid:
-            failure_message = (
-                "❌ Package vs App Discipline FAILED\n\n"
-                "The following violations were found:\n\n"
-            )
+            failure_message = "❌ Package vs App Discipline FAILED\n\n" "The following violations were found:\n\n"
             for violation in violations[:10]:
                 failure_message += f"  • {violation}\n"
 
@@ -359,10 +341,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_dependency_direction(project_root)
 
         if not is_valid:
-            failure_message = (
-                "❌ Dependency Direction FAILED\n\n"
-                "Invalid dependencies detected:\n\n"
-            )
+            failure_message = "❌ Dependency Direction FAILED\n\n" "Invalid dependencies detected:\n\n"
             for violation in violations[:10]:
                 failure_message += f"  • {violation}\n"
 
@@ -399,10 +378,7 @@ class TestArchitecturalCompliance:
 
         # This is a strict rule but we'll start with warnings
         if not is_valid and len(violations) < 100:  # Only fail if reasonable number
-            failure_message = (
-                "❌ Interface Contracts FAILED\n\n"
-                "Missing type hints or documentation:\n\n"
-            )
+            failure_message = "❌ Interface Contracts FAILED\n\n" "Missing type hints or documentation:\n\n"
             for violation in violations[:20]:  # Show more for this rule
                 failure_message += f"  • {violation}\n"
 
@@ -439,10 +415,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_error_handling_standards(project_root)
 
         if not is_valid:
-            failure_message = (
-                "❌ Error Handling Standards FAILED\n\n"
-                "Poor error handling detected:\n\n"
-            )
+            failure_message = "❌ Error Handling Standards FAILED\n\n" "Poor error handling detected:\n\n"
             for violation in violations[:15]:
                 failure_message += f"  • {violation}\n"
 
@@ -477,9 +450,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_logging_standards(project_root)
 
         if not is_valid:
-            failure_message = (
-                "❌ Logging Standards FAILED\n\n" "Logging violations found:\n\n"
-            )
+            failure_message = "❌ Logging Standards FAILED\n\n" "Logging violations found:\n\n"
             for violation in violations[:15]:
                 failure_message += f"  • {violation}\n"
 
@@ -497,17 +468,16 @@ class TestArchitecturalCompliance:
 
             pytest.fail(failure_message)
 
-
     def test_enhanced_golden_rules(self, project_root):
         """
         🚀 ENHANCED GOLDEN RULES: Single-Pass AST-Based Validation
-        
+
         This test runs the next-generation Golden Rules framework with:
         - 5-10x faster validation (single-pass AST traversal)
         - More accurate validation (AST-based vs string matching)
         - Suppression support for controlled exceptions
         - New security, performance, and maintainability rules
-        
+
         New Rules Added:
         - Rule 17: No Unsafe Function Calls (Security)
         - Rule 18: API Endpoint Security (Security)
@@ -515,19 +485,18 @@ class TestArchitecturalCompliance:
         - Rule 20: Test Quality and Coverage (Maintainability)
         - Rule 21: hive-models Purity (Architecture)
         - Rule 22: Documentation Hygiene (Maintainability)
-        
+
         🎯 Gravity Effect: Creates an immune system that automatically
            prevents architectural decay and security vulnerabilities.
         """
         validator = EnhancedValidator(project_root)
         is_valid, violations_by_rule = validator.validate_all()
-        
+
         if not is_valid:
             failure_message = (
-                "🚀 Enhanced Golden Rules FAILED\n\n"
-                "The next-generation validation framework found violations:\n\n"
+                "🚀 Enhanced Golden Rules FAILED\n\n" "The next-generation validation framework found violations:\n\n"
             )
-            
+
             for rule_name, rule_violations in violations_by_rule.items():
                 failure_message += f"📋 {rule_name}:\n"
                 for violation in rule_violations[:10]:  # Limit to first 10 per rule
@@ -535,7 +504,7 @@ class TestArchitecturalCompliance:
                 if len(rule_violations) > 10:
                     failure_message += f"  ... and {len(rule_violations) - 10} more violations\n"
                 failure_message += "\n"
-            
+
             failure_message += (
                 "🔧 To fix violations:\n"
                 "  1. Review each violation message for specific guidance\n"
@@ -546,7 +515,7 @@ class TestArchitecturalCompliance:
                 "📖 This enhanced framework provides superior accuracy and performance\n"
                 "   while maintaining the architectural integrity of your platform."
             )
-            
+
             pytest.fail(failure_message)
 
 
@@ -560,9 +529,7 @@ class TestPlatformStandards:
         Ensure no Python files exist in the project root.
         All code should be in apps/ or packages/.
         """
-        root_py_files = [
-            f for f in project_root.glob("*.py") if f.name not in ["conftest.py"]
-        ]  # Allow conftest.py
+        root_py_files = [f for f in project_root.glob("*.py") if f.name not in ["conftest.py"]]  # Allow conftest.py
 
         assert not root_py_files, (
             f"Found Python files in project root: {root_py_files}\n"
@@ -579,12 +546,8 @@ class TestPlatformStandards:
         for package_dir in packages_dir.iterdir():
             if package_dir.is_dir() and not package_dir.name.startswith("."):
                 # Each package should have pyproject.toml and src/
-                assert (
-                    package_dir / "pyproject.toml"
-                ).exists(), f"Package {package_dir.name} missing pyproject.toml"
-                assert (
-                    package_dir / "src"
-                ).exists(), f"Package {package_dir.name} missing src/ directory"
+                assert (package_dir / "pyproject.toml").exists(), f"Package {package_dir.name} missing pyproject.toml"
+                assert (package_dir / "src").exists(), f"Package {package_dir.name} missing src/ directory"
 
     def test_proper_app_structure(self, apps_dir):
         """
@@ -599,9 +562,7 @@ class TestPlatformStandards:
                 has_src = (app_dir / "src").exists()
                 has_python_files = any(app_dir.glob("*.py"))
 
-                assert (
-                    has_src or has_python_files
-                ), f"App {app_dir.name} has no Python code (no src/ or *.py files)"
+                assert has_src or has_python_files, f"App {app_dir.name} has no Python code (no src/ or *.py files)"
 
 
 if __name__ == "__main__":

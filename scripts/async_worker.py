@@ -22,22 +22,18 @@ from hive_logging import get_logger
 
 # Async database operations for Phase 4.1
 from hive_orchestrator.core.db import (
-    get_task_async, update_task_status_async,
-    create_run_async, log_run_result, ASYNC_AVAILABLE
+    get_task_async,
+    update_task_status_async,
+    create_run_async,
+    log_run_result,
+    ASYNC_AVAILABLE,
 )
 
 # Async event bus for Phase 4.1
-from hive_orchestrator.core.bus import (
-    get_async_event_bus, publish_event_async,
-    create_task_event, TaskEventType
-)
+from hive_orchestrator.core.bus import get_async_event_bus, publish_event_async, create_task_event, TaskEventType
 
 # Hive utilities for path management
-from hive_utils.paths import (
-    get_worker_workspace_dir,
-    get_task_log_dir,
-    ensure_directory
-)
+from hive_utils.paths import get_worker_workspace_dir, get_task_log_dir, ensure_directory
 
 logger = get_logger(__name__)
 
@@ -92,8 +88,9 @@ class AsyncWorkerCore:
             self.log.error(f"Failed to initialize async worker: {e}")
             raise
 
-    async def process_task_async(self, task_id: str, run_id: str, phase: str = "apply",
-                               mode: str = "repo") -> Dict[str, Any]:
+    async def process_task_async(
+        self, task_id: str, run_id: str, phase: str = "apply", mode: str = "repo"
+    ) -> Dict[str, Any]:
         """
         Process task asynchronously with non-blocking operations.
 
@@ -121,17 +118,15 @@ class AsyncWorkerCore:
                 return {"status": "failed", "error": "Task not found"}
 
             # Update status to running (non-blocking)
-            await update_task_status_async(task_id, "in_progress", {
-                "started_at": datetime.now(timezone.utc).isoformat(),
-                "worker_id": self.worker_id,
-                "run_id": run_id
-            })
+            await update_task_status_async(
+                task_id,
+                "in_progress",
+                {"started_at": datetime.now(timezone.utc).isoformat(), "worker_id": self.worker_id, "run_id": run_id},
+            )
 
             # Publish task started event (non-blocking)
             if self.event_bus:
-                await self._publish_task_event_async(
-                    TaskEventType.STARTED, task_id, task, phase=phase
-                )
+                await self._publish_task_event_async(TaskEventType.STARTED, task_id, task, phase=phase)
 
             # Execute task with async subprocess (main performance improvement)
             result = await self._execute_task_async(task, run_id, phase, mode)
@@ -151,8 +146,7 @@ class AsyncWorkerCore:
             await self._handle_error_async(task_id, run_id, str(e))
             return {"status": "failed", "error": str(e), "execution_time": execution_time}
 
-    async def _execute_task_async(self, task: Dict[str, Any], run_id: str,
-                                phase: str, mode: str) -> Dict[str, Any]:
+    async def _execute_task_async(self, task: Dict[str, Any], run_id: str, phase: str, mode: str) -> Dict[str, Any]:
         """
         Execute task using async subprocess for non-blocking operation.
 
@@ -182,20 +176,20 @@ class AsyncWorkerCore:
 
             # Execute Claude with async subprocess
             process = await asyncio.create_subprocess_exec(
-                claude_cmd, "code", "--prompt-file", str(prompt_file),
+                claude_cmd,
+                "code",
+                "--prompt-file",
+                str(prompt_file),
                 cwd=workspace,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                env=self._create_enhanced_environment()
+                env=self._create_enhanced_environment(),
             )
 
             # Wait for completion with timeout (non-blocking for other tasks)
             timeout = 600  # 10 minutes for complex tasks
             try:
-                stdout, stderr = await asyncio.wait_for(
-                    process.communicate(),
-                    timeout=timeout
-                )
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
 
                 # Clean up prompt file
                 try:
@@ -213,14 +207,14 @@ class AsyncWorkerCore:
                         "output": stdout.decode() if stdout else "",
                         "workspace": str(workspace),
                         "files": workspace_files,
-                        "phase": phase
+                        "phase": phase,
                     }
                 else:
                     return {
                         "status": "failed",
                         "error": stderr.decode() if stderr else "Unknown error",
                         "output": stdout.decode() if stdout else "",
-                        "return_code": process.returncode
+                        "return_code": process.returncode,
                     }
 
             except asyncio.TimeoutError:
@@ -231,10 +225,7 @@ class AsyncWorkerCore:
                 except Exception:
                     pass
 
-                return {
-                    "status": "failed",
-                    "error": f"Task execution timeout after {timeout} seconds"
-                }
+                return {"status": "failed", "error": f"Task execution timeout after {timeout} seconds"}
 
         except Exception as e:
             return {"status": "failed", "error": f"Subprocess execution failed: {e}"}
@@ -265,23 +256,28 @@ class AsyncWorkerCore:
             try:
                 # Initialize git repo asynchronously
                 process = await asyncio.create_subprocess_exec(
-                    "git", "init",
-                    cwd=workspace,
-                    stdout=asyncio.subprocess.DEVNULL,
-                    stderr=asyncio.subprocess.DEVNULL
+                    "git", "init", cwd=workspace, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL
                 )
                 await process.wait()
 
                 # Configure git
                 await asyncio.create_subprocess_exec(
-                    "git", "config", "user.name", "Hive Worker",
-                    cwd=workspace, stdout=asyncio.subprocess.DEVNULL,
-                    stderr=asyncio.subprocess.DEVNULL
+                    "git",
+                    "config",
+                    "user.name",
+                    "Hive Worker",
+                    cwd=workspace,
+                    stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL,
                 )
                 await asyncio.create_subprocess_exec(
-                    "git", "config", "user.email", "worker@hive.local",
-                    cwd=workspace, stdout=asyncio.subprocess.DEVNULL,
-                    stderr=asyncio.subprocess.DEVNULL
+                    "git",
+                    "config",
+                    "user.email",
+                    "worker@hive.local",
+                    cwd=workspace,
+                    stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL,
                 )
 
             except Exception as e:
@@ -351,10 +347,13 @@ CRITICAL PATH CONSTRAINT:
                 try:
                     # Modified files
                     process = await asyncio.create_subprocess_exec(
-                        "git", "diff", "--name-only", "HEAD",
+                        "git",
+                        "diff",
+                        "--name-only",
+                        "HEAD",
                         cwd=workspace,
                         stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.DEVNULL
+                        stderr=asyncio.subprocess.DEVNULL,
                     )
                     stdout, _ = await process.communicate()
                     if process.returncode == 0 and stdout:
@@ -362,10 +361,13 @@ CRITICAL PATH CONSTRAINT:
 
                     # Untracked files
                     process = await asyncio.create_subprocess_exec(
-                        "git", "ls-files", "--others", "--exclude-standard",
+                        "git",
+                        "ls-files",
+                        "--others",
+                        "--exclude-standard",
                         cwd=workspace,
                         stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.DEVNULL
+                        stderr=asyncio.subprocess.DEVNULL,
                     )
                     stdout, _ = await process.communicate()
                     if process.returncode == 0 and stdout:
@@ -386,20 +388,16 @@ CRITICAL PATH CONSTRAINT:
         except Exception as e:
             self.log.warning(f"Could not scan workspace files: {e}")
 
-        return {
-            "created": created_files,
-            "modified": modified_files
-        }
+        return {"created": created_files, "modified": modified_files}
 
     async def _report_completion_async(self, task_id: str, run_id: str, result: Dict[str, Any]):
         """Report task completion asynchronously."""
         try:
             # Update database status
             status = "completed" if result["status"] == "success" else "failed"
-            await update_task_status_async(task_id, status, {
-                "completed_at": datetime.now(timezone.utc).isoformat(),
-                "result": result
-            })
+            await update_task_status_async(
+                task_id, status, {"completed_at": datetime.now(timezone.utc).isoformat(), "result": result}
+            )
 
             # Log run result to database
             log_run_result(run_id, result["status"], result)
@@ -415,33 +413,26 @@ CRITICAL PATH CONSTRAINT:
     async def _handle_error_async(self, task_id: str, run_id: str, error: str):
         """Handle task error asynchronously."""
         try:
-            await update_task_status_async(task_id, "failed", {
-                "completed_at": datetime.now(timezone.utc).isoformat(),
-                "error": error
-            })
+            await update_task_status_async(
+                task_id, "failed", {"completed_at": datetime.now(timezone.utc).isoformat(), "error": error}
+            )
 
             # Log run result
             log_run_result(run_id, "failed", {"error": error})
 
             # Publish failure event
             if self.event_bus:
-                await self._publish_task_event_async(
-                    TaskEventType.FAILED, task_id, {"id": task_id}, error=error
-                )
+                await self._publish_task_event_async(TaskEventType.FAILED, task_id, {"id": task_id}, error=error)
 
         except Exception as e:
             self.log.error(f"Failed to handle error for task {task_id}: {e}")
 
-    async def _publish_task_event_async(self, event_type: TaskEventType, task_id: str,
-                                      task: Dict[str, Any], **kwargs):
+    async def _publish_task_event_async(self, event_type: TaskEventType, task_id: str, task: Dict[str, Any], **kwargs):
         """Publish task event asynchronously."""
         try:
             if self.event_bus:
                 event = create_task_event(
-                    event_type=event_type,
-                    task_id=task_id,
-                    source_agent=f"worker-{self.worker_id}",
-                    **kwargs
+                    event_type=event_type, task_id=task_id, source_agent=f"worker-{self.worker_id}", **kwargs
                 )
                 await self.event_bus.publish_async(event)
         except Exception as e:
@@ -451,8 +442,7 @@ CRITICAL PATH CONSTRAINT:
         """Find Claude CLI command."""
         # Check for claude in PATH
         try:
-            result = subprocess.run(["claude", "--version"],
-                                  capture_output=True, text=True, timeout=5)
+            result = subprocess.run(["claude", "--version"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 return "claude"
         except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -461,8 +451,7 @@ CRITICAL PATH CONSTRAINT:
         # Check for claude.exe on Windows
         if sys.platform == "win32":
             try:
-                result = subprocess.run(["claude.exe", "--version"],
-                                      capture_output=True, text=True, timeout=5)
+                result = subprocess.run(["claude.exe", "--version"], capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     return "claude.exe"
             except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -477,6 +466,7 @@ CRITICAL PATH CONSTRAINT:
 
         # Add hive-orchestrator to Python path
         from hive_utils.paths import PROJECT_ROOT
+
         orchestrator_src = (PROJECT_ROOT / "apps" / "hive-orchestrator" / "src").as_posix()
         if "PYTHONPATH" in env:
             env["PYTHONPATH"] = f"{orchestrator_src}{os.pathsep}{env['PYTHONPATH']}"
@@ -499,7 +489,7 @@ CRITICAL PATH CONSTRAINT:
             "tasks_completed": self._task_count,
             "tasks_per_minute": tasks_per_minute,
             "async_enabled": ASYNC_AVAILABLE,
-            "initialized": self._initialized
+            "initialized": self._initialized,
         }
 
 
@@ -520,15 +510,15 @@ class AsyncWorkerAdapter:
         """Get or create async worker instance."""
         if self.async_worker is None:
             self.async_worker = AsyncWorkerCore(
-                self.sync_worker.worker_id,
-                live_output=getattr(self.sync_worker, 'live_output', False)
+                self.sync_worker.worker_id, live_output=getattr(self.sync_worker, "live_output", False)
             )
             await self.async_worker.initialize()
 
         return self.async_worker
 
-    async def process_task_async(self, task_id: str, run_id: str,
-                               phase: str = "apply", mode: str = "repo") -> Dict[str, Any]:
+    async def process_task_async(
+        self, task_id: str, run_id: str, phase: str = "apply", mode: str = "repo"
+    ) -> Dict[str, Any]:
         """Process task asynchronously."""
         async_worker = await self.get_async_worker()
         return await async_worker.process_task_async(task_id, run_id, phase, mode)
@@ -576,9 +566,8 @@ async def benchmark_async_vs_sync(num_tasks: int = 5) -> Dict[str, Any]:
 
     async_start = time.time()
     async_results = await asyncio.gather(
-        *[async_worker.process_task_async(task_id, run_id, "apply", "fresh")
-          for task_id, run_id in test_tasks],
-        return_exceptions=True
+        *[async_worker.process_task_async(task_id, run_id, "apply", "fresh") for task_id, run_id in test_tasks],
+        return_exceptions=True,
     )
     async_time = time.time() - async_start
 
@@ -594,7 +583,7 @@ async def benchmark_async_vs_sync(num_tasks: int = 5) -> Dict[str, Any]:
         "num_tasks": num_tasks,
         "async_results": len([r for r in async_results if isinstance(r, dict) and r.get("status") == "success"]),
         "worker_stats": worker_stats,
-        "performance_improvement": "3-5x expected with real Claude tasks"
+        "performance_improvement": "3-5x expected with real Claude tasks",
     }
 
 
@@ -603,12 +592,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Async Worker Performance Testing")
-    parser.add_argument("--benchmark", action="store_true",
-                       help="Run performance benchmark")
-    parser.add_argument("--tasks", type=int, default=5,
-                       help="Number of tasks for benchmark")
-    parser.add_argument("--worker-id", default="test",
-                       help="Worker ID for testing")
+    parser.add_argument("--benchmark", action="store_true", help="Run performance benchmark")
+    parser.add_argument("--tasks", type=int, default=5, help="Number of tasks for benchmark")
+    parser.add_argument("--worker-id", default="test", help="Worker ID for testing")
 
     args = parser.parse_args()
 

@@ -108,9 +108,7 @@ class BaseOptimizationAlgorithm(ABC):
         pass
 
     @abstractmethod
-    def evaluate_population(
-        self, population: np.ndarray, fitness_function: Callable
-    ) -> List[Dict[str, Any]]:
+    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> List[Dict[str, Any]]:
         """Evaluate the fitness of a population.
 
         Args:
@@ -123,9 +121,7 @@ class BaseOptimizationAlgorithm(ABC):
         pass
 
     @abstractmethod
-    def update_population(
-        self, population: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> np.ndarray:
+    def update_population(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """Update the population based on evaluation results.
 
         Args:
@@ -182,9 +178,7 @@ class BaseOptimizationAlgorithm(ABC):
                 self.convergence_history.append(best_fitness)
 
                 if self.config.verbose and generation % 10 == 0:
-                    logger.info(
-                        f"Generation {generation}: Best fitness = {best_fitness:.6f}"
-                    )
+                    logger.info(f"Generation {generation}: Best fitness = {best_fitness:.6f}")
 
                 # Check termination criteria
                 if self._should_terminate(evaluations, start_time):
@@ -233,9 +227,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         # For single objective, return minimum
         if len(self.config.objectives) == 1:
-            fitnesses = [
-                eval_result.get("fitness", float("inf")) for eval_result in evaluations
-            ]
+            fitnesses = [eval_result.get("fitness", float("inf")) for eval_result in evaluations]
             return min(fitnesses)
         else:
             # For multi-objective, return hypervolume or other metric
@@ -248,9 +240,7 @@ class BaseOptimizationAlgorithm(ABC):
 
             return min(avg_objectives) if avg_objectives else float("inf")
 
-    def _should_terminate(
-        self, evaluations: List[Dict[str, Any]], start_time: float
-    ) -> bool:
+    def _should_terminate(self, evaluations: List[Dict[str, Any]], start_time: float) -> bool:
         """Check if optimization should terminate.
 
         Args:
@@ -266,17 +256,11 @@ class BaseOptimizationAlgorithm(ABC):
             return True
 
         # Check maximum evaluations
-        if (
-            self.config.max_evaluations
-            and self.current_evaluations >= self.config.max_evaluations
-        ):
+        if self.config.max_evaluations and self.current_evaluations >= self.config.max_evaluations:
             return True
 
         # Check time limit
-        if (
-            self.config.time_limit
-            and time.time() - start_time >= self.config.time_limit
-        ):
+        if self.config.time_limit and time.time() - start_time >= self.config.time_limit:
             self.status = OptimizationStatus.TERMINATED
             return True
 
@@ -339,25 +323,15 @@ class BaseOptimizationAlgorithm(ABC):
             # Multi-objective - return Pareto front
             pareto_indices = self._find_pareto_front(evaluations)
             pareto_solutions = [population[i] for i in pareto_indices]
-            pareto_objectives = [
-                evaluations[i].get("objectives", []) for i in pareto_indices
-            ]
+            pareto_objectives = [evaluations[i].get("objectives", []) for i in pareto_indices]
 
             # Best solution is the one with minimum distance to ideal point
             best_idx = self._find_best_compromise_solution(evaluations, pareto_indices)
 
             return OptimizationResult(
                 best_solution=population[best_idx] if best_idx is not None else None,
-                best_fitness=(
-                    evaluations[best_idx].get("fitness")
-                    if best_idx is not None
-                    else None
-                ),
-                best_objectives=(
-                    evaluations[best_idx].get("objectives")
-                    if best_idx is not None
-                    else None
-                ),
+                best_fitness=(evaluations[best_idx].get("fitness") if best_idx is not None else None),
+                best_objectives=(evaluations[best_idx].get("objectives") if best_idx is not None else None),
                 pareto_front=pareto_solutions,
                 pareto_objectives=pareto_objectives,
                 convergence_history=self.convergence_history,

@@ -81,9 +81,7 @@ def resample_timeseries(
         raise TypeError("Data must be pandas DataFrame or xarray Dataset")
 
 
-def qc_bounds(
-    data: Union[pd.Series, np.ndarray], bounds: tuple, clip: bool = True
-) -> Union[pd.Series, np.ndarray]:
+def qc_bounds(data: Union[pd.Series, np.ndarray], bounds: tuple, clip: bool = True) -> Union[pd.Series, np.ndarray]:
     """
     Apply quality control bounds to data.
 
@@ -204,9 +202,7 @@ def calculate_night_mask(times: pd.DatetimeIndex, lat: float) -> np.ndarray:
     return night_mask
 
 
-def calculate_solar_elevation(
-    times: Union[np.ndarray, pd.DatetimeIndex], lat: float
-) -> np.ndarray:
+def calculate_solar_elevation(times: Union[np.ndarray, pd.DatetimeIndex], lat: float) -> np.ndarray:
     """
     Calculate solar elevation angle using vectorized operations.
 
@@ -245,10 +241,7 @@ def calculate_solar_elevation(
     hour_rad = np.radians(hour_angle)
 
     # Solar elevation angle using spherical trigonometry
-    elevation_rad = np.arcsin(
-        np.sin(lat_rad) * np.sin(dec_rad)
-        + np.cos(lat_rad) * np.cos(dec_rad) * np.cos(hour_rad)
-    )
+    elevation_rad = np.arcsin(np.sin(lat_rad) * np.sin(dec_rad) + np.cos(lat_rad) * np.cos(dec_rad) * np.cos(hour_rad))
 
     # Convert to degrees
     elevation_deg = np.degrees(elevation_rad)

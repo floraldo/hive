@@ -62,9 +62,7 @@ def load_config_for_app(app_name: str) -> AppConfig:
                         config[key] = value
                         sources[key] = source
 
-                logger.debug(
-                    f"Loaded {len(file_config)} keys from {env_file} ({source.value})"
-                )
+                logger.debug(f"Loaded {len(file_config)} keys from {env_file} ({source.value})")
 
             except Exception as e:
                 logger.warning(f"Failed to load {env_file}: {e}")
@@ -77,8 +75,7 @@ def load_config_for_app(app_name: str) -> AppConfig:
         system_keys += 1
 
     logger.info(
-        f"Loaded configuration for '{app_name}': "
-        f"{len(config)} total keys, {system_keys} from system environment"
+        f"Loaded configuration for '{app_name}': " f"{len(config)} total keys, {system_keys} from system environment"
     )
 
     return AppConfig(app_name=app_name, config=config, sources=sources)
@@ -111,9 +108,7 @@ def get_required_keys(app_name: str, required: List[str]) -> Dict[str, str]:
 
     # Log which sources the keys came from for security auditing
     source_info = {key: config.sources[key].value for key in required}
-    logger.info(
-        f"Provided {len(required)} required keys to '{app_name}': {source_info}"
-    )
+    logger.info(f"Provided {len(required)} required keys to '{app_name}': {source_info}")
 
     return result
 
@@ -139,9 +134,7 @@ def get_global_api_keys() -> Dict[str, Optional[str]]:
 
         # Filter for keys that look like API keys
         api_keys = {
-            key: value
-            for key, value in shared_config.items()
-            if "API_KEY" in key or "TOKEN" in key or "SECRET" in key
+            key: value for key, value in shared_config.items() if "API_KEY" in key or "TOKEN" in key or "SECRET" in key
         }
 
         logger.info(f"Found {len(api_keys)} global API keys available for sharing")
@@ -170,18 +163,14 @@ def audit_app_config(app_name: str) -> Dict:
         sensitive_keys = [
             key
             for key in config.config.keys()
-            if any(
-                term in key.upper()
-                for term in ["PASSWORD", "SECRET", "TOKEN", "API_KEY", "PRIVATE"]
-            )
+            if any(term in key.upper() for term in ["PASSWORD", "SECRET", "TOKEN", "API_KEY", "PRIVATE"])
         ]
 
         audit_report["security"] = {
             "sensitive_keys_count": len(sensitive_keys),
             "sensitive_keys": sensitive_keys,
             "app_has_secrets": len(config.get_keys_by_source(ConfigSources.APP)) > 0,
-            "uses_global_secrets": len(config.get_keys_by_source(ConfigSources.GLOBAL))
-            > 0,
+            "uses_global_secrets": len(config.get_keys_by_source(ConfigSources.GLOBAL)) > 0,
         }
 
         return audit_report

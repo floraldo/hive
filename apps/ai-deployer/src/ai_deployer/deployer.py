@@ -90,7 +90,7 @@ class DeploymentOrchestrator:
             DeploymentStrategy.CANARY: KubernetesDeploymentStrategy(self.config),
         }
 
-    async def deploy(self, task: Dict[str, Any]) -> DeploymentResult:
+    async def deploy_async(self, task: Dict[str, Any]) -> DeploymentResult:
         """
         Deploy application based on task configuration
 
@@ -116,11 +116,11 @@ class DeploymentOrchestrator:
                 raise ValueError(f"Strategy {strategy} not implemented")
 
             # Execute deployment
-            result = await self._execute_deployment(strategy_impl, task, deployment_id)
+            result = await self._execute_deployment_async(strategy_impl, task, deployment_id)
 
             # Post-deployment validation
             if result.success:
-                await self._validate_deployment(task, deployment_id)
+                await self._validate_deployment_async(task, deployment_id)
 
             return result
 
@@ -128,7 +128,7 @@ class DeploymentOrchestrator:
             logger.error(f"Deployment {deployment_id} failed: {e}", exc_info=True)
 
             # Attempt rollback
-            rollback_success = await self._attempt_rollback(task, deployment_id)
+            rollback_success = await self._attempt_rollback_async(task, deployment_id)
 
             return DeploymentResult(
                 success=False,
@@ -164,16 +164,12 @@ class DeploymentOrchestrator:
 
         # Validate strategy is appropriate for environment
         if not self._validate_strategy_compatibility(strategy, task):
-            logger.warning(
-                f"Strategy {strategy.value} not compatible, falling back to direct"
-            )
+            logger.warning(f"Strategy {strategy.value} not compatible, falling back to direct")
             strategy = DeploymentStrategy.DIRECT
 
         return strategy
 
-    def _validate_strategy_compatibility(
-        self, strategy: DeploymentStrategy, task: Dict[str, Any]
-    ) -> bool:
+    def _validate_strategy_compatibility(self, strategy: DeploymentStrategy, task: Dict[str, Any]) -> bool:
         """
         Validate if strategy is compatible with deployment environment
 
@@ -201,7 +197,7 @@ class DeploymentOrchestrator:
         # Direct deployment is always available
         return True
 
-    async def _execute_deployment(
+    async def _execute_deployment_async(
         self, strategy_impl: Any, task: Dict[str, Any], deployment_id: str
     ) -> DeploymentResult:
         """
@@ -221,7 +217,7 @@ class DeploymentOrchestrator:
             raise RuntimeError(f"Pre-deployment checks failed: {pre_checks['errors']}")
 
         # Execute deployment
-        deploy_result = await strategy_impl.deploy(task, deployment_id)
+        deploy_result = await strategy_impl.deploy_async(task, deployment_id)
 
         # Post-deployment actions
         if deploy_result["success"]:
@@ -234,9 +230,7 @@ class DeploymentOrchestrator:
             metrics=deploy_result.get("metrics", {}),
         )
 
-    async def _validate_deployment(
-        self, task: Dict[str, Any], deployment_id: str
-    ) -> bool:
+    async def _validate_deployment_async(self, task: Dict[str, Any], deployment_id: str) -> bool:
         """
         Validate deployment was successful
 
@@ -249,17 +243,15 @@ class DeploymentOrchestrator:
         """
         try:
             # Run health checks
-            health_status = await self.check_health(task)
+            health_status = await self.check_health_async(task)
 
             if not health_status.healthy:
-                logger.error(
-                    f"Deployment {deployment_id} validation failed: {health_status.message}"
-                )
+                logger.error(f"Deployment {deployment_id} validation failed: {health_status.message}")
                 return False
 
             # Run smoke tests if configured
             if task.get("run_smoke_tests", False):
-                smoke_result = await self._run_smoke_tests(task)
+                smoke_result = await self._run_smoke_tests_async(task)
                 if not smoke_result:
                     logger.error(f"Deployment {deployment_id} smoke tests failed")
                     return False
@@ -271,7 +263,7 @@ class DeploymentOrchestrator:
             logger.error(f"Deployment validation error: {e}", exc_info=True)
             return False
 
-    async def _attempt_rollback(self, task: Dict[str, Any], deployment_id: str) -> bool:
+    async def _attempt_rollback_async(self, task: Dict[str, Any], deployment_id: str) -> bool:
         """
         Attempt to rollback failed deployment
 
@@ -295,24 +287,20 @@ class DeploymentOrchestrator:
             strategy_impl = self.strategies[DeploymentStrategy.DIRECT]
 
             # Execute rollback
-            rollback_result = await strategy_impl.rollback(
-                task, deployment_id, previous
-            )
+            rollback_result = await strategy_impl.rollback(task, deployment_id, previous)
 
             if rollback_result["success"]:
                 logger.info(f"Rollback successful for deployment {deployment_id}")
                 return True
             else:
-                logger.error(
-                    f"Rollback failed for deployment {deployment_id}: {rollback_result.get('error')}"
-                )
+                logger.error(f"Rollback failed for deployment {deployment_id}: {rollback_result.get('error')}")
                 return False
 
         except Exception as e:
             logger.error(f"Rollback error: {e}", exc_info=True)
             return False
 
-    async def check_health(self, task: Dict[str, Any]) -> HealthStatus:
+    async def check_health_async(self, task: Dict[str, Any]) -> HealthStatus:
         """
         Check health of deployed application
 
@@ -327,13 +315,13 @@ class DeploymentOrchestrator:
 
             # Check application endpoint
             endpoint = task.get("health_endpoint", "/health")
-            app_health = await self._check_endpoint(task, endpoint)
+            app_health = await self._check_endpoint_async(task, endpoint)
             health_checks["application"] = app_health
 
             # Check dependencies if configured
             dependencies = task.get("health_dependencies", [])
             for dep in dependencies:
-                dep_health = await self._check_dependency(dep)
+                dep_health = await self._check_dependency_async(dep)
                 health_checks[dep["name"]] = dep_health
 
             # Overall health is True if all checks pass
@@ -341,11 +329,7 @@ class DeploymentOrchestrator:
 
             return HealthStatus(
                 healthy=overall_healthy,
-                message=(
-                    "All health checks passed"
-                    if overall_healthy
-                    else "Some health checks failed"
-                ),
+                message=("All health checks passed" if overall_healthy else "Some health checks failed"),
                 checks=health_checks,
             )
 
@@ -356,21 +340,21 @@ class DeploymentOrchestrator:
                 message=f"Health check error: {e}",
             )
 
-    async def _check_endpoint(self, task: Dict[str, Any], endpoint: str) -> bool:
+    async def _check_endpoint_async(self, task: Dict[str, Any], endpoint: str) -> bool:
         """Check if application endpoint is healthy"""
         # Implementation would make HTTP request to endpoint
         # For now, simulate check
         await asyncio.sleep(0.5)
         return True  # Placeholder
 
-    async def _check_dependency(self, dependency: Dict[str, Any]) -> bool:
+    async def _check_dependency_async(self, dependency: Dict[str, Any]) -> bool:
         """Check if dependency is healthy"""
         # Implementation would check dependency health
         # For now, simulate check
         await asyncio.sleep(0.2)
         return True  # Placeholder
 
-    async def _run_smoke_tests(self, task: Dict[str, Any]) -> bool:
+    async def _run_smoke_tests_async(self, task: Dict[str, Any]) -> bool:
         """Run smoke tests on deployed application"""
         # Implementation would run configured smoke tests
         # For now, simulate test run

@@ -24,17 +24,17 @@ class JobService:
     @staticmethod
     async def process_climate_job_async(job_data: Dict[str, Any]) -> Dict[str, Any]:
         """Process a climate data job asynchronously."""
-        return await process_climate_job({}, job_data)
+        return await process_climate_job_async({}, job_data)
 
     @staticmethod
     async def cleanup_old_jobs_async() -> None:
         """Clean up old job results and cached data."""
-        await cleanup_old_jobs({})
+        await cleanup_old_jobs_async({})
 
     @staticmethod
     async def collect_metrics_async() -> None:
         """Collect system and application metrics."""
-        await collect_metrics({})
+        await collect_metrics_async({})
 
     def __init__(self):
         """Initialize the JobService."""
@@ -42,16 +42,10 @@ class JobService:
 
     def get_status(self) -> Dict[str, str]:
         """Get the current status of the job service."""
-        return {
-            "status": "active",
-            "service": "JobService",
-            "version": "3.0"
-        }
+        return {"status": "active", "service": "JobService", "version": "3.0"}
 
 
-async def process_climate_job(
-    ctx: Dict[str, Any], job_data: Dict[str, Any]
-) -> Dict[str, Any]:
+async def process_climate_job_async(ctx: Dict[str, Any], job_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Process a climate data job.
 
@@ -70,15 +64,14 @@ async def process_climate_job(
 
         # Get climate service using factory function
         from ecosystemiser.settings import get_settings
+
         config = get_settings()
         service = create_climate_service(config)
 
         # Process the request
         result = await service.process_request_async(request)
 
-        logger.info(
-            f"Climate job completed successfully: {job_data.get('job_id', 'unknown')}"
-        )
+        logger.info(f"Climate job completed successfully: {job_data.get('job_id', 'unknown')}")
 
         return {
             "status": "completed",
@@ -91,7 +84,7 @@ async def process_climate_job(
         return {"status": "failed", "error": str(e), "job_id": job_data.get("job_id")}
 
 
-async def cleanup_old_jobs(ctx: Dict[str, Any]) -> None:
+async def cleanup_old_jobs_async(ctx: Dict[str, Any]) -> None:
     """
     Clean up old job results and cached data.
 
@@ -102,9 +95,9 @@ async def cleanup_old_jobs(ctx: Dict[str, Any]) -> None:
         logger.info("Starting cleanup of old jobs")
 
         # Cleanup old job results and cache files
-        await _cleanup_job_results(max_age_days=7)
-        await _cleanup_cache_files(max_age_days=30)
-        await _cleanup_temp_files(max_age_hours=24)
+        await _cleanup_job_results_async(max_age_days=7)
+        await _cleanup_cache_files_async(max_age_days=30)
+        await _cleanup_temp_files_async(max_age_hours=24)
 
         logger.info("Cleanup completed successfully")
 
@@ -112,7 +105,7 @@ async def cleanup_old_jobs(ctx: Dict[str, Any]) -> None:
         logger.error(f"Cleanup failed: {str(e)}")
 
 
-async def collect_metrics(ctx: Dict[str, Any]) -> None:
+async def collect_metrics_async(ctx: Dict[str, Any]) -> None:
     """
     Collect system and application metrics.
 
@@ -123,8 +116,8 @@ async def collect_metrics(ctx: Dict[str, Any]) -> None:
         logger.info("Collecting system metrics")
 
         # Collect system and application metrics
-        metrics = await _collect_system_metrics()
-        await _record_metrics(metrics)
+        metrics = await _collect_system_metrics_async()
+        await _record_metrics_async(metrics)
 
         logger.info("Metrics collection completed")
 
@@ -132,7 +125,7 @@ async def collect_metrics(ctx: Dict[str, Any]) -> None:
         logger.error(f"Metrics collection failed: {str(e)}")
 
 
-async def startup(ctx: Dict[str, Any]) -> None:
+async def startup_async(ctx: Dict[str, Any]) -> None:
     """
     Worker startup hook.
 
@@ -149,7 +142,7 @@ async def startup(ctx: Dict[str, Any]) -> None:
     logger.info("Climate worker started successfully")
 
 
-async def shutdown(ctx: Dict[str, Any]) -> None:
+async def shutdown_async(ctx: Dict[str, Any]) -> None:
     """
     Worker shutdown hook.
 
@@ -159,7 +152,7 @@ async def shutdown(ctx: Dict[str, Any]) -> None:
     logger.info("Climate worker shutting down...")
 
     # Clean up any shared resources
-    await _cleanup_shared_resources(ctx)
+    await _cleanup_shared_resources_async(ctx)
 
     logger.info("Climate worker shut down successfully")
 
@@ -167,7 +160,7 @@ async def shutdown(ctx: Dict[str, Any]) -> None:
 # Helper functions for cleanup and metrics
 
 
-async def _cleanup_job_results(max_age_days: int = 7) -> None:
+async def _cleanup_job_results_async(max_age_days: int = 7) -> None:
     """Clean up old job results from storage."""
     try:
         from datetime import datetime, timedelta
@@ -191,7 +184,7 @@ async def _cleanup_job_results(max_age_days: int = 7) -> None:
         logger.error(f"Failed to cleanup job results: {e}")
 
 
-async def _cleanup_cache_files(max_age_days: int = 30) -> None:
+async def _cleanup_cache_files_async(max_age_days: int = 30) -> None:
     """Clean up old cache files."""
     try:
         from datetime import datetime, timedelta
@@ -205,10 +198,7 @@ async def _cleanup_cache_files(max_age_days: int = 30) -> None:
 
         cleaned = 0
         for cache_file in cache_dir.rglob("*"):
-            if (
-                cache_file.is_file()
-                and cache_file.stat().st_mtime < cutoff_date.timestamp()
-            ):
+            if cache_file.is_file() and cache_file.stat().st_mtime < cutoff_date.timestamp():
                 cache_file.unlink()
                 cleaned += 1
 
@@ -218,7 +208,7 @@ async def _cleanup_cache_files(max_age_days: int = 30) -> None:
         logger.error(f"Failed to cleanup cache files: {e}")
 
 
-async def _cleanup_temp_files(max_age_hours: int = 24) -> None:
+async def _cleanup_temp_files_async(max_age_hours: int = 24) -> None:
     """Clean up temporary files."""
     try:
         import tempfile
@@ -230,10 +220,7 @@ async def _cleanup_temp_files(max_age_hours: int = 24) -> None:
 
         cleaned = 0
         for temp_file in temp_dir.glob("ecosys_*"):
-            if (
-                temp_file.is_file()
-                and temp_file.stat().st_mtime < cutoff_date.timestamp()
-            ):
+            if temp_file.is_file() and temp_file.stat().st_mtime < cutoff_date.timestamp():
                 temp_file.unlink()
                 cleaned += 1
 
@@ -243,7 +230,7 @@ async def _cleanup_temp_files(max_age_hours: int = 24) -> None:
         logger.error(f"Failed to cleanup temp files: {e}")
 
 
-async def _collect_system_metrics() -> Dict[str, Any]:
+async def _collect_system_metrics_async() -> Dict[str, Any]:
     """Collect system and application metrics."""
     try:
         import time
@@ -265,7 +252,7 @@ async def _collect_system_metrics() -> Dict[str, Any]:
         return {}
 
 
-async def _record_metrics(metrics: Dict[str, Any]) -> None:
+async def _record_metrics_async(metrics: Dict[str, Any]) -> None:
     """Record metrics to storage or monitoring system."""
     try:
         if not metrics:
@@ -282,7 +269,7 @@ async def _record_metrics(metrics: Dict[str, Any]) -> None:
         logger.error(f"Failed to record metrics: {e}")
 
 
-async def _cleanup_shared_resources(ctx: Dict[str, Any]) -> None:
+async def _cleanup_shared_resources_async(ctx: Dict[str, Any]) -> None:
     """Clean up shared resources during worker shutdown."""
     try:
         # Close any open connections, clear caches, etc.

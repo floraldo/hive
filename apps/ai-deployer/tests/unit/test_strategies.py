@@ -84,7 +84,7 @@ class TestSSHDeploymentStrategy:
         assert all(field in fields for field in expected_fields)
 
     @pytest.mark.asyncio
-    async def test_validate_configuration(self, ssh_task):
+    async def test_validate_configuration_async(self, ssh_task):
         """Test SSH task configuration validation"""
         strategy = SSHDeploymentStrategy({})
 
@@ -97,70 +97,55 @@ class TestSSHDeploymentStrategy:
         assert not await strategy.validate_configuration(incomplete_task)
 
     @pytest.mark.asyncio
-    async def test_pre_deployment_checks_success(self, ssh_task):
+    async def test_pre_deployment_checks_success_async(self, ssh_task):
         """Test successful pre-deployment checks"""
         strategy = SSHDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "validate_configuration", return_value=True
-        ), patch.object(
+        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
             strategy, "_check_ssh_connectivity", return_value=True
-        ), patch.object(
-            strategy, "_check_remote_permissions", return_value=True
-        ), patch(
+        ), patch.object(strategy, "_check_remote_permissions", return_value=True), patch(
             "pathlib.Path.exists", return_value=True
         ):
-
             result = await strategy.pre_deployment_checks(ssh_task)
 
             assert result["success"] is True
             assert len(result["errors"]) == 0
 
     @pytest.mark.asyncio
-    async def test_pre_deployment_checks_ssh_failure(self, ssh_task):
+    async def test_pre_deployment_checks_ssh_failure_async(self, ssh_task):
         """Test pre-deployment checks with SSH connectivity failure"""
         strategy = SSHDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "validate_configuration", return_value=True
-        ), patch.object(strategy, "_check_ssh_connectivity", return_value=False):
-
+        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
+            strategy, "_check_ssh_connectivity", return_value=False
+        ):
             result = await strategy.pre_deployment_checks(ssh_task)
 
             assert result["success"] is False
-            assert any(
-                "SSH connectivity check failed" in error for error in result["errors"]
-            )
+            assert any("SSH connectivity check failed" in error for error in result["errors"])
 
     @pytest.mark.asyncio
-    async def test_pre_deployment_checks_missing_source(self, ssh_task):
+    async def test_pre_deployment_checks_missing_source_async(self, ssh_task):
         """Test pre-deployment checks with missing source path"""
         strategy = SSHDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "validate_configuration", return_value=True
-        ), patch.object(strategy, "_check_ssh_connectivity", return_value=True), patch(
-            "pathlib.Path.exists", return_value=False
-        ):
-
+        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
+            strategy, "_check_ssh_connectivity", return_value=True
+        ), patch("pathlib.Path.exists", return_value=False):
             result = await strategy.pre_deployment_checks(ssh_task)
 
             assert result["success"] is False
-            assert any(
-                "Source path does not exist" in error for error in result["errors"]
-            )
+            assert any("Source path does not exist" in error for error in result["errors"])
 
     @pytest.mark.asyncio
-    async def test_deploy_success(self, ssh_task):
+    async def test_deploy_success_async(self, ssh_task):
         """Test successful SSH deployment"""
         strategy = SSHDeploymentStrategy({})
 
         mock_ssh_client = Mock()
         mock_ssh_client.close = Mock()
 
-        with patch.object(
-            strategy, "_connect_to_server", return_value=mock_ssh_client
-        ), patch.object(
+        with patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client), patch.object(
             strategy, "_create_backup", return_value={"backup_id": "backup-123"}
         ), patch.object(
             strategy,
@@ -172,7 +157,6 @@ class TestSSHDeploymentStrategy:
             "ai_deployer.strategies.ssh.determine_deployment_paths",
             return_value={"remote_app_dir": "/apps/web-app"},
         ):
-
             result = await strategy.deploy(ssh_task, "deploy-123")
 
             assert result["success"] is True
@@ -181,7 +165,7 @@ class TestSSHDeploymentStrategy:
             mock_ssh_client.close.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_deploy_ssh_connection_failure(self, ssh_task):
+    async def test_deploy_ssh_connection_failure_async(self, ssh_task):
         """Test SSH deployment with connection failure"""
         strategy = SSHDeploymentStrategy({})
 
@@ -192,59 +176,45 @@ class TestSSHDeploymentStrategy:
             assert "Failed to establish SSH connection" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_deploy_service_start_failure(self, ssh_task):
+    async def test_deploy_service_start_failure_async(self, ssh_task):
         """Test SSH deployment with service start failure"""
         strategy = SSHDeploymentStrategy({})
 
         mock_ssh_client = Mock()
         mock_ssh_client.close = Mock()
 
-        with patch.object(
-            strategy, "_connect_to_server", return_value=mock_ssh_client
-        ), patch.object(
+        with patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client), patch.object(
             strategy, "_create_backup", return_value={"backup_id": "backup-123"}
-        ), patch.object(
-            strategy, "_deploy_application", return_value={"success": True}
-        ), patch.object(
+        ), patch.object(strategy, "_deploy_application", return_value={"success": True}), patch.object(
             strategy, "_manage_services", return_value=False
         ), patch(
             "ai_deployer.strategies.ssh.determine_deployment_paths", return_value={}
         ):
-
             result = await strategy.deploy(ssh_task, "deploy-123")
 
             assert result["success"] is False
             assert "failed to start services" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_rollback_success(self, ssh_task):
+    async def test_rollback_success_async(self, ssh_task):
         """Test successful SSH rollback"""
         strategy = SSHDeploymentStrategy({})
 
         mock_ssh_client = Mock()
         mock_ssh_client.close = Mock()
 
-        previous_deployment = {
-            "backup": {"backup_id": "backup-123", "backup_path": "/tmp/backup"}
-        }
+        previous_deployment = {"backup": {"backup_id": "backup-123", "backup_path": "/tmp/backup"}}
 
-        with patch.object(
-            strategy, "_connect_to_server", return_value=mock_ssh_client
-        ), patch.object(
+        with patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client), patch.object(
             strategy, "_restore_from_backup", return_value=True
-        ), patch.object(
-            strategy, "_manage_services", return_value=True
-        ):
-
-            result = await strategy.rollback(
-                ssh_task, "deploy-456", previous_deployment
-            )
+        ), patch.object(strategy, "_manage_services", return_value=True):
+            result = await strategy.rollback(ssh_task, "deploy-456", previous_deployment)
 
             assert result["success"] is True
             assert result["rollback_info"]["restored_from"]["backup_id"] == "backup-123"
 
     @pytest.mark.asyncio
-    async def test_rollback_no_backup_info(self, ssh_task):
+    async def test_rollback_no_backup_info_async(self, ssh_task):
         """Test rollback with no backup information"""
         strategy = SSHDeploymentStrategy({})
 
@@ -276,41 +246,33 @@ class TestDockerDeploymentStrategy:
         assert all(field in fields for field in expected_fields)
 
     @pytest.mark.asyncio
-    async def test_pre_deployment_checks_success(self, docker_task):
+    async def test_pre_deployment_checks_success_async(self, docker_task):
         """Test successful Docker pre-deployment checks"""
         strategy = DockerDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "validate_configuration", return_value=True
-        ), patch.object(
+        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
             strategy, "_check_docker_daemon", return_value=True
-        ), patch.object(
-            strategy, "_validate_docker_image", return_value=True
-        ):
-
+        ), patch.object(strategy, "_validate_docker_image", return_value=True):
             result = await strategy.pre_deployment_checks(docker_task)
 
             assert result["success"] is True
             assert len(result["errors"]) == 0
 
     @pytest.mark.asyncio
-    async def test_pre_deployment_checks_docker_unavailable(self, docker_task):
+    async def test_pre_deployment_checks_docker_unavailable_async(self, docker_task):
         """Test Docker pre-deployment checks with Docker daemon unavailable"""
         strategy = DockerDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "validate_configuration", return_value=True
-        ), patch.object(strategy, "_check_docker_daemon", return_value=False):
-
+        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
+            strategy, "_check_docker_daemon", return_value=False
+        ):
             result = await strategy.pre_deployment_checks(docker_task)
 
             assert result["success"] is False
-            assert any(
-                "Docker daemon not accessible" in error for error in result["errors"]
-            )
+            assert any("Docker daemon not accessible" in error for error in result["errors"])
 
     @pytest.mark.asyncio
-    async def test_deploy_success(self, docker_task):
+    async def test_deploy_success_async(self, docker_task):
         """Test successful Docker deployment"""
         strategy = DockerDeploymentStrategy({})
 
@@ -318,9 +280,7 @@ class TestDockerDeploymentStrategy:
             strategy,
             "_prepare_docker_image",
             return_value={"success": True, "image_name": "web-app:deploy-123"},
-        ), patch.object(
-            strategy, "_stop_existing_containers", return_value=True
-        ), patch.object(
+        ), patch.object(strategy, "_stop_existing_containers", return_value=True), patch.object(
             strategy,
             "_run_container",
             return_value={"success": True, "container_id": "container-123"},
@@ -329,7 +289,6 @@ class TestDockerDeploymentStrategy:
         ), patch.object(
             strategy, "_update_load_balancer", return_value=True
         ):
-
             result = await strategy.deploy(docker_task, "deploy-123")
 
             assert result["success"] is True
@@ -337,7 +296,7 @@ class TestDockerDeploymentStrategy:
             assert result["deployment_info"]["container_id"] == "container-123"
 
     @pytest.mark.asyncio
-    async def test_deploy_image_preparation_failure(self, docker_task):
+    async def test_deploy_image_preparation_failure_async(self, docker_task):
         """Test Docker deployment with image preparation failure"""
         strategy = DockerDeploymentStrategy({})
 
@@ -352,7 +311,7 @@ class TestDockerDeploymentStrategy:
             assert "Image preparation failed" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_deploy_container_health_failure(self, docker_task):
+    async def test_deploy_container_health_failure_async(self, docker_task):
         """Test Docker deployment with container health check failure"""
         strategy = DockerDeploymentStrategy({})
 
@@ -360,9 +319,7 @@ class TestDockerDeploymentStrategy:
             strategy,
             "_prepare_docker_image",
             return_value={"success": True, "image_name": "web-app:deploy-123"},
-        ), patch.object(
-            strategy, "_stop_existing_containers", return_value=True
-        ), patch.object(
+        ), patch.object(strategy, "_stop_existing_containers", return_value=True), patch.object(
             strategy,
             "_run_container",
             return_value={"success": True, "container_id": "container-123"},
@@ -371,14 +328,13 @@ class TestDockerDeploymentStrategy:
         ), patch.object(
             strategy, "_stop_container", return_value=True
         ):
-
             result = await strategy.deploy(docker_task, "deploy-123")
 
             assert result["success"] is False
             assert "Container failed health check" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_rollback_success(self, docker_task):
+    async def test_rollback_success_async(self, docker_task):
         """Test successful Docker rollback"""
         strategy = DockerDeploymentStrategy({})
 
@@ -393,15 +349,10 @@ class TestDockerDeploymentStrategy:
             strategy,
             "_run_container",
             return_value={"success": True, "container_id": "rollback-container"},
-        ), patch.object(
-            strategy, "_wait_for_container_health", return_value=True
-        ), patch.object(
+        ), patch.object(strategy, "_wait_for_container_health", return_value=True), patch.object(
             strategy, "_update_load_balancer", return_value=True
         ):
-
-            result = await strategy.rollback(
-                docker_task, "deploy-456", previous_deployment
-            )
+            result = await strategy.rollback(docker_task, "deploy-456", previous_deployment)
 
             assert result["success"] is True
             assert result["rollback_info"]["rolled_back_to_image"] == "web-app:previous"
@@ -427,69 +378,52 @@ class TestKubernetesDeploymentStrategy:
         assert all(field in fields for field in expected_fields)
 
     @pytest.mark.asyncio
-    async def test_pre_deployment_checks_success(self, k8s_task):
+    async def test_pre_deployment_checks_success_async(self, k8s_task):
         """Test successful Kubernetes pre-deployment checks"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "validate_configuration", return_value=True
-        ), patch.object(
+        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
             strategy, "_check_cluster_connectivity", return_value=True
-        ), patch.object(
-            strategy, "_validate_manifests", return_value=True
-        ), patch.object(
+        ), patch.object(strategy, "_validate_manifests", return_value=True), patch.object(
             strategy, "_check_namespace_access", return_value=True
         ), patch.object(
             strategy, "_check_image_access", return_value=True
         ):
-
             result = await strategy.pre_deployment_checks(k8s_task)
 
             assert result["success"] is True
             assert len(result["errors"]) == 0
 
     @pytest.mark.asyncio
-    async def test_pre_deployment_checks_cluster_unavailable(self, k8s_task):
+    async def test_pre_deployment_checks_cluster_unavailable_async(self, k8s_task):
         """Test Kubernetes pre-deployment checks with cluster unavailable"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "validate_configuration", return_value=True
-        ), patch.object(strategy, "_check_cluster_connectivity", return_value=False):
-
+        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
+            strategy, "_check_cluster_connectivity", return_value=False
+        ):
             result = await strategy.pre_deployment_checks(k8s_task)
 
             assert result["success"] is False
-            assert any(
-                "Kubernetes cluster not accessible" in error
-                for error in result["errors"]
-            )
+            assert any("Kubernetes cluster not accessible" in error for error in result["errors"])
 
     @pytest.mark.asyncio
-    async def test_pre_deployment_checks_namespace_access_denied(self, k8s_task):
+    async def test_pre_deployment_checks_namespace_access_denied_async(self, k8s_task):
         """Test Kubernetes pre-deployment checks with namespace access denied"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "validate_configuration", return_value=True
-        ), patch.object(
+        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
             strategy, "_check_cluster_connectivity", return_value=True
-        ), patch.object(
-            strategy, "_validate_manifests", return_value=True
-        ), patch.object(
+        ), patch.object(strategy, "_validate_manifests", return_value=True), patch.object(
             strategy, "_check_namespace_access", return_value=False
         ):
-
             result = await strategy.pre_deployment_checks(k8s_task)
 
             assert result["success"] is False
-            assert any(
-                "No access to namespace: production" in error
-                for error in result["errors"]
-            )
+            assert any("No access to namespace: production" in error for error in result["errors"])
 
     @pytest.mark.asyncio
-    async def test_deploy_success(self, k8s_task):
+    async def test_deploy_success_async(self, k8s_task):
         """Test successful Kubernetes deployment"""
         strategy = KubernetesDeploymentStrategy({})
 
@@ -499,14 +433,11 @@ class TestKubernetesDeploymentStrategy:
             return_value={"success": True, "pods_count": 3},
         ), patch.object(
             strategy, "_wait_for_deployment_ready", return_value=True
-        ), patch.object(
-            strategy, "_execute_canary_deployment", return_value={"success": True}
-        ), patch.object(
+        ), patch.object(strategy, "_execute_canary_deployment", return_value={"success": True}), patch.object(
             strategy, "_update_ingress", return_value=True
         ), patch.object(
             strategy, "_wait_for_health_checks", return_value=True
         ):
-
             result = await strategy.deploy(k8s_task, "deploy-123")
 
             assert result["success"] is True
@@ -515,7 +446,7 @@ class TestKubernetesDeploymentStrategy:
             assert result["metrics"]["pods_deployed"] == 3
 
     @pytest.mark.asyncio
-    async def test_deploy_manifest_application_failure(self, k8s_task):
+    async def test_deploy_manifest_application_failure_async(self, k8s_task):
         """Test Kubernetes deployment with manifest application failure"""
         strategy = KubernetesDeploymentStrategy({})
 
@@ -530,13 +461,11 @@ class TestKubernetesDeploymentStrategy:
             assert "Manifest application failed" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_deploy_canary_failure(self, k8s_task):
+    async def test_deploy_canary_failure_async(self, k8s_task):
         """Test Kubernetes deployment with canary failure"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "_apply_manifests", return_value={"success": True}
-        ), patch.object(
+        with patch.object(strategy, "_apply_manifests", return_value={"success": True}), patch.object(
             strategy, "_wait_for_deployment_ready", return_value=True
         ), patch.object(
             strategy,
@@ -545,93 +474,64 @@ class TestKubernetesDeploymentStrategy:
         ), patch.object(
             strategy, "_cleanup_failed_deployment", return_value=None
         ):
-
             result = await strategy.deploy(k8s_task, "deploy-123")
 
             assert result["success"] is False
             assert "Canary deployment failed" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_rollback_success(self, k8s_task):
+    async def test_rollback_success_async(self, k8s_task):
         """Test successful Kubernetes rollback"""
         strategy = KubernetesDeploymentStrategy({})
 
-        previous_deployment = {
-            "deployment_info": {
-                "manifests_applied": ["deployment.yaml", "service.yaml"]
-            }
-        }
+        previous_deployment = {"deployment_info": {"manifests_applied": ["deployment.yaml", "service.yaml"]}}
 
-        with patch.object(
-            strategy, "_rollback_deployment", return_value=True
-        ), patch.object(
+        with patch.object(strategy, "_rollback_deployment", return_value=True), patch.object(
             strategy, "_wait_for_deployment_ready", return_value=True
-        ), patch.object(
-            strategy, "_wait_for_health_checks", return_value=True
-        ):
-
-            result = await strategy.rollback(
-                k8s_task, "deploy-456", previous_deployment
-            )
+        ), patch.object(strategy, "_wait_for_health_checks", return_value=True):
+            result = await strategy.rollback(k8s_task, "deploy-456", previous_deployment)
 
             assert result["success"] is True
             assert result["rollback_info"]["rollback_method"] == "kubectl_rollout"
 
     @pytest.mark.asyncio
-    async def test_rollback_with_manual_fallback(self, k8s_task):
+    async def test_rollback_with_manual_fallback_async(self, k8s_task):
         """Test Kubernetes rollback with manual fallback"""
         strategy = KubernetesDeploymentStrategy({})
 
-        previous_deployment = {
-            "deployment_info": {
-                "manifests_applied": ["deployment.yaml", "service.yaml"]
-            }
-        }
+        previous_deployment = {"deployment_info": {"manifests_applied": ["deployment.yaml", "service.yaml"]}}
 
-        with patch.object(
-            strategy, "_rollback_deployment", return_value=False
-        ), patch.object(
+        with patch.object(strategy, "_rollback_deployment", return_value=False), patch.object(
             strategy, "_apply_previous_manifests", return_value=True
-        ), patch.object(
-            strategy, "_wait_for_deployment_ready", return_value=True
-        ), patch.object(
+        ), patch.object(strategy, "_wait_for_deployment_ready", return_value=True), patch.object(
             strategy, "_wait_for_health_checks", return_value=True
         ):
-
-            result = await strategy.rollback(
-                k8s_task, "deploy-456", previous_deployment
-            )
+            result = await strategy.rollback(k8s_task, "deploy-456", previous_deployment)
 
             assert result["success"] is True
             assert result["rollback_info"]["rollback_method"] == "manifest_reapply"
 
     @pytest.mark.asyncio
-    async def test_execute_canary_deployment(self, k8s_task):
+    async def test_execute_canary_deployment_async(self, k8s_task):
         """Test canary deployment execution"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "_deploy_canary_version", return_value=None
-        ), patch.object(
+        with patch.object(strategy, "_deploy_canary_version", return_value=None), patch.object(
             strategy, "_monitor_canary_metrics", return_value=True
-        ), patch.object(
-            strategy, "_gradually_increase_traffic", return_value=True
-        ):
-
+        ), patch.object(strategy, "_gradually_increase_traffic", return_value=True):
             result = await strategy._execute_canary_deployment(k8s_task, "deploy-123")
 
             assert result["success"] is True
             assert result["canary_info"]["traffic_migrated"] is True
 
     @pytest.mark.asyncio
-    async def test_execute_canary_deployment_metrics_failure(self, k8s_task):
+    async def test_execute_canary_deployment_metrics_failure_async(self, k8s_task):
         """Test canary deployment with metrics failure"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(
-            strategy, "_deploy_canary_version", return_value=None
-        ), patch.object(strategy, "_monitor_canary_metrics", return_value=False):
-
+        with patch.object(strategy, "_deploy_canary_version", return_value=None), patch.object(
+            strategy, "_monitor_canary_metrics", return_value=False
+        ):
             result = await strategy._execute_canary_deployment(k8s_task, "deploy-123")
 
             assert result["success"] is False

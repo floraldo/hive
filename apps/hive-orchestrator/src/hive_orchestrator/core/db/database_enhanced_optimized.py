@@ -173,9 +173,7 @@ def _batch_check_dependencies(conn, tasks: List[Dict[str, Any]]):
     for task in tasks:
         deps = task.get("depends_on", [])
         if deps:
-            task["dependencies_met"] = all(
-                dep_status.get(dep_id) == "completed" for dep_id in deps
-            )
+            task["dependencies_met"] = all(dep_status.get(dep_id) == "completed" for dep_id in deps)
         else:
             task["dependencies_met"] = True
 
@@ -241,9 +239,7 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
         results = {}
         for task_id, deps in task_deps.items():
             if deps:
-                results[task_id] = all(
-                    dep_status.get(dep_id) == "completed" for dep_id in deps
-                )
+                results[task_id] = all(dep_status.get(dep_id) == "completed" for dep_id in deps)
             else:
                 results[task_id] = True
 
@@ -277,9 +273,7 @@ def get_execution_plan_status_cached(plan_id: str) -> Optional[str]:
 
     # Query database
     with get_pooled_connection() as conn:
-        cursor = conn.execute(
-            "SELECT status FROM execution_plans WHERE id = ?", (plan_id,)
-        )
+        cursor = conn.execute("SELECT status FROM execution_plans WHERE id = ?", (plan_id,))
         row = cursor.fetchone()
 
     status = row[0] if row else None
@@ -289,9 +283,7 @@ def get_execution_plan_status_cached(plan_id: str) -> Optional[str]:
 
     # Clean old cache entries
     current_time = time.time()
-    expired = [
-        k for k, (_, t) in _plan_status_cache.items() if current_time - t > _cache_ttl
-    ]
+    expired = [k for k, (_, t) in _plan_status_cache.items() if current_time - t > _cache_ttl]
     for k in expired:
         del _plan_status_cache[k]
 
@@ -312,9 +304,7 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
     """
     with get_pooled_connection() as conn:
         # Get execution plan
-        cursor = conn.execute(
-            "SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,)
-        )
+        cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
         row = cursor.fetchone()
 
         if not row or not row[0]:

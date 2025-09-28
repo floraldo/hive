@@ -81,9 +81,7 @@ class DatabaseAdapter:
             logger.error(f"Error getting deployment pending tasks: {e}")
             raise DeploymentDatabaseError(f"Failed to get deployment tasks: {e}") from e
 
-    def update_task_status(
-        self, task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None
-    ) -> bool:
+    def update_task_status(self, task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
         Update task status and optionally metadata
 
@@ -102,9 +100,7 @@ class DatabaseAdapter:
                 # Prepare update query
                 if metadata:
                     # Get existing metadata and merge
-                    cursor.execute(
-                        "SELECT metadata FROM tasks WHERE id = ?", (task_id,)
-                    )
+                    cursor.execute("SELECT metadata FROM tasks WHERE id = ?", (task_id,))
                     row = cursor.fetchone()
 
                     existing_metadata = {}
@@ -196,9 +192,7 @@ class DatabaseAdapter:
             logger.error(f"Error getting task {task_id}: {e}")
             raise DeploymentDatabaseError(f"Failed to get task: {e}") from e
 
-    def record_deployment_event(
-        self, task_id: str, event_type: str, details: Dict[str, Any]
-    ) -> bool:
+    def record_deployment_event(self, task_id: str, event_type: str, details: Dict[str, Any]) -> bool:
         """
         Record deployment event for audit trail
 
@@ -244,9 +238,7 @@ class DatabaseAdapter:
                 )
 
                 conn.commit()
-                logger.info(
-                    f"Recorded deployment event: {event_type} for task {task_id}"
-                )
+                logger.info(f"Recorded deployment event: {event_type} for task {task_id}")
                 return True
 
         except Exception as e:
@@ -293,9 +285,7 @@ class DatabaseAdapter:
 
         except Exception as e:
             logger.error(f"Error getting deployment history for {task_id}: {e}")
-            raise DeploymentDatabaseError(
-                f"Failed to get deployment history: {e}"
-            ) from e
+            raise DeploymentDatabaseError(f"Failed to get deployment history: {e}") from e
 
     def get_deployment_stats(self) -> Dict[str, Any]:
         """

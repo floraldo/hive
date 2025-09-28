@@ -23,38 +23,22 @@ class SubTask(BaseModel):
 
     id: str = Field(description="Unique identifier for the sub-task")
     title: str = Field(max_length=100, description="Concise sub-task title")
-    description: str = Field(
-        max_length=500, description="Detailed sub-task description"
+    description: str = Field(max_length=500, description="Detailed sub-task description")
+    assignee: str = Field(description="Target assignee (worker:backend, app:ecosystemiser, etc.)")
+    estimated_duration: int = Field(ge=1, le=480, description="Estimated duration in minutes")
+    complexity: Literal["simple", "medium", "complex"] = Field(description="Task complexity level")
+    dependencies: List[str] = Field(default_factory=list, description="List of sub-task IDs this depends on")
+    workflow_phase: Literal["analysis", "design", "implementation", "testing", "validation"] = Field(
+        description="Primary workflow phase for this sub-task"
     )
-    assignee: str = Field(
-        description="Target assignee (worker:backend, app:ecosystemiser, etc.)"
-    )
-    estimated_duration: int = Field(
-        ge=1, le=480, description="Estimated duration in minutes"
-    )
-    complexity: Literal["simple", "medium", "complex"] = Field(
-        description="Task complexity level"
-    )
-    dependencies: List[str] = Field(
-        default_factory=list, description="List of sub-task IDs this depends on"
-    )
-    workflow_phase: Literal[
-        "analysis", "design", "implementation", "testing", "validation"
-    ] = Field(description="Primary workflow phase for this sub-task")
-    required_skills: List[str] = Field(
-        default_factory=list, description="Required skills/technologies"
-    )
-    deliverables: List[str] = Field(
-        default_factory=list, description="Expected outputs/deliverables"
-    )
+    required_skills: List[str] = Field(default_factory=list, description="Required skills/technologies")
+    deliverables: List[str] = Field(default_factory=list, description="Expected outputs/deliverables")
 
 
 class DependencyMap(BaseModel):
     """Dependency relationships between sub-tasks"""
 
-    critical_path: List[str] = Field(
-        description="Ordered list of sub-task IDs on critical path"
-    )
+    critical_path: List[str] = Field(description="Ordered list of sub-task IDs on critical path")
     parallel_groups: List[List[str]] = Field(
         default_factory=list, description="Groups of tasks that can run in parallel"
     )
@@ -68,35 +52,19 @@ class WorkflowDefinition(BaseModel):
 
     lifecycle_phases: List[str] = Field(description="Ordered list of lifecycle phases")
     phase_transitions: Dict[str, str] = Field(description="Map of phase -> next_phase")
-    validation_gates: Dict[str, List[str]] = Field(
-        description="Map of phase -> validation criteria"
-    )
-    rollback_strategy: str = Field(
-        description="Strategy for handling failures and rollbacks"
-    )
+    validation_gates: Dict[str, List[str]] = Field(description="Map of phase -> validation criteria")
+    rollback_strategy: str = Field(description="Strategy for handling failures and rollbacks")
 
 
 class PlanningMetrics(BaseModel):
     """Metrics and estimates for the execution plan"""
 
-    total_estimated_duration: int = Field(
-        ge=1, description="Total estimated duration in minutes"
-    )
-    critical_path_duration: int = Field(
-        ge=1, description="Critical path duration in minutes"
-    )
-    complexity_breakdown: Dict[str, int] = Field(
-        description="Count of tasks by complexity level"
-    )
-    skill_requirements: Dict[str, int] = Field(
-        description="Count of tasks requiring each skill"
-    )
-    confidence_score: float = Field(
-        ge=0.0, le=1.0, description="Confidence in the plan accuracy"
-    )
-    risk_factors: List[str] = Field(
-        default_factory=list, description="Identified risk factors"
-    )
+    total_estimated_duration: int = Field(ge=1, description="Total estimated duration in minutes")
+    critical_path_duration: int = Field(ge=1, description="Critical path duration in minutes")
+    complexity_breakdown: Dict[str, int] = Field(description="Count of tasks by complexity level")
+    skill_requirements: Dict[str, int] = Field(description="Count of tasks requiring each skill")
+    confidence_score: float = Field(ge=0.0, le=1.0, description="Confidence in the plan accuracy")
+    risk_factors: List[str] = Field(default_factory=list, description="Identified risk factors")
 
 
 class ClaudePlanningResponse(BaseModel):
@@ -104,21 +72,13 @@ class ClaudePlanningResponse(BaseModel):
 
     plan_id: str = Field(description="Unique identifier for the execution plan")
     plan_name: str = Field(max_length=100, description="Human-readable plan name")
-    plan_summary: str = Field(
-        max_length=500, description="Executive summary of the plan"
-    )
+    plan_summary: str = Field(max_length=500, description="Executive summary of the plan")
     sub_tasks: List[SubTask] = Field(description="List of decomposed sub-tasks")
-    dependencies: DependencyMap = Field(
-        description="Dependency relationships between tasks"
-    )
+    dependencies: DependencyMap = Field(description="Dependency relationships between tasks")
     workflow: WorkflowDefinition = Field(description="Complete workflow definition")
     metrics: PlanningMetrics = Field(description="Planning metrics and estimates")
-    recommendations: List[str] = Field(
-        default_factory=list, description="Strategic recommendations"
-    )
-    considerations: List[str] = Field(
-        default_factory=list, description="Important considerations and constraints"
-    )
+    recommendations: List[str] = Field(default_factory=list, description="Strategic recommendations")
+    considerations: List[str] = Field(default_factory=list, description="Important considerations and constraints")
 
 
 class RobustClaudePlannerBridge:
@@ -297,9 +257,7 @@ Generate the execution plan now:"""
 
         return prompt
 
-    def _extract_json_from_response(
-        self, response_text: str
-    ) -> Optional[Dict[str, Any]]:
+    def _extract_json_from_response(self, response_text: str) -> Optional[Dict[str, Any]]:
         """Extract JSON from Claude response with robust parsing"""
         try:
             # Try direct JSON parsing first
@@ -326,9 +284,7 @@ Generate the execution plan now:"""
         logger.error("Failed to extract valid JSON from Claude response")
         return None
 
-    def _create_fallback_response(
-        self, task_description: str, error_message: str
-    ) -> Dict[str, Any]:
+    def _create_fallback_response(self, task_description: str, error_message: str) -> Dict[str, Any]:
         """Create fallback response when Claude is unavailable"""
 
         logger.warning(f"Creating fallback response due to: {error_message}")
@@ -484,15 +440,11 @@ Generate the execution plan now:"""
             return mock_response.dict()
 
         if not self.claude_cmd:
-            return self._create_fallback_response(
-                task_description, "Claude CLI not available"
-            )
+            return self._create_fallback_response(task_description, "Claude CLI not available")
 
         try:
             # Create comprehensive prompt
-            prompt = self._create_planning_prompt(
-                task_description, context_data or {}, priority, requestor
-            )
+            prompt = self._create_planning_prompt(task_description, context_data or {}, priority, requestor)
 
             # Execute Claude CLI with --print flag to ensure it exits after responding
             # Add --dangerously-skip-permissions for automated environments
@@ -508,37 +460,25 @@ Generate the execution plan now:"""
             if result.returncode != 0:
                 logger.error(f"Claude CLI failed with return code {result.returncode}")
                 logger.error(f"Error output: {result.stderr}")
-                return self._create_fallback_response(
-                    task_description, f"Claude CLI error: {result.stderr[:200]}"
-                )
+                return self._create_fallback_response(task_description, f"Claude CLI error: {result.stderr[:200]}")
 
             # Extract and validate JSON response
             response_json = self._extract_json_from_response(result.stdout)
             if not response_json:
-                return self._create_fallback_response(
-                    task_description, "Failed to parse Claude response as JSON"
-                )
+                return self._create_fallback_response(task_description, "Failed to parse Claude response as JSON")
 
             # Validate response against schema
             try:
                 validated_response = ClaudePlanningResponse(**response_json)
-                logger.info(
-                    f"Claude planning successful: {validated_response.plan_name}"
-                )
+                logger.info(f"Claude planning successful: {validated_response.plan_name}")
                 return validated_response.dict()
             except ValidationError as e:
                 logger.error(f"Claude response validation failed: {e}")
-                return self._create_fallback_response(
-                    task_description, f"Response validation error: {str(e)[:200]}"
-                )
+                return self._create_fallback_response(task_description, f"Response validation error: {str(e)[:200]}")
 
         except subprocess.TimeoutExpired:
             logger.error("Claude CLI timeout during planning")
-            return self._create_fallback_response(
-                task_description, "Claude CLI timeout"
-            )
+            return self._create_fallback_response(task_description, "Claude CLI timeout")
         except Exception as e:
             logger.error(f"Unexpected error during Claude planning: {e}")
-            return self._create_fallback_response(
-                task_description, f"Unexpected error: {str(e)[:200]}"
-            )
+            return self._create_fallback_response(task_description, f"Unexpected error: {str(e)[:200]}")

@@ -43,9 +43,7 @@ class UnifiedProfileService:
 
         # Initialize available services
         self._init_services()
-        logger.info(
-            f"UnifiedProfileService initialized with {len(self.services)} services"
-        )
+        logger.info(f"UnifiedProfileService initialized with {len(self.services)} services")
 
     def _init_services(self):
         """Initialize and register all available profile services."""
@@ -77,9 +75,7 @@ class UnifiedProfileService:
         """
         return self.services.get(service_type)
 
-    def get_service_for_request(
-        self, request: BaseProfileRequest
-    ) -> Optional[BaseProfileService]:
+    def get_service_for_request(self, request: BaseProfileRequest) -> Optional[BaseProfileService]:
         """
         Get the appropriate service for a given request.
 
@@ -109,9 +105,7 @@ class UnifiedProfileService:
 
         return None
 
-    async def process_request_async(
-        self, request: BaseProfileRequest
-    ) -> BaseProfileResponse:
+    async def process_request_async(self, request: BaseProfileRequest) -> BaseProfileResponse:
         """
         Process any profile request asynchronously.
 
@@ -193,13 +187,13 @@ class UnifiedProfileService:
 
         return all_sources
 
-    async def shutdown(self):
+    async def shutdown_async(self):
         """Shutdown all services."""
         logger.info("Shutting down UnifiedProfileService")
         for service_type, service in self.services.items():
             try:
                 if hasattr(service, "shutdown"):
-                    await service.shutdown()
+                    await service.shutdown_async()
                 logger.info(f"Shutdown {service_type} service")
             except Exception as e:
                 logger.warning(f"Error shutting down {service_type} service: {e}")
@@ -220,13 +214,13 @@ def get_unified_profile_service() -> UnifiedProfileService:
 
 
 # Convenience functions for direct access
-async def process_climate_request(request: ClimateRequest):
+async def process_climate_request_async(request: ClimateRequest):
     """Process climate request directly."""
     service = get_unified_profile_service()
     return await service.get_service("climate").process_request_async(request)
 
 
-async def process_demand_request(request: DemandRequest):
+async def process_demand_request_async(request: DemandRequest):
     """Process demand request directly."""
     service = get_unified_profile_service()
     return await service.get_service("demand").process_request_async(request)

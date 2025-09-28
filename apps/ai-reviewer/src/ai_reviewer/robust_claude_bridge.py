@@ -30,14 +30,10 @@ class ReviewMetrics(BaseModel):
 class ClaudeReviewResponse(BaseModel):
     """Structured response contract for Claude reviews"""
 
-    decision: Literal["approve", "reject", "rework", "escalate"] = Field(
-        description="Review decision"
-    )
+    decision: Literal["approve", "reject", "rework", "escalate"] = Field(description="Review decision")
     summary: str = Field(max_length=500, description="Brief summary of the review")
     issues: List[str] = Field(default_factory=list, description="List of issues found")
-    suggestions: List[str] = Field(
-        default_factory=list, description="Improvement suggestions"
-    )
+    suggestions: List[str] = Field(default_factory=list, description="Improvement suggestions")
     quality_score: int = Field(ge=0, le=100, description="Overall quality score")
     metrics: ReviewMetrics = Field(description="Detailed quality metrics")
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence in the review")
@@ -129,9 +125,7 @@ class RobustClaudeBridge:
             mock_response = ClaudeReviewResponse(
                 decision="approve" if "test" in task_description.lower() else "rework",
                 summary="Mock review for testing purposes",
-                issues=(
-                    [] if "good" in str(code_files).lower() else ["Mock issue found"]
-                ),
+                issues=([] if "good" in str(code_files).lower() else ["Mock issue found"]),
                 suggestions=["Mock suggestion for improvement"],
                 quality_score=75,
                 metrics=ReviewMetrics(
@@ -146,9 +140,7 @@ class RobustClaudeBridge:
             return mock_response.dict()
 
         if not self.claude_cmd:
-            return self._create_escalation_response(
-                "Claude CLI not available", task_description
-            )
+            return self._create_escalation_response("Claude CLI not available", task_description)
 
         try:
             # Create comprehensive prompt with JSON contract
@@ -172,9 +164,7 @@ class RobustClaudeBridge:
 
             if result.returncode != 0:
                 logger.error(f"Claude CLI failed with code {result.returncode}")
-                return self._create_escalation_response(
-                    f"Claude CLI error: {result.stderr}", task_description
-                )
+                return self._create_escalation_response(f"Claude CLI error: {result.stderr}", task_description)
 
             # Extract and validate JSON response
             claude_output = result.stdout.strip()
@@ -193,14 +183,10 @@ class RobustClaudeBridge:
 
         except subprocess.TimeoutExpired:
             logger.error("Claude CLI timed out")
-            return self._create_escalation_response(
-                "Claude CLI timeout", task_description
-            )
+            return self._create_escalation_response("Claude CLI timeout", task_description)
         except Exception as e:
             logger.error(f"Unexpected error in Claude review: {e}")
-            return self._create_escalation_response(
-                f"Unexpected error: {str(e)}", task_description
-            )
+            return self._create_escalation_response(f"Unexpected error: {str(e)}", task_description)
 
     def _create_json_prompt(
         self,
@@ -328,10 +314,7 @@ Respond with ONLY the JSON object, no other text."""
         text_lower = text.lower()
 
         # Determine decision from keywords
-        if (
-            "approve" in text_lower
-            and "not" not in text_lower[: text_lower.find("approve")]
-        ):
+        if "approve" in text_lower and "not" not in text_lower[: text_lower.find("approve")]:
             decision = "approve"
         elif "reject" in text_lower:
             decision = "reject"
@@ -385,9 +368,7 @@ Respond with ONLY the JSON object, no other text."""
             issues=[reason],
             suggestions=["Manual review required"],
             quality_score=0,
-            metrics=ReviewMetrics(
-                code_quality=0, security=0, testing=0, architecture=0, documentation=0
-            ),
+            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
             confidence=0.0,
         )
 

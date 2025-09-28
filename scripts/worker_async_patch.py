@@ -38,7 +38,7 @@ class AsyncEnabledWorkerCore(WorkerCore):
     def __init__(self, *args, **kwargs):
         """Initialize with optional async support."""
         # Extract async flag
-        self.async_enabled = kwargs.pop('async_enabled', False)
+        self.async_enabled = kwargs.pop("async_enabled", False)
 
         # Initialize parent
         super().__init__(*args, **kwargs)
@@ -72,12 +72,7 @@ class AsyncEnabledWorkerCore(WorkerCore):
             self.log.info(f"🚀 Starting async one-shot execution for task {self.task_id}")
 
             # Use async worker for task processing
-            result = await self.async_adapter.process_task_async(
-                self.task_id,
-                self.run_id,
-                self.phase,
-                self.mode
-            )
+            result = await self.async_adapter.process_task_async(self.task_id, self.run_id, self.phase, self.mode)
 
             self.log.info(f"✅ Async task {self.task_id} completed with status: {result.get('status')}")
             return result
@@ -88,7 +83,7 @@ class AsyncEnabledWorkerCore(WorkerCore):
                 "status": "failed",
                 "error": str(e),
                 "notes": f"Async execution failed: {e}",
-                "next_state": "failed"
+                "next_state": "failed",
             }
 
 
@@ -97,21 +92,26 @@ def async_main():
     parser = argparse.ArgumentParser(description="WorkerCore - Streamlined Worker with Async Support")
     parser.add_argument("worker_id", help="Worker ID (backend, frontend, infra)")
     parser.add_argument("--one-shot", action="store_true", help="One-shot mode for Queen")
-    parser.add_argument("--local", action="store_true",
-                       help="Local development mode - run task directly without Queen")
+    parser.add_argument("--local", action="store_true", help="Local development mode - run task directly without Queen")
     parser.add_argument("--task-id", help="Task ID (required for one-shot and local modes)")
     parser.add_argument("--run-id", help="Run ID for this execution (auto-generated in local mode)")
     parser.add_argument("--workspace", help="Workspace directory")
-    parser.add_argument("--phase", choices=["plan", "apply", "test"], default="apply",
-                       help="Execution phase")
-    parser.add_argument("--mode", choices=["fresh", "repo"], default="fresh",
-                       help="Workspace mode: fresh (empty directory) or repo (git worktree)")
-    parser.add_argument("--live", action="store_true",
-                       help="Enable live streaming output to terminal")
+    parser.add_argument("--phase", choices=["plan", "apply", "test"], default="apply", help="Execution phase")
+    parser.add_argument(
+        "--mode",
+        choices=["fresh", "repo"],
+        default="fresh",
+        help="Workspace mode: fresh (empty directory) or repo (git worktree)",
+    )
+    parser.add_argument("--live", action="store_true", help="Enable live streaming output to terminal")
 
     # NEW: Async support flag for Phase 4.1
-    parser.add_argument("--async", action="store_true", dest="async_enabled",
-                       help="Enable async processing for 3-5x performance improvement (Phase 4.1)")
+    parser.add_argument(
+        "--async",
+        action="store_true",
+        dest="async_enabled",
+        help="Enable async processing for 3-5x performance improvement (Phase 4.1)",
+    )
 
     args = parser.parse_args()
 
@@ -125,11 +125,7 @@ def async_main():
     # Make log path absolute + centralized (before any chdir operations)
     centralized_log = LOGS_DIR / f"{log_name}.log"
     ensure_directory(LOGS_DIR)  # Ensure logs directory exists
-    setup_logging(
-        name=log_name,
-        log_to_file=True,
-        log_file_path=str(centralized_log)
-    )
+    setup_logging(name=log_name, log_to_file=True, log_file_path=str(centralized_log))
     log = get_logger(__name__)
 
     # Show async status
@@ -163,7 +159,7 @@ def async_main():
             phase=args.phase,
             mode=args.mode,
             live_output=args.live,
-            async_enabled=args.async_enabled  # NEW: Pass async flag
+            async_enabled=args.async_enabled,  # NEW: Pass async flag
         )
         log.info(f"Worker {args.worker_id} initialized successfully for task {args.task_id}")
         if args.async_enabled and ASYNC_AVAILABLE:
@@ -174,6 +170,7 @@ def async_main():
         log.error(f"Worker ID: {args.worker_id}, Task ID: {args.task_id}")
         log.error(f"Mode: {args.mode}, Phase: {args.phase}, Async: {args.async_enabled}")
         import traceback
+
         log.error(traceback.format_exc())
         sys.exit(2)
 
@@ -206,6 +203,7 @@ async def test_async_performance():
 
     try:
         from .async_worker import benchmark_async_vs_sync
+
         results = await benchmark_async_vs_sync(num_tasks=3)
 
         logger.info("Performance test results:")

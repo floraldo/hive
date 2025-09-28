@@ -20,9 +20,7 @@ def mock_strategies():
     for strategy in DeploymentStrategy:
         mock_strategy = Mock()
         mock_strategy.strategy = strategy
-        mock_strategy.pre_deployment_checks = AsyncMock(
-            return_value={"success": True, "errors": []}
-        )
+        mock_strategy.pre_deployment_checks = AsyncMock(return_value={"success": True, "errors": []})
         mock_strategy.deploy = AsyncMock(return_value={"success": True, "metrics": {}})
         mock_strategy.post_deployment_actions = AsyncMock()
         mock_strategy.rollback = AsyncMock(return_value={"success": True})
@@ -88,15 +86,11 @@ class TestDeploymentOrchestrator:
 
         # Blue-green requires load balancer
         task_with_lb = {"environment": {"has_load_balancer": True}}
-        assert orchestrator._validate_strategy_compatibility(
-            DeploymentStrategy.BLUE_GREEN, task_with_lb
-        )
+        assert orchestrator._validate_strategy_compatibility(DeploymentStrategy.BLUE_GREEN, task_with_lb)
 
         # Blue-green without load balancer should fail
         task_without_lb = {"environment": {"has_load_balancer": False}}
-        assert not orchestrator._validate_strategy_compatibility(
-            DeploymentStrategy.BLUE_GREEN, task_without_lb
-        )
+        assert not orchestrator._validate_strategy_compatibility(DeploymentStrategy.BLUE_GREEN, task_without_lb)
 
     def test_validate_strategy_compatibility_canary(self):
         """Test canary strategy compatibility"""
@@ -104,15 +98,11 @@ class TestDeploymentOrchestrator:
 
         # Canary requires Kubernetes
         task_k8s = {"environment": {"platform": "kubernetes"}}
-        assert orchestrator._validate_strategy_compatibility(
-            DeploymentStrategy.CANARY, task_k8s
-        )
+        assert orchestrator._validate_strategy_compatibility(DeploymentStrategy.CANARY, task_k8s)
 
         # Canary without Kubernetes should fail
         task_no_k8s = {"environment": {"platform": "linux"}}
-        assert not orchestrator._validate_strategy_compatibility(
-            DeploymentStrategy.CANARY, task_no_k8s
-        )
+        assert not orchestrator._validate_strategy_compatibility(DeploymentStrategy.CANARY, task_no_k8s)
 
     def test_validate_strategy_compatibility_direct_always_valid(self):
         """Test direct strategy is always compatible"""
@@ -120,17 +110,13 @@ class TestDeploymentOrchestrator:
 
         # Direct strategy should work with any environment
         task_empty = {"environment": {}}
-        assert orchestrator._validate_strategy_compatibility(
-            DeploymentStrategy.DIRECT, task_empty
-        )
+        assert orchestrator._validate_strategy_compatibility(DeploymentStrategy.DIRECT, task_empty)
 
         task_any = {"environment": {"platform": "anything"}}
-        assert orchestrator._validate_strategy_compatibility(
-            DeploymentStrategy.DIRECT, task_any
-        )
+        assert orchestrator._validate_strategy_compatibility(DeploymentStrategy.DIRECT, task_any)
 
     @pytest.mark.asyncio
-    async def test_deploy_success(self, mock_strategies, sample_task):
+    async def test_deploy_success_async(self, mock_strategies, sample_task):
         """Test successful deployment"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.strategies = mock_strategies
@@ -151,7 +137,7 @@ class TestDeploymentOrchestrator:
         strategy.post_deployment_actions.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_deploy_pre_check_failure(self, mock_strategies, sample_task):
+    async def test_deploy_pre_check_failure_async(self, mock_strategies, sample_task):
         """Test deployment with pre-check failure"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.strategies = mock_strategies
@@ -170,9 +156,7 @@ class TestDeploymentOrchestrator:
         assert result.rollback_attempted is True
 
     @pytest.mark.asyncio
-    async def test_deploy_strategy_failure_with_rollback(
-        self, mock_strategies, sample_task
-    ):
+    async def test_deploy_strategy_failure_with_rollback_async(self, mock_strategies, sample_task):
         """Test deployment strategy failure with successful rollback"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.strategies = mock_strategies
@@ -189,9 +173,7 @@ class TestDeploymentOrchestrator:
         assert result.metrics["rollback_success"] is True
 
     @pytest.mark.asyncio
-    async def test_deploy_incompatible_strategy_fallback(
-        self, mock_strategies, sample_task
-    ):
+    async def test_deploy_incompatible_strategy_fallback_async(self, mock_strategies, sample_task):
         """Test fallback to direct strategy for incompatible strategy"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.strategies = mock_strategies
@@ -209,7 +191,7 @@ class TestDeploymentOrchestrator:
         assert result.strategy == DeploymentStrategy.DIRECT
 
     @pytest.mark.asyncio
-    async def test_execute_deployment(self, mock_strategies, sample_task):
+    async def test_execute_deployment_async(self, mock_strategies, sample_task):
         """Test deployment execution"""
         orchestrator = DeploymentOrchestrator()
 
@@ -219,27 +201,23 @@ class TestDeploymentOrchestrator:
             "metrics": {"files_deployed": 15, "deployment_time": 45.2},
         }
 
-        result = await orchestrator._execute_deployment(
-            strategy_impl, sample_task, "deploy-123"
-        )
+        result = await orchestrator._execute_deployment(strategy_impl, sample_task, "deploy-123")
 
         assert result.success is True
         assert result.deployment_id == "deploy-123"
         assert result.metrics["files_deployed"] == 15
 
     @pytest.mark.asyncio
-    async def test_validate_deployment_healthy(self, sample_task):
+    async def test_validate_deployment_healthy_async(self, sample_task):
         """Test deployment validation with healthy status"""
         orchestrator = DeploymentOrchestrator()
-        orchestrator.check_health = AsyncMock(
-            return_value=HealthStatus(healthy=True, message="All checks passed")
-        )
+        orchestrator.check_health = AsyncMock(return_value=HealthStatus(healthy=True, message="All checks passed"))
 
         result = await orchestrator._validate_deployment(sample_task, "deploy-123")
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_validate_deployment_unhealthy(self, sample_task):
+    async def test_validate_deployment_unhealthy_async(self, sample_task):
         """Test deployment validation with unhealthy status"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.check_health = AsyncMock(
@@ -250,7 +228,7 @@ class TestDeploymentOrchestrator:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_validate_deployment_with_smoke_tests(self, sample_task):
+    async def test_validate_deployment_with_smoke_tests_async(self, sample_task):
         """Test deployment validation with smoke tests"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.check_health = AsyncMock(return_value=HealthStatus(healthy=True))
@@ -265,7 +243,7 @@ class TestDeploymentOrchestrator:
         orchestrator._run_smoke_tests.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_validate_deployment_smoke_test_failure(self, sample_task):
+    async def test_validate_deployment_smoke_test_failure_async(self, sample_task):
         """Test deployment validation with smoke test failure"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.check_health = AsyncMock(return_value=HealthStatus(healthy=True))
@@ -277,36 +255,30 @@ class TestDeploymentOrchestrator:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_attempt_rollback_success(self, mock_strategies, sample_task):
+    async def test_attempt_rollback_success_async(self, mock_strategies, sample_task):
         """Test successful rollback"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.strategies = mock_strategies
 
-        previous_deployment = {
-            "deployment_info": {"version": "1.2.3", "image": "app:1.2.3"}
-        }
+        previous_deployment = {"deployment_info": {"version": "1.2.3", "image": "app:1.2.3"}}
 
-        result = await orchestrator._attempt_rollback(
-            sample_task, "deploy-456", previous_deployment
-        )
+        result = await orchestrator._attempt_rollback(sample_task, "deploy-456", previous_deployment)
 
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_attempt_rollback_no_previous_info(self, sample_task):
+    async def test_attempt_rollback_no_previous_info_async(self, sample_task):
         """Test rollback with no previous deployment info"""
         orchestrator = DeploymentOrchestrator()
 
         previous_deployment = {}  # No previous info
 
-        result = await orchestrator._attempt_rollback(
-            sample_task, "deploy-456", previous_deployment
-        )
+        result = await orchestrator._attempt_rollback(sample_task, "deploy-456", previous_deployment)
 
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_check_health_all_healthy(self, sample_task):
+    async def test_check_health_all_healthy_async(self, sample_task):
         """Test health check with all systems healthy"""
         orchestrator = DeploymentOrchestrator()
         orchestrator._check_endpoint = AsyncMock(return_value=True)
@@ -327,7 +299,7 @@ class TestDeploymentOrchestrator:
         assert health_status.checks["cache"] is True
 
     @pytest.mark.asyncio
-    async def test_check_health_some_failing(self, sample_task):
+    async def test_check_health_some_failing_async(self, sample_task):
         """Test health check with some systems failing"""
         orchestrator = DeploymentOrchestrator()
         orchestrator._check_endpoint = AsyncMock(return_value=True)
@@ -347,12 +319,10 @@ class TestDeploymentOrchestrator:
         assert health_status.checks["cache"] is False
 
     @pytest.mark.asyncio
-    async def test_check_health_exception_handling(self, sample_task):
+    async def test_check_health_exception_handling_async(self, sample_task):
         """Test health check with exception"""
         orchestrator = DeploymentOrchestrator()
-        orchestrator._check_endpoint = AsyncMock(
-            side_effect=Exception("Connection error")
-        )
+        orchestrator._check_endpoint = AsyncMock(side_effect=Exception("Connection error"))
 
         health_status = await orchestrator.check_health(sample_task)
 
@@ -360,7 +330,7 @@ class TestDeploymentOrchestrator:
         assert "Health check error" in health_status.message
 
     @pytest.mark.asyncio
-    async def test_check_endpoint_placeholder(self, sample_task):
+    async def test_check_endpoint_placeholder_async(self, sample_task):
         """Test endpoint check placeholder implementation"""
         orchestrator = DeploymentOrchestrator()
 
@@ -369,7 +339,7 @@ class TestDeploymentOrchestrator:
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_check_dependency_placeholder(self):
+    async def test_check_dependency_placeholder_async(self):
         """Test dependency check placeholder implementation"""
         orchestrator = DeploymentOrchestrator()
 
@@ -380,7 +350,7 @@ class TestDeploymentOrchestrator:
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_run_smoke_tests_placeholder(self, sample_task):
+    async def test_run_smoke_tests_placeholder_async(self, sample_task):
         """Test smoke tests placeholder implementation"""
         orchestrator = DeploymentOrchestrator()
 

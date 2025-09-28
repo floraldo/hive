@@ -23,7 +23,6 @@ from hive_orchestrator.dashboard import HiveDashboard
 # No sys.path manipulation needed - use Poetry workspace imports
 
 
-
 class TestHiveOrchestratorIntegration:
     """Integration tests for Hive Orchestrator"""
 
@@ -41,9 +40,7 @@ class TestHiveOrchestratorIntegration:
 
     def test_cli_status_command_with_no_database(self):
         """Test CLI status command gracefully handles missing database"""
-        with patch(
-            "hive_core_db.database.get_connection", side_effect=Exception("No database")
-        ):
+        with patch("hive_core_db.database.get_connection", side_effect=Exception("No database")):
             result = self.runner.invoke(cli, ["status"])
             assert result.exit_code == 1
             assert "Error getting status" in result.output
@@ -88,17 +85,13 @@ class TestHiveOrchestratorIntegration:
         assert "Task description too long" in result.output
 
         # Test invalid priority
-        result = self.runner.invoke(
-            cli, ["queue-task", "test task", "--priority", "15"]
-        )
+        result = self.runner.invoke(cli, ["queue-task", "test task", "--priority", "15"])
         assert result.exit_code == 1
         assert "Priority must be between 1 and 10" in result.output
 
         # Test very long role name
         long_role = "x" * 60
-        result = self.runner.invoke(
-            cli, ["queue-task", "test task", "--role", long_role]
-        )
+        result = self.runner.invoke(cli, ["queue-task", "test task", "--role", long_role])
         assert result.exit_code == 1
         assert "Role name too long" in result.output
 
@@ -130,9 +123,7 @@ class TestHiveOrchestratorIntegration:
         dashboard = HiveDashboard()
 
         # Test task stats with database error
-        with patch.object(
-            dashboard, "get_connection", side_effect=Exception("DB Error")
-        ):
+        with patch.object(dashboard, "get_connection", side_effect=Exception("DB Error")):
             stats = dashboard.get_task_stats()
             expected_keys = [
                 "queued",
@@ -158,12 +149,9 @@ class TestHiveOrchestratorIntegration:
             (2,),  # workers count
         ]
 
-        with patch(
-            "hive_orchestrator.clean_hive.get_connection", return_value=mock_conn
-        ), patch("hive_orchestrator.clean_hive.transaction") as mock_transaction, patch(
-            "hive_orchestrator.clean_hive.close_connection"
-        ) as mock_close:
-
+        with patch("hive_orchestrator.clean_hive.get_connection", return_value=mock_conn), patch(
+            "hive_orchestrator.clean_hive.transaction"
+        ) as mock_transaction, patch("hive_orchestrator.clean_hive.close_connection") as mock_close:
             # Capture print output
             import contextlib
             import io
@@ -183,14 +171,9 @@ class TestHiveOrchestratorIntegration:
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchone.side_effect = [(0,), (0,), (0,)]  # Empty database
 
-        with patch(
-            "hive_orchestrator.clean_hive.get_connection", return_value=mock_conn
-        ), patch("hive_orchestrator.clean_hive.transaction"), patch(
-            "hive_orchestrator.clean_hive.close_connection"
-        ), patch(
-            "sys.argv", ["clean_hive.py", "--db-only"]
-        ):
-
+        with patch("hive_orchestrator.clean_hive.get_connection", return_value=mock_conn), patch(
+            "hive_orchestrator.clean_hive.transaction"
+        ), patch("hive_orchestrator.clean_hive.close_connection"), patch("sys.argv", ["clean_hive.py", "--db-only"]):
             result = clean_main()
             assert result == 0  # Success
 
@@ -249,9 +232,7 @@ class TestHiveOrchestratorIntegration:
         assert "Config file not found" not in result.output
 
         # Test non-existent config file
-        result = self.runner.invoke(
-            cli, ["start-queen", "--config", "nonexistent.json"]
-        )
+        result = self.runner.invoke(cli, ["start-queen", "--config", "nonexistent.json"])
         assert result.exit_code == 1
 
     def test_concurrent_safety(self):

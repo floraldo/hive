@@ -35,24 +35,16 @@ class ClimateRequest(BaseProfileRequest):
         ],
         description="Climate variables to fetch",
     )
-    source: Optional[ClimateSource] = Field(
-        default="nasa_power", description="Climate data source preference"
-    )
-    resolution: Optional[ClimateResolution] = Field(
-        default="1H", description="Data temporal resolution"
-    )
+    source: Optional[ClimateSource] = Field(default="nasa_power", description="Climate data source preference")
+    resolution: Optional[ClimateResolution] = Field(default="1H", description="Data temporal resolution")
 
     # Climate-specific extensions
     subset: Optional[Dict[str, str]] = Field(
         default=None,
         description="Time subset specification: {'month':'07'} or {'start':'07-10','end':'07-24'}",
     )
-    synthetic_options: Dict[str, Any] = Field(
-        default_factory=dict, description="Options for synthetic data generation"
-    )
-    seed: Optional[int] = Field(
-        default=None, description="Random seed for reproducible synthetic generation"
-    )
+    synthetic_options: Dict[str, Any] = Field(default_factory=dict, description="Options for synthetic data generation")
+    seed: Optional[int] = Field(default=None, description="Random seed for reproducible synthetic generation")
     baseline_period: Optional[Tuple[str, str]] = Field(
         default=None, description="Baseline period for nonstationarity handling"
     )
@@ -90,9 +82,7 @@ class ClimateRequest(BaseProfileRequest):
 
 class ClimateResponse(BaseProfileResponse):
     manifest: Dict[str, Any]
-    path_parquet: Optional[str] = (
-        None  # Made optional for cases where caching is disabled
-    )
+    path_parquet: Optional[str] = None  # Made optional for cases where caching is disabled
     shape: Tuple[int, int]
     stats: Optional[Dict[str, Any]] = None  # Changed to Any to handle nested dicts
 

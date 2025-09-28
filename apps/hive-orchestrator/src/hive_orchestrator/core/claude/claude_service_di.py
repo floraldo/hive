@@ -144,9 +144,7 @@ class ClaudeServiceDI:
                 raise error
 
             # Check cache
-            cache_key = self._generate_cache_key(
-                message, model, max_tokens, temperature, system_prompt
-            )
+            cache_key = self._generate_cache_key(message, model, max_tokens, temperature, system_prompt)
             cached_response = self._get_cached_response(cache_key)
             if cached_response:
                 with self._lock:
@@ -157,9 +155,7 @@ class ClaudeServiceDI:
             if self.config.mock_mode:
                 response = self._create_mock_response(message, model, max_tokens)
             else:
-                response = self._make_real_request(
-                    message, model, max_tokens, temperature, system_prompt
-                )
+                response = self._make_real_request(message, model, max_tokens, temperature, system_prompt)
 
             # Cache response
             self._cache_response(cache_key, response)
@@ -237,9 +233,7 @@ class ClaudeServiceDI:
             self._cache[cache_key] = response
             self._cache_timestamps[cache_key] = time.time()
 
-    def _create_mock_response(
-        self, message: str, model: str, max_tokens: int
-    ) -> ClaudeResponse:
+    def _create_mock_response(self, message: str, model: str, max_tokens: int) -> ClaudeResponse:
         """Create mock response for testing"""
         return ClaudeResponse(
             content=f"Mock response to: {message[:50]}...",
@@ -293,11 +287,7 @@ class ClaudeServiceDI:
                 "cached_requests": self._cached_requests,
                 "cache_size": len(self._cache),
                 "rate_limiter_status": self._rate_limiter.get_status(),
-                "success_rate": (
-                    self._successful_requests / self._total_requests
-                    if self._total_requests > 0
-                    else 0.0
-                ),
+                "success_rate": (self._successful_requests / self._total_requests if self._total_requests > 0 else 0.0),
             }
 
     def clear_cache(self) -> int:

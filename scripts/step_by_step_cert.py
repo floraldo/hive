@@ -14,6 +14,7 @@ print("Starting step-by-step certification...")
 print("Test 1: Configuration...")
 try:
     from hive_db_utils.config import get_config
+
     config = get_config()
     assert config.env in ["development", "testing", "production"]
     print("PASS: Configuration")
@@ -23,6 +24,7 @@ except Exception as e:
 print("Test 2: Database...")
 try:
     import hive_core_db.connection_pool as cp
+
     pool = cp.ConnectionPool()
     assert pool.max_connections > 0
     pool.close_all()
@@ -33,6 +35,7 @@ except Exception as e:
 print("Test 3: Database connection...")
 try:
     import hive_core_db.connection_pool as cp
+
     print("  Getting pooled connection...")
     with cp.get_pooled_connection() as conn:
         print("  Executing query...")
@@ -47,6 +50,7 @@ except Exception as e:
 print("Test 4: Claude service...")
 try:
     from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
+
     print("  Resetting service...")
     reset_claude_service()
     print("  Getting service...")

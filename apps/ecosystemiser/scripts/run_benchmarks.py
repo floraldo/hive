@@ -251,17 +251,13 @@ class BenchmarkRunner:
                         "fidelity_level": fidelity_name,
                         "solve_time_s": round(solve_time, 4),
                         "peak_memory_mb": round(peak_memory, 2),
-                        "status": (
-                            result.status if hasattr(result, "status") else "completed"
-                        ),
+                        "status": (result.status if hasattr(result, "status") else "completed"),
                         "total_cost": total_cost,
                         "error": None,
                     }
                 )
 
-                self._log(
-                    f"  Solve time: {solve_time:.4f}s, Peak memory: {peak_memory:.2f}MB"
-                )
+                self._log(f"  Solve time: {solve_time:.4f}s, Peak memory: {peak_memory:.2f}MB")
 
             except Exception as e:
                 self._log(f"Fidelity {fidelity_name} benchmark failed: {e}")
@@ -339,23 +335,17 @@ class BenchmarkRunner:
                         "warm_start_enabled": warm_start,
                         "solve_time_s": round(solve_time, 4),
                         "peak_memory_mb": round(peak_memory, 2),
-                        "status": (
-                            result.status if hasattr(result, "status") else "completed"
-                        ),
+                        "status": (result.status if hasattr(result, "status") else "completed"),
                         "total_cost": total_cost,
                         "horizon_count": horizon_count,
                         "error": None,
                     }
                 )
 
-                self._log(
-                    f"  Solve time: {solve_time:.4f}s, Peak memory: {peak_memory:.2f}MB"
-                )
+                self._log(f"  Solve time: {solve_time:.4f}s, Peak memory: {peak_memory:.2f}MB")
 
             except Exception as e:
-                self._log(
-                    f"Rolling horizon (warm_start={warm_start}) benchmark failed: {e}"
-                )
+                self._log(f"Rolling horizon (warm_start={warm_start}) benchmark failed: {e}")
                 rolling_results.append(
                     {
                         "warm_start_enabled": warm_start,
@@ -401,9 +391,7 @@ class BenchmarkRunner:
         ]
 
         for config in ga_configs:
-            self._log(
-                f"  GA: pop={config['population']}, gen={config['generations']}, dim={config['dimensions']}"
-            )
+            self._log(f"  GA: pop={config['population']}, gen={config['generations']}, dim={config['dimensions']}")
 
             try:
                 if real_discovery:
@@ -427,21 +415,15 @@ class BenchmarkRunner:
 
                     gc.collect()
                     solve_start = time.time()
-                    result, peak_memory = self._measure_memory_peak(
-                        lambda: optimizer.optimize(fitness_function)
-                    )
+                    result, peak_memory = self._measure_memory_peak(lambda: optimizer.optimize(fitness_function))
                     solve_time = time.time() - solve_start
 
                     num_evaluations = config["population"] * config["generations"]
 
                 else:
                     # Mock benchmark
-                    time.sleep(
-                        0.01 * config["population"] * config["generations"] / 100
-                    )
-                    solve_time = (
-                        0.01 * config["population"] * config["generations"] / 100
-                    )
+                    time.sleep(0.01 * config["population"] * config["generations"] / 100)
+                    solve_time = 0.01 * config["population"] * config["generations"] / 100
                     peak_memory = config["dimensions"] * config["population"] * 0.001
                     num_evaluations = config["population"] * config["generations"]
                     result = {"best_fitness": np.random.random() * 100}
@@ -452,9 +434,7 @@ class BenchmarkRunner:
                         "solve_time_s": round(solve_time, 4),
                         "peak_memory_mb": round(peak_memory, 2),
                         "evaluations": num_evaluations,
-                        "evaluations_per_second": round(
-                            num_evaluations / solve_time, 2
-                        ),
+                        "evaluations_per_second": round(num_evaluations / solve_time, 2),
                         "best_fitness": result.get("best_fitness", None),
                         "error": None,
                     }
@@ -466,9 +446,7 @@ class BenchmarkRunner:
 
             except Exception as e:
                 self._log(f"    GA benchmark failed: {e}")
-                discovery_results["genetic_algorithm"].append(
-                    {"configuration": config, "error": str(e)}
-                )
+                discovery_results["genetic_algorithm"].append({"configuration": config, "error": str(e)})
 
         # Benchmark Monte Carlo
         self._log("Benchmarking Monte Carlo Engine...")
@@ -480,9 +458,7 @@ class BenchmarkRunner:
         ]
 
         for config in mc_configs:
-            self._log(
-                f"  MC: samples={config['samples']}, dim={config['dimensions']}, method={config['method']}"
-            )
+            self._log(f"  MC: samples={config['samples']}, dim={config['dimensions']}, method={config['method']}")
 
             try:
                 if real_discovery:
@@ -506,9 +482,7 @@ class BenchmarkRunner:
 
                     gc.collect()
                     solve_start = time.time()
-                    result, peak_memory = self._measure_memory_peak(
-                        lambda: mc_engine.analyze(fitness_function)
-                    )
+                    result, peak_memory = self._measure_memory_peak(lambda: mc_engine.analyze(fitness_function))
                     solve_time = time.time() - solve_start
 
                 else:
@@ -516,9 +490,7 @@ class BenchmarkRunner:
                     time.sleep(0.001 * config["samples"])
                     solve_time = 0.001 * config["samples"]
                     peak_memory = config["dimensions"] * config["samples"] * 0.0001
-                    result = {
-                        "uncertainty_analysis": {"statistics": {"mean": 50, "std": 10}}
-                    }
+                    result = {"uncertainty_analysis": {"statistics": {"mean": 50, "std": 10}}}
 
                 discovery_results["monte_carlo"].append(
                     {
@@ -526,9 +498,7 @@ class BenchmarkRunner:
                         "solve_time_s": round(solve_time, 4),
                         "peak_memory_mb": round(peak_memory, 2),
                         "samples_per_second": round(config["samples"] / solve_time, 2),
-                        "statistics": result.get("uncertainty_analysis", {}).get(
-                            "statistics", {}
-                        ),
+                        "statistics": result.get("uncertainty_analysis", {}).get("statistics", {}),
                         "error": None,
                     }
                 )
@@ -539,9 +509,7 @@ class BenchmarkRunner:
 
             except Exception as e:
                 self._log(f"    MC benchmark failed: {e}")
-                discovery_results["monte_carlo"].append(
-                    {"configuration": config, "error": str(e)}
-                )
+                discovery_results["monte_carlo"].append({"configuration": config, "error": str(e)})
 
         return discovery_results
 
@@ -558,21 +526,11 @@ class BenchmarkRunner:
         }
 
         # Analyze fidelity benchmarks
-        successful_fidelity = [
-            b for b in self.results["fidelity_benchmarks"] if b["error"] is None
-        ]
+        successful_fidelity = [b for b in self.results["fidelity_benchmarks"] if b["error"] is None]
 
         if successful_fidelity:
-            solve_times = [
-                b["solve_time_s"]
-                for b in successful_fidelity
-                if b["solve_time_s"] is not None
-            ]
-            memory_usage = [
-                b["peak_memory_mb"]
-                for b in successful_fidelity
-                if b["peak_memory_mb"] is not None
-            ]
+            solve_times = [b["solve_time_s"] for b in successful_fidelity if b["solve_time_s"] is not None]
+            memory_usage = [b["peak_memory_mb"] for b in successful_fidelity if b["peak_memory_mb"] is not None]
 
             summary["fidelity_performance"] = {
                 "successful_levels": len(successful_fidelity),
@@ -583,43 +541,25 @@ class BenchmarkRunner:
             }
 
         # Analyze rolling horizon benchmarks
-        successful_rolling = [
-            b for b in self.results["rolling_horizon_benchmarks"] if b["error"] is None
-        ]
+        successful_rolling = [b for b in self.results["rolling_horizon_benchmarks"] if b["error"] is None]
 
         if len(successful_rolling) == 2:  # Both warm-start configs
-            no_warm = next(
-                (b for b in successful_rolling if not b["warm_start_enabled"]), None
-            )
-            with_warm = next(
-                (b for b in successful_rolling if b["warm_start_enabled"]), None
-            )
+            no_warm = next((b for b in successful_rolling if not b["warm_start_enabled"]), None)
+            with_warm = next((b for b in successful_rolling if b["warm_start_enabled"]), None)
 
-            if (
-                no_warm
-                and with_warm
-                and with_warm["solve_time_s"]
-                and with_warm["solve_time_s"] > 0
-            ):
+            if no_warm and with_warm and with_warm["solve_time_s"] and with_warm["solve_time_s"] > 0:
                 speedup = no_warm["solve_time_s"] / with_warm["solve_time_s"]
                 summary["rolling_horizon_performance"] = {
                     "warm_start_speedup": round(speedup, 2),
-                    "memory_overhead_mb": with_warm["peak_memory_mb"]
-                    - no_warm["peak_memory_mb"],
+                    "memory_overhead_mb": with_warm["peak_memory_mb"] - no_warm["peak_memory_mb"],
                 }
 
         # Analyze Discovery Engine benchmarks
-        ga_benchmarks = self.results.get("discovery_engine_benchmarks", {}).get(
-            "genetic_algorithm", []
-        )
+        ga_benchmarks = self.results.get("discovery_engine_benchmarks", {}).get("genetic_algorithm", [])
         successful_ga = [b for b in ga_benchmarks if b.get("error") is None]
 
         if successful_ga:
-            eval_rates = [
-                b["evaluations_per_second"]
-                for b in successful_ga
-                if "evaluations_per_second" in b
-            ]
+            eval_rates = [b["evaluations_per_second"] for b in successful_ga if "evaluations_per_second" in b]
             if eval_rates:
                 summary["discovery_engine_performance"]["genetic_algorithm"] = {
                     "successful_configs": len(successful_ga),
@@ -629,17 +569,11 @@ class BenchmarkRunner:
                     "avg_eval_rate": sum(eval_rates) / len(eval_rates),
                 }
 
-        mc_benchmarks = self.results.get("discovery_engine_benchmarks", {}).get(
-            "monte_carlo", []
-        )
+        mc_benchmarks = self.results.get("discovery_engine_benchmarks", {}).get("monte_carlo", [])
         successful_mc = [b for b in mc_benchmarks if b.get("error") is None]
 
         if successful_mc:
-            sample_rates = [
-                b["samples_per_second"]
-                for b in successful_mc
-                if "samples_per_second" in b
-            ]
+            sample_rates = [b["samples_per_second"] for b in successful_mc if "samples_per_second" in b]
             if sample_rates:
                 summary["discovery_engine_performance"]["monte_carlo"] = {
                     "successful_configs": len(successful_mc),
@@ -650,41 +584,22 @@ class BenchmarkRunner:
                 }
 
         # Generate recommendations
-        success_rate = summary.get("fidelity_performance", {}).get(
-            "successful_levels", 0
-        )
+        success_rate = summary.get("fidelity_performance", {}).get("successful_levels", 0)
         if success_rate >= 3:
-            summary["recommendations"].append(
-                "Majority of fidelity levels functional - foundation is solid"
-            )
+            summary["recommendations"].append("Majority of fidelity levels functional - foundation is solid")
 
-        if (
-            summary.get("rolling_horizon_performance", {}).get(
-                "warm_start_speedup", 1.0
-            )
-            > 1.1
-        ):
-            summary["recommendations"].append(
-                "Warm-starting provides performance benefit - enable by default"
-            )
+        if summary.get("rolling_horizon_performance", {}).get("warm_start_speedup", 1.0) > 1.1:
+            summary["recommendations"].append("Warm-starting provides performance benefit - enable by default")
 
-        ga_perf = summary.get("discovery_engine_performance", {}).get(
-            "genetic_algorithm", {}
-        )
+        ga_perf = summary.get("discovery_engine_performance", {}).get("genetic_algorithm", {})
         if ga_perf.get("avg_eval_rate", 0) > 100:
-            summary["recommendations"].append(
-                "GA optimization performance sufficient for production use"
-            )
+            summary["recommendations"].append("GA optimization performance sufficient for production use")
 
         mc_perf = summary.get("discovery_engine_performance", {}).get("monte_carlo", {})
         if mc_perf.get("avg_sample_rate", 0) > 500:
-            summary["recommendations"].append(
-                "MC uncertainty analysis meets performance targets"
-            )
+            summary["recommendations"].append("MC uncertainty analysis meets performance targets")
 
-        summary["recommendations"].append(
-            "v3.0 foundation benchmark completed - Discovery Engine validated"
-        )
+        summary["recommendations"].append("v3.0 foundation benchmark completed - Discovery Engine validated")
 
         return summary
 
@@ -703,15 +618,11 @@ class BenchmarkRunner:
 
         # Run rolling horizon benchmarks
         self._log("\nRunning rolling horizon benchmarks...")
-        self.results["rolling_horizon_benchmarks"] = self.benchmark_rolling_horizon(
-            system
-        )
+        self.results["rolling_horizon_benchmarks"] = self.benchmark_rolling_horizon(system)
 
         # Run Discovery Engine benchmarks
         self._log("\nRunning Discovery Engine benchmarks...")
-        self.results["discovery_engine_benchmarks"] = self.benchmark_discovery_engine(
-            system
-        )
+        self.results["discovery_engine_benchmarks"] = self.benchmark_discovery_engine(system)
 
         # Generate summary
         self._log("\nGenerating benchmark summary...")
@@ -772,9 +683,7 @@ def main():
                 print(f"  - {rec}")
 
         print(f"\nBaseline file: {output_file}")
-        print(
-            "\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity"
-        )
+        print("\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity")
 
         return 0
 

@@ -16,6 +16,7 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
+
 def run_certification_test():
     """Run the complete autonomous lifecycle certification test"""
 
@@ -51,31 +52,19 @@ def run_certification_test():
                     {
                         "path": "/",
                         "method": "GET",
-                        "response": {
-                            "message": "Hello, World!",
-                            "service": "hello-service-cert",
-                            "certified": True
-                        }
+                        "response": {"message": "Hello, World!", "service": "hello-service-cert", "certified": True},
                     },
-                    {
-                        "path": "/health",
-                        "method": "GET",
-                        "response": {"status": "healthy"}
-                    }
-                ]
+                    {"path": "/health", "method": "GET", "response": {"status": "healthy"}},
+                ],
             },
-            "deployment": {
-                "strategy": "direct",
-                "port": hello_service_port,
-                "auto_start": True
-            }
+            "deployment": {"strategy": "direct", "port": hello_service_port, "auto_start": True},
         }
 
         metadata = {
             "source": "certification_test",
             "test_id": f"cert_{int(time.time())}",
             "priority": "critical",
-            "automated": True
+            "automated": True,
         }
 
         conn = sqlite3.connect(str(db_path))
@@ -83,21 +72,25 @@ def run_certification_test():
 
         now = datetime.now().isoformat()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO tasks (
                 title, description, created_at, updated_at,
                 priority, task_data, metadata, status, estimated_duration
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            "CERTIFICATION: Hello Service Autonomous Lifecycle",
-            "Official certification test for complete autonomous workflow validation",
-            now, now,
-            10,  # Maximum priority
-            json.dumps(task_data),
-            json.dumps(metadata),
-            "deployment_pending",
-            900  # 15 minutes max
-        ))
+        """,
+            (
+                "CERTIFICATION: Hello Service Autonomous Lifecycle",
+                "Official certification test for complete autonomous workflow validation",
+                now,
+                now,
+                10,  # Maximum priority
+                json.dumps(task_data),
+                json.dumps(metadata),
+                "deployment_pending",
+                900,  # 15 minutes max
+            ),
+        )
 
         task_id = cursor.lastrowid
         conn.commit()
@@ -118,7 +111,7 @@ def run_certification_test():
             ("testing", "Backend Worker creating test suite", 1),
             ("review_approved", "AI Reviewer approving implementation", 1),
             ("deployment", "AI Deployer executing deployment", 2),
-            ("completed", "Certification workflow completed", 1)
+            ("completed", "Certification workflow completed", 1),
         ]
 
         print("Executing autonomous workflow stages:")
@@ -131,9 +124,12 @@ def run_certification_test():
                 try:
                     conn = sqlite3.connect(str(db_path))
                     cursor = conn.cursor()
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?
-                    """, (status, datetime.now().isoformat(), task_id))
+                    """,
+                        (status, datetime.now().isoformat(), task_id),
+                    )
                     conn.commit()
                     conn.close()
                 except Exception as e:
@@ -230,10 +226,7 @@ if __name__ == '__main__':
 
         # Start the service in background
         proc = subprocess.Popen(
-            ["python", str(hello_service_path)],
-            cwd=Path.cwd(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            ["python", str(hello_service_path)], cwd=Path.cwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
         background_processes.append(proc)
@@ -333,6 +326,7 @@ if __name__ == '__main__':
                 proc.kill()
 
         print("[OK] Cleanup completed")
+
 
 if __name__ == "__main__":
     success = run_certification_test()

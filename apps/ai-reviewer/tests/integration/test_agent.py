@@ -66,9 +66,7 @@ def mock_adapter():
 @pytest.fixture
 def agent(mock_db, mock_review_engine, mock_adapter):
     """Create a ReviewAgent instance with mocks"""
-    agent = ReviewAgent(
-        db=mock_db, review_engine=mock_review_engine, polling_interval=1, test_mode=True
-    )
+    agent = ReviewAgent(db=mock_db, review_engine=mock_review_engine, polling_interval=1, test_mode=True)
     agent.adapter = mock_adapter
     return agent
 
@@ -78,9 +76,7 @@ class TestReviewAgent:
 
     def test_initialization(self, mock_db, mock_review_engine):
         """Test agent initialization"""
-        agent = ReviewAgent(
-            db=mock_db, review_engine=mock_review_engine, polling_interval=30
-        )
+        agent = ReviewAgent(db=mock_db, review_engine=mock_review_engine, polling_interval=30)
 
         assert agent.db == mock_db
         assert agent.review_engine == mock_review_engine
@@ -100,7 +96,7 @@ class TestReviewAgent:
         assert agent.polling_interval == 5  # Should be reduced in test mode
 
     @pytest.mark.asyncio
-    async def test_process_empty_queue(self, agent, mock_adapter):
+    async def test_process_empty_queue_async(self, agent, mock_adapter):
         """Test processing when queue is empty"""
         mock_adapter.get_pending_reviews.return_value = []
 
@@ -110,7 +106,7 @@ class TestReviewAgent:
         agent.review_engine.review_task.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_process_single_task(self, agent, mock_adapter):
+    async def test_process_single_task_async(self, agent, mock_adapter):
         """Test processing a single task"""
         # Create a mock task
         mock_task = Mock(spec=Task)
@@ -132,7 +128,7 @@ class TestReviewAgent:
         assert agent.stats["approved"] == 1  # Based on mock review result
 
     @pytest.mark.asyncio
-    async def test_review_task_approve(self, agent, mock_adapter):
+    async def test_review_task_approve_async(self, agent, mock_adapter):
         """Test reviewing a task that gets approved"""
         mock_task = Mock(spec=Task)
         mock_task.id = "approve-001"
@@ -156,7 +152,7 @@ class TestReviewAgent:
         assert call_args[1] == TaskStatus.APPROVED
 
     @pytest.mark.asyncio
-    async def test_review_task_reject(self, agent, mock_adapter, mock_review_engine):
+    async def test_review_task_reject_async(self, agent, mock_adapter, mock_review_engine):
         """Test reviewing a task that gets rejected"""
         # Override the review result to reject
         metrics = QualityMetrics(
@@ -192,7 +188,7 @@ class TestReviewAgent:
         assert agent.stats["rejected"] == 1
 
     @pytest.mark.asyncio
-    async def test_review_task_no_code_files(self, agent, mock_adapter):
+    async def test_review_task_no_code_files_async(self, agent, mock_adapter):
         """Test handling task with no code files"""
         mock_task = Mock(spec=Task)
         mock_task.id = "empty-001"
@@ -209,9 +205,7 @@ class TestReviewAgent:
         assert agent.stats["escalated"] == 1
 
     @pytest.mark.asyncio
-    async def test_review_task_error_handling(
-        self, agent, mock_adapter, mock_review_engine
-    ):
+    async def test_review_task_error_handling_async(self, agent, mock_adapter, mock_review_engine):
         """Test error handling during review"""
         mock_task = Mock(spec=Task)
         mock_task.id = "error-001"
@@ -254,7 +248,7 @@ class TestReviewAgent:
         assert agent._pct("rejected") == 20
 
     @pytest.mark.asyncio
-    async def test_shutdown(self, agent):
+    async def test_shutdown_async(self, agent):
         """Test graceful shutdown"""
         agent.stats["start_time"] = datetime.now()
         agent.stats["tasks_reviewed"] = 5
@@ -267,7 +261,7 @@ class TestReviewAgent:
         assert True  # If we get here, shutdown worked
 
     @pytest.mark.asyncio
-    async def test_signal_handler(self, agent):
+    async def test_signal_handler_async(self, agent):
         """Test signal handler sets running to False"""
         agent.running = True
         agent._signal_handler(2, None)  # SIGINT
@@ -316,9 +310,7 @@ class TestDatabaseAdapter:
         mock_query.first.return_value = mock_task
 
         review_data = {"score": 85, "decision": "approve"}
-        result = adapter.update_task_status(
-            "test-123", TaskStatus.APPROVED, review_data
-        )
+        result = adapter.update_task_status("test-123", TaskStatus.APPROVED, review_data)
 
         assert result == True
         assert mock_task.status == TaskStatus.APPROVED

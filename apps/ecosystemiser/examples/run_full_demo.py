@@ -195,9 +195,7 @@ class MicrogridDemoRunner:
             json.dump(results, f, indent=2)
 
         logger.info(f"\n✅ Optimization completed!")
-        logger.info(
-            f"   Found {len(results['best_result']['pareto_front'])} Pareto-optimal solutions"
-        )
+        logger.info(f"   Found {len(results['best_result']['pareto_front'])} Pareto-optimal solutions")
         logger.info(f"   Results saved to: {results_file}")
 
         return study_id, results
@@ -214,12 +212,8 @@ class MicrogridDemoRunner:
 
         logger.info("\nPareto-optimal solutions found:")
         logger.info("-" * 60)
-        logger.info(
-            f"{'ID':>3} | {'Solar':>6} | {'Battery':>7} | {'Wind':>4} | {'TCO':>7} | {'Renewable':>9}"
-        )
-        logger.info(
-            f"{'':>3} | {'(kW)':>6} | {'(kWh)':>7} | {'':>4} | {'(M€)':>7} | {'(%)':>9}"
-        )
+        logger.info(f"{'ID':>3} | {'Solar':>6} | {'Battery':>7} | {'Wind':>4} | {'TCO':>7} | {'Renewable':>9}")
+        logger.info(f"{'':>3} | {'(kW)':>6} | {'(kWh)':>7} | {'':>4} | {'(M€)':>7} | {'(%)':>9}")
         logger.info("-" * 60)
 
         for solution in pareto_front:
@@ -236,18 +230,12 @@ class MicrogridDemoRunner:
         logger.info(f"   Solar Capacity: {best_design['solar_capacity_kw']} kW")
         logger.info(f"   Battery Storage: {best_design['battery_capacity_kwh']} kWh")
         logger.info(f"   Wind Turbines: {best_design['wind_turbines']} × 10kW")
-        logger.info(
-            f"   Total Cost: €{best_design['tco_million_eur']:.1f}M over 20 years"
-        )
-        logger.info(
-            f"   Renewable Fraction: {best_design['renewable_fraction']*100:.1f}%"
-        )
+        logger.info(f"   Total Cost: €{best_design['tco_million_eur']:.1f}M over 20 years")
+        logger.info(f"   Renewable Fraction: {best_design['renewable_fraction']*100:.1f}%")
 
         return best_design
 
-    def run_uncertainty_analysis(
-        self, design: Dict[str, Any]
-    ) -> Tuple[str, Dict[str, Any]]:
+    def run_uncertainty_analysis(self, design: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         """
         Step 4: Run Monte Carlo uncertainty analysis on the selected design.
         """
@@ -268,9 +256,7 @@ class MicrogridDemoRunner:
         logger.info("\nMonte Carlo Simulation Progress:")
         for sample in range(0, 1001, 200):
             time.sleep(0.5)  # Simulate computation
-            logger.info(
-                f"  Sample {sample:4d}/1000 [{'█' * (sample//50):20s}] {sample//10}%"
-            )
+            logger.info(f"  Sample {sample:4d}/1000 [{'█' * (sample//50):20s}] {sample//10}%")
 
         study_id = f"mc_berlin_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -341,17 +327,17 @@ class MicrogridDemoRunner:
 
         try:
             # Load GA results and generate HTML report
-            with open(ga_results_file, 'r') as f:
+            with open(ga_results_file, "r") as f:
                 ga_data = json.load(f)
 
             html_content = self.report_generator.generate_standalone_report(
                 analysis_results=ga_data,
                 title=f"Genetic Algorithm Optimization - {ga_data.get('study_id', 'Unknown')}",
-                report_type='genetic_algorithm'
+                report_type="genetic_algorithm",
             )
 
             # Write HTML report to file
-            with open(ga_report, 'w', encoding='utf-8') as f:
+            with open(ga_report, "w", encoding="utf-8") as f:
                 f.write(html_content)
 
             reports_generated.append(ga_report)
@@ -366,17 +352,17 @@ class MicrogridDemoRunner:
 
         try:
             # Load MC results and generate HTML report
-            with open(mc_results_file, 'r') as f:
+            with open(mc_results_file, "r") as f:
                 mc_data = json.load(f)
 
             html_content = self.report_generator.generate_standalone_report(
                 analysis_results=mc_data,
                 title=f"Monte Carlo Uncertainty Analysis - {mc_data.get('study_id', 'Unknown')}",
-                report_type='monte_carlo'
+                report_type="monte_carlo",
             )
 
             # Write HTML report to file
-            with open(mc_report, 'w', encoding='utf-8') as f:
+            with open(mc_report, "w", encoding="utf-8") as f:
                 f.write(html_content)
 
             reports_generated.append(mc_report)
@@ -478,9 +464,7 @@ class MicrogridDemoRunner:
 
             # Offer to open reports in browser
             logger.info("\n" + "-" * 70)
-            response = input(
-                "Would you like to open the reports in your browser? (y/n): "
-            )
+            response = input("Would you like to open the reports in your browser? (y/n): ")
             if response.lower() == "y":
                 for report in reports:
                     webbrowser.open(f"file://{report.absolute()}")

@@ -15,9 +15,7 @@ from ecosystemiser.profile_loader.shared.models import (
 from pydantic import BaseModel, Field
 
 # Demand types
-DemandType = Literal[
-    "electricity", "heating", "cooling", "hot_water", "process_heat", "total_energy"
-]
+DemandType = Literal["electricity", "heating", "cooling", "hot_water", "process_heat", "total_energy"]
 
 # Building types for standard profiles
 BuildingType = Literal[

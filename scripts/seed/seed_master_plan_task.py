@@ -20,11 +20,8 @@ from hive_core_db.database import get_connection, init_db
 import logging
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger('master-seeder')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("master-seeder")
 
 
 def create_master_plan_task():
@@ -94,27 +91,43 @@ QUALITY STANDARDS:
         "project_type": "full_stack_web_application",
         "estimated_complexity": "medium",
         "technologies": [
-            "python", "flask", "fastapi", "sqlite", "react", "typescript",
-            "html", "css", "javascript", "docker", "jest", "testing-library"
+            "python",
+            "flask",
+            "fastapi",
+            "sqlite",
+            "react",
+            "typescript",
+            "html",
+            "css",
+            "javascript",
+            "docker",
+            "jest",
+            "testing-library",
         ],
-        "components": [
-            "backend_api", "frontend_ui", "database_schema",
-            "test_suite", "documentation", "deployment"
-        ],
+        "components": ["backend_api", "frontend_ui", "database_schema", "test_suite", "documentation", "deployment"],
         "estimated_files": 25,
         "estimated_duration_hours": 40,
         "quality_requirements": [
-            "unit_testing", "integration_testing", "code_review",
-            "documentation", "error_handling", "accessibility"
+            "unit_testing",
+            "integration_testing",
+            "code_review",
+            "documentation",
+            "error_handling",
+            "accessibility",
         ],
         "deliverables": [
-            "working_web_application", "api_documentation",
-            "test_suite", "deployment_instructions", "user_guide"
+            "working_web_application",
+            "api_documentation",
+            "test_suite",
+            "deployment_instructions",
+            "user_guide",
         ],
         "constraints": [
-            "use_sqlite_only", "responsive_design_required",
-            "accessibility_compliance", "comprehensive_testing"
-        ]
+            "use_sqlite_only",
+            "responsive_design_required",
+            "accessibility_compliance",
+            "comprehensive_testing",
+        ],
     }
 
     # Insert master task into planning_queue
@@ -125,19 +138,22 @@ QUALITY STANDARDS:
         logger.error(f"Failed to get database connection: {e}")
         return None
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO planning_queue
         (id, task_description, priority, requestor, context_data, status, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (
-        master_task_id,
-        task_description,
-        95,  # High priority for integration test
-        "integration_test_suite",
-        json.dumps(context_data),
-        "pending",
-        datetime.now(timezone.utc).isoformat()
-    ))
+    """,
+        (
+            master_task_id,
+            task_description,
+            95,  # High priority for integration test
+            "integration_test_suite",
+            json.dumps(context_data),
+            "pending",
+            datetime.now(timezone.utc).isoformat(),
+        ),
+    )
 
     conn.commit()
 
@@ -178,14 +194,14 @@ QUALITY STANDARDS:
                 "plan_generation",
                 "subtask_creation",
                 "queen_execution",
-                "lifecycle_completion"
+                "lifecycle_completion",
             ],
             "monitoring_targets": {
                 "planning_queue_status": "pending -> assigned -> planned",
                 "execution_plans_count": ">= 1",
                 "tasks_created": ">= 3",
-                "tasks_lifecycle": "queued -> in_progress -> completed"
-            }
+                "tasks_lifecycle": "queued -> in_progress -> completed",
+            },
         }
 
         metadata_path = hive_root / "integration_test_metadata.json"
@@ -218,7 +234,7 @@ def verify_prerequisites():
         cursor = conn.cursor()
 
         # Check required tables exist
-        tables_to_check = ['planning_queue', 'execution_plans', 'tasks', 'runs']
+        tables_to_check = ["planning_queue", "execution_plans", "tasks", "runs"]
         for table in tables_to_check:
             cursor.execute(f"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{table}'")
             if cursor.fetchone()[0] == 0:
@@ -273,5 +289,6 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"Seeder failed: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

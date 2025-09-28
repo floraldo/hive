@@ -116,9 +116,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         samples = self.validate_bounds(samples)
 
         self.samples = samples
-        logger.info(
-            f"Generated {len(samples)} Monte Carlo samples using {self.mc_config.sampling_method}"
-        )
+        logger.info(f"Generated {len(samples)} Monte Carlo samples using {self.mc_config.sampling_method}")
 
         return samples
 
@@ -216,33 +214,25 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
             if uncertainty_var.distribution == "normal":
                 mean = uncertainty_var.parameters.get("mean", 0)
                 std = uncertainty_var.parameters.get("std", 1)
-                modified_samples[:, i] = stats.norm.ppf(
-                    uniform_samples, loc=mean, scale=std
-                )
+                modified_samples[:, i] = stats.norm.ppf(uniform_samples, loc=mean, scale=std)
 
             elif uncertainty_var.distribution == "lognormal":
                 mu = uncertainty_var.parameters.get("mu", 0)
                 sigma = uncertainty_var.parameters.get("sigma", 1)
-                modified_samples[:, i] = stats.lognorm.ppf(
-                    uniform_samples, s=sigma, scale=np.exp(mu)
-                )
+                modified_samples[:, i] = stats.lognorm.ppf(uniform_samples, s=sigma, scale=np.exp(mu))
 
             elif uncertainty_var.distribution == "triangular":
                 a = uncertainty_var.parameters.get("a", 0)
                 b = uncertainty_var.parameters.get("b", 1)
                 c = uncertainty_var.parameters.get("c", 0.5)
-                modified_samples[:, i] = stats.triang.ppf(
-                    uniform_samples, c=(c - a) / (b - a), loc=a, scale=b - a
-                )
+                modified_samples[:, i] = stats.triang.ppf(uniform_samples, c=(c - a) / (b - a), loc=a, scale=b - a)
 
             elif uncertainty_var.distribution == "beta":
                 alpha = uncertainty_var.parameters.get("alpha", 2)
                 beta = uncertainty_var.parameters.get("beta", 2)
                 a = uncertainty_var.parameters.get("a", 0)
                 b = uncertainty_var.parameters.get("b", 1)
-                modified_samples[:, i] = stats.beta.ppf(
-                    uniform_samples, alpha, beta, loc=a, scale=b - a
-                )
+                modified_samples[:, i] = stats.beta.ppf(uniform_samples, alpha, beta, loc=a, scale=b - a)
 
             # Apply bounds if specified
             if uncertainty_var.bounds:
@@ -251,17 +241,13 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         return modified_samples
 
-    def evaluate_population(
-        self, population: np.ndarray, fitness_function: Callable
-    ) -> List[Dict[str, Any]]:
+    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> List[Dict[str, Any]]:
         """Evaluate Monte Carlo samples."""
         evaluations = []
 
         if self.config.parallel_evaluation and self.config.max_workers > 1:
             with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
-                futures = [
-                    executor.submit(fitness_function, sample) for sample in population
-                ]
+                futures = [executor.submit(fitness_function, sample) for sample in population]
 
                 for i, future in enumerate(futures):
                     try:
@@ -273,8 +259,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                         evaluations.append(
                             {
                                 "sample_id": i,
-                                "objectives": [float("inf")]
-                                * len(self.config.objectives),
+                                "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
                                 "error": str(e),
                             }
@@ -304,9 +289,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         return evaluations
 
-    def _save_samples_and_results(
-        self, samples: np.ndarray, results: List[Dict[str, Any]]
-    ):
+    def _save_samples_and_results(self, samples: np.ndarray, results: List[Dict[str, Any]]):
         """Save samples and results to file."""
         storage_path = Path(self.mc_config.sample_storage_path)
         storage_path.mkdir(parents=True, exist_ok=True)
@@ -325,17 +308,13 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         logger.info(f"Saved {len(samples)} samples and results to {storage_path}")
 
-    def update_population(
-        self, population: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> np.ndarray:
+    def update_population(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """Monte Carlo doesn't update population - returns original."""
         return population
 
     def check_convergence(self, evaluations: List[Dict[str, Any]]) -> bool:
         """Monte Carlo is complete when all samples are evaluated."""
-        return len(evaluations) >= (
-            self.config.max_evaluations or self.config.population_size
-        )
+        return len(evaluations) >= (self.config.max_evaluations or self.config.population_size)
 
     def optimize(self, fitness_function: Callable) -> OptimizationResult:
         """Run Monte Carlo analysis."""
@@ -368,9 +347,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 metadata=analysis_results,
             )
 
-            logger.info(
-                f"Monte Carlo analysis completed with {len(evaluations)} samples"
-            )
+            logger.info(f"Monte Carlo analysis completed with {len(evaluations)} samples")
             return result
 
         except Exception as e:
@@ -382,9 +359,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 metadata={"error": str(e)},
             )
 
-    def _perform_uncertainty_analysis(
-        self, samples: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _perform_uncertainty_analysis(self, samples: np.ndarray, evaluations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Perform comprehensive uncertainty analysis."""
         analysis = {}
 
@@ -392,15 +367,11 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         analysis["statistics"] = self._calculate_statistics(evaluations)
 
         # Confidence intervals
-        analysis["confidence_intervals"] = self._calculate_confidence_intervals(
-            evaluations
-        )
+        analysis["confidence_intervals"] = self._calculate_confidence_intervals(evaluations)
 
         # Sensitivity analysis
         if self.mc_config.sensitivity_analysis:
-            analysis["sensitivity"] = self._calculate_sensitivity_indices(
-                samples, evaluations
-            )
+            analysis["sensitivity"] = self._calculate_sensitivity_indices(samples, evaluations)
 
         # Risk analysis
         if self.mc_config.risk_analysis:
@@ -408,22 +379,16 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         # Scenario analysis
         if self.mc_config.scenario_analysis:
-            analysis["scenarios"] = self._perform_scenario_analysis(
-                samples, evaluations
-            )
+            analysis["scenarios"] = self._perform_scenario_analysis(samples, evaluations)
 
         return analysis
 
-    def _calculate_statistics(
-        self, evaluations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _calculate_statistics(self, evaluations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate basic statistics for outputs."""
         statistics = {}
 
         # Extract valid objective values
-        valid_evaluations = [
-            eval_result for eval_result in evaluations if eval_result.get("valid", True)
-        ]
+        valid_evaluations = [eval_result for eval_result in evaluations if eval_result.get("valid", True)]
 
         if not valid_evaluations:
             return {"error": "No valid evaluations"}
@@ -450,15 +415,11 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         return statistics
 
-    def _calculate_confidence_intervals(
-        self, evaluations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _calculate_confidence_intervals(self, evaluations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate confidence intervals for outputs."""
         confidence_intervals = {}
 
-        valid_evaluations = [
-            eval_result for eval_result in evaluations if eval_result.get("valid", True)
-        ]
+        valid_evaluations = [eval_result for eval_result in evaluations if eval_result.get("valid", True)]
 
         for obj_idx, obj_name in enumerate(self.config.objectives):
             obj_values = []
@@ -488,17 +449,11 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         return confidence_intervals
 
-    def _calculate_sensitivity_indices(
-        self, samples: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _calculate_sensitivity_indices(self, samples: np.ndarray, evaluations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate sensitivity indices using correlation analysis."""
         sensitivity = {}
 
-        valid_indices = [
-            i
-            for i, eval_result in enumerate(evaluations)
-            if eval_result.get("valid", True)
-        ]
+        valid_indices = [i for i, eval_result in enumerate(evaluations) if eval_result.get("valid", True)]
 
         if len(valid_indices) < 10:
             return {"error": "Insufficient valid samples for sensitivity analysis"}
@@ -524,9 +479,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                     correlation, p_value = stats.pearsonr(param_values, obj_values)
 
                     # Spearman rank correlation
-                    rank_correlation, rank_p_value = stats.spearmanr(
-                        param_values, obj_values
-                    )
+                    rank_correlation, rank_p_value = stats.spearmanr(param_values, obj_values)
 
                     param_sensitivity[f"param_{param_idx}"] = {
                         "pearson_correlation": float(correlation),
@@ -540,15 +493,11 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         return sensitivity
 
-    def _calculate_risk_metrics(
-        self, evaluations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _calculate_risk_metrics(self, evaluations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate risk metrics."""
         risk_metrics = {}
 
-        valid_evaluations = [
-            eval_result for eval_result in evaluations if eval_result.get("valid", True)
-        ]
+        valid_evaluations = [eval_result for eval_result in evaluations if eval_result.get("valid", True)]
 
         for obj_idx, obj_name in enumerate(self.config.objectives):
             obj_values = []
@@ -572,9 +521,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 # Probability of exceeding targets
                 mean_value = np.mean(obj_values)
                 prob_exceed_mean = np.sum(obj_values > mean_value) / len(obj_values)
-                prob_exceed_2std = np.sum(
-                    obj_values > mean_value + 2 * np.std(obj_values)
-                ) / len(obj_values)
+                prob_exceed_2std = np.sum(obj_values > mean_value + 2 * np.std(obj_values)) / len(obj_values)
 
                 risk_metrics[obj_name] = {
                     "var_95": float(var_95),
@@ -583,26 +530,16 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                     "cvar_99": float(cvar_99),
                     "prob_exceed_mean": float(prob_exceed_mean),
                     "prob_exceed_2std": float(prob_exceed_2std),
-                    "risk_ratio": (
-                        float(np.std(obj_values) / abs(mean_value))
-                        if mean_value != 0
-                        else float("inf")
-                    ),
+                    "risk_ratio": (float(np.std(obj_values) / abs(mean_value)) if mean_value != 0 else float("inf")),
                 }
 
         return risk_metrics
 
-    def _perform_scenario_analysis(
-        self, samples: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _perform_scenario_analysis(self, samples: np.ndarray, evaluations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Perform scenario analysis."""
         scenarios = {}
 
-        valid_indices = [
-            i
-            for i, eval_result in enumerate(evaluations)
-            if eval_result.get("valid", True)
-        ]
+        valid_indices = [i for i, eval_result in enumerate(evaluations) if eval_result.get("valid", True)]
 
         if len(valid_indices) < 20:
             return {"error": "Insufficient samples for scenario analysis"}
@@ -636,9 +573,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                     elif scenario_name == "pessimistic":
                         scenario_indices = obj_values >= threshold
                     else:  # expected
-                        scenario_indices = (
-                            np.abs(obj_values - threshold) <= np.std(obj_values) * 0.5
-                        )
+                        scenario_indices = np.abs(obj_values - threshold) <= np.std(obj_values) * 0.5
 
                     if np.sum(scenario_indices) > 0:
                         scenario_samples = valid_samples[scenario_indices]
@@ -649,20 +584,16 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                             "sample_count": int(np.sum(scenario_indices)),
                             "mean_objective": float(np.mean(scenario_objectives)),
                             "parameter_means": [
-                                float(np.mean(scenario_samples[:, i]))
-                                for i in range(scenario_samples.shape[1])
+                                float(np.mean(scenario_samples[:, i])) for i in range(scenario_samples.shape[1])
                             ],
                             "parameter_stds": [
-                                float(np.std(scenario_samples[:, i]))
-                                for i in range(scenario_samples.shape[1])
+                                float(np.std(scenario_samples[:, i])) for i in range(scenario_samples.shape[1])
                             ],
                         }
 
         return scenarios
 
-    def _get_best_sample(
-        self, samples: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> Optional[np.ndarray]:
+    def _get_best_sample(self, samples: np.ndarray, evaluations: List[Dict[str, Any]]) -> Optional[np.ndarray]:
         """Get best sample based on primary objective."""
         if not evaluations:
             return None
@@ -670,18 +601,12 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         if len(self.config.objectives) == 1:
             best_idx = min(
                 range(len(evaluations)),
-                key=lambda i: evaluations[i].get(
-                    "fitness", evaluations[i].get("objectives", [float("inf")])[0]
-                ),
+                key=lambda i: evaluations[i].get("fitness", evaluations[i].get("objectives", [float("inf")])[0]),
             )
             return samples[best_idx]
         else:
             # For multi-objective, return sample closest to ideal point
-            valid_indices = [
-                i
-                for i, eval_result in enumerate(evaluations)
-                if eval_result.get("valid", True)
-            ]
+            valid_indices = [i for i, eval_result in enumerate(evaluations) if eval_result.get("valid", True)]
 
             if not valid_indices:
                 return samples[0]
@@ -713,18 +638,14 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         if not evaluations:
             return float("inf")
 
-        valid_evaluations = [
-            eval_result for eval_result in evaluations if eval_result.get("valid", True)
-        ]
+        valid_evaluations = [eval_result for eval_result in evaluations if eval_result.get("valid", True)]
 
         if not valid_evaluations:
             return float("inf")
 
         if len(self.config.objectives) == 1:
             fitness_values = [
-                eval_result.get(
-                    "fitness", eval_result.get("objectives", [float("inf")])[0]
-                )
+                eval_result.get("fitness", eval_result.get("objectives", [float("inf")])[0])
                 for eval_result in valid_evaluations
             ]
             return min(fitness_values)
@@ -738,16 +659,12 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
             return min(avg_objectives) if avg_objectives else float("inf")
 
-    def _get_best_objectives(
-        self, evaluations: List[Dict[str, Any]]
-    ) -> Optional[List[float]]:
+    def _get_best_objectives(self, evaluations: List[Dict[str, Any]]) -> Optional[List[float]]:
         """Get best objective values."""
         if not evaluations:
             return None
 
-        valid_evaluations = [
-            eval_result for eval_result in evaluations if eval_result.get("valid", True)
-        ]
+        valid_evaluations = [eval_result for eval_result in evaluations if eval_result.get("valid", True)]
 
         if not valid_evaluations:
             return None
@@ -856,18 +773,14 @@ class UncertaintyAnalyzer:
         result = self.run_uncertainty_analysis(fitness_function, uncertainties)
 
         return {
-            "sensitivity_indices": result["uncertainty_analysis"].get(
-                "sensitivity", {}
-            ),
+            "sensitivity_indices": result["uncertainty_analysis"].get("sensitivity", {}),
             "parameter_ranking": self._rank_parameters_by_sensitivity(
                 result["uncertainty_analysis"].get("sensitivity", {})
             ),
             "summary": result["summary"],
         }
 
-    def _rank_parameters_by_sensitivity(
-        self, sensitivity_results: Dict[str, Any]
-    ) -> Dict[str, List[Dict[str, Any]]]:
+    def _rank_parameters_by_sensitivity(self, sensitivity_results: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
         """Rank parameters by their sensitivity indices."""
         rankings = {}
 
@@ -883,9 +796,7 @@ class UncertaintyAnalyzer:
                             {
                                 "parameter": param_name,
                                 "sensitivity_index": sensitivity_index,
-                                "pearson_correlation": sensitivity_data.get(
-                                    "pearson_correlation", 0
-                                ),
+                                "pearson_correlation": sensitivity_data.get("pearson_correlation", 0),
                                 "p_value": sensitivity_data.get("pearson_p_value", 1),
                             }
                         )

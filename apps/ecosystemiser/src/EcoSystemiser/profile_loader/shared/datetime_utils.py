@@ -87,33 +87,23 @@ class DateTimeProcessor:
 
                 # End of last month
                 if end_month == 12:
-                    normalized["end"] = pd.Timestamp(
-                        year + 1, 1, 1, tz="UTC"
-                    ) - pd.Timedelta(seconds=1)
+                    normalized["end"] = pd.Timestamp(year + 1, 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
                 else:
-                    normalized["end"] = pd.Timestamp(
-                        year, end_month + 1, 1, tz="UTC"
-                    ) - pd.Timedelta(seconds=1)
+                    normalized["end"] = pd.Timestamp(year, end_month + 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
 
             elif "month" in period:
                 # Single month
                 month = int(period["month"])
                 normalized["start"] = pd.Timestamp(year, month, 1, tz="UTC")
                 if month == 12:
-                    normalized["end"] = pd.Timestamp(
-                        year + 1, 1, 1, tz="UTC"
-                    ) - pd.Timedelta(seconds=1)
+                    normalized["end"] = pd.Timestamp(year + 1, 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
                 else:
-                    normalized["end"] = pd.Timestamp(
-                        year, month + 1, 1, tz="UTC"
-                    ) - pd.Timedelta(seconds=1)
+                    normalized["end"] = pd.Timestamp(year, month + 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
 
             else:
                 # Full year
                 normalized["start"] = pd.Timestamp(year, 1, 1, tz="UTC")
-                normalized["end"] = pd.Timestamp(
-                    year + 1, 1, 1, tz="UTC"
-                ) - pd.Timedelta(seconds=1)
+                normalized["end"] = pd.Timestamp(year + 1, 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
 
         elif "duration" in period:
             # Duration-based period
@@ -126,9 +116,7 @@ class DateTimeProcessor:
             # Default to current year
             current_year = datetime.now().year
             normalized["start"] = pd.Timestamp(current_year, 1, 1, tz="UTC")
-            normalized["end"] = pd.Timestamp(
-                current_year + 1, 1, 1, tz="UTC"
-            ) - pd.Timedelta(seconds=1)
+            normalized["end"] = pd.Timestamp(current_year + 1, 1, 1, tz="UTC") - pd.Timedelta(seconds=1)
 
         return normalized
 
@@ -491,9 +479,7 @@ class DateTimeProcessor:
         if expected_freq:
             expected_freq_norm = cls.normalize_frequency(expected_freq)
             if inferred_freq != expected_freq_norm:
-                report["issues"].append(
-                    f"Frequency mismatch: expected {expected_freq_norm}, got {inferred_freq}"
-                )
+                report["issues"].append(f"Frequency mismatch: expected {expected_freq_norm}, got {inferred_freq}")
 
         # Check for gaps
         gaps = cls.detect_gaps(time_index, expected_freq or inferred_freq)
@@ -522,9 +508,7 @@ class DateTimeProcessor:
         return report
 
     @classmethod
-    def optimize_time_index(
-        cls, time_index: pd.DatetimeIndex, target_memory_mb: float = 100.0
-    ) -> pd.DatetimeIndex:
+    def optimize_time_index(cls, time_index: pd.DatetimeIndex, target_memory_mb: float = 100.0) -> pd.DatetimeIndex:
         """
         Optimize DatetimeIndex for memory efficiency.
 

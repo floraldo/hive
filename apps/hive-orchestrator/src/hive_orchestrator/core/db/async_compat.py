@@ -137,46 +137,46 @@ def get_sync_async_connection():
         def execute(self, sql, parameters=None):
             """Sync wrapper for async execute."""
 
-            async def _execute():
+            async def _execute_async():
                 if parameters:
                     return await self._async_conn.execute(sql, parameters)
                 else:
                     return await self._async_conn.execute(sql)
 
-            cursor = _loop_manager.run_async(_execute())
+            cursor = _loop_manager.run_async(_execute_async())
             return AsyncCursorWrapper(cursor)
 
         def executemany(self, sql, parameters_list):
             """Sync wrapper for async executemany."""
 
-            async def _executemany():
+            async def _executemany_async():
                 return await self._async_conn.executemany(sql, parameters_list)
 
-            return _loop_manager.run_async(_executemany())
+            return _loop_manager.run_async(_executemany_async())
 
         def commit(self):
             """Sync wrapper for async commit."""
 
-            async def _commit():
+            async def _commit_async():
                 await self._async_conn.commit()
 
-            return _loop_manager.run_async(_commit())
+            return _loop_manager.run_async(_commit_async())
 
         def rollback(self):
             """Sync wrapper for async rollback."""
 
-            async def _rollback():
+            async def _rollback_async():
                 await self._async_conn.rollback()
 
-            return _loop_manager.run_async(_rollback())
+            return _loop_manager.run_async(_rollback_async())
 
         def close(self):
             """Sync wrapper for async close."""
 
-            async def _close():
+            async def _close_async():
                 await self._async_conn.close()
 
-            return _loop_manager.run_async(_close())
+            return _loop_manager.run_async(_close_async())
 
     class AsyncCursorWrapper:
         """Wrapper that makes async cursor look sync."""
@@ -187,48 +187,48 @@ def get_sync_async_connection():
         def fetchone(self):
             """Sync wrapper for async fetchone."""
 
-            async def _fetchone():
+            async def _fetchone_async():
                 return await self._async_cursor.fetchone()
 
-            return _loop_manager.run_async(_fetchone())
+            return _loop_manager.run_async(_fetchone_async())
 
         def fetchall(self):
             """Sync wrapper for async fetchall."""
 
-            async def _fetchall():
+            async def _fetchall_async():
                 return await self._async_cursor.fetchall()
 
-            return _loop_manager.run_async(_fetchall())
+            return _loop_manager.run_async(_fetchall_async())
 
         def fetchmany(self, size=None):
             """Sync wrapper for async fetchmany."""
 
-            async def _fetchmany():
+            async def _fetchmany_async():
                 if size:
                     return await self._async_cursor.fetchmany(size)
                 else:
                     return await self._async_cursor.fetchmany()
 
-            return _loop_manager.run_async(_fetchmany())
+            return _loop_manager.run_async(_fetchmany_async())
 
     # Simplified sync wrapper for async connection
-    async def _get_and_enter():
+    async def _get_and_enter_async():
         async_cm = get_async_connection()
         conn = await async_cm.__aenter__()
         return async_cm, conn
 
     # Get the async context manager and connection
-    async_cm, conn = _loop_manager.run_async(_get_and_enter())
+    async_cm, conn = _loop_manager.run_async(_get_and_enter_async())
     wrapped_conn = AsyncConnectionWrapper(conn)
 
     try:
         yield wrapped_conn
     finally:
         # Clean up the async context manager
-        async def _exit():
+        async def _exit_async():
             await async_cm.__aexit__(None, None, None)
 
-        _loop_manager.run_async(_exit())
+        _loop_manager.run_async(_exit_async())
 
 
 class AsyncToSyncAdapter:
@@ -241,7 +241,7 @@ class AsyncToSyncAdapter:
 
     @staticmethod
     @sync_wrapper
-    async def execute_query(query: str, parameters=None):
+    async def execute_query_async(query: str, parameters=None):
         """Execute a query using async connection."""
         async with get_async_connection() as conn:
             if parameters:
@@ -252,7 +252,7 @@ class AsyncToSyncAdapter:
 
     @staticmethod
     @sync_wrapper
-    async def execute_update(query: str, parameters=None):
+    async def execute_update_async(query: str, parameters=None):
         """Execute an update/insert/delete using async connection."""
         async with get_async_connection() as conn:
             if parameters:
@@ -264,7 +264,7 @@ class AsyncToSyncAdapter:
 
     @staticmethod
     @sync_wrapper
-    async def execute_transaction(queries_and_params):
+    async def execute_transaction_async(queries_and_params):
         """Execute multiple queries in a transaction."""
         async with get_async_connection() as conn:
             try:

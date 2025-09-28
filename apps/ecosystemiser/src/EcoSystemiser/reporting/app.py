@@ -54,9 +54,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
                 return jsonify({"error": "No file selected"}), 400
 
             # Save uploaded file temporarily
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".json", delete=False
-            ) as tmp:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
                 content = file.read().decode("utf-8")
                 json_data = json.loads(content)  # Validate JSON
                 json.dump(json_data, tmp)
@@ -110,19 +108,13 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 
         # Use ReportingService to generate report
         report_config = ReportConfig(
-            report_type="standard",
-            title=f"Analysis Report - {session_id}",
-            include_plots=True,
-            output_format="html"
+            report_type="standard", title=f"Analysis Report - {session_id}", include_plots=True, output_format="html"
         )
 
-        report_result = app.reporting_service.generate_report(
-            analysis_results=analysis_results,
-            config=report_config
-        )
+        report_result = app.reporting_service.generate_report(analysis_results=analysis_results, config=report_config)
 
         # Return the HTML content directly
-        return Response(report_result.html_content, mimetype='text/html')
+        return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/report/ga/<study_id>")
     def report_ga(study_id):
@@ -136,9 +128,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             study_file = results_dir / f"{study_id}.json"
             if not study_file.exists():
                 return (
-                    render_template(
-                        "error.html", error=f"Study results not found: {study_id}"
-                    ),
+                    render_template("error.html", error=f"Study results not found: {study_id}"),
                     404,
                 )
 
@@ -151,16 +141,13 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             report_type="genetic_algorithm",
             title=f"Genetic Algorithm Optimization - {study_id}",
             include_plots=True,
-            output_format="html"
+            output_format="html",
         )
 
-        report_result = app.reporting_service.generate_report(
-            analysis_results=study_data,
-            config=report_config
-        )
+        report_result = app.reporting_service.generate_report(analysis_results=study_data, config=report_config)
 
         # Return the HTML content directly
-        return Response(report_result.html_content, mimetype='text/html')
+        return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/report/mc/<study_id>")
     def report_mc(study_id):
@@ -174,9 +161,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             study_file = results_dir / f"{study_id}.json"
             if not study_file.exists():
                 return (
-                    render_template(
-                        "error.html", error=f"Study results not found: {study_id}"
-                    ),
+                    render_template("error.html", error=f"Study results not found: {study_id}"),
                     404,
                 )
 
@@ -189,16 +174,13 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             report_type="monte_carlo",
             title=f"Monte Carlo Uncertainty Analysis - {study_id}",
             include_plots=True,
-            output_format="html"
+            output_format="html",
         )
 
-        report_result = app.reporting_service.generate_report(
-            analysis_results=study_data,
-            config=report_config
-        )
+        report_result = app.reporting_service.generate_report(analysis_results=study_data, config=report_config)
 
         # Return the HTML content directly
-        return Response(report_result.html_content, mimetype='text/html')
+        return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/api/study/<study_id>")
     def api_study(study_id):
@@ -228,9 +210,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 
         try:
             # Save JSON to temporary file
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".json", delete=False
-            ) as tmp:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
                 json.dump(request.json, tmp)
                 tmp_path = tmp.name
 
@@ -287,13 +267,10 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             report_type="standard",
             title=f"EcoSystemiser Analysis Report - {session_id}",
             include_plots=True,
-            output_format="html"
+            output_format="html",
         )
 
-        report_result = app.reporting_service.generate_report(
-            analysis_results=analysis_results,
-            config=report_config
-        )
+        report_result = app.reporting_service.generate_report(analysis_results=analysis_results, config=report_config)
 
         html = report_result.html_content
 

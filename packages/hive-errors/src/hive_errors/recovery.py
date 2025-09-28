@@ -33,9 +33,7 @@ class RecoveryStrategy(ABC):
         self.attempt_count = 0
 
     @abstractmethod
-    def attempt_recovery(
-        self, error: Exception, context: Optional[dict] = None
-    ) -> RecoveryStatus:
+    def attempt_recovery(self, error: Exception, context: Optional[dict] = None) -> RecoveryStatus:
         """
         Attempt recovery from an error.
 
@@ -60,16 +58,12 @@ class RecoveryStrategy(ABC):
 class RetryStrategy(RecoveryStrategy):
     """Generic retry recovery strategy"""
 
-    def __init__(
-        self, operation: Callable, max_attempts: int = 3, delay_seconds: float = 1.0
-    ):
+    def __init__(self, operation: Callable, max_attempts: int = 3, delay_seconds: float = 1.0):
         super().__init__("retry", max_attempts)
         self.operation = operation
         self.delay_seconds = delay_seconds
 
-    def attempt_recovery(
-        self, error: Exception, context: Optional[dict] = None
-    ) -> RecoveryStatus:
+    def attempt_recovery(self, error: Exception, context: Optional[dict] = None) -> RecoveryStatus:
         """Attempt recovery by retrying the operation"""
         import time
 

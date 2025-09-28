@@ -13,6 +13,7 @@ from pathlib import Path
 from hive_orchestrator.core import db as hive_core_db
 from hive_logging import setup_logging
 
+
 # This enhancement modifies the existing Queen behavior
 def enhance_queen_async_worker_spawning():
     """
@@ -62,8 +63,8 @@ def enhance_queen_async_worker_spawning():
             "1. Add '--async' flag to worker command in both spawn_worker() and spawn_worker_async() methods",
             "2. This enables async processing in all worker spawns for 3-5x performance improvement",
             "3. Workers will automatically fall back to sync mode if async is not available",
-            "4. No breaking changes - existing functionality preserved"
-        ]
+            "4. No breaking changes - existing functionality preserved",
+        ],
     }
 
 
@@ -141,19 +142,17 @@ class QueenPerformanceMonitor:
     def task_started(self, task_id: str):
         """Record task start time."""
         import time
+
         self.task_start_times[task_id] = time.time()
 
     def task_completed(self, task_id: str, success: bool = True):
         """Record task completion."""
         import time
+
         if task_id in self.task_start_times:
             duration = time.time() - self.task_start_times[task_id]
 
-            result = {
-                "task_id": task_id,
-                "duration": duration,
-                "completed_at": time.time()
-            }
+            result = {"task_id": task_id, "duration": duration, "completed_at": time.time()}
 
             if success:
                 self.completed_tasks.append(result)
@@ -176,7 +175,7 @@ class QueenPerformanceMonitor:
             "min_duration": min(durations),
             "max_duration": max(durations),
             "success_rate": len(self.completed_tasks) / (len(self.completed_tasks) + len(self.failed_tasks)),
-            "tasks_per_minute": len(self.completed_tasks) / (max(durations) / 60) if durations else 0
+            "tasks_per_minute": len(self.completed_tasks) / (max(durations) / 60) if durations else 0,
         }
 
 

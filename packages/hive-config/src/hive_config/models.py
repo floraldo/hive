@@ -43,11 +43,7 @@ class AppConfig:
 
     def get_keys_by_source(self, source: ConfigSources) -> Dict[str, Any]:
         """Get all configuration keys from a specific source"""
-        return {
-            key: value
-            for key, value in self.config.items()
-            if self.sources.get(key) == source
-        }
+        return {key: value for key, value in self.config.items() if self.sources.get(key) == source}
 
     def audit_report(self) -> Dict[str, Any]:
         """Generate an audit report of configuration sources"""

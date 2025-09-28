@@ -107,9 +107,10 @@ This index provides comprehensive navigation to all platform documentation, orga
 4. [Comprehensive Analysis](../COMPREHENSIVE_ARCHITECTURE_ANALYSIS.md) - Detailed assessment
 
 ### **For Operations**
-1. [Operational Excellence](../OPERATIONAL_EXCELLENCE_EXECUTION_PLAN.md) - Platform operations
+1. [Operational Excellence](operations/OPERATIONAL_EXCELLENCE_EXECUTION_PLAN.md) - Platform operations
 2. [Performance Optimization](optimization/) - System optimization
-3. [Maintenance Reports](../CODEBASE_CLEANUP_COMPLETE.md) - Platform maintenance
+3. [Maintenance Reports](operations/CODEBASE_CLEANUP_COMPLETE.md) - Platform maintenance
+4. [Cleanup Analysis](operations/CODEBASE_CLEANUP_ANALYSIS.md) - Repository cleanup
 
 ### **For Quality Assurance**
 1. [Golden Rules Framework](../GOLDEN_RULES_EVOLUTION_COMPLETE.md) - Quality system
@@ -127,8 +128,8 @@ This index provides comprehensive navigation to all platform documentation, orga
 - [Golden Rules Framework](../GOLDEN_RULES_EVOLUTION_COMPLETE.md) - Quality system
 
 ### **Latest Updates**
-- [Operational Excellence](../OPERATIONAL_EXCELLENCE_EXECUTION_PLAN.md) - Recent improvements
-- [Platinum Campaign](../PLATINUM_BURNDOWN_CAMPAIGN_EXECUTION.md) - Quality initiative
+- [Operational Excellence](operations/OPERATIONAL_EXCELLENCE_EXECUTION_PLAN.md) - Recent improvements
+- [Platinum Campaign](plans/PLATINUM_BURNDOWN_CAMPAIGN_EXECUTION.md) - Quality initiative
 - [V3.2 Quality Report](../claudedocs/V3_2_DX_QUALITY_REPORT.md) - Latest assessment
 
 ---

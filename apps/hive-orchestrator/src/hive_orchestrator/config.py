@@ -52,14 +52,10 @@ class HiveConfig:
         """
         # Numeric overrides
         if "HIVE_WORKER_SPAWN_TIMEOUT" in env_vars:
-            self.config["worker_spawn_timeout"] = int(
-                env_vars["HIVE_WORKER_SPAWN_TIMEOUT"]
-            )
+            self.config["worker_spawn_timeout"] = int(env_vars["HIVE_WORKER_SPAWN_TIMEOUT"])
 
         if "HIVE_WORKER_INIT_TIMEOUT" in env_vars:
-            self.config["worker_init_timeout"] = int(
-                env_vars["HIVE_WORKER_INIT_TIMEOUT"]
-            )
+            self.config["worker_init_timeout"] = int(env_vars["HIVE_WORKER_INIT_TIMEOUT"])
 
         if "HIVE_STATUS_REFRESH" in env_vars:
             self.config["status_refresh_seconds"] = int(env_vars["HIVE_STATUS_REFRESH"])
@@ -69,14 +65,10 @@ class HiveConfig:
 
         # Boolean overrides
         if "HIVE_WINDOWS_DEVNULL" in env_vars:
-            self.config["windows_use_devnull"] = (
-                env_vars["HIVE_WINDOWS_DEVNULL"].lower() == "true"
-            )
+            self.config["windows_use_devnull"] = env_vars["HIVE_WINDOWS_DEVNULL"].lower() == "true"
 
         if "HIVE_WINDOWS_STDERR" in env_vars:
-            self.config["windows_capture_stderr"] = (
-                env_vars["HIVE_WINDOWS_STDERR"].lower() == "true"
-            )
+            self.config["windows_capture_stderr"] = env_vars["HIVE_WINDOWS_STDERR"].lower() == "true"
 
         # Path overrides
         if "HIVE_PYTHON" in env_vars:

@@ -12,34 +12,38 @@ import math
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    return jsonify({
-        "status": "healthy",
-        "service": "calculator",
-        "version": "2.0.0",
-        "iteration": 3,
-        "generated_by": "hive_autonomous_agents",
-        "test_type": "failure_rework_fat",
-        "deployment_status": "production_ready",
-        "improvements": [
-            "Fixed addition operation",
-            "Fixed multiplication operation",
-            "Added zero division protection",
-            "Enhanced error handling",
-            "Added input validation"
-        ]
-    })
 
-@app.route('/api/add', methods=['POST'])
+@app.route("/api/health", methods=["GET"])
+def health_check():
+    return jsonify(
+        {
+            "status": "healthy",
+            "service": "calculator",
+            "version": "2.0.0",
+            "iteration": 3,
+            "generated_by": "hive_autonomous_agents",
+            "test_type": "failure_rework_fat",
+            "deployment_status": "production_ready",
+            "improvements": [
+                "Fixed addition operation",
+                "Fixed multiplication operation",
+                "Added zero division protection",
+                "Enhanced error handling",
+                "Added input validation",
+            ],
+        }
+    )
+
+
+@app.route("/api/add", methods=["POST"])
 def add():
     try:
         data = request.get_json()
-        if 'a' not in data or 'b' not in data:
+        if "a" not in data or "b" not in data:
             return jsonify({"success": False, "error": "Missing parameters a or b"}), 400
 
-        a = float(data['a'])
-        b = float(data['b'])
+        a = float(data["a"])
+        b = float(data["b"])
         result = a + b
         return jsonify({"success": True, "result": result, "operation": "add"})
     except ValueError:
@@ -47,15 +51,16 @@ def add():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/subtract', methods=['POST'])
+
+@app.route("/api/subtract", methods=["POST"])
 def subtract():
     try:
         data = request.get_json()
-        if 'a' not in data or 'b' not in data:
+        if "a" not in data or "b" not in data:
             return jsonify({"success": False, "error": "Missing parameters a or b"}), 400
 
-        a = float(data['a'])
-        b = float(data['b'])
+        a = float(data["a"])
+        b = float(data["b"])
         result = a - b
         return jsonify({"success": True, "result": result, "operation": "subtract"})
     except ValueError:
@@ -63,15 +68,16 @@ def subtract():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/multiply', methods=['POST'])
+
+@app.route("/api/multiply", methods=["POST"])
 def multiply():
     try:
         data = request.get_json()
-        if 'a' not in data or 'b' not in data:
+        if "a" not in data or "b" not in data:
             return jsonify({"success": False, "error": "Missing parameters a or b"}), 400
 
-        a = float(data['a'])
-        b = float(data['b'])
+        a = float(data["a"])
+        b = float(data["b"])
         result = a * b
         return jsonify({"success": True, "result": result, "operation": "multiply"})
     except ValueError:
@@ -79,15 +85,16 @@ def multiply():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/divide', methods=['POST'])
+
+@app.route("/api/divide", methods=["POST"])
 def divide():
     try:
         data = request.get_json()
-        if 'a' not in data or 'b' not in data:
+        if "a" not in data or "b" not in data:
             return jsonify({"success": False, "error": "Missing parameters a or b"}), 400
 
-        a = float(data['a'])
-        b = float(data['b'])
+        a = float(data["a"])
+        b = float(data["b"])
 
         # FIXED: Zero division protection
         if b == 0:
@@ -100,16 +107,17 @@ def divide():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/power', methods=['POST'])
+
+@app.route("/api/power", methods=["POST"])
 def power():
     """Bonus feature: Added in final iteration"""
     try:
         data = request.get_json()
-        if 'base' not in data or 'exponent' not in data:
+        if "base" not in data or "exponent" not in data:
             return jsonify({"success": False, "error": "Missing parameters base or exponent"}), 400
 
-        base = float(data['base'])
-        exponent = float(data['exponent'])
+        base = float(data["base"])
+        exponent = float(data["exponent"])
         result = math.pow(base, exponent)
         return jsonify({"success": True, "result": result, "operation": "power"})
     except ValueError:
@@ -117,6 +125,7 @@ def power():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("Starting Calculator Service on port 5005 (iteration 3 - production ready)...")
-    app.run(host='0.0.0.0', port=5005, debug=False)
+    app.run(host="0.0.0.0", port=5005, debug=False)

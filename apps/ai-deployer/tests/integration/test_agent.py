@@ -36,9 +36,7 @@ def mock_orchestrator():
     )
 
     orchestrator.deploy = AsyncMock(return_value=result)
-    orchestrator.check_health = AsyncMock(
-        return_value=Mock(healthy=True, message="All systems healthy")
-    )
+    orchestrator.check_health = AsyncMock(return_value=Mock(healthy=True, message="All systems healthy"))
 
     return orchestrator
 
@@ -91,12 +89,11 @@ class TestDeploymentAgent:
         assert agent.stats["tasks_deployed"] == 0
 
     @pytest.mark.asyncio
-    async def test_get_pending_tasks_with_async_db(self):
+    async def test_get_pending_tasks_with_async_db_async(self):
         """Test getting pending tasks with async database"""
         with patch("ai_deployer.agent.ASYNC_DB_AVAILABLE", True), patch(
             "ai_deployer.agent.get_tasks_by_status_async"
         ) as mock_get_tasks:
-
             mock_tasks = [{"id": "task-1", "status": "deployment_pending"}]
             mock_get_tasks.return_value = mock_tasks
 
@@ -107,7 +104,7 @@ class TestDeploymentAgent:
             mock_get_tasks.assert_called_once_with("deployment_pending")
 
     @pytest.mark.asyncio
-    async def test_get_pending_tasks_fallback_sync(self, mock_adapter):
+    async def test_get_pending_tasks_fallback_sync_async(self, mock_adapter):
         """Test falling back to sync database operations"""
         with patch("ai_deployer.agent.ASYNC_DB_AVAILABLE", False):
             agent = DeploymentAgent(test_mode=True)
@@ -122,7 +119,7 @@ class TestDeploymentAgent:
             mock_adapter.get_deployment_pending_tasks.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_process_task_success(self, mock_orchestrator, sample_task):
+    async def test_process_task_success_async(self, mock_orchestrator, sample_task):
         """Test successful task processing"""
         agent = DeploymentAgent(orchestrator=mock_orchestrator, test_mode=True)
 
@@ -147,9 +144,7 @@ class TestDeploymentAgent:
         assert agent.stats["successful"] == 1
 
     @pytest.mark.asyncio
-    async def test_process_task_deployment_failure(
-        self, mock_orchestrator, sample_task
-    ):
+    async def test_process_task_deployment_failure_async(self, mock_orchestrator, sample_task):
         """Test task processing with deployment failure"""
         # Configure orchestrator to return failure
         failed_result = DeploymentResult(
@@ -175,7 +170,7 @@ class TestDeploymentAgent:
         assert agent.stats["successful"] == 0
 
     @pytest.mark.asyncio
-    async def test_process_task_with_rollback(self, mock_orchestrator, sample_task):
+    async def test_process_task_with_rollback_async(self, mock_orchestrator, sample_task):
         """Test task processing with rollback"""
         # Configure orchestrator to return failure with rollback
         failed_result = DeploymentResult(
@@ -200,9 +195,7 @@ class TestDeploymentAgent:
         assert agent.stats["rolled_back"] == 1
 
     @pytest.mark.asyncio
-    async def test_process_task_exception_handling(
-        self, mock_orchestrator, sample_task
-    ):
+    async def test_process_task_exception_handling_async(self, mock_orchestrator, sample_task):
         """Test task processing with exception"""
         # Configure orchestrator to raise exception
         mock_orchestrator.deploy.side_effect = Exception("Unexpected error")
@@ -224,19 +217,14 @@ class TestDeploymentAgent:
         with patch("ai_deployer.agent.ASYNC_DB_AVAILABLE", True), patch(
             "ai_deployer.agent.update_task_status_async"
         ) as mock_update:
-
             agent = DeploymentAgent(test_mode=True)
 
-            await agent._update_task_status(
-                "task-001", "deployed", {"deployment_id": "deploy-123"}
-            )
+            await agent._update_task_status("task-001", "deployed", {"deployment_id": "deploy-123"})
 
-            mock_update.assert_called_once_with(
-                "task-001", "deployed", {"deployment_id": "deploy-123"}
-            )
+            mock_update.assert_called_once_with("task-001", "deployed", {"deployment_id": "deploy-123"})
 
     @pytest.mark.asyncio
-    async def test_update_task_status_sync_fallback(self, mock_adapter):
+    async def test_update_task_status_sync_fallback_async(self, mock_adapter):
         """Test updating task status with sync fallback"""
         with patch("ai_deployer.agent.ASYNC_DB_AVAILABLE", False):
             agent = DeploymentAgent(test_mode=True)
@@ -244,19 +232,15 @@ class TestDeploymentAgent:
 
             await agent._update_task_status("task-001", "deployed")
 
-            mock_adapter.update_task_status.assert_called_once_with(
-                "task-001", "deployed", None
-            )
+            mock_adapter.update_task_status.assert_called_once_with("task-001", "deployed", None)
 
     @pytest.mark.asyncio
-    async def test_trigger_monitoring_healthy(self, mock_orchestrator, sample_task):
+    async def test_trigger_monitoring_healthy_async(self, mock_orchestrator, sample_task):
         """Test post-deployment monitoring with healthy status"""
         agent = DeploymentAgent(orchestrator=mock_orchestrator, test_mode=True)
 
         # Health check returns healthy
-        mock_orchestrator.check_health.return_value = Mock(
-            healthy=True, message="All checks passed"
-        )
+        mock_orchestrator.check_health.return_value = Mock(healthy=True, message="All checks passed")
 
         await agent._trigger_monitoring(sample_task)
 
@@ -264,14 +248,12 @@ class TestDeploymentAgent:
         mock_orchestrator.check_health.assert_called_once_with(sample_task)
 
     @pytest.mark.asyncio
-    async def test_trigger_monitoring_unhealthy(self, mock_orchestrator, sample_task):
+    async def test_trigger_monitoring_unhealthy_async(self, mock_orchestrator, sample_task):
         """Test post-deployment monitoring with unhealthy status"""
         agent = DeploymentAgent(orchestrator=mock_orchestrator, test_mode=True)
 
         # Health check returns unhealthy
-        mock_orchestrator.check_health.return_value = Mock(
-            healthy=False, message="Service not responding"
-        )
+        mock_orchestrator.check_health.return_value = Mock(healthy=False, message="Service not responding")
 
         # Should not raise exception, just log warning
         await agent._trigger_monitoring(sample_task)
@@ -304,12 +286,11 @@ class TestDeploymentAgent:
         # Panel should contain status information
 
     @pytest.mark.asyncio
-    async def test_event_bus_integration(self, mock_orchestrator, sample_task):
+    async def test_event_bus_integration_async(self, mock_orchestrator, sample_task):
         """Test event bus integration for deployment events"""
         with patch("ai_deployer.agent.get_event_bus") as mock_get_bus, patch(
             "ai_deployer.agent.create_task_event"
         ) as mock_create_event:
-
             mock_bus = Mock()
             mock_get_bus.return_value = mock_bus
             mock_event = Mock()
@@ -325,7 +306,7 @@ class TestDeploymentAgent:
             mock_bus.publish.assert_called_once_with(mock_event)
 
     @pytest.mark.asyncio
-    async def test_main_loop_single_iteration(self, mock_orchestrator):
+    async def test_main_loop_single_iteration_async(self, mock_orchestrator):
         """Test a single iteration of the main agent loop"""
         agent = DeploymentAgent(orchestrator=mock_orchestrator, test_mode=True)
 
@@ -349,12 +330,11 @@ class TestDeploymentAgent:
 
 
 @pytest.mark.asyncio
-async def test_main_function():
+async def test_main_function_async():
     """Test the main function entry point"""
     with patch("ai_deployer.agent.DeploymentAgent") as mock_agent_class, patch(
         "ai_deployer.agent.asyncio.run"
     ) as mock_run, patch("sys.argv", ["agent.py", "--test-mode"]):
-
         mock_agent = Mock()
         mock_agent_class.return_value = mock_agent
 

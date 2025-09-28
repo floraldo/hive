@@ -35,36 +35,22 @@ class ElectricBoilerTechnicalParams(GenerationTechnicalParams):
     """
 
     # Electric boiler parameters
-    heating_element_type: str = Field(
-        "resistance", description="Type of heating element"
-    )
-    temperature_setpoint: Optional[float] = Field(
-        None, description="Operating temperature setpoint [°C]"
-    )
+    heating_element_type: str = Field("resistance", description="Type of heating element")
+    temperature_setpoint: Optional[float] = Field(None, description="Operating temperature setpoint [°C]")
 
     # STANDARD fidelity additions
-    thermal_inertia: Optional[float] = Field(
-        None, description="Thermal mass and inertia factor"
-    )
+    thermal_inertia: Optional[float] = Field(None, description="Thermal mass and inertia factor")
     modulation_range: Optional[Dict[str, float]] = Field(
         None, description="Power modulation capability {min_power, max_power}"
     )
 
     # DETAILED fidelity parameters
-    heat_exchanger_effectiveness: Optional[float] = Field(
-        None, description="Heat exchanger effectiveness"
-    )
-    control_algorithm: Optional[Dict[str, Any]] = Field(
-        None, description="Control algorithm parameters"
-    )
+    heat_exchanger_effectiveness: Optional[float] = Field(None, description="Heat exchanger effectiveness")
+    control_algorithm: Optional[Dict[str, Any]] = Field(None, description="Control algorithm parameters")
 
     # RESEARCH fidelity parameters
-    detailed_thermal_model: Optional[Dict[str, Any]] = Field(
-        None, description="Detailed thermal modeling parameters"
-    )
-    emissions_model: Optional[Dict[str, Any]] = Field(
-        None, description="Detailed emissions modeling"
-    )
+    detailed_thermal_model: Optional[Dict[str, Any]] = Field(None, description="Detailed thermal modeling parameters")
+    emissions_model: Optional[Dict[str, Any]] = Field(None, description="Detailed emissions modeling")
 
 
 class ElectricBoilerParams(ComponentParams):
@@ -97,9 +83,7 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
     - Basic energy conversion with constant efficiency
     """
 
-    def rule_based_conversion_capacity(
-        self, t: int, from_medium: str, to_medium: str
-    ) -> dict:
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
         """
         Calculate conversion capacities for SIMPLE electric boiler physics.
 
@@ -118,9 +102,7 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
             "efficiency": efficiency,  # Electrical to thermal efficiency
         }
 
-    def rule_based_conversion_dispatch(
-        self, t: int, requested_output: float, from_medium: str, to_medium: str
-    ) -> dict:
+    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
         """
         Calculate actual input/output for requested heat output.
 
@@ -162,9 +144,7 @@ class ElectricBoilerPhysicsStandard(ElectricBoilerPhysicsSimple):
     - Modulation constraints (minimum operating power)
     """
 
-    def rule_based_conversion_capacity(
-        self, t: int, from_medium: str, to_medium: str
-    ) -> dict:
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
         """
         Calculate conversion capacities with heat exchanger effects.
 
@@ -174,9 +154,7 @@ class ElectricBoilerPhysicsStandard(ElectricBoilerPhysicsSimple):
         capacity = super().rule_based_conversion_capacity(t, from_medium, to_medium)
 
         # 2. Add STANDARD-specific physics: heat exchanger effectiveness
-        effectiveness = getattr(
-            self.params.technical, "heat_exchanger_effectiveness", None
-        )
+        effectiveness = getattr(self.params.technical, "heat_exchanger_effectiveness", None)
         if effectiveness:
             # Reduce overall efficiency by heat exchanger effectiveness
             capacity["efficiency"] = capacity["efficiency"] * effectiveness
@@ -259,9 +237,7 @@ class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
 
             # STANDARD: Apply heat exchanger effectiveness
             efficiency = comp.technical.efficiency_nominal
-            effectiveness = getattr(
-                comp.technical, "heat_exchanger_effectiveness", None
-            )
+            effectiveness = getattr(comp.technical, "heat_exchanger_effectiveness", None)
             if effectiveness:
                 efficiency = efficiency * effectiveness
 
@@ -281,9 +257,7 @@ class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
 
                 # Binary variable for on/off state
                 if not hasattr(comp, "_boiler_state"):
-                    comp._boiler_state = cp.Variable(
-                        N, boolean=True, name=f"{comp.name}_state"
-                    )
+                    comp._boiler_state = cp.Variable(N, boolean=True, name=f"{comp.name}_state")
 
                 # Modulation constraints
                 constraints.append(comp.P_heat >= min_power * comp._boiler_state)
@@ -322,9 +296,7 @@ class ElectricBoiler(Component):
 
         # Core parameters - EXACTLY as original electric boiler expects
         self.P_max = tech.capacity_nominal  # kW heat output capacity
-        self.eta = (
-            tech.efficiency_nominal
-        )  # Electrical to thermal conversion efficiency
+        self.eta = tech.efficiency_nominal  # Electrical to thermal conversion efficiency
 
         # Maximum electrical input (derived from heat capacity and efficiency)
         self.P_max_elec = self.P_max / self.eta if self.eta > 0 else 0
@@ -377,13 +349,9 @@ class ElectricBoiler(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return ElectricBoilerOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for ElectricBoiler optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for ElectricBoiler optimization: {fidelity}")
 
-    def rule_based_conversion_capacity(
-        self, t: int, from_medium: str, to_medium: str
-    ) -> dict:
+    def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
         """
         Delegate to physics strategy for conversion capacity calculation.
 
@@ -392,18 +360,14 @@ class ElectricBoiler(Component):
         """
         return self.physics.rule_based_conversion_capacity(t, from_medium, to_medium)
 
-    def rule_based_conversion_dispatch(
-        self, t: int, requested_output: float, from_medium: str, to_medium: str
-    ) -> dict:
+    def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
         """
         Delegate to physics strategy for conversion dispatch calculation.
 
         This maintains the same interface as BaseConversionComponent but
         delegates the actual physics calculation to the strategy object.
         """
-        return self.physics.rule_based_conversion_dispatch(
-            t, requested_output, from_medium, to_medium
-        )
+        return self.physics.rule_based_conversion_dispatch(t, requested_output, from_medium, to_medium)
 
     def add_optimization_vars(self, N: Optional[int] = None):
         """Create CVXPY optimization variables."""
@@ -431,9 +395,7 @@ class ElectricBoiler(Component):
             return 0.0, 0.0
 
         # Use the conversion dispatch strategy
-        dispatch = self.rule_based_conversion_dispatch(
-            t, heat_demand, "electricity", "heat"
-        )
+        dispatch = self.rule_based_conversion_dispatch(t, heat_demand, "electricity", "heat")
 
         heat_output = dispatch["output_delivered"]
         elec_required = dispatch["input_required"]
@@ -446,14 +408,8 @@ class ElectricBoiler(Component):
                 heat_output = min_power if heat_demand >= min_power else 0.0
                 # Recalculate electricity requirement
                 if heat_output > 0:
-                    capacity = self.rule_based_conversion_capacity(
-                        t, "electricity", "heat"
-                    )
-                    elec_required = (
-                        heat_output / capacity["efficiency"]
-                        if capacity["efficiency"] > 0
-                        else 0.0
-                    )
+                    capacity = self.rule_based_conversion_capacity(t, "electricity", "heat")
+                    elec_required = heat_output / capacity["efficiency"] if capacity["efficiency"] > 0 else 0.0
                 else:
                     elec_required = 0.0
 

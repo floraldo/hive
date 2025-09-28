@@ -201,9 +201,7 @@ class PlanningIntegration:
 
             return tasks
 
-    def update_execution_plan_progress(
-        self, plan_id: str, subtask_updates: Dict[str, str]
-    ) -> bool:
+    def update_execution_plan_progress(self, plan_id: str, subtask_updates: Dict[str, str]) -> bool:
         """
         Update execution plan progress based on subtask completions.
 
@@ -217,9 +215,7 @@ class PlanningIntegration:
         try:
             with self._get_connection() as conn:
                 # Get current plan data
-                cursor = conn.execute(
-                    "SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,)
-                )
+                cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
                 row = cursor.fetchone()
                 if not row:
                     return False
@@ -236,13 +232,9 @@ class PlanningIntegration:
                         new_status = subtask_updates[subtask_id]
                         if old_status != new_status:
                             subtask["status"] = new_status
-                            subtask["updated_at"] = datetime.now(
-                                timezone.utc
-                            ).isoformat()
+                            subtask["updated_at"] = datetime.now(timezone.utc).isoformat()
                             updated = True
-                            logger.debug(
-                                f"Updated subtask {subtask_id}: {old_status} -> {new_status}"
-                            )
+                            logger.debug(f"Updated subtask {subtask_id}: {old_status} -> {new_status}")
 
                 if updated:
                     # Calculate overall plan status
@@ -267,9 +259,7 @@ class PlanningIntegration:
                     )
 
                     conn.commit()
-                    logger.info(
-                        f"Updated execution plan {plan_id} status to {plan_status}"
-                    )
+                    logger.info(f"Updated execution plan {plan_id} status to {plan_status}")
 
                 return True
 
@@ -311,9 +301,7 @@ class PlanningIntegration:
                     return False
 
                 # Update the execution plan
-                return self.update_execution_plan_progress(
-                    plan_id, {subtask_id: new_status}
-                )
+                return self.update_execution_plan_progress(plan_id, {subtask_id: new_status})
 
         except Exception as e:
             logger.error(f"Error syncing subtask status to plan: {e}")
@@ -331,9 +319,7 @@ class PlanningIntegration:
         """
         with self._get_connection() as conn:
             # Get plan data
-            cursor = conn.execute(
-                "SELECT plan_data, status FROM execution_plans WHERE id = ?", (plan_id,)
-            )
+            cursor = conn.execute("SELECT plan_data, status FROM execution_plans WHERE id = ?", (plan_id,))
             row = cursor.fetchone()
             if not row:
                 return {"error": "Plan not found"}
@@ -357,26 +343,14 @@ class PlanningIntegration:
 
             # Calculate metrics
             total_tasks = len(sub_tasks)
-            completed_tasks = sum(
-                1
-                for st in sub_tasks
-                if actual_statuses.get(st.get("id")) == "completed"
-            )
-            failed_tasks = sum(
-                1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "failed"
-            )
+            completed_tasks = sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "completed")
+            failed_tasks = sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "failed")
             in_progress_tasks = sum(
-                1
-                for st in sub_tasks
-                if actual_statuses.get(st.get("id")) in ["assigned", "in_progress"]
+                1 for st in sub_tasks if actual_statuses.get(st.get("id")) in ["assigned", "in_progress"]
             )
-            queued_tasks = sum(
-                1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "queued"
-            )
+            queued_tasks = sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "queued")
 
-            completion_percentage = (
-                (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
-            )
+            completion_percentage = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
             return {
                 "plan_id": plan_id,
@@ -415,9 +389,7 @@ class PlanningIntegration:
 
                 status, plan_data_str = row
                 if status not in ["generated", "approved"]:
-                    logger.warning(
-                        f"Plan {plan_id} has status {status}, cannot trigger execution"
-                    )
+                    logger.warning(f"Plan {plan_id} has status {status}, cannot trigger execution")
                     return False
 
                 plan_data = json.loads(plan_data_str)
@@ -429,9 +401,7 @@ class PlanningIntegration:
                     subtask_id = f"subtask_{plan_id}_{sub_task.get('id', '')}"
 
                     # Check if subtask already exists
-                    cursor = conn.execute(
-                        "SELECT id FROM tasks WHERE id = ?", (subtask_id,)
-                    )
+                    cursor = conn.execute("SELECT id FROM tasks WHERE id = ?", (subtask_id,))
                     if cursor.fetchone():
                         continue  # Already exists
 
@@ -441,9 +411,7 @@ class PlanningIntegration:
                         "subtask_id": sub_task.get("id"),
                         "complexity": sub_task.get("complexity", "medium"),
                         "estimated_duration": sub_task.get("estimated_duration", 30),
-                        "workflow_phase": sub_task.get(
-                            "workflow_phase", "implementation"
-                        ),
+                        "workflow_phase": sub_task.get("workflow_phase", "implementation"),
                         "required_skills": sub_task.get("required_skills", []),
                         "deliverables": sub_task.get("deliverables", []),
                         "dependencies": sub_task.get("dependencies", []),
@@ -483,9 +451,7 @@ class PlanningIntegration:
 
                 conn.commit()
 
-                logger.info(
-                    f"Triggered execution of plan {plan_id}: created {created_count} new subtasks"
-                )
+                logger.info(f"Triggered execution of plan {plan_id}: created {created_count} new subtasks")
                 return True
 
         except Exception as e:
@@ -545,9 +511,7 @@ class PlanningIntegration:
 
                 conn.commit()
 
-                logger.info(
-                    f"Cleaned up {plans_deleted} completed plans and {subtasks_deleted} subtasks"
-                )
+                logger.info(f"Cleaned up {plans_deleted} completed plans and {subtasks_deleted} subtasks")
                 return plans_deleted
 
         except Exception as e:
@@ -563,9 +527,7 @@ planning_integration = PlanningIntegration()
 class AsyncPlanningIntegration:
     """Async version of planning integration for high-performance scenarios"""
 
-    async def get_ready_planned_subtasks_async(
-        self, limit: int = 20
-    ) -> List[Dict[str, Any]]:
+    async def get_ready_planned_subtasks_async(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Async version of get_ready_planned_subtasks"""
         # This would use async database operations when available
         # For now, run sync version in thread pool to avoid blocking
@@ -573,9 +535,7 @@ class AsyncPlanningIntegration:
             None, planning_integration.get_ready_planned_subtasks, limit
         )
 
-    async def sync_subtask_status_to_plan_async(
-        self, task_id: str, new_status: str
-    ) -> bool:
+    async def sync_subtask_status_to_plan_async(self, task_id: str, new_status: str) -> bool:
         """Async version of sync_subtask_status_to_plan"""
         return await asyncio.get_event_loop().run_in_executor(
             None, planning_integration.sync_subtask_status_to_plan, task_id, new_status

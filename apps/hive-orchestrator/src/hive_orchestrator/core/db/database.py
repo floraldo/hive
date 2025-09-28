@@ -52,9 +52,7 @@ try:
     ASYNC_AVAILABLE = True
 except ImportError:
     ASYNC_AVAILABLE = False
-    logger.warning(
-        "Async database support not available - install aiosqlite for Phase 4.1 features"
-    )
+    logger.warning("Async database support not available - install aiosqlite for Phase 4.1 features")
 
 
 class TaskStatus(Enum):
@@ -266,34 +264,20 @@ def init_db() -> None:
 
         # Indexes for performance
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (status)")
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks (priority DESC)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks (priority DESC)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_task_id ON runs (task_id)")
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_runs_worker_id ON runs (worker_id)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_workers_status ON workers (status)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_worker_id ON runs (worker_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_workers_status ON workers (status)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_workers_role ON workers (role)")
 
         # AI Planning indexes for performance
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_planning_queue_status ON planning_queue (status)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_planning_queue_priority ON planning_queue (priority DESC)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_planning_queue_status ON planning_queue (status)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_planning_queue_priority ON planning_queue (priority DESC)")
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_execution_plans_planning_task_id ON execution_plans (planning_task_id)"
         )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_execution_plans_status ON execution_plans (status)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_plan_execution_plan_id ON plan_execution (plan_id)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_execution_plans_status ON execution_plans (status)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_plan_execution_plan_id ON plan_execution (plan_id)")
 
         logger.info("Hive internal database initialized successfully")
 
@@ -364,18 +348,14 @@ def get_task(task_id: str) -> Optional[Dict[str, Any]]:
         if row:
             task = dict(row)
             task["payload"] = json.loads(task["payload"]) if task["payload"] else None
-            task["workflow"] = (
-                json.loads(task["workflow"]) if task["workflow"] else None
-            )
+            task["workflow"] = json.loads(task["workflow"]) if task["workflow"] else None
             task["tags"] = json.loads(task["tags"]) if task["tags"] else []
             return task
 
         return None
 
 
-def get_queued_tasks(
-    limit: int = 10, task_type: Optional[str] = None
-) -> List[Dict[str, Any]]:
+def get_queued_tasks(limit: int = 10, task_type: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Get queued tasks ordered by priority.
 
@@ -412,18 +392,14 @@ def get_queued_tasks(
         for row in cursor.fetchall():
             task = dict(row)
             task["payload"] = json.loads(task["payload"]) if task["payload"] else None
-            task["workflow"] = (
-                json.loads(task["workflow"]) if task["workflow"] else None
-            )
+            task["workflow"] = json.loads(task["workflow"]) if task["workflow"] else None
             task["tags"] = json.loads(task["tags"]) if task["tags"] else []
             tasks.append(task)
 
         return tasks
 
 
-def update_task_status(
-    task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None
-) -> bool:
+def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
     """Update task status and optional metadata fields."""
     with transaction() as conn:
         # Start with base fields
@@ -621,9 +597,7 @@ def get_task_runs(task_id: str) -> List[Dict[str, Any]]:
         runs = []
         for row in cursor.fetchall():
             run = dict(row)
-            run["result_data"] = (
-                json.loads(run["result_data"]) if run["result_data"] else None
-            )
+            run["result_data"] = json.loads(run["result_data"]) if run["result_data"] else None
             runs.append(run)
 
         return runs
@@ -653,9 +627,7 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
         for row in cursor.fetchall():
             task = dict(row)
             task["payload"] = json.loads(task["payload"]) if task["payload"] else {}
-            task["workflow"] = (
-                json.loads(task["workflow"]) if task["workflow"] else None
-            )
+            task["workflow"] = json.loads(task["workflow"]) if task["workflow"] else None
             task["tags"] = json.loads(task["tags"]) if task["tags"] else []
             tasks.append(task)
 
@@ -739,12 +711,8 @@ def get_active_workers(role: Optional[str] = None) -> List[Dict[str, Any]]:
         workers = []
         for row in cursor.fetchall():
             worker = dict(row)
-            worker["capabilities"] = (
-                json.loads(worker["capabilities"]) if worker["capabilities"] else []
-            )
-            worker["metadata"] = (
-                json.loads(worker["metadata"]) if worker["metadata"] else {}
-            )
+            worker["capabilities"] = json.loads(worker["capabilities"]) if worker["capabilities"] else []
+            worker["metadata"] = json.loads(worker["metadata"]) if worker["metadata"] else {}
             workers.append(worker)
 
         return workers
@@ -933,9 +901,7 @@ if ASYNC_AVAILABLE:
 
             return None
 
-    async def get_queued_tasks_async(
-        limit: int = 10, task_type: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    async def get_queued_tasks_async(limit: int = 10, task_type: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Async version of get_queued_tasks for high-performance task retrieval.
 
@@ -986,9 +952,7 @@ if ASYNC_AVAILABLE:
 
             return tasks
 
-    async def update_task_status_async(
-        task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None
-    ) -> bool:
+    async def update_task_status_async(task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
         Async version of update_task_status for non-blocking updates.
 
@@ -1006,9 +970,7 @@ if ASYNC_AVAILABLE:
             async with get_async_connection() as conn:
                 if metadata:
                     # Get existing metadata and merge
-                    cursor = await conn.execute(
-                        "SELECT metadata FROM tasks WHERE id = ?", (task_id,)
-                    )
+                    cursor = await conn.execute("SELECT metadata FROM tasks WHERE id = ?", (task_id,))
                     row = await cursor.fetchone()
 
                     if row:
@@ -1062,9 +1024,7 @@ if ASYNC_AVAILABLE:
                     if task_dict.get("tags"):
                         task_dict["tags"] = json.loads(task_dict["tags"])
                     if task_dict.get("context_data"):
-                        task_dict["context_data"] = json.loads(
-                            task_dict["context_data"]
-                        )
+                        task_dict["context_data"] = json.loads(task_dict["context_data"])
                     if task_dict.get("depends_on"):
                         task_dict["depends_on"] = json.loads(task_dict["depends_on"])
                     if task_dict.get("metadata"):
@@ -1077,9 +1037,7 @@ if ASYNC_AVAILABLE:
             logger.error(f"Error getting async tasks by status {status}: {e}")
             return []
 
-    async def create_run_async(
-        task_id: str, worker_id: str, phase: str = "init"
-    ) -> str:
+    async def create_run_async(task_id: str, worker_id: str, phase: str = "init") -> str:
         """
         Async version of create_run for non-blocking run creation.
 

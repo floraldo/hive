@@ -64,11 +64,7 @@ class SystemBuilder:
         available = {}
         for comp_type, comp_class in COMPONENT_REGISTRY.items():
             # Get component description from docstring or class name
-            desc = (
-                comp_class.__doc__.split("\n")[0]
-                if comp_class.__doc__
-                else f"{comp_type} component"
-            )
+            desc = comp_class.__doc__.split("\n")[0] if comp_class.__doc__ else f"{comp_type} component"
             available[comp_type] = desc
 
         return available
@@ -96,13 +92,9 @@ class SystemBuilder:
 
         # Create connections
         for conn in config["connections"]:
-            system.connect(
-                conn["from"], conn["to"], conn["type"], conn.get("bidirectional", False)
-            )
+            system.connect(conn["from"], conn["to"], conn["type"], conn.get("bidirectional", False))
 
-        logger.info(
-            f"Built system '{system.system_id}' with {len(system.components)} components"
-        )
+        logger.info(f"Built system '{system.system_id}' with {len(system.components)} components")
         return system
 
     def _validate_config(self, config: Dict[str, Any]):
@@ -142,16 +134,12 @@ class SystemBuilder:
         # Determine if using component library or inline definition
         if "component_id" in comp_config:
             # Load from component library
-            comp_data = self.component_repo.get_component_data(
-                comp_config["component_id"]
-            )
+            comp_data = self.component_repo.get_component_data(comp_config["component_id"])
 
             # Standardize on 'component_class' key
             comp_class_name = comp_data.get("component_class")
             if not comp_class_name:
-                raise ValueError(
-                    f"Component data for {comp_config['component_id']} missing 'component_class'"
-                )
+                raise ValueError(f"Component data for {comp_config['component_id']} missing 'component_class'")
 
             # Merge any override parameters from config
             params_dict = comp_data.copy()
@@ -170,9 +158,7 @@ class SystemBuilder:
             ComponentClass = get_component_class(comp_class_name)
         except ValueError as e:
             available = list(COMPONENT_REGISTRY.keys())
-            raise ValueError(
-                f"Unknown component class: {comp_class_name}. Available: {available}"
-            ) from e
+            raise ValueError(f"Unknown component class: {comp_class_name}. Available: {available}") from e
 
         # Get the parameter class from the component
         if hasattr(ComponentClass, "PARAMS_MODEL"):
@@ -190,9 +176,7 @@ class SystemBuilder:
         try:
             params = ParamsModel(**params_dict)
         except Exception as e:
-            raise ValueError(
-                f"Invalid parameters for {comp_class_name} component '{name}': {e}"
-            )
+            raise ValueError(f"Invalid parameters for {comp_class_name} component '{name}': {e}")
 
         # Create component using registry pattern
         return ComponentClass(name, params, n)
@@ -218,13 +202,9 @@ class SystemBuilder:
                     elif isinstance(profile_data, list):
                         component.profile = np.array(profile_data)
                     else:
-                        logger.warning(
-                            f"Profile {profile_name} has unexpected type: {type(profile_data)}"
-                        )
+                        logger.warning(f"Profile {profile_name} has unexpected type: {type(profile_data)}")
 
-                    logger.debug(
-                        f"Assigned profile '{profile_name}' to component '{comp_name}'"
-                    )
+                    logger.debug(f"Assigned profile '{profile_name}' to component '{comp_name}'")
 
     def create_minimal_test_system(self, N: int = 24) -> System:
         """Create a minimal test system for validation.
@@ -251,30 +231,22 @@ class SystemBuilder:
 
         # Create components using dynamic registry
         grid_class = get_component_class("Grid")
-        grid_params = grid_class.PARAMS_MODEL(
-            P_max=100, import_tariff=0.25, feed_in_tariff=0.08
-        )
+        grid_params = grid_class.PARAMS_MODEL(P_max=100, import_tariff=0.25, feed_in_tariff=0.08)
         grid = grid_class("Grid", grid_params, N)
         system.add_component(grid)
 
         battery_class = get_component_class("Battery")
-        battery_params = battery_class.PARAMS_MODEL(
-            P_max=5, E_max=10, E_init=5, eta_charge=0.95, eta_discharge=0.95
-        )
+        battery_params = battery_class.PARAMS_MODEL(P_max=5, E_max=10, E_init=5, eta_charge=0.95, eta_discharge=0.95)
         battery = battery_class("Battery", battery_params, N)
         system.add_component(battery)
 
         solar_class = get_component_class("SolarPV")
-        solar_params = solar_class.PARAMS_MODEL(
-            P_profile=solar_profile.tolist(), P_max=10
-        )
+        solar_params = solar_class.PARAMS_MODEL(P_profile=solar_profile.tolist(), P_max=10)
         solar = solar_class("SolarPV", solar_params, N)
         system.add_component(solar)
 
         demand_class = get_component_class("PowerDemand")
-        demand_params = demand_class.PARAMS_MODEL(
-            P_profile=demand_profile.tolist(), P_max=5
-        )
+        demand_params = demand_class.PARAMS_MODEL(P_profile=demand_profile.tolist(), P_max=5)
         demand = demand_class("PowerDemand", demand_params, N)
         system.add_component(demand)
 
@@ -287,7 +259,5 @@ class SystemBuilder:
         system.connect("Battery", "PowerDemand", "electricity")
         system.connect("Battery", "Grid", "electricity")
 
-        logger.info(
-            "Built minimal test system with 4 components using dynamic registry"
-        )
+        logger.info("Built minimal test system with 4 components using dynamic registry")
         return system

@@ -24,6 +24,7 @@ import os
 @dataclass
 class PerformanceMetrics:
     """Performance measurement results"""
+
     test_name: str
     sync_time: float
     async_time: float
@@ -49,7 +50,8 @@ class AsyncPerformanceValidator:
 
         # Create test database
         conn = sqlite3.connect(self.test_db_path)
-        conn.executescript("""
+        conn.executescript(
+            """
             CREATE TABLE tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
@@ -77,7 +79,8 @@ class AsyncPerformanceValidator:
                 duration_ms REAL,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-        """)
+        """
+        )
         conn.commit()
         conn.close()
 
@@ -87,12 +90,13 @@ class AsyncPerformanceValidator:
         """Clean up test environment"""
         if self.temp_dir and Path(self.temp_dir).exists():
             import shutil
+
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def run_all_performance_tests(self) -> bool:
         """Run all performance validation tests"""
         print("🚀 Running Async Infrastructure Performance Validation")
-        print("="*70)
+        print("=" * 70)
 
         self.setup()
 
@@ -118,12 +122,14 @@ class AsyncPerformanceValidator:
             print(f"💾 Memory Efficiency: {memory_efficiency:.1f}% better")
 
             # Calculate overall results
-            overall_improvement = statistics.mean([
-                task_perf.improvement_factor,
-                db_perf.improvement_factor,
-                event_perf.improvement_factor,
-                mixed_perf.improvement_factor
-            ])
+            overall_improvement = statistics.mean(
+                [
+                    task_perf.improvement_factor,
+                    db_perf.improvement_factor,
+                    event_perf.improvement_factor,
+                    mixed_perf.improvement_factor,
+                ]
+            )
 
             self._print_detailed_results()
 
@@ -172,7 +178,7 @@ class AsyncPerformanceValidator:
             improvement_factor=improvement_factor,
             operations_count=num_tasks,
             ops_per_second_sync=num_tasks / sync_time,
-            ops_per_second_async=num_tasks / async_time
+            ops_per_second_async=num_tasks / async_time,
         )
 
         self.metrics.append(metrics)
@@ -208,7 +214,7 @@ class AsyncPerformanceValidator:
             improvement_factor=improvement_factor,
             operations_count=num_operations,
             ops_per_second_sync=num_operations / sync_time,
-            ops_per_second_async=num_operations / async_time
+            ops_per_second_async=num_operations / async_time,
         )
 
         self.metrics.append(metrics)
@@ -244,7 +250,7 @@ class AsyncPerformanceValidator:
             improvement_factor=improvement_factor,
             operations_count=num_events,
             ops_per_second_sync=num_events / sync_time,
-            ops_per_second_async=num_events / async_time
+            ops_per_second_async=num_events / async_time,
         )
 
         self.metrics.append(metrics)
@@ -280,7 +286,7 @@ class AsyncPerformanceValidator:
             improvement_factor=improvement_factor,
             operations_count=30,  # 10 tasks + 10 db ops + 10 events
             ops_per_second_sync=30 / sync_time,
-            ops_per_second_async=30 / async_time
+            ops_per_second_async=30 / async_time,
         )
 
         self.metrics.append(metrics)
@@ -295,6 +301,7 @@ class AsyncPerformanceValidator:
         print("\n🧪 Testing Memory Efficiency...")
 
         import psutil
+
         process = psutil.Process()
 
         # Baseline memory
@@ -346,13 +353,14 @@ class AsyncPerformanceValidator:
         conn = sqlite3.connect(self.test_db_path)
         conn.execute(
             "INSERT INTO tasks (title, description, status, worker_id) VALUES (?, ?, ?, ?)",
-            (f"Sync Task {task_id}", f"Synchronous task {task_id}", "completed", "sync_worker")
+            (f"Sync Task {task_id}", f"Synchronous task {task_id}", "completed", "sync_worker"),
         )
         conn.commit()
         conn.close()
 
     async def _process_tasks_async(self, num_tasks: int, processing_time: float):
         """Process multiple tasks asynchronously"""
+
         async def process_single_task(task_id: int):
             # Simulate async work
             await asyncio.sleep(processing_time)
@@ -361,7 +369,7 @@ class AsyncPerformanceValidator:
             conn = sqlite3.connect(self.test_db_path)
             conn.execute(
                 "INSERT INTO tasks (title, description, status, worker_id) VALUES (?, ?, ?, ?)",
-                (f"Async Task {task_id}", f"Asynchronous task {task_id}", "completed", "async_worker")
+                (f"Async Task {task_id}", f"Asynchronous task {task_id}", "completed", "async_worker"),
             )
             conn.commit()
             conn.close()
@@ -377,7 +385,7 @@ class AsyncPerformanceValidator:
         # Simulate database work
         conn.execute(
             "INSERT INTO performance_log (test_name, operation_type, duration_ms) VALUES (?, ?, ?)",
-            ("sync_test", "database_op", 10.0)
+            ("sync_test", "database_op", 10.0),
         )
 
         # Read operation
@@ -389,6 +397,7 @@ class AsyncPerformanceValidator:
 
     async def _database_operations_async(self, num_operations: int):
         """Asynchronous database operations"""
+
         async def single_db_operation(op_id: int):
             # Simulate async preparation
             await asyncio.sleep(0.001)
@@ -398,7 +407,7 @@ class AsyncPerformanceValidator:
             # Insert operation
             conn.execute(
                 "INSERT INTO performance_log (test_name, operation_type, duration_ms) VALUES (?, ?, ?)",
-                ("async_test", "database_op", 10.0)
+                ("async_test", "database_op", 10.0),
             )
 
             # Read operation
@@ -421,13 +430,14 @@ class AsyncPerformanceValidator:
         conn = sqlite3.connect(self.test_db_path)
         conn.execute(
             "INSERT INTO events (event_type, event_data, component) VALUES (?, ?, ?)",
-            ("sync_event", json.dumps({"event_id": event_id}), "sync_processor")
+            ("sync_event", json.dumps({"event_id": event_id}), "sync_processor"),
         )
         conn.commit()
         conn.close()
 
     async def _process_events_async(self, num_events: int):
         """Asynchronous event processing"""
+
         async def process_single_event(event_id: int):
             # Simulate async event processing
             await asyncio.sleep(0.02)
@@ -436,7 +446,7 @@ class AsyncPerformanceValidator:
             conn = sqlite3.connect(self.test_db_path)
             conn.execute(
                 "INSERT INTO events (event_type, event_data, component) VALUES (?, ?, ?)",
-                ("async_event", json.dumps({"event_id": event_id}), "async_processor")
+                ("async_event", json.dumps({"event_id": event_id}), "async_processor"),
             )
             conn.commit()
             conn.close()
@@ -447,6 +457,7 @@ class AsyncPerformanceValidator:
 
     async def _mixed_workload_async(self, num_iterations: int):
         """Mixed workload processed asynchronously"""
+
         async def mixed_operation(iteration: int):
             # Task processing
             await asyncio.sleep(0.03)
@@ -456,7 +467,7 @@ class AsyncPerformanceValidator:
             conn = sqlite3.connect(self.test_db_path)
             conn.execute(
                 "INSERT INTO tasks (title, description, status) VALUES (?, ?, ?)",
-                (f"Mixed Task {iteration}", "Mixed workload task", "completed")
+                (f"Mixed Task {iteration}", "Mixed workload task", "completed"),
             )
             conn.commit()
             conn.close()
@@ -466,7 +477,7 @@ class AsyncPerformanceValidator:
             conn = sqlite3.connect(self.test_db_path)
             conn.execute(
                 "INSERT INTO events (event_type, event_data, component) VALUES (?, ?, ?)",
-                ("mixed_event", json.dumps({"iteration": iteration}), "mixed_processor")
+                ("mixed_event", json.dumps({"iteration": iteration}), "mixed_processor"),
             )
             conn.commit()
             conn.close()
@@ -479,7 +490,7 @@ class AsyncPerformanceValidator:
         """Print detailed performance results"""
         print(f"\n{'='*70}")
         print("📊 DETAILED PERFORMANCE RESULTS")
-        print("="*70)
+        print("=" * 70)
 
         for metric in self.metrics:
             print(f"\n🔬 {metric.test_name}:")

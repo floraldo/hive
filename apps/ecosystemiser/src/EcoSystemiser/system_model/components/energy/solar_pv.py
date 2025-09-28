@@ -38,29 +38,17 @@ class SolarPVTechnicalParams(GenerationTechnicalParams):
     technology: str = Field("monocrystalline", description="PV technology type")
 
     # STANDARD fidelity additions
-    panel_efficiency: Optional[float] = Field(
-        0.20, description="Panel efficiency at STC"
-    )
-    inverter_efficiency: Optional[float] = Field(
-        0.98, description="DC to AC conversion efficiency"
-    )
+    panel_efficiency: Optional[float] = Field(0.20, description="Panel efficiency at STC")
+    inverter_efficiency: Optional[float] = Field(0.98, description="DC to AC conversion efficiency")
 
     # DETAILED fidelity parameters
-    temperature_coefficient: Optional[float] = Field(
-        None, description="Power temperature coefficient [%/°C]"
-    )
-    degradation_rate_annual: Optional[float] = Field(
-        None, description="Annual degradation rate [%/year]"
-    )
+    temperature_coefficient: Optional[float] = Field(None, description="Power temperature coefficient [%/°C]")
+    degradation_rate_annual: Optional[float] = Field(None, description="Annual degradation rate [%/year]")
     soiling_factor: Optional[float] = Field(None, description="Soiling derating factor")
 
     # RESEARCH fidelity parameters
-    spectral_model: Optional[Dict[str, Any]] = Field(
-        None, description="Spectral irradiance model parameters"
-    )
-    bifacial_gain: Optional[float] = Field(
-        None, description="Bifacial module gain factor"
-    )
+    spectral_model: Optional[Dict[str, Any]] = Field(None, description="Spectral irradiance model parameters")
+    bifacial_gain: Optional[float] = Field(None, description="Bifacial module gain factor")
 
 
 class SolarPVParams(ComponentParams):
@@ -127,9 +115,7 @@ class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
         generation_after_simple = super().rule_based_generate(t, profile_value)
 
         # 2. Add STANDARD-specific physics: inverter efficiency
-        inverter_efficiency = getattr(
-            self.params.technical, "inverter_efficiency", 0.98
-        )
+        inverter_efficiency = getattr(self.params.technical, "inverter_efficiency", 0.98)
 
         # Apply inverter efficiency (DC to AC conversion)
         final_generation = generation_after_simple * inverter_efficiency
@@ -246,9 +232,7 @@ class SolarPV(Component):
         # Profile should be assigned by the system/builder
         # Initialize as None, will be set by assign_profiles
         if not hasattr(self, "profile") or self.profile is None:
-            logger.warning(
-                f"No generation profile assigned to {self.name}. Using zero output."
-            )
+            logger.warning(f"No generation profile assigned to {self.name}. Using zero output.")
             self.profile = np.zeros(getattr(self, "N", 24))
         else:
             self.profile = np.array(self.profile)
@@ -292,9 +276,7 @@ class SolarPV(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return SolarPVOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for SolarPV optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for SolarPV optimization: {fidelity}")
 
     def rule_based_generate(self, t: int) -> float:
         """
@@ -304,11 +286,7 @@ class SolarPV(Component):
         delegates the actual physics calculation to the strategy object.
         """
         # Check bounds
-        if (
-            not hasattr(self, "profile")
-            or self.profile is None
-            or t >= len(self.profile)
-        ):
+        if not hasattr(self, "profile") or self.profile is None or t >= len(self.profile):
             return 0.0
 
         # Get normalized profile value for this timestep
@@ -319,10 +297,7 @@ class SolarPV(Component):
 
         # Log for debugging if needed
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(
-                f"{self.name} at t={t}: profile={profile_value:.3f}, "
-                f"output={generation_output:.3f}kW"
-            )
+            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, " f"output={generation_output:.3f}kW")
 
         return generation_output
 

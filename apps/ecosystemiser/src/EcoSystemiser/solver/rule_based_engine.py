@@ -70,9 +70,7 @@ class RuleBasedEngine(BaseSolver):
 
         except Exception as e:
             logger.error(f"Error in rule-based solver: {e}")
-            result = SolverResult(
-                status="error", solve_time=time.time() - start_time, message=str(e)
-            )
+            result = SolverResult(status="error", solve_time=time.time() - start_time, message=str(e))
 
         self.result = result
         return result
@@ -137,9 +135,7 @@ class RuleBasedEngine(BaseSolver):
                     comp_state["available_output"] = comp.rule_based_generate(t)
                 elif hasattr(comp, "profile") and hasattr(comp, "P_max"):
                     # Fallback for components without the method
-                    comp_state["available_output"] = (
-                        comp.profile[t] * comp.P_max if t < len(comp.profile) else 0.0
-                    )
+                    comp_state["available_output"] = comp.profile[t] * comp.P_max if t < len(comp.profile) else 0.0
 
             elif comp.type == "consumption":
                 # Ask component for its demand
@@ -147,9 +143,7 @@ class RuleBasedEngine(BaseSolver):
                     comp_state["required_input"] = comp.rule_based_demand(t)
                 elif hasattr(comp, "profile") and hasattr(comp, "P_max"):
                     # Fallback for components without the method
-                    comp_state["required_input"] = (
-                        comp.profile[t] * comp.P_max if t < len(comp.profile) else 0.0
-                    )
+                    comp_state["required_input"] = comp.profile[t] * comp.P_max if t < len(comp.profile) else 0.0
 
             elif comp.type == "transmission":
                 # Grid can both supply and consume

@@ -19,29 +19,13 @@ class ReportConfig(BaseModel):
     """Configuration for report generation."""
 
     report_type: str = Field(
-        default="standard",
-        description="Type of report: standard, genetic_algorithm, monte_carlo, study"
+        default="standard", description="Type of report: standard, genetic_algorithm, monte_carlo, study"
     )
-    title: str = Field(
-        default="EcoSystemiser Analysis Report",
-        description="Title of the report"
-    )
-    include_plots: bool = Field(
-        default=True,
-        description="Whether to include visualizations in the report"
-    )
-    output_format: str = Field(
-        default="html",
-        description="Output format: html, json, or both"
-    )
-    save_path: Optional[Path] = Field(
-        default=None,
-        description="Optional path to save the report"
-    )
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional metadata for report customization"
-    )
+    title: str = Field(default="EcoSystemiser Analysis Report", description="Title of the report")
+    include_plots: bool = Field(default=True, description="Whether to include visualizations in the report")
+    output_format: str = Field(default="html", description="Output format: html, json, or both")
+    save_path: Optional[Path] = Field(default=None, description="Optional path to save the report")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata for report customization")
 
 
 class ReportResult(BaseModel):
@@ -67,11 +51,7 @@ class ReportingService:
         self._html_generator = None
         logger.info("ReportingService initialized")
 
-    def generate_report(
-        self,
-        analysis_results: Dict[str, Any],
-        config: Optional[ReportConfig] = None
-    ) -> ReportResult:
+    def generate_report(self, analysis_results: Dict[str, Any], config: Optional[ReportConfig] = None) -> ReportResult:
         """Generate a report from analysis results.
 
         This is the main entry point for all report generation.
@@ -89,10 +69,12 @@ class ReportingService:
         # Initialize lazy imports
         if self._plot_factory is None:
             from ecosystemiser.datavis.plot_factory import PlotFactory
+
             self._plot_factory = PlotFactory()
 
         if self._html_generator is None:
             from ecosystemiser.reporting.generator import HTMLReportGenerator
+
             self._html_generator = HTMLReportGenerator()
 
         # Generate plots if requested
@@ -103,11 +85,7 @@ class ReportingService:
         # Generate HTML content
         html_content = None
         if config.output_format in ["html", "both"]:
-            html_content = self._generate_html(
-                analysis_results,
-                plots,
-                config
-            )
+            html_content = self._generate_html(analysis_results, plots, config)
 
         # Generate JSON content if requested
         json_content = None
@@ -127,17 +105,13 @@ class ReportingService:
             plots=plots,
             generation_time=datetime.now(),
             save_path=config.save_path,
-            metadata=config.metadata
+            metadata=config.metadata,
         )
 
         logger.info(f"Report generated successfully: {result.report_id}")
         return result
 
-    def _generate_plots(
-        self,
-        analysis_results: Dict[str, Any],
-        config: ReportConfig
-    ) -> Dict[str, Any]:
+    def _generate_plots(self, analysis_results: Dict[str, Any], config: ReportConfig) -> Dict[str, Any]:
         """Generate plots for the report.
 
         Args:
@@ -174,27 +148,19 @@ class ReportingService:
 
         # Energy balance plot
         if "energy_balance" in results:
-            plots["energy_balance"] = self._plot_factory.create_energy_balance_plot(
-                results["energy_balance"]
-            )
+            plots["energy_balance"] = self._plot_factory.create_energy_balance_plot(results["energy_balance"])
 
         # Cost breakdown plot
         if "costs" in results:
-            plots["cost_breakdown"] = self._plot_factory.create_cost_breakdown_plot(
-                results["costs"]
-            )
+            plots["cost_breakdown"] = self._plot_factory.create_cost_breakdown_plot(results["costs"])
 
         # Time series plots
         if "time_series" in results:
-            plots["time_series"] = self._plot_factory.create_time_series_plot(
-                results["time_series"]
-            )
+            plots["time_series"] = self._plot_factory.create_time_series_plot(results["time_series"])
 
         # KPI summary plot
         if "kpis" in results:
-            plots["kpi_summary"] = self._plot_factory.create_kpi_summary_plot(
-                results["kpis"]
-            )
+            plots["kpi_summary"] = self._plot_factory.create_kpi_summary_plot(results["kpis"])
 
         return plots
 
@@ -204,27 +170,19 @@ class ReportingService:
 
         # Convergence plot
         if "convergence_history" in results:
-            plots["convergence"] = self._plot_factory.create_convergence_plot(
-                results["convergence_history"]
-            )
+            plots["convergence"] = self._plot_factory.create_convergence_plot(results["convergence_history"])
 
         # Pareto front plot (for multi-objective)
         if "pareto_front" in results:
-            plots["pareto_front"] = self._plot_factory.create_pareto_plot(
-                results["pareto_front"]
-            )
+            plots["pareto_front"] = self._plot_factory.create_pareto_plot(results["pareto_front"])
 
         # Population diversity plot
         if "population_history" in results:
-            plots["diversity"] = self._plot_factory.create_diversity_plot(
-                results["population_history"]
-            )
+            plots["diversity"] = self._plot_factory.create_diversity_plot(results["population_history"])
 
         # Best solution details
         if "best_solution" in results:
-            plots["best_solution"] = self._plot_factory.create_solution_plot(
-                results["best_solution"]
-            )
+            plots["best_solution"] = self._plot_factory.create_solution_plot(results["best_solution"])
 
         return plots
 
@@ -234,27 +192,19 @@ class ReportingService:
 
         # Uncertainty distribution plots
         if "distributions" in results:
-            plots["distributions"] = self._plot_factory.create_distribution_plots(
-                results["distributions"]
-            )
+            plots["distributions"] = self._plot_factory.create_distribution_plots(results["distributions"])
 
         # Sensitivity analysis plots
         if "sensitivity" in results:
-            plots["sensitivity"] = self._plot_factory.create_sensitivity_plot(
-                results["sensitivity"]
-            )
+            plots["sensitivity"] = self._plot_factory.create_sensitivity_plot(results["sensitivity"])
 
         # Confidence intervals plot
         if "confidence_intervals" in results:
-            plots["confidence"] = self._plot_factory.create_confidence_plot(
-                results["confidence_intervals"]
-            )
+            plots["confidence"] = self._plot_factory.create_confidence_plot(results["confidence_intervals"])
 
         # Risk assessment plot
         if "risk_metrics" in results:
-            plots["risk"] = self._plot_factory.create_risk_plot(
-                results["risk_metrics"]
-            )
+            plots["risk"] = self._plot_factory.create_risk_plot(results["risk_metrics"])
 
         return plots
 
@@ -264,29 +214,20 @@ class ReportingService:
 
         # Parameter sweep plots
         if "parameter_results" in results:
-            plots["parameter_sweep"] = self._plot_factory.create_sweep_plot(
-                results["parameter_results"]
-            )
+            plots["parameter_sweep"] = self._plot_factory.create_sweep_plot(results["parameter_results"])
 
         # Fidelity comparison plots
         if "fidelity_results" in results:
-            plots["fidelity_comparison"] = self._plot_factory.create_fidelity_plot(
-                results["fidelity_results"]
-            )
+            plots["fidelity_comparison"] = self._plot_factory.create_fidelity_plot(results["fidelity_results"])
 
         # Summary statistics plots
         if "summary_statistics" in results:
-            plots["summary"] = self._plot_factory.create_summary_plot(
-                results["summary_statistics"]
-            )
+            plots["summary"] = self._plot_factory.create_summary_plot(results["summary_statistics"])
 
         return plots
 
     def _generate_html(
-        self,
-        analysis_results: Dict[str, Any],
-        plots: Optional[Dict[str, Any]],
-        config: ReportConfig
+        self, analysis_results: Dict[str, Any], plots: Optional[Dict[str, Any]], config: ReportConfig
     ) -> str:
         """Generate HTML report content.
 
@@ -300,19 +241,12 @@ class ReportingService:
         """
         # Use the HTMLReportGenerator to create the HTML
         html_content = self._html_generator.generate_standalone_report(
-            analysis_results=analysis_results,
-            plots=plots,
-            title=config.title,
-            report_type=config.report_type
+            analysis_results=analysis_results, plots=plots, title=config.title, report_type=config.report_type
         )
 
         return html_content
 
-    def _prepare_json_content(
-        self,
-        analysis_results: Dict[str, Any],
-        config: ReportConfig
-    ) -> Dict[str, Any]:
+    def _prepare_json_content(self, analysis_results: Dict[str, Any], config: ReportConfig) -> Dict[str, Any]:
         """Prepare JSON content for the report.
 
         Args:
@@ -327,10 +261,10 @@ class ReportingService:
                 "title": config.title,
                 "type": config.report_type,
                 "generated_at": datetime.now().isoformat(),
-                "version": "3.0.0"
+                "version": "3.0.0",
             },
             "results": analysis_results,
-            "configuration": config.metadata
+            "configuration": config.metadata,
         }
 
         # Add report-specific sections
@@ -388,12 +322,7 @@ class ReportingService:
 
         return summary
 
-    def _save_report(
-        self,
-        html_content: Optional[str],
-        json_content: Optional[Dict[str, Any]],
-        save_path: Path
-    ):
+    def _save_report(self, html_content: Optional[str], json_content: Optional[Dict[str, Any]], save_path: Path):
         """Save report content to disk.
 
         Args:
@@ -422,9 +351,7 @@ class ReportingService:
             raise
 
     def generate_comparison_report(
-        self,
-        results_list: List[Dict[str, Any]],
-        config: Optional[ReportConfig] = None
+        self, results_list: List[Dict[str, Any]], config: Optional[ReportConfig] = None
     ) -> ReportResult:
         """Generate a comparison report for multiple results.
 
@@ -435,25 +362,19 @@ class ReportingService:
         Returns:
             ReportResult with comparison report
         """
-        config = config or ReportConfig(
-            report_type="comparison",
-            title="EcoSystemiser Comparison Report"
-        )
+        config = config or ReportConfig(report_type="comparison", title="EcoSystemiser Comparison Report")
 
         # Prepare comparison data
         comparison_data = {
             "num_results": len(results_list),
             "results": results_list,
-            "comparison_metrics": self._calculate_comparison_metrics(results_list)
+            "comparison_metrics": self._calculate_comparison_metrics(results_list),
         }
 
         # Generate report using the main method
         return self.generate_report(comparison_data, config)
 
-    def _calculate_comparison_metrics(
-        self,
-        results_list: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _calculate_comparison_metrics(self, results_list: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate metrics for comparing multiple results.
 
         Args:
@@ -462,12 +383,7 @@ class ReportingService:
         Returns:
             Comparison metrics
         """
-        metrics = {
-            "best_by_cost": None,
-            "best_by_renewable": None,
-            "best_by_emissions": None,
-            "summary_statistics": {}
-        }
+        metrics = {"best_by_cost": None, "best_by_renewable": None, "best_by_emissions": None, "summary_statistics": {}}
 
         # Find best results by different criteria
         for idx, result in enumerate(results_list):
@@ -476,20 +392,28 @@ class ReportingService:
 
                 # Check cost
                 if "total_cost" in kpis:
-                    if metrics["best_by_cost"] is None or \
-                            kpis["total_cost"] < results_list[metrics["best_by_cost"]]["kpis"]["total_cost"]:
+                    if (
+                        metrics["best_by_cost"] is None
+                        or kpis["total_cost"] < results_list[metrics["best_by_cost"]]["kpis"]["total_cost"]
+                    ):
                         metrics["best_by_cost"] = idx
 
                 # Check renewable fraction
                 if "renewable_fraction" in kpis:
-                    if metrics["best_by_renewable"] is None or \
-                            kpis["renewable_fraction"] > results_list[metrics["best_by_renewable"]]["kpis"]["renewable_fraction"]:
+                    if (
+                        metrics["best_by_renewable"] is None
+                        or kpis["renewable_fraction"]
+                        > results_list[metrics["best_by_renewable"]]["kpis"]["renewable_fraction"]
+                    ):
                         metrics["best_by_renewable"] = idx
 
                 # Check emissions
                 if "total_emissions" in kpis:
-                    if metrics["best_by_emissions"] is None or \
-                            kpis["total_emissions"] < results_list[metrics["best_by_emissions"]]["kpis"]["total_emissions"]:
+                    if (
+                        metrics["best_by_emissions"] is None
+                        or kpis["total_emissions"]
+                        < results_list[metrics["best_by_emissions"]]["kpis"]["total_emissions"]
+                    ):
                         metrics["best_by_emissions"] = idx
 
         return metrics

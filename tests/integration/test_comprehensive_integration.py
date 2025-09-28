@@ -44,6 +44,7 @@ sys.path.insert(0, str(test_root / "apps" / "ecosystemiser" / "src"))
 @dataclass
 class TestMetrics:
     """Metrics collected during testing"""
+
     test_start_time: float
     test_end_time: float
     tasks_created: int = 0
@@ -114,6 +115,7 @@ class PlatformTestEnvironment:
         # Clean up temporary files
         if self.temp_dir and Path(self.temp_dir).exists():
             import shutil
+
             try:
                 shutil.rmtree(self.temp_dir)
             except Exception as e:
@@ -128,7 +130,8 @@ class PlatformTestEnvironment:
     def _init_test_database(self):
         """Initialize comprehensive test database schema"""
         conn = sqlite3.connect(self.db_path)
-        conn.executescript('''
+        conn.executescript(
+            """
             -- AI Planner tables
             CREATE TABLE planning_queue (
                 id TEXT PRIMARY KEY,
@@ -261,7 +264,8 @@ class PlatformTestEnvironment:
             CREATE INDEX idx_events_created_at ON events (created_at);
             CREATE INDEX idx_simulations_study_status ON simulations (study_id, status);
             CREATE INDEX idx_performance_metrics_type_time ON performance_metrics (metric_type, measured_at);
-        ''')
+        """
+        )
         conn.commit()
         conn.close()
         self.metrics.database_operations += 1
@@ -318,16 +322,19 @@ class EndToEndWorkflowTests:
             planning_task_id = str(uuid.uuid4())
             conn = sqlite3.connect(self.env.db_path)
 
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO planning_queue (id, task_description, priority, requestor, context_data)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (
-                planning_task_id,
-                task_description,
-                80,
-                "integration_test",
-                json.dumps({"complexity": "high", "estimated_hours": 16})
-            ))
+            """,
+                (
+                    planning_task_id,
+                    task_description,
+                    80,
+                    "integration_test",
+                    json.dumps({"complexity": "high", "estimated_hours": 16}),
+                ),
+            )
             conn.commit()
             conn.close()
 
@@ -339,9 +346,7 @@ class EndToEndWorkflowTests:
             assert len(subtasks) >= 5, "Should decompose into at least 5 subtasks"
 
             # Verify dependency structure
-            dependencies_exist = any(
-                sub_task.get("dependencies") for sub_task in subtasks
-            )
+            dependencies_exist = any(sub_task.get("dependencies") for sub_task in subtasks)
             assert dependencies_exist, "Should have dependency relationships"
 
             print(f"✅ Task decomposition test: PASSED ({len(subtasks)} subtasks created)")
@@ -370,9 +375,11 @@ class EndToEndWorkflowTests:
 
             # Verify error metrics are recorded
             conn = sqlite3.connect(self.env.db_path)
-            cursor = conn.execute('''
+            cursor = conn.execute(
+                """
                 SELECT COUNT(*) FROM runs WHERE status = 'failed'
-            ''')
+            """
+            )
             failed_runs = cursor.fetchone()[0]
             conn.close()
 
@@ -400,21 +407,26 @@ class EndToEndWorkflowTests:
         """
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO planning_queue (id, task_description, priority, requestor, context_data)
             VALUES (?, ?, ?, ?, ?)
-        ''', (
-            task_id,
-            task_description,
-            90,
-            "integration_test",
-            json.dumps({
-                "complexity": "very_high",
-                "estimated_hours": 24,
-                "required_skills": ["python", "kafka", "tensorflow", "react", "docker"],
-                "dependencies": ["data_infrastructure", "ml_models"]
-            })
-        ))
+        """,
+            (
+                task_id,
+                task_description,
+                90,
+                "integration_test",
+                json.dumps(
+                    {
+                        "complexity": "very_high",
+                        "estimated_hours": 24,
+                        "required_skills": ["python", "kafka", "tensorflow", "react", "docker"],
+                        "dependencies": ["data_infrastructure", "ml_models"],
+                    }
+                ),
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -427,46 +439,45 @@ class EndToEndWorkflowTests:
         plan_data = self._generate_complex_execution_plan(task_id)
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO execution_plans (id, planning_task_id, plan_data, estimated_complexity, estimated_duration)
             VALUES (?, ?, ?, ?, ?)
-        ''', (
-            plan_id,
-            task_id,
-            json.dumps(plan_data),
-            "very_high",
-            1440  # 24 hours in minutes
-        ))
+        """,
+            (plan_id, task_id, json.dumps(plan_data), "very_high", 1440),  # 24 hours in minutes
+        )
 
         # Create subtasks
         for i, sub_task in enumerate(plan_data["sub_tasks"]):
             subtask_id = f"subtask_{plan_id}_{i}"
 
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (
                     id, title, description, task_type, priority, status,
                     assignee, payload, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (
-                subtask_id,
-                sub_task["title"],
-                sub_task["description"],
-                "planned_subtask",
-                sub_task["priority"],
-                "queued",
-                sub_task["assignee"],
-                json.dumps({
-                    "parent_plan_id": plan_id,
-                    "subtask_index": i,
-                    **sub_task
-                })
-            ))
+            """,
+                (
+                    subtask_id,
+                    sub_task["title"],
+                    sub_task["description"],
+                    "planned_subtask",
+                    sub_task["priority"],
+                    "queued",
+                    sub_task["assignee"],
+                    json.dumps({"parent_plan_id": plan_id, "subtask_index": i, **sub_task}),
+                ),
+            )
             self.env.metrics.subtasks_executed += 1
 
         # Mark planning task as completed
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE planning_queue SET status = 'planned', completed_at = CURRENT_TIMESTAMP WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -491,7 +502,7 @@ class EndToEndWorkflowTests:
                     "workflow_phase": "implementation",
                     "required_skills": ["python", "kafka", "docker"],
                     "deliverables": ["kafka_consumer.py", "ingestion_config.yaml"],
-                    "dependencies": []
+                    "dependencies": [],
                 },
                 {
                     "id": "stream_processing",
@@ -504,7 +515,7 @@ class EndToEndWorkflowTests:
                     "workflow_phase": "implementation",
                     "required_skills": ["python", "pandas", "kafka"],
                     "deliverables": ["stream_processor.py", "validation_rules.py"],
-                    "dependencies": ["data_ingestion"]
+                    "dependencies": ["data_ingestion"],
                 },
                 {
                     "id": "ml_inference",
@@ -517,7 +528,7 @@ class EndToEndWorkflowTests:
                     "workflow_phase": "implementation",
                     "required_skills": ["python", "tensorflow", "docker"],
                     "deliverables": ["ml_inference_service.py", "model_loader.py"],
-                    "dependencies": ["stream_processing"]
+                    "dependencies": ["stream_processing"],
                 },
                 {
                     "id": "results_storage",
@@ -530,7 +541,7 @@ class EndToEndWorkflowTests:
                     "workflow_phase": "implementation",
                     "required_skills": ["python", "postgresql", "sqlalchemy"],
                     "deliverables": ["storage_schema.sql", "results_dao.py"],
-                    "dependencies": ["ml_inference"]
+                    "dependencies": ["ml_inference"],
                 },
                 {
                     "id": "visualization_ui",
@@ -543,7 +554,7 @@ class EndToEndWorkflowTests:
                     "workflow_phase": "implementation",
                     "required_skills": ["react", "typescript", "d3", "websockets"],
                     "deliverables": ["Dashboard.tsx", "DataVisualizer.tsx"],
-                    "dependencies": ["results_storage"]
+                    "dependencies": ["results_storage"],
                 },
                 {
                     "id": "monitoring_alerts",
@@ -556,15 +567,15 @@ class EndToEndWorkflowTests:
                     "workflow_phase": "implementation",
                     "required_skills": ["prometheus", "grafana", "docker"],
                     "deliverables": ["monitoring.yaml", "alert_rules.yaml"],
-                    "dependencies": ["visualization_ui"]
-                }
+                    "dependencies": ["visualization_ui"],
+                },
             ],
             "metrics": {
                 "total_estimated_duration": 2460,  # 41 hours
-                "complexity_breakdown": {"medium": 2, "high": 3, "very_high": 1}
+                "complexity_breakdown": {"medium": 2, "high": 3, "very_high": 1},
             },
             "status": "generated",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def _simulate_queen_worker_execution(self, plan_id: str) -> bool:
@@ -573,19 +584,18 @@ class EndToEndWorkflowTests:
             conn = sqlite3.connect(self.env.db_path)
 
             # Get all subtasks for this plan
-            cursor = conn.execute('''
+            cursor = conn.execute(
+                """
                 SELECT id, title, payload FROM tasks
                 WHERE task_type = 'planned_subtask'
                 AND json_extract(payload, '$.parent_plan_id') = ?
                 ORDER BY priority DESC
-            ''', (plan_id,))
+            """,
+                (plan_id,),
+            )
 
             subtasks = [
-                {
-                    "id": row[0],
-                    "title": row[1],
-                    "payload": json.loads(row[2]) if row[2] else {}
-                }
+                {"id": row[0], "title": row[1], "payload": json.loads(row[2]) if row[2] else {}}
                 for row in cursor.fetchall()
             ]
 
@@ -601,12 +611,17 @@ class EndToEndWorkflowTests:
 
                     # Check if dependencies are met
                     dependencies = subtask["payload"].get("dependencies", [])
-                    dependencies_met = all(
-                        any(completed_task["payload"].get("id") == dep for completed_task in [
-                            st for st in subtasks if st["id"] in completed_tasks
-                        ])
-                        for dep in dependencies
-                    ) if dependencies else True
+                    dependencies_met = (
+                        all(
+                            any(
+                                completed_task["payload"].get("id") == dep
+                                for completed_task in [st for st in subtasks if st["id"] in completed_tasks]
+                            )
+                            for dep in dependencies
+                        )
+                        if dependencies
+                        else True
+                    )
 
                     if dependencies_met:
                         ready_tasks.append(subtask)
@@ -633,33 +648,45 @@ class EndToEndWorkflowTests:
 
         # Create run record
         run_id = f"run_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (id, task_id, worker_id, phase, status)
             VALUES (?, ?, ?, ?, ?)
-        ''', (run_id, task_id, f"worker_{uuid.uuid4().hex[:8]}", "apply", "running"))
+        """,
+            (run_id, task_id, f"worker_{uuid.uuid4().hex[:8]}", "apply", "running"),
+        )
 
         # Update task status
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'in_progress', started_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         # Simulate execution time (shortened for testing)
         time.sleep(0.1)
 
         # Complete the task
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE runs
             SET status = 'completed', result = ?, completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (json.dumps({"status": "success", "output": "Task completed successfully"}), run_id))
+        """,
+            (json.dumps({"status": "success", "output": "Task completed successfully"}), run_id),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'completed', completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -668,13 +695,16 @@ class EndToEndWorkflowTests:
         """Verify that the workflow completed successfully"""
         conn = sqlite3.connect(self.env.db_path)
 
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT COUNT(*) as total,
                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
             FROM tasks
             WHERE task_type = 'planned_subtask'
             AND json_extract(payload, '$.parent_plan_id') = ?
-        ''', (plan_id,))
+        """,
+            (plan_id,),
+        )
 
         row = cursor.fetchone()
         total, completed = row[0], row[1]
@@ -688,20 +718,23 @@ class EndToEndWorkflowTests:
         task_id = f"failing_task_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 payload, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            task_id,
-            "Intentionally Failing Task",
-            "This task is designed to fail for testing error handling",
-            "test_task",
-            50,
-            "queued",
-            json.dumps({"test_type": "failure", "should_fail": True})
-        ))
+        """,
+            (
+                task_id,
+                "Intentionally Failing Task",
+                "This task is designed to fail for testing error handling",
+                "test_task",
+                50,
+                "queued",
+                json.dumps({"test_type": "failure", "should_fail": True}),
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -713,36 +746,56 @@ class EndToEndWorkflowTests:
 
         # First attempt - failure
         run_id_1 = f"run_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (id, task_id, worker_id, phase, status, result)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            run_id_1, task_id, "test_worker", "apply", "failed",
-            json.dumps({"status": "failed", "error": "Simulated failure"})
-        ))
+        """,
+            (
+                run_id_1,
+                task_id,
+                "test_worker",
+                "apply",
+                "failed",
+                json.dumps({"status": "failed", "error": "Simulated failure"}),
+            ),
+        )
 
         # Update task retry count
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET retry_count = retry_count + 1, status = 'failed'
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         # Second attempt - success
         run_id_2 = f"run_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (id, task_id, worker_id, phase, status, result)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            run_id_2, task_id, "test_worker", "apply", "completed",
-            json.dumps({"status": "success", "output": "Retry successful"})
-        ))
+        """,
+            (
+                run_id_2,
+                task_id,
+                "test_worker",
+                "apply",
+                "completed",
+                json.dumps({"status": "success", "output": "Retry successful"}),
+            ),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'completed', completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -752,20 +805,23 @@ class EndToEndWorkflowTests:
         task_id = f"timeout_task_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 payload, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            task_id,
-            "Timeout Test Task",
-            "This task will timeout for testing timeout handling",
-            "test_task",
-            50,
-            "queued",
-            json.dumps({"test_type": "timeout", "duration": 30})
-        ))
+        """,
+            (
+                task_id,
+                "Timeout Test Task",
+                "This task will timeout for testing timeout handling",
+                "test_task",
+                50,
+                "queued",
+                json.dumps({"test_type": "timeout", "duration": 30}),
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -777,39 +833,58 @@ class EndToEndWorkflowTests:
 
         # Start task execution
         run_id = f"run_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (id, task_id, worker_id, phase, status)
             VALUES (?, ?, ?, ?, ?)
-        ''', (run_id, task_id, "timeout_worker", "apply", "running"))
+        """,
+            (run_id, task_id, "timeout_worker", "apply", "running"),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'in_progress', started_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         # Simulate timeout detection
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE runs
             SET status = 'timeout', result = ?
             WHERE id = ?
-        ''', (json.dumps({"status": "timeout", "error": "Worker timeout detected"}), run_id))
+        """,
+            (json.dumps({"status": "timeout", "error": "Worker timeout detected"}), run_id),
+        )
 
         # Simulate task reassignment and completion
         new_run_id = f"run_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (id, task_id, worker_id, phase, status, result)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            new_run_id, task_id, "recovery_worker", "apply", "completed",
-            json.dumps({"status": "success", "output": "Recovered from timeout"})
-        ))
+        """,
+            (
+                new_run_id,
+                task_id,
+                "recovery_worker",
+                "apply",
+                "completed",
+                json.dumps({"status": "success", "output": "Recovered from timeout"}),
+            ),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'completed', completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -965,23 +1040,23 @@ class CrossAppCommunicationTests:
         task_id = f"orch_task_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 payload, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            task_id,
-            "Cross-App Communication Test",
-            "Testing data sharing between apps",
-            "integration_test",
-            75,
-            "queued",
-            json.dumps({
-                "app_source": "orchestrator",
-                "test_data": {"value": 42, "created_by": "orchestrator"}
-            })
-        ))
+        """,
+            (
+                task_id,
+                "Cross-App Communication Test",
+                "Testing data sharing between apps",
+                "integration_test",
+                75,
+                "queued",
+                json.dumps({"app_source": "orchestrator", "test_data": {"value": 42, "created_by": "orchestrator"}}),
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -991,9 +1066,12 @@ class CrossAppCommunicationTests:
     def _read_as_ecosystemiser(self, task_id: str) -> Dict:
         """Read task data as if from EcoSystemiser app"""
         conn = sqlite3.connect(self.env.db_path)
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT payload FROM tasks WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         row = cursor.fetchone()
         payload = json.loads(row[0]) if row and row[0] else {}
@@ -1001,12 +1079,15 @@ class CrossAppCommunicationTests:
         # Simulate EcoSystemiser adding its data
         payload["ecosystemiser_data"] = {
             "read_by": "ecosystemiser",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET payload = ? WHERE id = ?
-        ''', (json.dumps(payload), task_id))
+        """,
+            (json.dumps(payload), task_id),
+        )
 
         conn.commit()
         conn.close()
@@ -1017,23 +1098,25 @@ class CrossAppCommunicationTests:
     def _update_as_ai_planner(self, task_id: str):
         """Update task data as if from AI Planner app"""
         conn = sqlite3.connect(self.env.db_path)
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT payload FROM tasks WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         row = cursor.fetchone()
         payload = json.loads(row[0]) if row and row[0] else {}
 
         # Simulate AI Planner adding planning data
-        payload["ai_planner_data"] = {
-            "planned_by": "ai_planner",
-            "complexity": "medium",
-            "estimated_duration": 60
-        }
+        payload["ai_planner_data"] = {"planned_by": "ai_planner", "complexity": "medium", "estimated_duration": 60}
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET payload = ? WHERE id = ?
-        ''', (json.dumps(payload), task_id))
+        """,
+            (json.dumps(payload), task_id),
+        )
 
         conn.commit()
         conn.close()
@@ -1043,9 +1126,12 @@ class CrossAppCommunicationTests:
     def _verify_cross_app_consistency(self, task_id: str) -> bool:
         """Verify data consistency across different app perspectives"""
         conn = sqlite3.connect(self.env.db_path)
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT payload FROM tasks WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         row = cursor.fetchone()
         payload = json.loads(row[0]) if row and row[0] else {}
@@ -1065,7 +1151,7 @@ class CrossAppCommunicationTests:
         event_payload = {
             "simulation_id": f"sim_{uuid.uuid4()}",
             "config_path": "/test/simulation.yaml",
-            "requested_by": "orchestrator"
+            "requested_by": "orchestrator",
         }
 
         self._publish_event("orchestrator.simulation.requested", event_payload)
@@ -1075,7 +1161,7 @@ class CrossAppCommunicationTests:
         response_payload = {
             "simulation_id": event_payload["simulation_id"],
             "status": "accepted",
-            "estimated_duration": 300
+            "estimated_duration": 300,
         }
 
         self._publish_event("ecosystemiser.simulation.accepted", response_payload)
@@ -1084,11 +1170,7 @@ class CrossAppCommunicationTests:
     def _test_ai_planner_reviewer_events(self, track_event):
         """Test event communication between AI Planner and AI Reviewer"""
         # Simulate AI Planner requesting review
-        plan_payload = {
-            "plan_id": f"plan_{uuid.uuid4()}",
-            "complexity": "high",
-            "requires_review": True
-        }
+        plan_payload = {"plan_id": f"plan_{uuid.uuid4()}", "complexity": "high", "requires_review": True}
 
         self._publish_event("ai_planner.plan.generated", plan_payload)
         track_event("ai_planner.plan.generated", plan_payload)
@@ -1097,7 +1179,7 @@ class CrossAppCommunicationTests:
         review_payload = {
             "plan_id": plan_payload["plan_id"],
             "review_score": 8.5,
-            "feedback": "Plan looks good with minor suggestions"
+            "feedback": "Plan looks good with minor suggestions",
         }
 
         self._publish_event("ai_reviewer.review.completed", review_payload)
@@ -1113,11 +1195,7 @@ class CrossAppCommunicationTests:
 
         # Progress events from different components
         for component in ["orchestrator", "ai_planner", "ecosystemiser"]:
-            progress_payload = {
-                "workflow_id": workflow_id,
-                "component": component,
-                "progress": 50
-            }
+            progress_payload = {"workflow_id": workflow_id, "component": component, "progress": 50}
             self._publish_event("workflow.progress", progress_payload)
             track_event("workflow.progress", progress_payload)
 
@@ -1126,15 +1204,13 @@ class CrossAppCommunicationTests:
         event_id = str(uuid.uuid4())
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO events (id, event_type, source_agent, payload, created_at)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            event_id,
-            event_type,
-            "integration_test",
-            json.dumps(payload)
-        ))
+        """,
+            (event_id, event_type, "integration_test", json.dumps(payload)),
+        )
         conn.commit()
         conn.close()
 
@@ -1143,28 +1219,33 @@ class CrossAppCommunicationTests:
         task_id = f"sim_task_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 assignee, payload, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            task_id,
-            "Run Energy System Simulation",
-            "Execute energy system optimization simulation",
-            "simulation",
-            80,
-            "queued",
-            "ecosystemiser",
-            json.dumps({
-                "simulation_type": "energy_optimization",
-                "config": {
-                    "components": ["solar_pv", "battery", "heat_pump"],
-                    "optimization_objective": "minimize_cost",
-                    "time_horizon": 8760
-                }
-            })
-        ))
+        """,
+            (
+                task_id,
+                "Run Energy System Simulation",
+                "Execute energy system optimization simulation",
+                "simulation",
+                80,
+                "queued",
+                "ecosystemiser",
+                json.dumps(
+                    {
+                        "simulation_type": "energy_optimization",
+                        "config": {
+                            "components": ["solar_pv", "battery", "heat_pump"],
+                            "optimization_objective": "minimize_cost",
+                            "time_horizon": 8760,
+                        },
+                    }
+                ),
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -1176,48 +1257,52 @@ class CrossAppCommunicationTests:
 
         # Create simulation record
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO simulations (
                 id, config_data, status, created_at
             ) VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            simulation_id,
-            json.dumps({
-                "task_id": task_id,
-                "solver": "MILP",
-                "components": ["solar_pv", "battery", "heat_pump"]
-            }),
-            "running"
-        ))
+        """,
+            (
+                simulation_id,
+                json.dumps({"task_id": task_id, "solver": "MILP", "components": ["solar_pv", "battery", "heat_pump"]}),
+                "running",
+            ),
+        )
 
         # Update task status
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'in_progress', started_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         # Simulate completion
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE simulations
             SET status = 'completed',
                 results_data = ?,
                 completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (
-            json.dumps({
-                "objective_value": 2500.75,
-                "solver_status": "optimal",
-                "execution_time": 45.2
-            }),
-            simulation_id
-        ))
+        """,
+            (
+                json.dumps({"objective_value": 2500.75, "solver_status": "optimal", "execution_time": 45.2}),
+                simulation_id,
+            ),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'completed', completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -1229,12 +1314,15 @@ class CrossAppCommunicationTests:
         conn = sqlite3.connect(self.env.db_path)
 
         # Check simulation record exists and is completed
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT status, results_data FROM simulations WHERE id = ?
-        ''', (simulation_id,))
+        """,
+            (simulation_id,),
+        )
 
         row = cursor.fetchone()
-        if not row or row[0] != 'completed':
+        if not row or row[0] != "completed":
             return False
 
         results = json.loads(row[1]) if row[1] else {}
@@ -1252,40 +1340,42 @@ class CrossAppCommunicationTests:
         planning_id = f"planning_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO planning_queue (
                 id, task_description, priority, requestor, status
             ) VALUES (?, ?, ?, ?, ?)
-        ''', (
-            planning_id,
-            "Test AI Planner integration",
-            70,
-            "integration_test",
-            "pending"
-        ))
+        """,
+            (planning_id, "Test AI Planner integration", 70, "integration_test", "pending"),
+        )
 
         # Simulate AI Planner processing
         plan_id = f"plan_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO execution_plans (
                 id, planning_task_id, plan_data, status
             ) VALUES (?, ?, ?, ?)
-        ''', (
-            plan_id,
-            planning_id,
-            json.dumps({
-                "plan_id": plan_id,
-                "sub_tasks": [
-                    {"id": "task1", "title": "First task"},
-                    {"id": "task2", "title": "Second task"}
-                ]
-            }),
-            "generated"
-        ))
+        """,
+            (
+                plan_id,
+                planning_id,
+                json.dumps(
+                    {
+                        "plan_id": plan_id,
+                        "sub_tasks": [{"id": "task1", "title": "First task"}, {"id": "task2", "title": "Second task"}],
+                    }
+                ),
+                "generated",
+            ),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE planning_queue SET status = 'planned' WHERE id = ?
-        ''', (planning_id,))
+        """,
+            (planning_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -1298,31 +1388,27 @@ class CrossAppCommunicationTests:
         review_id = f"review_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO reviews (
                 id, target_type, target_id, review_type, status
             ) VALUES (?, ?, ?, ?, ?)
-        ''', (
-            review_id,
-            "execution_plan",
-            f"plan_{uuid.uuid4()}",
-            "quality_review",
-            "pending"
-        ))
+        """,
+            (review_id, "execution_plan", f"plan_{uuid.uuid4()}", "quality_review", "pending"),
+        )
 
         # Simulate AI Reviewer processing
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE reviews
             SET status = 'completed',
                 feedback = ?,
                 score = ?,
                 completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (
-            "Plan structure is well-organized with clear dependencies",
-            8.7,
-            review_id
-        ))
+        """,
+            ("Plan structure is well-organized with clear dependencies", 8.7, review_id),
+        )
 
         conn.commit()
         conn.close()
@@ -1339,63 +1425,74 @@ class CrossAppCommunicationTests:
         conn = sqlite3.connect(self.env.db_path)
 
         # Create planning task
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO planning_queue (
                 id, task_description, priority, requestor, status
             ) VALUES (?, ?, ?, ?, ?)
-        ''', (
-            planning_id,
-            "Combined AI workflow test",
-            85,
-            "integration_test",
-            "pending"
-        ))
+        """,
+            (planning_id, "Combined AI workflow test", 85, "integration_test", "pending"),
+        )
 
         # AI Planner generates plan
         plan_id = f"combined_plan_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO execution_plans (
                 id, planning_task_id, plan_data, status
             ) VALUES (?, ?, ?, ?)
-        ''', (
-            plan_id,
-            planning_id,
-            json.dumps({
-                "plan_id": plan_id,
-                "complexity": "high",
-                "sub_tasks": [
-                    {"id": "design", "title": "System design"},
-                    {"id": "implement", "title": "Implementation"},
-                    {"id": "test", "title": "Testing"}
-                ]
-            }),
-            "generated"
-        ))
+        """,
+            (
+                plan_id,
+                planning_id,
+                json.dumps(
+                    {
+                        "plan_id": plan_id,
+                        "complexity": "high",
+                        "sub_tasks": [
+                            {"id": "design", "title": "System design"},
+                            {"id": "implement", "title": "Implementation"},
+                            {"id": "test", "title": "Testing"},
+                        ],
+                    }
+                ),
+                "generated",
+            ),
+        )
 
         # AI Reviewer automatically reviews the plan
         review_id = f"combined_review_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO reviews (
                 id, target_type, target_id, review_type, status, feedback, score
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            review_id,
-            "execution_plan",
-            plan_id,
-            "automated_review",
-            "completed",
-            "Automated review: Plan meets quality standards",
-            8.2
-        ))
+        """,
+            (
+                review_id,
+                "execution_plan",
+                plan_id,
+                "automated_review",
+                "completed",
+                "Automated review: Plan meets quality standards",
+                8.2,
+            ),
+        )
 
         # Mark planning as reviewed and approved
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE planning_queue SET status = 'reviewed' WHERE id = ?
-        ''', (planning_id,))
+        """,
+            (planning_id,),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE execution_plans SET status = 'approved' WHERE id = ?
-        ''', (plan_id,))
+        """,
+            (plan_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -1452,10 +1549,7 @@ class PerformanceIntegrationTests:
 
             # Process tasks concurrently (simulated)
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [
-                    executor.submit(self._process_task_async, task_id)
-                    for task_id in task_ids
-                ]
+                futures = [executor.submit(self._process_task_async, task_id) for task_id in task_ids]
 
                 results = [future.result() for future in concurrent.futures.as_completed(futures)]
 
@@ -1463,17 +1557,21 @@ class PerformanceIntegrationTests:
             duration = end_time - start_time
 
             # Record performance metrics
-            self.env.metrics.performance_samples.append({
-                "test": "concurrent_processing",
-                "task_count": task_count,
-                "duration": duration,
-                "throughput": task_count / duration,
-                "success_rate": sum(results) / len(results)
-            })
+            self.env.metrics.performance_samples.append(
+                {
+                    "test": "concurrent_processing",
+                    "task_count": task_count,
+                    "duration": duration,
+                    "throughput": task_count / duration,
+                    "success_rate": sum(results) / len(results),
+                }
+            )
 
             success = all(results) and duration < 5.0  # Should complete in under 5 seconds
 
-            print(f"✅ Concurrent processing test: {'PASSED' if success else 'FAILED'} ({duration:.2f}s for {task_count} tasks)")
+            print(
+                f"✅ Concurrent processing test: {'PASSED' if success else 'FAILED'} ({duration:.2f}s for {task_count} tasks)"
+            )
             return success
 
         except Exception as e:
@@ -1507,17 +1605,21 @@ class PerformanceIntegrationTests:
             duration = end_time - start_time
 
             # Record performance metrics
-            self.env.metrics.performance_samples.append({
-                "test": "database_pooling",
-                "operations_count": operations_count,
-                "duration": duration,
-                "ops_per_second": operations_count / duration,
-                "success_rate": sum(results) / len(results)
-            })
+            self.env.metrics.performance_samples.append(
+                {
+                    "test": "database_pooling",
+                    "operations_count": operations_count,
+                    "duration": duration,
+                    "ops_per_second": operations_count / duration,
+                    "success_rate": sum(results) / len(results),
+                }
+            )
 
             success = all(results) and duration < 3.0  # Should handle load efficiently
 
-            print(f"✅ Database pooling test: {'PASSED' if success else 'FAILED'} ({operations_count} ops in {duration:.2f}s)")
+            print(
+                f"✅ Database pooling test: {'PASSED' if success else 'FAILED'} ({operations_count} ops in {duration:.2f}s)"
+            )
             return success
 
         except Exception as e:
@@ -1537,17 +1639,21 @@ class PerformanceIntegrationTests:
             if baseline_time > 0:
                 improvement_factor = baseline_time / optimized_time
 
-                self.env.metrics.performance_samples.append({
-                    "test": "performance_improvement",
-                    "baseline_time": baseline_time,
-                    "optimized_time": optimized_time,
-                    "improvement_factor": improvement_factor
-                })
+                self.env.metrics.performance_samples.append(
+                    {
+                        "test": "performance_improvement",
+                        "baseline_time": baseline_time,
+                        "optimized_time": optimized_time,
+                        "improvement_factor": improvement_factor,
+                    }
+                )
 
                 # Check if improvement meets claims (3-5x)
                 meets_claims = improvement_factor >= 3.0
 
-                print(f"✅ Performance improvement test: {'PASSED' if meets_claims else 'FAILED'} ({improvement_factor:.1f}x improvement)")
+                print(
+                    f"✅ Performance improvement test: {'PASSED' if meets_claims else 'FAILED'} ({improvement_factor:.1f}x improvement)"
+                )
                 return meets_claims
             else:
                 print("❌ Could not measure baseline performance")
@@ -1564,6 +1670,7 @@ class PerformanceIntegrationTests:
 
     def _test_async_database_operations(self) -> bool:
         """Test async database operations"""
+
         # Simulate async database operations
         async def async_db_operation():
             # Simulate async database call
@@ -1605,20 +1712,23 @@ class PerformanceIntegrationTests:
     def _create_concurrent_test_task(self, task_id: str, index: int):
         """Create a task for concurrent processing test"""
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 payload, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            task_id,
-            f"Concurrent Test Task {index}",
-            f"Task {index} for concurrent processing test",
-            "concurrent_test",
-            50,
-            "queued",
-            json.dumps({"task_index": index, "processing_time": 0.1})
-        ))
+        """,
+            (
+                task_id,
+                f"Concurrent Test Task {index}",
+                f"Task {index} for concurrent processing test",
+                "concurrent_test",
+                50,
+                "queued",
+                json.dumps({"task_index": index, "processing_time": 0.1}),
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -1630,11 +1740,14 @@ class PerformanceIntegrationTests:
 
             # Update task status
             conn = sqlite3.connect(self.env.db_path)
-            conn.execute('''
+            conn.execute(
+                """
                 UPDATE tasks
                 SET status = 'completed', completed_at = CURRENT_TIMESTAMP
                 WHERE id = ?
-            ''', (task_id,))
+            """,
+                (task_id,),
+            )
             conn.commit()
             conn.close()
 
@@ -1667,15 +1780,13 @@ class PerformanceIntegrationTests:
     def _publish_test_event(self, event_id: str):
         """Publish a test event for performance testing"""
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO events (id, event_type, source_agent, payload, created_at)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            event_id,
-            "performance.test",
-            "perf_test",
-            json.dumps({"test_data": f"event_{event_id}"})
-        ))
+        """,
+            (event_id, "performance.test", "perf_test", json.dumps({"test_data": f"event_{event_id}"})),
+        )
         conn.commit()
         conn.close()
 
@@ -1693,12 +1804,7 @@ class GoldenRulesIntegrationTests:
 
         try:
             # Check each app for core/ directory structure
-            apps_to_check = [
-                "hive-orchestrator",
-                "ecosystemiser",
-                "ai-planner",
-                "ai-reviewer"
-            ]
+            apps_to_check = ["hive-orchestrator", "ecosystemiser", "ai-planner", "ai-reviewer"]
 
             compliance_results = []
 
@@ -1944,46 +2050,55 @@ class FailureRecoveryTests:
         planning_task_id = f"planner_failure_test_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO planning_queue (
                 id, task_description, priority, requestor, status
             ) VALUES (?, ?, ?, ?, ?)
-        ''', (
-            planning_task_id,
-            "Test AI Planner failure recovery",
-            90,
-            "failure_test",
-            "pending"
-        ))
+        """,
+            (planning_task_id, "Test AI Planner failure recovery", 90, "failure_test", "pending"),
+        )
 
         # Simulate assignment to failed planner
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE planning_queue
             SET status = 'assigned', assigned_agent = 'failed_planner'
             WHERE id = ?
-        ''', (planning_task_id,))
+        """,
+            (planning_task_id,),
+        )
 
         # Simulate failure detection and reassignment
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE planning_queue
             SET status = 'pending', assigned_agent = NULL
             WHERE id = ? AND assigned_agent = 'failed_planner'
-        ''', (planning_task_id,))
+        """,
+            (planning_task_id,),
+        )
 
         # Simulate successful recovery with new planner
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE planning_queue
             SET status = 'assigned', assigned_agent = 'recovery_planner'
             WHERE id = ?
-        ''', (planning_task_id,))
+        """,
+            (planning_task_id,),
+        )
 
         # Check recovery success
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT status, assigned_agent FROM planning_queue WHERE id = ?
-        ''', (planning_task_id,))
+        """,
+            (planning_task_id,),
+        )
 
         row = cursor.fetchone()
-        recovery_success = row and row[0] == 'assigned' and row[1] == 'recovery_planner'
+        recovery_success = row and row[0] == "assigned" and row[1] == "recovery_planner"
 
         conn.commit()
         conn.close()
@@ -1996,48 +2111,63 @@ class FailureRecoveryTests:
         test_task_id = f"queen_failure_test_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 created_at
             ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            test_task_id,
-            "Queen Failure Test Task",
-            "Task to test Queen failure recovery",
-            "queen_test",
-            85,
-            "queued"
-        ))
+        """,
+            (
+                test_task_id,
+                "Queen Failure Test Task",
+                "Task to test Queen failure recovery",
+                "queen_test",
+                85,
+                "queued",
+            ),
+        )
 
         # Simulate Queen picking up task but failing
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'assigned', assigned_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (test_task_id,))
+        """,
+            (test_task_id,),
+        )
 
         # Simulate failure detection (timeout)
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'failed'
             WHERE id = ? AND status = 'assigned'
-        ''', (test_task_id,))
+        """,
+            (test_task_id,),
+        )
 
         # Simulate recovery Queen taking over
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'queued'
             WHERE id = ? AND status = 'failed'
-        ''', (test_task_id,))
+        """,
+            (test_task_id,),
+        )
 
         # Verify recovery
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT status FROM tasks WHERE id = ?
-        ''', (test_task_id,))
+        """,
+            (test_task_id,),
+        )
 
         row = cursor.fetchone()
-        recovery_success = row and row[0] == 'queued'
+        recovery_success = row and row[0] == "queued"
 
         conn.commit()
         conn.close()
@@ -2050,61 +2180,76 @@ class FailureRecoveryTests:
         test_task_id = f"worker_failure_test_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 created_at
             ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            test_task_id,
-            "Worker Failure Test Task",
-            "Task to test Worker failure recovery",
-            "worker_test",
-            80,
-            "in_progress"
-        ))
+        """,
+            (
+                test_task_id,
+                "Worker Failure Test Task",
+                "Task to test Worker failure recovery",
+                "worker_test",
+                80,
+                "in_progress",
+            ),
+        )
 
         # Create failed run record
         failed_run_id = f"failed_run_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (
                 id, task_id, worker_id, phase, status, result
             ) VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            failed_run_id,
-            test_task_id,
-            "failed_worker",
-            "apply",
-            "failed",
-            json.dumps({"error": "Worker crashed during execution"})
-        ))
+        """,
+            (
+                failed_run_id,
+                test_task_id,
+                "failed_worker",
+                "apply",
+                "failed",
+                json.dumps({"error": "Worker crashed during execution"}),
+            ),
+        )
 
         # Simulate recovery with new worker
         recovery_run_id = f"recovery_run_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (
                 id, task_id, worker_id, phase, status, result
             ) VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            recovery_run_id,
-            test_task_id,
-            "recovery_worker",
-            "apply",
-            "completed",
-            json.dumps({"status": "success", "message": "Recovered successfully"})
-        ))
+        """,
+            (
+                recovery_run_id,
+                test_task_id,
+                "recovery_worker",
+                "apply",
+                "completed",
+                json.dumps({"status": "success", "message": "Recovered successfully"}),
+            ),
+        )
 
         # Update task to completed
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'completed', completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (test_task_id,))
+        """,
+            (test_task_id,),
+        )
 
         # Verify recovery
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT COUNT(*) FROM runs WHERE task_id = ? AND status = 'completed'
-        ''', (test_task_id,))
+        """,
+            (test_task_id,),
+        )
 
         completed_runs = cursor.fetchone()[0]
         recovery_success = completed_runs > 0
@@ -2119,24 +2264,23 @@ class FailureRecoveryTests:
         task_id = f"retry_test_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 payload, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            task_id,
-            "Retry Test Task",
-            "Task designed to test retry and escalation logic",
-            "retry_test",
-            75,
-            "queued",
-            json.dumps({
-                "max_retries": 3,
-                "failure_probability": 0.8,
-                "escalation_threshold": 2
-            })
-        ))
+        """,
+            (
+                task_id,
+                "Retry Test Task",
+                "Task designed to test retry and escalation logic",
+                "retry_test",
+                75,
+                "queued",
+                json.dumps({"max_retries": 3, "failure_probability": 0.8, "escalation_threshold": 2}),
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -2148,38 +2292,47 @@ class FailureRecoveryTests:
 
         # Attempt 1 - failure
         run_id_1 = f"retry_run_1_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (
                 id, task_id, worker_id, phase, status, result
             ) VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            run_id_1, task_id, "worker_1", "apply", "failed",
-            json.dumps({"error": "Simulated failure - attempt 1"})
-        ))
+        """,
+            (run_id_1, task_id, "worker_1", "apply", "failed", json.dumps({"error": "Simulated failure - attempt 1"})),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET retry_count = 1, status = 'failed' WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         # Attempt 2 - failure
         run_id_2 = f"retry_run_2_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (
                 id, task_id, worker_id, phase, status, result
             ) VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            run_id_2, task_id, "worker_2", "apply", "failed",
-            json.dumps({"error": "Simulated failure - attempt 2"})
-        ))
+        """,
+            (run_id_2, task_id, "worker_2", "apply", "failed", json.dumps({"error": "Simulated failure - attempt 2"})),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET retry_count = 2, status = 'failed' WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         # Attempt 3 - escalation triggered
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET status = 'escalated' WHERE id = ? AND retry_count >= 2
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -2188,19 +2341,25 @@ class FailureRecoveryTests:
         """Verify that task escalation occurred properly"""
         conn = sqlite3.connect(self.env.db_path)
 
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT status, retry_count FROM tasks WHERE id = ?
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         row = cursor.fetchone()
 
         # Check that task was escalated after retry threshold
-        escalated = row and row[0] == 'escalated' and row[1] >= 2
+        escalated = row and row[0] == "escalated" and row[1] >= 2
 
         # Check that multiple run attempts were recorded
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT COUNT(*) FROM runs WHERE task_id = ? AND status = 'failed'
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         failed_attempts = cursor.fetchone()[0]
 
@@ -2217,23 +2376,23 @@ class FailureRecoveryTests:
 
         for i in range(task_count):
             task_id = f"stress_test_{i}_{uuid.uuid4()}"
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (
                     id, title, description, task_type, priority, status,
                     payload, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (
-                task_id,
-                f"Stress Test Task {i}",
-                f"High-load stress test task {i}",
-                "stress_test",
-                50 + (i % 50),  # Varying priorities
-                "queued",
-                json.dumps({
-                    "stress_index": i,
-                    "processing_complexity": "high"
-                })
-            ))
+            """,
+                (
+                    task_id,
+                    f"Stress Test Task {i}",
+                    f"High-load stress test task {i}",
+                    "stress_test",
+                    50 + (i % 50),  # Varying priorities
+                    "queued",
+                    json.dumps({"stress_index": i, "processing_complexity": "high"}),
+                ),
+            )
             task_ids.append(task_id)
 
         conn.commit()
@@ -2247,7 +2406,7 @@ class FailureRecoveryTests:
             "database_contention": False,
             "worker_failures": 0,
             "timeout_events": 0,
-            "memory_pressure": False
+            "memory_pressure": False,
         }
 
         # Simulate some workers failing under load
@@ -2257,14 +2416,21 @@ class FailureRecoveryTests:
 
         for task_id in failed_tasks:
             run_id = f"stress_fail_{uuid.uuid4()}"
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO runs (
                     id, task_id, worker_id, phase, status, result
                 ) VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                run_id, task_id, "overloaded_worker", "apply", "failed",
-                json.dumps({"error": "Worker overloaded under stress"})
-            ))
+            """,
+                (
+                    run_id,
+                    task_id,
+                    "overloaded_worker",
+                    "apply",
+                    "failed",
+                    json.dumps({"error": "Worker overloaded under stress"}),
+                ),
+            )
             failure_conditions["worker_failures"] += 1
 
         conn.commit()
@@ -2281,27 +2447,38 @@ class FailureRecoveryTests:
 
         # Recover failed tasks
         for task_id in task_ids[:5]:  # The failed ones
-            conn.execute('''
+            conn.execute(
+                """
                 UPDATE tasks SET status = 'queued' WHERE id = ? AND status != 'completed'
-            ''', (task_id,))
+            """,
+                (task_id,),
+            )
 
         # Mark remaining tasks as completed (simulated)
         for task_id in task_ids[5:]:
-            conn.execute('''
+            conn.execute(
+                """
                 UPDATE tasks SET status = 'completed', completed_at = CURRENT_TIMESTAMP WHERE id = ?
-            ''', (task_id,))
+            """,
+                (task_id,),
+            )
 
         conn.commit()
 
         # Check final state
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                 SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed
             FROM tasks
             WHERE id IN ({})
-        '''.format(','.join('?' * len(task_ids))), task_ids)
+        """.format(
+                ",".join("?" * len(task_ids))
+            ),
+            task_ids,
+        )
 
         row = cursor.fetchone()
         total, completed, failed = row[0], row[1], row[2]
@@ -2317,7 +2494,7 @@ class FailureRecoveryTests:
             "stability_maintained": success_rate > 0.8,  # At least 80% success
             "total_tasks": total,
             "completed_tasks": completed,
-            "failed_tasks": failed
+            "failed_tasks": failed,
         }
 
 
@@ -2399,64 +2576,79 @@ class PlatformIntegrationTests:
         climate_task_id = f"climate_task_{uuid.uuid4()}"
 
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, priority, status,
                 assignee, payload, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            climate_task_id,
-            "Process Climate Data",
-            "Download and process weather data for energy simulation",
-            "climate_processing",
-            90,
-            "queued",
-            "ecosystemiser",
-            json.dumps({
-                "data_source": "ERA5",
-                "location": {"lat": 52.5, "lon": 13.4},
-                "time_range": {"start": "2023-01-01", "end": "2023-12-31"},
-                "variables": ["temperature", "solar_radiation", "wind_speed"]
-            })
-        ))
+        """,
+            (
+                climate_task_id,
+                "Process Climate Data",
+                "Download and process weather data for energy simulation",
+                "climate_processing",
+                90,
+                "queued",
+                "ecosystemiser",
+                json.dumps(
+                    {
+                        "data_source": "ERA5",
+                        "location": {"lat": 52.5, "lon": 13.4},
+                        "time_range": {"start": "2023-01-01", "end": "2023-12-31"},
+                        "variables": ["temperature", "solar_radiation", "wind_speed"],
+                    }
+                ),
+            ),
+        )
 
         # Simulate EcoSystemiser processing
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'in_progress', started_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (climate_task_id,))
+        """,
+            (climate_task_id,),
+        )
 
         # Create climate data record
         climate_record_id = f"climate_{uuid.uuid4()}"
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO simulations (
                 id, config_data, status, results_data
             ) VALUES (?, ?, ?, ?)
-        ''', (
-            climate_record_id,
-            json.dumps({
-                "task_id": climate_task_id,
-                "data_type": "climate",
-                "processing_config": {
-                    "source": "ERA5",
-                    "resolution": "hourly"
-                }
-            }),
-            "completed",
-            json.dumps({
-                "records_processed": 8760,  # Hours in a year
-                "data_quality": "high",
-                "missing_data_percentage": 0.02
-            })
-        ))
+        """,
+            (
+                climate_record_id,
+                json.dumps(
+                    {
+                        "task_id": climate_task_id,
+                        "data_type": "climate",
+                        "processing_config": {"source": "ERA5", "resolution": "hourly"},
+                    }
+                ),
+                "completed",
+                json.dumps(
+                    {
+                        "records_processed": 8760,  # Hours in a year
+                        "data_quality": "high",
+                        "missing_data_percentage": 0.02,
+                    }
+                ),
+            ),
+        )
 
         # Complete the task
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks
             SET status = 'completed', completed_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (climate_task_id,))
+        """,
+            (climate_task_id,),
+        )
 
         conn.commit()
         conn.close()
@@ -2468,18 +2660,22 @@ class PlatformIntegrationTests:
         conn = sqlite3.connect(self.env.db_path)
 
         # Check that climate task is properly recorded
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT COUNT(*) FROM tasks
             WHERE task_type = 'climate_processing' AND status = 'completed'
-        ''')
+        """
+        )
 
         completed_climate_tasks = cursor.fetchone()[0]
 
         # Check that simulation records exist
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT COUNT(*) FROM simulations
             WHERE json_extract(config_data, '$.data_type') = 'climate'
-        ''')
+        """
+        )
 
         climate_simulations = cursor.fetchone()[0]
 
@@ -2496,27 +2692,26 @@ class PlatformIntegrationTests:
             "simulation.started",
             "simulation.completed",
             "review.requested",
-            "review.completed"
+            "review.completed",
         ]
 
         conn = sqlite3.connect(self.env.db_path)
 
         for i, event_type in enumerate(event_types):
             event_id = f"dashboard_event_{i}_{uuid.uuid4()}"
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO events (
                     id, event_type, source_agent, payload, created_at
                 ) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (
-                event_id,
-                event_type,
-                f"test_agent_{i % 3}",
-                json.dumps({
-                    "test_event": True,
-                    "event_index": i,
-                    "metadata": {"dashboard_test": True}
-                })
-            ))
+            """,
+                (
+                    event_id,
+                    event_type,
+                    f"test_agent_{i % 3}",
+                    json.dumps({"test_event": True, "event_index": i, "metadata": {"dashboard_test": True}}),
+                ),
+            )
             self.env.metrics.events_published += 1
 
         conn.commit()
@@ -2527,19 +2722,23 @@ class PlatformIntegrationTests:
         conn = sqlite3.connect(self.env.db_path)
 
         # Count total events
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT COUNT(*) FROM events
             WHERE json_extract(payload, '$.dashboard_test') = true
-        ''')
+        """
+        )
         events_count = cursor.fetchone()[0]
 
         # Check event type distribution
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT event_type, COUNT(*)
             FROM events
             WHERE json_extract(payload, '$.dashboard_test') = true
             GROUP BY event_type
-        ''')
+        """
+        )
 
         event_distribution = dict(cursor.fetchall())
 
@@ -2551,7 +2750,7 @@ class PlatformIntegrationTests:
         return {
             "events_count": events_count,
             "event_distribution": event_distribution,
-            "data_integrity": data_integrity
+            "data_integrity": data_integrity,
         }
 
     def _create_multi_component_workflow(self) -> str:
@@ -2560,21 +2759,26 @@ class PlatformIntegrationTests:
 
         # Create workflow event
         conn = sqlite3.connect(self.env.db_path)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO events (
                 id, event_type, source_agent, correlation_id, payload, created_at
             ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            f"event_{uuid.uuid4()}",
-            "workflow.started",
-            "orchestrator",
-            workflow_id,
-            json.dumps({
-                "workflow_id": workflow_id,
-                "components": ["ai_planner", "ecosystemiser", "ai_reviewer"],
-                "status": "started"
-            })
-        ))
+        """,
+            (
+                f"event_{uuid.uuid4()}",
+                "workflow.started",
+                "orchestrator",
+                workflow_id,
+                json.dumps(
+                    {
+                        "workflow_id": workflow_id,
+                        "components": ["ai_planner", "ecosystemiser", "ai_reviewer"],
+                        "status": "started",
+                    }
+                ),
+            ),
+        )
 
         conn.commit()
         conn.close()
@@ -2589,39 +2793,43 @@ class PlatformIntegrationTests:
 
         for i, component in enumerate(components):
             # Each component reports progress
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO events (
                     id, event_type, source_agent, correlation_id, payload, created_at
                 ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (
-                f"event_{uuid.uuid4()}",
-                f"{component}.progress",
-                component,
-                workflow_id,
-                json.dumps({
-                    "workflow_id": workflow_id,
-                    "component": component,
-                    "progress": (i + 1) * 33,  # 33%, 66%, 99%
-                    "status": "in_progress"
-                })
-            ))
+            """,
+                (
+                    f"event_{uuid.uuid4()}",
+                    f"{component}.progress",
+                    component,
+                    workflow_id,
+                    json.dumps(
+                        {
+                            "workflow_id": workflow_id,
+                            "component": component,
+                            "progress": (i + 1) * 33,  # 33%, 66%, 99%
+                            "status": "in_progress",
+                        }
+                    ),
+                ),
+            )
 
         # Final completion event
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO events (
                 id, event_type, source_agent, correlation_id, payload, created_at
             ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (
-            f"event_{uuid.uuid4()}",
-            "workflow.completed",
-            "orchestrator",
-            workflow_id,
-            json.dumps({
-                "workflow_id": workflow_id,
-                "status": "completed",
-                "final_result": "success"
-            })
-        ))
+        """,
+            (
+                f"event_{uuid.uuid4()}",
+                "workflow.completed",
+                "orchestrator",
+                workflow_id,
+                json.dumps({"workflow_id": workflow_id, "status": "completed", "final_result": "success"}),
+            ),
+        )
 
         conn.commit()
         conn.close()
@@ -2631,12 +2839,15 @@ class PlatformIntegrationTests:
         conn = sqlite3.connect(self.env.db_path)
 
         # Get all events for this workflow
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT event_type, source_agent, payload
             FROM events
             WHERE correlation_id = ?
             ORDER BY created_at
-        ''', (workflow_id,))
+        """,
+            (workflow_id,),
+        )
 
         events = cursor.fetchall()
 
@@ -2666,7 +2877,7 @@ class PlatformIntegrationTests:
             "all_components_updated": all_components_updated,
             "consistent_state": consistent_state,
             "components_updated": list(components_updated),
-            "workflow_states": workflow_states
+            "workflow_states": workflow_states,
         }
 
 
@@ -2696,38 +2907,59 @@ class ComprehensiveIntegrationTestSuite:
 
             # Run test categories
             test_categories = [
-                ("End-to-End Workflow Tests", [
-                    ("Complete Autonomous Workflow", workflow_tests.test_complete_autonomous_workflow),
-                    ("Task Decomposition Pipeline", workflow_tests.test_task_decomposition_pipeline),
-                    ("Error Handling and Recovery", workflow_tests.test_error_handling_and_recovery)
-                ]),
-                ("Cross-App Communication Tests", [
-                    ("Database Communication (Core Pattern)", communication_tests.test_database_communication_core_pattern),
-                    ("Event Bus Communication", communication_tests.test_event_bus_communication),
-                    ("EcoSystemiser Integration", communication_tests.test_ecosystemiser_integration),
-                    ("AI Agents Integration", communication_tests.test_ai_agents_integration)
-                ]),
-                ("Performance Integration Tests", [
-                    ("Async Infrastructure Performance", performance_tests.test_async_infrastructure_performance),
-                    ("Concurrent Task Processing", performance_tests.test_concurrent_task_processing),
-                    ("Database Connection Pooling", performance_tests.test_database_connection_pooling),
-                    ("Performance Improvement Claims", performance_tests.test_performance_improvement_claims)
-                ]),
-                ("Golden Rules Integration Tests", [
-                    ("Core Pattern Compliance", golden_rules_tests.test_core_pattern_compliance),
-                    ("Architectural Standards", golden_rules_tests.test_architectural_standards),
-                    ("Inherit → Extend Pattern", golden_rules_tests.test_inherit_extend_pattern)
-                ]),
-                ("Failure and Recovery Tests", [
-                    ("Component Failure Scenarios", failure_tests.test_component_failure_scenarios),
-                    ("Task Retry and Escalation", failure_tests.test_task_retry_escalation),
-                    ("System Resilience Under Stress", failure_tests.test_system_resilience_under_stress)
-                ]),
-                ("Platform Integration Tests", [
-                    ("EcoSystemiser Climate Integration", platform_tests.test_ecosystemiser_climate_integration),
-                    ("Event Dashboard Integration", platform_tests.test_event_dashboard_integration),
-                    ("Cross-Component Status Sync", platform_tests.test_cross_component_status_sync)
-                ])
+                (
+                    "End-to-End Workflow Tests",
+                    [
+                        ("Complete Autonomous Workflow", workflow_tests.test_complete_autonomous_workflow),
+                        ("Task Decomposition Pipeline", workflow_tests.test_task_decomposition_pipeline),
+                        ("Error Handling and Recovery", workflow_tests.test_error_handling_and_recovery),
+                    ],
+                ),
+                (
+                    "Cross-App Communication Tests",
+                    [
+                        (
+                            "Database Communication (Core Pattern)",
+                            communication_tests.test_database_communication_core_pattern,
+                        ),
+                        ("Event Bus Communication", communication_tests.test_event_bus_communication),
+                        ("EcoSystemiser Integration", communication_tests.test_ecosystemiser_integration),
+                        ("AI Agents Integration", communication_tests.test_ai_agents_integration),
+                    ],
+                ),
+                (
+                    "Performance Integration Tests",
+                    [
+                        ("Async Infrastructure Performance", performance_tests.test_async_infrastructure_performance),
+                        ("Concurrent Task Processing", performance_tests.test_concurrent_task_processing),
+                        ("Database Connection Pooling", performance_tests.test_database_connection_pooling),
+                        ("Performance Improvement Claims", performance_tests.test_performance_improvement_claims),
+                    ],
+                ),
+                (
+                    "Golden Rules Integration Tests",
+                    [
+                        ("Core Pattern Compliance", golden_rules_tests.test_core_pattern_compliance),
+                        ("Architectural Standards", golden_rules_tests.test_architectural_standards),
+                        ("Inherit → Extend Pattern", golden_rules_tests.test_inherit_extend_pattern),
+                    ],
+                ),
+                (
+                    "Failure and Recovery Tests",
+                    [
+                        ("Component Failure Scenarios", failure_tests.test_component_failure_scenarios),
+                        ("Task Retry and Escalation", failure_tests.test_task_retry_escalation),
+                        ("System Resilience Under Stress", failure_tests.test_system_resilience_under_stress),
+                    ],
+                ),
+                (
+                    "Platform Integration Tests",
+                    [
+                        ("EcoSystemiser Climate Integration", platform_tests.test_ecosystemiser_climate_integration),
+                        ("Event Dashboard Integration", platform_tests.test_event_dashboard_integration),
+                        ("Cross-Component Status Sync", platform_tests.test_cross_component_status_sync),
+                    ],
+                ),
             ]
 
             # Execute all test categories
@@ -2764,6 +2996,7 @@ class ComprehensiveIntegrationTestSuite:
         except Exception as e:
             print(f"💥 CRITICAL TEST SUITE FAILURE: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -2773,9 +3006,9 @@ class ComprehensiveIntegrationTestSuite:
 
     def _print_final_results(self, total_tests: int, passed_tests: int, all_passed: bool):
         """Print comprehensive test results"""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("🏆 COMPREHENSIVE INTEGRATION TEST RESULTS")
-        print("="*80)
+        print("=" * 80)
 
         # Category-by-category results
         for category_name, results in self.test_results.items():
@@ -2825,7 +3058,7 @@ class ComprehensiveIntegrationTestSuite:
             print("❌ SOME INTEGRATION TESTS FAILED")
             print("🔧 Platform requires fixes before production deployment")
             print("📝 Review failed tests and error logs above")
-        print("="*80)
+        print("=" * 80)
 
 
 def test_comprehensive_integration():
@@ -2842,4 +3075,5 @@ if __name__ == "__main__":
 
     # Exit with appropriate code for CI/CD
     import sys
+
     sys.exit(0 if success else 1)

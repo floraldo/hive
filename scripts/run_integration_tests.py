@@ -26,6 +26,7 @@ import os
 @dataclass
 class TestResult:
     """Test execution result"""
+
     name: str
     passed: bool
     duration: float
@@ -140,11 +141,19 @@ class IntegrationTestRunner:
     def _run_platform_health_check(self) -> bool:
         """Run platform health check"""
         try:
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                str(self.project_root / "tests" / "test_hive_platform_validation.py::test_platform_health_check"),
-                "-v", "--tb=short"
-            ], capture_output=True, text=True, timeout=60)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(self.project_root / "tests" / "test_hive_platform_validation.py::test_platform_health_check"),
+                    "-v",
+                    "--tb=short",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
 
             return result.returncode == 0
 
@@ -155,11 +164,23 @@ class IntegrationTestRunner:
     def _run_database_connectivity_test(self) -> bool:
         """Test database connectivity"""
         try:
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                str(self.project_root / "tests" / "test_hive_platform_validation.py::PlatformValidationTests::test_database_connectivity"),
-                "-v", "--tb=short"
-            ], capture_output=True, text=True, timeout=30)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(
+                        self.project_root
+                        / "tests"
+                        / "test_hive_platform_validation.py::PlatformValidationTests::test_database_connectivity"
+                    ),
+                    "-v",
+                    "--tb=short",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
 
             return result.returncode == 0
 
@@ -170,11 +191,23 @@ class IntegrationTestRunner:
     def _run_event_bus_basic_test(self) -> bool:
         """Test basic event bus functionality"""
         try:
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                str(self.project_root / "tests" / "test_hive_platform_validation.py::PlatformValidationTests::test_event_bus_basic_functionality"),
-                "-v", "--tb=short"
-            ], capture_output=True, text=True, timeout=30)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(
+                        self.project_root
+                        / "tests"
+                        / "test_hive_platform_validation.py::PlatformValidationTests::test_event_bus_basic_functionality"
+                    ),
+                    "-v",
+                    "--tb=short",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
 
             return result.returncode == 0
 
@@ -186,7 +219,7 @@ class IntegrationTestRunner:
         """Test import patterns"""
         try:
             # Simple import test
-            test_code = '''
+            test_code = """
 import sys
 from pathlib import Path
 
@@ -200,11 +233,11 @@ try:
 except ImportError as e:
     print(f"[FAIL] Import failed: {e}")
     exit(1)
-'''
+"""
 
-            result = subprocess.run([
-                sys.executable, "-c", test_code
-            ], capture_output=True, text=True, timeout=15, cwd=self.project_root)
+            result = subprocess.run(
+                [sys.executable, "-c", test_code], capture_output=True, text=True, timeout=15, cwd=self.project_root
+            )
 
             return result.returncode == 0
 
@@ -214,7 +247,7 @@ except ImportError as e:
 
     def _run_async_performance_test(self) -> bool:
         """Test async infrastructure performance"""
-        test_code = '''
+        test_code = """
 import sys
 from pathlib import Path
 
@@ -232,12 +265,12 @@ try:
     exit(0 if result else 1)
 finally:
     env.teardown()
-'''
+"""
 
         try:
-            result = subprocess.run([
-                sys.executable, "-c", test_code
-            ], capture_output=True, text=True, timeout=120, cwd=self.project_root)
+            result = subprocess.run(
+                [sys.executable, "-c", test_code], capture_output=True, text=True, timeout=120, cwd=self.project_root
+            )
 
             return result.returncode == 0
 
@@ -247,7 +280,7 @@ finally:
 
     def _run_concurrent_processing_test(self) -> bool:
         """Test concurrent task processing"""
-        test_code = '''
+        test_code = """
 import sys
 from pathlib import Path
 
@@ -272,12 +305,12 @@ try:
     exit(0 if result else 1)
 finally:
     env.teardown()
-'''
+"""
 
         try:
-            result = subprocess.run([
-                sys.executable, "-c", test_code
-            ], capture_output=True, text=True, timeout=120, cwd=self.project_root)
+            result = subprocess.run(
+                [sys.executable, "-c", test_code], capture_output=True, text=True, timeout=120, cwd=self.project_root
+            )
 
             return result.returncode == 0
 
@@ -287,7 +320,7 @@ finally:
 
     def _run_database_pooling_test(self) -> bool:
         """Test database connection pooling"""
-        test_code = '''
+        test_code = """
 import sys
 from pathlib import Path
 
@@ -312,12 +345,12 @@ try:
     exit(0 if result else 1)
 finally:
     env.teardown()
-'''
+"""
 
         try:
-            result = subprocess.run([
-                sys.executable, "-c", test_code
-            ], capture_output=True, text=True, timeout=90, cwd=self.project_root)
+            result = subprocess.run(
+                [sys.executable, "-c", test_code], capture_output=True, text=True, timeout=90, cwd=self.project_root
+            )
 
             return result.returncode == 0
 
@@ -327,7 +360,7 @@ finally:
 
     def _run_performance_improvement_test(self) -> bool:
         """Test performance improvement claims"""
-        test_code = '''
+        test_code = """
 import sys
 from pathlib import Path
 
@@ -352,12 +385,12 @@ try:
     exit(0 if result else 1)
 finally:
     env.teardown()
-'''
+"""
 
         try:
-            result = subprocess.run([
-                sys.executable, "-c", test_code
-            ], capture_output=True, text=True, timeout=90, cwd=self.project_root)
+            result = subprocess.run(
+                [sys.executable, "-c", test_code], capture_output=True, text=True, timeout=90, cwd=self.project_root
+            )
 
             return result.returncode == 0
 
@@ -368,10 +401,13 @@ finally:
     def _run_comprehensive_integration_tests(self) -> bool:
         """Run the full comprehensive integration test suite"""
         try:
-            result = subprocess.run([
-                sys.executable,
-                str(self.project_root / "tests" / "test_comprehensive_integration.py")
-            ], capture_output=True, text=True, timeout=1800, cwd=self.project_root)  # 30 minutes
+            result = subprocess.run(
+                [sys.executable, str(self.project_root / "tests" / "test_comprehensive_integration.py")],
+                capture_output=True,
+                text=True,
+                timeout=1800,
+                cwd=self.project_root,
+            )  # 30 minutes
 
             # Print output for visibility
             if result.stdout:
@@ -426,18 +462,13 @@ finally:
             "total_tests": len(self.test_results),
             "passed_tests": sum(1 for r in self.test_results if r.passed),
             "test_results": [
-                {
-                    "name": result.name,
-                    "passed": result.passed,
-                    "duration": result.duration,
-                    "error": result.error
-                }
+                {"name": result.name, "passed": result.passed, "duration": result.duration, "error": result.error}
                 for result in self.test_results
-            ]
+            ],
         }
 
         if output_file:
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(report, f, indent=2)
             print(f"[FILE] Report saved to: {output_file}")
 
@@ -456,32 +487,18 @@ Examples:
   %(prog)s --mode perf                     # Performance tests only
   %(prog)s --mode custom --tests "platform_health,database"
   %(prog)s --mode quick --report results.json
-        """
+        """,
     )
 
     parser.add_argument(
-        "--mode",
-        choices=["quick", "full", "perf", "custom"],
-        default="quick",
-        help="Test mode to run (default: quick)"
+        "--mode", choices=["quick", "full", "perf", "custom"], default="quick", help="Test mode to run (default: quick)"
     )
 
-    parser.add_argument(
-        "--tests",
-        help="Comma-separated list of tests for custom mode"
-    )
+    parser.add_argument("--tests", help="Comma-separated list of tests for custom mode")
 
-    parser.add_argument(
-        "--report",
-        type=Path,
-        help="Output file for JSON test report"
-    )
+    parser.add_argument("--report", type=Path, help="Output file for JSON test report")
 
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Enable verbose output"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 
     args = parser.parse_args()
 

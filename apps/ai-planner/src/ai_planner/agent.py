@@ -154,9 +154,7 @@ except ImportError:
 # Configure logging using hive-logging following golden rule 9
 from hive_logging import setup_logging
 
-setup_logging(
-    name="ai-planner", level="INFO", log_to_file=True, log_file_path="ai-planner.log"
-)
+setup_logging(name="ai-planner", level="INFO", log_to_file=True, log_file_path="ai-planner.log")
 logger = get_logger("ai-planner")
 
 
@@ -181,9 +179,7 @@ class AIPlanner:
         self.error_reporter = ErrorReporter(component_name="ai-planner")
 
         # Initialize recovery strategies
-        self.db_retry_strategy = ExponentialBackoffStrategy(
-            max_retries=3, base_delay=1.0, max_delay=10.0
-        )
+        self.db_retry_strategy = ExponentialBackoffStrategy(max_retries=3, base_delay=1.0, max_delay=10.0)
         self.claude_retry_strategy = RetryStrategy(max_retries=2, delay=2.0)
 
         # Initialize event bus for explicit agent communication
@@ -191,9 +187,7 @@ class AIPlanner:
             self.event_bus = get_event_bus()
             logger.info("Event bus initialized for explicit agent communication")
         except Exception as e:
-            logger.warning(
-                f"Event bus initialization failed: {e} - continuing without events"
-            )
+            logger.warning(f"Event bus initialization failed: {e} - continuing without events")
             self.event_bus = None
 
         # Initialize Claude service for intelligent planning
@@ -205,9 +199,7 @@ class AIPlanner:
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
 
-        logger.info(
-            f"AI Planner Agent initialized: {self.agent_id} (mock_mode={mock_mode})"
-        )
+        logger.info(f"AI Planner Agent initialized: {self.agent_id} (mock_mode={mock_mode})")
 
     def _publish_workflow_event(
         self,
@@ -245,15 +237,11 @@ class AIPlanner:
             )
 
             event_id = self.event_bus.publish(event, correlation_id=correlation_id)
-            logger.debug(
-                f"Published workflow event {event_type} for task {task_id}: {event_id}"
-            )
+            logger.debug(f"Published workflow event {event_type} for task {task_id}: {event_id}")
             return event_id
 
         except Exception as e:
-            logger.warning(
-                f"Failed to publish workflow event {event_type} for task {task_id}: {e}"
-            )
+            logger.warning(f"Failed to publish workflow event {event_type} for task {task_id}: {e}")
             return ""
 
     def _signal_handler(self, signum, frame):
@@ -379,12 +367,8 @@ class AIPlanner:
         # Simple task indicators
         simple_keywords = ["fix", "update", "add", "remove", "change", "copy", "move"]
 
-        complex_score = sum(
-            1 for keyword in complex_keywords if keyword in description_lower
-        )
-        simple_score = sum(
-            1 for keyword in simple_keywords if keyword in description_lower
-        )
+        complex_score = sum(1 for keyword in complex_keywords if keyword in description_lower)
+        simple_score = sum(1 for keyword in simple_keywords if keyword in description_lower)
 
         # Consider context data
         if context_data.get("files_affected", 0) > 10:
@@ -452,9 +436,7 @@ class AIPlanner:
                     "generator": "ai-planner-v2-claude",
                     "agent_id": self.agent_id,
                     "generation_method": "claude-powered",
-                    "claude_confidence": claude_response.get("metrics", {}).get(
-                        "confidence_score", 0.0
-                    ),
+                    "claude_confidence": claude_response.get("metrics", {}).get("confidence_score", 0.0),
                 },
             }
 
@@ -471,12 +453,8 @@ class AIPlanner:
                 correlation_id=task.get("correlation_id"),
                 plan_name=enhanced_plan.get("plan_name"),
                 subtask_count=len(enhanced_plan.get("sub_tasks", [])),
-                estimated_duration=enhanced_plan.get("metrics", {}).get(
-                    "total_estimated_duration", 0
-                ),
-                confidence_score=enhanced_plan.get("metadata", {}).get(
-                    "claude_confidence", 0.0
-                ),
+                estimated_duration=enhanced_plan.get("metrics", {}).get("total_estimated_duration", 0),
+                confidence_score=enhanced_plan.get("metadata", {}).get("claude_confidence", 0.0),
             )
 
             return enhanced_plan
@@ -629,10 +607,7 @@ class AIPlanner:
                     plan["plan_id"],
                     plan["task_id"],
                     json.dumps(plan),
-                    plan.get("metrics", {})
-                    .get("complexity_breakdown", {})
-                    .get("complex", 0)
-                    > 0
+                    plan.get("metrics", {}).get("complexity_breakdown", {}).get("complex", 0) > 0
                     and "complex"
                     or "medium",
                     plan.get("metrics", {}).get("total_estimated_duration", 60),
@@ -662,9 +637,7 @@ class AIPlanner:
                                 "dependencies": sub_task["dependencies"],
                             },
                         )
-                        logger.debug(
-                            f"Created sub-task: {task_id} for {sub_task['title']}"
-                        )
+                        logger.debug(f"Created sub-task: {task_id} for {sub_task['title']}")
                     except Exception as sub_task_error:
                         error = TaskProcessingError(
                             message=f"Failed to create sub-task",
@@ -677,9 +650,7 @@ class AIPlanner:
 
             # Commit all changes
             self.db_connection.commit()
-            logger.info(
-                f"Execution plan saved: {plan['plan_id']} with {len(plan.get('sub_tasks', []))} sub-tasks"
-            )
+            logger.info(f"Execution plan saved: {plan['plan_id']} with {len(plan.get('sub_tasks', []))} sub-tasks")
             return True
 
         except Exception as e:
@@ -698,9 +669,7 @@ class AIPlanner:
             self.error_reporter.report_error(error)
             return False
 
-    def update_task_status(
-        self, task_id: str, status: str, completion_data: Optional[Dict] = None
-    ) -> bool:
+    def update_task_status(self, task_id: str, status: str, completion_data: Optional[Dict] = None) -> bool:
         """
         Update task status in planning_queue
 
@@ -761,9 +730,7 @@ class AIPlanner:
             True if processed successfully, False otherwise
         """
         try:
-            logger.info(
-                f"Processing task: {task['id']} - {task['task_description'][:100]}..."
-            )
+            logger.info(f"Processing task: {task['id']} - {task['task_description'][:100]}...")
 
             # Publish planning started event
             self._publish_workflow_event(
@@ -802,9 +769,7 @@ class AIPlanner:
                 plan_name=plan.get("plan_name", "Unknown Plan"),
             )
 
-            logger.info(
-                f"Successfully planned task: {task['id']} with plan: {plan['plan_id']}"
-            )
+            logger.info(f"Successfully planned task: {task['id']} with plan: {plan['plan_id']}")
             return True
 
         except Exception as e:
@@ -865,9 +830,7 @@ class AIPlanner:
                 logger.info("Received keyboard interrupt, shutting down...")
                 break
             except Exception as e:
-                error = PlannerError(
-                    message="Unexpected error in main processing loop", original_error=e
-                )
+                error = PlannerError(message="Unexpected error in main processing loop", original_error=e)
                 self.error_reporter.report_error(error)
                 time.sleep(self.poll_interval)
 
@@ -909,18 +872,12 @@ class AIPlanner:
                     **additional_payload,
                 )
 
-                event_id = await publish_event_async(
-                    event, correlation_id=correlation_id
-                )
-                logger.debug(
-                    f"Published async workflow event {event_type} for task {task_id}: {event_id}"
-                )
+                event_id = await publish_event_async(event, correlation_id=correlation_id)
+                logger.debug(f"Published async workflow event {event_type} for task {task_id}: {event_id}")
                 return event_id
 
             except Exception as e:
-                logger.warning(
-                    f"Failed to publish async workflow event {event_type} for task {task_id}: {e}"
-                )
+                logger.warning(f"Failed to publish async workflow event {event_type} for task {task_id}: {e}")
                 return ""
 
         async def get_next_task_async(self) -> Optional[Dict[str, Any]]:
@@ -962,16 +919,12 @@ class AIPlanner:
                             try:
                                 task["context_data"] = json.loads(task["context_data"])
                             except json.JSONDecodeError:
-                                logger.warning(
-                                    f"Invalid JSON in context_data for task {task['id']}"
-                                )
+                                logger.warning(f"Invalid JSON in context_data for task {task['id']}")
                                 task["context_data"] = {}
                         else:
                             task["context_data"] = {}
 
-                        logger.debug(
-                            f"Retrieved async task: {task['id']} - {task['task_description'][:50]}..."
-                        )
+                        logger.debug(f"Retrieved async task: {task['id']} - {task['task_description'][:50]}...")
                         return task
 
                     return None
@@ -1034,9 +987,7 @@ class AIPlanner:
                 True if processed successfully, False otherwise
             """
             try:
-                logger.info(
-                    f"Processing async task: {task['id']} - {task['task_description'][:100]}..."
-                )
+                logger.info(f"Processing async task: {task['id']} - {task['task_description'][:100]}...")
 
                 # Publish planning started event asynchronously
                 await self._publish_workflow_event_async(
@@ -1051,9 +1002,7 @@ class AIPlanner:
                 # Generate execution plan (this can remain sync as it's CPU-bound)
                 plan = self.generate_execution_plan(task)
                 if not plan:
-                    logger.error(
-                        f"Failed to generate plan for async task: {task['id']}"
-                    )
+                    logger.error(f"Failed to generate plan for async task: {task['id']}")
                     await self.update_task_status_async(task["id"], "failed")
                     return False
 
@@ -1078,9 +1027,7 @@ class AIPlanner:
                     plan_name=plan.get("plan_name", "Unknown Plan"),
                 )
 
-                logger.info(
-                    f"Successfully planned async task: {task['id']} with plan: {plan['plan_id']}"
-                )
+                logger.info(f"Successfully planned async task: {task['id']} with plan: {plan['plan_id']}")
                 return True
 
             except Exception as e:
@@ -1109,9 +1056,7 @@ class AIPlanner:
                 logger.error("Failed to establish database connection. Exiting.")
                 return 1
 
-            logger.info(
-                "AI Planner Agent is running in async mode. Monitoring planning_queue..."
-            )
+            logger.info("AI Planner Agent is running in async mode. Monitoring planning_queue...")
 
             try:
                 while self.running:
@@ -1122,9 +1067,7 @@ class AIPlanner:
                         # Process the task asynchronously
                         success = await self.process_task_async(task)
                         if success:
-                            logger.info(
-                                f"Async task {task['id']} processed successfully"
-                            )
+                            logger.info(f"Async task {task['id']} processed successfully")
                         else:
                             logger.warning(f"Async task {task['id']} processing failed")
                     else:
@@ -1187,9 +1130,7 @@ def create_workflow_event(
 class MockEventBus:
     """Mock event bus for development"""
 
-    def publish(
-        self, event: Dict[str, Any], correlation_id: Optional[str] = None
-    ) -> str:
+    def publish(self, event: Dict[str, Any], correlation_id: Optional[str] = None) -> str:
         """Publish an event to the mock event bus.
 
         Args:
@@ -1200,9 +1141,7 @@ class MockEventBus:
             Mock event ID
         """
         # Mock implementation - just log the event
-        logger.debug(
-            f"Mock event published: {event['event_type']} for task {event.get('task_id', 'unknown')}"
-        )
+        logger.debug(f"Mock event published: {event['event_type']} for task {event.get('task_id', 'unknown')}")
         return f"mock_event_{int(time.time())}"
 
 
@@ -1219,9 +1158,7 @@ def get_event_bus() -> MockEventBus:
 ASYNC_EVENTS_AVAILABLE = False
 
 
-async def publish_event_async(
-    event: Dict[str, Any], correlation_id: Optional[str] = None
-) -> str:
+async def publish_event_async(event: Dict[str, Any], correlation_id: Optional[str] = None) -> str:
     """Mock async event publishing.
 
     Args:
@@ -1242,12 +1179,8 @@ def main() -> int:
     """
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="AI Planner Agent - Intelligent Task Planning"
-    )
-    parser.add_argument(
-        "--mock", action="store_true", help="Run in mock mode for testing"
-    )
+    parser = argparse.ArgumentParser(description="AI Planner Agent - Intelligent Task Planning")
+    parser.add_argument("--mock", action="store_true", help="Run in mock mode for testing")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument(
         "--async-mode",
@@ -1266,14 +1199,10 @@ def main() -> int:
         # Check if async mode is requested and available
         if args.async_mode:
             if ASYNC_AVAILABLE and ASYNC_EVENTS_AVAILABLE:
-                logger.info(
-                    "Starting AI Planner in async mode for enhanced performance"
-                )
+                logger.info("Starting AI Planner in async mode for enhanced performance")
                 return asyncio.run(agent.run_async())
             else:
-                logger.warning(
-                    "Async mode requested but not available, falling back to sync mode"
-                )
+                logger.warning("Async mode requested but not available, falling back to sync mode")
                 return agent.run()
         else:
             return agent.run()

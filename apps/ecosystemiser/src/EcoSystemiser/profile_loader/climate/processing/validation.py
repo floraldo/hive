@@ -214,9 +214,7 @@ class QCReport:
             for i, issue in enumerate(self.issues, 1):
                 logger.info(f"\n{i}. [{issue.severity.value.upper()}] {issue.type}")
                 logger.info(f"   {issue.message}")
-                logger.info(
-                    f"   Affected variables: {', '.join(issue.affected_variables)}"
-                )
+                logger.info(f"   Affected variables: {', '.join(issue.affected_variables)}")
                 if issue.affected_count:
                     logger.info(f"   Affected data points: {issue.affected_count}")
                 if issue.suggested_action:
@@ -323,17 +321,10 @@ class QCProfile(ABC):
         """Apply source-specific validation rules"""
         pass
 
-    def get_adjusted_bounds(
-        self, base_bounds: Dict[str, Tuple[float, float]]
-    ) -> Dict[str, Tuple[float, float]]:
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
         """Get source-specific adjusted bounds"""
         # Default: return base bounds unchanged
         return base_bounds
-
-
-
-
-
 
 
 # Note: All QCProfile classes have been moved to their respective adapter files
@@ -372,18 +363,23 @@ def get_source_profile(source: str) -> QCProfile:
     try:
         if source == "nasa_power":
             from ecosystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerQCProfile
+
             return NASAPowerQCProfile()
         elif source == "meteostat":
             from ecosystemiser.profile_loader.climate.adapters.meteostat import MeteostatQCProfile
+
             return MeteostatQCProfile()
         elif source == "era5":
             from ecosystemiser.profile_loader.climate.adapters.era5 import ERA5QCProfile
+
             return ERA5QCProfile()
         elif source in ["pvgis"]:
             from ecosystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
+
             return get_qc_profile()
         elif source in ["epw", "file_epw"]:
             from ecosystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
+
             return get_qc_profile()
     except ImportError as e:
         logger.warning(f"Could not import QC profile for {source}: {e}")
@@ -401,9 +397,7 @@ class ValidationProcessor:
     Provides direct access to validation methods that return issues.
     """
 
-    def _check_time_gaps(
-        self, ds: xr.Dataset, expected_freq: str = None
-    ) -> List[QCIssue]:
+    def _check_time_gaps(self, ds: xr.Dataset, expected_freq: str = None) -> List[QCIssue]:
         """
         Check for time gaps and return issues directly.
 
@@ -605,17 +599,11 @@ class MeteorologicalValidator:
             rel_tolerance = 0.3 if self.strict_mode else 0.5
             tolerance = np.maximum(50, rel_tolerance * ghi)  # W/m2
 
-            violations = (
-                (diff > tolerance) & daylight_mask & (ghi > 50)
-            )  # Only check meaningful irradiance
-            n_violations = np.sum(
-                violations & ~np.isnan(ghi) & ~np.isnan(dni) & ~np.isnan(dhi)
-            )
+            violations = (diff > tolerance) & daylight_mask & (ghi > 50)  # Only check meaningful irradiance
+            n_violations = np.sum(violations & ~np.isnan(ghi) & ~np.isnan(dni) & ~np.isnan(dhi))
 
             if n_violations > 0:
-                total_daylight = np.sum(
-                    daylight_mask & ~np.isnan(ghi) & ~np.isnan(dni) & ~np.isnan(dhi)
-                )
+                total_daylight = np.sum(daylight_mask & ~np.isnan(ghi) & ~np.isnan(dni) & ~np.isnan(dhi))
                 percent = (n_violations / total_daylight) * 100
 
                 severity = QCSeverity.HIGH if percent > 10 else QCSeverity.MEDIUM
@@ -664,9 +652,7 @@ class MeteorologicalValidator:
         else:
             report.passed_checks.append("wind_consistency")
 
-    def _check_humidity_precipitation_consistency(
-        self, ds: xr.Dataset, report: QCReport
-    ):
+    def _check_humidity_precipitation_consistency(self, ds: xr.Dataset, report: QCReport):
         """Check humidity-precipitation relationship"""
         humidity = ds["rel_humidity"].values
         precip = ds["precip"].values
@@ -680,14 +666,8 @@ class MeteorologicalValidator:
         n_violations = np.sum(violations & ~np.isnan(humidity) & ~np.isnan(precip))
 
         if n_violations > 0:
-            total_heavy_precip = np.sum(
-                heavy_precip_mask & ~np.isnan(humidity) & ~np.isnan(precip)
-            )
-            percent = (
-                (n_violations / total_heavy_precip) * 100
-                if total_heavy_precip > 0
-                else 0
-            )
+            total_heavy_precip = np.sum(heavy_precip_mask & ~np.isnan(humidity) & ~np.isnan(precip))
+            percent = (n_violations / total_heavy_precip) * 100 if total_heavy_precip > 0 else 0
 
             # This can happen (e.g., convective storms) so medium severity
             severity = QCSeverity.MEDIUM if percent > 50 else QCSeverity.LOW
@@ -716,9 +696,7 @@ class MeteorologicalValidator:
         if np.any(daylight_mask):
             # High cloud cover (>90%) but high solar radiation (>80% of clear sky estimate)
             # Clear sky GHI estimate: roughly 1000 W/m2 at noon, scaled by hour
-            hour_factor = np.cos(
-                (hours - 12) * np.pi / 12
-            )  # Simplified solar elevation
+            hour_factor = np.cos((hours - 12) * np.pi / 12)  # Simplified solar elevation
             clear_sky_estimate = np.maximum(0, 1000 * hour_factor)
 
             high_cloud_mask = cloud_cover > 90
@@ -728,17 +706,8 @@ class MeteorologicalValidator:
             n_violations = np.sum(violations & ~np.isnan(cloud_cover) & ~np.isnan(ghi))
 
             if n_violations > 0:
-                total_high_cloud = np.sum(
-                    daylight_mask
-                    & high_cloud_mask
-                    & ~np.isnan(cloud_cover)
-                    & ~np.isnan(ghi)
-                )
-                percent = (
-                    (n_violations / total_high_cloud) * 100
-                    if total_high_cloud > 0
-                    else 0
-                )
+                total_high_cloud = np.sum(daylight_mask & high_cloud_mask & ~np.isnan(cloud_cover) & ~np.isnan(ghi))
+                percent = (n_violations / total_high_cloud) * 100 if total_high_cloud > 0 else 0
 
                 severity = QCSeverity.MEDIUM if percent > 20 else QCSeverity.LOW
 
@@ -763,9 +732,7 @@ class MeteorologicalValidator:
         # Check for unrealistic rate of change
         self._check_rate_of_change(ds, report)
 
-    def _check_time_gaps(
-        self, ds: xr.Dataset, report: QCReport, expected_freq: str = None
-    ):
+    def _check_time_gaps(self, ds: xr.Dataset, report: QCReport, expected_freq: str = None):
         """
         Check for significant gaps in time series.
 
@@ -790,9 +757,7 @@ class MeteorologicalValidator:
                 expected_td = pd.Timedelta(expected_freq)
                 freq_source = "explicit"
             except (ValueError, TypeError):
-                logger.warning(
-                    f"Invalid frequency string '{expected_freq}', falling back to inference"
-                )
+                logger.warning(f"Invalid frequency string '{expected_freq}', falling back to inference")
                 expected_td = None
                 freq_source = None
         else:
@@ -813,9 +778,7 @@ class MeteorologicalValidator:
                     freq_source = "median"
             else:
                 # Default to median difference or hourly
-                expected_td = (
-                    time_diffs.median() if len(time_diffs) > 0 else pd.Timedelta("1h")
-                )
+                expected_td = time_diffs.median() if len(time_diffs) > 0 else pd.Timedelta("1h")
                 freq_source = "median" if len(time_diffs) > 0 else "default"
 
         # Find gaps larger than 2x expected frequency
@@ -825,9 +788,7 @@ class MeteorologicalValidator:
         # Also check for missing timestamps
         if expected_freq and freq_source == "explicit":
             # Create complete time range and find missing timestamps
-            expected_range = pd.date_range(
-                start=time_values[0], end=time_values[-1], freq=expected_freq
-            )
+            expected_range = pd.date_range(start=time_values[0], end=time_values[-1], freq=expected_freq)
             missing_times = expected_range.difference(time_values)
             n_missing = len(missing_times)
         else:
@@ -851,11 +812,7 @@ class MeteorologicalValidator:
 
             full_message = " and ".join(filter(None, [gap_msg, missing_msg]))
 
-            severity = (
-                QCSeverity.HIGH
-                if (n_gaps + n_missing) > len(time_values) * 0.1
-                else QCSeverity.MEDIUM
-            )
+            severity = QCSeverity.HIGH if (n_gaps + n_missing) > len(time_values) * 0.1 else QCSeverity.MEDIUM
 
             issue = create_temporal_issue(
                 message=f"Time continuity issues: {full_message}",
@@ -864,12 +821,8 @@ class MeteorologicalValidator:
                 metadata={
                     "n_gaps": int(n_gaps),
                     "n_missing": int(n_missing),
-                    "max_gap_hours": (
-                        max_gap.total_seconds() / 3600 if n_gaps > 0 else 0
-                    ),
-                    "expected_freq": (
-                        str(expected_freq) if expected_freq else str(expected_td)
-                    ),
+                    "max_gap_hours": (max_gap.total_seconds() / 3600 if n_gaps > 0 else 0),
+                    "expected_freq": (str(expected_freq) if expected_freq else str(expected_td)),
                     "freq_source": freq_source,
                 },
                 suggested_action="Check data collection continuity and fill gaps if possible",
@@ -1020,9 +973,7 @@ class MeteorologicalValidator:
             # Source profile not found, just add a passed check
             report.passed_checks.append(f"source_specific_{source}")
 
-    def _adjust_bounds_for_location(
-        self, lat: float, lon: float
-    ) -> Dict[str, Tuple[float, float]]:
+    def _adjust_bounds_for_location(self, lat: float, lon: float) -> Dict[str, Tuple[float, float]]:
         """Adjust physical bounds based on location"""
         bounds = self.BASE_PHYSICAL_BOUNDS.copy()
 
@@ -1041,9 +992,7 @@ class MeteorologicalValidator:
 
         return bounds
 
-    def _determine_bounds_severity(
-        self, n_violations: int, total_points: int
-    ) -> QCSeverity:
+    def _determine_bounds_severity(self, n_violations: int, total_points: int) -> QCSeverity:
         """Determine severity level for bounds violations"""
         percent = (n_violations / total_points) * 100
 
@@ -1067,9 +1016,7 @@ class MeteorologicalValidator:
 
                 if len(valid_data) > 10:  # Need sufficient data for statistics
                     # Z-score based outlier detection
-                    z_scores = np.abs(
-                        (valid_data - np.mean(valid_data)) / np.std(valid_data)
-                    )
+                    z_scores = np.abs((valid_data - np.mean(valid_data)) / np.std(valid_data))
                     outliers = np.sum(z_scores > 3)  # 3-sigma rule
 
                     outlier_percent = (outliers / len(valid_data)) * 100
@@ -1111,9 +1058,7 @@ class MeteorologicalValidator:
         # Count issues by severity
         severity_counts = {}
         for severity in QCSeverity:
-            severity_counts[severity.name] = len(
-                [issue for issue in report.issues if issue.severity == severity]
-            )
+            severity_counts[severity.name] = len([issue for issue in report.issues if issue.severity == severity])
 
         # Generate overall quality score (0-100)
         total_issues = len(report.issues)
@@ -1133,9 +1078,7 @@ class MeteorologicalValidator:
         recommendations = []
 
         if critical_issues > 0:
-            recommendations.append(
-                "CRITICAL ISSUES FOUND - Dataset may be unreliable for analysis"
-            )
+            recommendations.append("CRITICAL ISSUES FOUND - Dataset may be unreliable for analysis")
 
         if high_issues > 0:
             recommendations.append("High-priority issues require attention before use")
@@ -1145,13 +1088,9 @@ class MeteorologicalValidator:
         elif quality_score >= 80:
             recommendations.append("Dataset has good quality with minor issues")
         elif quality_score >= 60:
-            recommendations.append(
-                "Dataset has moderate quality - review issues carefully"
-            )
+            recommendations.append("Dataset has moderate quality - review issues carefully")
         else:
-            recommendations.append(
-                "Dataset has quality concerns - extensive review recommended"
-            )
+            recommendations.append("Dataset has quality concerns - extensive review recommended")
 
         # Add summary to report metadata
         report.metadata["validation_summary"] = {
@@ -1190,9 +1129,7 @@ class MeteorologicalValidator:
             except Exception as e:
                 logger.error(f"Validation failed for {identifier}: {e}")
                 # Create error report
-                error_report = QCReport(
-                    dataset_id=identifier, timestamp=datetime.now().isoformat()
-                )
+                error_report = QCReport(dataset_id=identifier, timestamp=datetime.now().isoformat())
                 error_report.metadata = {"error": str(e)}
                 error_report.add_issue(
                     QCIssue(
@@ -1234,9 +1171,7 @@ def validate_complete(
     Returns:
         Comprehensive QC report with all validation results
     """
-    logger.info(
-        f"Starting {validation_level} validation for dataset with {len(ds.data_vars)} variables"
-    )
+    logger.info(f"Starting {validation_level} validation for dataset with {len(ds.data_vars)} variables")
 
     # Create meteorological validator instance
     meteorological_validator = MeteorologicalValidator(strict_mode=strict_mode)
@@ -1252,9 +1187,7 @@ def validate_complete(
         "dataset_info": {
             "variables": list(ds.data_vars.keys()),
             "time_range": (str(ds.time.min().values), str(ds.time.max().values)),
-            "shape": dict(
-                ds.sizes
-            ),  # Use sizes instead of dims to avoid deprecation warning
+            "shape": dict(ds.sizes),  # Use sizes instead of dims to avoid deprecation warning
             "attributes": dict(ds.attrs),
             "source": source,
         }
@@ -1435,9 +1368,7 @@ def apply_quality_control(
     )
 
     # Apply corrective actions based on validation report
-    ds_qc = apply_corrections(
-        ds, report, bounds=bounds, spike_filter=spike_filter, gap_fill=gap_fill
-    )
+    ds_qc = apply_corrections(ds, report, bounds=bounds, spike_filter=spike_filter, gap_fill=gap_fill)
 
     return ds_qc, report
 
@@ -1466,18 +1397,14 @@ def apply_corrections(
     ds_corrected = ds.copy()
 
     # Apply bounds clipping for critical bounds violations
-    critical_bounds_issues = [
-        issue for issue in report.get_critical_issues() if issue.type == "bounds"
-    ]
+    critical_bounds_issues = [issue for issue in report.get_critical_issues() if issue.type == "bounds"]
 
     for issue in critical_bounds_issues:
         for var_name in issue.affected_variables:
             if var_name in ds_corrected and "bounds" in issue.metadata:
                 min_bound, max_bound = issue.metadata["bounds"]
                 logger.warning(f"Clipping critical bounds violations in {var_name}")
-                ds_corrected[var_name].values = np.clip(
-                    ds_corrected[var_name].values, min_bound, max_bound
-                )
+                ds_corrected[var_name].values = np.clip(ds_corrected[var_name].values, min_bound, max_bound)
 
     # Zero night-time solar radiation
     for var in ["ghi", "dni", "dhi"]:
@@ -1486,18 +1413,14 @@ def apply_corrections(
 
     # Apply spike filtering if requested and spikes detected
     if spike_filter:
-        spike_issues = [
-            issue for issue in report.issues if "spike" in issue.type.lower()
-        ]
+        spike_issues = [issue for issue in report.issues if "spike" in issue.type.lower()]
         if spike_issues:
             ds_corrected, _ = filter_spikes(ds_corrected)
 
     # Fill gaps if requested and gaps detected
     if gap_fill:
         gap_issues = [
-            issue
-            for issue in report.issues
-            if "gap" in issue.type.lower() or "missing" in issue.type.lower()
+            issue for issue in report.issues if "gap" in issue.type.lower() or "missing" in issue.type.lower()
         ]
         if gap_issues:
             ds_corrected, _ = fill_gaps(ds_corrected)
@@ -1506,9 +1429,7 @@ def apply_corrections(
     return ds_corrected
 
 
-def validate_dataset_comprehensive(
-    ds: xr.Dataset, source: str = None, strict_mode: bool = False
-) -> QCReport:
+def validate_dataset_comprehensive(ds: xr.Dataset, source: str = None, strict_mode: bool = False) -> QCReport:
     """
     Perform comprehensive validation without data modification.
 
@@ -1524,9 +1445,7 @@ def validate_dataset_comprehensive(
     return validator.validate_dataset(ds, source=source)
 
 
-def clip_physical_bounds(
-    ds: xr.Dataset, bounds: Dict[str, Tuple[float, float]] = None
-) -> Tuple[xr.Dataset, Dict]:
+def clip_physical_bounds(ds: xr.Dataset, bounds: Dict[str, Tuple[float, float]] = None) -> Tuple[xr.Dataset, Dict]:
     """
     Clip variables to physical bounds.
 
@@ -1570,9 +1489,7 @@ def clip_physical_bounds(
 from ecosystemiser.profile_loader.shared.timeseries import zero_night_irradiance
 
 
-def filter_spikes(
-    ds: xr.Dataset, iqr_multiplier: float = 3.0
-) -> Tuple[xr.Dataset, Dict]:
+def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> Tuple[xr.Dataset, Dict]:
     """
     Filter spikes using IQR method.
 
@@ -1618,10 +1535,7 @@ def filter_spikes(
                 "bounds": (float(lower_bound), float(upper_bound)),
             }
 
-            logger.info(
-                f"Flagged {n_spikes} spikes ({report[var_name]['percent']:.2f}%) "
-                f"in '{var_name}'"
-            )
+            logger.info(f"Flagged {n_spikes} spikes ({report[var_name]['percent']:.2f}%) " f"in '{var_name}'")
 
     return ds_filtered, report
 
@@ -1650,9 +1564,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> Tuple[xr.Dataset, Dict]
             continue
 
         # First pass: linear interpolation for small gaps
-        data_interp = data.interpolate_na(
-            dim="time", method="linear", limit=max_gap_hours
-        )
+        data_interp = data.interpolate_na(dim="time", method="linear", limit=max_gap_hours)
 
         # Count remaining gaps
         n_gaps_remaining = np.sum(np.isnan(data_interp.values))
@@ -1691,9 +1603,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> Tuple[xr.Dataset, Dict]
 
 
 # Convenience function for quick validation
-def validate_climate_data(
-    ds: xr.Dataset, source: Optional[str] = None, level: str = "standard"
-) -> QCReport:
+def validate_climate_data(ds: xr.Dataset, source: Optional[str] = None, level: str = "standard") -> QCReport:
     """
     Convenience function for quick climate data validation.
 

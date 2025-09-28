@@ -24,12 +24,14 @@ def simulate_planner_success(master_task_id: str = None):
         # Find the most recent pending task in planning_queue
         conn = hive_core_db.get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id FROM planning_queue
             WHERE status IN ('pending', 'failed')
             ORDER BY created_at DESC
             LIMIT 1
-        """)
+        """
+        )
         result = cursor.fetchone()
 
         if not result:
@@ -48,14 +50,17 @@ def simulate_planner_success(master_task_id: str = None):
     cursor = conn.cursor()
 
     # Update planning_queue status to planned
-    cursor.execute("""
+    cursor.execute(
+        """
         UPDATE planning_queue
         SET status = 'planned',
             assigned_agent = 'simulator',
             assigned_at = CURRENT_TIMESTAMP,
             completed_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    """, (master_task_id,))
+    """,
+        (master_task_id,),
+    )
 
     # Create a mock execution plan
     plan_id = f"plan-{uuid.uuid4().hex[:8]}"
@@ -74,7 +79,7 @@ def simulate_planner_success(master_task_id: str = None):
                 "estimated_duration": "10 minutes",
                 "workflow_phase": "apply",
                 "dependencies": [],
-                "deliverables": ["API endpoint code"]
+                "deliverables": ["API endpoint code"],
             },
             {
                 "id": "task-002",
@@ -86,7 +91,7 @@ def simulate_planner_success(master_task_id: str = None):
                 "estimated_duration": "5 minutes",
                 "workflow_phase": "apply",
                 "dependencies": ["task-001"],
-                "deliverables": ["Timestamp logic"]
+                "deliverables": ["Timestamp logic"],
             },
             {
                 "id": "task-003",
@@ -98,27 +103,30 @@ def simulate_planner_success(master_task_id: str = None):
                 "estimated_duration": "15 minutes",
                 "workflow_phase": "test",
                 "dependencies": ["task-002"],
-                "deliverables": ["Test suite"]
-            }
-        ]
+                "deliverables": ["Test suite"],
+            },
+        ],
     }
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO execution_plans (
             id, planning_task_id, plan_data, status,
             estimated_duration, estimated_complexity,
             subtask_count, dependency_count, generated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    """, (
-        plan_id,
-        master_task_id,
-        json.dumps(plan_data),
-        "generated",
-        30,  # estimated duration in minutes
-        "simple",  # complexity
-        len(plan_data["sub_tasks"]),
-        2  # number of dependencies
-    ))
+    """,
+        (
+            plan_id,
+            master_task_id,
+            json.dumps(plan_data),
+            "generated",
+            30,  # estimated duration in minutes
+            "simple",  # complexity
+            len(plan_data["sub_tasks"]),
+            2,  # number of dependencies
+        ),
+    )
 
     # Create sub-tasks in tasks table
     for sub_task in plan_data["sub_tasks"]:
@@ -132,24 +140,27 @@ def simulate_planner_success(master_task_id: str = None):
             "workflow_phase": sub_task["workflow_phase"],
             "required_skills": [],
             "deliverables": sub_task["deliverables"],
-            "dependencies": sub_task["dependencies"]
+            "dependencies": sub_task["dependencies"],
         }
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO tasks (
                 id, title, task_type, status, priority,
                 assignee, description, created_at, updated_at, payload
             ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)
-        """, (
-            task_id,
-            sub_task["title"],
-            "planned_subtask",
-            "queued",
-            sub_task["priority"],
-            sub_task["assignee"],
-            sub_task["description"],
-            json.dumps(payload)
-        ))
+        """,
+            (
+                task_id,
+                sub_task["title"],
+                "planned_subtask",
+                "queued",
+                sub_task["priority"],
+                sub_task["assignee"],
+                sub_task["description"],
+                json.dumps(payload),
+            ),
+        )
 
     conn.commit()
 

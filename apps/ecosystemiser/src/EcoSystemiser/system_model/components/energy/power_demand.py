@@ -44,12 +44,8 @@ class PowerDemandTechnicalParams(DemandTechnicalParams):
     )
 
     # RESEARCH fidelity parameters
-    stochastic_model: Optional[Dict[str, Any]] = Field(
-        None, description="Stochastic demand model parameters"
-    )
-    occupancy_coupling: Optional[Dict[str, Any]] = Field(
-        None, description="Coupling to occupancy patterns"
-    )
+    stochastic_model: Optional[Dict[str, Any]] = Field(None, description="Stochastic demand model parameters")
+    occupancy_coupling: Optional[Dict[str, Any]] = Field(None, description="Coupling to occupancy patterns")
 
 
 class PowerDemandParams(ComponentParams):
@@ -244,9 +240,7 @@ class PowerDemand(Component):
         # Profile should be assigned by the system/builder
         # Initialize as None, will be set by assign_profiles
         if not hasattr(self, "profile") or self.profile is None:
-            logger.warning(
-                f"No demand profile assigned to {self.name}. Using zero demand."
-            )
+            logger.warning(f"No demand profile assigned to {self.name}. Using zero demand.")
             self.profile = np.zeros(getattr(self, "N", 24))
         else:
             self.profile = np.array(self.profile)
@@ -290,9 +284,7 @@ class PowerDemand(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return PowerDemandOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for PowerDemand optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for PowerDemand optimization: {fidelity}")
 
     def rule_based_demand(self, t: int) -> float:
         """
@@ -302,11 +294,7 @@ class PowerDemand(Component):
         delegates the actual physics calculation to the strategy object.
         """
         # Check bounds
-        if (
-            not hasattr(self, "profile")
-            or self.profile is None
-            or t >= len(self.profile)
-        ):
+        if not hasattr(self, "profile") or self.profile is None or t >= len(self.profile):
             return 0.0
 
         # Get normalized profile value for this timestep
@@ -317,10 +305,7 @@ class PowerDemand(Component):
 
         # Log for debugging if needed
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(
-                f"{self.name} at t={t}: profile={profile_value:.3f}, "
-                f"demand={demand_output:.3f}kW"
-            )
+            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, " f"demand={demand_output:.3f}kW")
 
         return demand_output
 

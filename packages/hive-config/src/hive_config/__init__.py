@@ -48,10 +48,19 @@ __all__ = [
     "SecureConfigLoader",
     "encrypt_production_config",
     "generate_master_key",
+    # Async config exports
+    "AsyncConfigLoader",
+    "get_async_config_loader",
+    "load_app_config_async",
 ]
 
 __version__ = "1.1.0"
 
+from .async_config import (
+    AsyncConfigLoader,
+    get_async_config_loader,
+    load_app_config_async,
+)
 from .secure_config import (
     SecureConfigLoader,
     encrypt_production_config,

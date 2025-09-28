@@ -82,9 +82,7 @@ class E2ETestRunner:
                 self.log(f"Warning: Could not fully clean worktrees: {e}", "WARN")
 
         # Prune git worktrees
-        subprocess.run(
-            ["git", "worktree", "prune"], cwd=project_root, capture_output=True
-        )
+        subprocess.run(["git", "worktree", "prune"], cwd=project_root, capture_output=True)
         self.log("Pruned git worktrees")
 
         # Create logs directory
@@ -337,9 +335,7 @@ class E2ETestRunner:
 
         # Overall status
         all_passed = all(r == "PASSED" for r in self.test_results.values())
-        overall = (
-            "[PASS] ALL TESTS PASSED" if all_passed else "[FAIL] SOME TESTS FAILED"
-        )
+        overall = "[PASS] ALL TESTS PASSED" if all_passed else "[FAIL] SOME TESTS FAILED"
 
         self.log("")
         self.log(overall, "SUCCESS" if all_passed else "ERROR")

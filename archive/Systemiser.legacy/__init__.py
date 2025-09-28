@@ -12,9 +12,10 @@ from model.economicParameters.economic_parameters import EconomicParameters
 
 from model.environmentalParameters.environmental_parameters import EnvironmentalParameters
 
-#from model.clientInfo.general_information import GeneralInformation
+# from model.clientInfo.general_information import GeneralInformation
 from model.clientInfo.client_information import ClientInformation
-#from model.clientInfo.site_information import SiteInformation
+
+# from model.clientInfo.site_information import SiteInformation
 from model.clientInfo.building_typologies import BuildingTypologies
 from model.clientInfo.water_information import WaterInformation
 from model.clientInfo.energy_information import EnergyInformation
@@ -35,9 +36,32 @@ from model.reporting.card import Card
 
 from model.climate.climate_parameter import ClimateParameter
 
-__all__ = [Battery, Grid, HeatBuffer, HeatDemand, HeatPump, PowerDemand, SolarPV, System,
-           ClientInformation, BuildingTypologies,
-           EnergyInformation, WaterInformation, Input, EconomicParameters, Coordinates,
-           EnvironmentalParameters,
-           PrescanInformation, SiteInformation, GeneralInformation, BuildingInformation, EnergySystems, WaterSystems, TallyFormBase,
-           ClimateParameter, Report, Section, Card]
+__all__ = [
+    Battery,
+    Grid,
+    HeatBuffer,
+    HeatDemand,
+    HeatPump,
+    PowerDemand,
+    SolarPV,
+    System,
+    ClientInformation,
+    BuildingTypologies,
+    EnergyInformation,
+    WaterInformation,
+    Input,
+    EconomicParameters,
+    Coordinates,
+    EnvironmentalParameters,
+    PrescanInformation,
+    SiteInformation,
+    GeneralInformation,
+    BuildingInformation,
+    EnergySystems,
+    WaterSystems,
+    TallyFormBase,
+    ClimateParameter,
+    Report,
+    Section,
+    Card,
+]

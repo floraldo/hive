@@ -120,9 +120,7 @@ def run_battery_capacity_sweep():
     )
 
     # Run study
-    print(
-        f"\nRunning parametric sweep with {len(battery_values)} battery capacity values:"
-    )
+    print(f"\nRunning parametric sweep with {len(battery_values)} battery capacity values:")
     print(f"Values: {[f'{v:.1f} kWh' for v in battery_values]}")
 
     study_service = StudyService()
@@ -138,22 +136,16 @@ def run_battery_capacity_sweep():
     print(f"Execution time: {result.execution_time:.1f} seconds")
 
     if result.best_result:
-        best_params = result.best_result.get("output_config", {}).get(
-            "parameter_settings", {}
-        )
+        best_params = result.best_result.get("output_config", {}).get("parameter_settings", {})
         best_kpis = result.best_result.get("kpis", {})
 
         print(f"\nOPTIMAL CONFIGURATION:")
-        print(
-            f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh"
-        )
+        print(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
         print(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
         print(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
 
     # Perform influence analysis
-    analysis = ParametricSweepEnhancement.analyze_parameter_influence(
-        result.model_dump()
-    )
+    analysis = ParametricSweepEnhancement.analyze_parameter_influence(result.model_dump())
 
     if analysis["recommendations"]:
         print(f"\nRECOMMENDATIONS:")
@@ -230,34 +222,24 @@ def run_multi_parameter_sweep():
     print(f"Execution time: {result.execution_time:.1f} seconds")
 
     if result.best_result:
-        best_params = result.best_result.get("output_config", {}).get(
-            "parameter_settings", {}
-        )
+        best_params = result.best_result.get("output_config", {}).get("parameter_settings", {})
         best_kpis = result.best_result.get("kpis", {})
 
         print(f"\nOPTIMAL CONFIGURATION:")
-        print(
-            f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh"
-        )
-        print(
-            f"Solar capacity: {best_params.get('solar_pv.technical.capacity_nominal', 'N/A')} kW"
-        )
+        print(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
+        print(f"Solar capacity: {best_params.get('solar_pv.technical.capacity_nominal', 'N/A')} kW")
         print(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
         print(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
 
     # Create a simple visualization of the results
     if result.all_results:
         print(f"\nPARAMETER SPACE EXPLORATION:")
-        print(
-            f"{'Battery (kWh)':<15} {'Solar (kW)':<12} {'Cost ($)':<12} {'Renewable %':<12}"
-        )
+        print(f"{'Battery (kWh)':<15} {'Solar (kW)':<12} {'Cost ($)':<12} {'Renewable %':<12}")
         print("-" * 51)
 
         for sim_result in result.all_results[:10]:  # Show first 10
             if sim_result.get("status") in ["optimal", "feasible"]:
-                params = sim_result.get("output_config", {}).get(
-                    "parameter_settings", {}
-                )
+                params = sim_result.get("output_config", {}).get("parameter_settings", {})
                 kpis = sim_result.get("kpis", {})
 
                 battery = params.get("battery.technical.capacity_nominal", 0)
@@ -265,9 +247,7 @@ def run_multi_parameter_sweep():
                 cost = kpis.get("total_cost", 0)
                 renewable = kpis.get("renewable_fraction", 0) * 100
 
-                print(
-                    f"{battery:<15.0f} {solar:<12.0f} {cost:<12,.0f} {renewable:<12.1f}"
-                )
+                print(f"{battery:<15.0f} {solar:<12.0f} {cost:<12,.0f} {renewable:<12.1f}")
 
     return result
 

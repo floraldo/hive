@@ -113,7 +113,7 @@ class NASAPowerAdapter(BaseAdapter):
     # Reverse mapping
     REVERSE_MAPPING = {v: k for k, v in VARIABLE_MAPPING.items()}
 
-    async def _fetch_raw(
+    async def _fetch_raw_async(
         self,
         location: Tuple[float, float],
         variables: List[str],
@@ -145,9 +145,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         return data
 
-    async def _transform_data(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
-    ) -> xr.Dataset:
+    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
         """Transform raw NASA POWER data to xarray Dataset"""
         lat, lon = location
 
@@ -170,7 +168,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         return ds
 
-    async def fetch(
+    async def fetch_async(
         self,
         *,
         lat: float,
@@ -206,21 +204,15 @@ class NASAPowerAdapter(BaseAdapter):
 
             # If request is large, process in chunks
             if days_diff > (chunk_years * 365):
-                logger.info(
-                    f"Large date range detected ({days_diff} days), processing in chunks"
-                )
-                return await self._fetch_chunked(
-                    lat, lon, variables, period, resolution, chunk_years
-                )
+                logger.info(f"Large date range detected ({days_diff} days), processing in chunks")
+                return await self._fetch_chunked_async(lat, lon, variables, period, resolution, chunk_years)
 
             # Use batch processing if enabled and beneficial
             if use_batch and len(variables) > 5:
-                return await self._fetch_batched(
-                    lat, lon, variables, period, resolution
-                )
+                return await self._fetch_batched_async(lat, lon, variables, period, resolution)
 
             # Use base class fetch method
-            return await super().fetch(
+            return await super().fetch_async(
                 location=(lat, lon),
                 variables=variables,
                 period=period,
@@ -322,9 +314,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         return start, end
 
-    def _json_to_xarray(
-        self, data: Dict[str, Any], requested_vars: List[str]
-    ) -> xr.Dataset:
+    def _json_to_xarray(self, data: Dict[str, Any], requested_vars: List[str]) -> xr.Dataset:
         """Convert NASA POWER JSON response to xarray Dataset"""
 
         try:
@@ -354,9 +344,7 @@ class NASAPowerAdapter(BaseAdapter):
 
                     if canonical_name in requested_vars:
                         # Extract values in timestamp order
-                        data_array = np.array(
-                            [values.get(ts, np.nan) for ts in timestamps_str]
-                        )
+                        data_array = np.array([values.get(ts, np.nan) for ts in timestamps_str])
 
                         # Create DataArray with proper metadata
                         da = xr.DataArray(
@@ -368,12 +356,8 @@ class NASAPowerAdapter(BaseAdapter):
 
                         # Add units
                         if canonical_name in CANONICAL_VARIABLES:
-                            da.attrs["units"] = CANONICAL_VARIABLES[canonical_name][
-                                "unit"
-                            ]
-                            da.attrs["type"] = CANONICAL_VARIABLES[canonical_name][
-                                "type"
-                            ]
+                            da.attrs["units"] = CANONICAL_VARIABLES[canonical_name]["unit"]
+                            da.attrs["type"] = CANONICAL_VARIABLES[canonical_name]["type"]
 
                         # Convert units if needed
                         da = self._convert_units(da, canonical_name, nasa_param)
@@ -406,9 +390,7 @@ class NASAPowerAdapter(BaseAdapter):
                 details={"variables": requested_vars},
             )
 
-    def _convert_units(
-        self, da: xr.DataArray, canonical_name: str, nasa_param: str
-    ) -> xr.DataArray:
+    def _convert_units(self, da: xr.DataArray, canonical_name: str, nasa_param: str) -> xr.DataArray:
         """Convert units from NASA POWER to canonical units if needed"""
 
         # NASA POWER specific unit conversions
@@ -421,18 +403,14 @@ class NASAPowerAdapter(BaseAdapter):
 
         return da
 
-    def _validate_request(
-        self, lat: float, lon: float, variables: List[str], period: Dict[str, Any]
-    ):
+    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict[str, Any]):
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValidationError(f"Invalid latitude: {lat}", field="lat", value=lat)
         if not (-180 <= lon <= 180):
             raise ValidationError(f"Invalid longitude: {lon}", field="lon", value=lon)
         if not variables:
-            raise ValidationError(
-                "Variables list cannot be empty", field="variables", value=variables
-            )
+            raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
     def _optimize_dataset_memory(self, ds: xr.Dataset) -> xr.Dataset:
         """Optimize dataset memory usage by converting to appropriate dtypes"""
@@ -454,9 +432,7 @@ class NASAPowerAdapter(BaseAdapter):
         )
 
         # Configure rate limiting (NASA POWER has no strict limits)
-        rate_config = RateLimitConfig(
-            requests_per_minute=120, burst_size=20  # Conservative limit
-        )
+        rate_config = RateLimitConfig(requests_per_minute=120, burst_size=20)  # Conservative limit
 
         # Configure caching
         cache_config = CacheConfig(
@@ -531,7 +507,7 @@ class NASAPowerAdapter(BaseAdapter):
             data_products=["Hourly", "Daily", "Monthly", "Climatology"],
         )
 
-    async def _fetch_chunked(
+    async def _fetch_chunked_async(
         self,
         lat: float,
         lon: float,
@@ -559,9 +535,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         datasets = []
         for i, (chunk_start, chunk_end) in enumerate(chunks):
-            logger.info(
-                f"Fetching chunk {i+1}/{len(chunks)}: {chunk_start} to {chunk_end}"
-            )
+            logger.info(f"Fetching chunk {i+1}/{len(chunks)}: {chunk_start} to {chunk_end}")
 
             # Create period dict for this chunk
             chunk_period = {
@@ -570,7 +544,7 @@ class NASAPowerAdapter(BaseAdapter):
             }
 
             # Fetch chunk (recursive call without chunking)
-            chunk_ds = await self.fetch(
+            chunk_ds = await self.fetch_async(
                 lat=lat,
                 lon=lon,
                 variables=variables,
@@ -591,7 +565,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         return combined
 
-    async def _fetch_batched(
+    async def _fetch_batched_async(
         self,
         lat: float,
         lon: float,
@@ -615,16 +589,14 @@ class NASAPowerAdapter(BaseAdapter):
         # Group variables into optimal batches
         # NASA POWER can handle multiple variables per request
         batch_size = 10  # NASA POWER limit
-        batches = [
-            variables[i : i + batch_size] for i in range(0, len(variables), batch_size)
-        ]
+        batches = [variables[i : i + batch_size] for i in range(0, len(variables), batch_size)]
 
         datasets = []
         for i, batch_vars in enumerate(batches):
             logger.info(f"Fetching batch {i+1}/{len(batches)}: {batch_vars}")
 
             # Fetch batch without batching enabled to prevent recursion
-            batch_ds = await self.fetch(
+            batch_ds = await self.fetch_async(
                 lat=lat,
                 lon=lon,
                 variables=batch_vars,
@@ -667,9 +639,7 @@ class NASAPowerQCProfile(QCProfile):
             "wind_speed",
             "pressure",
         ]
-        self.temporal_resolution_limits = {
-            "all": "hourly"  # NASA POWER provides hourly data
-        }
+        self.temporal_resolution_limits = {"all": "hourly"}  # NASA POWER provides hourly data
         self.spatial_accuracy = "0.5deg x 0.5deg (~50km resolution)"
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
@@ -697,9 +667,7 @@ class NASAPowerQCProfile(QCProfile):
 
             # Arid conditions: high temperature, low humidity
             arid_mask = (temp_data > 30) & (humidity_data < 30)
-            if (
-                np.sum(arid_mask & ~np.isnan(temp_data)) > len(temp_data) * 0.3
-            ):  # >30% arid conditions
+            if np.sum(arid_mask & ~np.isnan(temp_data)) > len(temp_data) * 0.3:  # >30% arid conditions
                 issue = QCIssue(
                     type="source_bias",
                     message="NASA POWER may show warm bias in arid regions",

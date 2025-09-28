@@ -73,11 +73,7 @@ class BaseClaludeBridge(ABC):
         possible_paths = [
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
-            Path.home()
-            / "AppData"
-            / "Roaming"
-            / "npm"
-            / "claude.cmd",  # Windows npm global
+            Path.home() / "AppData" / "Roaming" / "npm" / "claude.cmd",  # Windows npm global
             Path.home() / "AppData" / "Roaming" / "npm" / "claude",
             Path("/usr/local/bin/claude"),  # macOS/Linux system install
             Path("/usr/bin/claude"),
@@ -93,9 +89,7 @@ class BaseClaludeBridge(ABC):
         # Try system PATH
         try:
             cmd = "where" if os.name == "nt" else "which"
-            result = subprocess.run(
-                [cmd, "claude"], capture_output=True, text=True, timeout=5
-            )
+            result = subprocess.run([cmd, "claude"], capture_output=True, text=True, timeout=5)
 
             if result.returncode == 0:
                 claude_path = result.stdout.strip().split("\n")[0]
@@ -154,9 +148,7 @@ class BaseClaludeBridge(ABC):
             )
 
             if result.returncode != 0:
-                error_msg = (
-                    f"Claude CLI failed with code {result.returncode}: {result.stderr}"
-                )
+                error_msg = f"Claude CLI failed with code {result.returncode}: {result.stderr}"
                 logger.error(error_msg)
                 raise ClaudeResponseError(error_msg)
 
@@ -195,30 +187,20 @@ class BaseClaludeBridge(ABC):
             response_text = self._execute_claude(prompt)
 
             # Extract JSON
-            response_json = self.json_extractor.extract_json(
-                response_text, extraction_strategies
-            )
+            response_json = self.json_extractor.extract_json(response_text, extraction_strategies)
 
             if not response_json:
                 if self.config.fallback_enabled:
-                    return self._create_fallback_response(
-                        "Failed to extract JSON", context
-                    )
-                raise ClaudeValidationError(
-                    "Failed to extract JSON from Claude response"
-                )
+                    return self._create_fallback_response("Failed to extract JSON", context)
+                raise ClaudeValidationError("Failed to extract JSON from Claude response")
 
             # Validate if validator provided
             if validator:
                 validated = validator.validate(response_json)
                 if not validated:
                     if self.config.fallback_enabled:
-                        fallback = validator.create_fallback(
-                            "Validation failed", context or {}
-                        )
-                        return (
-                            fallback.dict() if hasattr(fallback, "dict") else fallback
-                        )
+                        fallback = validator.create_fallback("Validation failed", context or {})
+                        return fallback.dict() if hasattr(fallback, "dict") else fallback
                     raise ClaudeValidationError("Response validation failed")
                 return validated.dict() if hasattr(validated, "dict") else response_json
 
@@ -251,9 +233,7 @@ class BaseClaludeBridge(ABC):
         for attempt in range(self.config.max_retries):
             try:
                 if attempt > 0:
-                    logger.info(
-                        f"Retry attempt {attempt + 1}/{self.config.max_retries}"
-                    )
+                    logger.info(f"Retry attempt {attempt + 1}/{self.config.max_retries}")
 
                 return self.call_claude(prompt, validator, context=context)
 
@@ -283,9 +263,7 @@ class BaseClaludeBridge(ABC):
         pass
 
     @abstractmethod
-    def _create_fallback_response(
-        self, error_message: str, context: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _create_fallback_response(self, error_message: str, context: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Create a fallback response when Claude is unavailable
 

@@ -20,12 +20,8 @@ def main():
     """Run the Queen orchestrator"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="QueenLite - Streamlined Queen Orchestrator"
-    )
-    parser.add_argument(
-        "--live", action="store_true", help="Enable live streaming output from workers"
-    )
+    parser = argparse.ArgumentParser(description="QueenLite - Streamlined Queen Orchestrator")
+    parser.add_argument("--live", action="store_true", help="Enable live streaming output from workers")
     args = parser.parse_args()
 
     logger.info("=" * 70)

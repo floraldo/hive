@@ -170,9 +170,7 @@ class PVGISAdapter(BaseAdapter):
         )
 
         # Configure rate limiting (PVGIS is free but be reasonable)
-        rate_config = RateLimitConfig(
-            requests_per_minute=60, burst_size=10  # Conservative for public API
-        )
+        rate_config = RateLimitConfig(requests_per_minute=60, burst_size=10)  # Conservative for public API
 
         # Configure caching (solar data is static)
         cache_config = CacheConfig(
@@ -197,7 +195,7 @@ class PVGISAdapter(BaseAdapter):
         "soil_moisture",
     }
 
-    async def _fetch_raw(
+    async def _fetch_raw_async(
         self,
         location: Tuple[float, float],
         variables: List[str],
@@ -211,16 +209,12 @@ class PVGISAdapter(BaseAdapter):
         supported_vars = []
         for var in variables:
             if var in self.UNSUPPORTED_VARIABLES:
-                self.logger.warning(
-                    f"Variable '{var}' is not supported by PVGIS seriescalc endpoint"
-                )
+                self.logger.warning(f"Variable '{var}' is not supported by PVGIS seriescalc endpoint")
             else:
                 supported_vars.append(var)
 
         if not supported_vars:
-            raise ValueError(
-                f"No supported variables requested. PVGIS supports: {list(self.VARIABLE_MAPPING.keys())}"
-            )
+            raise ValueError(f"No supported variables requested. PVGIS supports: {list(self.VARIABLE_MAPPING.keys())}")
 
         # Validate request
         self._validate_request(lat, lon, supported_vars, period)
@@ -235,21 +229,15 @@ class PVGISAdapter(BaseAdapter):
 
         # PVGIS has different endpoints for different data types
         if resolution == "1H":
-            return await self._fetch_hourly_series(
-                lat, lon, supported_vars, start_date, end_date, database
-            )
+            return await self._fetch_hourly_series_async(lat, lon, supported_vars, start_date, end_date, database)
         elif resolution == "1D":
-            return await self._fetch_daily_series(
-                lat, lon, supported_vars, start_date, end_date, database
-            )
+            return await self._fetch_daily_series_async(lat, lon, supported_vars, start_date, end_date, database)
         elif resolution == "TMY":
-            return await self._fetch_tmy(lat, lon, supported_vars, database)
+            return await self._fetch_tmy_async(lat, lon, supported_vars, database)
         else:
             raise ValueError(f"Unsupported resolution for PVGIS: {resolution}")
 
-    async def _transform_data(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
-    ) -> xr.Dataset:
+    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
         """Transform raw PVGIS data to xarray Dataset"""
         lat, lon = location
 
@@ -268,9 +256,7 @@ class PVGISAdapter(BaseAdapter):
 
         return ds
 
-    def _validate_request(
-        self, lat: float, lon: float, variables: List[str], period: Dict
-    ):
+    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict):
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValueError(f"Invalid latitude: {lat}")
@@ -279,7 +265,7 @@ class PVGISAdapter(BaseAdapter):
         if not variables:
             raise ValueError("Variables list cannot be empty")
 
-    async def fetch(
+    async def fetch_async(
         self,
         *,
         lat: float,
@@ -294,19 +280,15 @@ class PVGISAdapter(BaseAdapter):
         supported_vars = []
         for var in variables:
             if var in self.UNSUPPORTED_VARIABLES:
-                self.logger.warning(
-                    f"Variable '{var}' is not supported by PVGIS seriescalc endpoint"
-                )
+                self.logger.warning(f"Variable '{var}' is not supported by PVGIS seriescalc endpoint")
             else:
                 supported_vars.append(var)
 
         if not supported_vars:
-            raise ValueError(
-                f"No supported variables requested. PVGIS supports: {list(self.VARIABLE_MAPPING.keys())}"
-            )
+            raise ValueError(f"No supported variables requested. PVGIS supports: {list(self.VARIABLE_MAPPING.keys())}")
 
         # Use base class fetch method
-        return await super().fetch(
+        return await super().fetch_async(
             location=(lat, lon),
             variables=supported_vars,
             period=period,
@@ -337,11 +319,7 @@ class PVGISAdapter(BaseAdapter):
                 logger.warning("PVGIS data may not be available after 2020")
 
             if "month" in period:
-                month = (
-                    int(period["month"])
-                    if isinstance(period["month"], str)
-                    else period["month"]
-                )
+                month = int(period["month"]) if isinstance(period["month"], str) else period["month"]
                 start_date = datetime(year, month, 1)
                 if month == 12:
                     end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
@@ -355,7 +333,7 @@ class PVGISAdapter(BaseAdapter):
 
         return start_date, end_date
 
-    async def _fetch_hourly_series(
+    async def _fetch_hourly_series_async(
         self,
         lat: float,
         lon: float,
@@ -370,16 +348,10 @@ class PVGISAdapter(BaseAdapter):
         url = f"{self.BASE_URL}/seriescalc"
 
         # Validate year constraints for different databases
-        if database == "PVGIS-NSRDB" and (
-            start_date.year < 2005 or start_date.year > 2015
-        ):
-            raise ValueError(
-                f"PVGIS-NSRDB only supports years 2005-2015, requested: {start_date.year}"
-            )
+        if database == "PVGIS-NSRDB" and (start_date.year < 2005 or start_date.year > 2015):
+            raise ValueError(f"PVGIS-NSRDB only supports years 2005-2015, requested: {start_date.year}")
         elif database in ["PVGIS-SARAH2", "PVGIS-ERA5"] and start_date.year < 2005:
-            raise ValueError(
-                f"{database} only supports years from 2005 onwards, requested: {start_date.year}"
-            )
+            raise ValueError(f"{database} only supports years from 2005 onwards, requested: {start_date.year}")
 
         # Prepare parameters
         params = {
@@ -412,13 +384,11 @@ class PVGISAdapter(BaseAdapter):
             raise
 
         # Parse response to xarray
-        ds = self._parse_hourly_response(
-            data, variables, lat, lon, start_date, end_date
-        )
+        ds = self._parse_hourly_response(data, variables, lat, lon, start_date, end_date)
 
         return ds
 
-    async def _fetch_daily_series(
+    async def _fetch_daily_series_async(
         self,
         lat: float,
         lon: float,
@@ -435,9 +405,7 @@ class PVGISAdapter(BaseAdapter):
         params = {
             "lat": lat,
             "lon": lon,
-            "month": (
-                start_date.month if start_date.month == end_date.month else 0
-            ),  # 0 for full year
+            "month": (start_date.month if start_date.month == end_date.month else 0),  # 0 for full year
             "year": start_date.year,
             "raddatabase": database,
             "outputformat": "json",
@@ -458,9 +426,7 @@ class PVGISAdapter(BaseAdapter):
 
         return ds
 
-    async def _fetch_tmy(
-        self, lat: float, lon: float, variables: List[str], database: str
-    ) -> xr.Dataset:
+    async def _fetch_tmy_async(self, lat: float, lon: float, variables: List[str], database: str) -> xr.Dataset:
         """Fetch Typical Meteorological Year data from PVGIS"""
 
         url = f"{self.BASE_URL}/tmy"
@@ -557,13 +523,9 @@ class PVGISAdapter(BaseAdapter):
             # Try to derive variables if not directly available
             if not added and canonical_name in self.DERIVED_VARIABLES:
                 required_vars = self.DERIVED_VARIABLES[canonical_name]
-                if canonical_name == "dewpoint" and all(
-                    v in df.columns for v in ["T2m", "RH"]
-                ):
+                if canonical_name == "dewpoint" and all(v in df.columns for v in ["T2m", "RH"]):
                     # Calculate dewpoint from temperature and humidity
-                    dewpoint_data = self._calculate_dewpoint(
-                        df["T2m"].values, df["RH"].values
-                    )
+                    dewpoint_data = self._calculate_dewpoint(df["T2m"].values, df["RH"].values)
                     ds[canonical_name] = xr.DataArray(
                         dewpoint_data,
                         coords={"time": df.index},
@@ -622,9 +584,7 @@ class PVGISAdapter(BaseAdapter):
 
         return ds
 
-    def _parse_tmy_response(
-        self, data: Dict, variables: List[str], lat: float, lon: float
-    ) -> xr.Dataset:
+    def _parse_tmy_response(self, data: Dict, variables: List[str], lat: float, lon: float) -> xr.Dataset:
         """Parse PVGIS TMY response to xarray Dataset"""
 
         if "outputs" not in data or "tmy_hourly" not in data["outputs"]:
@@ -638,9 +598,7 @@ class PVGISAdapter(BaseAdapter):
         # Create typical year time index
         # TMY uses a representative year (usually current year for time index)
         current_year = datetime.now().year
-        df["time"] = pd.to_datetime(df["time(UTC)"], format="%m%d:%H%M").apply(
-            lambda x: x.replace(year=current_year)
-        )
+        df["time"] = pd.to_datetime(df["time(UTC)"], format="%m%d:%H%M").apply(lambda x: x.replace(year=current_year))
         df.set_index("time", inplace=True)
 
         # Create Dataset
@@ -661,10 +619,7 @@ class PVGISAdapter(BaseAdapter):
                 "rel_humidity": "RH",
             }
 
-            if (
-                canonical_name in pvgis_cols
-                and pvgis_cols[canonical_name] in df.columns
-            ):
+            if canonical_name in pvgis_cols and pvgis_cols[canonical_name] in df.columns:
                 ds[canonical_name] = xr.DataArray(
                     df[pvgis_cols[canonical_name]].values,
                     coords={"time": df.index},
@@ -673,9 +628,7 @@ class PVGISAdapter(BaseAdapter):
 
         return ds
 
-    def _calculate_dewpoint(
-        self, temperature: np.ndarray, rel_humidity: np.ndarray
-    ) -> np.ndarray:
+    def _calculate_dewpoint(self, temperature: np.ndarray, rel_humidity: np.ndarray) -> np.ndarray:
         """
         Calculate dewpoint temperature from air temperature and relative humidity.
 
@@ -833,19 +786,13 @@ class PVGISQCProfile:
                     )
 
         # Check for non-solar variables (limited in PVGIS)
-        non_solar_vars = [
-            var
-            for var in ds.data_vars
-            if var not in ["ghi", "dni", "dhi", "temp_air", "wind_speed"]
-        ]
+        non_solar_vars = [var for var in ds.data_vars if var not in ["ghi", "dni", "dhi", "temp_air", "wind_speed"]]
         if non_solar_vars:
             report.warnings.append(
                 f"PVGIS has limited non-solar variables: {non_solar_vars} - consider additional data sources"
             )
 
-    def get_adjusted_bounds(
-        self, base_bounds: Dict[str, Tuple[float, float]]
-    ) -> Dict[str, Tuple[float, float]]:
+    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
         """Get source-specific adjusted bounds"""
         return base_bounds
 
@@ -892,11 +839,7 @@ class PVGISQCProfile(QCProfile):
                     report.add_issue(issue)
 
         # Check for non-solar variables (limited in PVGIS)
-        non_solar_vars = [
-            var
-            for var in ds.data_vars
-            if var not in ["ghi", "dni", "dhi", "temp_air", "wind_speed"]
-        ]
+        non_solar_vars = [var for var in ds.data_vars if var not in ["ghi", "dni", "dhi", "temp_air", "wind_speed"]]
         if non_solar_vars:
             issue = QCIssue(
                 type="source_limitation",

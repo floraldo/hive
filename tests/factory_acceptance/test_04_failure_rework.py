@@ -518,10 +518,7 @@ def simulate_rework_cycle(test_case):
         # Start the service
         app_dir = Path("apps/calculator-fat")
         server_process = subprocess.Popen(
-            [sys.executable, "app.py"],
-            cwd=app_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            [sys.executable, "app.py"], cwd=app_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
         # Wait for startup
@@ -529,11 +526,7 @@ def simulate_rework_cycle(test_case):
 
         # Run tests
         test_result = subprocess.run(
-            [sys.executable, "test_calculator.py"],
-            cwd=app_dir,
-            capture_output=True,
-            text=True,
-            timeout=30
+            [sys.executable, "test_calculator.py"], cwd=app_dir, capture_output=True, text=True, timeout=30
         )
 
         # Kill server
@@ -543,11 +536,7 @@ def simulate_rework_cycle(test_case):
         # Analyze results
         test_passed = test_result.returncode == 0
 
-        iteration_result = {
-            "iteration": iteration,
-            "success": test_passed,
-            "tests_output": test_result.stderr
-        }
+        iteration_result = {"iteration": iteration, "success": test_passed, "tests_output": test_result.stderr}
         iterations.append(iteration_result)
 
         if test_passed:
@@ -581,7 +570,7 @@ def validate_failure_rework(test_case):
             cwd=app_dir,
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
         )
 
         if install_result.returncode != 0:
@@ -597,7 +586,7 @@ def validate_failure_rework(test_case):
             return {
                 "success": False,
                 "error": "Failed to achieve working solution after iterations",
-                "iterations": len(iterations)
+                "iterations": len(iterations),
             }
 
         # Verify the final version is production ready
@@ -605,10 +594,7 @@ def validate_failure_rework(test_case):
 
         # Start final version
         server_process = subprocess.Popen(
-            [sys.executable, "app.py"],
-            cwd=app_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            [sys.executable, "app.py"], cwd=app_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
         time.sleep(2)
@@ -636,7 +622,7 @@ def validate_failure_rework(test_case):
                     f"http://localhost:5005{endpoint}",
                     json=payload,
                     headers={"Content-Type": "application/json"},
-                    timeout=5
+                    timeout=5,
                 )
 
                 if response.status_code != 200:
@@ -653,7 +639,7 @@ def validate_failure_rework(test_case):
                 "http://localhost:5005/api/divide",
                 json={"a": 10, "b": 0},
                 headers={"Content-Type": "application/json"},
-                timeout=5
+                timeout=5,
             )
 
             if zero_response.status_code != 400:
@@ -668,7 +654,7 @@ def validate_failure_rework(test_case):
             "success": True,
             "details": f"Calculator service successfully evolved through {len(iterations)} iterations to production quality",
             "iterations_required": len(iterations),
-            "final_status": "production_ready"
+            "final_status": "production_ready",
         }
 
     except Exception as e:
@@ -697,19 +683,19 @@ def run_failure_rework_test():
                     "Basic arithmetic operations",
                     "Error handling",
                     "Input validation",
-                    "Zero division protection"
-                ]
-            }
+                    "Zero division protection",
+                ],
+            },
         },
         "metadata": {
             "test_type": "factory_acceptance",
             "test_id": "FAT-04",
             "complexity_level": "failure_rework",
             "autonomous_generation": True,
-            "iterative_improvement": True
+            "iterative_improvement": True,
         },
         "generator_function": None,  # Handled by validation function
-        "validator_function": validate_failure_rework
+        "validator_function": validate_failure_rework,
     }
 
     fat = FactoryAcceptanceTest()
@@ -733,14 +719,14 @@ def run_failure_rework_test():
     # Record result
     test_duration = 0  # Would be calculated in real scenario
     result = {
-        "test_name": test_case['name'],
+        "test_name": test_case["name"],
         "task_id": task_id,
         "success": validation_result.get("success", False),
         "duration": test_duration,
         "details": validation_result.get("details", ""),
         "error": validation_result.get("error", ""),
-        "complexity": test_case['complexity'],
-        "iterations_required": validation_result.get("iterations_required", 0)
+        "complexity": test_case["complexity"],
+        "iterations_required": validation_result.get("iterations_required", 0),
     }
 
     fat.test_results.append(result)

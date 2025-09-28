@@ -95,9 +95,7 @@ class QueenPlanningEnhanced(QueenLite):
             plan_name = payload.get("plan_name")
 
             if plan_id:
-                logger.info(
-                    f"🎯 Enhanced: Received plan generation for {plan_id}: {plan_name}"
-                )
+                logger.info(f"🎯 Enhanced: Received plan generation for {plan_id}: {plan_name}")
 
                 # Automatically trigger plan execution if it's approved or auto-approved
                 plan_status = planning_integration.get_execution_plan_status(plan_id)
@@ -107,9 +105,7 @@ class QueenPlanningEnhanced(QueenLite):
                         self.planning_stats["plans_triggered"] += 1
                         logger.info(f"🚀 Auto-triggered execution for plan {plan_id}")
                     else:
-                        logger.error(
-                            f"❌ Failed to trigger execution for plan {plan_id}"
-                        )
+                        logger.error(f"❌ Failed to trigger execution for plan {plan_id}")
 
         except Exception as e:
             logger.error(f"Error in enhanced plan generated handler: {e}")
@@ -129,9 +125,7 @@ class QueenPlanningEnhanced(QueenLite):
                 return
 
             # Sync status back to execution plan
-            success = planning_integration.sync_subtask_status_to_plan(
-                task_id, "completed"
-            )
+            success = planning_integration.sync_subtask_status_to_plan(task_id, "completed")
             if success:
                 self.planning_stats["subtasks_completed"] += 1
                 logger.debug(f"✅ Synced subtask completion: {task_id}")
@@ -140,14 +134,10 @@ class QueenPlanningEnhanced(QueenLite):
                 task_payload = task.get("payload", {})
                 plan_id = task_payload.get("parent_plan_id")
                 if plan_id:
-                    completion_status = planning_integration.get_plan_completion_status(
-                        plan_id
-                    )
+                    completion_status = planning_integration.get_plan_completion_status(plan_id)
                     if completion_status.get("is_complete"):
                         self.planning_stats["plans_completed"] += 1
-                        logger.info(
-                            f"🎉 Plan {plan_id} completed! ({completion_status['completion_percentage']}%)"
-                        )
+                        logger.info(f"🎉 Plan {plan_id} completed! ({completion_status['completion_percentage']}%)")
             else:
                 self.planning_stats["sync_errors"] += 1
                 logger.warning(f"⚠️ Failed to sync subtask completion: {task_id}")
@@ -186,14 +176,10 @@ class QueenPlanningEnhanced(QueenLite):
         # Get enhanced tasks including planned subtasks with dependency resolution
         try:
             # Use enhanced planning integration for better subtask pickup
-            planned_subtasks = planning_integration.get_ready_planned_subtasks(
-                limit=slots_free
-            )
+            planned_subtasks = planning_integration.get_ready_planned_subtasks(limit=slots_free)
 
             # Get regular queued tasks
-            regular_tasks = hive_core_db.get_queued_tasks(
-                limit=max(0, slots_free - len(planned_subtasks))
-            )
+            regular_tasks = hive_core_db.get_queued_tasks(limit=max(0, slots_free - len(planned_subtasks)))
 
             # Combine and prioritize
             all_tasks = planned_subtasks + regular_tasks
@@ -203,9 +189,7 @@ class QueenPlanningEnhanced(QueenLite):
 
             # Log planning-specific information
             if planned_subtasks:
-                logger.info(
-                    f"[AI-PLANNER] Found {len(planned_subtasks)} ready planned subtasks"
-                )
+                logger.info(f"[AI-PLANNER] Found {len(planned_subtasks)} ready planned subtasks")
                 for task in planned_subtasks[:3]:  # Log first 3 for visibility
                     plan_ctx = task.get("planner_context", {})
                     logger.info(
@@ -259,15 +243,9 @@ class QueenPlanningEnhanced(QueenLite):
 
                 # Log planning context
                 logger.info(f"[PLANNED] Processing {task_id}: {task['title']}")
-                logger.info(
-                    f"  Phase: {planner_context.get('workflow_phase', 'unknown')}"
-                )
-                logger.info(
-                    f"  Duration: {planner_context.get('estimated_duration', 'unknown')}min"
-                )
-                logger.info(
-                    f"  Skills: {', '.join(planner_context.get('required_skills', []))}"
-                )
+                logger.info(f"  Phase: {planner_context.get('workflow_phase', 'unknown')}")
+                logger.info(f"  Duration: {planner_context.get('estimated_duration', 'unknown')}min")
+                logger.info(f"  Skills: {', '.join(planner_context.get('required_skills', []))}")
 
             else:
                 # Regular task processing
@@ -284,9 +262,7 @@ class QueenPlanningEnhanced(QueenLite):
             if self.is_app_task(task):
                 success = self._process_app_task_enhanced(task)
                 if success:
-                    active_per_role.setdefault(
-                        worker, 0
-                    )  # App tasks don't count against worker limits
+                    active_per_role.setdefault(worker, 0)  # App tasks don't count against worker limits
                 continue
 
             # Process regular worker task
@@ -346,9 +322,7 @@ class QueenPlanningEnhanced(QueenLite):
                     process_id=process.pid,
                 )
 
-                logger.info(
-                    f"✅ Enhanced: Spawned app task {task_id} (PID: {process.pid})"
-                )
+                logger.info(f"✅ Enhanced: Spawned app task {task_id} (PID: {process.pid})")
                 return True
             else:
                 # Revert on failure
@@ -416,9 +390,7 @@ class QueenPlanningEnhanced(QueenLite):
                     process_id=process.pid,
                 )
 
-                logger.info(
-                    f"✅ Enhanced: Spawned {worker} for {task_id} (PID: {process.pid})"
-                )
+                logger.info(f"✅ Enhanced: Spawned {worker} for {task_id} (PID: {process.pid})")
                 return True
             else:
                 # Revert on failure
@@ -450,9 +422,7 @@ class QueenPlanningEnhanced(QueenLite):
             if new_tasks:
                 logger.info(f"📋 Found {len(new_tasks)} new tasks in planning queue")
                 for task in new_tasks:
-                    logger.info(
-                        f"  🎯 {task['id']}: {task['task_description'][:80]}..."
-                    )
+                    logger.info(f"  🎯 {task['id']}: {task['task_description'][:80]}...")
 
             self.last_planning_check = current_time
 
@@ -489,9 +459,7 @@ class QueenPlanningEnhanced(QueenLite):
                 if active_plans:
                     logger.info("[ACTIVE PLANS]")
                     for plan_id, status in active_plans:
-                        completion = planning_integration.get_plan_completion_status(
-                            plan_id
-                        )
+                        completion = planning_integration.get_plan_completion_status(plan_id)
                         logger.info(
                             f"  📋 {plan_id}: {status} ({completion.get('completion_percentage', 0):.1f}% complete)"
                         )
@@ -536,7 +504,6 @@ class QueenPlanningEnhanced(QueenLite):
                     and stats["in_progress"] == 0
                     and review_pending == 0
                 ):
-
                     if stats["completed"] > 0 or stats["failed"] > 0:
                         self.log.info("All tasks completed. Exiting enhanced mode...")
                         break
@@ -583,12 +550,8 @@ class QueenPlanningEnhanced(QueenLite):
 
                 # Check completion
                 stats = self.hive.get_task_stats()
-                review_pending_tasks = await hive_core_db.get_tasks_by_status_async(
-                    "review_pending"
-                )
-                review_pending = (
-                    len(review_pending_tasks) if review_pending_tasks else 0
-                )
+                review_pending_tasks = await hive_core_db.get_tasks_by_status_async("review_pending")
+                review_pending = len(review_pending_tasks) if review_pending_tasks else 0
 
                 if (
                     len(self.active_workers) == 0
@@ -597,16 +560,11 @@ class QueenPlanningEnhanced(QueenLite):
                     and stats["in_progress"] == 0
                     and review_pending == 0
                 ):
-
                     if stats["completed"] > 0 or stats["failed"] > 0:
-                        self.log.info(
-                            "All tasks completed. Exiting enhanced async mode..."
-                        )
+                        self.log.info("All tasks completed. Exiting enhanced async mode...")
                         break
 
-                await asyncio.sleep(
-                    self.hive.config["orchestration"]["status_refresh_seconds"]
-                )
+                await asyncio.sleep(self.hive.config["orchestration"]["status_refresh_seconds"])
 
         except KeyboardInterrupt:
             self.log.info("\nQueen Planning Enhanced async mode shutting down...")
@@ -623,17 +581,11 @@ class QueenPlanningEnhanced(QueenLite):
         """Async version of enhanced task processing"""
         try:
             # Get ready planned subtasks asynchronously
-            planned_subtasks = (
-                await async_planning_integration.get_ready_planned_subtasks_async(
-                    limit=20
-                )
-            )
+            planned_subtasks = await async_planning_integration.get_ready_planned_subtasks_async(limit=20)
 
             # Process with enhanced planning integration
             if planned_subtasks:
-                logger.debug(
-                    f"[ASYNC] Processing {len(planned_subtasks)} planned subtasks"
-                )
+                logger.debug(f"[ASYNC] Processing {len(planned_subtasks)} planned subtasks")
 
         except Exception as e:
             logger.error(f"Error in async enhanced task processing: {e}")
@@ -688,9 +640,7 @@ def main():
     hive_core_db.init_db()
 
     # Configure logging
-    setup_logging(
-        name="queen-enhanced", log_to_file=True, log_file_path="logs/queen_enhanced.log"
-    )
+    setup_logging(name="queen-enhanced", log_to_file=True, log_file_path="logs/queen_enhanced.log")
 
     # Create components
     hive_core = HiveCore()

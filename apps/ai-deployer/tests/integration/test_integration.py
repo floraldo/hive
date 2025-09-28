@@ -40,7 +40,7 @@ class TestDeploymentIntegration:
     """Integration tests for the complete deployment system"""
 
     @pytest.mark.asyncio
-    async def test_full_deployment_workflow_success(self, sample_integration_task):
+    async def test_full_deployment_workflow_success_async(self, sample_integration_task):
         """Test complete successful deployment workflow"""
         # Create real orchestrator with mocked strategies
         orchestrator = DeploymentOrchestrator()
@@ -48,9 +48,7 @@ class TestDeploymentIntegration:
         # Mock the SSH strategy
         mock_ssh_strategy = Mock()
         mock_ssh_strategy.strategy = DeploymentStrategy.DIRECT
-        mock_ssh_strategy.pre_deployment_checks = AsyncMock(
-            return_value={"success": True, "errors": []}
-        )
+        mock_ssh_strategy.pre_deployment_checks = AsyncMock(return_value={"success": True, "errors": []})
         mock_ssh_strategy.deploy = AsyncMock(
             return_value={
                 "success": True,
@@ -63,9 +61,7 @@ class TestDeploymentIntegration:
 
         # Mock validation and health checks
         orchestrator._validate_deployment = AsyncMock(return_value=True)
-        orchestrator.check_health = AsyncMock(
-            return_value=Mock(healthy=True, message="All systems healthy")
-        )
+        orchestrator.check_health = AsyncMock(return_value=Mock(healthy=True, message="All systems healthy"))
 
         # Execute deployment
         result = await orchestrator.deploy(sample_integration_task)
@@ -83,21 +79,15 @@ class TestDeploymentIntegration:
         mock_ssh_strategy.post_deployment_actions.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_full_deployment_workflow_with_rollback(
-        self, sample_integration_task
-    ):
+    async def test_full_deployment_workflow_with_rollback_async(self, sample_integration_task):
         """Test deployment workflow with failure and rollback"""
         orchestrator = DeploymentOrchestrator()
 
         # Mock the SSH strategy to fail deployment
         mock_ssh_strategy = Mock()
         mock_ssh_strategy.strategy = DeploymentStrategy.DIRECT
-        mock_ssh_strategy.pre_deployment_checks = AsyncMock(
-            return_value={"success": True, "errors": []}
-        )
-        mock_ssh_strategy.deploy = AsyncMock(
-            return_value={"success": False, "error": "Service startup failed"}
-        )
+        mock_ssh_strategy.pre_deployment_checks = AsyncMock(return_value={"success": True, "errors": []})
+        mock_ssh_strategy.deploy = AsyncMock(return_value={"success": False, "error": "Service startup failed"})
         mock_ssh_strategy.rollback = AsyncMock(
             return_value={"success": True, "rollback_info": {"backup_restored": True}}
         )
@@ -105,9 +95,7 @@ class TestDeploymentIntegration:
         orchestrator.strategies[DeploymentStrategy.DIRECT] = mock_ssh_strategy
 
         # Add previous deployment info for rollback
-        sample_integration_task["previous_deployment"] = {
-            "deployment_info": {"backup_id": "backup-123"}
-        }
+        sample_integration_task["previous_deployment"] = {"deployment_info": {"backup_id": "backup-123"}}
 
         # Execute deployment
         result = await orchestrator.deploy(sample_integration_task)
@@ -122,13 +110,11 @@ class TestDeploymentIntegration:
         mock_ssh_strategy.rollback.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_agent_orchestrator_integration(self, sample_integration_task):
+    async def test_agent_orchestrator_integration_async(self, sample_integration_task):
         """Test integration between agent and orchestrator"""
         # Create mock database adapter
         mock_adapter = Mock(spec=DatabaseAdapter)
-        mock_adapter.get_deployment_pending_tasks.return_value = [
-            sample_integration_task
-        ]
+        mock_adapter.get_deployment_pending_tasks.return_value = [sample_integration_task]
         mock_adapter.update_task_status.return_value = True
 
         # Create mock orchestrator
@@ -141,9 +127,7 @@ class TestDeploymentIntegration:
                 metrics={"deployment_time": 25.0},
             )
         )
-        mock_orchestrator.check_health = AsyncMock(
-            return_value=Mock(healthy=True, message="Healthy")
-        )
+        mock_orchestrator.check_health = AsyncMock(return_value=Mock(healthy=True, message="Healthy"))
 
         # Create agent with mocked components
         agent = DeploymentAgent(orchestrator=mock_orchestrator, test_mode=True)
@@ -171,11 +155,9 @@ class TestDeploymentIntegration:
         assert agent.stats["successful"] == 1
 
     @pytest.mark.asyncio
-    async def test_database_adapter_integration(self):
+    async def test_database_adapter_integration_async(self):
         """Test database adapter integration with mocked database"""
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection"
-        ) as mock_get_conn:
+        with patch("ai_deployer.database_adapter.get_pooled_connection") as mock_get_conn:
             # Setup mock connection and cursor
             mock_conn = Mock()
             mock_cursor = Mock()
@@ -227,7 +209,7 @@ class TestDeploymentIntegration:
             assert mock_cursor.execute.call_count >= 3
 
     @pytest.mark.asyncio
-    async def test_strategy_selection_integration(self):
+    async def test_strategy_selection_integration_async(self):
         """Test strategy selection logic integration"""
         orchestrator = DeploymentOrchestrator()
 
@@ -261,7 +243,7 @@ class TestDeploymentIntegration:
         assert strategy == DeploymentStrategy.CANARY
 
     @pytest.mark.asyncio
-    async def test_health_check_integration(self):
+    async def test_health_check_integration_async(self):
         """Test health check integration across components"""
         orchestrator = DeploymentOrchestrator()
 
@@ -290,12 +272,11 @@ class TestDeploymentIntegration:
         assert orchestrator._check_dependency.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_event_bus_integration(self, sample_integration_task):
+    async def test_event_bus_integration_async(self, sample_integration_task):
         """Test event bus integration for deployment notifications"""
         with patch("ai_deployer.agent.get_event_bus") as mock_get_bus, patch(
             "ai_deployer.agent.create_task_event"
         ) as mock_create_event:
-
             # Setup event bus mocks
             mock_bus = Mock()
             mock_get_bus.return_value = mock_bus
@@ -329,13 +310,11 @@ class TestDeploymentIntegration:
             mock_bus.publish.assert_called_once_with(mock_event)
 
     @pytest.mark.asyncio
-    async def test_error_handling_integration(self, sample_integration_task):
+    async def test_error_handling_integration_async(self, sample_integration_task):
         """Test error handling integration across components"""
         # Create orchestrator that raises exception
         orchestrator = DeploymentOrchestrator()
-        orchestrator.deploy = AsyncMock(
-            side_effect=Exception("Critical deployment error")
-        )
+        orchestrator.deploy = AsyncMock(side_effect=Exception("Critical deployment error"))
 
         # Create agent
         agent = DeploymentAgent(orchestrator=orchestrator, test_mode=True)
@@ -345,13 +324,11 @@ class TestDeploymentIntegration:
         await agent._process_task(sample_integration_task)
 
         # Verify error handling
-        agent._update_task_status.assert_any_call(
-            "integration-task-001", "deployment_failed"
-        )
+        agent._update_task_status.assert_any_call("integration-task-001", "deployment_failed")
         assert agent.stats["errors"] == 1
 
     @pytest.mark.asyncio
-    async def test_concurrent_deployment_handling(self):
+    async def test_concurrent_deployment_handling_async(self):
         """Test handling multiple concurrent deployments"""
         # Create multiple tasks
         tasks = [
@@ -369,7 +346,7 @@ class TestDeploymentIntegration:
         mock_orchestrator = Mock()
 
         # Create different results for each deployment
-        async def mock_deploy(task):
+        async def mock_deploy_async(task):
             task_id = task["id"]
             await asyncio.sleep(0.1)  # Simulate deployment time
             return DeploymentResult(
@@ -399,16 +376,14 @@ class TestDeploymentIntegration:
         assert agent._update_task_status.call_count == 6  # 2 calls per task
 
     @pytest.mark.asyncio
-    async def test_deployment_metrics_collection(self, sample_integration_task):
+    async def test_deployment_metrics_collection_async(self, sample_integration_task):
         """Test deployment metrics collection integration"""
         orchestrator = DeploymentOrchestrator()
 
         # Mock strategy with detailed metrics
         mock_strategy = Mock()
         mock_strategy.strategy = DeploymentStrategy.DIRECT
-        mock_strategy.pre_deployment_checks = AsyncMock(
-            return_value={"success": True, "errors": []}
-        )
+        mock_strategy.pre_deployment_checks = AsyncMock(return_value={"success": True, "errors": []})
         mock_strategy.deploy = AsyncMock(
             return_value={
                 "success": True,

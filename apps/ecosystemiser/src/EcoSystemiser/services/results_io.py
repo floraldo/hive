@@ -123,9 +123,7 @@ class ResultsIO:
             if component.type == "storage" and hasattr(component, "E"):
                 if isinstance(component.E, np.ndarray):
                     comp_data["E"] = component.E.tolist()
-                    comp_data["E_max"] = (
-                        float(component.E_max) if hasattr(component, "E_max") else None
-                    )
+                    comp_data["E_max"] = float(component.E_max) if hasattr(component, "E_max") else None
 
             # Extract generation profiles
             if component.type == "generation" and hasattr(component, "profile"):

@@ -75,9 +75,7 @@ def get_adapter(
 
         if adapter_name not in _adapter_registry:
             available = list(_adapter_registry.keys())
-            raise ValueError(
-                f"Unknown adapter: {adapter_name}. " f"Available adapters: {available}"
-            )
+            raise ValueError(f"Unknown adapter: {adapter_name}. " f"Available adapters: {available}")
 
     # Return existing instance if not forcing new
     if not force_new and adapter_name in _adapter_instances:
@@ -101,19 +99,9 @@ def get_adapter(
         config = settings.get_adapter_config(adapter_name)
 
     # Get common configurations
-    http_config = (
-        settings.get_http_config() if hasattr(settings, "get_http_config") else None
-    )
-    cache_config = (
-        settings.get_cache_config()
-        if use_cache and hasattr(settings, "get_cache_config")
-        else None
-    )
-    rate_limit_config = (
-        settings.get_rate_limit_config()
-        if hasattr(settings, "get_rate_limit_config")
-        else None
-    )
+    http_config = settings.get_http_config() if hasattr(settings, "get_http_config") else None
+    cache_config = settings.get_cache_config() if use_cache and hasattr(settings, "get_cache_config") else None
+    rate_limit_config = settings.get_rate_limit_config() if hasattr(settings, "get_rate_limit_config") else None
 
     # Create adapter instance
     try:

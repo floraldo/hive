@@ -65,10 +65,10 @@ class RateLimiter:
         self.last_refill = time.time()
         self.lock = asyncio.Lock()
 
-    async def acquire(self):
+    async def acquire_async(self):
         """Acquire permission to make a request"""
         async with self.lock:
-            await self._refill()
+            await self._refill_async()
 
             if self.tokens > 0:
                 self.tokens -= 1
@@ -79,7 +79,7 @@ class RateLimiter:
             wait_time = 1.0 / tokens_per_second
 
             await asyncio.sleep(wait_time)
-            await self._refill()
+            await self._refill_async()
 
             if self.tokens > 0:
                 self.tokens -= 1
@@ -87,7 +87,7 @@ class RateLimiter:
 
             return False
 
-    async def _refill(self):
+    async def _refill_async(self):
         """Refill tokens based on elapsed time"""
         now = time.time()
         elapsed = now - self.last_refill
@@ -113,9 +113,7 @@ class LayeredCache:
         try:
             import diskcache
 
-            self._disk_cache = diskcache.Cache(
-                config.cache_dir, eviction_policy="least-recently-used"
-            )
+            self._disk_cache = diskcache.Cache(config.cache_dir, eviction_policy="least-recently-used")
         except ImportError:
             logger.warning("diskcache not installed, disk caching disabled")
 
@@ -136,7 +134,7 @@ class LayeredCache:
         key_str = json.dumps(sorted_kwargs, sort_keys=True)
         return hashlib.sha256(key_str.encode()).hexdigest()
 
-    async def get(self, **kwargs) -> Optional[Any]:
+    async def get_async(self, **kwargs) -> Optional[Any]:
         """Get value from cache hierarchy"""
         key = self._make_key(**kwargs)
 
@@ -157,11 +155,11 @@ class LayeredCache:
         # Check disk cache
         if self._disk_cache:
             try:
-                value = self._disk_cache.get(key)
+                value = self._disk_cache.get_async(key)
                 if value is not None:
                     logger.debug(f"Disk cache hit: {key[:8]}...")
                     # Promote to memory cache
-                    await self._set_memory(key, value)
+                    await self._set_memory_async(key, value)
                     return value
             except Exception as e:
                 logger.error(f"Disk cache error: {e}")
@@ -169,16 +167,16 @@ class LayeredCache:
         # Check Redis cache
         if self._redis_cache:
             try:
-                value_bytes = self._redis_cache.get(key)
+                value_bytes = self._redis_cache.get_async(key)
                 if value_bytes:
                     import pickle
 
                     value = pickle.loads(value_bytes)
                     logger.debug(f"Redis cache hit: {key[:8]}...")
                     # Promote to memory and disk cache
-                    await self._set_memory(key, value)
+                    await self._set_memory_async(key, value)
                     if self._disk_cache:
-                        self._disk_cache.set(key, value, expire=self.config.disk_ttl)
+                        self._disk_cache.set_async(key, value, expire=self.config.disk_ttl)
                     return value
             except Exception as e:
                 logger.error(f"Redis cache error: {e}")
@@ -186,16 +184,16 @@ class LayeredCache:
         logger.debug(f"Cache miss: {key[:8]}...")
         return None
 
-    async def set(self, value: Any, **kwargs):
+    async def set_async(self, value: Any, **kwargs):
         """Set value in cache hierarchy"""
         key = self._make_key(**kwargs)
 
         # Set in all cache levels
-        await self._set_memory(key, value)
+        await self._set_memory_async(key, value)
 
         if self._disk_cache:
             try:
-                self._disk_cache.set(key, value, expire=self.config.disk_ttl)
+                self._disk_cache.set_async(key, value, expire=self.config.disk_ttl)
             except Exception as e:
                 logger.error(f"Disk cache write error: {e}")
 
@@ -207,7 +205,7 @@ class LayeredCache:
             except Exception as e:
                 logger.error(f"Redis cache write error: {e}")
 
-    async def _set_memory(self, key: str, value: Any):
+    async def _set_memory_async(self, key: str, value: Any):
         """Set value in memory cache with LRU eviction"""
         # Evict if at capacity
         if len(self._memory_cache) >= self.config.memory_size:
@@ -231,9 +229,7 @@ class SharedHTTPClient:
         rate_limit_config: Optional[RateLimitConfig] = None,
     ):
         self.config = config
-        self.rate_limiter = (
-            RateLimiter(rate_limit_config) if rate_limit_config else None
-        )
+        self.rate_limiter = RateLimiter(rate_limit_config) if rate_limit_config else None
 
         # Create connection pool with limits
         self._client = httpx.AsyncClient(
@@ -253,7 +249,7 @@ class SharedHTTPClient:
         retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
         before_sleep=before_sleep_log(logger, "WARNING"),
     )
-    async def get(
+    async def get_async(
         self,
         url: str,
         params: Optional[Dict] = None,
@@ -262,9 +258,9 @@ class SharedHTTPClient:
     ) -> httpx.Response:
         """Make GET request with retry and rate limiting"""
         if self.rate_limiter:
-            await self.rate_limiter.acquire()
+            await self.rate_limiter.acquire_async()
 
-        response = await self._client.get(url, params=params, headers=headers, **kwargs)
+        response = await self._client.get_async(url, params=params, headers=headers, **kwargs)
         response.raise_for_status()
         return response
 
@@ -274,7 +270,7 @@ class SharedHTTPClient:
         retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
         before_sleep=before_sleep_log(logger, "WARNING"),
     )
-    async def post(
+    async def post_async(
         self,
         url: str,
         json: Optional[Dict] = None,
@@ -284,23 +280,21 @@ class SharedHTTPClient:
     ) -> httpx.Response:
         """Make POST request with retry and rate limiting"""
         if self.rate_limiter:
-            await self.rate_limiter.acquire()
+            await self.rate_limiter.acquire_async()
 
-        response = await self._client.post(
-            url, json=json, data=data, headers=headers, **kwargs
-        )
+        response = await self._client.post_async(url, json=json, data=data, headers=headers, **kwargs)
         response.raise_for_status()
         return response
 
-    async def close(self):
+    async def close_async(self):
         """Close HTTP client connections"""
-        await self._client.aclose()
+        await self._client.aclose_async()
 
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.close()
+        await self.close_async()
 
 
 class BaseAdapter(ABC):
@@ -339,7 +333,7 @@ class BaseAdapter(ABC):
         self.cache_hits = 0
         self.cache_misses = 0
 
-    async def fetch(
+    async def fetch_async(
         self,
         location: Tuple[float, float],
         variables: List[str],
@@ -359,7 +353,7 @@ class BaseAdapter(ABC):
         self.request_count += 1
 
         # Check cache first
-        cached = await self.cache.get(
+        cached = await self.cache.get_async(
             source=self.name,
             location=location,
             variables=variables,
@@ -376,19 +370,19 @@ class BaseAdapter(ABC):
 
         try:
             # Fetch raw data from source
-            raw_data = await self._fetch_raw(location, variables, period, **kwargs)
+            raw_data = await self._fetch_raw_async(location, variables, period, **kwargs)
 
             if raw_data is None:
                 return None
 
             # Transform to xarray Dataset
-            ds = await self._transform_data(raw_data, location, variables)
+            ds = await self._transform_data_async(raw_data, location, variables)
 
             # Validate data
-            ds = await self._validate_data(ds)
+            ds = await self._validate_data_async(ds)
 
             # Cache results
-            await self.cache.set(
+            await self.cache.set_async(
                 ds,
                 source=self.name,
                 location=location,
@@ -404,7 +398,7 @@ class BaseAdapter(ABC):
             raise
 
     @abstractmethod
-    async def _fetch_raw(
+    async def _fetch_raw_async(
         self,
         location: Tuple[float, float],
         variables: List[str],
@@ -415,13 +409,11 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    async def _transform_data(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
-    ) -> xr.Dataset:
+    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
         """Transform raw data to xarray Dataset"""
         pass
 
-    async def _validate_data(self, ds: xr.Dataset) -> xr.Dataset:
+    async def _validate_data_async(self, ds: xr.Dataset) -> xr.Dataset:
         """
         Common validation applicable to all sources.
 
@@ -457,6 +449,6 @@ class BaseAdapter(ABC):
             "cache_hit_rate": cache_hit_rate,
         }
 
-    async def close(self):
+    async def close_async(self):
         """Clean up resources"""
-        await self.http_client.close()
+        await self.http_client.close_async()

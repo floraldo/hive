@@ -169,16 +169,8 @@ class AdapterCapabilities:
             "description": self.description,
             "coverage": {
                 "temporal": f"{self.temporal.start_date or 'varies'} to {self.temporal.end_date or 'present'}",
-                "spatial": (
-                    "Global"
-                    if self.spatial.global_coverage
-                    else f"Regional: {self.spatial.regions}"
-                ),
-                "resolution": (
-                    f"{self.spatial.resolution_km}km"
-                    if self.spatial.resolution_km
-                    else "varies"
-                ),
+                "spatial": ("Global" if self.spatial.global_coverage else f"Regional: {self.spatial.regions}"),
+                "resolution": (f"{self.spatial.resolution_km}km" if self.spatial.resolution_km else "varies"),
             },
             "variables": {
                 "total": len(self.supported_variables),
@@ -227,9 +219,7 @@ class AdapterCapabilities:
 
         if self.free_tier_limits:
             if self.free_tier_limits.requests_per_month:
-                limits.append(
-                    f"Limited to {self.free_tier_limits.requests_per_month} requests/month"
-                )
+                limits.append(f"Limited to {self.free_tier_limits.requests_per_month} requests/month")
 
         if self.max_request_days:
             limits.append(f"Max {self.max_request_days} days per request")
@@ -243,9 +233,7 @@ class AdapterCapabilities:
         return limits
 
 
-def compare_capabilities(
-    adapters: List[AdapterCapabilities], variables: List[str], period: Dict
-) -> Dict[str, Dict]:
+def compare_capabilities(adapters: List[AdapterCapabilities], variables: List[str], period: Dict) -> Dict[str, Dict]:
     """
     Compare multiple adapters for a specific request.
 

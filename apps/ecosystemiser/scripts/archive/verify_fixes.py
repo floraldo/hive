@@ -13,7 +13,7 @@ import sys
 def test_climate_response_validation():
     """Test that ClimateResponse includes all required base fields."""
     logger.info("Testing ClimateResponse validation...")
-    
+
     import numpy as np
     import pandas as pd
     import xarray as xr
@@ -26,90 +26,82 @@ def test_climate_response_validation():
     # Create a mock dataset
     times = pd.date_range("2023-01-01", periods=24, freq="h")
     ds = xr.Dataset(
-        {
-            "temp_air": (["time"], np.random.randn(24) + 20),
-            "ghi": (["time"], np.random.randn(24) * 100 + 500)
-        },
-        coords={"time": times}
+        {"temp_air": (["time"], np.random.randn(24) + 20), "ghi": (["time"], np.random.randn(24) * 100 + 500)},
+        coords={"time": times},
     )
-    
+
     # Create request
     request = ClimateRequest(
-        location=(40.7, -74.0),
-        variables=["temp_air", "ghi"],
-        period={"year": 2023},
-        source="nasa_power"
+        location=(40.7, -74.0), variables=["temp_air", "ghi"], period={"year": 2023}, source="nasa_power"
     )
-    
+
     # Create service and build response
     service = ClimateService()
     processing_report = {"steps": ["validation", "resampling"], "warnings": []}
-    
+
     # This should NOT raise a validation error anymore
     try:
         response = service._cache_and_respond(ds, request, processing_report)
-        
+
         # Verify all required fields are present
         assert response.start_time is not None, "start_time is missing"
         assert response.end_time is not None, "end_time is missing"
         assert response.variables == ["temp_air", "ghi"], "variables mismatch"
         assert response.source == "nasa_power", "source mismatch"
         assert response.shape == (24, 2), "shape mismatch"
-        
+
         logger.info("[PASS] ClimateResponse validation test PASSED")
         return True
     except Exception as e:
         logger.error(f"[FAIL] ClimateResponse validation test FAILED: {e}")
         return False
 
+
 def test_job_manager():
     """Test the production-ready job manager."""
     logger.info("\nTesting JobManager...")
-    
+
     from ecosystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
 
     # Create manager without Redis (fallback to memory)
-    os.environ['REDIS_URL'] = ''  # Ensure we use memory fallback
+    os.environ["REDIS_URL"] = ""  # Ensure we use memory fallback
     manager = JobManager()
-    
+
     # Should fall back to memory store
     assert manager.redis is None, "Should use memory store"
     assert manager._memory_store is not None, "Memory store not initialized"
-    
+
     # Test basic operations
     job_id = manager.create_job({"test": "data"})
     assert job_id is not None, "Job ID not created"
-    
+
     job = manager.get_job(job_id)
     assert job is not None, "Job not found"
     assert job["status"] == JobStatus.PENDING, "Wrong initial status"
     assert job["request"] == {"test": "data"}, "Request data mismatch"
-    
+
     # Update status
-    success = manager.update_job_status(
-        job_id,
-        JobStatus.COMPLETED,
-        result={"output": "result"}
-    )
+    success = manager.update_job_status(job_id, JobStatus.COMPLETED, result={"output": "result"})
     assert success is True, "Job update failed"
-    
+
     # Check updated job
     job = manager.get_job(job_id)
     assert job["status"] == JobStatus.COMPLETED, "Status not updated"
     assert job["result"] == {"output": "result"}, "Result not stored"
-    
+
     logger.info("[PASS] JobManager test PASSED")
     return True
+
 
 def test_epw_error_handling():
     """Test EPW file parser error handling."""
     logger.error("\nTesting EPW error handling...")
-    
+
     from ecosystemiser.errors import DataParseError
     from ecosystemiser.profile_loader.climate.adapters.file_epw import EPWAdapter
-    
+
     adapter = EPWAdapter()
-    
+
     # Test with too short file
     short_content = "LOCATION,Test\\nDATA"
     try:
@@ -120,7 +112,7 @@ def test_epw_error_handling():
         if "too short" not in str(e).lower():
             logger.error(f"[FAIL] EPW error handling test FAILED: Wrong error message: {e}")
             return False
-    
+
     # Test with invalid CSV data
     invalid_content = "\\n" * 10 + "not,valid,csv,data\\n,,,\\n"
     try:
@@ -131,59 +123,60 @@ def test_epw_error_handling():
         if "parse" not in str(e).lower() and "short" not in str(e).lower():
             logger.error(f"[FAIL] EPW error handling test FAILED: Wrong error message: {e}")
             return False
-    
+
     logger.error("[PASS] EPW error handling test PASSED")
     return True
+
 
 def test_time_gap_detection():
     """Test improved time gap detection with explicit frequency."""
     logger.info("\nTesting time gap detection...")
-    
+
     import numpy as np
     import pandas as pd
     import xarray as xr
     from ecosystemiser.profile_loader.climate.processing.validation import (
         ValidationProcessor,
     )
-    
+
     processor = ValidationProcessor()
-    
+
     # Create dataset with a gap
     times = pd.date_range("2023-01-01", periods=10, freq="h").tolist()
     times.pop(5)  # Remove one timestamp to create a gap
-    
-    ds = xr.Dataset(
-        {"temp": (["time"], np.ones(9))},
-        coords={"time": times}
-    )
-    
+
+    ds = xr.Dataset({"temp": (["time"], np.ones(9))}, coords={"time": times})
+
     # Check gaps with explicit frequency
     issues = processor._check_time_gaps(ds, expected_freq="1H")
-    
+
     # Should detect the missing timestamp
     assert len(issues) > 0, "No issues detected"
-    assert any("missing" in issue.message.lower() or "gap" in issue.message.lower() 
-               for issue in issues), "Missing timestamp not detected"
-    
+    assert any(
+        "missing" in issue.message.lower() or "gap" in issue.message.lower() for issue in issues
+    ), "Missing timestamp not detected"
+
     # Verify the expected frequency was used
     gap_issue = next((i for i in issues if "missing" in i.message.lower() or "gap" in i.message.lower()), None)
     assert gap_issue is not None, "No gap issue found"
-    
+
     # Check that frequency information is in metadata
     metadata = gap_issue.metadata or {}
-    if 'expected_freq' in metadata:
-        assert "1H" in str(metadata['expected_freq']), "Expected frequency not used"
-    
+    if "expected_freq" in metadata:
+        assert "1H" in str(metadata["expected_freq"]), "Expected frequency not used"
+
     logger.info("[PASS] Time gap detection test PASSED")
     return True
+
 
 def test_factory_no_sys_path():
     """Test that factory doesn't manipulate sys.path."""
     logger.info("\nTesting factory sys.path cleanup...")
-    
+
     import sys
+
     original_path = sys.path.copy()
-    
+
     # Import should not modify sys.path
     from ecosystemiser.profile_loader.climate.adapters.factory import (
         _auto_register_adapters,
@@ -191,51 +184,53 @@ def test_factory_no_sys_path():
 
     # Check path wasn't modified
     assert sys.path == original_path, "sys.path was modified on import"
-    
+
     # Run auto-register
     _auto_register_adapters()
-    
+
     # Path should still be unchanged
     assert sys.path == original_path, "sys.path was modified by _auto_register_adapters"
-    
+
     logger.info("[PASS] Factory sys.path test PASSED")
     return True
+
 
 def main():
     """Run all verification tests."""
     logger.info("=" * 60)
     logger.info("PRODUCTION FIXES VERIFICATION")
     logger.info("=" * 60)
-    
+
     results = []
-    
+
     # Run each test
     results.append(("ClimateResponse validation", test_climate_response_validation()))
     results.append(("JobManager", test_job_manager()))
     results.append(("EPW error handling", test_epw_error_handling()))
     results.append(("Time gap detection", test_time_gap_detection()))
     results.append(("Factory sys.path cleanup", test_factory_no_sys_path()))
-    
+
     # Summary
     logger.info("\n" + "=" * 60)
     logger.info("SUMMARY")
     logger.info("=" * 60)
-    
+
     passed = sum(1 for _, result in results if result)
     total = len(results)
-    
+
     for name, result in results:
         status = "[PASS] PASSED" if result else "[FAIL] FAILED"
         logger.info(f"{name}: {status}")
-    
+
     logger.info(f"\nTotal: {passed}/{total} tests passed")
-    
+
     if passed == total:
         logger.info("\nSUCCESS: ALL PRODUCTION FIXES VERIFIED SUCCESSFULLY!")
         return 0
     else:
         logger.error(f"\nWARNING:  {total - passed} tests failed. Please review the failures above.")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

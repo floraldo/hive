@@ -40,26 +40,18 @@ def validate_app_contracts(project_root: Path) -> Tuple[bool, List[str]]:
 
                 # Validate required sections
                 if "app" not in contract:
-                    violations.append(
-                        f"App '{app_name}' missing [app] section in hive-app.toml"
-                    )
+                    violations.append(f"App '{app_name}' missing [app] section in hive-app.toml")
                 elif "name" not in contract["app"]:
-                    violations.append(
-                        f"App '{app_name}' missing app.name in hive-app.toml"
-                    )
+                    violations.append(f"App '{app_name}' missing app.name in hive-app.toml")
 
                 # Ensure at least one service definition
                 service_sections = ["daemons", "tasks", "endpoints"]
                 has_service = any(section in contract for section in service_sections)
                 if not has_service:
-                    violations.append(
-                        f"App '{app_name}' missing service definitions (daemons/tasks/endpoints)"
-                    )
+                    violations.append(f"App '{app_name}' missing service definitions (daemons/tasks/endpoints)")
 
             except Exception as e:
-                violations.append(
-                    f"App '{app_name}' has invalid hive-app.toml: {str(e)}"
-                )
+                violations.append(f"App '{app_name}' has invalid hive-app.toml: {str(e)}")
 
     return len(violations) == 0, violations
 
@@ -145,9 +137,7 @@ def validate_single_config_source(project_root: Path) -> Tuple[bool, List[str]]:
     violations = []
 
     # Check for forbidden duplicate configuration files
-    forbidden_config = (
-        project_root / "packages" / "hive-db" / "src" / "hive_db" / "config.py"
-    )
+    forbidden_config = project_root / "packages" / "hive-db" / "src" / "hive_db" / "config.py"
     if forbidden_config.exists():
         violations.append(
             "CRITICAL: Duplicate configuration source detected - "
@@ -159,17 +149,11 @@ def validate_single_config_source(project_root: Path) -> Tuple[bool, List[str]]:
     setup_files = list(project_root.rglob("setup.py"))
     # Filter out virtual environments and worktrees
     setup_files = [
-        f
-        for f in setup_files
-        if ".venv" not in str(f)
-        and ".worktrees" not in str(f)
-        and "site-packages" not in str(f)
+        f for f in setup_files if ".venv" not in str(f) and ".worktrees" not in str(f) and "site-packages" not in str(f)
     ]
 
     if setup_files:
-        violations.extend(
-            [f"Found setup.py file: {f.relative_to(project_root)}" for f in setup_files]
-        )
+        violations.extend([f"Found setup.py file: {f.relative_to(project_root)}" for f in setup_files])
 
     # Ensure root pyproject.toml exists
     root_config = project_root / "pyproject.toml"
@@ -180,18 +164,12 @@ def validate_single_config_source(project_root: Path) -> Tuple[bool, List[str]]:
             config = toml.load(root_config)
             # Check for workspace configuration
             has_workspace = False
-            if (
-                "tool" in config
-                and "poetry" in config["tool"]
-                and "group" in config["tool"]["poetry"]
-            ):
+            if "tool" in config and "poetry" in config["tool"] and "group" in config["tool"]["poetry"]:
                 if "workspace" in config["tool"]["poetry"]["group"]:
                     has_workspace = True
 
             if not has_workspace:
-                violations.append(
-                    "Workspace configuration missing from root pyproject.toml"
-                )
+                violations.append("Workspace configuration missing from root pyproject.toml")
         except Exception as e:
             violations.append(f"Root pyproject.toml is invalid: {str(e)}")
 
@@ -258,9 +236,7 @@ def validate_package_app_discipline(project_root: Path) -> Tuple[bool, List[str]
                     file_name = py_file.stem.lower()
                     for indicator in business_logic_indicators:
                         if indicator in file_name and "test" not in file_name:
-                            violations.append(
-                                f"Package '{package_name}' may contain business logic: {py_file.name}"
-                            )
+                            violations.append(f"Package '{package_name}' may contain business logic: {py_file.name}")
                             break
 
     return len(violations) == 0, violations
@@ -356,9 +332,7 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                         other_apps = [
                             d.name
                             for d in apps_dir.iterdir()
-                            if d.is_dir()
-                            and d.name != app_name
-                            and not d.name.startswith(".")
+                            if d.is_dir() and d.name != app_name and not d.name.startswith(".")
                         ]
 
                         for other_app in other_apps:
@@ -375,13 +349,13 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                                 # Check for actual import statements with word boundaries
                                 # Avoid false positives like 'from dataclasses' matching 'from data'
                                 import_lines = []
-                                for line in content.split('\n'):
+                                for line in content.split("\n"):
                                     line = line.strip()
                                     if line.startswith(pattern):
                                         # Make sure it's a complete module name match
                                         # After the pattern, there should be a space, dot, or nothing
-                                        after_pattern = line[len(pattern):]
-                                        if not after_pattern or after_pattern[0] in (' ', '.', '\n'):
+                                        after_pattern = line[len(pattern) :]
+                                        if not after_pattern or after_pattern[0] in (" ", ".", "\n"):
                                             import_lines.append(line)
 
                                 if import_lines:
@@ -393,8 +367,7 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                                     ]
 
                                     is_core_import = any(
-                                        core_pattern in content
-                                        for core_pattern in core_import_patterns
+                                        core_pattern in content for core_pattern in core_import_patterns
                                     )
 
                                     # Also check for client/api patterns (allowed)
@@ -404,9 +377,7 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                                         ".api",
                                         ".API",
                                     ]
-                                    is_client = any(
-                                        cp in content for cp in client_patterns
-                                    )
+                                    is_client = any(cp in content for cp in client_patterns)
 
                                     if not is_core_import and not is_client:
                                         # Check if any of the import lines are non-core imports
@@ -500,22 +471,12 @@ def validate_service_layer_discipline(project_root: Path) -> Tuple[bool, List[st
                                     # Simple check for docstrings on classes
                                     lines = content.split("\n")
                                     for i, line in enumerate(lines):
-                                        if line.strip().startswith(
-                                            "class "
-                                        ) and not line.strip().startswith("class _"):
+                                        if line.strip().startswith("class ") and not line.strip().startswith("class _"):
                                             # Check if next line has docstring
                                             if i + 1 < len(lines):
                                                 next_line = lines[i + 1].strip()
-                                                if not (
-                                                    next_line.startswith('"""')
-                                                    or next_line.startswith("'''")
-                                                ):
-                                                    class_name = (
-                                                        line.strip()
-                                                        .split()[1]
-                                                        .split("(")[0]
-                                                        .rstrip(":")
-                                                    )
+                                                if not (next_line.startswith('"""') or next_line.startswith("'''")):
+                                                    class_name = line.strip().split()[1].split("(")[0].rstrip(":")
                                                     violations.append(
                                                         f"Service class '{class_name}' missing docstring: {py_file.relative_to(project_root)}"
                                                     )
@@ -566,9 +527,7 @@ def validate_communication_patterns(project_root: Path) -> Tuple[bool, List[str]
 
                         # Check daemon configurations
                         if "daemons" in contract:
-                            for daemon_name, daemon_config in contract[
-                                "daemons"
-                            ].items():
+                            for daemon_name, daemon_config in contract["daemons"].items():
                                 if "restart_on_failure" not in daemon_config:
                                     violations.append(
                                         f"Daemon '{daemon_name}' in {app_name} missing restart_on_failure setting"
@@ -657,11 +616,7 @@ def validate_interface_contracts(project_root: Path) -> Tuple[bool, List[str]]:
 
                             # Check for type hints on parameters
                             for arg in node.args.args:
-                                if (
-                                    arg.arg != "self"
-                                    and arg.arg != "cls"
-                                    and not arg.annotation
-                                ):
+                                if arg.arg != "self" and arg.arg != "cls" and not arg.annotation:
                                     violations.append(
                                         f"Parameter '{arg.arg}' missing type hint in '{node.name}': {py_file.relative_to(project_root)}:{node.lineno}"
                                     )
@@ -674,9 +629,7 @@ def validate_interface_contracts(project_root: Path) -> Tuple[bool, List[str]]:
 
                     # Check async function naming
                     elif isinstance(node, ast.AsyncFunctionDef):
-                        if not node.name.startswith("_") and not node.name.endswith(
-                            "_async"
-                        ):
+                        if not node.name.startswith("_") and not node.name.endswith("_async"):
                             violations.append(
                                 f"Async function '{node.name}' should end with '_async': {py_file.relative_to(project_root)}:{node.lineno}"
                             )
@@ -707,11 +660,7 @@ def validate_error_handling_standards(project_root: Path) -> Tuple[bool, List[st
             continue
 
         for py_file in base_dir.rglob("*.py"):
-            if (
-                ".venv" in str(py_file)
-                or "__pycache__" in str(py_file)
-                or "test" in str(py_file)
-            ):
+            if ".venv" in str(py_file) or "__pycache__" in str(py_file) or "test" in str(py_file):
                 continue
 
             try:
@@ -724,12 +673,9 @@ def validate_error_handling_standards(project_root: Path) -> Tuple[bool, List[st
                     line_num += 1
                     stripped = line.strip()
                     if stripped == "except:" or (
-                        stripped.startswith("except:")
-                        and stripped[7:].strip().startswith("#")
+                        stripped.startswith("except:") and stripped[7:].strip().startswith("#")
                     ):
-                        violations.append(
-                            f"Bare except clause found: {py_file.relative_to(project_root)}:{line_num}"
-                        )
+                        violations.append(f"Bare except clause found: {py_file.relative_to(project_root)}:{line_num}")
 
                 # Parse AST for more detailed checks
                 tree = ast.parse(content)
@@ -794,10 +740,7 @@ def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str
 
         for py_file in package_dir.rglob("*.py"):
             # Skip test files, __pycache__, and virtual environments
-            if any(
-                skip in str(py_file)
-                for skip in ["test", "__pycache__", ".venv", ".pytest_cache"]
-            ):
+            if any(skip in str(py_file) for skip in ["test", "__pycache__", ".venv", ".pytest_cache"]):
                 continue
 
             try:
@@ -812,18 +755,18 @@ def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str
                     for match in matches:
                         # Find line number for better error reporting
                         line_num = content[: match.start()].count("\n") + 1
-                        
+
                         # Get surrounding context to detect os.environ.get() usage
-                        lines = content.split('\n')
+                        lines = content.split("\n")
                         context_lines = []
                         for i in range(max(0, line_num - 3), min(len(lines), line_num + 2)):
                             context_lines.append(lines[i])
-                        context = '\n'.join(context_lines)
-                        
+                        context = "\n".join(context_lines)
+
                         # Skip if this is a default value in os.environ.get() - this is proper configuration pattern
                         if "os.environ.get(" in context and match.group() in context:
                             continue
-                            
+
                         violations.append(
                             f"Hardcoded environment value ({description}): "
                             f"{py_file.relative_to(project_root)}:{line_num} "
@@ -878,24 +821,28 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                 # Check for print statements in non-test, non-demo files
                 if "print(" in content:
                     # Check if this file is a CLI tool or has __main__ section
-                    is_cli_tool = ('if __name__ == "__main__":' in content or 
-                                  'def main(' in content or 
-                                  'secure_config.py' in str(py_file) or  # CLI config tool
-                                  'cli.py' in str(py_file) or
-                                  'command' in str(py_file))
-                    
+                    is_cli_tool = (
+                        'if __name__ == "__main__":' in content
+                        or "def main(" in content
+                        or "secure_config.py" in str(py_file)
+                        or "cli.py" in str(py_file)  # CLI config tool
+                        or "command" in str(py_file)
+                    )
+
                     line_num = 0
                     in_main_section = False
                     for line in content.split("\n"):
                         line_num += 1
-                        
+
                         # Track if we're in the __main__ section or CLI utility functions
-                        if ('if __name__ == "__main__":' in line or
-                            'def encrypt_production_config(' in line or 
-                            'def generate_master_key(' in line):
+                        if (
+                            'if __name__ == "__main__":' in line
+                            or "def encrypt_production_config(" in line
+                            or "def generate_master_key(" in line
+                        ):
                             in_main_section = True
                             continue
-                        
+
                         if "print(" in line and not line.strip().startswith("#"):
                             # Check if this is actually the built-in print() function
                             # Exclude: self.console.print(), pprint(), rich.print(), etc.
@@ -906,7 +853,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                                 and not stripped_line.startswith("from ")  # Exclude import statements
                                 and not stripped_line.startswith("import ")  # Exclude import statements
                                 and not stripped_line.startswith("# ")  # Already excluded comments
-                                and not stripped_line.startswith("\"")  # Exclude string literals
+                                and not stripped_line.startswith('"')  # Exclude string literals
                                 and not stripped_line.startswith("'")  # Exclude string literals
                                 and not (is_cli_tool and in_main_section)  # Exclude CLI tool main sections
                             ):
@@ -916,10 +863,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
 
                 # Check if file actually uses logging (not just mentions it in comments)
                 uses_logging = (
-                    "logger." in content
-                    or "logging." in content
-                    or "getLogger(" in content
-                    or "get_logger(" in content
+                    "logger." in content or "logging." in content or "getLogger(" in content or "get_logger(" in content
                 )
                 if uses_logging:
                     # Check for various valid hive_logging import patterns
@@ -946,11 +890,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                             )
 
                 # Check for direct import logging violations (stricter enforcement)
-                if (
-                    "import logging" in content
-                    and not content.startswith('"""')
-                    and "# type: ignore" not in content
-                ):
+                if "import logging" in content and not content.startswith('"""') and "# type: ignore" not in content:
                     # Only allow import logging in hive-logging package itself
                     is_logging_infrastructure = False
                     for part in py_file.parts:
@@ -962,9 +902,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                         line_num = 0
                         for line in content.split("\n"):
                             line_num += 1
-                            if "import logging" in line and not line.strip().startswith(
-                                "#"
-                            ):
+                            if "import logging" in line and not line.strip().startswith("#"):
                                 violations.append(
                                     f"Direct 'import logging' found (use hive_logging): {py_file.relative_to(project_root)}:{line_num}"
                                 )
@@ -1002,11 +940,7 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
         return False, ["apps/ directory does not exist"]
 
     for app_dir in apps_dir.iterdir():
-        if (
-            app_dir.is_dir()
-            and not app_dir.name.startswith(".")
-            and app_dir.name != "legacy"
-        ):
+        if app_dir.is_dir() and not app_dir.name.startswith(".") and app_dir.name != "legacy":
             app_name = app_dir.name
 
             # Find the app's source directory
@@ -1024,11 +958,7 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
                 # If the module exists (either as file or directory)
                 if module_file.exists() or module_dir.exists():
                     # Check that it imports from the base package
-                    check_file = (
-                        module_file
-                        if module_file.exists()
-                        else (module_dir / "__init__.py")
-                    )
+                    check_file = module_file if module_file.exists() else (module_dir / "__init__.py")
 
                     if check_file.exists():
                         try:
@@ -1036,10 +966,7 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
                                 content = f.read()
 
                             # Check for proper import
-                            if (
-                                f"from {base_package}" not in content
-                                and f"import {base_package}" not in content
-                            ):
+                            if f"from {base_package}" not in content and f"import {base_package}" not in content:
                                 violations.append(
                                     f"App '{app_name}' core/{module_name} doesn't import from {base_package}"
                                 )
@@ -1055,9 +982,7 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
 
             for incorrect, correct in incorrect_names.items():
                 if (core_dir / incorrect).exists():
-                    violations.append(
-                        f"App '{app_name}' has core/{incorrect}, should be core/{correct}"
-                    )
+                    violations.append(f"App '{app_name}' has core/{incorrect}, should be core/{correct}")
 
     return len(violations) == 0, violations
 
@@ -1103,14 +1028,10 @@ def validate_package_naming_consistency(project_root: Path) -> Tuple[bool, List[
             expected_src_name = package_name.replace("-", "_")
             src_dir = package_dir / "src" / expected_src_name
             if not src_dir.exists():
-                violations.append(
-                    f"Package '{package_name}' missing expected src directory 'src/{expected_src_name}'"
-                )
+                violations.append(f"Package '{package_name}' missing expected src directory 'src/{expected_src_name}'")
 
         except Exception as e:
-            violations.append(
-                f"Package '{package_name}' has malformed pyproject.toml: {e}"
-            )
+            violations.append(f"Package '{package_name}' has malformed pyproject.toml: {e}")
 
     return len(violations) == 0, violations
 
@@ -1147,11 +1068,7 @@ def validate_development_tools_consistency(
         try:
             pyproject = toml.load(pyproject_file)
             dev_deps = (
-                pyproject.get("tool", {})
-                .get("poetry", {})
-                .get("group", {})
-                .get("dev", {})
-                .get("dependencies", {})
+                pyproject.get("tool", {}).get("poetry", {}).get("group", {}).get("dev", {}).get("dependencies", {})
             )
 
             # Check each standard tool if it exists
@@ -1203,21 +1120,14 @@ def validate_async_pattern_consistency(project_root: Path) -> Tuple[bool, List[s
                     rel_path = py_file.relative_to(project_root)
 
                     # Look for connection pool patterns that should use hive-async
-                    if (
-                        "connection" in node.name.lower()
-                        and "pool" in node.name.lower()
-                    ):
+                    if "connection" in node.name.lower() and "pool" in node.name.lower():
                         # Check if hive_async is imported
                         has_hive_async_import = any(
-                            isinstance(n, ast.ImportFrom)
-                            and n.module
-                            and "hive_async" in n.module
+                            isinstance(n, ast.ImportFrom) and n.module and "hive_async" in n.module
                             for n in ast.walk(tree)
                         )
                         if not has_hive_async_import:
-                            violations.append(
-                                f"{rel_path}: Async connection handling should use hive-async utilities"
-                            )
+                            violations.append(f"{rel_path}: Async connection handling should use hive-async utilities")
 
         except (UnicodeDecodeError, SyntaxError):
             # Skip files that can't be parsed (binary files, syntax errors)
@@ -1263,13 +1173,8 @@ def validate_cli_pattern_consistency(project_root: Path) -> Tuple[bool, List[str
             # Check for Click usage without hive-cli
             if "import click" in content and "from hive_cli" not in content:
                 # Look for complex CLI patterns that should use hive-cli
-                if any(
-                    pattern in content
-                    for pattern in ["@click.group", "@click.command", "click.echo"]
-                ):
-                    violations.append(
-                        f"{rel_path}: CLI should use hive-cli utilities for consistency"
-                    )
+                if any(pattern in content for pattern in ["@click.group", "@click.command", "click.echo"]):
+                    violations.append(f"{rel_path}: CLI should use hive-cli utilities for consistency")
 
         except (UnicodeDecodeError, SyntaxError):
             # Skip files that can't be parsed
@@ -1333,9 +1238,7 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                 "loader.py",
                 "paths.py",
             ]
-            is_config_file = any(
-                config_file in py_file.name for config_file in config_related_files
-            )
+            is_config_file = any(config_file in py_file.name for config_file in config_related_files)
 
             try:
                 with open(py_file, "r", encoding="utf-8") as f:
@@ -1371,18 +1274,14 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                                 or stripped.startswith(f"{pattern} =")
                                 or f"global {pattern}" in stripped
                             ):
-                                violations.append(
-                                    f"Global singleton pattern '{pattern}' found: {rel_path}:{line_num}"
-                                )
+                                violations.append(f"Global singleton pattern '{pattern}' found: {rel_path}:{line_num}")
 
                 # Check for direct os.getenv() calls outside config modules
                 if not is_config_file and "os.getenv(" in content:
                     lines = content.split("\n")
                     for line_num, line in enumerate(lines, 1):
                         if "os.getenv(" in line and not line.strip().startswith("#"):
-                            violations.append(
-                                f"Direct os.getenv() call outside config module: {rel_path}:{line_num}"
-                            )
+                            violations.append(f"Direct os.getenv() call outside config module: {rel_path}:{line_num}")
 
                 # Check for global load_config() and get_config() calls
                 forbidden_global_calls = [
@@ -1396,9 +1295,7 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                         lines = content.split("\n")
                         for line_num, line in enumerate(lines, 1):
                             if call in line and not line.strip().startswith("#"):
-                                violations.append(
-                                    f"Global config call '{call}' found: {rel_path}:{line_num}"
-                                )
+                                violations.append(f"Global config call '{call}' found: {rel_path}:{line_num}")
 
                 # Check for singleton getter functions (common anti-pattern)
                 singleton_getter_patterns = [
@@ -1419,9 +1316,7 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                             if getter in line and not line.strip().startswith("#"):
                                 # Skip if this is defining the function itself
                                 if not line.strip().startswith("def "):
-                                    violations.append(
-                                        f"Singleton getter call '{getter}' found: {rel_path}:{line_num}"
-                                    )
+                                    violations.append(f"Singleton getter call '{getter}' found: {rel_path}:{line_num}")
 
                 # Check for DI fallback anti-patterns
                 if "def __init__(" in content:
@@ -1430,11 +1325,8 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                         line_stripped = line.strip()
 
                         # Detect DI fallback pattern: def __init__(self, config=None):
-                        if (line_stripped.startswith("def __init__(")
-                            and "config=None" in line_stripped):
-                            violations.append(
-                                f"DI fallback anti-pattern 'config=None' found: {rel_path}:{line_num}"
-                            )
+                        if line_stripped.startswith("def __init__(") and "config=None" in line_stripped:
+                            violations.append(f"DI fallback anti-pattern 'config=None' found: {rel_path}:{line_num}")
 
                         # Detect other common fallback patterns
                         fallback_patterns = [
@@ -1443,11 +1335,8 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                             "options=None",
                         ]
                         for pattern in fallback_patterns:
-                            if (line_stripped.startswith("def __init__(")
-                                and pattern in line_stripped):
-                                violations.append(
-                                    f"DI fallback anti-pattern '{pattern}' found: {rel_path}:{line_num}"
-                                )
+                            if line_stripped.startswith("def __init__(") and pattern in line_stripped:
+                                violations.append(f"DI fallback anti-pattern '{pattern}' found: {rel_path}:{line_num}")
 
                 # Check for fallback blocks in __init__ methods
                 if "if config is None:" in content or "if settings is None:" in content:
@@ -1462,21 +1351,16 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                         ]
                         for check in fallback_checks:
                             if check in line_stripped:
-                                violations.append(
-                                    f"DI fallback block '{check}' found: {rel_path}:{line_num}"
-                                )
+                                violations.append(f"DI fallback block '{check}' found: {rel_path}:{line_num}")
 
                 # Check for singleton class patterns
                 if "class " in content:
                     lines = content.split("\n")
                     for line_num, line in enumerate(lines, 1):
                         if "class " in line and any(
-                            pattern in line.lower()
-                            for pattern in ["singleton", "_instance", "metaclass"]
+                            pattern in line.lower() for pattern in ["singleton", "_instance", "metaclass"]
                         ):
-                            violations.append(
-                                f"Singleton class pattern found: {rel_path}:{line_num}"
-                            )
+                            violations.append(f"Singleton class pattern found: {rel_path}:{line_num}")
 
             except Exception as e:
                 # Skip files that can't be read

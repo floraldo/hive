@@ -26,9 +26,7 @@ def run_command(cmd, description):
         if result.returncode == 0:
             logger.info(f"[OK] {description} completed")
         else:
-            logger.warning(
-                f"[WARN] {description} completed with warnings: {result.stderr}"
-            )
+            logger.warning(f"[WARN] {description} completed with warnings: {result.stderr}")
     except Exception as e:
         logger.error(f"[ERROR] {description} failed: {e}")
 
@@ -83,9 +81,7 @@ def clean_database():
             logger.warning(f"[WARN] Could not count workers: {e}")
             worker_count = 0
 
-        logger.info(
-            f"  Found: {task_count} tasks, {run_count} runs, {worker_count} workers"
-        )
+        logger.info(f"  Found: {task_count} tasks, {run_count} runs, {worker_count} workers")
 
         # Clear all tables in transaction with error handling
         try:
@@ -94,9 +90,7 @@ def clean_database():
                 conn.execute("DELETE FROM runs")
                 conn.execute("DELETE FROM workers")
                 conn.execute("DELETE FROM tasks")
-            logger.info(
-                f"[OK] Database cleaned - removed {task_count} tasks, {run_count} runs, {worker_count} workers"
-            )
+            logger.info(f"[OK] Database cleaned - removed {task_count} tasks, {run_count} runs, {worker_count} workers")
         except Exception as e:
             logger.error(f"[ERROR] Failed to delete database records: {e}")
             return
@@ -122,20 +116,13 @@ def clean_git_branches(preserve=False):
     logger.info("Cleaning agent git branches...")
     try:
         # First, remove any worktrees
-        result = subprocess.run(
-            "git worktree prune", shell=True, capture_output=True, text=True
-        )
+        result = subprocess.run("git worktree prune", shell=True, capture_output=True, text=True)
 
         # Get list of agent branches (Windows compatible)
-        result = subprocess.run(
-            'git branch | findstr "agent/"', shell=True, capture_output=True, text=True
-        )
+        result = subprocess.run('git branch | findstr "agent/"', shell=True, capture_output=True, text=True)
 
         if result.returncode == 0 and result.stdout.strip():
-            branches = [
-                line.strip().replace("*", "").strip()
-                for line in result.stdout.strip().split("\n")
-            ]
+            branches = [line.strip().replace("*", "").strip() for line in result.stdout.strip().split("\n")]
             branches = [b for b in branches if b and "agent/" in b]
 
             if branches:
@@ -192,15 +179,11 @@ def kill_processes():
                         logger.info(f"  [OK] Killed {process_name} processes")
                         killed_any = True
                     else:
-                        logger.error(
-                            f"  [WARN] Failed to kill {process_name} processes: {kill_result.stderr}"
-                        )
+                        logger.error(f"  [WARN] Failed to kill {process_name} processes: {kill_result.stderr}")
             except subprocess.TimeoutExpired:
                 logger.warning(f"  [WARN] Timeout while processing {process_name}")
             except FileNotFoundError:
-                logger.info(
-                    f"  [INFO] Process management commands not available (tasklist/wmic)"
-                )
+                logger.info(f"  [INFO] Process management commands not available (tasklist/wmic)")
                 break
             except Exception as e:
                 logger.warning(f"  [WARN] Could not kill {process_name}: {e}")
@@ -248,20 +231,14 @@ def clean_results_and_logs():
                                 logger.info(f"  [OK] Removed {file_path}")
                                 files_removed += 1
                         except PermissionError:
-                            logger.warning(
-                                f"  [WARN] Permission denied: {file_path} (file may be in use)"
-                            )
+                            logger.warning(f"  [WARN] Permission denied: {file_path} (file may be in use)")
                         except Exception as e:
-                            logger.warning(
-                                f"  [WARN] Could not remove {file_path}: {e}"
-                            )
+                            logger.warning(f"  [WARN] Could not remove {file_path}: {e}")
                 except Exception as e:
                     logger.error(f"  [WARN] Error processing pattern {pattern}: {e}")
 
             if files_removed > 0:
-                logger.info(
-                    f"[OK] Log file cleanup completed - removed {files_removed} files"
-                )
+                logger.info(f"[OK] Log file cleanup completed - removed {files_removed} files")
             else:
                 logger.info("[INFO] No log files found to remove")
         except Exception as e:
@@ -273,9 +250,7 @@ def clean_results_and_logs():
 def main():
     try:
         # Parse arguments
-        parser = argparse.ArgumentParser(
-            description="Clean Hive workspace and database for fresh start"
-        )
+        parser = argparse.ArgumentParser(description="Clean Hive workspace and database for fresh start")
         parser.add_argument(
             "--keep-branches",
             action="store_true",
@@ -351,11 +326,7 @@ def main():
             if "Process cleanup" in operations_success:
                 logger.info("  ✓ Processes terminated")
             if "Git branch cleanup" in operations_success:
-                logger.info(
-                    "  ✓ Git branches cleaned"
-                    if not args.keep_branches
-                    else "  ✓ Git branches preserved"
-                )
+                logger.info("  ✓ Git branches cleaned" if not args.keep_branches else "  ✓ Git branches preserved")
             if "Files cleanup" in operations_success:
                 logger.info("  ✓ Worktrees, logs, results, and hints cleared")
         if "Database cleanup" in operations_success:

@@ -47,17 +47,13 @@ class CertificationTestConductor:
                     proc.kill()
                     proc.wait()
 
-    def run_command(
-        self, command: str, capture_output: bool = True, env=None
-    ) -> Tuple[int, str, str]:
+    def run_command(self, command: str, capture_output: bool = True, env=None) -> Tuple[int, str, str]:
         """Run a command and return exit code, stdout, stderr."""
         self.log(f"Running: {command}", "DEBUG")
         if env is None:
             env = os.environ.copy()
             env["PYTHONPATH"] = str(Path.cwd())
-        result = subprocess.run(
-            command, shell=True, capture_output=capture_output, text=True, env=env
-        )
+        result = subprocess.run(command, shell=True, capture_output=capture_output, text=True, env=env)
         return result.returncode, result.stdout, result.stderr
 
     def setup_environment(self) -> bool:
@@ -76,9 +72,7 @@ class CertificationTestConductor:
 
         # Seed test data
         self.log("Seeding test tasks...", "INFO")
-        exit_code, stdout, stderr = self.run_command(
-            "python scripts/seed_test_tasks.py"
-        )
+        exit_code, stdout, stderr = self.run_command("python scripts/seed_test_tasks.py")
         if exit_code != 0:
             self.log(f"Failed to seed test data: {stderr}", "ERROR")
             return False
@@ -147,9 +141,7 @@ class CertificationTestConductor:
             if conn:
                 conn.close()
 
-    def wait_for_state(
-        self, task_id: int, target_state: str, timeout: int = 120
-    ) -> bool:
+    def wait_for_state(self, task_id: int, target_state: str, timeout: int = 120) -> bool:
         """Wait for a task to reach a target state."""
         start = time.time()
         last_state = None
@@ -272,11 +264,7 @@ class CertificationTestConductor:
 
         # Overall status
         all_passed = all(result == "PASSED" for result in self.test_results.values())
-        overall_status = (
-            "[PASS] CERTIFICATION PASSED"
-            if all_passed
-            else "[FAIL] CERTIFICATION FAILED"
-        )
+        overall_status = "[PASS] CERTIFICATION PASSED" if all_passed else "[FAIL] CERTIFICATION FAILED"
 
         self.log(overall_status, "REPORT")
         self.log("", "REPORT")
@@ -298,15 +286,11 @@ class CertificationTestConductor:
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT id, title, state, application FROM tasks ORDER BY id"
-            )
+            cursor.execute("SELECT id, title, state, application FROM tasks ORDER BY id")
             tasks = cursor.fetchall()
 
             for task in tasks:
-                self.log(
-                    f"  Task {task[0]} ({task[1]}): {task[2]} [{task[3]}]", "REPORT"
-                )
+                self.log(f"  Task {task[0]} ({task[1]}): {task[2]} [{task[3]}]", "REPORT")
         except Exception as e:
             self.log(f"  Error querying database: {e}", "ERROR")
         finally:

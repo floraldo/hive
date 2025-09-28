@@ -126,9 +126,7 @@ class SimulationError(EcoSystemiserError):
     """Base class for simulation-related errors"""
 
     def __init__(self, message: str, **kwargs):
-        super().__init__(
-            message=message, component=kwargs.get("component", "simulation"), **kwargs
-        )
+        super().__init__(message=message, component=kwargs.get("component", "simulation"), **kwargs)
 
 
 class SimulationConfigError(SimulationError):
@@ -261,9 +259,7 @@ class SolverError(EcoSystemiserError):
     """Base class for solver-related errors"""
 
     def __init__(self, message: str, **kwargs):
-        super().__init__(
-            message=message, component=kwargs.get("component", "solver"), **kwargs
-        )
+        super().__init__(message=message, component=kwargs.get("component", "solver"), **kwargs)
 
 
 class OptimizationInfeasibleError(SolverError):
@@ -432,9 +428,7 @@ class DatabaseError(EcoSystemiserError):
     """Base class for database-related errors"""
 
     def __init__(self, message: str, **kwargs):
-        super().__init__(
-            message=message, component=kwargs.get("component", "database"), **kwargs
-        )
+        super().__init__(message=message, component=kwargs.get("component", "database"), **kwargs)
 
 
 class DatabaseConnectionError(DatabaseError):
@@ -490,9 +484,7 @@ class EventBusError(EcoSystemiserError):
     """Base class for event bus errors"""
 
     def __init__(self, message: str, **kwargs):
-        super().__init__(
-            message=message, component=kwargs.get("component", "event_bus"), **kwargs
-        )
+        super().__init__(message=message, component=kwargs.get("component", "event_bus"), **kwargs)
 
 
 class EventPublishError(EventBusError):

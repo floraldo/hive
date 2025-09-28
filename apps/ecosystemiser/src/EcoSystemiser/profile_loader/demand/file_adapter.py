@@ -46,9 +46,7 @@ class DemandFileAdapter:
             for profile_name, column_name in column_mapping.items():
                 if column_name in df.columns:
                     profiles[profile_name] = df[column_name].values
-                    logger.info(
-                        f"Loaded demand profile '{profile_name}' from column '{column_name}'"
-                    )
+                    logger.info(f"Loaded demand profile '{profile_name}' from column '{column_name}'")
                 else:
                     logger.warning(f"Column '{column_name}' not found in demand file")
 

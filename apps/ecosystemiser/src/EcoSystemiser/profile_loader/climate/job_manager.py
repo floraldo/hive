@@ -54,9 +54,7 @@ class JobManager:
         self.ttl_seconds = ttl_hours * 3600
 
         if not REDIS_AVAILABLE:
-            logger.warning(
-                "Redis not available - falling back to in-memory storage (NOT for production!)"
-            )
+            logger.warning("Redis not available - falling back to in-memory storage (NOT for production!)")
             self.redis = None
             self._memory_store = {}  # Fallback for development only
             return
@@ -192,9 +190,7 @@ class JobManager:
         job_data = self.get_job(job_id)
         return job_data["status"] if job_data else None
 
-    def list_jobs(
-        self, status: Optional[str] = None, limit: int = 100, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    def list_jobs(self, status: Optional[str] = None, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
         """
         List jobs, optionally filtered by status.
 

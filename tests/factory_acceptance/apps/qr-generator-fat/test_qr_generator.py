@@ -11,6 +11,7 @@ import base64
 from io import BytesIO
 from PIL import Image
 
+
 class TestQRGenerator(unittest.TestCase):
     """Test QR code generator functionality"""
 
@@ -36,9 +37,7 @@ class TestQRGenerator(unittest.TestCase):
         test_text = "Hello from FAT test"
 
         response = requests.post(
-            f"{self.BASE_URL}/api/generate",
-            json={"text": test_text},
-            headers={"Content-Type": "application/json"}
+            f"{self.BASE_URL}/api/generate", json={"text": test_text}, headers={"Content-Type": "application/json"}
         )
 
         self.assertEqual(response.status_code, 200)
@@ -62,14 +61,8 @@ class TestQRGenerator(unittest.TestCase):
         """Test QR generation with custom options"""
         response = requests.post(
             f"{self.BASE_URL}/api/generate",
-            json={
-                "text": "Custom QR",
-                "size": 15,
-                "border": 2,
-                "fill_color": "blue",
-                "back_color": "yellow"
-            },
-            headers={"Content-Type": "application/json"}
+            json={"text": "Custom QR", "size": 15, "border": 2, "fill_color": "blue", "back_color": "yellow"},
+            headers={"Content-Type": "application/json"},
         )
 
         self.assertEqual(response.status_code, 200)
@@ -83,9 +76,7 @@ class TestQRGenerator(unittest.TestCase):
         items = ["Item 1", "Item 2", "Item 3"]
 
         response = requests.post(
-            f"{self.BASE_URL}/api/batch",
-            json={"items": items},
-            headers={"Content-Type": "application/json"}
+            f"{self.BASE_URL}/api/batch", json={"items": items}, headers={"Content-Type": "application/json"}
         )
 
         self.assertEqual(response.status_code, 200)
@@ -102,11 +93,7 @@ class TestQRGenerator(unittest.TestCase):
 
     def test_missing_text_parameter(self):
         """Test error handling for missing text"""
-        response = requests.post(
-            f"{self.BASE_URL}/api/generate",
-            json={},
-            headers={"Content-Type": "application/json"}
-        )
+        response = requests.post(f"{self.BASE_URL}/api/generate", json={}, headers={"Content-Type": "application/json"})
 
         self.assertEqual(response.status_code, 400)
 
@@ -129,5 +116,6 @@ class TestQRGenerator(unittest.TestCase):
         self.assertTrue(deps["flask"]["installed"])
         self.assertTrue(deps["flask_cors"]["installed"])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main(verbosity=2)

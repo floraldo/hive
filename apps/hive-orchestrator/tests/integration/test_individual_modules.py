@@ -40,9 +40,7 @@ def test_clean_hive_module_direct():
         import clean_hive
 
         # Test that functions exist and are callable
-        assert hasattr(
-            clean_hive, "clean_database"
-        ), "Should have clean_database function"
+        assert hasattr(clean_hive, "clean_database"), "Should have clean_database function"
         assert hasattr(clean_hive, "main"), "Should have main function"
         assert callable(clean_hive.clean_database), "clean_database should be callable"
         assert callable(clean_hive.main), "main should be callable"
@@ -137,9 +135,7 @@ def test_path_safety_logic():
             safe_path = Path(test_path.name)  # Only use filename
 
             # Should prevent directory traversal
-            assert ".." not in str(
-                safe_path
-            ), f"Path traversal not prevented: {safe_path}"
+            assert ".." not in str(safe_path), f"Path traversal not prevented: {safe_path}"
 
         print("[OK] Path safety logic verified")
         return True

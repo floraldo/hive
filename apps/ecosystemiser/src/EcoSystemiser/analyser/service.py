@@ -53,9 +53,7 @@ class AnalyserService:
             strategy: Analysis strategy instance implementing BaseAnalysis
         """
         if not isinstance(strategy, BaseAnalysis):
-            raise TypeError(
-                f"Strategy must inherit from BaseAnalysis, got {type(strategy)}"
-            )
+            raise TypeError(f"Strategy must inherit from BaseAnalysis, got {type(strategy)}")
 
         self.strategies[name] = strategy
         logger.info(f"Registered analysis strategy: {name}")
@@ -128,9 +126,7 @@ class AnalyserService:
                     }
 
             # Add summary
-            analysis_results["summary"] = self._create_summary(
-                analysis_results["analyses"]
-            )
+            analysis_results["summary"] = self._create_summary(analysis_results["analyses"])
 
             # Calculate execution time
             execution_time = (datetime.now() - start_time).total_seconds()
@@ -214,9 +210,7 @@ class AnalyserService:
         logger.info(f"Loaded results from {results_path}")
         return data
 
-    def _get_strategies_to_run(
-        self, requested: Optional[List[str]] = None
-    ) -> List[str]:
+    def _get_strategies_to_run(self, requested: Optional[List[str]] = None) -> List[str]:
         """Determine which strategies to execute.
 
         Args:
@@ -235,10 +229,7 @@ class AnalyserService:
         for strategy_name in requested:
             if strategy_name not in self.strategies:
                 available = ", ".join(self.strategies.keys())
-                raise ValueError(
-                    f"Unknown strategy: {strategy_name}. "
-                    f"Available strategies: {available}"
-                )
+                raise ValueError(f"Unknown strategy: {strategy_name}. " f"Available strategies: {available}")
 
         return requested
 
@@ -282,11 +273,7 @@ class AnalyserService:
 
                 elif strategy_name == "sensitivity":
                     if "most_influential_parameters" in results:
-                        summary["key_metrics"]["most_influential"] = results[
-                            "most_influential_parameters"
-                        ][
-                            :3
-                        ]  # Top 3
+                        summary["key_metrics"]["most_influential"] = results["most_influential_parameters"][:3]  # Top 3
 
         return summary
 

@@ -17,11 +17,7 @@ class MILPSolver(BaseSolver):
     def __init__(self, system, config=None):
         super().__init__(system, config)
         self.problem = None
-        self.objective_type = (
-            config.solver_specific.get("objective", "min_cost")
-            if config
-            else "min_cost"
-        )
+        self.objective_type = config.solver_specific.get("objective", "min_cost") if config else "min_cost"
 
     def prepare_system(self):
         """Initialize CVXPY variables for optimization."""
@@ -107,9 +103,7 @@ class MILPSolver(BaseSolver):
 
         except Exception as e:
             logger.error(f"Error in MILP solver: {e}")
-            result = SolverResult(
-                status="error", solve_time=time.time() - start_time, message=str(e)
-            )
+            result = SolverResult(status="error", solve_time=time.time() - start_time, message=str(e))
 
         self.result = result
         return result
@@ -123,9 +117,7 @@ class MILPSolver(BaseSolver):
             if hasattr(component, "set_constraints"):
                 comp_constraints = component.set_constraints()
                 constraints.extend(comp_constraints)
-                logger.debug(
-                    f"Added {len(comp_constraints)} constraints for {component.name}"
-                )
+                logger.debug(f"Added {len(comp_constraints)} constraints for {component.name}")
 
         # Energy balance constraints
         constraints.extend(self._create_balance_constraints())
@@ -176,9 +168,7 @@ class MILPSolver(BaseSolver):
                         if isinstance(flow.get("value"), cp.Variable):
                             flow_type = flow.get("type", medium)
                             if flow_type in flows_by_type:
-                                flows_by_type[flow_type]["generation"].append(
-                                    flow["value"][t]
-                                )
+                                flows_by_type[flow_type]["generation"].append(flow["value"][t])
 
                 # Consumption components
                 elif comp.type == "consumption":
@@ -186,54 +176,36 @@ class MILPSolver(BaseSolver):
                         if isinstance(flow.get("value"), cp.Variable):
                             flow_type = flow.get("type", medium)
                             if flow_type in flows_by_type:
-                                flows_by_type[flow_type]["consumption"].append(
-                                    flow["value"][t]
-                                )
+                                flows_by_type[flow_type]["consumption"].append(flow["value"][t])
 
                 # Storage components
                 elif comp.type == "storage":
                     # Check for electrical storage
                     if medium == "electricity":
                         if hasattr(comp, "P_cha") and comp.P_cha is not None:
-                            flows_by_type["electricity"]["storage_charge"].append(
-                                comp.P_cha[t]
-                            )
+                            flows_by_type["electricity"]["storage_charge"].append(comp.P_cha[t])
                         if hasattr(comp, "P_dis") and comp.P_dis is not None:
-                            flows_by_type["electricity"]["storage_discharge"].append(
-                                comp.P_dis[t]
-                            )
+                            flows_by_type["electricity"]["storage_discharge"].append(comp.P_dis[t])
                     # Check for thermal storage
                     elif medium == "heat":
                         if hasattr(comp, "P_cha") and comp.P_cha is not None:
-                            flows_by_type["heat"]["storage_charge"].append(
-                                comp.P_cha[t]
-                            )
+                            flows_by_type["heat"]["storage_charge"].append(comp.P_cha[t])
                         if hasattr(comp, "P_dis") and comp.P_dis is not None:
-                            flows_by_type["heat"]["storage_discharge"].append(
-                                comp.P_dis[t]
-                            )
+                            flows_by_type["heat"]["storage_discharge"].append(comp.P_dis[t])
                     # Check for water storage
                     elif medium == "water":
                         if hasattr(comp, "Q_in") and comp.Q_in is not None:
-                            flows_by_type["water"]["storage_charge"].append(
-                                comp.Q_in[t]
-                            )
+                            flows_by_type["water"]["storage_charge"].append(comp.Q_in[t])
                         if hasattr(comp, "Q_out") and comp.Q_out is not None:
-                            flows_by_type["water"]["storage_discharge"].append(
-                                comp.Q_out[t]
-                            )
+                            flows_by_type["water"]["storage_discharge"].append(comp.Q_out[t])
 
                 # Grid components (electricity and water)
                 elif comp.type == "transmission":
                     if medium == "electricity":
                         if hasattr(comp, "P_draw") and comp.P_draw is not None:
-                            flows_by_type["electricity"]["import"].append(
-                                comp.P_draw[t]
-                            )
+                            flows_by_type["electricity"]["import"].append(comp.P_draw[t])
                         if hasattr(comp, "P_feed") and comp.P_feed is not None:
-                            flows_by_type["electricity"]["export"].append(
-                                comp.P_feed[t]
-                            )
+                            flows_by_type["electricity"]["export"].append(comp.P_feed[t])
                     elif medium == "water":
                         if hasattr(comp, "Q_import") and comp.Q_import is not None:
                             flows_by_type["water"]["import"].append(comp.Q_import[t])
@@ -247,9 +219,7 @@ class MILPSolver(BaseSolver):
                         flow_type = flow.get("type", "electricity")
                         if flow_type in flows_by_type and comp.type == "generation":
                             # This is electricity input to heat generators
-                            flows_by_type[flow_type]["consumption"].append(
-                                flow["value"][t]
-                            )
+                            flows_by_type[flow_type]["consumption"].append(flow["value"][t])
 
             # Create balance constraints for each medium type
             for medium_type, flows in flows_by_type.items():
@@ -289,9 +259,7 @@ class MILPSolver(BaseSolver):
         contributions = self.system.get_objective_contributions(self.objective_type)
 
         if not contributions:
-            logger.warning(
-                f"No contributions for {self.objective_type}, creating zero objective"
-            )
+            logger.warning(f"No contributions for {self.objective_type}, creating zero objective")
             return cp.Minimize(0)
 
         # Aggregate contributions based on objective type
@@ -304,9 +272,7 @@ class MILPSolver(BaseSolver):
         elif self.objective_type.startswith("multi_"):
             return self._aggregate_multi_objective_contributions(contributions)
         else:
-            logger.warning(
-                f"Unknown objective type: {self.objective_type}, using min_cost"
-            )
+            logger.warning(f"Unknown objective type: {self.objective_type}, using min_cost")
             return self._aggregate_cost_contributions(contributions)
 
     def _aggregate_cost_contributions(self, contributions: Dict[str, Any]):
@@ -359,9 +325,7 @@ class MILPSolver(BaseSolver):
                     else:  # Scalar
                         total_emissions += variable * factor
 
-                    logger.debug(
-                        f"Added {emission_type} from {comp_name}: factor={factor} kg CO2/kWh"
-                    )
+                    logger.debug(f"Added {emission_type} from {comp_name}: factor={factor} kg CO2/kWh")
 
         return cp.Minimize(total_emissions)
 
@@ -420,9 +384,7 @@ class MILPSolver(BaseSolver):
             combined_objective = 0
             for obj_type, weight in weights.items():
                 if weight > 0:
-                    obj_value = self._get_single_objective_value(
-                        obj_type, contributions
-                    )
+                    obj_value = self._get_single_objective_value(obj_type, contributions)
                     combined_objective += weight * obj_value
                     logger.debug(f"Added {weight:.1%} of {obj_type} to objective")
 
@@ -444,9 +406,7 @@ class MILPSolver(BaseSolver):
                 total_weight = weight1 + weight2
                 weight1, weight2 = weight1 / total_weight, weight2 / total_weight
             except (ValueError, ZeroDivisionError):
-                logger.error(
-                    f"Invalid weights in multi-objective: {self.objective_type}"
-                )
+                logger.error(f"Invalid weights in multi-objective: {self.objective_type}")
                 weight1, weight2 = 0.5, 0.5
 
             # Get individual objective values
@@ -456,14 +416,10 @@ class MILPSolver(BaseSolver):
             # Weighted combination
             combined_objective = weight1 * obj1_value + weight2 * obj2_value
 
-            logger.info(
-                f"Multi-objective (legacy format): {weight1:.1%} {obj1} + {weight2:.1%} {obj2}"
-            )
+            logger.info(f"Multi-objective (legacy format): {weight1:.1%} {obj1} + {weight2:.1%} {obj2}")
             return cp.Minimize(combined_objective)
 
-    def _get_single_objective_value(
-        self, objective_type: str, contributions: Dict[str, Any]
-    ):
+    def _get_single_objective_value(self, objective_type: str, contributions: Dict[str, Any]):
         """Get objective value for single objective type."""
         if objective_type == "cost":
             cost_contribs = self.system.get_component_cost_contributions()

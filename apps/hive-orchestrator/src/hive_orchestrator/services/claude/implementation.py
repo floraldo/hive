@@ -213,11 +213,7 @@ class ResponseCache:
         key = self._generate_key(prompt, **kwargs)
 
         with self.lock:
-            self.cache[key] = CacheEntry(
-                response=response,
-                timestamp=datetime.now(),
-                hit_count=0
-            )
+            self.cache[key] = CacheEntry(response=response, timestamp=datetime.now(), hit_count=0)
             logger.debug(f"Cached response for key {key[:8]}...")
 
     def clear(self):
@@ -237,7 +233,7 @@ class ResponseCache:
             "total_entries": total_entries,
             "total_hits": total_hits,
             "expired_entries": expired,
-            "hit_rate": total_hits / max(1, total_entries + total_hits)
+            "hit_rate": total_hits / max(1, total_entries + total_hits),
         }
 
 

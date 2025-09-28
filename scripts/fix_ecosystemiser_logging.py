@@ -4,21 +4,23 @@
 import re
 from pathlib import Path
 
+
 def fix_logging_in_file(file_path: Path) -> bool:
     """Fix logging imports in a single file."""
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         original_content = content
 
         # Check if file uses logging
-        if ("logger" in content.lower() or "logging" in content.lower()):
+        if "logger" in content.lower() or "logging" in content.lower():
             # Check if it already imports hive_logging adapter
-            if ("from EcoSystemiser.hive_logging_adapter import" not in content and
-                "from hive_logging import" not in content and
-                "import hive_logging" not in content):
-
+            if (
+                "from EcoSystemiser.hive_logging_adapter import" not in content
+                and "from hive_logging import" not in content
+                and "import hive_logging" not in content
+            ):
                 # Add the import after the docstring
                 if content.startswith('"""'):
                     # Find end of docstring
@@ -31,19 +33,25 @@ def fix_logging_in_file(file_path: Path) -> bool:
                         if "logger = " not in content:
                             import_line += "\n\nlogger = get_logger(__name__)"
 
-                        content = content[:end_docstring + 3] + import_line + content[end_docstring + 3:]
+                        content = content[: end_docstring + 3] + import_line + content[end_docstring + 3 :]
                 else:
                     # No docstring, add at the beginning
-                    import_line = "from EcoSystemiser.hive_logging_adapter import get_logger\n\nlogger = get_logger(__name__)\n\n"
+                    import_line = (
+                        "from EcoSystemiser.hive_logging_adapter import get_logger\n\nlogger = get_logger(__name__)\n\n"
+                    )
                     content = import_line + content
 
                 # Replace logging imports with hive_logging
-                content = re.sub(r'import logging\b', 'from EcoSystemiser.hive_logging_adapter import get_logger', content)
-                content = re.sub(r'from logging import .*', 'from EcoSystemiser.hive_logging_adapter import get_logger', content)
-                content = re.sub(r'logging\.getLogger\((.*?)\)', r'get_logger(\1)', content)
+                content = re.sub(
+                    r"import logging\b", "from EcoSystemiser.hive_logging_adapter import get_logger", content
+                )
+                content = re.sub(
+                    r"from logging import .*", "from EcoSystemiser.hive_logging_adapter import get_logger", content
+                )
+                content = re.sub(r"logging\.getLogger\((.*?)\)", r"get_logger(\1)", content)
 
         if content != original_content:
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return True
 
@@ -51,6 +59,7 @@ def fix_logging_in_file(file_path: Path) -> bool:
     except Exception as e:
         print(f"Error processing {file_path}: {e}")
         return False
+
 
 def main():
     """Fix logging in EcoSystemiser files."""
@@ -72,7 +81,7 @@ def main():
         "analyser/worker.py",
         "analyser/strategies/economic.py",
         "analyser/strategies/sensitivity.py",
-        "analyser/strategies/technical_kpi.py"
+        "analyser/strategies/technical_kpi.py",
     ]
 
     fixed_count = 0
@@ -91,6 +100,7 @@ def main():
                 fixed_count += 1
 
     print(f"\nFixed {fixed_count} files")
+
 
 if __name__ == "__main__":
     main()

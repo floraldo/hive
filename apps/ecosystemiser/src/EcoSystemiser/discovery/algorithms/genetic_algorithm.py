@@ -64,9 +64,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
     def initialize_population(self) -> np.ndarray:
         """Initialize random population within bounds."""
-        population = np.random.random(
-            (self.config.population_size, self.config.dimensions)
-        )
+        population = np.random.random((self.config.population_size, self.config.dimensions))
 
         # Scale to bounds
         for i, (lower, upper) in enumerate(self.config.bounds):
@@ -78,19 +76,14 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         logger.info(f"Initialized population of {len(population)} individuals")
         return population
 
-    def evaluate_population(
-        self, population: np.ndarray, fitness_function: Callable
-    ) -> List[Dict[str, Any]]:
+    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> List[Dict[str, Any]]:
         """Evaluate fitness of population."""
         evaluations = []
 
         if self.config.parallel_evaluation and self.config.max_workers > 1:
             # Parallel evaluation
             with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
-                futures = [
-                    executor.submit(fitness_function, individual)
-                    for individual in population
-                ]
+                futures = [executor.submit(fitness_function, individual) for individual in population]
 
                 for future in futures:
                     try:
@@ -101,8 +94,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                         evaluations.append(
                             {
                                 "fitness": float("inf"),
-                                "objectives": [float("inf")]
-                                * len(self.config.objectives),
+                                "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
                                 "error": str(e),
                             }
@@ -126,9 +118,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return evaluations
 
-    def update_population(
-        self, population: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> np.ndarray:
+    def update_population(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """Update population using genetic operators."""
         # Selection
         parent_indices = self._selection(evaluations)
@@ -142,14 +132,10 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         # Combine parents and offspring for replacement
         combined_population = np.vstack([population, offspring])
-        combined_evaluations = evaluations + self.evaluate_population(
-            offspring, lambda x: {"fitness": 0}
-        )
+        combined_evaluations = evaluations + self.evaluate_population(offspring, lambda x: {"fitness": 0})
 
         # Environmental selection (keep best individuals)
-        survivor_indices = self._environmental_selection(
-            combined_population, combined_evaluations
-        )
+        survivor_indices = self._environmental_selection(combined_population, combined_evaluations)
 
         return combined_population[survivor_indices]
 
@@ -176,9 +162,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
             )
 
             # Find best in tournament (lowest fitness for minimization)
-            tournament_fitness = [
-                evaluations[i].get("fitness", float("inf")) for i in tournament_indices
-            ]
+            tournament_fitness = [evaluations[i].get("fitness", float("inf")) for i in tournament_indices]
             winner_idx = tournament_indices[np.argmin(tournament_fitness)]
             selected_indices.append(winner_idx)
 
@@ -186,9 +170,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
     def _roulette_selection(self, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """Roulette wheel selection."""
-        fitness_values = np.array(
-            [eval_result.get("fitness", float("inf")) for eval_result in evaluations]
-        )
+        fitness_values = np.array([eval_result.get("fitness", float("inf")) for eval_result in evaluations])
 
         # Convert to probabilities (invert for minimization)
         if np.all(np.isfinite(fitness_values)):
@@ -210,17 +192,13 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
     def _rank_selection(self, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """Rank-based selection."""
-        fitness_values = np.array(
-            [eval_result.get("fitness", float("inf")) for eval_result in evaluations]
-        )
+        fitness_values = np.array([eval_result.get("fitness", float("inf")) for eval_result in evaluations])
 
         # Rank individuals (best rank = 0)
         ranks = np.argsort(np.argsort(fitness_values))
 
         # Convert ranks to selection probabilities
-        probabilities = (len(evaluations) - ranks) / np.sum(
-            np.arange(1, len(evaluations) + 1)
-        )
+        probabilities = (len(evaluations) - ranks) / np.sum(np.arange(1, len(evaluations) + 1))
 
         selected_indices = np.random.choice(
             len(evaluations),
@@ -256,9 +234,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return np.array(offspring)
 
-    def _crossover(
-        self, parent1: np.ndarray, parent2: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def _crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Crossover operation between two parents."""
         if self.ga_config.crossover_method == "sbx":
             return self._simulated_binary_crossover(parent1, parent2)
@@ -267,9 +243,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         else:
             return self._arithmetic_crossover(parent1, parent2)
 
-    def _simulated_binary_crossover(
-        self, parent1: np.ndarray, parent2: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def _simulated_binary_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Simulated binary crossover (SBX)."""
         eta = 20.0  # Distribution index
         child1, child2 = parent1.copy(), parent2.copy()
@@ -292,18 +266,14 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return child1, child2
 
-    def _uniform_crossover(
-        self, parent1: np.ndarray, parent2: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def _uniform_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Uniform crossover."""
         mask = np.random.random(len(parent1)) < 0.5
         child1 = np.where(mask, parent1, parent2)
         child2 = np.where(mask, parent2, parent1)
         return child1, child2
 
-    def _arithmetic_crossover(
-        self, parent1: np.ndarray, parent2: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def _arithmetic_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Arithmetic crossover."""
         alpha = np.random.random()
         child1 = alpha * parent1 + (1 - alpha) * parent2
@@ -370,14 +340,10 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return mutated
 
-    def _environmental_selection(
-        self, population: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> np.ndarray:
+    def _environmental_selection(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """Select survivors for next generation."""
         # Simple elitist selection for single-objective
-        fitness_values = np.array(
-            [eval_result.get("fitness", float("inf")) for eval_result in evaluations]
-        )
+        fitness_values = np.array([eval_result.get("fitness", float("inf")) for eval_result in evaluations])
 
         # Select best individuals
         sorted_indices = np.argsort(fitness_values)
@@ -415,9 +381,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
     def initialize_population(self) -> np.ndarray:
         """Initialize random population within bounds."""
-        population = np.random.random(
-            (self.config.population_size, self.config.dimensions)
-        )
+        population = np.random.random((self.config.population_size, self.config.dimensions))
 
         # Scale to bounds
         for i, (lower, upper) in enumerate(self.config.bounds):
@@ -428,18 +392,13 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         logger.info(f"Initialized NSGA-II population of {len(population)} individuals")
         return population
 
-    def evaluate_population(
-        self, population: np.ndarray, fitness_function: Callable
-    ) -> List[Dict[str, Any]]:
+    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> List[Dict[str, Any]]:
         """Evaluate population objectives."""
         evaluations = []
 
         if self.config.parallel_evaluation and self.config.max_workers > 1:
             with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
-                futures = [
-                    executor.submit(fitness_function, individual)
-                    for individual in population
-                ]
+                futures = [executor.submit(fitness_function, individual) for individual in population]
 
                 for future in futures:
                     try:
@@ -452,8 +411,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                         logger.warning(f"Evaluation failed: {e}")
                         evaluations.append(
                             {
-                                "objectives": [float("inf")]
-                                * len(self.config.objectives),
+                                "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
                                 "error": str(e),
                             }
@@ -477,9 +435,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return evaluations
 
-    def update_population(
-        self, population: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> np.ndarray:
+    def update_population(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """Update population using NSGA-II selection."""
         # Create offspring
         offspring = self._create_offspring_nsga2(population, evaluations)
@@ -495,15 +451,11 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         combined_evaluations = evaluations + offspring_evaluations
 
         # NSGA-II environmental selection
-        survivor_indices = self._nsga2_selection(
-            combined_population, combined_evaluations
-        )
+        survivor_indices = self._nsga2_selection(combined_population, combined_evaluations)
 
         return combined_population[survivor_indices]
 
-    def _create_offspring_nsga2(
-        self, population: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> np.ndarray:
+    def _create_offspring_nsga2(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """Create offspring using tournament selection and genetic operators."""
         offspring = []
 
@@ -532,9 +484,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
     def _tournament_selection_nsga2(self, evaluations: List[Dict[str, Any]]) -> int:
         """Tournament selection based on dominance and crowding distance."""
         tournament_size = min(self.ga_config.tournament_size, len(evaluations))
-        tournament_indices = np.random.choice(
-            len(evaluations), size=tournament_size, replace=False
-        )
+        tournament_indices = np.random.choice(len(evaluations), size=tournament_size, replace=False)
 
         # Find best individual in tournament
         best_idx = tournament_indices[0]
@@ -544,16 +494,12 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                 best_idx = idx
             elif not self._dominates(evaluations[best_idx], evaluations[idx]):
                 # Both are non-dominated, use crowding distance
-                if evaluations[idx].get("crowding_distance", 0) > evaluations[
-                    best_idx
-                ].get("crowding_distance", 0):
+                if evaluations[idx].get("crowding_distance", 0) > evaluations[best_idx].get("crowding_distance", 0):
                     best_idx = idx
 
         return best_idx
 
-    def _nsga2_selection(
-        self, population: np.ndarray, evaluations: List[Dict[str, Any]]
-    ) -> np.ndarray:
+    def _nsga2_selection(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
         """NSGA-II environmental selection with non-dominated sorting and crowding distance."""
         # Perform non-dominated sorting
         fronts = self._fast_non_dominated_sort(evaluations)
@@ -574,21 +520,15 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                 remaining_slots = self.config.population_size - len(selected_indices)
 
                 # Sort front by crowding distance (descending)
-                front_with_distance = [
-                    (idx, evaluations[idx].get("crowding_distance", 0)) for idx in front
-                ]
+                front_with_distance = [(idx, evaluations[idx].get("crowding_distance", 0)) for idx in front]
                 front_with_distance.sort(key=lambda x: x[1], reverse=True)
 
-                selected_indices.extend(
-                    [idx for idx, _ in front_with_distance[:remaining_slots]]
-                )
+                selected_indices.extend([idx for idx, _ in front_with_distance[:remaining_slots]])
                 break
 
         return np.array(selected_indices)
 
-    def _fast_non_dominated_sort(
-        self, evaluations: List[Dict[str, Any]]
-    ) -> List[List[int]]:
+    def _fast_non_dominated_sort(self, evaluations: List[Dict[str, Any]]) -> List[List[int]]:
         """Fast non-dominated sorting algorithm."""
         n = len(evaluations)
         domination_count = [0] * n  # Number of individuals that dominate i
@@ -645,9 +585,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return at_least_one_better
 
-    def _calculate_crowding_distance(
-        self, evaluations: List[Dict[str, Any]], front: List[int]
-    ):
+    def _calculate_crowding_distance(self, evaluations: List[Dict[str, Any]], front: List[int]):
         """Calculate crowding distance for individuals in a front."""
         if len(front) <= 2:
             # Boundary solutions get infinite distance
@@ -663,9 +601,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         for obj_idx in range(num_objectives):
             # Sort front by objective value
-            front_with_obj = [
-                (idx, evaluations[idx]["objectives"][obj_idx]) for idx in front
-            ]
+            front_with_obj = [(idx, evaluations[idx]["objectives"][obj_idx]) for idx in front]
             front_with_obj.sort(key=lambda x: x[1])
 
             # Boundary solutions get infinite distance
@@ -677,14 +613,10 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
             if obj_range > 0:
                 for i in range(1, len(front_with_obj) - 1):
                     idx = front_with_obj[i][0]
-                    distance = (
-                        front_with_obj[i + 1][1] - front_with_obj[i - 1][1]
-                    ) / obj_range
+                    distance = (front_with_obj[i + 1][1] - front_with_obj[i - 1][1]) / obj_range
                     evaluations[idx]["crowding_distance"] += distance
 
-    def _simulated_binary_crossover(
-        self, parent1: np.ndarray, parent2: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def _simulated_binary_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Simulated binary crossover for real-valued variables."""
         eta = 20.0  # Distribution index
         child1, child2 = parent1.copy(), parent2.copy()
@@ -766,9 +698,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         current_metric = np.mean(current_avg_objectives)
 
         if len(self.convergence_history) >= self.config.convergence_patience:
-            recent_history = self.convergence_history[
-                -self.config.convergence_patience :
-            ]
+            recent_history = self.convergence_history[-self.config.convergence_patience :]
             improvement = max(recent_history) - min(recent_history)
             return improvement < self.config.convergence_tolerance
 

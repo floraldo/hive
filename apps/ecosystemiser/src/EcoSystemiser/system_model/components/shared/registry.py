@@ -62,10 +62,7 @@ def get_component_class(name: str) -> Type["Component"]:
     """
     if name not in COMPONENT_REGISTRY:
         available = list(COMPONENT_REGISTRY.keys())
-        raise ValueError(
-            f"Component class '{name}' not found in registry. "
-            f"Available components: {available}"
-        )
+        raise ValueError(f"Component class '{name}' not found in registry. " f"Available components: {available}")
     return COMPONENT_REGISTRY[name]
 
 

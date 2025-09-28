@@ -113,9 +113,7 @@ class SQLiteLoader:
             conn.commit()
             logger.info(f"Database initialized at {self.db_path}")
 
-    def add_component_type(
-        self, name: str, category: str, description: Optional[str] = None
-    ) -> int:
+    def add_component_type(self, name: str, category: str, description: Optional[str] = None) -> int:
         """
         Add a new component type.
 
@@ -173,9 +171,7 @@ class SQLiteLoader:
             cursor = conn.cursor()
 
             # Get component type ID
-            cursor.execute(
-                "SELECT id FROM component_types WHERE name = ?", (component_type,)
-            )
+            cursor.execute("SELECT id FROM component_types WHERE name = ?", (component_type,))
             result = cursor.fetchone()
             if not result:
                 raise ValueError(f"Component type '{component_type}' not found")
@@ -268,9 +264,7 @@ class SQLiteLoader:
             row = cursor.fetchone()
 
             if not row:
-                raise ValueError(
-                    f"Component spec not found: {component_type}/{name or 'default'}"
-                )
+                raise ValueError(f"Component spec not found: {component_type}/{name or 'default'}")
 
             # Convert to dict
             spec = {
@@ -279,14 +273,8 @@ class SQLiteLoader:
                 "name": row["name"],
                 "version": row["version"],
                 "technical": json.loads(row["technical_params"]),
-                "economic": (
-                    json.loads(row["economic_params"]) if row["economic_params"] else {}
-                ),
-                "environmental": (
-                    json.loads(row["environmental_params"])
-                    if row["environmental_params"]
-                    else {}
-                ),
+                "economic": (json.loads(row["economic_params"]) if row["economic_params"] else {}),
+                "environmental": (json.loads(row["environmental_params"]) if row["environmental_params"] else {}),
                 "metadata": json.loads(row["metadata"]) if row["metadata"] else {},
             }
 
@@ -324,9 +312,7 @@ class SQLiteLoader:
 
             return types
 
-    def list_component_specs(
-        self, component_type: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    def list_component_specs(self, component_type: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         List available component specifications.
 

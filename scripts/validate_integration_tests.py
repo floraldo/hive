@@ -35,7 +35,7 @@ class IntegrationTestValidator:
     def run_full_validation(self) -> bool:
         """Run complete validation of integration test suite"""
         print("[SEARCH] Validating Hive Integration Test Suite")
-        print("="*60)
+        print("=" * 60)
 
         # Step 1: Discover test files
         test_discovery_ok = self.discover_test_files()
@@ -65,14 +65,7 @@ class IntegrationTestValidator:
         print(f"[RUNNER] Test Runners: {'[PASS] PASSED' if runners_ok else '[FAIL] FAILED'}")
 
         # Generate validation report
-        all_passed = all([
-            test_discovery_ok,
-            syntax_validation_ok,
-            deps_ok,
-            env_ok,
-            smoke_tests_ok,
-            runners_ok
-        ])
+        all_passed = all([test_discovery_ok, syntax_validation_ok, deps_ok, env_ok, smoke_tests_ok, runners_ok])
 
         self.print_validation_summary(all_passed)
         return all_passed
@@ -85,7 +78,7 @@ class IntegrationTestValidator:
                 "test_comprehensive*.py",
                 "test_*performance*.py",
                 "test_end_to_end*.py",
-                "test_*pipeline*.py"
+                "test_*pipeline*.py",
             ]
 
             for pattern in test_patterns:
@@ -118,7 +111,7 @@ class IntegrationTestValidator:
 
         for test_file in self.test_files:
             try:
-                with open(test_file, 'r', encoding='utf-8') as f:
+                with open(test_file, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 # Parse AST to check syntax
@@ -148,18 +141,18 @@ class IntegrationTestValidator:
     def check_dependencies(self) -> bool:
         """Check that required dependencies are available"""
         required_modules = [
-            'asyncio',
-            'sqlite3',
-            'json',
-            'tempfile',
-            'concurrent.futures',
-            'subprocess',
-            'threading',
-            'time',
-            'pathlib',
-            'dataclasses',
-            'typing',
-            'unittest.mock'
+            "asyncio",
+            "sqlite3",
+            "json",
+            "tempfile",
+            "concurrent.futures",
+            "subprocess",
+            "threading",
+            "time",
+            "pathlib",
+            "dataclasses",
+            "typing",
+            "unittest.mock",
         ]
 
         missing_modules = []
@@ -173,7 +166,7 @@ class IntegrationTestValidator:
                 print(f"[FAIL] {module}: Missing")
 
         # Check optional but recommended modules
-        optional_modules = ['pytest', 'psutil']
+        optional_modules = ["pytest", "psutil"]
         for module in optional_modules:
             try:
                 __import__(module)
@@ -192,11 +185,11 @@ class IntegrationTestValidator:
         """Validate test environment setup"""
         try:
             # Test 1: Can create temporary database
-            temp_db = tempfile.mktemp(suffix='.db')
+            temp_db = tempfile.mktemp(suffix=".db")
             conn = sqlite3.connect(temp_db)
-            conn.execute('CREATE TABLE test_env_validation (id INTEGER PRIMARY KEY)')
-            conn.execute('INSERT INTO test_env_validation (id) VALUES (1)')
-            cursor = conn.execute('SELECT COUNT(*) FROM test_env_validation')
+            conn.execute("CREATE TABLE test_env_validation (id INTEGER PRIMARY KEY)")
+            conn.execute("INSERT INTO test_env_validation (id) VALUES (1)")
+            cursor = conn.execute("SELECT COUNT(*) FROM test_env_validation")
             count = cursor.fetchone()[0]
             conn.close()
 
@@ -218,13 +211,14 @@ class IntegrationTestValidator:
                 return False
 
             import shutil
+
             shutil.rmtree(temp_dir)
             print("[PASS] File system environment test passed")
 
             # Test 3: Can run subprocess
-            result = subprocess.run([
-                sys.executable, "-c", "print('subprocess test')"
-            ], capture_output=True, text=True, timeout=10)
+            result = subprocess.run(
+                [sys.executable, "-c", "print('subprocess test')"], capture_output=True, text=True, timeout=10
+            )
 
             if result.returncode != 0 or "subprocess test" not in result.stdout:
                 print("[FAIL] Subprocess environment test failed")
@@ -266,7 +260,7 @@ class IntegrationTestValidator:
             # Smoke Test 2: Async functionality
             print("[SMOKE] Running async smoke test...")
 
-            async_test_code = '''
+            async_test_code = """
 import asyncio
 import time
 
@@ -278,11 +272,9 @@ async def smoke_test():
 
 result = asyncio.run(smoke_test())
 print(f"async_result:{result}")
-'''
+"""
 
-            result = subprocess.run([
-                sys.executable, "-c", async_test_code
-            ], capture_output=True, text=True, timeout=10)
+            result = subprocess.run([sys.executable, "-c", async_test_code], capture_output=True, text=True, timeout=10)
 
             if "async_result:True" not in result.stdout:
                 print("[FAIL] Async smoke test failed")
@@ -293,7 +285,7 @@ print(f"async_result:{result}")
             # Smoke Test 3: Concurrent execution
             print("[SMOKE] Running concurrency smoke test...")
 
-            concurrent_test_code = '''
+            concurrent_test_code = """
 import concurrent.futures
 import time
 
@@ -308,11 +300,11 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
 
 duration = time.time() - start
 print(f"concurrent_result:{len(results)},{duration:.3f}")
-'''
+"""
 
-            result = subprocess.run([
-                sys.executable, "-c", concurrent_test_code
-            ], capture_output=True, text=True, timeout=10)
+            result = subprocess.run(
+                [sys.executable, "-c", concurrent_test_code], capture_output=True, text=True, timeout=10
+            )
 
             if "concurrent_result:5," not in result.stdout:
                 print("[FAIL] Concurrency smoke test failed")
@@ -328,10 +320,7 @@ print(f"concurrent_result:{len(results)},{duration:.3f}")
 
     def validate_test_runners(self) -> bool:
         """Validate test runner scripts exist and are executable"""
-        runner_scripts = [
-            "scripts/run_integration_tests.py",
-            "scripts/run_comprehensive_integration_tests.py"
-        ]
+        runner_scripts = ["scripts/run_integration_tests.py", "scripts/run_comprehensive_integration_tests.py"]
 
         missing_runners = []
 
@@ -345,7 +334,7 @@ print(f"concurrent_result:{len(results)},{duration:.3f}")
 
             # Check if script is syntactically valid
             try:
-                with open(full_path, 'r') as f:
+                with open(full_path, "r") as f:
                     content = f.read()
 
                 ast.parse(content, filename=str(full_path))
@@ -370,11 +359,13 @@ print(f"concurrent_result:{len(results)},{duration:.3f}")
         """Print validation summary"""
         print(f"\n{'='*60}")
         print("[REPORT] INTEGRATION TEST VALIDATION SUMMARY")
-        print("="*60)
+        print("=" * 60)
 
         print(f"\n[STATS] Validation Results:")
         print(f"   Test Files Found: {len(self.test_files)}")
-        print(f"   Overall Status: {'[PASS] ALL VALIDATIONS PASSED' if all_passed else '[FAIL] SOME VALIDATIONS FAILED'}")
+        print(
+            f"   Overall Status: {'[PASS] ALL VALIDATIONS PASSED' if all_passed else '[FAIL] SOME VALIDATIONS FAILED'}"
+        )
 
         if self.test_files:
             print(f"\n[FOLDER] Test Files Validated:")
@@ -395,7 +386,7 @@ print(f"concurrent_result:{len(results)},{duration:.3f}")
             print("[FAIL] INTEGRATION TESTS NEED ATTENTION!")
             print("[CONFIG] Fix validation issues before running tests")
             print("[SYNTAX] Review error messages above for specific issues")
-        print("="*60)
+        print("=" * 60)
 
 
 def main():

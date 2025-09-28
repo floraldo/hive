@@ -5,10 +5,11 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
+
 class EvaporationDemand(WaterComponent):
     def __init__(self, name, temp_profile, n, W_max=None, economic=None, environmental=None):
         """Evaporation demand model using temperature-based profile.
-        
+
         Args:
             temp_profile (np.array): Temperature profile in °C
             W_max (float): Maximum evaporation rate in m³/hour
@@ -17,23 +18,19 @@ class EvaporationDemand(WaterComponent):
         self.type = "consumption"
         self.medium = "water"
         self.W_max = W_max
-        
+
         # Create temperature-based evaporation profile
         # Using linear term (85%) and small quadratic term (15%) for temperature > 0
         T = np.maximum(0, temp_profile)  # Only positive temperatures
-        evap_profile = 0.85 * (T/30) + 0.15 * (T/30)**2  # Normalized to typical max temp
+        evap_profile = 0.85 * (T / 30) + 0.15 * (T / 30) ** 2  # Normalized to typical max temp
         evap_profile = np.maximum(0.1, evap_profile)  # Minimum 10% evaporation
-        
+
         # Create flow variable and set constraint
-        self.flows['sink']['W_in'] = {
-            'type': 'water',
-            'value': cp.Variable(n, name='W_in')
-        }
-        
+        self.flows["sink"]["W_in"] = {"type": "water", "value": cp.Variable(n, name="W_in")}
+
         # Set demand based on profile and max rate
-        self.constraints += [
-            self.flows['sink']['W_in']['value'] == evap_profile * W_max
-        ]
+        self.constraints += [self.flows["sink"]["W_in"]["value"] == evap_profile * W_max]
+
 
 if __name__ == "__main__":
     # Test code

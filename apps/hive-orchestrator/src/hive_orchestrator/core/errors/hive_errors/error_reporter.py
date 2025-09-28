@@ -80,9 +80,7 @@ class ErrorReporter:
         """Setup file-based error logging"""
         file_handler = logging.FileHandler(self.error_log_path)
         file_handler.setLevel(logging.ERROR)
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
@@ -276,9 +274,7 @@ class ErrorReporter:
         except Exception as e:
             logger.warning(f"Failed to write error to database: {e}")
 
-    def mark_error_resolved(
-        self, error_id: str, resolution_notes: Optional[str] = None
-    ):
+    def mark_error_resolved(self, error_id: str, resolution_notes: Optional[str] = None):
         """Mark an error as resolved"""
         if not self.log_to_db:
             return
@@ -312,9 +308,7 @@ class ErrorReporter:
         except Exception as e:
             logger.warning(f"Failed to mark error as resolved: {e}")
 
-    def get_error_statistics(
-        self, time_window: Optional[timedelta] = None
-    ) -> Dict[str, Any]:
+    def get_error_statistics(self, time_window: Optional[timedelta] = None) -> Dict[str, Any]:
         """
         Get error statistics
 
@@ -335,11 +329,7 @@ class ErrorReporter:
         # Filter by time window if specified
         if time_window:
             cutoff_time = datetime.now() - time_window
-            recent_history = [
-                e
-                for e in self.error_history
-                if datetime.fromisoformat(e["timestamp"]) > cutoff_time
-            ]
+            recent_history = [e for e in self.error_history if datetime.fromisoformat(e["timestamp"]) > cutoff_time]
         else:
             recent_history = self.error_history
 
@@ -358,9 +348,7 @@ class ErrorReporter:
         stats["recent_errors"] = recent_history[-10:]
 
         # Top errors
-        stats["top_errors"] = sorted(
-            type_counts.items(), key=lambda x: x[1], reverse=True
-        )[:5]
+        stats["top_errors"] = sorted(type_counts.items(), key=lambda x: x[1], reverse=True)[:5]
 
         return stats
 
@@ -401,9 +389,7 @@ def get_error_reporter() -> ErrorReporter:
     return _reporter_instance
 
 
-def report_error(
-    error: Exception, context: Optional[ErrorContext] = None, **kwargs
-) -> str:
+def report_error(error: Exception, context: Optional[ErrorContext] = None, **kwargs) -> str:
     """
     Convenience function to report an error
 

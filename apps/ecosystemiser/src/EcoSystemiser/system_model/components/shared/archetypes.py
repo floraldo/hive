@@ -68,15 +68,9 @@ class BaseTechnicalParams(BaseModel):
     of any component model, regardless of fidelity level.
     """
 
-    capacity_nominal: float = Field(
-        ..., description="Nameplate rating (e.g., kW, kWh, m³/h)"
-    )
-    lifetime_years: float = Field(
-        20.0, description="Expected operational lifetime [years]"
-    )
-    availability_factor: float = Field(
-        1.0, description="Fraction of time component is available"
-    )
+    capacity_nominal: float = Field(..., description="Nameplate rating (e.g., kW, kWh, m³/h)")
+    lifetime_years: float = Field(20.0, description="Expected operational lifetime [years]")
+    availability_factor: float = Field(1.0, description="Fraction of time component is available")
 
     # Explicit fidelity control (required for all components)
     fidelity_level: FidelityLevel = Field(
@@ -104,9 +98,7 @@ class StorageTechnicalParams(BaseTechnicalParams):
     efficiency_roundtrip: float = Field(0.90, description="Round-trip efficiency")
     soc_min: float = Field(0.0, description="Minimum state of charge [fraction]")
     soc_max: float = Field(1.0, description="Maximum state of charge [fraction]")
-    initial_soc_pct: float = Field(
-        0.5, description="Initial state of charge [fraction]"
-    )
+    initial_soc_pct: float = Field(0.5, description="Initial state of charge [fraction]")
 
 
 # NOTE: Specific storage types (BatteryTechnicalParams, ThermalStorageTechnicalParams, etc.)
@@ -190,9 +182,7 @@ class DemandTechnicalParams(BaseTechnicalParams):
     """
 
     peak_demand: float = Field(0.0, description="Peak demand [kW or m³/h]")
-    load_profile_type: str = Field(
-        "variable", description="Profile type (fixed, variable, stochastic)"
-    )
+    load_profile_type: str = Field("variable", description="Profile type (fixed, variable, stochastic)")
 
 
 # =============================================================================
@@ -228,9 +218,7 @@ def validate_fidelity_consistency(components: List[BaseTechnicalParams]) -> bool
     if not components:
         return True
 
-    fidelity_levels = [
-        c.fidelity_level for c in components if hasattr(c, "fidelity_level")
-    ]
+    fidelity_levels = [c.fidelity_level for c in components if hasattr(c, "fidelity_level")]
 
     if not fidelity_levels:
         return True

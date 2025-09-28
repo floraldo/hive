@@ -198,9 +198,7 @@ class HiveDashboard:
 
         # Create alert content
         alert_lines = []
-        alert_lines.append(
-            "[bold red blink]🚨 ACTION REQUIRED: HUMAN REVIEW NEEDED 🚨[/bold red blink]\n"
-        )
+        alert_lines.append("[bold red blink]🚨 ACTION REQUIRED: HUMAN REVIEW NEEDED 🚨[/bold red blink]\n")
 
         # Create mini table for escalated tasks
         table = Table(box=box.SIMPLE, show_header=True, header_style="bold yellow")
@@ -265,10 +263,7 @@ class HiveDashboard:
         )
 
         # Add review status if there are any
-        if any(
-            stats.get(s, 0) > 0
-            for s in ["approved", "rejected", "rework_needed", "escalated"]
-        ):
+        if any(stats.get(s, 0) > 0 for s in ["approved", "rejected", "rework_needed", "escalated"]):
             review_table = Table(title="AI Review Status", box=box.ROUNDED)
             review_table.add_column("Approved", style="green", justify="center")
             review_table.add_column("Rejected", style="red", justify="center")
@@ -279,11 +274,7 @@ class HiveDashboard:
                 str(stats.get("approved", 0)),
                 str(stats.get("rejected", 0)),
                 str(stats.get("rework_needed", 0)),
-                (
-                    f"[red bold]{stats.get('escalated', 0)}[/red bold]"
-                    if stats.get("escalated", 0) > 0
-                    else "0"
-                ),
+                (f"[red bold]{stats.get('escalated', 0)}[/red bold]" if stats.get("escalated", 0) > 0 else "0"),
             )
 
             return Columns([table, review_table])
@@ -449,9 +440,7 @@ class HiveDashboard:
         layout["status"].update(self.create_status_table())
 
         # Main area - split into columns
-        layout["main"].split_row(
-            Layout(name="left", ratio=1), Layout(name="right", ratio=1)
-        )
+        layout["main"].split_row(Layout(name="left", ratio=1), Layout(name="right", ratio=1))
 
         # Left side - Tasks and Workers
         layout["left"].split_column(
@@ -473,9 +462,7 @@ class HiveDashboard:
     def run(self):
         """Run the dashboard with live updates."""
         try:
-            with Live(
-                self.create_dashboard(), refresh_per_second=0.5, console=self.console
-            ) as live:
+            with Live(self.create_dashboard(), refresh_per_second=0.5, console=self.console) as live:
                 while True:
                     time.sleep(self.refresh_rate)
                     live.update(self.create_dashboard())

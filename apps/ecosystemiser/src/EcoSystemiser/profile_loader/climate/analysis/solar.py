@@ -60,9 +60,7 @@ def calculate_clearness_index(
 
     # Extraterrestrial radiation on horizontal surface
     with np.errstate(invalid="ignore"):
-        cos_zenith = np.sin(decl) * np.sin(lat_rad) + np.cos(decl) * np.cos(
-            lat_rad
-        ) * np.cos(omega)
+        cos_zenith = np.sin(decl) * np.sin(lat_rad) + np.cos(decl) * np.cos(lat_rad) * np.cos(omega)
 
         # Earth-sun distance correction
         E0 = 1 + 0.033 * np.cos(2 * np.pi * doy / 365)
@@ -121,15 +119,13 @@ def calculate_solar_position(
     lat_rad = np.radians(latitude)
 
     # Solar elevation angle
-    sin_elev = np.sin(decl) * np.sin(lat_rad) + np.cos(decl) * np.cos(lat_rad) * np.cos(
-        omega
-    )
+    sin_elev = np.sin(decl) * np.sin(lat_rad) + np.cos(decl) * np.cos(lat_rad) * np.cos(omega)
     elevation = np.degrees(np.arcsin(sin_elev.clip(-1, 1)))
 
     # Solar azimuth angle (from North, clockwise)
-    cos_az = (
-        np.sin(decl) * np.cos(lat_rad) - np.cos(decl) * np.sin(lat_rad) * np.cos(omega)
-    ) / np.cos(np.radians(elevation))
+    cos_az = (np.sin(decl) * np.cos(lat_rad) - np.cos(decl) * np.sin(lat_rad) * np.cos(omega)) / np.cos(
+        np.radians(elevation)
+    )
     sin_az = np.cos(decl) * np.sin(omega) / np.cos(np.radians(elevation))
 
     azimuth = np.degrees(np.arctan2(sin_az, cos_az))
@@ -177,9 +173,7 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
 
     ds_solar = ds.copy()
 
-    elevation, azimuth = calculate_solar_position(
-        ds.time, ds.attrs["latitude"], ds.attrs["longitude"]
-    )
+    elevation, azimuth = calculate_solar_position(ds.time, ds.attrs["latitude"], ds.attrs["longitude"])
 
     ds_solar["solar_elevation"] = elevation
     ds_solar["solar_azimuth"] = azimuth
@@ -188,10 +182,7 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
     with np.errstate(divide="ignore", invalid="ignore"):
         # Kasten-Young formula for air mass
         zenith_rad = np.radians(90 - elevation)
-        am = 1 / (
-            np.cos(zenith_rad)
-            + 0.50572 * (96.07995 - np.degrees(zenith_rad)) ** (-1.6364)
-        )
+        am = 1 / (np.cos(zenith_rad) + 0.50572 * (96.07995 - np.degrees(zenith_rad)) ** (-1.6364))
         am = am.where(elevation > 0, np.nan)  # Only valid when sun is up
         am = am.clip(0, 40)  # Practical limits
 
@@ -226,9 +217,7 @@ def equation_of_time(day_of_year):
     return E
 
 
-def calculate_dni_from_ghi_dhi(
-    ghi: xr.DataArray, dhi: xr.DataArray, solar_elevation: xr.DataArray
-) -> xr.DataArray:
+def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_elevation: xr.DataArray) -> xr.DataArray:
     """
     Calculate DNI from GHI and DHI using solar geometry.
     More accurate than the simplified version in preprocessing.

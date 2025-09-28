@@ -84,9 +84,7 @@ class TimezoneHandler:
         raise TypeError(f"Unsupported timestamp type: {type(timestamp)}")
 
     @staticmethod
-    def _normalize_datetime_to_utc(
-        dt: datetime, source_tz: Optional[str] = None
-    ) -> datetime:
+    def _normalize_datetime_to_utc(dt: datetime, source_tz: Optional[str] = None) -> datetime:
         """Normalize datetime to UTC"""
         if dt.tzinfo is None:
             # Naive datetime - localize to source timezone
@@ -101,9 +99,7 @@ class TimezoneHandler:
         return dt.astimezone(timezone.utc)
 
     @staticmethod
-    def _normalize_timestamp_to_utc(
-        ts: pd.Timestamp, source_tz: Optional[str] = None
-    ) -> pd.Timestamp:
+    def _normalize_timestamp_to_utc(ts: pd.Timestamp, source_tz: Optional[str] = None) -> pd.Timestamp:
         """Normalize pandas Timestamp to UTC"""
         if ts.tz is None:
             # Naive timestamp - localize to source timezone
@@ -118,9 +114,7 @@ class TimezoneHandler:
         return ts.tz_convert("UTC")
 
     @staticmethod
-    def _normalize_index_to_utc(
-        index: pd.DatetimeIndex, source_tz: Optional[str] = None
-    ) -> pd.DatetimeIndex:
+    def _normalize_index_to_utc(index: pd.DatetimeIndex, source_tz: Optional[str] = None) -> pd.DatetimeIndex:
         """Normalize pandas DatetimeIndex to UTC"""
         if index.tz is None:
             # Naive index - localize to source timezone
@@ -239,9 +233,7 @@ class TimezoneHandler:
         return ds_utc
 
     @staticmethod
-    def handle_dst_transition(
-        timestamps: pd.DatetimeIndex, tz_name: str
-    ) -> pd.DatetimeIndex:
+    def handle_dst_transition(timestamps: pd.DatetimeIndex, tz_name: str) -> pd.DatetimeIndex:
         """
         Handle DST transitions properly.
 
@@ -275,9 +267,7 @@ class TimezoneHandler:
                 else:
                     # Unknown error, try with both settings
                     try:
-                        return timestamps.tz_localize(
-                            tz, ambiguous="infer", nonexistent="shift_forward"
-                        )
+                        return timestamps.tz_localize(tz, ambiguous="infer", nonexistent="shift_forward")
                     except Exception as e:
                         # Last resort - force UTC
                         logger.warning(f"DST handling failed for {tz_name}, using UTC")
@@ -287,9 +277,7 @@ class TimezoneHandler:
             return timestamps.tz_convert(tz)
 
     @staticmethod
-    def get_timezone_offset(
-        tz_name: str, timestamp: Optional[datetime] = None
-    ) -> float:
+    def get_timezone_offset(tz_name: str, timestamp: Optional[datetime] = None) -> float:
         """
         Get timezone offset from UTC in hours.
 
@@ -356,9 +344,7 @@ class TimezoneHandler:
             return f"Etc/GMT+{abs(offset_hours)}"
 
     @staticmethod
-    def validate_timezone_consistency(
-        ds: xr.Dataset, expected_tz: str = "UTC"
-    ) -> List[str]:
+    def validate_timezone_consistency(ds: xr.Dataset, expected_tz: str = "UTC") -> List[str]:
         """
         Validate timezone consistency in dataset.
 
@@ -380,10 +366,7 @@ class TimezoneHandler:
                 if hasattr(time_coord.dt, "tz"):
                     current_tz = time_coord.dt.tz
                     if current_tz and str(current_tz) != expected_tz:
-                        issues.append(
-                            f"Time coordinate has timezone '{current_tz}' "
-                            f"but expected '{expected_tz}'"
-                        )
+                        issues.append(f"Time coordinate has timezone '{current_tz}' " f"but expected '{expected_tz}'")
                 else:
                     # Convert to pandas to check
                     time_index = pd.to_datetime(time_coord.values)
@@ -391,8 +374,7 @@ class TimezoneHandler:
                         issues.append("Time coordinate is timezone-naive")
                     elif str(time_index.tz) != expected_tz:
                         issues.append(
-                            f"Time coordinate has timezone '{time_index.tz}' "
-                            f"but expected '{expected_tz}'"
+                            f"Time coordinate has timezone '{time_index.tz}' " f"but expected '{expected_tz}'"
                         )
 
             # Check for DST jumps that might indicate issues
@@ -403,9 +385,7 @@ class TimezoneHandler:
                 # Multiple different time steps might indicate DST issues
                 time_diffs_hours = time_diffs / np.timedelta64(1, "h")
                 if np.any(np.abs(time_diffs_hours - np.median(time_diffs_hours)) > 0.5):
-                    issues.append(
-                        "Irregular time steps detected - possible DST handling issue"
-                    )
+                    issues.append("Irregular time steps detected - possible DST handling issue")
 
         return issues
 

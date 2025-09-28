@@ -89,9 +89,7 @@ class DatabaseConnectionPool:
             with self._lock:
                 self._connections_created += 1
 
-            logger.debug(
-                f"Created connection #{self._connections_created} for {self.db_path.name}"
-            )
+            logger.debug(f"Created connection #{self._connections_created} for {self.db_path.name}")
             return conn
 
         except Exception as e:
@@ -136,9 +134,7 @@ class DatabaseConnectionPool:
                         conn = self._pool.get(timeout=self.connection_timeout * 2)
 
             if not conn:
-                raise RuntimeError(
-                    f"Failed to acquire database connection for {self.db_path}"
-                )
+                raise RuntimeError(f"Failed to acquire database connection for {self.db_path}")
 
             yield conn
 
@@ -151,15 +147,11 @@ class DatabaseConnectionPool:
                     self._pool.put(conn)
                 except (Full, sqlite3.Error) as e:
                     # Connection corrupted, close it
-                    logger.warning(
-                        f"Failed to return connection to pool for {self.db_path.name}: {e}"
-                    )
+                    logger.warning(f"Failed to return connection to pool for {self.db_path.name}: {e}")
                     try:
                         conn.close()
                     except (sqlite3.Error, AttributeError) as close_error:
-                        logger.debug(
-                            f"Failed to close corrupted connection: {close_error}"
-                        )
+                        logger.debug(f"Failed to close corrupted connection: {close_error}")
                     with self._lock:
                         self._connections_created -= 1
 

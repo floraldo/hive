@@ -10,9 +10,9 @@ class SolarPV(Component):
         self.medium = "electricity"
         self.P_max = P_max
         self.profile = P_profile
-        self.flows['source']['P_out'] = {
-            'type': 'electricity', 
-            'value': cp.Variable(n, name='P_out'),
-            'profile': P_profile
+        self.flows["source"]["P_out"] = {
+            "type": "electricity",
+            "value": cp.Variable(n, name="P_out"),
+            "profile": P_profile,
         }
-        self.constraints += [self.flows['source']['P_out']['value'] == P_profile * P_max]
+        self.constraints += [self.flows["source"]["P_out"]["value"] == P_profile * P_max]

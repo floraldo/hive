@@ -209,9 +209,7 @@ class ClaudeService:
         self.config = config
         self.rate_limiter = RateLimiter(rate_config)
         self.cache: Dict[str, CacheEntry] = {}
-        self.cache_ttl = (
-            cache_ttl if cache_ttl is not None else claude_config.get("cache_ttl", 300)
-        )
+        self.cache_ttl = cache_ttl if cache_ttl is not None else claude_config.get("cache_ttl", 300)
         self.metrics = ClaudeMetrics()
         self.error_reporter = ErrorReporter()
 
@@ -240,9 +238,7 @@ class ClaudeService:
             if not entry.is_expired(self.cache_ttl):
                 entry.hit_count += 1
                 self.metrics.cached_responses += 1
-                logger.debug(
-                    f"Cache hit for key {cache_key[:8]}... (hits: {entry.hit_count})"
-                )
+                logger.debug(f"Cache hit for key {cache_key[:8]}... (hits: {entry.hit_count})")
                 return entry.response
             else:
                 # Remove expired entry
@@ -257,9 +253,7 @@ class ClaudeService:
         # Limit cache size
         if len(self.cache) > 100:
             # Remove oldest entries
-            sorted_keys = sorted(
-                self.cache.keys(), key=lambda k: self.cache[k].timestamp
-            )
+            sorted_keys = sorted(self.cache.keys(), key=lambda k: self.cache[k].timestamp)
             for key in sorted_keys[:20]:
                 del self.cache[key]
 
@@ -286,9 +280,7 @@ class ClaudeService:
 
         return True
 
-    def _execute_with_metrics(
-        self, operation: str, func: Callable, use_cache: bool = True, **kwargs
-    ) -> Any:
+    def _execute_with_metrics(self, operation: str, func: Callable, use_cache: bool = True, **kwargs) -> Any:
         """Execute operation with metrics tracking
 
         Args:

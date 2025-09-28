@@ -20,17 +20,15 @@ class AsyncResourceManager:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.cleanup_all()
+        await self.cleanup_all_async()
 
-    def register_resource(
-        self, name: str, resource: Any, cleanup_callback: Optional[Any] = None
-    ):
+    def register_resource(self, name: str, resource: Any, cleanup_callback: Optional[Any] = None):
         """Register a resource for automatic cleanup."""
         self.resources[name] = resource
         if cleanup_callback:
             self._cleanup_callbacks[name] = cleanup_callback
 
-    async def cleanup_resource(self, name: str):
+    async def cleanup_resource_async(self, name: str):
         """Clean up a specific resource."""
         if name in self.resources:
             resource = self.resources.pop(name)
@@ -50,10 +48,10 @@ class AsyncResourceManager:
             except Exception as e:
                 logger.warning(f"Error cleaning up resource {name}: {e}")
 
-    async def cleanup_all(self):
+    async def cleanup_all_async(self):
         """Clean up all registered resources."""
         for name in list(self.resources.keys()):
-            await self.cleanup_resource(name)
+            await self.cleanup_resource_async(name)
 
     def get_resource(self, name: str) -> Any:
         """Get a registered resource."""
@@ -61,7 +59,7 @@ class AsyncResourceManager:
 
 
 @asynccontextmanager
-async def async_context(*resources: AsyncContextManager):
+async def async_context_async(*resources: AsyncContextManager):
     """Context manager for handling multiple async resources."""
     entered_resources = []
     try:

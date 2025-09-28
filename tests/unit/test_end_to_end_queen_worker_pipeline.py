@@ -31,6 +31,7 @@ from contextlib import contextmanager
 @dataclass
 class TaskTestResult:
     """Result of a task execution test"""
+
     task_id: int
     success: bool
     duration: float
@@ -78,6 +79,7 @@ class QueenWorkerPipelineTest:
         # Clean up files
         if self.temp_dir and Path(self.temp_dir).exists():
             import shutil
+
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
         # Clean environment variables
@@ -90,7 +92,7 @@ class QueenWorkerPipelineTest:
     def run_complete_pipeline_test(self) -> bool:
         """Run complete end-to-end pipeline test"""
         print("🏁 Running Complete Queen → Worker Pipeline Test")
-        print("="*70)
+        print("=" * 70)
 
         self.setup_test_environment()
 
@@ -116,13 +118,15 @@ class QueenWorkerPipelineTest:
             print(f"⏰ Task Timeout Handling: {'PASSED' if timeout_test_passed else 'FAILED'}")
 
             # Generate final report
-            all_passed = all([
-                basic_test_passed,
-                concurrent_test_passed,
-                priority_test_passed,
-                failure_test_passed,
-                timeout_test_passed
-            ])
+            all_passed = all(
+                [
+                    basic_test_passed,
+                    concurrent_test_passed,
+                    priority_test_passed,
+                    failure_test_passed,
+                    timeout_test_passed,
+                ]
+            )
 
             self._generate_pipeline_test_report(all_passed)
 
@@ -141,12 +145,14 @@ class QueenWorkerPipelineTest:
 
         try:
             # 1. Create test task
-            task_id = self._create_test_task({
-                "title": "Basic Test Task",
-                "description": "Test basic task processing pipeline",
-                "priority": 50,
-                "context": json.dumps({"test_type": "basic", "expected_duration": 1.0})
-            })
+            task_id = self._create_test_task(
+                {
+                    "title": "Basic Test Task",
+                    "description": "Test basic task processing pipeline",
+                    "priority": 50,
+                    "context": json.dumps({"test_type": "basic", "expected_duration": 1.0}),
+                }
+            )
 
             # 2. Start mock Queen process
             queen_started = self._start_mock_queen()
@@ -190,12 +196,14 @@ class QueenWorkerPipelineTest:
             task_ids = []
 
             for i in range(num_tasks):
-                task_id = self._create_test_task({
-                    "title": f"Concurrent Test Task {i+1}",
-                    "description": f"Concurrent processing test task {i+1}",
-                    "priority": 60,
-                    "context": json.dumps({"test_type": "concurrent", "task_number": i+1})
-                })
+                task_id = self._create_test_task(
+                    {
+                        "title": f"Concurrent Test Task {i+1}",
+                        "description": f"Concurrent processing test task {i+1}",
+                        "priority": 60,
+                        "context": json.dumps({"test_type": "concurrent", "task_number": i + 1}),
+                    }
+                )
                 task_ids.append(task_id)
 
             # Start Queen and multiple Workers
@@ -226,7 +234,9 @@ class QueenWorkerPipelineTest:
             if len(completed_tasks) == num_tasks:
                 duration = time.time() - start_time
                 throughput = num_tasks / duration
-                print(f"✅ Concurrent processing test passed: {num_tasks} tasks in {duration:.2f}s ({throughput:.2f} tasks/sec)")
+                print(
+                    f"✅ Concurrent processing test passed: {num_tasks} tasks in {duration:.2f}s ({throughput:.2f} tasks/sec)"
+                )
                 return True
             else:
                 print(f"❌ Concurrent processing test failed: only {len(completed_tasks)}/{num_tasks} tasks completed")
@@ -245,26 +255,32 @@ class QueenWorkerPipelineTest:
 
         try:
             # Create tasks with different priorities
-            low_priority_task = self._create_test_task({
-                "title": "Low Priority Task",
-                "description": "Should be processed last",
-                "priority": 20,
-                "context": json.dumps({"test_type": "priority", "priority_level": "low"})
-            })
+            low_priority_task = self._create_test_task(
+                {
+                    "title": "Low Priority Task",
+                    "description": "Should be processed last",
+                    "priority": 20,
+                    "context": json.dumps({"test_type": "priority", "priority_level": "low"}),
+                }
+            )
 
-            high_priority_task = self._create_test_task({
-                "title": "High Priority Task",
-                "description": "Should be processed first",
-                "priority": 90,
-                "context": json.dumps({"test_type": "priority", "priority_level": "high"})
-            })
+            high_priority_task = self._create_test_task(
+                {
+                    "title": "High Priority Task",
+                    "description": "Should be processed first",
+                    "priority": 90,
+                    "context": json.dumps({"test_type": "priority", "priority_level": "high"}),
+                }
+            )
 
-            medium_priority_task = self._create_test_task({
-                "title": "Medium Priority Task",
-                "description": "Should be processed second",
-                "priority": 50,
-                "context": json.dumps({"test_type": "priority", "priority_level": "medium"})
-            })
+            medium_priority_task = self._create_test_task(
+                {
+                    "title": "Medium Priority Task",
+                    "description": "Should be processed second",
+                    "priority": 50,
+                    "context": json.dumps({"test_type": "priority", "priority_level": "medium"}),
+                }
+            )
 
             # Start Queen and Worker
             queen_started = self._start_mock_queen()
@@ -289,9 +305,11 @@ class QueenWorkerPipelineTest:
 
             # Verify priority order (high → medium → low)
             if len(completion_order) == 3:
-                if (completion_order[0] == high_priority_task and
-                    completion_order[1] == medium_priority_task and
-                    completion_order[2] == low_priority_task):
+                if (
+                    completion_order[0] == high_priority_task
+                    and completion_order[1] == medium_priority_task
+                    and completion_order[2] == low_priority_task
+                ):
                     print("✅ Task priority handling test passed")
                     return True
                 else:
@@ -315,12 +333,14 @@ class QueenWorkerPipelineTest:
 
         try:
             # Create test task
-            task_id = self._create_test_task({
-                "title": "Worker Failure Test Task",
-                "description": "Test worker failure recovery",
-                "priority": 70,
-                "context": json.dumps({"test_type": "failure_recovery", "worker_failure": True})
-            })
+            task_id = self._create_test_task(
+                {
+                    "title": "Worker Failure Test Task",
+                    "description": "Test worker failure recovery",
+                    "priority": 70,
+                    "context": json.dumps({"test_type": "failure_recovery", "worker_failure": True}),
+                }
+            )
 
             # Start Queen and first Worker
             queen_started = self._start_mock_queen()
@@ -373,13 +393,15 @@ class QueenWorkerPipelineTest:
 
         try:
             # Create task with short timeout
-            task_id = self._create_test_task({
-                "title": "Timeout Test Task",
-                "description": "Test task timeout handling",
-                "priority": 50,
-                "timeout": 2,  # 2 second timeout
-                "context": json.dumps({"test_type": "timeout", "long_running": True})
-            })
+            task_id = self._create_test_task(
+                {
+                    "title": "Timeout Test Task",
+                    "description": "Test task timeout handling",
+                    "priority": 50,
+                    "timeout": 2,  # 2 second timeout
+                    "context": json.dumps({"test_type": "timeout", "long_running": True}),
+                }
+            )
 
             # Start Queen and Worker
             queen_started = self._start_mock_queen()
@@ -422,7 +444,8 @@ class QueenWorkerPipelineTest:
         """Set up test database schema"""
         conn = sqlite3.connect(self.test_db_path)
 
-        conn.executescript("""
+        conn.executescript(
+            """
             CREATE TABLE tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
@@ -452,7 +475,8 @@ class QueenWorkerPipelineTest:
                 last_heartbeat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 current_task_id INTEGER
             );
-        """)
+        """
+        )
 
         conn.commit()
         conn.close()
@@ -469,8 +493,8 @@ class QueenWorkerPipelineTest:
                 task_data["description"],
                 task_data.get("priority", 50),
                 task_data.get("timeout", 300),
-                task_data.get("context", "{}")
-            )
+                task_data.get("context", "{}"),
+            ),
         )
 
         task_id = cursor.lastrowid
@@ -487,9 +511,7 @@ class QueenWorkerPipelineTest:
             queen_script = self._create_mock_queen_script()
 
             # Start Queen process
-            self.queen_process = subprocess.Popen([
-                sys.executable, queen_script
-            ], env=os.environ.copy())
+            self.queen_process = subprocess.Popen([sys.executable, queen_script], env=os.environ.copy())
 
             # Wait for Queen to start
             time.sleep(2)
@@ -512,9 +534,7 @@ class QueenWorkerPipelineTest:
             worker_script = self._create_mock_worker_script(worker_id, should_fail, slow_execution)
 
             # Start Worker process
-            worker_process = subprocess.Popen([
-                sys.executable, worker_script
-            ], env=os.environ.copy())
+            worker_process = subprocess.Popen([sys.executable, worker_script], env=os.environ.copy())
 
             self.worker_processes.append((worker_id, worker_process))
 
@@ -534,7 +554,7 @@ class QueenWorkerPipelineTest:
 
     def _create_mock_queen_script(self) -> str:
         """Create mock Queen script"""
-        script_content = f'''
+        script_content = f"""
 import sqlite3
 import time
 import json
@@ -585,17 +605,19 @@ class MockQueen:
 if __name__ == "__main__":
     queen = MockQueen("{self.test_db_path}")
     queen.run()
-'''
+"""
 
         script_path = Path(self.temp_dir) / "mock_queen.py"
-        with open(script_path, 'w') as f:
+        with open(script_path, "w") as f:
             f.write(script_content)
 
         return str(script_path)
 
-    def _create_mock_worker_script(self, worker_id: str, should_fail: bool = False, slow_execution: bool = False) -> str:
+    def _create_mock_worker_script(
+        self, worker_id: str, should_fail: bool = False, slow_execution: bool = False
+    ) -> str:
         """Create mock Worker script"""
-        script_content = f'''
+        script_content = f"""
 import sqlite3
 import time
 import json
@@ -683,10 +705,10 @@ class MockWorker:
 if __name__ == "__main__":
     worker = MockWorker("{worker_id}", "{self.test_db_path}", {should_fail}, {slow_execution})
     worker.run()
-'''
+"""
 
         script_path = Path(self.temp_dir) / f"mock_worker_{worker_id}.py"
-        with open(script_path, 'w') as f:
+        with open(script_path, "w") as f:
             f.write(script_content)
 
         return str(script_path)
@@ -752,7 +774,7 @@ if __name__ == "__main__":
         row = cursor.fetchone()
         conn.close()
 
-        return row and row[0] == 'completed'
+        return row and row[0] == "completed"
 
     def _get_task_status(self, task_id: int) -> Optional[str]:
         """Get current task status"""
@@ -782,12 +804,14 @@ if __name__ == "__main__":
         """Generate pipeline test report"""
         print(f"\n{'='*70}")
         print("📊 QUEEN → WORKER PIPELINE TEST REPORT")
-        print("="*70)
+        print("=" * 70)
 
         test_count = 5  # Number of test categories
-        passed_count = sum([
-            1 if all_passed else 0,  # This is simplified; in real implementation would track individual tests
-        ])
+        passed_count = sum(
+            [
+                1 if all_passed else 0,  # This is simplified; in real implementation would track individual tests
+            ]
+        )
 
         print(f"\n📈 Test Results:")
         print(f"   Overall Status: {'✅ ALL PASSED' if all_passed else '❌ SOME FAILED'}")
@@ -823,7 +847,7 @@ if __name__ == "__main__":
         else:
             print("❌ QUEEN → WORKER PIPELINE VALIDATION FAILED")
             print("🔧 Pipeline needs fixes before production")
-        print("="*70)
+        print("=" * 70)
 
 
 def main():

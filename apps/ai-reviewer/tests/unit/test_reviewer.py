@@ -43,9 +43,7 @@ class TestQualityMetrics:
 
     def test_zero_scores(self):
         """Test with zero scores"""
-        metrics = QualityMetrics(
-            code_quality=0, test_coverage=0, documentation=0, security=0, architecture=0
-        )
+        metrics = QualityMetrics(code_quality=0, test_coverage=0, documentation=0, security=0, architecture=0)
         assert metrics.overall_score == 0
 
 
@@ -143,9 +141,7 @@ def very_long_function_that_does_too_many_things():
             "main.py": "def func(): pass",
             "test_main.py": "def test_func(): pass",
         }
-        score = engine._score_test_coverage(
-            code_with_tests, {"passed": True, "coverage": 90}
-        )
+        score = engine._score_test_coverage(code_with_tests, {"passed": True, "coverage": 90})
         assert score > 80
 
         code_without_tests = {"main.py": "def func(): pass"}
@@ -293,9 +289,7 @@ def process():
 
     def test_review_result_to_dict(self, engine, sample_code):
         """Test ReviewResult.to_dict() method"""
-        result = engine.review_task(
-            task_id="test-456", task_description="Test task", code_files=sample_code
-        )
+        result = engine.review_task(task_id="test-456", task_description="Test task", code_files=sample_code)
 
         result_dict = result.to_dict()
 

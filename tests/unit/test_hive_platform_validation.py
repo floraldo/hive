@@ -47,6 +47,7 @@ class PlatformValidationTests:
 
         # Cleanup
         import shutil
+
         try:
             shutil.rmtree(self.temp_dir)
         except Exception:
@@ -58,7 +59,8 @@ class PlatformValidationTests:
     def _init_validation_database(self):
         """Initialize minimal database schema for validation"""
         conn = sqlite3.connect(self.db_path)
-        conn.executescript('''
+        conn.executescript(
+            """
             CREATE TABLE tasks (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
@@ -96,7 +98,8 @@ class PlatformValidationTests:
                 status TEXT DEFAULT 'pending',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             );
-        ''')
+        """
+        )
         conn.commit()
         conn.close()
 
@@ -111,9 +114,12 @@ class PlatformValidationTests:
 
         # Test insert
         task_id = str(uuid.uuid4())
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, description) VALUES (?, ?, ?)
-        ''', (task_id, "Test Task", "Database connectivity test"))
+        """,
+            (task_id, "Test Task", "Database connectivity test"),
+        )
 
         # Test select
         cursor = conn.execute("SELECT title FROM tasks WHERE id = ?", (task_id,))
@@ -130,20 +136,21 @@ class PlatformValidationTests:
         event_id = str(uuid.uuid4())
         event_payload = {"test": True, "message": "validation test"}
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO events (id, event_type, source_agent, payload)
             VALUES (?, ?, ?, ?)
-        ''', (
-            event_id,
-            "validation.test",
-            "test_agent",
-            json.dumps(event_payload)
-        ))
+        """,
+            (event_id, "validation.test", "test_agent", json.dumps(event_payload)),
+        )
 
         # Verify event was stored
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT payload FROM events WHERE id = ?
-        ''', (event_id,))
+        """,
+            (event_id,),
+        )
 
         row = cursor.fetchone()
         assert row is not None, "Event should be stored"
@@ -159,19 +166,21 @@ class PlatformValidationTests:
 
         # Create planning request
         planning_id = str(uuid.uuid4())
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO planning_queue (id, task_description, priority)
             VALUES (?, ?, ?)
-        ''', (
-            planning_id,
-            "Test planning integration",
-            75
-        ))
+        """,
+            (planning_id, "Test planning integration", 75),
+        )
 
         # Verify planning request exists
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT task_description, priority FROM planning_queue WHERE id = ?
-        ''', (planning_id,))
+        """,
+            (planning_id,),
+        )
 
         row = cursor.fetchone()
         assert row is not None, "Planning request should exist"
@@ -186,24 +195,23 @@ class PlatformValidationTests:
 
         # Create simulation record
         sim_id = str(uuid.uuid4())
-        config_data = {
-            "components": ["solar_pv", "battery"],
-            "optimization": "cost_minimize"
-        }
+        config_data = {"components": ["solar_pv", "battery"], "optimization": "cost_minimize"}
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO simulations (id, config_data, status)
             VALUES (?, ?, ?)
-        ''', (
-            sim_id,
-            json.dumps(config_data),
-            "pending"
-        ))
+        """,
+            (sim_id, json.dumps(config_data), "pending"),
+        )
 
         # Verify simulation record
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT config_data, status FROM simulations WHERE id = ?
-        ''', (sim_id,))
+        """,
+            (sim_id,),
+        )
 
         row = cursor.fetchone()
         assert row is not None, "Simulation should exist"
@@ -220,27 +228,23 @@ class PlatformValidationTests:
 
         # Create shared task from orchestrator perspective
         task_id = str(uuid.uuid4())
-        task_payload = {
-            "created_by": "orchestrator",
-            "shared_data": {"key": "value"},
-            "target_app": "ecosystemiser"
-        }
+        task_payload = {"created_by": "orchestrator", "shared_data": {"key": "value"}, "target_app": "ecosystemiser"}
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, task_type, assignee, payload)
             VALUES (?, ?, ?, ?, ?)
-        ''', (
-            task_id,
-            "Cross-App Data Test",
-            "data_sharing",
-            "ecosystemiser",
-            json.dumps(task_payload)
-        ))
+        """,
+            (task_id, "Cross-App Data Test", "data_sharing", "ecosystemiser", json.dumps(task_payload)),
+        )
 
         # Read from EcoSystemiser perspective
-        cursor = conn.execute('''
+        cursor = conn.execute(
+            """
             SELECT payload FROM tasks WHERE id = ? AND assignee = 'ecosystemiser'
-        ''', (task_id,))
+        """,
+            (task_id,),
+        )
 
         row = cursor.fetchone()
         assert row is not None, "Task should be accessible to target app"
@@ -282,23 +286,32 @@ class PlatformValidationTests:
 
         # Test invalid data handling
         try:
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (id, title) VALUES (?, ?)
-            ''', (None, "Invalid Task"))  # NULL id should fail
+            """,
+                (None, "Invalid Task"),
+            )  # NULL id should fail
             assert False, "Should have raised an error"
         except sqlite3.IntegrityError:
             pass  # Expected error
 
         # Test constraint violations
         task_id = str(uuid.uuid4())
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title) VALUES (?, ?)
-        ''', (task_id, "First Task"))
+        """,
+            (task_id, "First Task"),
+        )
 
         try:
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (id, title) VALUES (?, ?)
-            ''', (task_id, "Duplicate Task"))  # Duplicate id should fail
+            """,
+                (task_id, "Duplicate Task"),
+            )  # Duplicate id should fail
             assert False, "Should have raised an error"
         except sqlite3.IntegrityError:
             pass  # Expected error
@@ -317,14 +330,13 @@ class PlatformValidationTests:
         # Insert multiple records
         for i in range(100):
             task_id = f"perf_task_{i}_{uuid.uuid4()}"
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (id, title, description)
                 VALUES (?, ?, ?)
-            ''', (
-                task_id,
-                f"Performance Test Task {i}",
-                f"Task {i} for performance baseline testing"
-            ))
+            """,
+                (task_id, f"Performance Test Task {i}", f"Task {i} for performance baseline testing"),
+            )
 
         # Query records
         cursor = conn.execute("SELECT COUNT(*) FROM tasks")
@@ -365,7 +377,10 @@ class PlatformValidationTests:
             # This should work if imports are properly structured
             # (Note: actual imports would be tested in real environment)
             import hive_orchestrator
-            assert hasattr(hive_orchestrator, '__version__') or hasattr(hive_orchestrator, '__file__'), "Module should be importable"
+
+            assert hasattr(hive_orchestrator, "__version__") or hasattr(
+                hive_orchestrator, "__file__"
+            ), "Module should be importable"
 
         except ImportError as e:
             # In test environment, this might fail, but we can still validate structure
@@ -387,29 +402,32 @@ class CriticalPathValidation:
             plan_id = f"critical_plan_{uuid.uuid4()}"
             planning_task_id = f"critical_planning_{uuid.uuid4()}"
 
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO planning_queue (id, task_description, status)
                 VALUES (?, ?, ?)
-            ''', (planning_task_id, "Critical path test", "planned"))
+            """,
+                (planning_task_id, "Critical path test", "planned"),
+            )
 
             # Step 2: Queen reads plan and creates tasks
             task_id = f"critical_task_{uuid.uuid4()}"
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (id, title, task_type, status, payload)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (
-                task_id,
-                "Critical Path Task",
-                "planned_subtask",
-                "queued",
-                json.dumps({"parent_plan_id": plan_id})
-            ))
+            """,
+                (task_id, "Critical Path Task", "planned_subtask", "queued", json.dumps({"parent_plan_id": plan_id})),
+            )
 
             # Step 3: Verify data flow
-            cursor = conn.execute('''
+            cursor = conn.execute(
+                """
                 SELECT COUNT(*) FROM tasks
                 WHERE json_extract(payload, '$.parent_plan_id') = ?
-            ''', (plan_id,))
+            """,
+                (plan_id,),
+            )
 
             task_count = cursor.fetchone()[0]
             return task_count > 0
@@ -424,33 +442,40 @@ class CriticalPathValidation:
         try:
             # Queen assigns task to worker
             task_id = f"worker_task_{uuid.uuid4()}"
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (id, title, status, assignee)
                 VALUES (?, ?, ?, ?)
-            ''', (
-                task_id,
-                "Worker Assignment Test",
-                "assigned",
-                "worker:backend"
-            ))
+            """,
+                (task_id, "Worker Assignment Test", "assigned", "worker:backend"),
+            )
 
             # Worker picks up and processes task
-            conn.execute('''
+            conn.execute(
+                """
                 UPDATE tasks SET status = 'in_progress' WHERE id = ?
-            ''', (task_id,))
+            """,
+                (task_id,),
+            )
 
             # Worker completes task
-            conn.execute('''
+            conn.execute(
+                """
                 UPDATE tasks SET status = 'completed' WHERE id = ?
-            ''', (task_id,))
+            """,
+                (task_id,),
+            )
 
             # Verify completion
-            cursor = conn.execute('''
+            cursor = conn.execute(
+                """
                 SELECT status FROM tasks WHERE id = ?
-            ''', (task_id,))
+            """,
+                (task_id,),
+            )
 
             status = cursor.fetchone()[0]
-            return status == 'completed'
+            return status == "completed"
 
         finally:
             conn.close()
@@ -464,21 +489,27 @@ class CriticalPathValidation:
             event_id = str(uuid.uuid4())
             correlation_id = str(uuid.uuid4())
 
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO events (id, event_type, source_agent, correlation_id, payload)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (
-                event_id,
-                "system.critical.test",
-                "validation_test",
-                correlation_id,
-                json.dumps({"critical": True, "timestamp": datetime.now(timezone.utc).isoformat()})
-            ))
+            """,
+                (
+                    event_id,
+                    "system.critical.test",
+                    "validation_test",
+                    correlation_id,
+                    json.dumps({"critical": True, "timestamp": datetime.now(timezone.utc).isoformat()}),
+                ),
+            )
 
             # Verify event can be retrieved by correlation
-            cursor = conn.execute('''
+            cursor = conn.execute(
+                """
                 SELECT payload FROM events WHERE correlation_id = ?
-            ''', (correlation_id,))
+            """,
+                (correlation_id,),
+            )
 
             row = cursor.fetchone()
             if not row:
@@ -495,7 +526,7 @@ class CriticalPathValidation:
         return {
             "ai_planner_to_queen": self.validate_ai_planner_to_queen_flow(),
             "queen_to_worker": self.validate_queen_to_worker_flow(),
-            "event_bus_critical": self.validate_event_bus_critical_path()
+            "event_bus_critical": self.validate_event_bus_critical_path(),
         }
 
 
@@ -543,9 +574,8 @@ if __name__ == "__main__":
 
     # Run pytest
     import subprocess
-    result = subprocess.run([
-        "python", "-m", "pytest", __file__, "-v"
-    ], capture_output=True, text=True)
+
+    result = subprocess.run(["python", "-m", "pytest", __file__, "-v"], capture_output=True, text=True)
 
     if result.returncode == 0:
         print("✅ All validation tests passed!")

@@ -44,11 +44,7 @@ class SSHClient:
         Returns:
             bool: True if connection is successful
         """
-        if (
-            self.client
-            and self.client.get_transport()
-            and self.client.get_transport().is_active()
-        ):
+        if self.client and self.client.get_transport() and self.client.get_transport().is_active():
             logging.debug("SSH connection already active")
             return True
 
@@ -119,11 +115,7 @@ class SSHClient:
         Returns:
             Tuple[int, str, str]: (exit_code, stdout, stderr)
         """
-        if (
-            not self.client
-            or not self.client.get_transport()
-            or not self.client.get_transport().is_active()
-        ):
+        if not self.client or not self.client.get_transport() or not self.client.get_transport().is_active():
             if not self.connect():
                 return 1, "", "SSH connection failed"
 
@@ -166,9 +158,7 @@ class SSHClient:
             logging.error(f"Error executing command: {str(e)}")
             return 1, "", str(e)
 
-    def upload_file(
-        self, content: Union[bytes, str], remote_path: str, sudo: bool = False
-    ) -> bool:
+    def upload_file(self, content: Union[bytes, str], remote_path: str, sudo: bool = False) -> bool:
         """
         Upload content to a remote file.
 
@@ -180,11 +170,7 @@ class SSHClient:
         Returns:
             bool: True if successful
         """
-        if (
-            not self.client
-            or not self.client.get_transport()
-            or not self.client.get_transport().is_active()
-        ):
+        if not self.client or not self.client.get_transport() or not self.client.get_transport().is_active():
             if not self.connect():
                 return False
 

@@ -41,9 +41,7 @@ class AsyncRetryError(Exception):
         super().__init__(f"Failed after {attempts} attempts: {original_error}")
 
 
-async def async_retry(
-    func: Callable, config: Optional[AsyncRetryConfig] = None, *args, **kwargs
-) -> Any:
+async def async_retry_async(func: Callable, config: Optional[AsyncRetryConfig] = None, *args, **kwargs) -> Any:
     """
     Retry an async function with configurable strategy.
 
@@ -65,20 +63,14 @@ async def async_retry(
     # Build retry conditions
     retry_condition = retry_if_exception_type(config.retry_exceptions)
     if config.stop_on_exceptions:
-        retry_condition = retry_condition & ~retry_if_exception_type(
-            config.stop_on_exceptions
-        )
+        retry_condition = retry_condition & ~retry_if_exception_type(config.stop_on_exceptions)
 
     # Build retry strategy
     retry_strategy = AsyncRetrying(
         stop=stop_after_attempt(config.max_attempts),
-        wait=wait_exponential(
-            multiplier=config.multiplier, min=config.min_wait, max=config.max_wait
-        ),
+        wait=wait_exponential(multiplier=config.multiplier, min=config.min_wait, max=config.max_wait),
         retry=retry_condition,
-        before_sleep=(
-            before_sleep_log(logger, "WARNING") if config.log_before_sleep else None
-        ),
+        before_sleep=(before_sleep_log(logger, "WARNING") if config.log_before_sleep else None),
         after=after_log(logger, "INFO") if config.log_after_attempt else None,
     )
 
@@ -87,9 +79,7 @@ async def async_retry(
     except RetryError as e:
         if e.last_attempt.failed:
             original_error = e.last_attempt.exception()
-            raise AsyncRetryError(
-                original_error, config.max_attempts
-            ) from original_error
+            raise AsyncRetryError(original_error, config.max_attempts) from original_error
         raise
 
 
@@ -105,8 +95,8 @@ def create_retry_decorator(config: Optional[AsyncRetryConfig] = None):
     """
 
     def decorator(func: Callable):
-        async def wrapper(*args, **kwargs):
-            return await async_retry(func, config, *args, **kwargs)
+        async def wrapper_async(*args, **kwargs):
+            return await async_retry_async(func, config, *args, **kwargs)
 
         return wrapper
 

@@ -32,42 +32,24 @@ class WaterGridTechnicalParams(TransmissionTechnicalParams):
 
     # Water grid economic parameters (should eventually move to economic block)
     water_tariff: float = Field(1.5, description="Water import price [$/m³]")
-    wastewater_tariff: float = Field(
-        2.0, description="Wastewater discharge price [$/m³]"
-    )
+    wastewater_tariff: float = Field(2.0, description="Wastewater discharge price [$/m³]")
 
     # Water-specific parameters
     supply_pressure_bar: float = Field(3.0, description="Supply water pressure [bar]")
-    min_pressure_bar: float = Field(
-        1.0, description="Minimum acceptable pressure [bar]"
-    )
-    supply_reliability: float = Field(
-        0.99, description="Grid supply reliability factor (0-1)"
-    )
+    min_pressure_bar: float = Field(1.0, description="Minimum acceptable pressure [bar]")
+    supply_reliability: float = Field(0.99, description="Grid supply reliability factor (0-1)")
 
     # STANDARD fidelity additions
-    pressure_losses: Optional[Dict[str, float]] = Field(
-        None, description="Pressure loss factors in distribution"
-    )
-    water_quality_degradation: Optional[float] = Field(
-        None, description="Water quality degradation factor"
-    )
+    pressure_losses: Optional[Dict[str, float]] = Field(None, description="Pressure loss factors in distribution")
+    water_quality_degradation: Optional[float] = Field(None, description="Water quality degradation factor")
 
     # DETAILED fidelity parameters
-    network_topology: Optional[Dict[str, Any]] = Field(
-        None, description="Detailed network topology model"
-    )
-    peak_demand_surcharge: Optional[Dict[str, float]] = Field(
-        None, description="Peak demand pricing structure"
-    )
+    network_topology: Optional[Dict[str, Any]] = Field(None, description="Detailed network topology model")
+    peak_demand_surcharge: Optional[Dict[str, float]] = Field(None, description="Peak demand pricing structure")
 
     # RESEARCH fidelity parameters
-    hydraulic_model: Optional[Dict[str, Any]] = Field(
-        None, description="Detailed hydraulic network model"
-    )
-    contamination_tracking: Optional[Dict[str, Any]] = Field(
-        None, description="Water contamination tracking model"
-    )
+    hydraulic_model: Optional[Dict[str, Any]] = Field(None, description="Detailed hydraulic network model")
+    contamination_tracking: Optional[Dict[str, Any]] = Field(None, description="Water contamination tracking model")
 
 
 # =============================================================================
@@ -307,9 +289,7 @@ class WaterGrid(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return WaterGridOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for WaterGrid optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for WaterGrid optimization: {fidelity}")
 
     def add_optimization_vars(self, N: Optional[int] = None):
         """Create CVXPY optimization variables."""
@@ -363,16 +343,12 @@ class WaterGrid(Component):
             total_cost += total_import_cost
 
         if hasattr(self.Q_export, "value") and self.Q_export.value is not None:
-            total_export_cost = (
-                np.sum(self.Q_export.value) * self.wastewater_price_per_m3
-            )
+            total_export_cost = np.sum(self.Q_export.value) * self.wastewater_price_per_m3
             total_cost += total_export_cost
 
         return total_cost
 
-    def rule_based_operation(
-        self, water_demand: float, wastewater_production: float, t: int
-    ) -> tuple:
+    def rule_based_operation(self, water_demand: float, wastewater_production: float, t: int) -> tuple:
         """
         Delegate to physics strategy for water grid operation.
 
@@ -380,14 +356,10 @@ class WaterGrid(Component):
         physics calculation to the strategy object.
         """
         # Delegate import calculation to physics strategy
-        actual_import = self.physics.rule_based_import(
-            water_demand, self.max_supply_m3h
-        )
+        actual_import = self.physics.rule_based_import(water_demand, self.max_supply_m3h)
 
         # Delegate export calculation to physics strategy
-        actual_export = self.physics.rule_based_export(
-            wastewater_production, self.max_discharge_m3h
-        )
+        actual_export = self.physics.rule_based_export(wastewater_production, self.max_discharge_m3h)
 
         return actual_import, actual_export
 

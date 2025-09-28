@@ -85,9 +85,7 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
         analysis["ventilation"]["max_wind_speed"] = float(wind.max())
 
         # Natural ventilation potential (moderate wind speeds)
-        analysis["ventilation"]["hours_2_to_6_ms"] = int(
-            ((wind >= 2) & (wind <= 6)).sum()
-        )
+        analysis["ventilation"]["hours_2_to_6_ms"] = int(((wind >= 2) & (wind <= 6)).sum())
 
     # Add coincidence analysis if we have temp and solar
     if "temp_air" in ds and "ghi" in ds:
@@ -103,9 +101,7 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
     return analysis
 
 
-def get_design_conditions(
-    ds: xr.Dataset, percentiles: List[float] = [0.4, 1, 2, 99, 99.6]
-) -> Dict:
+def get_design_conditions(ds: xr.Dataset, percentiles: List[float] = [0.4, 1, 2, 99, 99.6]) -> Dict:
     """
     Calculate ASHRAE-style design conditions for HVAC sizing.
 
@@ -160,21 +156,15 @@ def get_design_conditions(
     if "temp_air" in ds and "rel_humidity" in ds:
         # Mean coincident humidity at peak temperatures
         hot_hours = ds["temp_air"] > ds["temp_air"].quantile(0.99)
-        design["cooling"]["mean_rh_at_peak"] = float(
-            ds["rel_humidity"].where(hot_hours).mean()
-        )
+        design["cooling"]["mean_rh_at_peak"] = float(ds["rel_humidity"].where(hot_hours).mean())
 
         cold_hours = ds["temp_air"] < ds["temp_air"].quantile(0.01)
-        design["heating"]["mean_rh_at_peak"] = float(
-            ds["rel_humidity"].where(cold_hours).mean()
-        )
+        design["heating"]["mean_rh_at_peak"] = float(ds["rel_humidity"].where(cold_hours).mean())
 
     return design
 
 
-def calculate_peak_periods(
-    ds: xr.Dataset, window: str = "1D", variables: Optional[List[str]] = None
-) -> Dict:
+def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Optional[List[str]] = None) -> Dict:
     """
     Identify peak periods for different variables.
 
@@ -227,25 +217,18 @@ def calculate_peak_periods(
                 peak_hours = pd.DatetimeIndex(daily_max_time.values).hour
                 peak_hours = peak_hours[~pd.isna(peak_hours)]
                 if len(peak_hours) > 0:
-                    peaks[var]["typical_peak_hour"] = int(
-                        pd.Series(peak_hours).mode().iloc[0]
-                    )
+                    peaks[var]["typical_peak_hour"] = int(pd.Series(peak_hours).mode().iloc[0])
 
             # Seasonal variation
             monthly_max = data.resample(time="1M").max()
             peaks[var]["peak_month_value"] = {
-                int(m.month): float(v)
-                for m, v in zip(
-                    pd.DatetimeIndex(monthly_max.time.values), monthly_max.values
-                )
+                int(m.month): float(v) for m, v in zip(pd.DatetimeIndex(monthly_max.time.values), monthly_max.values)
             }
 
     return peaks
 
 
-def analyze_diurnal_profiles(
-    ds: xr.Dataset, variables: Optional[List[str]] = None, by_month: bool = True
-) -> Dict:
+def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = None, by_month: bool = True) -> Dict:
     """
     Calculate average diurnal (hourly) profiles.
 
@@ -270,9 +253,7 @@ def analyze_diurnal_profiles(
 
         if by_month:
             # Monthly diurnal profiles
-            monthly_hourly = data.groupby(
-                [data.time.dt.month, data.time.dt.hour]
-            ).mean()
+            monthly_hourly = data.groupby([data.time.dt.month, data.time.dt.hour]).mean()
 
             profiles[var] = {
                 "monthly_hourly": {
@@ -289,17 +270,13 @@ def analyze_diurnal_profiles(
             hourly_mean = data.groupby(data.time.dt.hour).mean()
             profiles[var] = {
                 "hourly_mean": {
-                    f"hour_{h:02d}": float(hourly_mean.sel(hour=h))
-                    for h in range(24)
-                    if h in hourly_mean.coords
+                    f"hour_{h:02d}": float(hourly_mean.sel(hour=h)) for h in range(24) if h in hourly_mean.coords
                 }
             }
 
         # Add daily statistics
         if "time" in data.dims:
-            daily_range = (
-                data.resample(time="1D").max() - data.resample(time="1D").min()
-            )
+            daily_range = data.resample(time="1D").max() - data.resample(time="1D").min()
             profiles[var]["mean_daily_range"] = float(daily_range.mean())
             profiles[var]["max_daily_range"] = float(daily_range.max())
 
@@ -325,9 +302,7 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
         # Correlation during daytime hours
         if "time" in ds.dims:
             daytime = pd.DatetimeIndex(ds.time.values).hour.isin(range(6, 19))
-            corr = np.corrcoef(
-                ds["temp_air"].values[daytime], ds["ghi"].values[daytime]
-            )[0, 1]
+            corr = np.corrcoef(ds["temp_air"].values[daytime], ds["ghi"].values[daytime])[0, 1]
             simultaneity["temp_solar_correlation"] = float(corr)
 
         # Peak coincidence
@@ -335,11 +310,7 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
         solar_peak_time = ds.time[ds["ghi"].argmax()]
 
         time_diff = (
-            abs(
-                pd.Timestamp(temp_peak_time.values)
-                - pd.Timestamp(solar_peak_time.values)
-            ).total_seconds()
-            / 3600
+            abs(pd.Timestamp(temp_peak_time.values) - pd.Timestamp(solar_peak_time.values)).total_seconds() / 3600
         )
 
         simultaneity["temp_solar_peak_lag_hours"] = float(time_diff)
@@ -347,19 +318,13 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
     # Heating and wind (infiltration) coincidence
     if "temp_air" in ds and "wind_speed" in ds:
         cold_hours = ds["temp_air"] < 10
-        simultaneity["mean_wind_during_heating"] = float(
-            ds["wind_speed"].where(cold_hours).mean()
-        )
-        simultaneity["max_wind_during_heating"] = float(
-            ds["wind_speed"].where(cold_hours).max()
-        )
+        simultaneity["mean_wind_during_heating"] = float(ds["wind_speed"].where(cold_hours).mean())
+        simultaneity["max_wind_during_heating"] = float(ds["wind_speed"].where(cold_hours).max())
 
     return simultaneity
 
 
-def derive_building_variables(
-    ds: xr.Dataset, config: Optional[Dict] = None
-) -> xr.Dataset:
+def derive_building_variables(ds: xr.Dataset, config: Optional[Dict] = None) -> xr.Dataset:
     """
     Derive building-specific variables for HVAC and energy calculations.
     This is postprocessing - computes metrics for building energy analysis.
@@ -377,9 +342,7 @@ def derive_building_variables(
     # Calculate wet bulb temperature if we have temp and humidity
     if config.get("calculate_wet_bulb", True):
         if "temp_air" in ds_building and "rel_humidity" in ds_building:
-            pressure = ds_building.get(
-                "pressure", 101325
-            )  # Use standard pressure if not available
+            pressure = ds_building.get("pressure", 101325)  # Use standard pressure if not available
             ds_building["temp_wetbulb"] = calculate_wetbulb(
                 ds_building["temp_air"], ds_building["rel_humidity"], pressure
             )
@@ -394,9 +357,7 @@ def derive_building_variables(
     # Calculate apparent temperature (heat index) for comfort
     if config.get("calculate_heat_index", True):
         if "temp_air" in ds_building and "rel_humidity" in ds_building:
-            ds_building["temp_apparent"] = calculate_heat_index(
-                ds_building["temp_air"], ds_building["rel_humidity"]
-            )
+            ds_building["temp_apparent"] = calculate_heat_index(ds_building["temp_air"], ds_building["rel_humidity"])
             ds_building["temp_apparent"].attrs = {
                 "units": "degC",
                 "type": "state",
@@ -411,9 +372,7 @@ def derive_building_variables(
             base_heat = config.get("hdd_base_temp", 18.0)
             base_cool = config.get("cdd_base_temp", 24.0)
 
-            dd_results = calculate_degree_days(
-                ds_building["temp_air"], base_heat=base_heat, base_cool=base_cool
-            )
+            dd_results = calculate_degree_days(ds_building["temp_air"], base_heat=base_heat, base_cool=base_cool)
 
             if "hdd" in dd_results:
                 ds_building["hdd"] = dd_results["hdd"]
@@ -467,9 +426,7 @@ def calculate_wetbulb(
     return tw
 
 
-def calculate_heat_index(
-    temp_air: xr.DataArray, rel_humidity: xr.DataArray
-) -> xr.DataArray:
+def calculate_heat_index(temp_air: xr.DataArray, rel_humidity: xr.DataArray) -> xr.DataArray:
     """
     Calculate heat index (apparent temperature) for thermal comfort.
 

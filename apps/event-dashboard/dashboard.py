@@ -216,9 +216,7 @@ class EventDashboard:
         cutoff = now - timedelta(hours=1)
 
         active_workflows = {
-            wf_id: wf_data
-            for wf_id, wf_data in self.workflow_states.items()
-            if wf_data["last_update"] > cutoff
+            wf_id: wf_data for wf_id, wf_data in self.workflow_states.items() if wf_data["last_update"] > cutoff
         }
 
         for wf_id, wf_data in list(active_workflows.items())[:10]:  # Show top 10
@@ -260,11 +258,7 @@ class EventDashboard:
 
         # Active workflows in last hour
         cutoff = now - timedelta(hours=1)
-        active_workflows = sum(
-            1
-            for wf_data in self.workflow_states.values()
-            if wf_data["last_update"] > cutoff
-        )
+        active_workflows = sum(1 for wf_data in self.workflow_states.values() if wf_data["last_update"] > cutoff)
 
         stats_text = f"""
 🎯 Total Events: {self.system_stats['total_events']}
@@ -289,9 +283,7 @@ class EventDashboard:
 
         layout["main"].split_row(Layout(name="left"), Layout(name="right"))
 
-        layout["left"].split_column(
-            Layout(name="events"), Layout(name="stats", size=10)
-        )
+        layout["left"].split_column(Layout(name="events"), Layout(name="stats", size=10))
 
         layout["right"].split_column(Layout(name="agents"), Layout(name="workflows"))
 
@@ -310,7 +302,7 @@ class EventDashboard:
 
         return layout
 
-    async def run(self):
+    async def run_async(self):
         """Run the live dashboard"""
         logger.info("Starting Event Dashboard...")
 
@@ -323,12 +315,8 @@ class EventDashboard:
         self.running = True
 
         try:
-            with Live(
-                self._create_dashboard_layout(), refresh_per_second=2, screen=True
-            ) as live:
-                console.logger.info(
-                    "[green]Event Dashboard started. Monitoring event flow...[/green]"
-                )
+            with Live(self._create_dashboard_layout(), refresh_per_second=2, screen=True) as live:
+                console.logger.info("[green]Event Dashboard started. Monitoring event flow...[/green]")
 
                 while self.running:
                     # Update the dashboard layout
@@ -382,7 +370,7 @@ def main():
     dashboard = EventDashboard()
 
     try:
-        asyncio.run(dashboard.run())
+        asyncio.run_async(dashboard.run_async())
     except KeyboardInterrupt:
         console.logger.info("\n[yellow]Goodbye![/yellow]")
     except Exception as e:

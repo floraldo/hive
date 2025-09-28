@@ -44,7 +44,7 @@ def check_file_imports(file_path: Path, forbidden_patterns: List[str]) -> List[s
     violations = []
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             tree = ast.parse(f.read())
 
         checker = ImportChecker()
@@ -53,9 +53,7 @@ def check_file_imports(file_path: Path, forbidden_patterns: List[str]) -> List[s
         for import_name in checker.imports:
             for pattern in forbidden_patterns:
                 if pattern in import_name:
-                    violations.append(
-                        f"{file_path.relative_to(PROJECT_ROOT)}: Forbidden import '{import_name}'"
-                    )
+                    violations.append(f"{file_path.relative_to(PROJECT_ROOT)}: Forbidden import '{import_name}'")
     except Exception as e:
         # Skip files that can't be parsed
         pass
@@ -92,7 +90,7 @@ def test_service_layer_decoupling():
                 # Allow study_service to import from simulation_service for types
                 if service_file == "study_service.py" and other_service == "simulation_service.py":
                     continue  # This is allowed for type imports
-                service_name = other_service.replace('.py', '')
+                service_name = other_service.replace(".py", "")
                 forbidden_patterns.append(f"ecosystemiser.services.{service_name}")
 
         file_violations = check_file_imports(file_path, forbidden_patterns)
@@ -101,20 +99,15 @@ def test_service_layer_decoupling():
     # StudyService should use JobFacade, not instantiate SimulationService directly
     study_service = services_dir / "study_service.py"
     if study_service.exists():
-        with open(study_service, 'r') as f:
+        with open(study_service, "r") as f:
             content = f.read()
             # Check for direct instantiation of SimulationService
             if "SimulationService()" in content:
-                violations.append(
-                    "study_service.py: Direct instantiation of SimulationService (should use JobFacade)"
-                )
+                violations.append("study_service.py: Direct instantiation of SimulationService (should use JobFacade)")
             if "from ecosystemiser.services.job_facade" not in content:
-                violations.append(
-                    "study_service.py: Missing import of JobFacade"
-                )
+                violations.append("study_service.py: Missing import of JobFacade")
             # Allow type imports from simulation_service but with a comment explaining why
-            if "from ecosystemiser.services.simulation_service" in content and \
-               "# Import only types" not in content:
+            if "from ecosystemiser.services.simulation_service" in content and "# Import only types" not in content:
                 violations.append(
                     "study_service.py: Import from simulation_service should have comment explaining it's for types only"
                 )
@@ -131,7 +124,7 @@ def test_climate_validation_colocated():
 
     # Check that validation.py doesn't contain adapter-specific QCProfile classes
     if validation_file.exists():
-        with open(validation_file, 'r') as f:
+        with open(validation_file, "r") as f:
             content = f.read()
 
         # These classes should NOT be in validation.py
@@ -143,9 +136,7 @@ def test_climate_validation_colocated():
 
         for class_def in forbidden_classes:
             if class_def in content:
-                violations.append(
-                    f"validation.py: Contains {class_def} (should be in adapter file)"
-                )
+                violations.append(f"validation.py: Contains {class_def} (should be in adapter file)")
 
     # Check that adapter files contain their QCProfile classes
     expected_profiles = {
@@ -157,20 +148,16 @@ def test_climate_validation_colocated():
     for adapter_file, profile_class in expected_profiles.items():
         file_path = adapters_dir / adapter_file
         if file_path.exists():
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 content = f.read()
 
             # Check class exists and inherits from QCProfile
             if f"class {profile_class}(QCProfile)" not in content:
-                violations.append(
-                    f"{adapter_file}: Missing or incorrect {profile_class} definition"
-                )
+                violations.append(f"{adapter_file}: Missing or incorrect {profile_class} definition")
 
             # Check proper imports
             if "from ecosystemiser.profile_loader.climate.processing.validation import" not in content:
-                violations.append(
-                    f"{adapter_file}: Missing validation imports"
-                )
+                violations.append(f"{adapter_file}: Missing validation imports")
 
     assert len(violations) == 0, f"Climate validation co-location violations:\n" + "\n".join(violations)
 
@@ -182,7 +169,7 @@ def test_reporting_service_centralized():
     # Check that CLI uses ReportingService for reports
     cli_file = SRC_ROOT / "cli.py"
     if cli_file.exists():
-        with open(cli_file, 'r') as f:
+        with open(cli_file, "r") as f:
             content = f.read()
 
         # CLI should use ReportingService
@@ -196,7 +183,7 @@ def test_reporting_service_centralized():
     # Check that Flask app uses ReportingService
     flask_app = SRC_ROOT / "reporting" / "app.py"
     if flask_app.exists():
-        with open(flask_app, 'r') as f:
+        with open(flask_app, "r") as f:
             content = f.read()
 
         # Flask should use ReportingService
@@ -218,7 +205,7 @@ def test_cli_layer_purity():
     if not cli_file.exists():
         pytest.skip("CLI file not found")
 
-    with open(cli_file, 'r') as f:
+    with open(cli_file, "r") as f:
         content = f.read()
 
     # CLI should NOT directly instantiate domain objects
@@ -288,7 +275,7 @@ def test_validation_file_size():
     if not validation_file.exists():
         pytest.skip("Validation file not found")
 
-    with open(validation_file, 'r') as f:
+    with open(validation_file, "r") as f:
         lines = f.readlines()
 
     line_count = len(lines)
@@ -306,7 +293,7 @@ def test_job_facade_exists():
 
     assert job_facade.exists(), "job_facade.py missing (required for service decoupling)"
 
-    with open(job_facade, 'r') as f:
+    with open(job_facade, "r") as f:
         content = f.read()
 
     # JobFacade should have key methods

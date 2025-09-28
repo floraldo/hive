@@ -62,9 +62,7 @@ class GapFiller:
 
         self.fill_report["summary"]["initial_gaps"] = int(total_gaps)
         self.fill_report["summary"]["total_points"] = int(total_points)
-        self.fill_report["summary"]["initial_completeness"] = float(
-            (total_points - total_gaps) / total_points * 100
-        )
+        self.fill_report["summary"]["initial_completeness"] = float((total_points - total_gaps) / total_points * 100)
 
         # Fill each variable with appropriate method
         for var_name in ds.data_vars:
@@ -72,9 +70,7 @@ class GapFiller:
                 continue
 
             method = self._get_fill_method(var_name)
-            ds_filled[var_name] = self._fill_variable(
-                ds_filled[var_name], var_name, method
-            )
+            ds_filled[var_name] = self._fill_variable(ds_filled[var_name], var_name, method)
 
         # Count final gaps
         total_filled = 0
@@ -130,9 +126,7 @@ class GapFiller:
         else:
             return "smart"
 
-    def _fill_variable(
-        self, data: xr.DataArray, var_name: str, method: str
-    ) -> xr.DataArray:
+    def _fill_variable(self, data: xr.DataArray, var_name: str, method: str) -> xr.DataArray:
         """
         Fill gaps in a single variable.
 
@@ -173,14 +167,10 @@ class GapFiller:
                 "initial_gaps": int(initial_gaps),
                 "gaps_filled": int(gaps_filled),
                 "gaps_remaining": int(final_gaps),
-                "fill_rate": (
-                    float(gaps_filled / initial_gaps * 100) if initial_gaps > 0 else 0
-                ),
+                "fill_rate": (float(gaps_filled / initial_gaps * 100) if initial_gaps > 0 else 0),
             }
 
-            logger.debug(
-                f"{var_name}: Filled {gaps_filled}/{initial_gaps} gaps using {method}"
-            )
+            logger.debug(f"{var_name}: Filled {gaps_filled}/{initial_gaps} gaps using {method}")
 
         return filled
 
@@ -193,9 +183,7 @@ class GapFiller:
         filled = data.copy()
 
         # First pass: short gaps with linear interpolation
-        filled = filled.interpolate_na(
-            dim="time", method="linear", limit=self.max_linear_gap
-        )
+        filled = filled.interpolate_na(dim="time", method="linear", limit=self.max_linear_gap)
 
         # Second pass: use same hour from nearby days
         if "time" in data.dims:
@@ -256,9 +244,7 @@ class GapFiller:
         filled = data.copy()
 
         # Linear interpolation for short gaps
-        filled = filled.interpolate_na(
-            dim="time", method="linear", limit=self.max_linear_gap
-        )
+        filled = filled.interpolate_na(dim="time", method="linear", limit=self.max_linear_gap)
 
         # Seasonal median for longer gaps
         if "time" in data.dims and np.isnan(filled.values).any():
@@ -300,9 +286,7 @@ class GapFiller:
         Good for slowly changing variables like pressure.
         """
         # Use longer gap limit for pressure
-        return data.interpolate_na(
-            dim="time", method="linear", limit=self.max_pattern_gap
-        )
+        return data.interpolate_na(dim="time", method="linear", limit=self.max_pattern_gap)
 
     def _fill_smart_interpolation(self, data: xr.DataArray) -> xr.DataArray:
         """
@@ -311,15 +295,11 @@ class GapFiller:
         filled = data.copy()
 
         # Try linear for short gaps
-        filled = filled.interpolate_na(
-            dim="time", method="linear", limit=self.max_linear_gap
-        )
+        filled = filled.interpolate_na(dim="time", method="linear", limit=self.max_linear_gap)
 
         # Try cubic for medium gaps
         if np.isnan(filled.values).any():
-            filled = filled.interpolate_na(
-                dim="time", method="cubic", limit=self.max_linear_gap * 2
-            )
+            filled = filled.interpolate_na(dim="time", method="cubic", limit=self.max_linear_gap * 2)
 
         # Use nearest for remaining
         if np.isnan(filled.values).any():
@@ -340,18 +320,14 @@ class GapFiller:
             time_index = pd.DatetimeIndex(data.time.values)
 
             # Calculate seasonal hourly pattern
-            seasonal_pattern = filled.groupby(
-                [filled.time.dt.month, filled.time.dt.hour]
-            ).mean()
+            seasonal_pattern = filled.groupby([filled.time.dt.month, filled.time.dt.hour]).mean()
 
             # Fill remaining gaps
             values = filled.values.copy()
             for i, t in enumerate(time_index):
                 if np.isnan(values[i]):
                     try:
-                        pattern_val = seasonal_pattern.sel(
-                            month=t.month, hour=t.hour
-                        ).values
+                        pattern_val = seasonal_pattern.sel(month=t.month, hour=t.hour).values
                         if not np.isnan(pattern_val):
                             values[i] = pattern_val
                     except Exception as e:
@@ -361,9 +337,7 @@ class GapFiller:
 
         return filled
 
-    def _fill_similar_day_pattern(
-        self, data: xr.DataArray, prefer_clear: bool = False
-    ) -> xr.DataArray:
+    def _fill_similar_day_pattern(self, data: xr.DataArray, prefer_clear: bool = False) -> xr.DataArray:
         """
         Fill gaps using patterns from similar days.
 
@@ -382,9 +356,7 @@ class GapFiller:
         values = filled.values.copy()
 
         # Identify complete days (for use as donors)
-        daily_completeness = filled.groupby("time.date").apply(
-            lambda x: (~np.isnan(x)).sum() / len(x)
-        )
+        daily_completeness = filled.groupby("time.date").apply(lambda x: (~np.isnan(x)).sum() / len(x))
         complete_days = daily_completeness[daily_completeness > 0.9].index
 
         if len(complete_days) == 0:
@@ -398,17 +370,14 @@ class GapFiller:
                 for day in complete_days:
                     day_date = pd.Timestamp(day)
                     if (
-                        abs((day_date - t).days) < 30  # Within month
-                        and day_date.dayofweek == t.dayofweek
+                        abs((day_date - t).days) < 30 and day_date.dayofweek == t.dayofweek  # Within month
                     ):  # Same day of week
                         similar_days.append(day_date)
 
                 if similar_days:
                     # Use pattern from most recent similar day
                     donor_day = max(similar_days)
-                    donor_idx = time_index.get_loc(
-                        donor_day.replace(hour=t.hour, minute=t.minute)
-                    )
+                    donor_idx = time_index.get_loc(donor_day.replace(hour=t.hour, minute=t.minute))
                     if not np.isnan(values[donor_idx]):
                         values[i] = values[donor_idx]
 

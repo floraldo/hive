@@ -28,7 +28,7 @@ class BaseDeploymentStrategy(ABC):
         self.strategy = DeploymentStrategy.DIRECT
 
     @abstractmethod
-    async def pre_deployment_checks(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def pre_deployment_checks_async(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
         Run pre-deployment validation checks
 
@@ -41,7 +41,7 @@ class BaseDeploymentStrategy(ABC):
         pass
 
     @abstractmethod
-    async def deploy(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
+    async def deploy_async(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
         """
         Execute the deployment
 
@@ -55,7 +55,7 @@ class BaseDeploymentStrategy(ABC):
         pass
 
     @abstractmethod
-    async def rollback(
+    async def rollback_async(
         self,
         task: Dict[str, Any],
         deployment_id: str,
@@ -75,9 +75,7 @@ class BaseDeploymentStrategy(ABC):
         pass
 
     @abstractmethod
-    async def post_deployment_actions(
-        self, task: Dict[str, Any], deployment_id: str
-    ) -> None:
+    async def post_deployment_actions_async(self, task: Dict[str, Any], deployment_id: str) -> None:
         """
         Run post-deployment actions (cleanup, notifications, etc.)
 
@@ -87,7 +85,7 @@ class BaseDeploymentStrategy(ABC):
         """
         pass
 
-    async def validate_configuration(self, task: Dict[str, Any]) -> bool:
+    async def validate_configuration_async(self, task: Dict[str, Any]) -> bool:
         """
         Validate that task configuration is compatible with this strategy
 
@@ -101,9 +99,7 @@ class BaseDeploymentStrategy(ABC):
 
         for field in required_fields:
             if field not in task:
-                logger.error(
-                    f"Missing required field {field} for {self.strategy.value} deployment"
-                )
+                logger.error(f"Missing required field {field} for {self.strategy.value} deployment")
                 return False
 
         return True

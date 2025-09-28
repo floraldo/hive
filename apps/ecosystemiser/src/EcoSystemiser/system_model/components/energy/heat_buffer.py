@@ -42,25 +42,17 @@ class HeatBufferTechnicalParams(StorageTechnicalParams):
     thermal_medium: str = Field("water", description="Thermal storage medium")
 
     # STANDARD fidelity parameters
-    heat_loss_coefficient: float = Field(
-        0.001, description="Heat loss coefficient per timestep [fraction/hour]"
-    )
+    heat_loss_coefficient: float = Field(0.001, description="Heat loss coefficient per timestep [fraction/hour]")
     temperature_range: Optional[Dict[str, float]] = Field(
         None, description="Operating temperature range {min_temp, max_temp} [°C]"
     )
 
     # DETAILED fidelity parameters
-    stratification_model: Optional[Dict[str, Any]] = Field(
-        None, description="Thermal stratification model parameters"
-    )
-    ambient_coupling: Optional[Dict[str, float]] = Field(
-        None, description="Coupling to ambient temperature"
-    )
+    stratification_model: Optional[Dict[str, Any]] = Field(None, description="Thermal stratification model parameters")
+    ambient_coupling: Optional[Dict[str, float]] = Field(None, description="Coupling to ambient temperature")
 
     # RESEARCH fidelity parameters
-    thermal_dynamics_model: Optional[Dict[str, Any]] = Field(
-        None, description="Detailed thermal dynamics model"
-    )
+    thermal_dynamics_model: Optional[Dict[str, Any]] = Field(None, description="Detailed thermal dynamics model")
 
 
 class HeatBufferParams(ComponentParams):
@@ -96,9 +88,7 @@ class HeatBufferPhysicsSimple(BaseStoragePhysics):
     - Physical bounds enforcement (0 <= E <= E_max)
     """
 
-    def rule_based_update_state(
-        self, t: int, E_old: float, charge_power: float, discharge_power: float
-    ) -> float:
+    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
         """
         Implement SIMPLE heat buffer physics with roundtrip efficiency.
 
@@ -132,18 +122,14 @@ class HeatBufferPhysicsStandard(HeatBufferPhysicsSimple):
     - Heat loss coefficient modeling
     """
 
-    def rule_based_update_state(
-        self, t: int, E_old: float, charge_power: float, discharge_power: float
-    ) -> float:
+    def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
         """
         Implement STANDARD heat buffer physics with thermal losses.
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.
         """
         # 1. Get the baseline result from SIMPLE physics
-        energy_after_simple = super().rule_based_update_state(
-            t, E_old, charge_power, discharge_power
-        )
+        energy_after_simple = super().rule_based_update_state(t, E_old, charge_power, discharge_power)
 
         # 2. Add STANDARD-specific physics: thermal losses
         # Thermal losses are based on energy level at START of timestep
@@ -206,9 +192,7 @@ class HeatBufferOptimizationSimple(BaseStorageOptimization):
             # Energy balance constraints - SIMPLE thermal physics only
             for t in range(1, N):
                 # Base thermal energy balance with efficiency
-                energy_balance = comp.E_opt[t - 1] + comp.eta * (
-                    comp.P_cha[t] - comp.P_dis[t]
-                )
+                energy_balance = comp.E_opt[t - 1] + comp.eta * (comp.P_cha[t] - comp.P_dis[t])
 
                 constraints.append(comp.E_opt[t] == energy_balance)
 
@@ -252,14 +236,10 @@ class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
             # Energy balance constraints with STANDARD thermal losses
             for t in range(1, N):
                 # Base thermal energy balance with efficiency
-                energy_balance = comp.E_opt[t - 1] + comp.eta * (
-                    comp.P_cha[t] - comp.P_dis[t]
-                )
+                energy_balance = comp.E_opt[t - 1] + comp.eta * (comp.P_cha[t] - comp.P_dis[t])
 
                 # STANDARD: Add thermal losses
-                heat_loss_coeff = getattr(
-                    comp.technical, "heat_loss_coefficient", 0.001
-                )
+                heat_loss_coeff = getattr(comp.technical, "heat_loss_coefficient", 0.001)
                 thermal_loss = comp.E_opt[t - 1] * heat_loss_coeff
                 energy_balance = energy_balance - thermal_loss
 
@@ -303,9 +283,7 @@ class HeatBuffer(Component):
         self.P_max_discharge = tech.max_discharge_rate
         self.eta = tech.efficiency_roundtrip
         self.E_init = (
-            tech.initial_soc_pct * tech.capacity_nominal
-            if tech.initial_soc_pct
-            else tech.capacity_nominal * 0.5
+            tech.initial_soc_pct * tech.capacity_nominal if tech.initial_soc_pct else tech.capacity_nominal * 0.5
         )
 
         # Store thermal-specific parameters
@@ -362,13 +340,9 @@ class HeatBuffer(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return HeatBufferOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for HeatBuffer optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for HeatBuffer optimization: {fidelity}")
 
-    def rule_based_update_state(
-        self, t: int, charge_power: float, discharge_power: float
-    ):
+    def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float):
         """
         Delegate to physics strategy for state update.
 
@@ -385,9 +359,7 @@ class HeatBuffer(Component):
             initial_level = self.E[t - 1]
 
         # Delegate to physics strategy
-        new_energy = self.physics.rule_based_update_state(
-            t, initial_level, charge_power, discharge_power
-        )
+        new_energy = self.physics.rule_based_update_state(t, initial_level, charge_power, discharge_power)
 
         # Update the storage array
         self.E[t] = new_energy

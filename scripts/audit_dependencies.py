@@ -21,26 +21,26 @@ def extract_imports(file_path: Path) -> Set[str]:
     imports = set()
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             tree = ast.parse(f.read())
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imports.add(alias.name.split('.')[0])
+                    imports.add(alias.name.split(".")[0])
             elif isinstance(node, ast.ImportFrom):
                 if node.module:
-                    imports.add(node.module.split('.')[0])
+                    imports.add(node.module.split(".")[0])
     except:
         # If we can't parse the file, try regex fallback
         try:
-            content = file_path.read_text(encoding='utf-8', errors='ignore')
+            content = file_path.read_text(encoding="utf-8", errors="ignore")
             # Match import statements
-            import_pattern = r'^\s*(?:from\s+(\S+)|import\s+(\S+))'
+            import_pattern = r"^\s*(?:from\s+(\S+)|import\s+(\S+))"
             for match in re.finditer(import_pattern, content, re.MULTILINE):
                 module = match.group(1) or match.group(2)
                 if module:
-                    imports.add(module.split('.')[0])
+                    imports.add(module.split(".")[0])
         except:
             pass
 
@@ -51,15 +51,15 @@ def normalize_package_name(name: str) -> str:
     """Normalize package names for comparison"""
     # Common mappings
     mappings = {
-        'flask_cors': 'flask-cors',
-        'flask_login': 'flask-login',
-        'anthropic': 'anthropic',
-        'dotenv': 'python-dotenv',
-        'PIL': 'pillow',
-        'cv2': 'opencv-python',
-        'sklearn': 'scikit-learn',
-        'yaml': 'pyyaml',
-        'dateutil': 'python-dateutil',
+        "flask_cors": "flask-cors",
+        "flask_login": "flask-login",
+        "anthropic": "anthropic",
+        "dotenv": "python-dotenv",
+        "PIL": "pillow",
+        "cv2": "opencv-python",
+        "sklearn": "scikit-learn",
+        "yaml": "pyyaml",
+        "dateutil": "python-dateutil",
     }
 
     # Check if it's a known mapping
@@ -67,7 +67,7 @@ def normalize_package_name(name: str) -> str:
         return mappings[name]
 
     # Convert underscores to hyphens
-    return name.replace('_', '-').lower()
+    return name.replace("_", "-").lower()
 
 
 def analyze_package_usage(package_dir: Path) -> Tuple[Set[str], Set[str], Dict[str, List[str]]]:
@@ -85,14 +85,14 @@ def analyze_package_usage(package_dir: Path) -> Tuple[Set[str], Set[str], Dict[s
 
     # Load declared dependencies
     pyproject = toml.load(pyproject_path)
-    dependencies = pyproject.get('tool', {}).get('poetry', {}).get('dependencies', {})
+    dependencies = pyproject.get("tool", {}).get("poetry", {}).get("dependencies", {})
 
     # Filter out Python itself and local packages
     declared_deps = set()
     for dep, version in dependencies.items():
-        if dep == 'python':
+        if dep == "python":
             continue
-        if isinstance(version, dict) and 'path' in version:
+        if isinstance(version, dict) and "path" in version:
             continue  # Skip local packages
         declared_deps.add(dep.lower())
 
@@ -119,13 +119,19 @@ def analyze_package_usage(package_dir: Path) -> Tuple[Set[str], Set[str], Dict[s
     unused = {}
     for dep in declared_deps:
         # Check if the dependency or any variant is used
-        dep_variants = {dep, dep.replace('-', '_'), dep.replace('-', '')}
+        dep_variants = {dep, dep.replace("-", "_"), dep.replace("-", "")}
         if not any(variant in all_imports for variant in dep_variants):
             # Special cases - some packages are used indirectly
             indirect_packages = {
-                'pytest-cov', 'pytest-asyncio', 'pytest-flask', 'pytest-mock',
-                'black', 'mypy', 'ruff', 'isort',  # Development tools
-                'poetry-core',  # Build system
+                "pytest-cov",
+                "pytest-asyncio",
+                "pytest-flask",
+                "pytest-mock",
+                "black",
+                "mypy",
+                "ruff",
+                "isort",  # Development tools
+                "poetry-core",  # Build system
             }
             if dep not in indirect_packages:
                 unused[dep] = list(dep_variants)

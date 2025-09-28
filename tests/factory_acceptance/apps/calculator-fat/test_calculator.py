@@ -8,6 +8,7 @@ import unittest
 import requests
 import json
 
+
 class TestCalculator(unittest.TestCase):
     BASE_URL = "http://localhost:5005"
 
@@ -23,9 +24,7 @@ class TestCalculator(unittest.TestCase):
     def test_addition(self):
         """Test addition operation"""
         response = requests.post(
-            f"{self.BASE_URL}/api/add",
-            json={"a": 5, "b": 3},
-            headers={"Content-Type": "application/json"}
+            f"{self.BASE_URL}/api/add", json={"a": 5, "b": 3}, headers={"Content-Type": "application/json"}
         )
         self.assertEqual(response.status_code, 200)
 
@@ -36,9 +35,7 @@ class TestCalculator(unittest.TestCase):
     def test_subtraction(self):
         """Test subtraction operation"""
         response = requests.post(
-            f"{self.BASE_URL}/api/subtract",
-            json={"a": 10, "b": 4},
-            headers={"Content-Type": "application/json"}
+            f"{self.BASE_URL}/api/subtract", json={"a": 10, "b": 4}, headers={"Content-Type": "application/json"}
         )
         self.assertEqual(response.status_code, 200)
 
@@ -49,9 +46,7 @@ class TestCalculator(unittest.TestCase):
     def test_multiplication(self):
         """Test multiplication operation"""
         response = requests.post(
-            f"{self.BASE_URL}/api/multiply",
-            json={"a": 4, "b": 7},
-            headers={"Content-Type": "application/json"}
+            f"{self.BASE_URL}/api/multiply", json={"a": 4, "b": 7}, headers={"Content-Type": "application/json"}
         )
         self.assertEqual(response.status_code, 200)
 
@@ -62,9 +57,7 @@ class TestCalculator(unittest.TestCase):
     def test_division(self):
         """Test division operation"""
         response = requests.post(
-            f"{self.BASE_URL}/api/divide",
-            json={"a": 15, "b": 3},
-            headers={"Content-Type": "application/json"}
+            f"{self.BASE_URL}/api/divide", json={"a": 15, "b": 3}, headers={"Content-Type": "application/json"}
         )
         self.assertEqual(response.status_code, 200)
 
@@ -75,9 +68,7 @@ class TestCalculator(unittest.TestCase):
     def test_division_by_zero(self):
         """Test division by zero protection"""
         response = requests.post(
-            f"{self.BASE_URL}/api/divide",
-            json={"a": 10, "b": 0},
-            headers={"Content-Type": "application/json"}
+            f"{self.BASE_URL}/api/divide", json={"a": 10, "b": 0}, headers={"Content-Type": "application/json"}
         )
         # Should return 400 with error message
         self.assertEqual(response.status_code, 400)
@@ -89,14 +80,13 @@ class TestCalculator(unittest.TestCase):
     def test_missing_parameters(self):
         """Test error handling for missing parameters"""
         response = requests.post(
-            f"{self.BASE_URL}/api/add",
-            json={"a": 5},  # Missing 'b'
-            headers={"Content-Type": "application/json"}
+            f"{self.BASE_URL}/api/add", json={"a": 5}, headers={"Content-Type": "application/json"}  # Missing 'b'
         )
         self.assertEqual(response.status_code, 400)
 
         data = response.json()
         self.assertFalse(data["success"])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main(verbosity=2)

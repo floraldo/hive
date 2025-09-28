@@ -39,9 +39,7 @@ class EnvironmentVerifier:
                 self.results.append("[OK] EcoSystemiser installed as editable package")
                 return True
             else:
-                self.errors.append(
-                    f"[ERROR] EcoSystemiser not editable: {package_path}"
-                )
+                self.errors.append(f"[ERROR] EcoSystemiser not editable: {package_path}")
                 return False
         except ImportError as e:
             self.errors.append(f"[ERROR] EcoSystemiser not installed: {e}")
@@ -105,9 +103,7 @@ class EnvironmentVerifier:
             if USING_HIVE_LOGGING:
                 self.results.append("[OK] Using Hive centralized logging")
             else:
-                self.warnings.append(
-                    "[WARN] Using fallback logging (Hive logging not available)"
-                )
+                self.warnings.append("[WARN] Using fallback logging (Hive logging not available)")
 
             # Check that source files use the adapter
             src_dir = self.ecosystemiser_dir / "src"
@@ -117,16 +113,11 @@ class EnvironmentVerifier:
             for py_file in py_files[:20]:  # Sample first 20 files
                 with open(py_file, "r", encoding="utf-8") as f:
                     content = f.read()
-                    if (
-                        "import logging" in content
-                        and "hive_logging_adapter" not in content
-                    ):
+                    if "import logging" in content and "hive_logging_adapter" not in content:
                         direct_logging_count += 1
 
             if direct_logging_count > 0:
-                self.warnings.append(
-                    f"[WARN] {direct_logging_count} files still use direct logging"
-                )
+                self.warnings.append(f"[WARN] {direct_logging_count} files still use direct logging")
             else:
                 self.results.append("[OK] All sampled files use Hive logging adapter")
 
@@ -156,15 +147,9 @@ class EnvironmentVerifier:
 
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.stdout:
-                lines = [
-                    l
-                    for l in result.stdout.strip().split("\n")
-                    if "hive_env.py" not in l
-                ]
+                lines = [l for l in result.stdout.strip().split("\n") if "hive_env.py" not in l]
                 if lines:
-                    self.warnings.append(
-                        f"[WARN] {len(lines)} files use direct env vars"
-                    )
+                    self.warnings.append(f"[WARN] {len(lines)} files use direct env vars")
                 else:
                     self.results.append("[OK] No direct environment variable access")
 
@@ -214,17 +199,13 @@ class EnvironmentVerifier:
                             # Check if it crosses module boundaries
                             module_parts = py_file.relative_to(src_dir).parts[:-1]
                             if node.level > len(module_parts):
-                                relative_imports.append(
-                                    str(py_file.relative_to(self.ecosystemiser_dir))
-                                )
+                                relative_imports.append(str(py_file.relative_to(self.ecosystemiser_dir)))
             except (SyntaxError, ValueError) as parse_error:
                 # Skip files that can't be parsed
                 continue
 
         if relative_imports:
-            self.errors.append(
-                f"[ERROR] Found {len(relative_imports)} files with boundary-crossing relative imports"
-            )
+            self.errors.append(f"[ERROR] Found {len(relative_imports)} files with boundary-crossing relative imports")
             for file in relative_imports[:3]:
                 self.errors.append(f"  - {file}")
             return False
@@ -253,15 +234,11 @@ class EnvironmentVerifier:
                         test_count += 1
 
                 if test_count > 0:
-                    self.results.append(
-                        f"[OK] Test environment working ({test_count} tests collected)"
-                    )
+                    self.results.append(f"[OK] Test environment working ({test_count} tests collected)")
                 else:
                     self.warnings.append("[WARN] No tests collected")
             else:
-                self.warnings.append(
-                    f"[WARN] Test collection failed: {result.stderr[:100]}"
-                )
+                self.warnings.append(f"[WARN] Test collection failed: {result.stderr[:100]}")
 
             return True
         except Exception as e:

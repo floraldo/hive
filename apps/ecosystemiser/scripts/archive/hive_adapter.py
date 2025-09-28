@@ -29,6 +29,7 @@ try:
         ClimateResponse,
     )
     from ecosystemiser.profile_loader.climate.service import ClimateService
+
     CLIMATE_SERVICE_AVAILABLE = True
 except Exception as e:
     CLIMATE_SERVICE_AVAILABLE = False
@@ -38,10 +39,12 @@ except Exception as e:
             ClimateRequest,
             ClimateResponse,
         )
+
         CLIMATE_MODELS_AVAILABLE = True
     except ImportError as import_err:
         CLIMATE_MODELS_AVAILABLE = False
     logger.warning(f"Warning: EcoSystemiser climate service not available: {e}")
+
 
 class EcoSystemiserAdapter:
     """Adapter for EcoSystemiser tasks within Hive"""
@@ -55,7 +58,7 @@ class EcoSystemiserAdapter:
         self.settings = get_app_settings()
 
         # Set up results directory from config
-        results_dir = self.settings.get('RESULTS_DIR', './ecosystemiser_results')
+        results_dir = self.settings.get("RESULTS_DIR", "./ecosystemiser_results")
         self.results_dir = Path.cwd() / results_dir
         self.results_dir.mkdir(exist_ok=True)
 
@@ -84,10 +87,7 @@ class EcoSystemiserAdapter:
         elif task_name == "generate-report":
             return self.generate_report(payload)
         else:
-            return {
-                "status": "error",
-                "message": f"Unknown task: {task_name}"
-            }
+            return {"status": "error", "message": f"Unknown task: {task_name}"}
 
     def health_check(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -97,11 +97,7 @@ class EcoSystemiserAdapter:
         """
         self.logger.info("Running EcoSystemiser health check")
 
-        capabilities = [
-            "analyze-ecosystem",
-            "optimize-balance",
-            "generate-report"
-        ]
+        capabilities = ["analyze-ecosystem", "optimize-balance", "generate-report"]
 
         if CLIMATE_SERVICE_AVAILABLE:
             capabilities.append("fetch-climate-data")
@@ -112,7 +108,7 @@ class EcoSystemiserAdapter:
             "capabilities": capabilities,
             "climate_service": "available" if CLIMATE_SERVICE_AVAILABLE else "unavailable",
             "version": "0.1.0",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     def analyze_ecosystem(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -136,32 +132,25 @@ class EcoSystemiserAdapter:
             "ecosystem_type": ecosystem_type,
             "total_components": len(components),
             "health_score": 85,  # Simulated score
-            "balance_metrics": {
-                "diversity": 0.75,
-                "resilience": 0.80,
-                "efficiency": 0.70
-            },
-            "issues_detected": [
-                "Component coupling above threshold",
-                "Insufficient test coverage in module-3"
-            ],
+            "balance_metrics": {"diversity": 0.75, "resilience": 0.80, "efficiency": 0.70},
+            "issues_detected": ["Component coupling above threshold", "Insufficient test coverage in module-3"],
             "recommendations": [
                 "Decouple auth module from business logic",
                 "Increase test coverage to 80%",
-                "Add monitoring for critical paths"
-            ]
+                "Add monitoring for critical paths",
+            ],
         }
 
         # Save results
         output_file = self.results_dir / f"analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(analysis, f, indent=2)
 
         return {
             "status": "success",
             "message": "Ecosystem analysis complete",
             "results": analysis,
-            "output_file": str(output_file)
+            "output_file": str(output_file),
         }
 
     def optimize_balance(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -183,44 +172,24 @@ class EcoSystemiserAdapter:
         # Perform optimization (simplified for demonstration)
         optimizations = {
             "proposed_changes": [
-                {
-                    "component": "database",
-                    "action": "add_caching",
-                    "impact": "20% performance improvement"
-                },
-                {
-                    "component": "api_gateway",
-                    "action": "implement_rate_limiting",
-                    "impact": "Improved resilience"
-                },
-                {
-                    "component": "worker_pool",
-                    "action": "auto_scaling",
-                    "impact": "Better resource utilization"
-                }
+                {"component": "database", "action": "add_caching", "impact": "20% performance improvement"},
+                {"component": "api_gateway", "action": "implement_rate_limiting", "impact": "Improved resilience"},
+                {"component": "worker_pool", "action": "auto_scaling", "impact": "Better resource utilization"},
             ],
-            "expected_improvements": {
-                "performance": "+20%",
-                "resilience": "+15%",
-                "cost": "-10%"
-            },
-            "implementation_priority": [
-                "add_caching",
-                "implement_rate_limiting",
-                "auto_scaling"
-            ]
+            "expected_improvements": {"performance": "+20%", "resilience": "+15%", "cost": "-10%"},
+            "implementation_priority": ["add_caching", "implement_rate_limiting", "auto_scaling"],
         }
 
         # Save results
         output_file = self.results_dir / f"optimization_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(optimizations, f, indent=2)
 
         return {
             "status": "success",
             "message": "Balance optimization complete",
             "results": optimizations,
-            "output_file": str(output_file)
+            "output_file": str(output_file),
         }
 
     def fetch_climate_data(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -234,10 +203,7 @@ class EcoSystemiserAdapter:
             Result with status and path to saved climate data
         """
         if not CLIMATE_SERVICE_AVAILABLE:
-            return {
-                "status": "error",
-                "message": "Climate service not available. Check EcoSystemiser installation."
-            }
+            return {"status": "error", "message": "Climate service not available. Check EcoSystemiser installation."}
 
         self.logger.info("Fetching real climate data using EcoSystemiser service")
 
@@ -251,15 +217,12 @@ class EcoSystemiserAdapter:
 
             # Parse location string into tuple
             if isinstance(location, str):
-                parts = location.split(',')
+                parts = location.split(",")
                 if len(parts) == 2:
                     lat, lon = float(parts[0]), float(parts[1])
                     location_tuple = (lat, lon)
                 else:
-                    return {
-                        "status": "error",
-                        "message": f"Invalid location format: {location}. Use 'lat,lon'"
-                    }
+                    return {"status": "error", "message": f"Invalid location format: {location}. Use 'lat,lon'"}
             else:
                 location_tuple = location
 
@@ -270,13 +233,10 @@ class EcoSystemiserAdapter:
                 location=location_tuple,
                 variables=variables,
                 source=source,
-                period={
-                    "start": start_date,
-                    "end": end_date
-                },
+                period={"start": start_date, "end": end_date},
                 mode="observed",  # Use observed data
                 resolution="1H",  # Hourly resolution
-                timezone="UTC"
+                timezone="UTC",
             )
 
             # Initialize climate service and process request
@@ -287,7 +247,7 @@ class EcoSystemiserAdapter:
             ds, response = service.process_request(climate_request)
 
             # Get the output path from response
-            output_path = response.path_parquet if hasattr(response, 'path_parquet') else None
+            output_path = response.path_parquet if hasattr(response, "path_parquet") else None
 
             self.logger.info(f"Climate data successfully fetched and saved to: {output_path}")
 
@@ -296,21 +256,19 @@ class EcoSystemiserAdapter:
                 "status": "success",
                 "message": f"Climate data fetched for {location}",
                 "location": location_tuple,
-                "period": {
-                    "start": start_date,
-                    "end": end_date
-                },
+                "period": {"start": start_date, "end": end_date},
                 "source": source,
                 "variables": variables,
-                "shape": response.shape if hasattr(response, 'shape') else None,
+                "shape": response.shape if hasattr(response, "shape") else None,
                 "output_file": output_path,
-                "stats": response.stats if hasattr(response, 'stats') else None
+                "stats": response.stats if hasattr(response, "stats") else None,
             }
 
             # Also save a copy in our results directory for easy access
             if output_path and Path(output_path).exists():
                 local_copy = self.results_dir / f"climate_{source}_{start_date}_{end_date}.parquet"
                 import shutil
+
                 shutil.copy2(output_path, local_copy)
                 result["local_copy"] = str(local_copy)
                 self.logger.info(f"Local copy saved to: {local_copy}")
@@ -320,12 +278,13 @@ class EcoSystemiserAdapter:
         except Exception as e:
             self.logger.error(f"Error fetching climate data: {e}")
             import traceback
+
             self.logger.debug(traceback.format_exc())
 
             return {
                 "status": "error",
                 "message": f"Failed to fetch climate data: {str(e)}",
-                "error_type": type(e).__name__
+                "error_type": type(e).__name__,
             }
 
     def generate_report(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -353,60 +312,51 @@ class EcoSystemiserAdapter:
             "sections": [
                 {
                     "title": "Current State",
-                    "content": "System is operating at 85% efficiency with stable performance metrics"
+                    "content": "System is operating at 85% efficiency with stable performance metrics",
                 },
                 {
                     "title": "Key Findings",
-                    "content": "Identified 3 areas for improvement: caching, rate limiting, and auto-scaling"
+                    "content": "Identified 3 areas for improvement: caching, rate limiting, and auto-scaling",
                 },
                 {
                     "title": "Recommendations",
-                    "content": "Prioritize caching implementation for immediate performance gains"
-                }
+                    "content": "Prioritize caching implementation for immediate performance gains",
+                },
             ],
-            "metrics_summary": {
-                "health_score": 85,
-                "efficiency": 0.85,
-                "resilience": 0.80,
-                "scalability": 0.75
-            }
+            "metrics_summary": {"health_score": 85, "efficiency": 0.85, "resilience": 0.80, "scalability": 0.75},
         }
 
         # Save report as JSON
         output_file = self.results_dir / f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(report, f, indent=2)
 
         # Also create a markdown version
-        md_file = output_file.with_suffix('.md')
-        with open(md_file, 'w') as f:
+        md_file = output_file.with_suffix(".md")
+        with open(md_file, "w") as f:
             f.write(f"# {report['title']}\n\n")
             f.write(f"Generated: {report['generated_at']}\n\n")
             f.write(f"## Executive Summary\n{report['executive_summary']}\n\n")
-            for section in report['sections']:
+            for section in report["sections"]:
                 f.write(f"## {section['title']}\n{section['content']}\n\n")
             f.write(f"## Metrics Summary\n")
-            for key, value in report['metrics_summary'].items():
+            for key, value in report["metrics_summary"].items():
                 f.write(f"- {key}: {value}\n")
 
         return {
             "status": "success",
             "message": "Report generated successfully",
             "report": report,
-            "output_files": {
-                "json": str(output_file),
-                "markdown": str(md_file)
-            }
+            "output_files": {"json": str(output_file), "markdown": str(md_file)},
         }
+
 
 def main():
     """Main entry point for the adapter"""
     parser = argparse.ArgumentParser(description="EcoSystemiser Hive Adapter")
     parser.add_argument("--task", required=True, help="Task name to execute")
-    parser.add_argument("--payload", type=str, default="{}",
-                       help="JSON payload for the task")
-    parser.add_argument("--verbose", action="store_true",
-                       help="Enable verbose logging")
+    parser.add_argument("--payload", type=str, default="{}", help="JSON payload for the task")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
 
     args = parser.parse_args()
 
@@ -430,6 +380,7 @@ def main():
 
     # Exit with appropriate code
     sys.exit(0 if result["status"] == "success" else 1)
+
 
 if __name__ == "__main__":
     main()

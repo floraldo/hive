@@ -33,7 +33,7 @@ class TaskManager:
         self.completed_tasks: Dict[str, TaskResult] = {}
         self._task_counter = 0
 
-    async def submit_task(
+    async def submit_task_async(
         self,
         coro: Awaitable[T],
         task_id: Optional[str] = None,
@@ -58,7 +58,7 @@ class TaskManager:
             raise ValueError(f"Task {task_id} is already active")
 
         # Wrap the coroutine with semaphore and monitoring
-        async def wrapped_task():
+        async def wrapped_task_async():
             async with self.semaphore:
                 start_time = asyncio.get_event_loop().time()
                 try:
@@ -68,20 +68,14 @@ class TaskManager:
                         result = await coro
 
                     duration = asyncio.get_event_loop().time() - start_time
-                    task_result = TaskResult(
-                        task_id=task_id, success=True, result=result, duration=duration
-                    )
+                    task_result = TaskResult(task_id=task_id, success=True, result=result, duration=duration)
                     self.completed_tasks[task_id] = task_result
-                    logger.debug(
-                        f"Task {task_id} completed successfully in {duration:.2f}s"
-                    )
+                    logger.debug(f"Task {task_id} completed successfully in {duration:.2f}s")
                     return result
 
                 except Exception as e:
                     duration = asyncio.get_event_loop().time() - start_time
-                    task_result = TaskResult(
-                        task_id=task_id, success=False, error=e, duration=duration
-                    )
+                    task_result = TaskResult(task_id=task_id, success=False, error=e, duration=duration)
                     self.completed_tasks[task_id] = task_result
                     logger.error(f"Task {task_id} failed after {duration:.2f}s: {e}")
                     raise
@@ -89,11 +83,11 @@ class TaskManager:
                 finally:
                     self.active_tasks.pop(task_id, None)
 
-        task = asyncio.create_task(wrapped_task())
+        task = asyncio.create_task(wrapped_task_async())
         self.active_tasks[task_id] = task
         return task_id
 
-    async def wait_for_task(self, task_id: str) -> TaskResult:
+    async def wait_for_task_async(self, task_id: str) -> TaskResult:
         """Wait for a specific task to complete."""
         if task_id in self.completed_tasks:
             return self.completed_tasks[task_id]
@@ -108,20 +102,18 @@ class TaskManager:
 
         return self.completed_tasks[task_id]
 
-    async def wait_for_all(
-        self, task_ids: Optional[List[str]] = None
-    ) -> Dict[str, TaskResult]:
+    async def wait_for_all_async(self, task_ids: Optional[List[str]] = None) -> Dict[str, TaskResult]:
         """Wait for all specified tasks (or all active tasks) to complete."""
         if task_ids is None:
             task_ids = list(self.active_tasks.keys())
 
         results = {}
         for task_id in task_ids:
-            results[task_id] = await self.wait_for_task(task_id)
+            results[task_id] = await self.wait_for_task_async(task_id)
 
         return results
 
-    async def cancel_task(self, task_id: str) -> bool:
+    async def cancel_task_async(self, task_id: str) -> bool:
         """Cancel a specific task."""
         if task_id not in self.active_tasks:
             return False
@@ -143,11 +135,11 @@ class TaskManager:
 
         return True
 
-    async def cancel_all(self):
+    async def cancel_all_async(self):
         """Cancel all active tasks."""
         task_ids = list(self.active_tasks.keys())
         for task_id in task_ids:
-            await self.cancel_task(task_id)
+            await self.cancel_task_async(task_id)
 
     def get_status(self) -> Dict[str, Any]:
         """Get current status of all tasks."""
@@ -164,13 +156,11 @@ class TaskManager:
         if not self.completed_tasks:
             return None
 
-        successful = sum(
-            1 for result in self.completed_tasks.values() if result.success
-        )
+        successful = sum(1 for result in self.completed_tasks.values() if result.success)
         return successful / len(self.completed_tasks)
 
     @asynccontextmanager
-    async def task_group(self, max_concurrent: Optional[int] = None):
+    async def task_group_async(self, max_concurrent: Optional[int] = None):
         """Context manager for task group execution."""
         if max_concurrent:
             original_limit = self.max_concurrent
@@ -180,13 +170,13 @@ class TaskManager:
         try:
             yield self
         finally:
-            await self.wait_for_all()
+            await self.wait_for_all_async()
             if max_concurrent:
                 self.max_concurrent = original_limit
                 self.semaphore = asyncio.Semaphore(original_limit)
 
 
-async def gather_with_concurrency(
+async def gather_with_concurrency_async(
     *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False
 ) -> List[Any]:
     """
@@ -202,15 +192,15 @@ async def gather_with_concurrency(
     """
     semaphore = asyncio.Semaphore(max_concurrent)
 
-    async def limited_coro(coro: Awaitable[T]) -> T:
+    async def limited_coro_async(coro: Awaitable[T]) -> T:
         async with semaphore:
             return await coro
 
-    limited_coros = [limited_coro(coro) for coro in coros]
+    limited_coros = [limited_coro_async(coro) for coro in coros]
     return await asyncio.gather(*limited_coros, return_exceptions=return_exceptions)
 
 
-async def run_with_timeout_and_retry(
+async def run_with_timeout_and_retry_async(
     coro: Awaitable[T],
     timeout: float,
     max_retries: int = 3,
@@ -240,9 +230,7 @@ async def run_with_timeout_and_retry(
             last_exception = e
             if attempt < max_retries:
                 wait_time = backoff_factor * (2**attempt)
-                logger.warning(
-                    f"Attempt {attempt + 1} failed, retrying in {wait_time}s: {e}"
-                )
+                logger.warning(f"Attempt {attempt + 1} failed, retrying in {wait_time}s: {e}")
                 await asyncio.sleep(wait_time)
             else:
                 logger.error(f"All {max_retries + 1} attempts failed: {e}")

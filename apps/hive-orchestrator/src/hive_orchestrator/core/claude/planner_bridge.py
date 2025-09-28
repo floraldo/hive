@@ -18,38 +18,22 @@ class SubTask(BaseModel):
 
     id: str = Field(description="Unique identifier for the sub-task")
     title: str = Field(max_length=100, description="Concise sub-task title")
-    description: str = Field(
-        max_length=500, description="Detailed sub-task description"
+    description: str = Field(max_length=500, description="Detailed sub-task description")
+    assignee: str = Field(description="Target assignee (worker:backend, app:ecosystemiser, etc.)")
+    estimated_duration: int = Field(ge=1, le=480, description="Estimated duration in minutes")
+    complexity: Literal["simple", "medium", "complex"] = Field(description="Task complexity level")
+    dependencies: List[str] = Field(default_factory=list, description="List of sub-task IDs this depends on")
+    workflow_phase: Literal["analysis", "design", "implementation", "testing", "validation"] = Field(
+        description="Primary workflow phase for this sub-task"
     )
-    assignee: str = Field(
-        description="Target assignee (worker:backend, app:ecosystemiser, etc.)"
-    )
-    estimated_duration: int = Field(
-        ge=1, le=480, description="Estimated duration in minutes"
-    )
-    complexity: Literal["simple", "medium", "complex"] = Field(
-        description="Task complexity level"
-    )
-    dependencies: List[str] = Field(
-        default_factory=list, description="List of sub-task IDs this depends on"
-    )
-    workflow_phase: Literal[
-        "analysis", "design", "implementation", "testing", "validation"
-    ] = Field(description="Primary workflow phase for this sub-task")
-    required_skills: List[str] = Field(
-        default_factory=list, description="Required skills/technologies"
-    )
-    deliverables: List[str] = Field(
-        default_factory=list, description="Expected outputs/deliverables"
-    )
+    required_skills: List[str] = Field(default_factory=list, description="Required skills/technologies")
+    deliverables: List[str] = Field(default_factory=list, description="Expected outputs/deliverables")
 
 
 class DependencyMap(BaseModel):
     """Dependency relationships between sub-tasks"""
 
-    critical_path: List[str] = Field(
-        description="Ordered list of sub-task IDs on critical path"
-    )
+    critical_path: List[str] = Field(description="Ordered list of sub-task IDs on critical path")
     parallel_groups: List[List[str]] = Field(
         default_factory=list, description="Groups of tasks that can run in parallel"
     )
@@ -63,35 +47,19 @@ class WorkflowDefinition(BaseModel):
 
     lifecycle_phases: List[str] = Field(description="Ordered list of lifecycle phases")
     phase_transitions: Dict[str, str] = Field(description="Map of phase -> next_phase")
-    validation_gates: Dict[str, List[str]] = Field(
-        description="Map of phase -> validation criteria"
-    )
-    rollback_strategy: str = Field(
-        description="Strategy for handling failures and rollbacks"
-    )
+    validation_gates: Dict[str, List[str]] = Field(description="Map of phase -> validation criteria")
+    rollback_strategy: str = Field(description="Strategy for handling failures and rollbacks")
 
 
 class PlanningMetrics(BaseModel):
     """Metrics and estimates for the execution plan"""
 
-    total_estimated_duration: int = Field(
-        ge=1, description="Total estimated duration in minutes"
-    )
-    critical_path_duration: int = Field(
-        ge=1, description="Critical path duration in minutes"
-    )
-    complexity_breakdown: Dict[str, int] = Field(
-        description="Count of tasks by complexity level"
-    )
-    skill_requirements: Dict[str, int] = Field(
-        description="Count of tasks requiring each skill"
-    )
-    confidence_score: float = Field(
-        ge=0.0, le=1.0, description="Confidence in the plan accuracy"
-    )
-    risk_factors: List[str] = Field(
-        default_factory=list, description="Identified risk factors"
-    )
+    total_estimated_duration: int = Field(ge=1, description="Total estimated duration in minutes")
+    critical_path_duration: int = Field(ge=1, description="Critical path duration in minutes")
+    complexity_breakdown: Dict[str, int] = Field(description="Count of tasks by complexity level")
+    skill_requirements: Dict[str, int] = Field(description="Count of tasks requiring each skill")
+    confidence_score: float = Field(ge=0.0, le=1.0, description="Confidence in the plan accuracy")
+    risk_factors: List[str] = Field(default_factory=list, description="Identified risk factors")
 
 
 class ClaudePlanningResponse(BaseModel):
@@ -99,21 +67,13 @@ class ClaudePlanningResponse(BaseModel):
 
     plan_id: str = Field(description="Unique identifier for the execution plan")
     plan_name: str = Field(max_length=100, description="Human-readable plan name")
-    plan_summary: str = Field(
-        max_length=500, description="Executive summary of the plan"
-    )
+    plan_summary: str = Field(max_length=500, description="Executive summary of the plan")
     sub_tasks: List[SubTask] = Field(description="List of decomposed sub-tasks")
-    dependencies: DependencyMap = Field(
-        description="Dependency relationships between tasks"
-    )
+    dependencies: DependencyMap = Field(description="Dependency relationships between tasks")
     workflow: WorkflowDefinition = Field(description="Complete workflow definition")
     metrics: PlanningMetrics = Field(description="Planning metrics and estimates")
-    recommendations: List[str] = Field(
-        default_factory=list, description="Strategic recommendations"
-    )
-    considerations: List[str] = Field(
-        default_factory=list, description="Important considerations and constraints"
-    )
+    recommendations: List[str] = Field(default_factory=list, description="Strategic recommendations")
+    considerations: List[str] = Field(default_factory=list, description="Important considerations and constraints")
 
 
 class PlanningResponseValidator(PydanticValidator):
@@ -122,9 +82,7 @@ class PlanningResponseValidator(PydanticValidator):
     def __init__(self):
         super().__init__(ClaudePlanningResponse)
 
-    def create_fallback(
-        self, error_message: str, context: Dict[str, Any]
-    ) -> ClaudePlanningResponse:
+    def create_fallback(self, error_message: str, context: Dict[str, Any]) -> ClaudePlanningResponse:
         """Create a fallback planning response"""
         task_description = context.get("task_description", "Unknown task")
 
@@ -236,9 +194,7 @@ class ClaudePlannerBridge(BaseClaludeBridge):
         Returns:
             Validated planning response or fallback on failure
         """
-        prompt = self._create_planning_prompt(
-            task_description, context_data or {}, priority, requestor
-        )
+        prompt = self._create_planning_prompt(task_description, context_data or {}, priority, requestor)
 
         context = {
             "task_description": task_description,
@@ -322,9 +278,7 @@ Generate the execution plan now:"""
                     deliverables=["mock_output.txt"],
                 )
             ],
-            dependencies=DependencyMap(
-                critical_path=["mock-001"], parallel_groups=[], blocking_dependencies={}
-            ),
+            dependencies=DependencyMap(critical_path=["mock-001"], parallel_groups=[], blocking_dependencies={}),
             workflow=WorkflowDefinition(
                 lifecycle_phases=["analysis"],
                 phase_transitions={},
@@ -344,9 +298,7 @@ Generate the execution plan now:"""
         )
         return json.dumps(mock_plan.dict())
 
-    def _create_fallback_response(
-        self, error_message: str, context: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _create_fallback_response(self, error_message: str, context: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """Create a fallback response when Claude is unavailable"""
         fallback = self.validator.create_fallback(error_message, context or {})
         return fallback.dict()

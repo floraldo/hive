@@ -55,9 +55,7 @@ class HiveOutput:
         else:
             click.echo(str(data))
 
-    def _create_table_from_dicts(
-        self, data: List[Dict], title: Optional[str] = None
-    ) -> Table:
+    def _create_table_from_dicts(self, data: List[Dict], title: Optional[str] = None) -> Table:
         """Create a Rich table from a list of dictionaries."""
         table = Table(title=title)
 

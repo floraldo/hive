@@ -88,9 +88,7 @@ class BaseProfileRequest(BaseModel):
         try:
             # Validate by attempting to normalize
             normalized = DateTimeProcessor.normalize_period(v)
-            return (
-                v  # Return original for now, normalization happens at processing time
-            )
+            return v  # Return original for now, normalization happens at processing time
         except Exception as e:
             raise ValueError(f"Invalid period specification: {e}")
 
@@ -116,9 +114,7 @@ class BaseProfileRequest(BaseModel):
             "period": self.period,
             "variables": self.variables,
             "resolution": self.resolution,
-            "mode": (
-                self.mode.value if isinstance(self.mode, ProfileMode) else self.mode
-            ),
+            "mode": (self.mode.value if isinstance(self.mode, ProfileMode) else self.mode),
             "source": self.source,
             "timezone": self.timezone,
             "metadata": self.metadata,
@@ -211,9 +207,7 @@ class DataQuality(BaseModel):
     """
 
     completeness: float  # Percentage of non-null values
-    gaps: List[Tuple[datetime, datetime]] = Field(
-        default_factory=list
-    )  # List of gap periods
+    gaps: List[Tuple[datetime, datetime]] = Field(default_factory=list)  # List of gap periods
     outliers: Dict[str, int]  # Count of outliers per variable
     quality_flags: Dict[str, Any] = Field(default_factory=dict)
     validation_passed: bool = True

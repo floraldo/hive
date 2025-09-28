@@ -38,9 +38,7 @@ def split_date_range(
     return chunks
 
 
-def process_in_chunks(
-    ds: xr.Dataset, chunk_size: str = "100MB", time_chunks: int = 365
-) -> xr.Dataset:
+def process_in_chunks(ds: xr.Dataset, chunk_size: str = "100MB", time_chunks: int = 365) -> xr.Dataset:
     """
     Process large dataset in memory-efficient chunks.
 
@@ -68,9 +66,7 @@ def process_in_chunks(
     return ds
 
 
-def concatenate_chunked_results(
-    chunks: List[xr.Dataset], dim: str = "time"
-) -> xr.Dataset:
+def concatenate_chunked_results(chunks: List[xr.Dataset], dim: str = "time") -> xr.Dataset:
     """
     Efficiently concatenate chunked datasets.
 
@@ -123,9 +119,7 @@ def estimate_memory_usage(ds: xr.Dataset) -> float:
     return total_size / (1024 * 1024)
 
 
-def create_time_chunks_generator(
-    ds: xr.Dataset, chunk_days: int = 30
-) -> Generator[xr.Dataset, None, None]:
+def create_time_chunks_generator(ds: xr.Dataset, chunk_days: int = 30) -> Generator[xr.Dataset, None, None]:
     """
     Generate time chunks from a dataset for streaming processing.
 
@@ -153,9 +147,7 @@ def create_time_chunks_generator(
             yield chunk
 
 
-def apply_chunked_operation(
-    ds: xr.Dataset, operation: callable, chunk_days: int = 30, **kwargs
-) -> xr.Dataset:
+def apply_chunked_operation(ds: xr.Dataset, operation: callable, chunk_days: int = 30, **kwargs) -> xr.Dataset:
     """
     Apply an operation to a dataset in chunks and combine results.
 

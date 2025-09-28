@@ -104,10 +104,7 @@ class ParameterEncoder:
             Updated system configuration
         """
         if len(vector) != self.spec.dimensions:
-            raise ValueError(
-                f"Vector dimension {len(vector)} doesn't match "
-                f"expected {self.spec.dimensions}"
-            )
+            raise ValueError(f"Vector dimension {len(vector)} doesn't match " f"expected {self.spec.dimensions}")
 
         # Create deep copy to avoid modifying original
         config = deepcopy(base_config)
@@ -126,9 +123,7 @@ class ParameterEncoder:
 
         return config
 
-    def _extract_parameter_value(
-        self, config: Dict[str, Any], param_spec: ParameterSpec
-    ) -> float:
+    def _extract_parameter_value(self, config: Dict[str, Any], param_spec: ParameterSpec) -> float:
         """Extract parameter value from configuration.
 
         Args:
@@ -153,9 +148,7 @@ class ParameterEncoder:
             if isinstance(value, dict) and part in value:
                 value = value[part]
             else:
-                raise ValueError(
-                    f"Parameter path {param_spec.parameter_path} not found"
-                )
+                raise ValueError(f"Parameter path {param_spec.parameter_path} not found")
 
         # Convert to float
         try:
@@ -163,9 +156,7 @@ class ParameterEncoder:
         except (ValueError, TypeError):
             raise ValueError(f"Parameter {param_spec.name} is not numeric: {value}")
 
-    def _set_parameter_value(
-        self, config: Dict[str, Any], param_spec: ParameterSpec, value: float
-    ):
+    def _set_parameter_value(self, config: Dict[str, Any], param_spec: ParameterSpec, value: float):
         """Set parameter value in configuration.
 
         Args:
@@ -227,9 +218,7 @@ class ParameterEncoder:
         encoded = np.clip(value, min_val, max_val)
         return encoded
 
-    def _decode_parameter(
-        self, encoded_value: float, param_spec: ParameterSpec
-    ) -> float:
+    def _decode_parameter(self, encoded_value: float, param_spec: ParameterSpec) -> float:
         """Decode a single parameter value.
 
         Args:
@@ -341,16 +330,12 @@ class SystemConfigEncoder(ParameterEncoder):
                 component_config = config["components"][component_name]
 
                 # Look for optimizable_parameters in component's technical section
-                optimizable_params = cls._extract_optimizable_parameters(
-                    component_name, component_config
-                )
+                optimizable_params = cls._extract_optimizable_parameters(component_name, component_config)
 
                 for param_spec in optimizable_params:
                     # Apply custom bounds if provided
                     if custom_bounds and param_spec.name in custom_bounds:
-                        param_spec = dataclass.replace(
-                            param_spec, bounds=custom_bounds[param_spec.name]
-                        )
+                        param_spec = dataclass.replace(param_spec, bounds=custom_bounds[param_spec.name])
                     parameters.append(param_spec)
 
         if not parameters:
@@ -359,10 +344,7 @@ class SystemConfigEncoder(ParameterEncoder):
                 "Components must define 'optimizable_parameters' in their technical section."
             )
 
-        logger.info(
-            f"Created encoder with {len(parameters)} parameters: "
-            f"{[p.name for p in parameters]}"
-        )
+        logger.info(f"Created encoder with {len(parameters)} parameters: " f"{[p.name for p in parameters]}")
 
         encoding_spec = EncodingSpec(parameters=parameters)
         return cls(encoding_spec)
@@ -390,9 +372,7 @@ class SystemConfigEncoder(ParameterEncoder):
         optimizable_config = technical_config.get("optimizable_parameters", {})
 
         if not optimizable_config:
-            logger.debug(
-                f"No optimizable parameters defined for component {component_name}"
-            )
+            logger.debug(f"No optimizable parameters defined for component {component_name}")
             return parameters
 
         # Convert each optimizable parameter to ParameterSpec
@@ -413,9 +393,7 @@ class SystemConfigEncoder(ParameterEncoder):
                 if isinstance(bounds, list) and len(bounds) == 2:
                     bounds = tuple(bounds)
                 elif not isinstance(bounds, tuple) or len(bounds) != 2:
-                    logger.warning(
-                        f"Invalid bounds format for {component_name}.{param_name}: {bounds}"
-                    )
+                    logger.warning(f"Invalid bounds format for {component_name}.{param_name}: {bounds}")
                     continue
 
                 # Create ParameterSpec
@@ -426,9 +404,7 @@ class SystemConfigEncoder(ParameterEncoder):
                     bounds=bounds,
                     parameter_type=param_config.get("parameter_type", "continuous"),
                     units=param_config.get("units"),
-                    description=param_config.get(
-                        "description", f"{param_name} for {component_name}"
-                    ),
+                    description=param_config.get("description", f"{param_name} for {component_name}"),
                     scaling=param_config.get("scaling", "linear"),
                 )
 
@@ -436,17 +412,13 @@ class SystemConfigEncoder(ParameterEncoder):
                 logger.debug(f"Extracted optimizable parameter: {param_spec.name}")
 
             except Exception as e:
-                logger.warning(
-                    f"Failed to process parameter {component_name}.{param_name}: {e}"
-                )
+                logger.warning(f"Failed to process parameter {component_name}.{param_name}: {e}")
                 continue
 
         return parameters
 
     @classmethod
-    def from_parameter_list(
-        cls, parameter_definitions: List[Dict[str, Any]]
-    ) -> "SystemConfigEncoder":
+    def from_parameter_list(cls, parameter_definitions: List[Dict[str, Any]]) -> "SystemConfigEncoder":
         """Create encoder from parameter definition list.
 
         Args:

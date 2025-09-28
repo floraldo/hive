@@ -68,9 +68,7 @@ class ConstraintHandler:
         )
         self.add_constraint(constraint)
 
-    def add_inequality_constraint(
-        self, name: str, function: Callable[[np.ndarray], float], weight: float = 1.0
-    ):
+    def add_inequality_constraint(self, name: str, function: Callable[[np.ndarray], float], weight: float = 1.0):
         """Add an inequality constraint.
 
         Args:
@@ -78,9 +76,7 @@ class ConstraintHandler:
             function: Function that should be <= 0
             weight: Weight in penalty calculation
         """
-        constraint = Constraint(
-            name=name, constraint_type="inequality", function=function, weight=weight
-        )
+        constraint = Constraint(name=name, constraint_type="inequality", function=function, weight=weight)
         self.add_constraint(constraint)
 
     def evaluate_constraints(self, solution: np.ndarray) -> Dict[str, float]:
@@ -137,9 +133,7 @@ class ConstraintHandler:
                     if violation < 1e-6:
                         penalty = 0.0
                     else:
-                        penalty = (
-                            -self.penalty_factor * constraint.weight * np.log(violation)
-                        )
+                        penalty = -self.penalty_factor * constraint.weight * np.log(violation)
 
                 total_penalty += penalty
 
@@ -180,9 +174,7 @@ class ConstraintHandler:
 
         return feasible_indices
 
-    def repair_solution(
-        self, solution: np.ndarray, bounds: List[tuple], max_iterations: int = 100
-    ) -> np.ndarray:
+    def repair_solution(self, solution: np.ndarray, bounds: List[tuple], max_iterations: int = 100) -> np.ndarray:
         """Attempt to repair an infeasible solution.
 
         Args:
@@ -204,9 +196,7 @@ class ConstraintHandler:
             violations = self.evaluate_constraints(repaired)
 
             # If feasible, we're done
-            if all(
-                v <= c.tolerance for c, v in zip(self.constraints, violations.values())
-            ):
+            if all(v <= c.tolerance for c, v in zip(self.constraints, violations.values())):
                 break
 
             # Apply simple repair heuristics
@@ -363,9 +353,7 @@ class TechnicalConstraintValidator:
             return 0.0
 
     @classmethod
-    def create_standard_constraints(
-        cls, encoder, config: Dict[str, Any]
-    ) -> ConstraintHandler:
+    def create_standard_constraints(cls, encoder, config: Dict[str, Any]) -> ConstraintHandler:
         """Create standard technical constraints for energy systems.
 
         Args:
@@ -398,9 +386,7 @@ class TechnicalConstraintValidator:
             demand_profile = np.array(config["demand_profile"])
             handler.add_inequality_constraint(
                 name="renewable_demand_balance",
-                function=lambda x: cls.renewable_generation_demand_balance(
-                    x, encoder, demand_profile
-                ),
+                function=lambda x: cls.renewable_generation_demand_balance(x, encoder, demand_profile),
                 weight=2.0,
             )
 

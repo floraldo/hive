@@ -96,15 +96,11 @@ class EcoSystemiserEventBus(BaseBus):
 
                 missing_columns = required_columns - columns
                 if missing_columns:
-                    logger.warning(
-                        f"Recreating ecosystemiser_events table due to missing columns: {missing_columns}"
-                    )
+                    logger.warning(f"Recreating ecosystemiser_events table due to missing columns: {missing_columns}")
                     conn.execute("DROP TABLE ecosystemiser_events")
                     self._create_events_table(conn)
                 else:
-                    logger.debug(
-                        "ecosystemiser_events table exists with correct schema"
-                    )
+                    logger.debug("ecosystemiser_events table exists with correct schema")
             else:
                 # Table doesn't exist, create it
                 self._create_events_table(conn)
@@ -205,18 +201,14 @@ class EcoSystemiserEventBus(BaseBus):
                         analysis_id,
                         optimization_id,
                         json.dumps(event.payload if hasattr(event, "payload") else {}),
-                        json.dumps(
-                            event.metadata if hasattr(event, "metadata") else {}
-                        ),
+                        json.dumps(event.metadata if hasattr(event, "metadata") else {}),
                     ),
                 )
 
             # Notify subscribers (from parent class)
             self._notify_subscribers(event)
 
-            logger.debug(
-                f"Published EcoSystemiser event {event.event_id}: {event.event_type}"
-            )
+            logger.debug(f"Published EcoSystemiser event {event.event_id}: {event.event_type}")
             return event.event_id
 
         except Exception as e:
@@ -253,21 +245,15 @@ class EcoSystemiserEventBus(BaseBus):
                 return event
             return BaseEvent.from_dict(data)
 
-    def get_simulation_history(
-        self, simulation_id: str, limit: int = 50
-    ) -> List[BaseEvent]:
+    def get_simulation_history(self, simulation_id: str, limit: int = 50) -> List[BaseEvent]:
         """Get all events for a simulation"""
         return self._get_events(simulation_id=simulation_id, limit=limit)
 
-    def get_analysis_history(
-        self, analysis_id: str, limit: int = 50
-    ) -> List[BaseEvent]:
+    def get_analysis_history(self, analysis_id: str, limit: int = 50) -> List[BaseEvent]:
         """Get all events for an analysis run"""
         return self._get_events(analysis_id=analysis_id, limit=limit)
 
-    def get_optimization_history(
-        self, optimization_id: str, limit: int = 50
-    ) -> List[BaseEvent]:
+    def get_optimization_history(self, optimization_id: str, limit: int = 50) -> List[BaseEvent]:
         """Get all events for an optimization run"""
         return self._get_events(optimization_id=optimization_id, limit=limit)
 

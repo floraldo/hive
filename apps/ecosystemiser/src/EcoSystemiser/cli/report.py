@@ -20,9 +20,7 @@ def report():
 
 @report.command()
 @click.argument("results_file", type=click.Path(exists=True))
-@click.option(
-    "--output", "-o", type=click.Path(), help="Output directory for report files"
-)
+@click.option("--output", "-o", type=click.Path(), help="Output directory for report files")
 @click.option(
     "--strategies",
     "-s",
@@ -36,9 +34,7 @@ def report():
     default="json",
     help="Output format",
 )
-def analyze(
-    results_file: str, output: Optional[str], strategies: tuple, output_format: str
-):
+def analyze(results_file: str, output: Optional[str], strategies: tuple, output_format: str):
     """Analyze simulation results and generate report data.
 
     Args:
@@ -100,13 +96,9 @@ def analyze(
         if "key_metrics" in summary:
             key_metrics = summary["key_metrics"]
             if "grid_self_sufficiency" in key_metrics:
-                click.echo(
-                    f"  Grid self-sufficiency: {key_metrics['grid_self_sufficiency']:.1%}"
-                )
+                click.echo(f"  Grid self-sufficiency: {key_metrics['grid_self_sufficiency']:.1%}")
             if "renewable_fraction" in key_metrics:
-                click.echo(
-                    f"  Renewable fraction: {key_metrics['renewable_fraction']:.1%}"
-                )
+                click.echo(f"  Renewable fraction: {key_metrics['renewable_fraction']:.1%}")
 
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
@@ -172,22 +164,14 @@ def generate(results_file: str, output: str):
 
         # Generate relevant plots
         if "technical_kpi" in analyses:
-            plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(
-                analyses["technical_kpi"]
-            )
+            plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(analyses["technical_kpi"])
 
         if "economic" in analyses:
-            plots["economic_summary"] = plot_factory.create_economic_summary_plot(
-                analyses["economic"]
-            )
+            plots["economic_summary"] = plot_factory.create_economic_summary_plot(analyses["economic"])
 
         if "sensitivity" in analyses:
-            plots["sensitivity_heatmap"] = plot_factory.create_sensitivity_heatmap(
-                analyses["sensitivity"]
-            )
-            plots["pareto_frontier"] = plot_factory.create_pareto_frontier_plot(
-                analyses["sensitivity"]
-            )
+            plots["sensitivity_heatmap"] = plot_factory.create_sensitivity_heatmap(analyses["sensitivity"])
+            plots["pareto_frontier"] = plot_factory.create_pareto_frontier_plot(analyses["sensitivity"])
 
         # Create HTML report
         html_content = create_standalone_html_report(analysis_results, plots)
@@ -203,9 +187,7 @@ def generate(results_file: str, output: str):
 
         # Print summary
         summary = analysis_results.get("summary", {})
-        click.echo(
-            f"Report includes {summary.get('successful_analyses', 0)} successful analyses"
-        )
+        click.echo(f"Report includes {summary.get('successful_analyses', 0)} successful analyses")
 
     except Exception as e:
         logger.error(f"Report generation failed: {e}")

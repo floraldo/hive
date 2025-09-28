@@ -24,9 +24,7 @@ class BaseProfileService(ABC):
     """
 
     @abstractmethod
-    async def process_request_async(
-        self, request: BaseProfileRequest
-    ) -> Tuple[xr.Dataset, BaseProfileResponse]:
+    async def process_request_async(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, BaseProfileResponse]:
         """
         Process a profile data request asynchronously.
 
@@ -42,9 +40,7 @@ class BaseProfileService(ABC):
         pass
 
     @abstractmethod
-    def process_request(
-        self, request: BaseProfileRequest
-    ) -> Tuple[xr.Dataset, BaseProfileResponse]:
+    def process_request(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, BaseProfileResponse]:
         """
         Process a profile data request synchronously.
 
@@ -83,9 +79,7 @@ class BaseProfileService(ABC):
         pass
 
     @abstractmethod
-    def get_available_variables(
-        self, source: Optional[str] = None
-    ) -> Dict[str, Dict[str, str]]:
+    def get_available_variables(self, source: Optional[str] = None) -> Dict[str, Dict[str, str]]:
         """
         Get available variables for this profile type.
 

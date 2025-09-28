@@ -178,9 +178,7 @@ class HiveEventBus(BaseBus):
         else:
             return BaseEvent.from_dict(data)
 
-    def get_workflow_history(
-        self, workflow_id: str, limit: int = 50
-    ) -> List[BaseEvent]:
+    def get_workflow_history(self, workflow_id: str, limit: int = 50) -> List[BaseEvent]:
         """Get all events for a workflow (coordination trace)"""
         return self._get_hive_events(workflow_id=workflow_id, limit=limit)
 

@@ -111,9 +111,7 @@ class FileLoader:
                         raise ValueError(f"Missing 'component_class' in {file_path}")
 
                     if "technical" not in data:
-                        raise ValueError(
-                            f"Missing 'technical' parameters in {file_path}"
-                        )
+                        raise ValueError(f"Missing 'technical' parameters in {file_path}")
 
                     return data
 
@@ -179,12 +177,8 @@ class SQLiteLoader:
                 )
 
                 # Create indexes for performance
-                conn.execute(
-                    "CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)"
-                )
-                conn.execute(
-                    "CREATE INDEX IF NOT EXISTS idx_components_class ON components(component_class)"
-                )
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_class ON components(component_class)")
 
                 logger.debug("Component database tables ensured")
 
@@ -207,15 +201,11 @@ class SQLiteLoader:
         """
         try:
             with ecosystemiser_transaction() as conn:
-                cursor = conn.execute(
-                    "SELECT * FROM components WHERE id = ?", (component_id,)
-                )
+                cursor = conn.execute("SELECT * FROM components WHERE id = ?", (component_id,))
                 row = cursor.fetchone()
 
                 if not row:
-                    raise FileNotFoundError(
-                        f"Component data not found in database: {component_id}"
-                    )
+                    raise FileNotFoundError(f"Component data not found in database: {component_id}")
 
                 # Reconstruct component data structure
                 data = {
@@ -292,15 +282,11 @@ class SQLiteLoader:
             component_class = data["component_class"]
             category = data.get("category", "unknown")
             technical_data = json.dumps(data["technical"])
-            economic_data = (
-                json.dumps(data.get("economic", {})) if "economic" in data else None
-            )
+            economic_data = json.dumps(data.get("economic", {})) if "economic" in data else None
 
             # Extract metadata (everything except known fields)
             metadata = {
-                k: v
-                for k, v in data.items()
-                if k not in ["component_class", "technical", "economic", "category"]
+                k: v for k, v in data.items() if k not in ["component_class", "technical", "economic", "category"]
             }
             metadata_json = json.dumps(metadata) if metadata else None
 
@@ -354,9 +340,7 @@ class SQLiteLoader:
                 except Exception as e:
                     logger.warning(f"Failed to migrate component {component_id}: {e}")
 
-            logger.info(
-                f"Successfully migrated {migrated_count} components to database"
-            )
+            logger.info(f"Successfully migrated {migrated_count} components to database")
             return migrated_count
 
         except Exception as e:

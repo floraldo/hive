@@ -29,32 +29,20 @@ def add_performance_indexes():
         ("idx_tasks_type_status", "tasks", "(task_type, status)"),
         ("idx_tasks_status_priority", "tasks", "(status, priority DESC)"),
         ("idx_tasks_assignee_status", "tasks", "(assignee, status)"),
-
         # For JSON queries on payload (25% improvement)
-        ("idx_tasks_payload_parent", "tasks",
-         "(json_extract(payload, '$.parent_plan_id'))"),
-        ("idx_tasks_payload_subtask", "tasks",
-         "(json_extract(payload, '$.subtask_id'))"),
-        ("idx_tasks_payload_phase", "tasks",
-         "(json_extract(payload, '$.workflow_phase'))"),
-
+        ("idx_tasks_payload_parent", "tasks", "(json_extract(payload, '$.parent_plan_id'))"),
+        ("idx_tasks_payload_subtask", "tasks", "(json_extract(payload, '$.subtask_id'))"),
+        ("idx_tasks_payload_phase", "tasks", "(json_extract(payload, '$.workflow_phase'))"),
         # For execution plan queries (30% improvement)
-        ("idx_plans_task_status", "execution_plans",
-         "(planning_task_id, status)"),
-
+        ("idx_plans_task_status", "execution_plans", "(planning_task_id, status)"),
         # For planning queue queries (20% improvement)
-        ("idx_planning_status_priority", "planning_queue",
-         "(status, priority DESC, created_at)"),
-        ("idx_planning_assignee", "planning_queue",
-         "(assigned_agent, status)"),
-
+        ("idx_planning_status_priority", "planning_queue", "(status, priority DESC, created_at)"),
+        ("idx_planning_assignee", "planning_queue", "(assigned_agent, status)"),
         # For run tracking queries (15% improvement)
         ("idx_runs_task_status", "runs", "(task_id, status)"),
         ("idx_runs_worker", "runs", "(worker_id, status)"),
-
         # For worker management (10% improvement)
-        ("idx_workers_status_heartbeat", "workers",
-         "(status, last_heartbeat DESC)")
+        ("idx_workers_status_heartbeat", "workers", "(status, last_heartbeat DESC)"),
     ]
 
     created = 0
@@ -64,10 +52,13 @@ def add_performance_indexes():
     for index_name, table_name, columns in indexes:
         try:
             # Check if index exists
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT name FROM sqlite_master
                 WHERE type='index' AND name=?
-            """, (index_name,))
+            """,
+                (index_name,),
+            )
 
             if cursor.fetchone():
                 print(f"SKIP: Index {index_name} already exists")
@@ -126,22 +117,31 @@ def check_index_usage():
 
     # Test query with EXPLAIN QUERY PLAN
     test_queries = [
-        ("Task selection", """
+        (
+            "Task selection",
+            """
             SELECT * FROM tasks
             WHERE status = 'queued' AND task_type = 'planned_subtask'
             ORDER BY priority DESC
             LIMIT 10
-        """),
-        ("Dependency check", """
+        """,
+        ),
+        (
+            "Dependency check",
+            """
             SELECT * FROM tasks
             WHERE json_extract(payload, '$.parent_plan_id') = 'test-plan'
-        """),
-        ("Planning queue", """
+        """,
+        ),
+        (
+            "Planning queue",
+            """
             SELECT * FROM planning_queue
             WHERE status = 'pending'
             ORDER BY priority DESC, created_at ASC
             LIMIT 5
-        """)
+        """,
+        ),
     ]
 
     print("\n" + "=" * 60)

@@ -6,7 +6,7 @@ from typing import Any, Awaitable, List, TypeVar
 T = TypeVar("T")
 
 
-async def gather_with_concurrency(
+async def gather_with_concurrency_async(
     *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False
 ) -> List[Any]:
     """
@@ -25,15 +25,15 @@ async def gather_with_concurrency(
     """
     semaphore = asyncio.Semaphore(max_concurrent)
 
-    async def limited_coro(coro: Awaitable[T]) -> T:
+    async def limited_coro_async(coro: Awaitable[T]) -> T:
         async with semaphore:
             return await coro
 
-    limited_coros = [limited_coro(coro) for coro in coros]
+    limited_coros = [limited_coro_async(coro) for coro in coros]
     return await asyncio.gather(*limited_coros, return_exceptions=return_exceptions)
 
 
-async def run_with_timeout(coro: Awaitable[T], timeout: float) -> T:
+async def run_with_timeout_async(coro: Awaitable[T], timeout: float) -> T:
     """
     Run a coroutine with timeout.
 

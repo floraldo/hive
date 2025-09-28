@@ -45,46 +45,44 @@ class ConnectionPool(Generic[T]):
         self._health_check_task: Optional[asyncio.Task] = None
 
     async def __aenter__(self):
-        await self.initialize()
+        await self.initialize_async()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.close()
+        await self.close_async()
 
-    async def initialize(self):
+    async def initialize_async(self):
         """Initialize the connection pool."""
         # Create minimum connections
         for _ in range(self.config.min_size):
             try:
-                conn = await self._create_new_connection()
+                conn = await self._create_new_connection_async()
                 await self._pool.put(conn)
             except Exception as e:
                 logger.warning(f"Failed to create initial connection: {e}")
 
         # Start health check task
         if self.health_check:
-            self._health_check_task = asyncio.create_task(self._health_check_loop())
+            self._health_check_task = asyncio.create_task(self._health_check_loop_async())
 
-    async def _create_new_connection(self) -> T:
+    async def _create_new_connection_async(self) -> T:
         """Create a new connection."""
         if asyncio.iscoroutinefunction(self.create_connection):
-            conn = await self.create_connection()
+            conn = await self.create_connection_async()
         else:
-            conn = self.create_connection()
+            conn = self.create_connection_async()
 
         self._connections[conn] = asyncio.get_event_loop().time()
         return conn
 
-    async def acquire(self) -> T:
+    async def acquire_async(self) -> T:
         """Acquire a connection from the pool."""
         if self._closed:
             raise RuntimeError("Pool is closed")
 
         try:
             # Try to get existing connection
-            conn = await asyncio.wait_for(
-                self._pool.get(), timeout=self.config.acquire_timeout
-            )
+            conn = await asyncio.wait_for(self._pool.get(), timeout=self.config.acquire_timeout)
 
             # Health check if available
             if self.health_check:
@@ -94,8 +92,8 @@ class ConnectionPool(Generic[T]):
                     is_healthy = self.health_check(conn)
 
                 if not is_healthy:
-                    await self._close_connection(conn)
-                    conn = await self._create_new_connection()
+                    await self._close_connection_async(conn)
+                    conn = await self._create_new_connection_async()
 
             return conn
 
@@ -103,14 +101,14 @@ class ConnectionPool(Generic[T]):
             # Create new connection if pool is empty and under limit
             async with self._lock:
                 if len(self._connections) < self.config.max_size:
-                    return await self._create_new_connection()
+                    return await self._create_new_connection_async()
                 else:
                     raise RuntimeError("Pool exhausted and max size reached")
 
-    async def release(self, connection: T):
+    async def release_async(self, connection: T):
         """Release a connection back to the pool."""
         if self._closed or connection not in self._connections:
-            await self._close_connection(connection)
+            await self._close_connection_async(connection)
             return
 
         try:
@@ -119,47 +117,47 @@ class ConnectionPool(Generic[T]):
             await self._pool.put(connection)
         except Exception as e:
             logger.warning(f"Error releasing connection: {e}")
-            await self._close_connection(connection)
+            await self._close_connection_async(connection)
 
     @asynccontextmanager
-    async def connection(self):
+    async def connection_async(self):
         """Context manager for acquiring and releasing connections."""
-        conn = await self.acquire()
+        conn = await self.acquire_async()
         try:
             yield conn
         finally:
-            await self.release(conn)
+            await self.release_async(conn)
 
-    async def _close_connection(self, connection: T):
+    async def _close_connection_async(self, connection: T):
         """Close a single connection."""
         try:
             if self.close_connection:
                 if asyncio.iscoroutinefunction(self.close_connection):
-                    await self.close_connection(connection)
+                    await self.close_connection_async(connection)
                 else:
-                    self.close_connection(connection)
+                    self.close_connection_async(connection)
             elif hasattr(connection, "close"):
                 if asyncio.iscoroutinefunction(connection.close):
-                    await connection.close()
+                    await connection.close_async()
                 else:
-                    connection.close()
+                    connection.close_async()
         except Exception as e:
             logger.warning(f"Error closing connection: {e}")
         finally:
             self._connections.pop(connection, None)
 
-    async def _health_check_loop(self):
+    async def _health_check_loop_async(self):
         """Periodic health check for connections."""
         while not self._closed:
             try:
                 await asyncio.sleep(self.config.health_check_interval)
-                await self._cleanup_stale_connections()
+                await self._cleanup_stale_connections_async()
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.warning(f"Error in health check loop: {e}")
 
-    async def _cleanup_stale_connections(self):
+    async def _cleanup_stale_connections_async(self):
         """Clean up stale connections."""
         current_time = asyncio.get_event_loop().time()
         stale_connections = []
@@ -169,9 +167,9 @@ class ConnectionPool(Generic[T]):
                 stale_connections.append(conn)
 
         for conn in stale_connections:
-            await self._close_connection(conn)
+            await self._close_connection_async(conn)
 
-    async def close(self):
+    async def close_async(self):
         """Close the connection pool."""
         self._closed = True
 
@@ -184,7 +182,7 @@ class ConnectionPool(Generic[T]):
 
         # Close all connections
         for conn in list(self._connections.keys()):
-            await self._close_connection(conn)
+            await self._close_connection_async(conn)
 
     @property
     def size(self) -> int:
@@ -214,14 +212,14 @@ class AsyncConnectionManager:
         return self.pools[name]
 
     @asynccontextmanager
-    async def connection(self, pool_name: str):
+    async def connection_async(self, pool_name: str):
         """Get a connection from a specific pool."""
         pool = self.get_pool(pool_name)
-        async with pool.connection() as conn:
+        async with pool.connection_async() as conn:
             yield conn
 
-    async def close_all(self):
+    async def close_all_async(self):
         """Close all connection pools."""
         for pool in self.pools.values():
-            await pool.close()
+            await pool.close_async()
         self.pools.clear()

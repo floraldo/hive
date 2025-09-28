@@ -61,9 +61,7 @@ class BaseBus(ABC):
         Returns:
             Subscription ID
         """
-        subscriber = BaseSubscriber(
-            pattern=event_pattern, callback=callback, subscriber_name=subscriber_name
-        )
+        subscriber = BaseSubscriber(pattern=event_pattern, callback=callback, subscriber_name=subscriber_name)
 
         with self._subscriber_lock:
             if event_pattern not in self._subscribers:

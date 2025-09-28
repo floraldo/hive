@@ -151,7 +151,7 @@ if __name__ == '__main__':
         f.write(backend_code)
 
     # Generate simple frontend
-    frontend_html = '''<!DOCTYPE html>
+    frontend_html = """<!DOCTYPE html>
 <html>
 <head>
     <title>Todo App - Multi-Component FAT</title>
@@ -269,7 +269,7 @@ if __name__ == '__main__':
         loadTodos();
     </script>
 </body>
-</html>'''
+</html>"""
 
     with open(base_dir / "frontend" / "index.html", "w") as f:
         f.write(frontend_html)
@@ -308,7 +308,7 @@ def validate_simple_todo_app(test_case):
             cwd=app_dir,
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
         )
 
         if install_result.returncode != 0:
@@ -316,10 +316,7 @@ def validate_simple_todo_app(test_case):
 
         # Start backend server
         server_process = subprocess.Popen(
-            [sys.executable, "backend/app.py"],
-            cwd=app_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            [sys.executable, "backend/app.py"], cwd=app_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
         # Wait for startup
@@ -354,7 +351,7 @@ def validate_simple_todo_app(test_case):
                 "http://localhost:5003/api/todos",
                 json={"title": "Test Todo"},
                 headers={"Content-Type": "application/json"},
-                timeout=5
+                timeout=5,
             )
             if create_response.status_code != 201:
                 server_process.terminate()
@@ -370,7 +367,7 @@ def validate_simple_todo_app(test_case):
                 f"http://localhost:5003/api/todos/{todo_id}",
                 json={"completed": True},
                 headers={"Content-Type": "application/json"},
-                timeout=5
+                timeout=5,
             )
             if update_response.status_code != 200:
                 server_process.terminate()
@@ -402,7 +399,7 @@ def validate_simple_todo_app(test_case):
 
         return {
             "success": True,
-            "details": "Multi-component Todo application validated successfully with full CRUD operations and frontend integration"
+            "details": "Multi-component Todo application validated successfully with full CRUD operations and frontend integration",
         }
 
     except Exception as e:
@@ -427,17 +424,17 @@ def run_multi_component_test():
                 "backend": {"framework": "Flask", "database": "SQLite", "api_type": "REST"},
                 "frontend": {"type": "SPA", "technologies": ["HTML", "CSS", "JavaScript"]},
                 "database": {"type": "SQLite", "tables": ["todos"]},
-                "integration": {"cors_enabled": True, "api_communication": True}
-            }
+                "integration": {"cors_enabled": True, "api_communication": True},
+            },
         },
         "metadata": {
             "test_type": "factory_acceptance",
             "test_id": "FAT-02",
             "complexity_level": "multi_component",
-            "autonomous_generation": True
+            "autonomous_generation": True,
         },
         "generator_function": generate_simple_todo_app,
-        "validator_function": validate_simple_todo_app
+        "validator_function": validate_simple_todo_app,
     }
 
     fat = FactoryAcceptanceTest()

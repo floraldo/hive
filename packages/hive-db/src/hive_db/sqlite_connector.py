@@ -46,9 +46,7 @@ def get_sqlite_connection(
     # Determine database path from parameter or config
     final_db_path = db_path or config.get("db_path")
     if not final_db_path:
-        raise ValueError(
-            "Database path must be provided either directly or via config['db_path']"
-        )
+        raise ValueError("Database path must be provided either directly or via config['db_path']")
 
     # Ensure parent directory exists
     db_file = Path(final_db_path)
@@ -81,9 +79,7 @@ def get_sqlite_connection(
 
 
 @contextmanager
-def sqlite_transaction(
-    db_path: Optional[str] = None, config: Optional[Dict[str, Any]] = None, **kwargs
-):
+def sqlite_transaction(db_path: Optional[str] = None, config: Optional[Dict[str, Any]] = None, **kwargs):
     """
     Context manager for SQLite transactions.
 

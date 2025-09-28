@@ -30,9 +30,7 @@ class BaseAnalysis(ABC):
         self.metadata = None
 
     @abstractmethod
-    def run(
-        self, results_data: Dict[str, Any], metadata: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
         """Execute the analysis on the provided results data.
 
         This is the main method that each strategy must implement.
@@ -104,9 +102,7 @@ class BaseAnalysis(ABC):
 
         return processed
 
-    def execute(
-        self, results_data: Dict[str, Any], metadata: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+    def execute(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
         """Execute the complete analysis pipeline.
 
         This method orchestrates validation, preprocessing, analysis,

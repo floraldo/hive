@@ -33,7 +33,7 @@ class RunInspector:
             "metrics": {},
             "checks": {},
             "issues": [],
-            "summary": {}
+            "summary": {},
         }
 
     def load_run_data(self) -> bool:
@@ -134,86 +134,71 @@ class RunInspector:
                         ["ruff", "check", file_path, "--output-format", "json"],
                         capture_output=True,
                         text=True,
-                        timeout=10
+                        timeout=10,
                     )
 
                     if result.returncode == 0:
-                        linter_results.append({
-                            "file": file_path,
-                            "status": "clean",
-                            "issues": []
-                        })
+                        linter_results.append({"file": file_path, "status": "clean", "issues": []})
                     else:
                         try:
                             issues = json.loads(result.stdout) if result.stdout else []
-                            linter_results.append({
-                                "file": file_path,
-                                "status": "issues",
-                                "issues": issues,
-                                "issue_count": len(issues)
-                            })
-                            self.report["issues"].extend([
-                                f"Linter: {issue.get('message', 'Unknown issue')} at {file_path}:{issue.get('location', {}).get('row', '?')}"
-                                for issue in issues[:5]  # Limit to first 5 issues
-                            ])
+                            linter_results.append(
+                                {"file": file_path, "status": "issues", "issues": issues, "issue_count": len(issues)}
+                            )
+                            self.report["issues"].extend(
+                                [
+                                    f"Linter: {issue.get('message', 'Unknown issue')} at {file_path}:{issue.get('location', {}).get('row', '?')}"
+                                    for issue in issues[:5]  # Limit to first 5 issues
+                                ]
+                            )
                         except json.JSONDecodeError:
                             # Fallback to text output
-                            linter_results.append({
-                                "file": file_path,
-                                "status": "error",
-                                "output": result.stdout[:500]
-                            })
+                            linter_results.append({"file": file_path, "status": "error", "output": result.stdout[:500]})
 
                 except (subprocess.TimeoutExpired, FileNotFoundError):
                     # Ruff not available, try basic Python syntax check
                     try:
                         result = subprocess.run(
-                            ["python", "-m", "py_compile", file_path],
-                            capture_output=True,
-                            text=True,
-                            timeout=5
+                            ["python", "-m", "py_compile", file_path], capture_output=True, text=True, timeout=5
                         )
                         if result.returncode == 0:
-                            linter_results.append({
-                                "file": file_path,
-                                "status": "syntax_ok"
-                            })
+                            linter_results.append({"file": file_path, "status": "syntax_ok"})
                         else:
-                            linter_results.append({
-                                "file": file_path,
-                                "status": "syntax_error",
-                                "error": result.stderr[:200]
-                            })
+                            linter_results.append(
+                                {"file": file_path, "status": "syntax_error", "error": result.stderr[:200]}
+                            )
                             self.report["issues"].append(f"Syntax error in {file_path}")
                     except Exception as e:
-                        linter_results.append({
-                            "file": file_path,
-                            "status": "check_failed",
-                            "error": str(e)
-                        })
+                        linter_results.append({"file": file_path, "status": "check_failed", "error": str(e)})
 
         self.report["checks"]["linter"] = {
             "status": "completed",
             "files_checked": len(linter_results),
             "clean_files": len([r for r in linter_results if r["status"] == "clean"]),
             "files_with_issues": len([r for r in linter_results if r["status"] == "issues"]),
-            "results": linter_results
+            "results": linter_results,
         }
 
     def check_tests(self):
         """Check for test files and test coverage"""
-        test_files = [f for f in self.report["files"].keys()
-                     if "test" in Path(f).name.lower() or Path(f).parent.name in ["tests", "test", "__tests__"]]
+        test_files = [
+            f
+            for f in self.report["files"].keys()
+            if "test" in Path(f).name.lower() or Path(f).parent.name in ["tests", "test", "__tests__"]
+        ]
 
-        code_files = [f for f in self.report["files"].keys()
-                      if f.endswith((".py", ".js", ".ts", ".java", ".go", ".rs"))
-                      and not any(t in Path(f).name.lower() for t in ["test", "spec"])]
+        code_files = [
+            f
+            for f in self.report["files"].keys()
+            if f.endswith((".py", ".js", ".ts", ".java", ".go", ".rs"))
+            and not any(t in Path(f).name.lower() for t in ["test", "spec"])
+        ]
 
         self.report["checks"]["tests"] = {
             "test_files_found": len(test_files),
             "test_files": test_files,
             "code_files": len(code_files),
-            "test_coverage_ratio": len(test_files) / max(len(code_files), 1)
+            "test_coverage_ratio": len(test_files) / max(len(code_files), 1),
         }
 
         if len(test_files) == 0 and len(code_files) > 0:
@@ -247,7 +232,7 @@ class RunInspector:
             "quality_score": max(0, score),
             "total_issues": len(self.report["issues"]),
             "recommendation": self.get_recommendation(score),
-            "confidence": "high" if self.report["metrics"]["total_files"] > 0 else "low"
+            "confidence": "high" if self.report["metrics"]["total_files"] > 0 else "low",
         }
 
     def get_recommendation(self, score: int) -> str:
@@ -281,8 +266,7 @@ def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(description="Inspect a run for quality analysis")
     parser.add_argument("--run-id", required=True, help="Run ID to inspect")
-    parser.add_argument("--output", choices=["json", "summary"], default="json",
-                       help="Output format")
+    parser.add_argument("--output", choices=["json", "summary"], default="json", help="Output format")
 
     args = parser.parse_args()
 

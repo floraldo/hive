@@ -10,9 +10,7 @@ from scipy import stats
 logger = get_logger(__name__)
 
 
-def describe(
-    ds: xr.Dataset, percentiles: Tuple[float, ...] = (5, 50, 95)
-) -> Dict[str, Dict[str, float]]:
+def describe(ds: xr.Dataset, percentiles: Tuple[float, ...] = (5, 50, 95)) -> Dict[str, Dict[str, float]]:
     """
     Calculate descriptive statistics for dataset variables.
 
@@ -66,9 +64,7 @@ def describe(
     return stats_dict
 
 
-def calculate_correlations(
-    ds: xr.Dataset, method: str = "spearman"
-) -> Dict[str, Dict[str, float]]:
+def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> Dict[str, Dict[str, float]]:
     """
     Calculate correlation matrix between variables.
 
@@ -110,9 +106,7 @@ def calculate_correlations(
     return correlations
 
 
-def compare_statistics(
-    stats1: Dict, stats2: Dict, tolerance: float = 0.1
-) -> Dict[str, Dict[str, float]]:
+def compare_statistics(stats1: Dict, stats2: Dict, tolerance: float = 0.1) -> Dict[str, Dict[str, float]]:
     """
     Compare statistics between two datasets.
 

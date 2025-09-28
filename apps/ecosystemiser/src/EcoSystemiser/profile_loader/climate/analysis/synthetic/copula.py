@@ -52,9 +52,7 @@ class CopulaSyntheticGenerator:
         self._marginal_models = {}
         self._seasonal_patterns = {}
 
-    def generate(
-        self, ds_hist: xr.Dataset, seed: Optional[int] = None, target_length: str = "1Y"
-    ) -> xr.Dataset:
+    def generate(self, ds_hist: xr.Dataset, seed: Optional[int] = None, target_length: str = "1Y") -> xr.Dataset:
         """
         Generate synthetic climate data preserving correlations and distributions.
 
@@ -69,9 +67,7 @@ class CopulaSyntheticGenerator:
         if seed is not None:
             np.random.seed(seed)
 
-        logger.info(
-            f"Generating synthetic data using {self.config.copula_type.value} copula"
-        )
+        logger.info(f"Generating synthetic data using {self.config.copula_type.value} copula")
 
         # Extract and prepare data
         data_matrix, variables, time_info = self._prepare_data(ds_hist)
@@ -92,9 +88,7 @@ class CopulaSyntheticGenerator:
         synthetic_data = self._generate_synthetic(n_samples, variables, time_info)
 
         # Create output dataset
-        synthetic_ds = self._create_synthetic_dataset(
-            synthetic_data, variables, ds_hist, target_length, time_info
-        )
+        synthetic_ds = self._create_synthetic_dataset(synthetic_data, variables, ds_hist, target_length, time_info)
 
         logger.info(f"Generated {len(synthetic_ds.time)} synthetic time steps")
 
@@ -169,15 +163,11 @@ class CopulaSyntheticGenerator:
             "freq": pd.infer_freq(ds.time.values) or "H",
         }
 
-        logger.info(
-            f"Prepared data matrix: {data_matrix.shape} for variables {variables}"
-        )
+        logger.info(f"Prepared data matrix: {data_matrix.shape} for variables {variables}")
 
         return data_matrix, variables, time_info
 
-    def _fit_marginals(
-        self, data_matrix: np.ndarray, variables: List[str], time_info: Dict
-    ):
+    def _fit_marginals(self, data_matrix: np.ndarray, variables: List[str], time_info: Dict):
         """Fit marginal distributions for each variable"""
 
         logger.info("Fitting marginal distributions")
@@ -238,9 +228,7 @@ class CopulaSyntheticGenerator:
             sorted_data = np.sort(data_matrix[:, i])
             uniform_data[:, i] = np.searchsorted(sorted_data, data_matrix[:, i]) / n_obs
             # Avoid 0 and 1 values
-            uniform_data[:, i] = np.clip(
-                uniform_data[:, i], 1 / (2 * n_obs), 1 - 1 / (2 * n_obs)
-            )
+            uniform_data[:, i] = np.clip(uniform_data[:, i], 1 / (2 * n_obs), 1 - 1 / (2 * n_obs))
 
         if self.config.copula_type == CopulaType.GAUSSIAN:
             # Gaussian copula - estimate correlation matrix
@@ -288,9 +276,7 @@ class CopulaSyntheticGenerator:
                 "correlation_matrix": corr_matrix,
             }
         else:
-            raise ValueError(
-                f"Unsupported copula type: {self.config.copula_type.value}"
-            )
+            raise ValueError(f"Unsupported copula type: {self.config.copula_type.value}")
 
         logger.info("Copula fitting complete")
 
@@ -310,9 +296,7 @@ class CopulaSyntheticGenerator:
 
         return matrix_pd
 
-    def _generate_synthetic(
-        self, n_samples: int, variables: List[str], time_info: Dict
-    ) -> np.ndarray:
+    def _generate_synthetic(self, n_samples: int, variables: List[str], time_info: Dict) -> np.ndarray:
         """Generate synthetic samples from fitted copula"""
 
         logger.info(f"Generating {n_samples} synthetic samples")
@@ -323,9 +307,7 @@ class CopulaSyntheticGenerator:
             n_vars = len(variables)
 
             # Generate correlated normal variables
-            normal_samples = np.random.multivariate_normal(
-                mean=np.zeros(n_vars), cov=corr_matrix, size=n_samples
-            )
+            normal_samples = np.random.multivariate_normal(mean=np.zeros(n_vars), cov=corr_matrix, size=n_samples)
 
             # Transform to uniform
             uniform_samples = norm.cdf(normal_samples)
@@ -341,9 +323,7 @@ class CopulaSyntheticGenerator:
 
         else:
             # For any other types that might have been set (shouldn't happen with current logic)
-            logger.warning(
-                f"Generation for {self._fitted_copula['type']} not supported, using empirical bootstrap"
-            )
+            logger.warning(f"Generation for {self._fitted_copula['type']} not supported, using empirical bootstrap")
             # Fall back to empirical bootstrap
             if "uniform_data" in self._fitted_copula:
                 uniform_data = self._fitted_copula["uniform_data"]
@@ -368,9 +348,7 @@ class CopulaSyntheticGenerator:
             # Ensure values are within reasonable bounds
             data_min, data_max = marginal_info["data_range"]
             buffer = (data_max - data_min) * 0.1  # Allow 10% extension
-            synthetic_data[:, i] = np.clip(
-                synthetic_data[:, i], data_min - buffer, data_max + buffer
-            )
+            synthetic_data[:, i] = np.clip(synthetic_data[:, i], data_min - buffer, data_max + buffer)
 
         return synthetic_data
 
@@ -400,9 +378,7 @@ class CopulaSyntheticGenerator:
         data_vars = {}
         for i, var in enumerate(variables):
             # Get original attributes if available
-            attrs = (
-                original_ds[var].attrs.copy() if var in original_ds.data_vars else {}
-            )
+            attrs = original_ds[var].attrs.copy() if var in original_ds.data_vars else {}
 
             data_vars[var] = xr.DataArray(
                 synthetic_data[:, i],

@@ -9,9 +9,5 @@ class PowerDemand(Component):
         self.type = "consumption"
         self.medium = "electricity"
         self.profile = P_profile
-        self.flows['sink']['P_in'] = {
-            'type': 'electricity',
-            'value': cp.Variable(n, name='P_in'),
-            'profile': P_profile
-        }
-        self.constraints += [self.flows['sink']['P_in']['value'] == P_profile * P_max]
+        self.flows["sink"]["P_in"] = {"type": "electricity", "value": cp.Variable(n, name="P_in"), "profile": P_profile}
+        self.constraints += [self.flows["sink"]["P_in"]["value"] == P_profile * P_max]

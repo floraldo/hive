@@ -73,33 +73,33 @@ class AsyncDatabaseOperations:
             """,
         }
 
-    async def initialize(self):
+    async def initialize_async(self):
         """Initialize the database manager if not provided"""
         if not self.db_manager:
             self.db_manager = await create_async_database_manager_async()
 
-    async def _check_circuit_breaker(self):
+    async def _check_circuit_breaker_async(self):
         """Check if circuit breaker is open"""
         if self._circuit_breaker_open:
             raise Exception("Circuit breaker is open - too many database failures")
 
-    async def _handle_failure(self):
+    async def _handle_failure_async(self):
         """Handle database operation failure"""
         self._failure_count += 1
         if self._failure_count >= self._failure_threshold:
             self._circuit_breaker_open = True
             logger.error("Circuit breaker opened due to repeated failures")
             # Reset after 30 seconds
-            asyncio.create_task(self._reset_circuit_breaker())
+            asyncio.create_task(self._reset_circuit_breaker_async())
 
-    async def _reset_circuit_breaker(self):
+    async def _reset_circuit_breaker_async(self):
         """Reset circuit breaker after cooldown"""
         await asyncio.sleep(30)
         self._circuit_breaker_open = False
         self._failure_count = 0
         logger.info("Circuit breaker reset")
 
-    async def _handle_success(self):
+    async def _handle_success_async(self):
         """Handle successful operation"""
         self._failure_count = max(0, self._failure_count - 1)
 
@@ -118,7 +118,7 @@ class AsyncDatabaseOperations:
         Returns:
             Task ID of created task
         """
-        await self._check_circuit_breaker()
+        await self._check_circuit_breaker_async()
 
         try:
             task_id = str(uuid4())
@@ -139,49 +139,45 @@ class AsyncDatabaseOperations:
                 )
                 await conn.commit()
 
-            await self._handle_success()
+            await self._handle_success_async()
             logger.debug(f"Created task {task_id} asynchronously")
             return task_id
 
         except Exception as e:
-            await self._handle_failure()
+            await self._handle_failure_async()
             logger.error(f"Failed to create task: {e}")
             raise
 
     async def get_task_async(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Get task by ID asynchronously"""
-        await self._check_circuit_breaker()
+        await self._check_circuit_breaker_async()
 
         try:
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
-                async with conn.execute(
-                    self._prepared_statements["get_task"], (task_id,)
-                ) as cursor:
+                async with conn.execute(self._prepared_statements["get_task"], (task_id,)) as cursor:
                     row = await cursor.fetchone()
                     if row:
                         task = dict(row)
                         if "metadata" in task and task["metadata"]:
                             task["metadata"] = json.loads(task["metadata"])
-                        await self._handle_success()
+                        await self._handle_success_async()
                         return task
 
-            await self._handle_success()
+            await self._handle_success_async()
             return None
 
         except Exception as e:
-            await self._handle_failure()
+            await self._handle_failure_async()
             logger.error(f"Failed to get task {task_id}: {e}")
             raise
 
     async def get_queued_tasks_async(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get queued tasks asynchronously"""
-        await self._check_circuit_breaker()
+        await self._check_circuit_breaker_async()
 
         try:
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
-                async with conn.execute(
-                    self._prepared_statements["get_queued_tasks"], (limit,)
-                ) as cursor:
+                async with conn.execute(self._prepared_statements["get_queued_tasks"], (limit,)) as cursor:
                     rows = await cursor.fetchall()
                     tasks = []
                     for row in rows:
@@ -190,19 +186,17 @@ class AsyncDatabaseOperations:
                             task["metadata"] = json.loads(task["metadata"])
                         tasks.append(task)
 
-            await self._handle_success()
+            await self._handle_success_async()
             return tasks
 
         except Exception as e:
-            await self._handle_failure()
+            await self._handle_failure_async()
             logger.error(f"Failed to get queued tasks: {e}")
             raise
 
-    async def update_task_status_async(
-        self, task_id: str, status: str
-    ) -> bool:
+    async def update_task_status_async(self, task_id: str, status: str) -> bool:
         """Update task status asynchronously"""
-        await self._check_circuit_breaker()
+        await self._check_circuit_breaker_async()
 
         try:
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
@@ -212,24 +206,22 @@ class AsyncDatabaseOperations:
                 )
                 await conn.commit()
 
-            await self._handle_success()
+            await self._handle_success_async()
             logger.debug(f"Updated task {task_id} status to {status}")
             return True
 
         except Exception as e:
-            await self._handle_failure()
+            await self._handle_failure_async()
             logger.error(f"Failed to update task {task_id} status: {e}")
             raise
 
     async def get_tasks_by_status_async(self, status: str) -> List[Dict[str, Any]]:
         """Get all tasks with a specific status"""
-        await self._check_circuit_breaker()
+        await self._check_circuit_breaker_async()
 
         try:
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
-                async with conn.execute(
-                    self._prepared_statements["get_tasks_by_status"], (status,)
-                ) as cursor:
+                async with conn.execute(self._prepared_statements["get_tasks_by_status"], (status,)) as cursor:
                     rows = await cursor.fetchall()
                     tasks = []
                     for row in rows:
@@ -238,19 +230,17 @@ class AsyncDatabaseOperations:
                             task["metadata"] = json.loads(task["metadata"])
                         tasks.append(task)
 
-            await self._handle_success()
+            await self._handle_success_async()
             return tasks
 
         except Exception as e:
-            await self._handle_failure()
+            await self._handle_failure_async()
             logger.error(f"Failed to get tasks by status {status}: {e}")
             raise
 
     # Batch Operations for Performance
 
-    async def batch_create_tasks_async(
-        self, tasks: List[Dict[str, Any]]
-    ) -> List[str]:
+    async def batch_create_tasks_async(self, tasks: List[Dict[str, Any]]) -> List[str]:
         """
         Create multiple tasks in a single batch operation
 
@@ -260,7 +250,7 @@ class AsyncDatabaseOperations:
         Returns:
             List of created task IDs
         """
-        await self._check_circuit_breaker()
+        await self._check_circuit_breaker_async()
 
         try:
             task_ids = []
@@ -270,15 +260,17 @@ class AsyncDatabaseOperations:
                 task_id = str(uuid4())
                 task_ids.append(task_id)
                 metadata_json = json.dumps(task.get("metadata", {}))
-                batch_data.append((
-                    task_id,
-                    task["type"],
-                    task["description"],
-                    "queued",
-                    task.get("priority", 5),
-                    metadata_json,
-                    datetime.now(timezone.utc).isoformat(),
-                ))
+                batch_data.append(
+                    (
+                        task_id,
+                        task["type"],
+                        task["description"],
+                        "queued",
+                        task.get("priority", 5),
+                        metadata_json,
+                        datetime.now(timezone.utc).isoformat(),
+                    )
+                )
 
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
                 await conn.executemany(
@@ -287,18 +279,16 @@ class AsyncDatabaseOperations:
                 )
                 await conn.commit()
 
-            await self._handle_success()
+            await self._handle_success_async()
             logger.info(f"Batch created {len(task_ids)} tasks")
             return task_ids
 
         except Exception as e:
-            await self._handle_failure()
+            await self._handle_failure_async()
             logger.error(f"Failed to batch create tasks: {e}")
             raise
 
-    async def batch_update_status_async(
-        self, task_ids: List[str], status: str
-    ) -> bool:
+    async def batch_update_status_async(self, task_ids: List[str], status: str) -> bool:
         """
         Update status for multiple tasks in a single operation
 
@@ -309,7 +299,7 @@ class AsyncDatabaseOperations:
         Returns:
             True if successful
         """
-        await self._check_circuit_breaker()
+        await self._check_circuit_breaker_async()
 
         if not task_ids:
             return True
@@ -322,20 +312,18 @@ class AsyncDatabaseOperations:
                 await conn.execute(query, [status] + task_ids)
                 await conn.commit()
 
-            await self._handle_success()
+            await self._handle_success_async()
             logger.info(f"Batch updated {len(task_ids)} tasks to status {status}")
             return True
 
         except Exception as e:
-            await self._handle_failure()
+            await self._handle_failure_async()
             logger.error(f"Failed to batch update task statuses: {e}")
             raise
 
     # Concurrent Operations
 
-    async def get_tasks_concurrent_async(
-        self, task_ids: List[str]
-    ) -> List[Optional[Dict[str, Any]]]:
+    async def get_tasks_concurrent_async(self, task_ids: List[str]) -> List[Optional[Dict[str, Any]]]:
         """
         Get multiple tasks concurrently
 
@@ -351,10 +339,7 @@ class AsyncDatabaseOperations:
         )
 
         # Convert exceptions to None
-        return [
-            task if not isinstance(task, Exception) else None
-            for task in tasks
-        ]
+        return [task if not isinstance(task, Exception) else None for task in tasks]
 
     # Performance Statistics
 
@@ -370,7 +355,7 @@ class AsyncDatabaseOperations:
 
     # Cleanup
 
-    async def close(self):
+    async def close_async(self):
         """Close all database connections"""
         if self.db_manager:
             await self.db_manager.close_all_pools_async()
@@ -381,10 +366,10 @@ class AsyncDatabaseOperations:
 _async_db_ops: Optional[AsyncDatabaseOperations] = None
 
 
-async def get_async_db_operations() -> AsyncDatabaseOperations:
+async def get_async_db_operations_async() -> AsyncDatabaseOperations:
     """Get or create the global async database operations instance"""
     global _async_db_ops
     if _async_db_ops is None:
         _async_db_ops = AsyncDatabaseOperations()
-        await _async_db_ops.initialize()
+        await _async_db_ops.initialize_async()
     return _async_db_ops

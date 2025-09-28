@@ -22,22 +22,14 @@ from hive_utils.paths import DB_PATH
 TEST_TASK_IDS = {
     "high_quality": "9569c482-01bc-4a7e-b986-829bb7df02e2",
     "borderline": "d16d82b0-6bc0-4333-b6bb-2b398d9e8186",
-    "simple_app": "a25a1791-31e4-46df-8002-07b736578826"
+    "simple_app": "a25a1791-31e4-46df-8002-07b736578826",
 }
 
 # Expected final states
-EXPECTED_FINAL_STATES = {
-    "high_quality": "completed",
-    "borderline": "escalated",
-    "simple_app": "completed"
-}
+EXPECTED_FINAL_STATES = {"high_quality": "completed", "borderline": "escalated", "simple_app": "completed"}
 
 # Track state transitions
-transitions: Dict[str, List[Tuple[str, str]]] = {
-    "high_quality": [],
-    "borderline": [],
-    "simple_app": []
-}
+transitions: Dict[str, List[Tuple[str, str]]] = {"high_quality": [], "borderline": [], "simple_app": []}
 
 
 def get_task_states() -> Dict[str, Dict]:
@@ -48,10 +40,13 @@ def get_task_states() -> Dict[str, Dict]:
 
     states = {}
     for name, task_id in TEST_TASK_IDS.items():
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, title, status, current_phase, assignee
             FROM tasks WHERE id = ?
-        """, (task_id,))
+        """,
+            (task_id,),
+        )
         row = cursor.fetchone()
         if row:
             states[name] = dict(row)

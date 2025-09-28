@@ -55,7 +55,7 @@ class AnalyserWorker:
         self.is_running = False
         self._subscription_ids: List[str] = []
 
-    async def start(self):
+    async def start_async(self):
         """Start the worker and subscribe to relevant events."""
         if self.is_running:
             logger.warning("Analyser worker is already running")
@@ -79,7 +79,7 @@ class AnalyserWorker:
         self.is_running = True
         logger.info("Analyser Worker started successfully")
 
-    async def stop(self):
+    async def stop_async(self):
         """Stop the worker and unsubscribe from events."""
         if not self.is_running:
             return
@@ -94,16 +94,14 @@ class AnalyserWorker:
         self.is_running = False
         logger.info("Analyser Worker stopped")
 
-    async def _handle_study_completed(self, event: Event):
+    async def _handle_study_completed_async(self, event: Event):
         """Handle study completion events by triggering analysis.
 
         Args:
             event: Study completion event
         """
         try:
-            logger.info(
-                f"Received study completion event: {event.payload.get('study_id')}"
-            )
+            logger.info(f"Received study completion event: {event.payload.get('study_id')}")
 
             # Extract study information
             study_id = event.payload.get("study_id")
@@ -118,7 +116,7 @@ class AnalyserWorker:
             strategies = self._get_strategies_for_study_type(study_type)
 
             # Trigger analysis
-            await self._execute_analysis(
+            await self._execute_analysis_async(
                 analysis_id=f"study_{study_id}_{uuid.uuid4().hex[:8]}",
                 results_path=results_path,
                 strategies=strategies,
@@ -132,7 +130,7 @@ class AnalyserWorker:
         except Exception as e:
             logger.error(f"Error handling study completion event: {e}")
 
-    async def _handle_simulation_completed(self, event: Event):
+    async def _handle_simulation_completed_async(self, event: Event):
         """Handle individual simulation completion events.
 
         Args:
@@ -143,15 +141,13 @@ class AnalyserWorker:
             results_path = event.payload.get("results_path")
 
             if not results_path:
-                logger.warning(
-                    f"No results path in simulation completion event: {simulation_id}"
-                )
+                logger.warning(f"No results path in simulation completion event: {simulation_id}")
                 return
 
             # For individual simulations, run basic analysis
             strategies = ["technical_kpi"]
 
-            await self._execute_analysis(
+            await self._execute_analysis_async(
                 analysis_id=f"sim_{simulation_id}_{uuid.uuid4().hex[:8]}",
                 results_path=results_path,
                 strategies=strategies,
@@ -164,7 +160,7 @@ class AnalyserWorker:
         except Exception as e:
             logger.error(f"Error handling simulation completion event: {e}")
 
-    async def _execute_analysis(
+    async def _execute_analysis_async(
         self,
         analysis_id: str,
         results_path: str,
@@ -194,9 +190,7 @@ class AnalyserWorker:
         await self.event_bus.publish_analysis_event(analysis_started_event)
 
         try:
-            logger.info(
-                f"Starting analysis {analysis_id} with strategies: {strategies}"
-            )
+            logger.info(f"Starting analysis {analysis_id} with strategies: {strategies}")
 
             # Execute analysis using AnalyserService
             analysis_results = await asyncio.get_event_loop().run_in_executor(
@@ -226,9 +220,7 @@ class AnalyserWorker:
             )
             await self.event_bus.publish_analysis_event(analysis_completed_event)
 
-            logger.info(
-                f"Analysis {analysis_id} completed successfully in {execution_time:.2f}s"
-            )
+            logger.info(f"Analysis {analysis_id} completed successfully in {execution_time:.2f}s")
 
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
@@ -271,9 +263,7 @@ class AnalyserWorker:
             # Default strategies for unknown or generic studies
             return self.auto_analysis_strategies
 
-    def _generate_analysis_output_path(
-        self, results_path: str, analysis_id: str
-    ) -> str:
+    def _generate_analysis_output_path(self, results_path: str, analysis_id: str) -> str:
         """Generate output path for analysis results.
 
         Args:
@@ -290,7 +280,7 @@ class AnalyserWorker:
         output_filename = f"{results_file.stem}_analysis_{analysis_id}.json"
         return str(output_dir / output_filename)
 
-    async def process_analysis_request(
+    async def process_analysis_request_async(
         self,
         results_path: str,
         strategies: Optional[List[str]] = None,
@@ -312,7 +302,7 @@ class AnalyserWorker:
         analysis_id = f"manual_{uuid.uuid4().hex[:8]}"
         strategies = strategies or self.auto_analysis_strategies
 
-        await self._execute_analysis(
+        await self._execute_analysis_async(
             analysis_id=analysis_id,
             results_path=results_path,
             strategies=strategies,
@@ -342,9 +332,7 @@ class AnalyserWorkerPool:
     Provides load balancing and resilience for analysis processing.
     """
 
-    def __init__(
-        self, pool_size: int = 3, event_bus: Optional[EcoSystemiserEventBus] = None
-    ):
+    def __init__(self, pool_size: int = 3, event_bus: Optional[EcoSystemiserEventBus] = None):
         """Initialize worker pool.
 
         Args:
@@ -356,7 +344,7 @@ class AnalyserWorkerPool:
         self.workers: List[AnalyserWorker] = []
         self.current_worker_index = 0
 
-    async def start(self):
+    async def start_async(self):
         """Start all workers in the pool."""
         logger.info(f"Starting Analyser Worker Pool with {self.pool_size} workers")
 
@@ -365,17 +353,17 @@ class AnalyserWorkerPool:
                 event_bus=self.event_bus,
                 auto_analysis_strategies=["technical_kpi", "economic", "sensitivity"],
             )
-            await worker.start()
+            await worker.start_async()
             self.workers.append(worker)
 
         logger.info("Analyser Worker Pool started successfully")
 
-    async def stop(self):
+    async def stop_async(self):
         """Stop all workers in the pool."""
         logger.info("Stopping Analyser Worker Pool")
 
         for worker in self.workers:
-            await worker.stop()
+            await worker.stop_async()
 
         self.workers.clear()
         logger.info("Analyser Worker Pool stopped")
@@ -393,7 +381,7 @@ class AnalyserWorkerPool:
         self.current_worker_index = (self.current_worker_index + 1) % len(self.workers)
         return worker
 
-    async def process_analysis_request(
+    async def process_analysis_request_async(
         self,
         results_path: str,
         strategies: Optional[List[str]] = None,
@@ -410,7 +398,7 @@ class AnalyserWorkerPool:
             Analysis ID for tracking
         """
         worker = self.get_next_worker()
-        return await worker.process_analysis_request(results_path, strategies, metadata)
+        return await worker.process_analysis_request_async(results_path, strategies, metadata)
 
     def get_pool_status(self) -> Dict[str, Any]:
         """Get status of all workers in pool.

@@ -90,13 +90,9 @@ cache_hits_total = Counter(
     registry=registry,
 )
 
-cache_misses_total = Counter(
-    "climate_cache_misses_total", "Total cache misses", ["level"], registry=registry
-)
+cache_misses_total = Counter("climate_cache_misses_total", "Total cache misses", ["level"], registry=registry)
 
-cache_hit_ratio = Gauge(
-    "climate_cache_hit_ratio", "Cache hit ratio", ["level"], registry=registry
-)
+cache_hit_ratio = Gauge("climate_cache_hit_ratio", "Cache hit ratio", ["level"], registry=registry)
 
 # Rate limiting metrics
 rate_limit_throttles_total = Counter(
@@ -151,9 +147,7 @@ data_gaps_total = Counter(
 )
 
 # System metrics
-memory_usage_bytes = Gauge(
-    "climate_memory_usage_bytes", "Memory usage in bytes", registry=registry
-)
+memory_usage_bytes = Gauge("climate_memory_usage_bytes", "Memory usage in bytes", registry=registry)
 
 active_connections = Gauge(
     "climate_active_connections",
@@ -243,9 +237,7 @@ class ObservabilityManager:
         """Auto-instrument libraries"""
         try:
             # Instrument FastAPI
-            FastAPIInstrumentor.instrument(
-                tracer_provider=self.tracer_provider, excluded_urls="/metrics,/health"
-            )
+            FastAPIInstrumentor.instrument(tracer_provider=self.tracer_provider, excluded_urls="/metrics,/health")
 
             # Instrument HTTPX
             HTTPXClientInstrumentor.instrument(tracer_provider=self.tracer_provider)
@@ -295,7 +287,7 @@ def track_time(metric: Histogram, labels: Optional[Dict[str, str]] = None):
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def async_wrapper(*args, **kwargs):
+        async def async_wrapper_async(*args, **kwargs):
             start = time.time()
             try:
                 result = await func(*args, **kwargs)
@@ -308,7 +300,7 @@ def track_time(metric: Histogram, labels: Optional[Dict[str, str]] = None):
                     metric.observe(duration)
 
         @wraps(func)
-        def sync_wrapper(*args, **kwargs):
+        def sync_wrapper_async(*args, **kwargs):
             start = time.time()
             try:
                 result = func(*args, **kwargs)
@@ -341,7 +333,7 @@ def count_calls(metric: Counter, labels: Optional[Dict[str, str]] = None):
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def async_wrapper(*args, **kwargs):
+        async def async_wrapper_async(*args, **kwargs):
             if labels:
                 metric.labels(**labels).inc()
             else:
@@ -349,7 +341,7 @@ def count_calls(metric: Counter, labels: Optional[Dict[str, str]] = None):
             return await func(*args, **kwargs)
 
         @wraps(func)
-        def sync_wrapper(*args, **kwargs):
+        def sync_wrapper_async(*args, **kwargs):
             if labels:
                 metric.labels(**labels).inc()
             else:
@@ -407,27 +399,21 @@ def track_adapter_request(adapter_name: str):
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            with trace_span(
-                f"adapter.{adapter_name}.request", attributes={"adapter": adapter_name}
-            ) as span:
+        async def wrapper_async(*args, **kwargs):
+            with trace_span(f"adapter.{adapter_name}.request", attributes={"adapter": adapter_name}) as span:
                 start = time.time()
 
                 try:
                     result = await func(*args, **kwargs)
 
                     # Track success
-                    adapter_requests_total.labels(
-                        adapter=adapter_name, status="success"
-                    ).inc()
+                    adapter_requests_total.labels(adapter=adapter_name, status="success").inc()
 
                     return result
 
                 except Exception as e:
                     # Track failure
-                    adapter_requests_total.labels(
-                        adapter=adapter_name, status="failure"
-                    ).inc()
+                    adapter_requests_total.labels(adapter=adapter_name, status="failure").inc()
 
                     if span:
                         span.set_status(Status(StatusCode.ERROR, str(e)))
@@ -437,9 +423,7 @@ def track_adapter_request(adapter_name: str):
                 finally:
                     # Track latency
                     duration = time.time() - start
-                    adapter_latency_seconds.labels(
-                        adapter=adapter_name, operation="fetch"
-                    ).observe(duration)
+                    adapter_latency_seconds.labels(adapter=adapter_name, operation="fetch").observe(duration)
 
         return wrapper
 
@@ -456,7 +440,7 @@ def track_cache_operation(cache_level: str):
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper_async(*args, **kwargs):
             result = await func(*args, **kwargs)
 
             # Track hit/miss based on result

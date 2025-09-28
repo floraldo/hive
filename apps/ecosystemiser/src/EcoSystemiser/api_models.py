@@ -253,9 +253,7 @@ class APIConfig(BaseModel):
     description: str = Field(default="Sustainable Energy System Analysis Platform")
     version: str = Field(default="3.0.0")
     cors_origins: List[str] = Field(default_factory=lambda: ["*"])
-    cors_methods: List[str] = Field(
-        default_factory=lambda: ["GET", "POST", "PUT", "DELETE"]
-    )
+    cors_methods: List[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE"])
     cors_headers: List[str] = Field(default_factory=lambda: ["*"])
     rate_limit: Optional[str] = Field(default="100/hour")
 

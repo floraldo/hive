@@ -267,9 +267,7 @@ class HiveConfig(BaseModel):
 
         # Check pool size consistency
         if self.database.connection_pool_min > self.database.connection_pool_max:
-            errors.append(
-                "Database min connections cannot be greater than max connections"
-            )
+            errors.append("Database min connections cannot be greater than max connections")
 
         # Check threshold consistency
         if self.ai.auto_approval_threshold <= self.ai.auto_rejection_threshold:
@@ -277,9 +275,7 @@ class HiveConfig(BaseModel):
 
         # Check file paths
         if self.database.path and not self.database.path.parent.exists():
-            errors.append(
-                f"Database directory does not exist: {self.database.path.parent}"
-            )
+            errors.append(f"Database directory does not exist: {self.database.path.parent}")
 
         # Check worker configuration
         if self.orchestration.max_parallel_workers < 1:
@@ -289,9 +285,7 @@ class HiveConfig(BaseModel):
 
 
 # Configuration loading utilities for dependency injection
-def create_config_from_sources(
-    config_path: Optional[Path] = None, use_environment: bool = True
-) -> HiveConfig:
+def create_config_from_sources(config_path: Optional[Path] = None, use_environment: bool = True) -> HiveConfig:
     """
     Create a Hive configuration instance from various sources
 

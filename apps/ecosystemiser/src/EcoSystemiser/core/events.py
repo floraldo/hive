@@ -64,9 +64,7 @@ class EcoSystemiserEvent(BaseEvent):
             optimization_id: Associated optimization ID
             timestep: Simulation timestep if applicable
         """
-        super().__init__(
-            event_type=event_type, source=source, payload=payload or {}, **kwargs
-        )
+        super().__init__(event_type=event_type, source=source, payload=payload or {}, **kwargs)
 
         # EcoSystemiser-specific fields
         self.simulation_id = simulation_id
@@ -108,9 +106,7 @@ class SimulationEvent(EcoSystemiserEvent):
         )
 
     @classmethod
-    def started(
-        cls, simulation_id: str, config: Dict[str, Any], **kwargs
-    ) -> "SimulationEvent":
+    def started(cls, simulation_id: str, config: Dict[str, Any], **kwargs) -> "SimulationEvent":
         """Create simulation started event"""
         return cls(
             event_type="started",
@@ -183,9 +179,7 @@ class SimulationEvent(EcoSystemiserEvent):
                 "simulation_id": simulation_id,
                 "timestep": timestep,
                 "total_timesteps": total_timesteps,
-                "progress_percent": (
-                    (timestep / total_timesteps) * 100 if total_timesteps > 0 else 0
-                ),
+                "progress_percent": ((timestep / total_timesteps) * 100 if total_timesteps > 0 else 0),
                 "status_message": status_message,
             },
             **kwargs,
@@ -208,9 +202,7 @@ class AnalysisEvent(EcoSystemiserEvent):
         )
 
     @classmethod
-    def started(
-        cls, analysis_id: str, analysis_type: str, parameters: Dict[str, Any], **kwargs
-    ) -> "AnalysisEvent":
+    def started(cls, analysis_id: str, analysis_type: str, parameters: Dict[str, Any], **kwargs) -> "AnalysisEvent":
         """Create analysis started event"""
         return cls(
             event_type="started",
@@ -384,9 +376,7 @@ class OptimizationEvent(EcoSystemiserEvent):
         )
 
     @classmethod
-    def started(
-        cls, optimization_id: str, solver_type: str, objectives: List[str], **kwargs
-    ) -> "OptimizationEvent":
+    def started(cls, optimization_id: str, solver_type: str, objectives: List[str], **kwargs) -> "OptimizationEvent":
         """Create optimization started event"""
         return cls(
             event_type="started",
@@ -503,9 +493,7 @@ class ComponentEvent(EcoSystemiserEvent):
         )
 
     @classmethod
-    def configured(
-        cls, component_name: str, configuration: Dict[str, Any], **kwargs
-    ) -> "ComponentEvent":
+    def configured(cls, component_name: str, configuration: Dict[str, Any], **kwargs) -> "ComponentEvent":
         """Create component configured event"""
         return cls(
             event_type="configured",
@@ -556,9 +544,7 @@ class ProfileEvent(EcoSystemiserEvent):
         )
 
     @classmethod
-    def load_started(
-        cls, profile_type: str, source: str, parameters: Dict[str, Any], **kwargs
-    ) -> "ProfileEvent":
+    def load_started(cls, profile_type: str, source: str, parameters: Dict[str, Any], **kwargs) -> "ProfileEvent":
         """Create profile load started event"""
         return cls(
             event_type="load_started",

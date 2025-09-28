@@ -23,11 +23,7 @@ class PipelineMonitorInterface(ABC):
 
     @abstractmethod
     def record_stage_execution(
-        self,
-        stage_name: str,
-        duration_ms: float,
-        success: bool,
-        error: Optional[str] = None
+        self, stage_name: str, duration_ms: float, success: bool, error: Optional[str] = None
     ) -> None:
         """Record execution of a pipeline stage"""
         pass
@@ -47,32 +43,17 @@ class MetricsCollectorInterface(ABC):
     """Abstract interface for metrics collection"""
 
     @abstractmethod
-    def record_metric(
-        self,
-        metric_name: str,
-        value: float,
-        tags: Optional[Dict[str, str]] = None
-    ) -> None:
+    def record_metric(self, metric_name: str, value: float, tags: Optional[Dict[str, str]] = None) -> None:
         """Record a metric value"""
         pass
 
     @abstractmethod
-    def increment_counter(
-        self,
-        counter_name: str,
-        value: int = 1,
-        tags: Optional[Dict[str, str]] = None
-    ) -> None:
+    def increment_counter(self, counter_name: str, value: int = 1, tags: Optional[Dict[str, str]] = None) -> None:
         """Increment a counter metric"""
         pass
 
     @abstractmethod
-    def record_histogram(
-        self,
-        histogram_name: str,
-        value: float,
-        tags: Optional[Dict[str, str]] = None
-    ) -> None:
+    def record_histogram(self, histogram_name: str, value: float, tags: Optional[Dict[str, str]] = None) -> None:
         """Record a histogram value"""
         pass
 

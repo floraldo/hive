@@ -12,6 +12,7 @@ sys.path.insert(0, "packages/hive-logging/src")
 
 DB_PATH = Path("apps/hive-orchestrator/hive/db/hive-internal.db")
 
+
 def init_db():
     """Initialize the database with required tables"""
 
@@ -23,7 +24,8 @@ def init_db():
     cursor = conn.cursor()
 
     # Create tasks table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS tasks (
             task_id TEXT PRIMARY KEY,
             type TEXT NOT NULL,
@@ -34,10 +36,12 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """)
+    """
+    )
 
     # Create runs table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS runs (
             run_id TEXT PRIMARY KEY,
             task_id TEXT NOT NULL,
@@ -50,10 +54,12 @@ def init_db():
             error TEXT,
             FOREIGN KEY (task_id) REFERENCES tasks(task_id)
         )
-    """)
+    """
+    )
 
     # Create workers table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS workers (
             worker_id TEXT PRIMARY KEY,
             role TEXT NOT NULL,
@@ -61,12 +67,14 @@ def init_db():
             last_heartbeat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             metadata TEXT
         )
-    """)
+    """
+    )
 
     conn.commit()
     conn.close()
 
     print(f"Database initialized at: {DB_PATH}")
+
 
 if __name__ == "__main__":
     init_db()

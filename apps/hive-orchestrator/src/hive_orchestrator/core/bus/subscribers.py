@@ -37,14 +37,10 @@ class EventSubscriber:
     def handle_event(self, event: Event):
         """Handle an incoming event"""
         try:
-            logger.debug(
-                f"Subscriber {self.subscriber_name} handling event {event.event_id}"
-            )
+            logger.debug(f"Subscriber {self.subscriber_name} handling event {event.event_id}")
             self.callback(event)
         except Exception as e:
-            logger.error(
-                f"Subscriber {self.subscriber_name} failed to handle event {event.event_id}: {e}"
-            )
+            logger.error(f"Subscriber {self.subscriber_name} failed to handle event {event.event_id}: {e}")
             raise
 
 
@@ -64,12 +60,10 @@ class AsyncEventSubscriber:
         if not self.created_at:
             self.created_at = datetime.now(timezone.utc)
 
-    async def handle_event(self, event: Event):
+    async def handle_event_async(self, event: Event):
         """Handle an incoming event asynchronously"""
         try:
-            logger.debug(
-                f"Async subscriber {self.subscriber_name} handling event {event.event_id}"
-            )
+            logger.debug(f"Async subscriber {self.subscriber_name} handling event {event.event_id}")
             result = self.callback(event)
 
             # Handle both sync and async callbacks
@@ -77,9 +71,7 @@ class AsyncEventSubscriber:
                 await result
 
         except Exception as e:
-            logger.error(
-                f"Async subscriber {self.subscriber_name} failed to handle event {event.event_id}: {e}"
-            )
+            logger.error(f"Async subscriber {self.subscriber_name} failed to handle event {event.event_id}: {e}")
             raise
 
 
@@ -161,18 +153,14 @@ def create_subscriber(
     pattern: str, callback: Callable[[Event], None], subscriber_name: str = "anonymous"
 ) -> EventSubscriber:
     """Create a synchronous event subscriber"""
-    return EventSubscriber(
-        pattern=pattern, callback=callback, subscriber_name=subscriber_name
-    )
+    return EventSubscriber(pattern=pattern, callback=callback, subscriber_name=subscriber_name)
 
 
 def create_async_subscriber(
     pattern: str, callback: Callable[[Event], Any], subscriber_name: str = "anonymous"
 ) -> AsyncEventSubscriber:
     """Create an asynchronous event subscriber"""
-    return AsyncEventSubscriber(
-        pattern=pattern, callback=callback, subscriber_name=subscriber_name
-    )
+    return AsyncEventSubscriber(pattern=pattern, callback=callback, subscriber_name=subscriber_name)
 
 
 # Decorator for easy subscription

@@ -51,6 +51,9 @@ exclude = [ "archive/", "legacy/", "tests/",]
 python = "^3.11"
 python-dotenv = "^1.0.0"
 cryptography = "^41.0.0"
+aiofiles = "^23.2.1"
+watchdog = "^3.0.0"
+toml = "^0.10.2"
 
 [tool.pytest.ini_options]
 testpaths = [ "tests",]

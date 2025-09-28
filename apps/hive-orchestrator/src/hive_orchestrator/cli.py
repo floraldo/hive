@@ -29,9 +29,7 @@ def cli():
 
 
 @cli.command()
-@click.option(
-    "--config", "-c", type=click.Path(exists=True), help="Path to configuration file"
-)
+@click.option("--config", "-c", type=click.Path(exists=True), help="Path to configuration file")
 @click.option("--debug", is_flag=True, help="Enable debug logging")
 def start_queen(config: Optional[str], debug: bool):
     """Start the Queen orchestrator."""
@@ -123,9 +121,7 @@ def status():
         result = cursor.fetchone()
         queued = result[0] if result else 0
 
-        cursor.execute(
-            "SELECT COUNT(*) FROM tasks WHERE status IN ('assigned', 'in_progress')"
-        )
+        cursor.execute("SELECT COUNT(*) FROM tasks WHERE status IN ('assigned', 'in_progress')")
         result = cursor.fetchone()
         running = result[0] if result else 0
 
@@ -231,19 +227,11 @@ def review_escalated(task_id: str):
             metrics_table.add_column("Score", style="white")
 
             metrics = review.get("metrics", {})
-            metrics_table.add_row(
-                "Code Quality", f"{metrics.get('code_quality', 0):.0f}"
-            )
-            metrics_table.add_row(
-                "Test Coverage", f"{metrics.get('test_coverage', 0):.0f}"
-            )
-            metrics_table.add_row(
-                "Documentation", f"{metrics.get('documentation', 0):.0f}"
-            )
+            metrics_table.add_row("Code Quality", f"{metrics.get('code_quality', 0):.0f}")
+            metrics_table.add_row("Test Coverage", f"{metrics.get('test_coverage', 0):.0f}")
+            metrics_table.add_row("Documentation", f"{metrics.get('documentation', 0):.0f}")
             metrics_table.add_row("Security", f"{metrics.get('security', 0):.0f}")
-            metrics_table.add_row(
-                "Architecture", f"{metrics.get('architecture', 0):.0f}"
-            )
+            metrics_table.add_row("Architecture", f"{metrics.get('architecture', 0):.0f}")
             metrics_table.add_row(
                 "[bold]Overall[/bold]",
                 f"[bold]{review.get('overall_score', 0):.0f}[/bold]",
@@ -252,15 +240,9 @@ def review_escalated(task_id: str):
             console.logger.info(metrics_table)
 
             # AI reasoning
-            console.logger.info(
-                "\n[bold]AI Decision:[/bold]", review.get("decision", "unknown")
-            )
-            console.logger.info(
-                "[bold]Confidence:[/bold]", f"{review.get('confidence', 0):.0%}"
-            )
-            console.logger.info(
-                "\n[bold]Summary:[/bold]", review.get("summary", "No summary available")
-            )
+            console.logger.info("\n[bold]AI Decision:[/bold]", review.get("decision", "unknown"))
+            console.logger.info("[bold]Confidence:[/bold]", f"{review.get('confidence', 0):.0%}")
+            console.logger.info("\n[bold]Summary:[/bold]", review.get("summary", "No summary available"))
 
             # Issues found
             if review.get("issues"):
@@ -283,9 +265,7 @@ def review_escalated(task_id: str):
         console.logger.info("\n" + "=" * 60 + "\n")
         console.logger.info("[bold cyan]HUMAN REVIEW DECISION REQUIRED[/bold cyan]")
         console.logger.info("\nAvailable actions:")
-        console.logger.info(
-            "  [green]approve[/green]  - Override AI concerns and approve"
-        )
+        console.logger.info("  [green]approve[/green]  - Override AI concerns and approve")
         console.logger.info("  [red]reject[/red]   - Confirm rejection")
         console.logger.info("  [yellow]rework[/yellow]   - Send back for improvements")
         console.logger.info("  [cyan]defer[/cyan]    - Need more information")
@@ -336,9 +316,7 @@ def review_escalated(task_id: str):
 
         conn.commit()
 
-        console.logger.info(
-            f"\n[green]✓[/green] Task {task_id} updated to status: [bold]{new_status}[/bold]"
-        )
+        console.logger.info(f"\n[green]✓[/green] Task {task_id} updated to status: [bold]{new_status}[/bold]")
 
         if notes:
             console.logger.info(f"[dim]Notes recorded: {notes}[/dim]")
@@ -422,9 +400,7 @@ def list_escalated():
                 elif review.get("confidence", 1) < 0.5:
                     reason = "Low AI confidence"
                 else:
-                    reason = result_data.get(
-                        "escalation_reason", "Complex decision required"
-                    )
+                    reason = result_data.get("escalation_reason", "Complex decision required")
             else:
                 reason = result_data.get("reason", "No AI analysis available")
 
@@ -446,9 +422,7 @@ def list_escalated():
             )
 
         console.logger.info(table)
-        console.logger.info(
-            f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]"
-        )
+        console.logger.info(f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]")
 
     except ImportError as e:
         click.echo(f"Required module not available: {e}", err=True)
@@ -470,9 +444,7 @@ def queue_task(task_description: str, role: Optional[str], priority: int):
         if not task_description.strip():
             raise click.ClickException("Task description cannot be empty")
         if len(task_description) > 5000:
-            raise click.ClickException(
-                "Task description too long (max 5000 characters)"
-            )
+            raise click.ClickException("Task description too long (max 5000 characters)")
         if priority < 1 or priority > 10:
             raise click.ClickException("Priority must be between 1 and 10")
         if role and len(role) > 50:

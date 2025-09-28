@@ -368,9 +368,7 @@ try:
                 }
             }
         }
-        plots["uncertainty_distribution"] = (
-            plot_factory.create_uncertainty_distribution_plot(mc_result)
-        )
+        plots["uncertainty_distribution"] = plot_factory.create_uncertainty_distribution_plot(mc_result)
 
         # Mock risk analysis
         plots["risk_analysis"] = plot_factory.create_risk_analysis_plot(mc_result)
@@ -402,9 +400,7 @@ try:
         logger.info(f"Generated MC uncertainty report: {mc_report_path}")
 
         # Generate comparison report
-        comparison_html = report_generator.generate_study_comparison_report(
-            [ga_result, mc_result], plots
-        )
+        comparison_html = report_generator.generate_study_comparison_report([ga_result, mc_result], plots)
         comparison_report_path = Path("reports/demo_study_comparison.html")
         report_generator.save_report(comparison_html, comparison_report_path)
         logger.info(f"Generated study comparison report: {comparison_report_path}")
@@ -445,9 +441,7 @@ try:
             logger.info("")
             logger.info("Advanced Capabilities Demonstrated:")
             logger.info("  * Genetic Algorithm Design Optimization")
-            logger.info(
-                "    - Multi-objective optimization (cost vs. renewable fraction)"
-            )
+            logger.info("    - Multi-objective optimization (cost vs. renewable fraction)")
             logger.info("    - Pareto frontier analysis")
             logger.info("    - Design space exploration with 600 evaluations")
             logger.info("  * Monte Carlo Uncertainty Analysis")

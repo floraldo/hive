@@ -40,9 +40,7 @@ try:
             logger.info(f"EcoSystemiser-specific keys: {len(eco_keys)}")
 
             # No legacy compatibility test needed - we've eliminated the wrappers
-            logger.info(
-                "SUCCESS: Using direct hive-config imports (no deprecated wrappers)"
-            )
+            logger.info("SUCCESS: Using direct hive-config imports (no deprecated wrappers)")
 
             elapsed = time.time() - start_time
             logger.info(f"Config test completed in {elapsed:.3f}s")
@@ -106,9 +104,7 @@ try:
             test_logger.info("Testing direct hive_logging import")
 
             # No legacy compatibility test needed - we've eliminated the wrappers
-            logger.info(
-                "SUCCESS: Using direct hive_logging imports (no deprecated wrappers)"
-            )
+            logger.info("SUCCESS: Using direct hive_logging imports (no deprecated wrappers)")
 
             elapsed = time.time() - start_time
             logger.info(f"Logging test completed in {elapsed:.3f}s")

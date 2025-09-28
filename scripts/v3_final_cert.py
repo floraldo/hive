@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-core-db
 sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-claude-bridge" / "src"))
 sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-errors" / "src"))
 
+
 class V3CertificationSuite:
     """V3.0 Platform Certification Test Suite"""
 
@@ -39,30 +40,27 @@ class V3CertificationSuite:
                 self.test_results[test_name] = {
                     "status": "PASSED",
                     "duration": duration,
-                    "message": "Test completed successfully"
+                    "message": "Test completed successfully",
                 }
                 self.log(f"[PASS] {test_name} PASSED ({duration:.2f}s)", "SUCCESS")
             else:
                 self.test_results[test_name] = {
                     "status": "FAILED",
                     "duration": duration,
-                    "message": "Test returned False"
+                    "message": "Test returned False",
                 }
                 self.log(f"[FAIL] {test_name} FAILED ({duration:.2f}s)", "ERROR")
 
         except Exception as e:
             duration = time.time() - start_time
-            self.test_results[test_name] = {
-                "status": "ERROR",
-                "duration": duration,
-                "message": str(e)
-            }
+            self.test_results[test_name] = {"status": "ERROR", "duration": duration, "message": str(e)}
             self.log(f"[ERROR] {test_name} ERROR: {e} ({duration:.2f}s)", "ERROR")
 
     def test_1_configuration_centralization(self) -> bool:
         """Test centralized configuration system"""
         try:
             from hive_db_utils.config import get_config
+
             config = get_config()
 
             # Test basic configuration access
@@ -222,9 +220,9 @@ class V3CertificationSuite:
 
     def print_final_report(self):
         """Print comprehensive test report"""
-        self.log("\n" + "="*70)
+        self.log("\n" + "=" * 70)
         self.log("V3.0 PLATFORM CERTIFICATION TEST REPORT")
-        self.log("="*70)
+        self.log("=" * 70)
 
         total_tests = len(self.test_results)
         passed_tests = len([r for r in self.test_results.values() if r["status"] == "PASSED"])
@@ -310,6 +308,7 @@ class V3CertificationSuite:
 
         return success_rate >= 85
 
+
 def main():
     """Main test runner"""
     test_suite = V3CertificationSuite()
@@ -317,6 +316,7 @@ def main():
 
     # Exit with appropriate code
     return 0 if success else 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -25,14 +25,10 @@ class ReviewMetrics(BaseModel):
 class ClaudeReviewResponse(BaseModel):
     """Structured response contract for Claude reviews"""
 
-    decision: Literal["approve", "reject", "rework", "escalate"] = Field(
-        description="Review decision"
-    )
+    decision: Literal["approve", "reject", "rework", "escalate"] = Field(description="Review decision")
     summary: str = Field(max_length=500, description="Brief summary of the review")
     issues: List[str] = Field(default_factory=list, description="List of issues found")
-    suggestions: List[str] = Field(
-        default_factory=list, description="Improvement suggestions"
-    )
+    suggestions: List[str] = Field(default_factory=list, description="Improvement suggestions")
     quality_score: int = Field(ge=0, le=100, description="Overall quality score")
     metrics: ReviewMetrics = Field(description="Detailed quality metrics")
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence in the review")
@@ -44,9 +40,7 @@ class ReviewResponseValidator(PydanticValidator):
     def __init__(self):
         super().__init__(ClaudeReviewResponse)
 
-    def create_fallback(
-        self, error_message: str, context: Dict[str, Any]
-    ) -> ClaudeReviewResponse:
+    def create_fallback(self, error_message: str, context: Dict[str, Any]) -> ClaudeReviewResponse:
         """Create a fallback review response"""
         task_description = context.get("task_description", "Unknown task")
 
@@ -56,9 +50,7 @@ class ReviewResponseValidator(PydanticValidator):
             issues=[error_message],
             suggestions=["Manual review required"],
             quality_score=0,
-            metrics=ReviewMetrics(
-                code_quality=0, security=0, testing=0, architecture=0, documentation=0
-            ),
+            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
             confidence=0.0,
         )
 
@@ -93,9 +85,7 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
         Returns:
             Validated review response or escalation on failure
         """
-        prompt = self._create_review_prompt(
-            task_description, code_files, test_results, objective_analysis, transcript
-        )
+        prompt = self._create_review_prompt(task_description, code_files, test_results, objective_analysis, transcript)
 
         context = {
             "task_id": task_id,
@@ -177,10 +167,7 @@ Respond with ONLY the JSON object, no other text."""
         text_lower = text.lower()
 
         # Determine decision from keywords
-        if (
-            "approve" in text_lower
-            and "not" not in text_lower[: text_lower.find("approve")]
-        ):
+        if "approve" in text_lower and "not" not in text_lower[: text_lower.find("approve")]:
             decision = "approve"
         elif "reject" in text_lower:
             decision = "reject"
@@ -242,9 +229,7 @@ Respond with ONLY the JSON object, no other text."""
         )
         return json.dumps(mock_review.dict())
 
-    def _create_fallback_response(
-        self, error_message: str, context: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _create_fallback_response(self, error_message: str, context: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """Create a fallback response when Claude is unavailable"""
         fallback = self.validator.create_fallback(error_message, context or {})
         result = fallback.dict()

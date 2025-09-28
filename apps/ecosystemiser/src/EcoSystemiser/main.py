@@ -44,7 +44,7 @@ logger = get_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan_async(app: FastAPI):
     """Application lifespan manager"""
     logger.info("Starting EcoSystemiser Platform")
     # Initialize observability
@@ -116,7 +116,7 @@ app.add_middleware(
 
 # Root router
 @app.get("/", response_model=PlatformInfo, tags=["Platform"])
-async def root():
+async def root_async():
     """Root endpoint with platform information"""
     return PlatformInfo(
         platform="EcoSystemiser",
@@ -154,13 +154,13 @@ async def root():
 
 
 @app.get("/health", response_model=HealthCheck, tags=["Platform"])
-async def health():
+async def health_async():
     """Enhanced health check endpoint with system status"""
     checks = {
-        "database": check_database_health(),
-        "profile_loader": check_profile_loader_health(),
-        "cache": check_cache_health(),
-        "filesystem": check_filesystem_health(),
+        "database": check_database_health_async(),
+        "profile_loader": check_profile_loader_health_async(),
+        "cache": check_cache_health_async(),
+        "filesystem": check_filesystem_health_async(),
     }
 
     overall_status = "healthy" if all(checks.values()) else "degraded"
@@ -200,7 +200,7 @@ solver_router = APIRouter(prefix="/solver", tags=["Solver"])
 
 
 @solver_router.get("/status", response_model=SolverStatus)
-async def solver_status():
+async def solver_status_async():
     """Get solver module status"""
     return SolverStatus(
         module="solver",
@@ -219,7 +219,7 @@ analyser_router = APIRouter(prefix="/analyser", tags=["Analyser"])
 
 
 @analyser_router.get("/status", response_model=AnalyserStatus)
-async def analyser_status():
+async def analyser_status_async():
     """Get analyser module status"""
     return AnalyserStatus(
         module="analyser",
@@ -243,7 +243,7 @@ reporting_router = APIRouter(prefix="/reporting", tags=["Reporting"])
 
 
 @reporting_router.get("/status", response_model=ReportingStatus)
-async def reporting_status():
+async def reporting_status_async():
     """Get reporting module status"""
     return ReportingStatus(
         module="reporting",
@@ -263,7 +263,7 @@ app.include_router(api_v3)
 
 # Legacy v2 support (redirect to v3)
 @app.get("/api/v2/{path:path}", response_model=LegacyRedirect, tags=["Legacy"])
-async def legacy_v2_redirect(path: str):
+async def legacy_v2_redirect_async(path: str):
     """Redirect v2 API calls to v3 with migration guidance"""
     redirect_response = LegacyRedirect(
         message="API v2 deprecated, please use v3",
@@ -278,7 +278,7 @@ async def legacy_v2_redirect(path: str):
 
 # Error handlers
 @app.exception_handler(ClimateError)
-async def climate_error_handler(request: Request, exc: ClimateError):
+async def climate_error_handler_async(request: Request, exc: ClimateError):
     """Handle platform-specific errors with structured response"""
     error_response = APIError(
         error=exc.__class__.__name__,
@@ -294,7 +294,7 @@ async def climate_error_handler(request: Request, exc: ClimateError):
 
 
 @app.exception_handler(Exception)
-async def general_error_handler(request: Request, exc: Exception):
+async def general_error_handler_async(request: Request, exc: Exception):
     """Handle unexpected errors with structured response"""
     logger.error(f"Unexpected error: {exc}", exc_info=True)
 
@@ -322,7 +322,7 @@ def get_uptime() -> str:
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
-def check_database_health() -> bool:
+def check_database_health_async() -> bool:
     """Check database connectivity"""
     try:
         from ecosystemiser.core.db import get_ecosystemiser_connection
@@ -335,7 +335,7 @@ def check_database_health() -> bool:
         return False
 
 
-def check_profile_loader_health() -> bool:
+def check_profile_loader_health_async() -> bool:
     """Check profile loader module health"""
     try:
         from ecosystemiser.profile_loader.climate import create_climate_service
@@ -349,7 +349,7 @@ def check_profile_loader_health() -> bool:
         return False
 
 
-def check_cache_health() -> bool:
+def check_cache_health_async() -> bool:
     """Check cache system health"""
     try:
         # Basic cache health check - for now just return True
@@ -360,7 +360,7 @@ def check_cache_health() -> bool:
         return False
 
 
-def check_filesystem_health() -> bool:
+def check_filesystem_health_async() -> bool:
     """Check filesystem accessibility"""
     try:
         import os
@@ -380,7 +380,7 @@ def check_filesystem_health() -> bool:
 
 
 @app.get("/metrics", response_model=MonitoringResponse, tags=["Monitoring"])
-async def get_metrics():
+async def get_metrics_async():
     """Get system metrics and performance data"""
     import os
 
@@ -411,10 +411,10 @@ async def get_metrics():
     )
 
     health_checks = {
-        "database": check_database_health(),
-        "profile_loader": check_profile_loader_health(),
-        "cache": check_cache_health(),
-        "filesystem": check_filesystem_health(),
+        "database": check_database_health_async(),
+        "profile_loader": check_profile_loader_health_async(),
+        "cache": check_cache_health_async(),
+        "filesystem": check_filesystem_health_async(),
     }
 
     return MonitoringResponse(
@@ -425,7 +425,7 @@ async def get_metrics():
 
 
 @app.get("/version", tags=["Platform"])
-async def get_version():
+async def get_version_async():
     """Get detailed version information"""
     return {
         "version": settings.api.version,

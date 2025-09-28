@@ -21,6 +21,7 @@ logger = get_logger(__name__)
 
 class EventPriority(IntEnum):
     """Event priority levels"""
+
     CRITICAL = 0  # Highest priority
     HIGH = 1
     NORMAL = 2
@@ -43,6 +44,7 @@ class AsyncEvent:
         retry_count: Number of retry attempts
         metadata: Additional event metadata
     """
+
     event_type: str
     data: Dict[str, Any]
     priority: EventPriority = EventPriority.NORMAL
@@ -126,7 +128,7 @@ class AsyncEventBus:
             "events_timeout": 0,
         }
 
-    async def start(self):
+    async def start_async(self):
         """Start the event bus"""
         if self._running:
             return
@@ -135,9 +137,9 @@ class AsyncEventBus:
         logger.info("Async event bus started")
 
         # Start dead letter queue processor
-        asyncio.create_task(self._process_dead_letter_queue())
+        asyncio.create_task(self._process_dead_letter_queue_async())
 
-    async def stop(self):
+    async def stop_async(self):
         """Stop the event bus"""
         self._running = False
 
@@ -177,9 +179,7 @@ class AsyncEventBus:
         if event_type not in self._queues:
             self._queues[event_type] = asyncio.PriorityQueue(maxsize=self._max_queue_size)
             if self._running:
-                self._workers[event_type] = asyncio.create_task(
-                    self._process_events(event_type)
-                )
+                self._workers[event_type] = asyncio.create_task(self._process_events_async(event_type))
 
         logger.debug(f"Subscribed {handler.__name__} to {event_type}")
 
@@ -190,9 +190,7 @@ class AsyncEventBus:
     ):
         """Unsubscribe from an event type"""
         if event_type in self._handlers:
-            self._handlers[event_type] = [
-                (p, h) for p, h in self._handlers[event_type] if h != handler
-            ]
+            self._handlers[event_type] = [(p, h) for p, h in self._handlers[event_type] if h != handler]
             if not self._handlers[event_type]:
                 del self._handlers[event_type]
                 # Cancel worker if no more handlers
@@ -204,7 +202,7 @@ class AsyncEventBus:
 
         logger.debug(f"Unsubscribed {handler.__name__} from {event_type}")
 
-    async def publish(
+    async def publish_async(
         self,
         event_type: str,
         data: Dict[str, Any],
@@ -260,7 +258,7 @@ class AsyncEventBus:
 
         return event.event_id
 
-    async def publish_batch(
+    async def publish_batch_async(
         self,
         events: List[Tuple[str, Dict[str, Any], EventPriority]],
         correlation_id: Optional[str] = None,
@@ -279,7 +277,7 @@ class AsyncEventBus:
         correlation_id = correlation_id or str(uuid4())
 
         for event_type, data, priority in events:
-            event_id = await self.publish(
+            event_id = await self.publish_async(
                 event_type=event_type,
                 data=data,
                 priority=priority,
@@ -289,7 +287,7 @@ class AsyncEventBus:
 
         return event_ids
 
-    async def _process_events(self, event_type: str):
+    async def _process_events_async(self, event_type: str):
         """Process events for a specific event type"""
         queue = self._queues[event_type]
 
@@ -302,39 +300,39 @@ class AsyncEventBus:
                 for handler_priority, handler in self._handlers.get(event_type, []):
                     try:
                         await asyncio.wait_for(
-                            handler(event),
+                            handler_async(event),
                             timeout=self._default_timeout,
                         )
                         self._stats["events_processed"] += 1
                     except asyncio.TimeoutError:
-                        logger.error(
-                            f"Handler {handler.__name__} timed out for event {event.event_id}"
-                        )
+                        logger.error(f"Handler {handler.__name__} timed out for event {event.event_id}")
                         self._stats["events_timeout"] += 1
                         event.retry_count += 1
                         if event.retry_count < 3:
                             # Retry with lower priority
-                            await queue.put((
-                                EventPriority.LOW.value,
-                                event.timestamp,
-                                event,
-                            ))
+                            await queue.put(
+                                (
+                                    EventPriority.LOW.value,
+                                    event.timestamp,
+                                    event,
+                                )
+                            )
                         else:
                             # Send to dead letter queue
                             await self._dead_letter_queue.put(event)
                     except Exception as e:
-                        logger.error(
-                            f"Handler {handler.__name__} failed for event {event.event_id}: {e}"
-                        )
+                        logger.error(f"Handler {handler.__name__} failed for event {event.event_id}: {e}")
                         self._stats["events_failed"] += 1
                         event.retry_count += 1
                         if event.retry_count < 3:
                             # Retry
-                            await queue.put((
-                                EventPriority.LOW.value,
-                                event.timestamp,
-                                event,
-                            ))
+                            await queue.put(
+                                (
+                                    EventPriority.LOW.value,
+                                    event.timestamp,
+                                    event,
+                                )
+                            )
                         else:
                             # Send to dead letter queue
                             await self._dead_letter_queue.put(event)
@@ -345,7 +343,7 @@ class AsyncEventBus:
                 logger.error(f"Error processing events for {event_type}: {e}")
                 await asyncio.sleep(1)  # Brief pause before retrying
 
-    async def _process_dead_letter_queue(self):
+    async def _process_dead_letter_queue_async(self):
         """Process dead letter queue"""
         while self._running:
             try:
@@ -364,7 +362,7 @@ class AsyncEventBus:
                 logger.error(f"Error processing dead letter queue: {e}")
                 await asyncio.sleep(1)
 
-    async def replay_events(
+    async def replay_events_async(
         self,
         event_types: Optional[List[str]] = None,
         correlation_id: Optional[str] = None,
@@ -396,7 +394,7 @@ class AsyncEventBus:
                 continue
 
             # Republish event
-            await self.publish(
+            await self.publish_async(
                 event_type=event.event_type,
                 data=event.data,
                 priority=event.priority,
@@ -411,16 +409,13 @@ class AsyncEventBus:
         """Get event bus statistics"""
         return {
             **self._stats,
-            "queue_sizes": {
-                event_type: queue.qsize()
-                for event_type, queue in self._queues.items()
-            },
+            "queue_sizes": {event_type: queue.qsize() for event_type, queue in self._queues.items()},
             "dead_letter_queue_size": self._dead_letter_queue.qsize(),
             "replay_buffer_size": len(self._replay_buffer),
             "handler_count": sum(len(handlers) for handlers in self._handlers.values()),
         }
 
-    async def wait_for_event(
+    async def wait_for_event_async(
         self,
         event_type: str,
         predicate: Optional[Callable[[AsyncEvent], bool]] = None,
@@ -440,7 +435,7 @@ class AsyncEventBus:
         received_event = None
         event_received = asyncio.Event()
 
-        async def handler(event: AsyncEvent):
+        async def handler_async(event: AsyncEvent):
             nonlocal received_event
             if predicate is None or predicate(event):
                 received_event = event
@@ -461,10 +456,10 @@ class AsyncEventBus:
 _global_event_bus: Optional[AsyncEventBus] = None
 
 
-async def get_event_bus() -> AsyncEventBus:
+async def get_event_bus_async() -> AsyncEventBus:
     """Get or create the global async event bus"""
     global _global_event_bus
     if _global_event_bus is None:
         _global_event_bus = AsyncEventBus()
-        await _global_event_bus.start()
+        await _global_event_bus.start_async()
     return _global_event_bus

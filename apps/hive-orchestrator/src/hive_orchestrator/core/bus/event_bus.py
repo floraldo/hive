@@ -119,9 +119,7 @@ class EventBus:
 
             conn.commit()
 
-    def publish(
-        self, event: Union[Event, Dict[str, Any]], correlation_id: Optional[str] = None
-    ) -> str:
+    def publish(self, event: Union[Event, Dict[str, Any]], correlation_id: Optional[str] = None) -> str:
         """
         Publish an event to the bus
 
@@ -238,9 +236,7 @@ class EventBus:
                         try:
                             subscriber.handle_event(event)
                         except Exception as e:
-                            logger.error(
-                                f"Subscriber {subscriber.subscriber_name} failed: {e}"
-                            )
+                            logger.error(f"Subscriber {subscriber.subscriber_name} failed: {e}")
 
     def _event_matches_pattern(self, event_type: str, pattern: str) -> bool:
         """Check if event type matches subscription pattern"""
@@ -367,9 +363,7 @@ class EventBus:
                 # Notify subscribers asynchronously
                 await self._notify_subscribers_async(event)
 
-                logger.debug(
-                    f"Published async event {event.event_id}: {event.event_type}"
-                )
+                logger.debug(f"Published async event {event.event_id}: {event.event_type}")
                 return event.event_id
 
             except Exception as e:
@@ -474,9 +468,7 @@ class EventBus:
                 return events
 
             except Exception as e:
-                logger.error(
-                    f"Failed to get async event history for {correlation_id}: {e}"
-                )
+                logger.error(f"Failed to get async event history for {correlation_id}: {e}")
                 return []
 
         async def _notify_subscribers_async(self, event: Event):
@@ -492,17 +484,14 @@ class EventBus:
                 # Notify subscribers concurrently
                 if matching_subscribers:
                     notification_tasks = [
-                        self._notify_single_subscriber_async(subscriber, event)
-                        for subscriber in matching_subscribers
+                        self._notify_single_subscriber_async(subscriber, event) for subscriber in matching_subscribers
                     ]
                     await asyncio.gather(*notification_tasks, return_exceptions=True)
 
             except Exception as e:
                 logger.error(f"Error in async subscriber notification: {e}")
 
-        async def _notify_single_subscriber_async(
-            self, subscriber: EventSubscriber, event: Event
-        ):
+        async def _notify_single_subscriber_async(self, subscriber: EventSubscriber, event: Event):
             """Notify a single subscriber asynchronously."""
             try:
                 # Check if callback is async
@@ -514,22 +503,16 @@ class EventBus:
                     await loop.run_in_executor(None, subscriber.callback, event)
 
             except Exception as e:
-                logger.error(
-                    f"Error notifying async subscriber {subscriber.subscriber_name}: {e}"
-                )
+                logger.error(f"Error notifying async subscriber {subscriber.subscriber_name}: {e}")
 
     def clear_old_events(self, days_to_keep: int = 30):
         """Clean up old events to prevent database growth"""
-        cutoff_date = datetime.now(timezone.utc).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        cutoff_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         cutoff_date = cutoff_date.replace(day=cutoff_date.day - days_to_keep)
 
         with get_sqlite_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                "DELETE FROM events WHERE timestamp < ?", (cutoff_date.isoformat(),)
-            )
+            cursor.execute("DELETE FROM events WHERE timestamp < ?", (cutoff_date.isoformat(),))
             deleted_count = cursor.rowcount
             conn.commit()
 
@@ -564,21 +547,21 @@ def reset_event_bus():
 # Async support for Phase 4.1
 if ASYNC_AVAILABLE:
 
-    async def get_async_event_bus() -> EventBus:
+    async def get_async_event_bus_async() -> EventBus:
         """Get the global event bus instance for async operations"""
         return get_event_bus()  # Same instance, just async access pattern
 
     async def publish_event_async(event: Event, correlation_id: str = None) -> str:
         """Convenience function for async event publishing"""
-        bus = await get_async_event_bus()
+        bus = await get_async_event_bus_async()
         return await bus.publish_async(event, correlation_id)
 
     async def get_events_async(**kwargs) -> List[Event]:
         """Convenience function for async event retrieval"""
-        bus = await get_async_event_bus()
+        bus = await get_async_event_bus_async()
         return await bus.get_events_async(**kwargs)
 
     async def get_event_history_async(correlation_id: str) -> List[Event]:
         """Convenience function for async event history retrieval"""
-        bus = await get_async_event_bus()
+        bus = await get_async_event_bus_async()
         return await bus.get_event_history_async(correlation_id)

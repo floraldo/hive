@@ -44,7 +44,7 @@ def create_orchestrator_db_manager() -> AsyncDatabaseManager:
 
 
 @asynccontextmanager
-async def get_async_connection(db_manager: Optional[AsyncDatabaseManager] = None):
+async def get_async_connection_async(db_manager: Optional[AsyncDatabaseManager] = None):
     """
     Get an async connection using dependency injection.
 
@@ -56,7 +56,7 @@ async def get_async_connection(db_manager: Optional[AsyncDatabaseManager] = None
 
     Example:
         db_manager = create_orchestrator_db_manager()
-        async with get_async_connection(db_manager) as conn:
+        async with get_async_connection_async(db_manager) as conn:
             cursor = await conn.execute("SELECT * FROM tasks WHERE status = ?", ("queued",))
             tasks = await cursor.fetchall()
     """
@@ -81,7 +81,7 @@ async def create_task_async(
     task_data_json = json.dumps(task_data)
     created_at = datetime.now(timezone.utc).isoformat()
 
-    async with get_async_connection(db_manager) as conn:
+    async with get_async_connection_async(db_manager) as conn:
         await conn.execute(
             """
             INSERT INTO tasks (task_id, task_type, task_data, status, priority, worker_hint,
@@ -106,7 +106,7 @@ async def create_task_async(
 
 async def get_task_async(task_id: str, db_manager: AsyncDatabaseManager) -> Optional[Dict[str, Any]]:
     """Get a task by ID asynchronously using dependency injection."""
-    async with get_async_connection(db_manager) as conn:
+    async with get_async_connection_async(db_manager) as conn:
         cursor = await conn.execute("SELECT * FROM tasks WHERE task_id = ?", (task_id,))
         row = await cursor.fetchone()
 
@@ -119,12 +119,10 @@ async def get_task_async(task_id: str, db_manager: AsyncDatabaseManager) -> Opti
 
 
 async def get_queued_tasks_async(
-    db_manager: AsyncDatabaseManager,
-    limit: int = 10,
-    task_type: Optional[str] = None
+    db_manager: AsyncDatabaseManager, limit: int = 10, task_type: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """Get queued tasks asynchronously using dependency injection."""
-    async with get_async_connection(db_manager) as conn:
+    async with get_async_connection_async(db_manager) as conn:
         if task_type:
             cursor = await conn.execute(
                 """
@@ -158,12 +156,10 @@ async def get_queued_tasks_async(
 
 
 async def get_tasks_by_status_async(
-    status: str,
-    db_manager: AsyncDatabaseManager,
-    limit: int = 50
+    status: str, db_manager: AsyncDatabaseManager, limit: int = 50
 ) -> List[Dict[str, Any]]:
     """Get tasks by status asynchronously using dependency injection."""
-    async with get_async_connection(db_manager) as conn:
+    async with get_async_connection_async(db_manager) as conn:
         cursor = await conn.execute(
             """
             SELECT * FROM tasks
@@ -196,7 +192,7 @@ async def update_task_status_async(
     updated_at = datetime.now(timezone.utc).isoformat()
     result_json = json.dumps(result_data) if result_data else None
 
-    async with get_async_connection(db_manager) as conn:
+    async with get_async_connection_async(db_manager) as conn:
         if worker_id:
             cursor = await conn.execute(
                 """
@@ -221,16 +217,13 @@ async def update_task_status_async(
 
 
 async def create_run_async(
-    task_id: str,
-    worker_id: str,
-    db_manager: AsyncDatabaseManager,
-    run_type: str = "execution"
+    task_id: str, worker_id: str, db_manager: AsyncDatabaseManager, run_type: str = "execution"
 ) -> str:
     """Create a new task run asynchronously using dependency injection."""
     run_id = str(uuid.uuid4())
     started_at = datetime.now(timezone.utc).isoformat()
 
-    async with get_async_connection(db_manager) as conn:
+    async with get_async_connection_async(db_manager) as conn:
         await conn.execute(
             """
             INSERT INTO task_runs (run_id, task_id, worker_id, run_type, status, started_at)

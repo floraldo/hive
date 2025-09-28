@@ -30,7 +30,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         super().__init__(config)
         self.strategy = DeploymentStrategy.DIRECT
 
-    async def pre_deployment_checks(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def pre_deployment_checks_async(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
         Run pre-deployment checks for SSH deployment
 
@@ -52,7 +52,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             if not ssh_config:
                 errors.append("SSH configuration not found")
             else:
-                ssh_check = await self._check_ssh_connectivity(ssh_config)
+                ssh_check = await self._check_ssh_connectivity_async(ssh_config)
                 if not ssh_check:
                     errors.append("SSH connectivity check failed")
 
@@ -62,7 +62,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                 errors.append(f"Source path does not exist: {source_path}")
 
             # Check remote target directory permissions
-            remote_checks = await self._check_remote_permissions(task)
+            remote_checks = await self._check_remote_permissions_async(task)
             if not remote_checks:
                 errors.append("Remote permission checks failed")
 
@@ -78,7 +78,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                 "errors": [f"Pre-deployment check failed: {e}"],
             }
 
-    async def deploy(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
+    async def deploy_async(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
         """
         Execute SSH deployment
 
@@ -98,7 +98,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             source_path = task.get("source_path")
 
             # Connect to server
-            ssh_client = await self._connect_to_server(ssh_config)
+            ssh_client = await self._connect_to_server_async(ssh_config)
             if not ssh_client:
                 return {
                     "success": False,
@@ -110,12 +110,10 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                 deployment_paths = determine_deployment_paths(app_name)
 
                 # Create deployment backup point
-                backup_info = await self._create_backup(ssh_client, deployment_paths)
+                backup_info = await self._create_backup_async(ssh_client, deployment_paths)
 
                 # Deploy application
-                deploy_result = await self._deploy_application(
-                    ssh_client, source_path, deployment_paths, task
-                )
+                deploy_result = await self._deploy_application_async(ssh_client, source_path, deployment_paths, task)
 
                 if not deploy_result["success"]:
                     return {
@@ -124,9 +122,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                     }
 
                 # Start/restart services
-                service_result = await self._manage_services(
-                    ssh_client, app_name, "start"
-                )
+                service_result = await self._manage_services_async(ssh_client, app_name, "start")
 
                 if not service_result:
                     # Deployment succeeded but service start failed - still a failure
@@ -165,7 +161,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                 "error": str(e),
             }
 
-    async def rollback(
+    async def rollback_async(
         self,
         task: Dict[str, Any],
         deployment_id: str,
@@ -189,7 +185,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             app_name = task.get("app_name", "unknown")
 
             # Connect to server
-            ssh_client = await self._connect_to_server(ssh_config)
+            ssh_client = await self._connect_to_server_async(ssh_config)
             if not ssh_client:
                 return {
                     "success": False,
@@ -207,9 +203,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                     }
 
                 # Restore from backup
-                restore_result = await self._restore_from_backup(
-                    ssh_client, backup_info
-                )
+                restore_result = await self._restore_from_backup_async(ssh_client, backup_info)
 
                 if not restore_result:
                     return {
@@ -218,9 +212,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                     }
 
                 # Restart services with previous configuration
-                service_result = await self._manage_services(
-                    ssh_client, app_name, "restart"
-                )
+                service_result = await self._manage_services_async(ssh_client, app_name, "restart")
 
                 logger.info(f"Rollback for deployment {deployment_id} completed")
 
@@ -242,9 +234,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                 "error": str(e),
             }
 
-    async def post_deployment_actions(
-        self, task: Dict[str, Any], deployment_id: str
-    ) -> None:
+    async def post_deployment_actions_async(self, task: Dict[str, Any], deployment_id: str) -> None:
         """
         Run post-deployment actions for SSH deployment
 
@@ -254,14 +244,14 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         """
         try:
             # Cleanup old backups (keep last 5)
-            await self._cleanup_old_backups(task)
+            await self._cleanup_old_backups_async(task)
 
             # Update monitoring configurations if specified
             if task.get("update_monitoring", False):
-                await self._update_monitoring_config(task)
+                await self._update_monitoring_config_async(task)
 
             # Send deployment notifications
-            await self._send_deployment_notifications(task, deployment_id, success=True)
+            await self._send_deployment_notifications_async(task, deployment_id, success=True)
 
         except Exception as e:
             logger.error(f"Post-deployment actions error: {e}")
@@ -277,7 +267,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
     # Helper methods
 
-    async def _check_ssh_connectivity(self, ssh_config: Dict[str, Any]) -> bool:
+    async def _check_ssh_connectivity_async(self, ssh_config: Dict[str, Any]) -> bool:
         """Test SSH connectivity"""
         try:
             # Run in executor to avoid blocking
@@ -299,18 +289,18 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         except Exception:
             return False
 
-    async def _check_remote_permissions(self, task: Dict[str, Any]) -> bool:
+    async def _check_remote_permissions_async(self, task: Dict[str, Any]) -> bool:
         """Check remote directory permissions"""
         # Implementation would check write permissions on target directory
         # For now, assume success
         return True
 
-    async def _connect_to_server(self, ssh_config: Dict[str, Any]):
+    async def _connect_to_server_async(self, ssh_config: Dict[str, Any]):
         """Establish SSH connection"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, connect_to_server, ssh_config)
 
-    async def _deploy_application(
+    async def _deploy_application_async(
         self,
         ssh_client,
         source_path: str,
@@ -319,13 +309,9 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
     ) -> Dict[str, Any]:
         """Deploy application files"""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, deploy_application, ssh_client, source_path, deployment_paths, task
-        )
+        return await loop.run_in_executor(None, deploy_application, ssh_client, source_path, deployment_paths, task)
 
-    async def _create_backup(
-        self, ssh_client, deployment_paths: Dict[str, str]
-    ) -> Dict[str, Any]:
+    async def _create_backup_async(self, ssh_client, deployment_paths: Dict[str, str]) -> Dict[str, Any]:
         """Create backup of current deployment"""
         # Implementation would create backup of existing deployment
         # For now, return mock backup info
@@ -335,35 +321,31 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             "created_at": asyncio.get_event_loop().time(),
         }
 
-    async def _manage_services(self, ssh_client, app_name: str, action: str) -> bool:
+    async def _manage_services_async(self, ssh_client, app_name: str, action: str) -> bool:
         """Start/stop/restart application services"""
         # Implementation would manage systemd services or similar
         # For now, simulate success
         await asyncio.sleep(0.5)
         return True
 
-    async def _restore_from_backup(
-        self, ssh_client, backup_info: Dict[str, Any]
-    ) -> bool:
+    async def _restore_from_backup_async(self, ssh_client, backup_info: Dict[str, Any]) -> bool:
         """Restore deployment from backup"""
         # Implementation would restore files from backup
         # For now, simulate success
         await asyncio.sleep(1.0)
         return True
 
-    async def _cleanup_old_backups(self, task: Dict[str, Any]) -> None:
+    async def _cleanup_old_backups_async(self, task: Dict[str, Any]) -> None:
         """Cleanup old deployment backups"""
         # Implementation would clean up old backup directories
         pass
 
-    async def _update_monitoring_config(self, task: Dict[str, Any]) -> None:
+    async def _update_monitoring_config_async(self, task: Dict[str, Any]) -> None:
         """Update monitoring configuration"""
         # Implementation would update monitoring configs
         pass
 
-    async def _send_deployment_notifications(
-        self, task: Dict[str, Any], deployment_id: str, success: bool
-    ) -> None:
+    async def _send_deployment_notifications_async(self, task: Dict[str, Any], deployment_id: str, success: bool) -> None:
         """Send deployment notifications"""
         # Implementation would send notifications via email, Slack, etc.
         pass

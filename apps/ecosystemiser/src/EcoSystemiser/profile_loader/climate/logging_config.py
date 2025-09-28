@@ -18,18 +18,14 @@ from hive_logging import get_logger
 from structlog.types import EventDict, Processor
 
 # Context variable for correlation ID
-correlation_id_var: ContextVar[Optional[str]] = ContextVar(
-    "correlation_id", default=None
-)
+correlation_id_var: ContextVar[Optional[str]] = ContextVar("correlation_id", default=None)
 request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
 
 
 class CorrelationIDProcessor:
     """Add correlation ID to all log entries"""
 
-    def __call__(
-        self, logger: Any, method_name: str, event_dict: EventDict
-    ) -> EventDict:
+    def __call__(self, logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
         """Add correlation ID if available"""
         correlation_id = correlation_id_var.get()
         if correlation_id:
@@ -45,9 +41,7 @@ class CorrelationIDProcessor:
 class PerformanceProcessor:
     """Add performance metrics to log entries"""
 
-    def __call__(
-        self, logger: Any, method_name: str, event_dict: EventDict
-    ) -> EventDict:
+    def __call__(self, logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
         """Add performance context"""
         # Add memory usage if it's an error or warning
         if method_name in ["error", "critical", "warning"]:
@@ -66,9 +60,7 @@ class PerformanceProcessor:
 class ErrorContextProcessor:
     """Enhanced error context for debugging"""
 
-    def __call__(
-        self, logger: Any, method_name: str, event_dict: EventDict
-    ) -> EventDict:
+    def __call__(self, logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
         """Add error context"""
         # Extract exception info if present
         if "exc_info" in event_dict and event_dict["exc_info"]:
@@ -92,9 +84,7 @@ class ErrorContextProcessor:
 class AdapterContextProcessor:
     """Add adapter context to logs"""
 
-    def __call__(
-        self, logger: Any, method_name: str, event_dict: EventDict
-    ) -> EventDict:
+    def __call__(self, logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
         """Add adapter context if available"""
         # Check if logger name indicates an adapter
         logger_name = event_dict.get("logger", "")
@@ -108,9 +98,7 @@ class AdapterContextProcessor:
         return event_dict
 
 
-def setup_logging(
-    log_level: Optional[str] = None, log_format: Optional[str] = None
-) -> None:
+def setup_logging(log_level: Optional[str] = None, log_format: Optional[str] = None) -> None:
     """
     Configure structured logging for the application.
 
@@ -251,9 +239,7 @@ class LoggingContext:
 
 
 # Convenience function for logging with context
-def log_with_context(
-    logger: structlog.stdlib.BoundLogger, level: str, message: str, **kwargs
-) -> None:
+def log_with_context(logger: structlog.stdlib.BoundLogger, level: str, message: str, **kwargs) -> None:
     """
     Log a message with additional context.
 

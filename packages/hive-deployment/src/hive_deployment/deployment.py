@@ -19,13 +19,9 @@ from .ssh_client import SSHClient, create_ssh_client_from_config
 def get_deployment_config() -> Dict[str, str]:
     """Get deployment configuration from environment variables."""
     return {
-        "base_remote_apps_dir": os.environ.get(
-            "BASE_REMOTE_APPS_DIR", "/home/deploy/apps"
-        ),
+        "base_remote_apps_dir": os.environ.get("BASE_REMOTE_APPS_DIR", "/home/deploy/apps"),
         "nginx_conf_d_dir": os.environ.get("NGINX_CONF_D_DIR", "/etc/nginx/conf.d"),
-        "systemd_service_dir": os.environ.get(
-            "SYSTEMD_SERVICE_DIR", "/etc/systemd/system"
-        ),
+        "systemd_service_dir": os.environ.get("SYSTEMD_SERVICE_DIR", "/etc/systemd/system"),
         "server_user": os.environ.get("SERVER_USER", "deploy"),
         "nginx_user_group": os.environ.get("NGINX_USER_GROUP", "www-data"),
     }
@@ -60,9 +56,7 @@ def connect_to_server(config: Dict[str, Any]) -> Optional[SSHClient]:
         return None
 
 
-def determine_deployment_paths(
-    app_name: str, deployment_config: Optional[Dict[str, str]] = None
-) -> Dict[str, str]:
+def determine_deployment_paths(app_name: str, deployment_config: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     """
     Determines all necessary paths for deployment.
 
@@ -88,9 +82,7 @@ def determine_deployment_paths(
     return paths
 
 
-def deploy_upload_app(
-    ssh: SSHClient, local_app_path: Path, remote_app_dir: str, config: Dict[str, Any]
-) -> bool:
+def deploy_upload_app(ssh: SSHClient, local_app_path: Path, remote_app_dir: str, config: Dict[str, Any]) -> bool:
     """
     Uploads the application files to the remote server.
 
@@ -103,21 +95,15 @@ def deploy_upload_app(
     Returns:
         True if successful, False otherwise
     """
-    log.info(
-        f"Uploading application files from {local_app_path} to {remote_app_dir}..."
-    )
+    log.info(f"Uploading application files from {local_app_path} to {remote_app_dir}...")
     try:
-        return upload_directory(
-            ssh, local_app_path, remote_app_dir, config=config, sudo_upload=False
-        )
+        return upload_directory(ssh, local_app_path, remote_app_dir, config=config, sudo_upload=False)
     except Exception as e:
         log.error(f"Error uploading application files: {e}", exc_info=True)
         return False
 
 
-def deploy_setup_venv(
-    ssh: SSHClient, venv_path: str, req_path: str, config: Dict[str, Any]
-) -> bool:
+def deploy_setup_venv(ssh: SSHClient, venv_path: str, req_path: str, config: Dict[str, Any]) -> bool:
     """
     Sets up a virtual environment and installs dependencies.
 
@@ -137,9 +123,7 @@ def deploy_setup_venv(
     venv_exists = exit_code == 0
 
     if not venv_exists:
-        exit_code, _, stderr = run_remote_command(
-            ssh, f"python3 -m venv '{venv_path}'", config=config, check=False
-        )
+        exit_code, _, stderr = run_remote_command(ssh, f"python3 -m venv '{venv_path}'", config=config, check=False)
         if exit_code != 0:
             log.error(f"Failed to create virtual environment: {stderr}")
             return False
@@ -151,9 +135,7 @@ def deploy_setup_venv(
     pip_path = f"{venv_path}/bin/pip"
 
     # Upgrade pip (optional, can continue if failed)
-    run_remote_command(
-        ssh, f"'{pip_path}' install --upgrade pip", config=config, check=False
-    )
+    run_remote_command(ssh, f"'{pip_path}' install --upgrade pip", config=config, check=False)
 
     # Install requirements
     log.info(f"Installing dependencies from {req_path}...")
@@ -168,9 +150,7 @@ def deploy_setup_venv(
     return True
 
 
-def deploy_update_env_file(
-    ssh: SSHClient, env_file_path: str, port: int, config: Dict[str, Any]
-) -> bool:
+def deploy_update_env_file(ssh: SSHClient, env_file_path: str, port: int, config: Dict[str, Any]) -> bool:
     """
     Updates the environment file with the port assignment.
 
@@ -186,9 +166,7 @@ def deploy_update_env_file(
     log.info(f"Updating environment file {env_file_path} with port {port}...")
 
     # Remove existing FLASK_RUN_PORT line if exists
-    run_remote_command(
-        ssh, f"sed -i '/^FLASK_RUN_PORT=/d' {env_file_path}", config=config, check=False
-    )
+    run_remote_command(ssh, f"sed -i '/^FLASK_RUN_PORT=/d' {env_file_path}", config=config, check=False)
 
     # Add new FLASK_RUN_PORT line
     exit_code, _, stderr = run_remote_command(
@@ -344,9 +322,7 @@ WantedBy=multi-user.target"""
     temp_service_path = f"/tmp/{app_name}.service_{int(time.time())}"
 
     # Upload the service file to the temporary location
-    if not ssh.upload_file(
-        systemd_content.encode("utf-8"), temp_service_path, sudo=False
-    ):
+    if not ssh.upload_file(systemd_content.encode("utf-8"), temp_service_path, sudo=False):
         log.error("Failed to upload systemd service file to temporary location.")
         return False
 
@@ -359,15 +335,11 @@ WantedBy=multi-user.target"""
         check=False,
     )
     if exit_code != 0:
-        log.error(
-            f"Failed to move systemd service file to {systemd_service_path}: {stderr}"
-        )
+        log.error(f"Failed to move systemd service file to {systemd_service_path}: {stderr}")
         return False
 
     # Set permissions
-    run_remote_command(
-        ssh, f"chmod 644 {systemd_service_path}", config=config, sudo=True, check=False
-    )
+    run_remote_command(ssh, f"chmod 644 {systemd_service_path}", config=config, sudo=True, check=False)
 
     # Clear Python Cache
     log.info(f"Clearing __pycache__ in {remote_app_dir}...")
@@ -382,15 +354,11 @@ WantedBy=multi-user.target"""
 
     # Reload systemd daemon
     log.info("Reloading systemd daemon...")
-    run_remote_command(
-        ssh, "systemctl daemon-reload", config=config, sudo=True, check=False
-    )
+    run_remote_command(ssh, "systemctl daemon-reload", config=config, sudo=True, check=False)
 
     # Stop the service if it's already running
     log.info(f"Stopping {app_name}.service (if running)...")
-    run_remote_command(
-        ssh, f"systemctl stop {app_name}.service", config=config, sudo=True, check=False
-    )
+    run_remote_command(ssh, f"systemctl stop {app_name}.service", config=config, sudo=True, check=False)
     time.sleep(1)
 
     # Enable and restart the service
@@ -457,18 +425,14 @@ WantedBy=multi-user.target"""
         elif exit_code == 3:  # systemd code for 'activating'
             log.info(f"{app_name}.service is still activating...")
         else:
-            log.error(
-                f"{app_name}.service check failed with exit code {exit_code}: {stderr}"
-            )
+            log.error(f"{app_name}.service check failed with exit code {exit_code}: {stderr}")
             break
 
         if attempt < max_retries - 1:
             time.sleep(retry_delay)
 
     if not service_active:
-        log.error(
-            f"{app_name}.service did not become active after {max_retries} attempts."
-        )
+        log.error(f"{app_name}.service did not become active after {max_retries} attempts.")
         run_remote_command(
             ssh,
             f"systemctl status {app_name}.service --no-pager -l",
@@ -550,24 +514,18 @@ location /{app_name}/ {{
         return False
 
     # Set permissions
-    run_remote_command(
-        ssh, f"chmod 644 {nginx_conf_path}", config=config, sudo=True, check=False
-    )
+    run_remote_command(ssh, f"chmod 644 {nginx_conf_path}", config=config, sudo=True, check=False)
 
     # Test Nginx configuration
     log.info("Testing Nginx configuration...")
-    exit_code, _, stderr = run_remote_command(
-        ssh, "nginx -t", config=config, sudo=True, check=False
-    )
+    exit_code, _, stderr = run_remote_command(ssh, "nginx -t", config=config, sudo=True, check=False)
     if exit_code != 0:
         log.error(f"Nginx configuration test failed: {stderr}")
         return False
 
     # Reload Nginx
     log.info("Reloading Nginx...")
-    exit_code, _, stderr = run_remote_command(
-        ssh, "systemctl reload nginx", config=config, sudo=True, check=False
-    )
+    exit_code, _, stderr = run_remote_command(ssh, "systemctl reload nginx", config=config, sudo=True, check=False)
     if exit_code != 0:
         log.error(f"Failed to reload Nginx: {stderr}")
         return False
@@ -631,9 +589,7 @@ def verify_deployment(
     # Check root URL
     try:
         log.info(f"Verifying Root URL: {app_url}")
-        response = requests.get(
-            app_url, timeout=timeout, allow_redirects=True, verify=True, headers=headers
-        )
+        response = requests.get(app_url, timeout=timeout, allow_redirects=True, verify=True, headers=headers)
         log.info(f"Status Code: {response.status_code}")
         response.raise_for_status()
         log.info("Root URL check PASSED.")
@@ -644,9 +600,7 @@ def verify_deployment(
     # Check health URL if it exists
     try:
         log.info(f"Verifying Health URL: {health_url}")
-        response = requests.get(
-            health_url, timeout=timeout, verify=True, headers=headers
-        )
+        response = requests.get(health_url, timeout=timeout, verify=True, headers=headers)
         if response.status_code == 200:
             log.info("Health URL check PASSED.")
         else:
@@ -709,9 +663,7 @@ def execute_deployment_steps(
         # 3. Find Available Port
         assigned_port = find_available_port(ssh, start_port, max_ports)
         if assigned_port is None:
-            raise Exception(
-                f"Could not find available port on remote server starting from {start_port}."
-            )
+            raise Exception(f"Could not find available port on remote server starting from {start_port}.")
         log.info(f"Assigned port: {assigned_port}")
 
         # 4. Upload App Files
@@ -720,14 +672,10 @@ def execute_deployment_steps(
 
         # 5. Setup Virtual Environment & Install Dependencies
         if not deploy_setup_venv(ssh, paths["venv_path"], paths["req_path"], config):
-            raise Exception(
-                "Failed to set up virtual environment or install dependencies."
-            )
+            raise Exception("Failed to set up virtual environment or install dependencies.")
 
         # 6. Update .env file with assigned port
-        if not deploy_update_env_file(
-            ssh, paths["env_file_path"], assigned_port, config
-        ):
+        if not deploy_update_env_file(ssh, paths["env_file_path"], assigned_port, config):
             log.warning("Failed to update .env file with port. Continuing...")
 
         # 7. Set Final Permissions
@@ -747,34 +695,24 @@ def execute_deployment_steps(
             raise Exception("Failed to deploy systemd service.")
 
         # 9. Create/Update Nginx Config
-        if not deploy_nginx_config(
-            ssh, app_name, paths["nginx_conf_path"], assigned_port, config
-        ):
+        if not deploy_nginx_config(ssh, app_name, paths["nginx_conf_path"], assigned_port, config):
             raise Exception("Failed to deploy Nginx configuration.")
 
         # 10. Execute App-Specific Steps if provided
         if app_specific_function:
             try:
                 if not app_specific_function(ssh, paths, assigned_port, config):
-                    log.warning(
-                        "App-specific deployment steps failed. Deployment may be incomplete."
-                    )
+                    log.warning("App-specific deployment steps failed. Deployment may be incomplete.")
             except Exception as app_err:
                 log.warning(f"Error in app-specific deployment steps: {app_err}")
-                log.warning(
-                    "Continuing with deployment process despite app-specific errors."
-                )
+                log.warning("Continuing with deployment process despite app-specific errors.")
 
         # 11. Verify Deployment
-        verification_result = verify_deployment(
-            ssh, app_name, base_url=base_url, config=config
-        )
+        verification_result = verify_deployment(ssh, app_name, base_url=base_url, config=config)
         if verification_result:
             log.info("Deployment verification passed.")
         else:
-            log.warning(
-                "Deployment verification failed. The app might not be functioning correctly."
-            )
+            log.warning("Deployment verification failed. The app might not be functioning correctly.")
 
         # Deployment Completed Summary
         log.info(f"--- Deployment Completed Successfully for {app_name} ---")
@@ -821,9 +759,7 @@ def deploy_application(
     Returns:
         True if the deployment was successful, False otherwise
     """
-    return execute_deployment_steps(
-        app_name=app_name, local_app_path=local_app_path, config=config, **kwargs
-    )
+    return execute_deployment_steps(app_name=app_name, local_app_path=local_app_path, config=config, **kwargs)
 
 
 def rollback_deployment(

@@ -30,9 +30,7 @@ async def create_sqlite_connection_async(db_path: Path) -> aiosqlite.Connection:
     # Ensure database directory exists
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
-    conn = await aiosqlite.connect(
-        str(db_path), timeout=30.0, isolation_level="DEFERRED"
-    )
+    conn = await aiosqlite.connect(str(db_path), timeout=30.0, isolation_level="DEFERRED")
 
     # Optimize connection settings
     await conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
@@ -115,9 +113,7 @@ class AsyncDatabaseManager:
         self._pools: Dict[str, ConnectionPool[aiosqlite.Connection]] = {}
         self._lock = asyncio.Lock()
 
-    async def get_pool_async(
-        self, db_name: str, db_path: Path, **pool_kwargs
-    ) -> ConnectionPool[aiosqlite.Connection]:
+    async def get_pool_async(self, db_name: str, db_path: Path, **pool_kwargs) -> ConnectionPool[aiosqlite.Connection]:
         """
         Get or create an async connection pool for a specific database.
 
@@ -135,9 +131,7 @@ class AsyncDatabaseManager:
                     pool = create_async_sqlite_pool(db_path=db_path, **pool_kwargs)
                     await pool.initialize()
                     self._pools[db_name] = pool
-                    logger.info(
-                        f"Created async connection pool for database: {db_name}"
-                    )
+                    logger.info(f"Created async connection pool for database: {db_name}")
 
         return self._pools[db_name]
 

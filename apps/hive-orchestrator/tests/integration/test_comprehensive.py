@@ -61,9 +61,7 @@ class HiveTestSuite:
             "task_type": "simple",
             "priority": 1,
             "status": "queued",
-            "payload": json.dumps(
-                {"message": f"Test message for {worker}", "action": "test"}
-            ),
+            "payload": json.dumps({"message": f"Test message for {worker}", "action": "test"}),
             "assigned_worker": worker,
             "workspace_type": "repo",
             "created_at": datetime.now(timezone.utc).isoformat(),
@@ -124,9 +122,7 @@ class HiveTestSuite:
         # Set up environment
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
-        orchestrator_src = (
-            self.hive.root / "apps" / "hive-orchestrator" / "src"
-        ).as_posix()
+        orchestrator_src = (self.hive.root / "apps" / "hive-orchestrator" / "src").as_posix()
         env["PYTHONPATH"] = orchestrator_src
 
         try:
@@ -185,9 +181,7 @@ class HiveTestSuite:
 
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
-        orchestrator_src = (
-            self.hive.root / "apps" / "hive-orchestrator" / "src"
-        ).as_posix()
+        orchestrator_src = (self.hive.root / "apps" / "hive-orchestrator" / "src").as_posix()
         env["PYTHONPATH"] = orchestrator_src
 
         try:
@@ -206,9 +200,7 @@ class HiveTestSuite:
                 self.log("Error handling working correctly")
                 return True
             else:
-                self.log(
-                    f"Unexpected behavior: code={process.returncode}, stderr={process.stderr[:200]}"
-                )
+                self.log(f"Unexpected behavior: code={process.returncode}, stderr={process.stderr[:200]}")
                 return False
 
         except subprocess.TimeoutExpired:

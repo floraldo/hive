@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "apps" / "ai-planner" / "s
 
 # Configure all Hive paths centrally
 from hive_config import setup_hive_paths
+
 setup_hive_paths()
 
 from ai_planner.agent import main

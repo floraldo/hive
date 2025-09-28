@@ -287,9 +287,7 @@ class DatabaseConnectionError(PlannerError):
             ],
         )
 
-        super().__init__(
-            message=message, component="database", operation="connection", **kwargs
-        )
+        super().__init__(message=message, component="database", operation="connection", **kwargs)
         self.retry_count = retry_count
 
 
@@ -411,9 +409,7 @@ def get_error_reporter() -> PlannerErrorReporter:
 class ExponentialBackoffStrategy(RecoveryStrategy):
     """Retry strategy with exponential backoff for AI Planner operations"""
 
-    def __init__(
-        self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0
-    ):
+    def __init__(self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0):
         super().__init__("exponential_backoff", max_retries)
         self.base_delay = base_delay
         self.max_delay = max_delay

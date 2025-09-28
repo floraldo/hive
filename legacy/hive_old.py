@@ -27,10 +27,12 @@ HINTS_DIR = OP_DIR / "hints"
 INT_DIR = OP_DIR / "interrupts"
 WORKTREES_DIR = HIVE_ROOT / ".worktrees"
 
+
 def ensure_dirs():
     """Ensure all required directories exist"""
     for d in [HIVE_DIR, TASKS_DIR, RESULTS_DIR, BUS_DIR, OP_DIR, HINTS_DIR, INT_DIR, WORKTREES_DIR]:
         d.mkdir(parents=True, exist_ok=True)
+
 
 def load_queue():
     """Load task queue from index.json"""
@@ -42,12 +44,13 @@ def load_queue():
             return []
     return []
 
+
 def save_queue(queue):
     """Save task queue to index.json"""
-    (TASKS_DIR / "index.json").write_text(json.dumps({
-        "queue": queue,
-        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    }, indent=2))
+    (TASKS_DIR / "index.json").write_text(
+        json.dumps({"queue": queue, "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}, indent=2)
+    )
+
 
 def load_task(task_id: str):
     """Load a task by ID"""
@@ -56,12 +59,15 @@ def load_task(task_id: str):
         return json.loads(tf.read_text())
     return None
 
+
 def save_task(task: dict):
     """Save a task to its file"""
     tf = TASKS_DIR / f"{task['id']}.json"
     tf.write_text(json.dumps(task, indent=2))
 
+
 # ----------------- subcommand handlers -----------------
+
 
 def cmd_init(args):
     """Initialize Hive directory structure"""
@@ -75,7 +81,7 @@ def cmd_init(args):
             "tags": ["backend", "fastapi"],
             "priority": "P2",
             "risk": "low",
-            "status": "queued"
+            "status": "queued",
         }
         save_task(task)
         q = load_queue()
@@ -83,6 +89,7 @@ def cmd_init(args):
             q.append("tsk_001")
         save_queue(q)
         print("[OK] Sample task tsk_001 created and queued.")
+
 
 def cmd_queen(args):
     """Run the Queen orchestrator"""
@@ -94,6 +101,7 @@ def cmd_queen(args):
         print("\n[Queen] Orchestrator stopped.")
         sys.exit(0)
 
+
 def cmd_status(args):
     """Run the status dashboard"""
     ensure_dirs()
@@ -102,6 +110,7 @@ def cmd_status(args):
     except KeyboardInterrupt:
         print("\n[Status] Dashboard stopped.")
         sys.exit(0)
+
 
 def cmd_task_add(args):
     """Add a new task to the queue"""
@@ -127,6 +136,7 @@ def cmd_task_add(args):
     save_queue(q)
     print(f"[Task] {args.id} saved and {'front-queued' if args.front else 'queued'}.")
 
+
 def cmd_task_queue(args):
     """Show the current task queue"""
     q = load_queue()
@@ -141,6 +151,7 @@ def cmd_task_queue(args):
         else:
             print(f"  {i:02d}. {tid} - (task file not found)")
 
+
 def cmd_task_view(args):
     """View details of a specific task"""
     task = load_task(args.id)
@@ -150,11 +161,13 @@ def cmd_task_view(args):
         print(f"[Error] Task {args.id} not found")
         sys.exit(1)
 
+
 def cmd_hint_set(args):
     """Set an operator hint for a task"""
     ensure_dirs()
     (HINTS_DIR / f"{args.id}.md").write_text(args.text)
     print(f"[Hint] Set for {args.id}")
+
 
 def cmd_hint_clear(args):
     """Clear hint for a task"""
@@ -165,11 +178,13 @@ def cmd_hint_clear(args):
     else:
         print(f"[Info] No hint found for {args.id}")
 
+
 def cmd_interrupt_set(args):
     """Set an interrupt for a task"""
     ensure_dirs()
     (INT_DIR / f"{args.id}.json").write_text(json.dumps({"reason": args.reason}, indent=2))
     print(f"[Interrupt] Set for {args.id}: {args.reason}")
+
 
 def cmd_interrupt_clear(args):
     """Clear interrupt for a task"""
@@ -180,32 +195,28 @@ def cmd_interrupt_clear(args):
     else:
         print(f"[Info] No interrupt found for {args.id}")
 
+
 def cmd_worker_oneshot(args):
     """Spawn a one-shot worker for a specific task"""
     ensure_dirs()
     # One-shot worker run for a specific task & role
-    w = CCWorker(
-        worker_id=args.role, 
-        task_id=args.id, 
-        run_id=args.run_id,
-        workspace=args.workspace, 
-        phase=args.phase
-    )
+    w = CCWorker(worker_id=args.role, task_id=args.id, run_id=args.run_id, workspace=args.workspace, phase=args.phase)
     # Check if CCWorker has run_one_shot method, otherwise use run
-    if hasattr(w, 'run_one_shot'):
+    if hasattr(w, "run_one_shot"):
         rc = w.run_one_shot()
     else:
         # Fallback to run method if run_one_shot doesn't exist
         rc = w.run()
     sys.exit(rc if rc is not None else 0)
 
+
 def cmd_events_tail(args):
     """Tail the event bus in real-time"""
     ensure_dirs()
-    
+
     def events_file():
         return BUS_DIR / f"events_{datetime.now().strftime('%Y%m%d')}.jsonl"
-    
+
     pos = 0
     print("[Events] Tailing events... (Ctrl+C to stop)")
     try:
@@ -222,13 +233,14 @@ def cmd_events_tail(args):
         print("\n[Events] Tailing stopped.")
         sys.exit(0)
 
+
 # ----------------- argument parser -----------------
+
 
 def build_parser():
     """Build the argument parser for all subcommands"""
     p = argparse.ArgumentParser(
-        prog="hive", 
-        description="Hive MAS CLI - Unified interface for Queen, Workers, and task operations"
+        prog="hive", description="Hive MAS CLI - Unified interface for Queen, Workers, and task operations"
     )
     sub = p.add_subparsers(dest="cmd", required=True, help="Available commands")
 
@@ -303,19 +315,21 @@ def build_parser():
 
     return p
 
+
 def main():
     """Main entry point for the CLI"""
     parser = build_parser()
-    
+
     # Show help if no arguments
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(0)
-    
+
     args = parser.parse_args()
-    
+
     # Execute the selected command
     args.func(args)
+
 
 if __name__ == "__main__":
     main()

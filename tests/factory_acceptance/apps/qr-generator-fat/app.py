@@ -22,8 +22,10 @@ DEFAULT_BORDER = 4
 DEFAULT_FILL_COLOR = "black"
 DEFAULT_BACK_COLOR = "white"
 
-def generate_qr_code(data, size=DEFAULT_SIZE, border=DEFAULT_BORDER,
-                     fill_color=DEFAULT_FILL_COLOR, back_color=DEFAULT_BACK_COLOR):
+
+def generate_qr_code(
+    data, size=DEFAULT_SIZE, border=DEFAULT_BORDER, fill_color=DEFAULT_FILL_COLOR, back_color=DEFAULT_BACK_COLOR
+):
     """Generate QR code and return as base64 encoded string"""
 
     # Create QR code instance
@@ -43,164 +45,140 @@ def generate_qr_code(data, size=DEFAULT_SIZE, border=DEFAULT_BORDER,
 
     # Convert to base64
     buffer = io.BytesIO()
-    img.save(buffer, format='PNG')
+    img.save(buffer, format="PNG")
     buffer.seek(0)
 
-    img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    img_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     return img_base64
 
-@app.route('/api/health', methods=['GET'])
+
+@app.route("/api/health", methods=["GET"])
 def health_check():
     """Health check endpoint"""
-    return jsonify({
-        "status": "healthy",
-        "service": "qr-generator",
-        "version": "1.0.0",
-        "generated_by": "hive_autonomous_agents",
-        "test_type": "external_dependency_fat",
-        "dependencies": {
-            "qrcode": "installed",
-            "Pillow": "installed",
-            "flask": "installed",
-            "flask-cors": "installed"
+    return jsonify(
+        {
+            "status": "healthy",
+            "service": "qr-generator",
+            "version": "1.0.0",
+            "generated_by": "hive_autonomous_agents",
+            "test_type": "external_dependency_fat",
+            "dependencies": {
+                "qrcode": "installed",
+                "Pillow": "installed",
+                "flask": "installed",
+                "flask-cors": "installed",
+            },
         }
-    })
+    )
 
-@app.route('/api/generate', methods=['POST'])
+
+@app.route("/api/generate", methods=["POST"])
 def generate_qr():
     """Generate QR code from provided data"""
     try:
         data = request.get_json()
 
-        if not data or 'text' not in data:
-            return jsonify({
-                "success": False,
-                "error": "Text parameter is required"
-            }), 400
+        if not data or "text" not in data:
+            return jsonify({"success": False, "error": "Text parameter is required"}), 400
 
-        text = data['text']
-        size = data.get('size', DEFAULT_SIZE)
-        border = data.get('border', DEFAULT_BORDER)
-        fill_color = data.get('fill_color', DEFAULT_FILL_COLOR)
-        back_color = data.get('back_color', DEFAULT_BACK_COLOR)
+        text = data["text"]
+        size = data.get("size", DEFAULT_SIZE)
+        border = data.get("border", DEFAULT_BORDER)
+        fill_color = data.get("fill_color", DEFAULT_FILL_COLOR)
+        back_color = data.get("back_color", DEFAULT_BACK_COLOR)
 
         # Generate QR code
         qr_base64 = generate_qr_code(text, size, border, fill_color, back_color)
 
-        return jsonify({
-            "success": True,
-            "qr_code": qr_base64,
-            "format": "png",
-            "encoding": "base64",
-            "text": text,
-            "generated_at": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "qr_code": qr_base64,
+                "format": "png",
+                "encoding": "base64",
+                "text": text,
+                "generated_at": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": f"QR generation failed: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"QR generation failed: {str(e)}"}), 500
 
-@app.route('/api/batch', methods=['POST'])
+
+@app.route("/api/batch", methods=["POST"])
 def generate_batch():
     """Generate multiple QR codes in batch"""
     try:
         data = request.get_json()
 
-        if not data or 'items' not in data:
-            return jsonify({
-                "success": False,
-                "error": "Items array is required"
-            }), 400
+        if not data or "items" not in data:
+            return jsonify({"success": False, "error": "Items array is required"}), 400
 
-        items = data['items']
+        items = data["items"]
         if not isinstance(items, list) or len(items) == 0:
-            return jsonify({
-                "success": False,
-                "error": "Items must be a non-empty array"
-            }), 400
+            return jsonify({"success": False, "error": "Items must be a non-empty array"}), 400
 
         results = []
 
         for item in items:
             if isinstance(item, str):
                 text = item
-            elif isinstance(item, dict) and 'text' in item:
-                text = item['text']
+            elif isinstance(item, dict) and "text" in item:
+                text = item["text"]
             else:
                 continue
 
             qr_base64 = generate_qr_code(text)
-            results.append({
-                "text": text,
-                "qr_code": qr_base64
-            })
+            results.append({"text": text, "qr_code": qr_base64})
 
-        return jsonify({
-            "success": True,
-            "count": len(results),
-            "results": results,
-            "generated_at": datetime.now().isoformat()
-        })
+        return jsonify(
+            {"success": True, "count": len(results), "results": results, "generated_at": datetime.now().isoformat()}
+        )
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": f"Batch generation failed: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Batch generation failed: {str(e)}"}), 500
 
-@app.route('/api/validate', methods=['POST'])
+
+@app.route("/api/validate", methods=["POST"])
 def validate_dependencies():
     """Validate that all external dependencies are properly installed"""
     dependencies = {}
 
     try:
         import qrcode
-        dependencies['qrcode'] = {
-            "installed": True,
-            "version": getattr(qrcode, '__version__', 'unknown')
-        }
+
+        dependencies["qrcode"] = {"installed": True, "version": getattr(qrcode, "__version__", "unknown")}
     except ImportError:
-        dependencies['qrcode'] = {"installed": False}
+        dependencies["qrcode"] = {"installed": False}
 
     try:
         import PIL
-        dependencies['Pillow'] = {
-            "installed": True,
-            "version": PIL.__version__
-        }
+
+        dependencies["Pillow"] = {"installed": True, "version": PIL.__version__}
     except ImportError:
-        dependencies['Pillow'] = {"installed": False}
+        dependencies["Pillow"] = {"installed": False}
 
     try:
         import flask
-        dependencies['flask'] = {
-            "installed": True,
-            "version": flask.__version__
-        }
+
+        dependencies["flask"] = {"installed": True, "version": flask.__version__}
     except ImportError:
-        dependencies['flask'] = {"installed": False}
+        dependencies["flask"] = {"installed": False}
 
     try:
         import flask_cors
-        dependencies['flask_cors'] = {
-            "installed": True,
-            "version": getattr(flask_cors, '__version__', 'unknown')
-        }
+
+        dependencies["flask_cors"] = {"installed": True, "version": getattr(flask_cors, "__version__", "unknown")}
     except ImportError:
-        dependencies['flask_cors'] = {"installed": False}
+        dependencies["flask_cors"] = {"installed": False}
 
-    all_installed = all(dep.get('installed', False) for dep in dependencies.values())
+    all_installed = all(dep.get("installed", False) for dep in dependencies.values())
 
-    return jsonify({
-        "success": all_installed,
-        "dependencies": dependencies,
-        "test_type": "external_dependency_fat"
-    })
+    return jsonify({"success": all_installed, "dependencies": dependencies, "test_type": "external_dependency_fat"})
 
-@app.route('/', methods=['GET'])
+
+@app.route("/", methods=["GET"])
 def index():
     """Simple UI for testing"""
     html_content = """<!DOCTYPE html>
@@ -260,7 +238,8 @@ def index():
 </html>"""
     return html_content
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("Starting QR Code Generator Service on port 5004...")
     print("External dependencies: qrcode, Pillow")
-    app.run(host='0.0.0.0', port=5004, debug=False)
+    app.run(host="0.0.0.0", port=5004, debug=False)

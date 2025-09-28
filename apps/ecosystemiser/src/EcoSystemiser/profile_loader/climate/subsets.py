@@ -119,9 +119,7 @@ def extract_season(ds: xr.Dataset, season: str) -> xr.Dataset:
     return ds.isel(time=mask)
 
 
-def extract_typical_periods(
-    ds: xr.Dataset, period_type: str = "typical_week"
-) -> xr.Dataset:
+def extract_typical_periods(ds: xr.Dataset, period_type: str = "typical_week") -> xr.Dataset:
     """
     Extract typical periods from dataset.
 
@@ -141,9 +139,7 @@ def extract_typical_periods(
         # Calculate distance from annual mean for each week
         distances = {}
         for week_start in weekly_means.time.values:
-            week_data = ds.sel(
-                time=slice(week_start, week_start + pd.Timedelta(days=7))
-            )
+            week_data = ds.sel(time=slice(week_start, week_start + pd.Timedelta(days=7)))
             if len(week_data.time) > 0:
                 week_mean = week_data.mean(dim="time")
                 # Simple euclidean distance across all variables
@@ -156,11 +152,7 @@ def extract_typical_periods(
         # Select week with minimum distance
         if distances:
             typical_week_start = min(distances, key=distances.get)
-            typical_week = ds.sel(
-                time=slice(
-                    typical_week_start, typical_week_start + pd.Timedelta(days=7)
-                )
-            )
+            typical_week = ds.sel(time=slice(typical_week_start, typical_week_start + pd.Timedelta(days=7)))
             return typical_week
 
     elif period_type == "typical_day":
@@ -190,9 +182,7 @@ def extract_typical_periods(
             peak_week_idx = weekly_means["temp_air"].argmax()
             peak_week_start = weekly_means.time[peak_week_idx].values
 
-            return ds.sel(
-                time=slice(peak_week_start, peak_week_start + pd.Timedelta(days=7))
-            )
+            return ds.sel(time=slice(peak_week_start, peak_week_start + pd.Timedelta(days=7)))
 
     logger.warning(f"Could not extract {period_type}, returning full dataset")
     return ds

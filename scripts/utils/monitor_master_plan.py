@@ -25,13 +25,10 @@ import sqlite3
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('grand_integration_test.log')
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(), logging.FileHandler("grand_integration_test.log")],
 )
-logger = logging.getLogger('grand-monitor')
+logger = logging.getLogger("grand-monitor")
 
 
 class GrandIntegrationMonitor:
@@ -54,7 +51,7 @@ class GrandIntegrationMonitor:
             "phases": {},
             "timeline": [],
             "verification_results": {},
-            "final_status": "running"
+            "final_status": "running",
         }
 
         # Load test metadata
@@ -69,20 +66,16 @@ class GrandIntegrationMonitor:
         self.max_monitoring_time = 1800  # 30 minutes max
         self.poll_interval = 10  # Check every 10 seconds
         self.phase_timeouts = {
-            "planning": 300,    # 5 minutes for AI Planner
-            "execution": 900,   # 15 minutes for initial task execution
-            "lifecycle": 600    # 10 minutes for full lifecycle completion
+            "planning": 300,  # 5 minutes for AI Planner
+            "execution": 900,  # 15 minutes for initial task execution
+            "lifecycle": 600,  # 10 minutes for full lifecycle completion
         }
 
         logger.info(f"Grand Integration Monitor initialized for task: {master_task_id}")
 
     def log_timeline_event(self, event: str, data: Dict = None):
         """Log a timeline event with timestamp"""
-        event_data = {
-            "timestamp": datetime.now().isoformat(),
-            "event": event,
-            "data": data or {}
-        }
+        event_data = {"timestamp": datetime.now().isoformat(), "event": event, "data": data or {}}
         self.monitoring_data["timeline"].append(event_data)
         logger.info(f"TIMELINE: {event}")
 
@@ -95,7 +88,10 @@ class GrandIntegrationMonitor:
             state = {}
 
             # Planning queue state
-            cursor.execute("SELECT id, status, assigned_agent, created_at, assigned_at, completed_at FROM planning_queue WHERE id = ?", (self.master_task_id,))
+            cursor.execute(
+                "SELECT id, status, assigned_agent, created_at, assigned_at, completed_at FROM planning_queue WHERE id = ?",
+                (self.master_task_id,),
+            )
             planning_row = cursor.fetchone()
             if planning_row:
                 state["planning_queue"] = {
@@ -104,31 +100,30 @@ class GrandIntegrationMonitor:
                     "assigned_agent": planning_row[2],
                     "created_at": planning_row[3],
                     "assigned_at": planning_row[4],
-                    "completed_at": planning_row[5]
+                    "completed_at": planning_row[5],
                 }
             else:
                 state["planning_queue"] = None
 
             # Execution plans
-            cursor.execute("SELECT id, planning_task_id, status, generated_at FROM execution_plans WHERE planning_task_id = ?", (self.master_task_id,))
+            cursor.execute(
+                "SELECT id, planning_task_id, status, generated_at FROM execution_plans WHERE planning_task_id = ?",
+                (self.master_task_id,),
+            )
             plans = cursor.fetchall()
             state["execution_plans"] = [
-                {
-                    "id": row[0],
-                    "planning_task_id": row[1],
-                    "status": row[2],
-                    "generated_at": row[3]
-                }
-                for row in plans
+                {"id": row[0], "planning_task_id": row[1], "status": row[2], "generated_at": row[3]} for row in plans
             ]
 
             # Sub-tasks created by planner
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT id, title, status, assignee, created_at, metadata
                 FROM tasks
                 WHERE task_type = 'planned_subtask'
                 ORDER BY created_at ASC
-            """)
+            """
+            )
             tasks = cursor.fetchall()
             state["subtasks"] = []
             for row in tasks:
@@ -138,7 +133,7 @@ class GrandIntegrationMonitor:
                     "status": row[2],
                     "assignee": row[3],
                     "created_at": row[4],
-                    "metadata": json.loads(row[5]) if row[5] else {}
+                    "metadata": json.loads(row[5]) if row[5] else {},
                 }
                 # Check if this task belongs to our master plan
                 if task_data["metadata"].get("parent_plan_id"):
@@ -148,21 +143,18 @@ class GrandIntegrationMonitor:
             if state["subtasks"]:
                 task_ids = [task["id"] for task in state["subtasks"]]
                 placeholders = ",".join("?" * len(task_ids))
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT task_id, status, phase, created_at, completed_at
                     FROM runs
                     WHERE task_id IN ({placeholders})
                     ORDER BY created_at ASC
-                """, task_ids)
+                """,
+                    task_ids,
+                )
                 runs = cursor.fetchall()
                 state["runs"] = [
-                    {
-                        "task_id": row[0],
-                        "status": row[1],
-                        "phase": row[2],
-                        "created_at": row[3],
-                        "completed_at": row[4]
-                    }
+                    {"task_id": row[0], "status": row[1], "phase": row[2], "created_at": row[3], "completed_at": row[4]}
                     for row in runs
                 ]
             else:
@@ -197,11 +189,14 @@ class GrandIntegrationMonitor:
             if subtasks_count == 0:
                 return False, f"Execution plan created but no sub-tasks found (plans: {plans_count})"
 
-            self.log_timeline_event("planning_phase_completed", {
-                "execution_plans": plans_count,
-                "subtasks_created": subtasks_count,
-                "planning_agent": state.get("planning_queue", {}).get("assigned_agent")
-            })
+            self.log_timeline_event(
+                "planning_phase_completed",
+                {
+                    "execution_plans": plans_count,
+                    "subtasks_created": subtasks_count,
+                    "planning_agent": state.get("planning_queue", {}).get("assigned_agent"),
+                },
+            )
 
             return True, f"Planning completed: {plans_count} plans, {subtasks_count} sub-tasks"
 
@@ -228,19 +223,21 @@ class GrandIntegrationMonitor:
             return False, f"Sub-tasks created ({len(subtasks)}) but none picked up by Queen yet"
 
         if tasks_in_progress:
-            self.log_timeline_event("execution_phase_started", {
-                "tasks_in_progress": len(tasks_in_progress),
-                "total_subtasks": len(subtasks)
-            })
+            self.log_timeline_event(
+                "execution_phase_started",
+                {"tasks_in_progress": len(tasks_in_progress), "total_subtasks": len(subtasks)},
+            )
 
         if tasks_with_runs:
             unique_tasks_with_runs = len(set(tasks_with_runs))
-            self.log_timeline_event("queen_execution_detected", {
-                "tasks_with_runs": unique_tasks_with_runs,
-                "total_runs": len(runs)
-            })
+            self.log_timeline_event(
+                "queen_execution_detected", {"tasks_with_runs": unique_tasks_with_runs, "total_runs": len(runs)}
+            )
 
-        return True, f"Execution started: {len(tasks_in_progress)} tasks in progress, {len(set(tasks_with_runs))} with runs"
+        return (
+            True,
+            f"Execution started: {len(tasks_in_progress)} tasks in progress, {len(set(tasks_with_runs))} with runs",
+        )
 
     def check_phase_lifecycle(self, state: Dict) -> Tuple[bool, str]:
         """Check if any task has completed the full lifecycle"""
@@ -268,10 +265,9 @@ class GrandIntegrationMonitor:
 
             if all(phase in phases_completed for phase in lifecycle_phases):
                 completed_lifecycles += 1
-                self.log_timeline_event("lifecycle_completed", {
-                    "task_id": task_id,
-                    "phases_completed": list(phases_completed)
-                })
+                self.log_timeline_event(
+                    "lifecycle_completed", {"task_id": task_id, "phases_completed": list(phases_completed)}
+                )
             elif len(phases_completed) > 0:
                 partial_lifecycles += 1
 
@@ -305,9 +301,9 @@ class GrandIntegrationMonitor:
             report.append(f"  Status: {planning['status']}")
             report.append(f"  Agent: {planning.get('assigned_agent', 'none')}")
             report.append(f"  Created: {planning['created_at']}")
-            if planning['assigned_at']:
+            if planning["assigned_at"]:
                 report.append(f"  Assigned: {planning['assigned_at']}")
-            if planning['completed_at']:
+            if planning["completed_at"]:
                 report.append(f"  Completed: {planning['completed_at']}")
 
         plans = state.get("execution_plans", [])
@@ -384,11 +380,7 @@ class GrandIntegrationMonitor:
         state = self.get_database_state()
 
         # Check each phase
-        phases_status = {
-            "planning": False,
-            "execution": False,
-            "lifecycle": False
-        }
+        phases_status = {"planning": False, "execution": False, "lifecycle": False}
 
         # Phase 1: Planning
         planning_complete, planning_msg = self.check_phase_planning(state)
@@ -461,10 +453,13 @@ class GrandIntegrationMonitor:
                     print("\n" + report)
 
                 if test_complete:
-                    self.log_timeline_event("test_completed", {
-                        "cycles_completed": monitoring_cycles,
-                        "total_duration": str(datetime.now() - self.start_time)
-                    })
+                    self.log_timeline_event(
+                        "test_completed",
+                        {
+                            "cycles_completed": monitoring_cycles,
+                            "total_duration": str(datetime.now() - self.start_time),
+                        },
+                    )
                     break
 
                 # Wait for next cycle
@@ -476,10 +471,10 @@ class GrandIntegrationMonitor:
             else:
                 # Timeout reached
                 self.monitoring_data["final_status"] = "timeout"
-                self.log_timeline_event("monitoring_timeout", {
-                    "max_cycles_reached": max_cycles,
-                    "total_duration": str(datetime.now() - self.start_time)
-                })
+                self.log_timeline_event(
+                    "monitoring_timeout",
+                    {"max_cycles_reached": max_cycles, "total_duration": str(datetime.now() - self.start_time)},
+                )
 
         except KeyboardInterrupt:
             self.monitoring_data["final_status"] = "interrupted"
@@ -525,18 +520,18 @@ class GrandIntegrationMonitor:
             "planning": {
                 "name": "AI Planner Integration",
                 "description": "AI Planner processes master task and generates execution plan",
-                "success": phases.get("planning", False)
+                "success": phases.get("planning", False),
             },
             "execution": {
                 "name": "Hive Orchestrator Integration",
                 "description": "Queen picks up sub-tasks and begins execution",
-                "success": phases.get("execution", False)
+                "success": phases.get("execution", False),
             },
             "lifecycle": {
                 "name": "Full Lifecycle Completion",
                 "description": "Tasks complete apply -> inspect -> review -> test cycle",
-                "success": phases.get("lifecycle", False)
-            }
+                "success": phases.get("lifecycle", False),
+            },
         }
 
         for phase_key, phase_info in phase_results.items():
@@ -629,12 +624,12 @@ def main():
 
     # Save detailed results
     results_path = hive_root / "grand_integration_results.json"
-    with open(results_path, 'w') as f:
+    with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
 
     # Save final report
     report_path = hive_root / "grand_integration_report.txt"
-    with open(report_path, 'w') as f:
+    with open(report_path, "w") as f:
         f.write(final_report)
 
     print(f"\nDetailed results saved to: {results_path}")

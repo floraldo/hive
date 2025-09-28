@@ -178,15 +178,9 @@ class PipelineMonitor:
                         metrics.failed_subtasks = count
 
                 # Performance Metrics
-                metrics.avg_planning_time_minutes = self._calculate_avg_planning_time(
-                    conn
-                )
-                metrics.avg_execution_time_minutes = self._calculate_avg_execution_time(
-                    conn
-                )
-                metrics.avg_plan_completion_percentage = (
-                    self._calculate_avg_plan_completion(conn)
-                )
+                metrics.avg_planning_time_minutes = self._calculate_avg_planning_time(conn)
+                metrics.avg_execution_time_minutes = self._calculate_avg_execution_time(conn)
+                metrics.avg_plan_completion_percentage = self._calculate_avg_plan_completion(conn)
 
                 # Health Indicators
                 metrics.stuck_tasks_count = self._count_stuck_tasks(conn)
@@ -301,9 +295,7 @@ class PipelineMonitor:
         )
         return float(cursor.fetchone()[0])
 
-    def check_health(
-        self, metrics: PipelineMetrics
-    ) -> Tuple[HealthStatus, List[PipelineAlert]]:
+    def check_health(self, metrics: PipelineMetrics) -> Tuple[HealthStatus, List[PipelineAlert]]:
         """
         Check pipeline health and generate alerts
 
@@ -318,11 +310,7 @@ class PipelineMonitor:
 
         # Check for stuck tasks
         if metrics.stuck_tasks_count > 0:
-            severity = (
-                HealthStatus.CRITICAL
-                if metrics.stuck_tasks_count > 5
-                else HealthStatus.WARNING
-            )
+            severity = HealthStatus.CRITICAL if metrics.stuck_tasks_count > 5 else HealthStatus.WARNING
             alerts.append(
                 PipelineAlert(
                     severity=severity,
@@ -330,9 +318,7 @@ class PipelineMonitor:
                     message=f"{metrics.stuck_tasks_count} tasks appear to be stuck",
                     details={
                         "stuck_count": metrics.stuck_tasks_count,
-                        "threshold_minutes": self.alert_thresholds[
-                            "stuck_task_minutes"
-                        ],
+                        "threshold_minutes": self.alert_thresholds["stuck_task_minutes"],
                     },
                     timestamp=datetime.now(timezone.utc).isoformat(),
                     alert_id=f"stuck_tasks_{int(time.time())}",
@@ -343,15 +329,8 @@ class PipelineMonitor:
             health_scores.append(1.0)
 
         # Check error rate
-        if (
-            metrics.error_rate_percentage
-            > self.alert_thresholds["error_rate_percentage"]
-        ):
-            severity = (
-                HealthStatus.CRITICAL
-                if metrics.error_rate_percentage > 25
-                else HealthStatus.WARNING
-            )
+        if metrics.error_rate_percentage > self.alert_thresholds["error_rate_percentage"]:
+            severity = HealthStatus.CRITICAL if metrics.error_rate_percentage > 25 else HealthStatus.WARNING
             alerts.append(
                 PipelineAlert(
                     severity=severity,
@@ -370,10 +349,7 @@ class PipelineMonitor:
             health_scores.append(1.0)
 
         # Check throughput
-        if (
-            metrics.pipeline_throughput_per_hour
-            < self.alert_thresholds["low_throughput_per_hour"]
-        ):
+        if metrics.pipeline_throughput_per_hour < self.alert_thresholds["low_throughput_per_hour"]:
             alerts.append(
                 PipelineAlert(
                     severity=HealthStatus.WARNING,
@@ -497,9 +473,7 @@ class PipelineMonitor:
             report_lines.extend(["🚨 ACTIVE ALERTS", "-" * 15])
             for alert in alerts:
                 icon = "🔴" if alert.severity == HealthStatus.CRITICAL else "🟡"
-                report_lines.append(
-                    f"{icon} [{alert.stage.value.upper()}] {alert.message}"
-                )
+                report_lines.append(f"{icon} [{alert.stage.value.upper()}] {alert.message}")
             report_lines.append("")
         else:
             report_lines.extend(["OK NO ACTIVE ALERTS", ""])
@@ -527,44 +501,30 @@ class PipelineMonitor:
 
         # High error rate recommendations
         if metrics.error_rate_percentage > 5:
-            recommendations.append(
-                f"Investigate failed tasks - error rate is {metrics.error_rate_percentage:.1f}%"
-            )
+            recommendations.append(f"Investigate failed tasks - error rate is {metrics.error_rate_percentage:.1f}%")
 
         # Low throughput recommendations
         if metrics.pipeline_throughput_per_hour < 2:
-            recommendations.append(
-                "Consider increasing worker capacity or optimizing task execution"
-            )
+            recommendations.append("Consider increasing worker capacity or optimizing task execution")
 
         # Stuck tasks recommendations
         if metrics.stuck_tasks_count > 0:
-            recommendations.append(
-                f"Review {metrics.stuck_tasks_count} stuck tasks for timeout issues"
-            )
+            recommendations.append(f"Review {metrics.stuck_tasks_count} stuck tasks for timeout issues")
 
         # Queue backup recommendations
         total_pending = metrics.pending_planning_tasks + metrics.queued_subtasks
         if total_pending > 10:
-            recommendations.append(
-                "Consider scaling AI Planner or Queen capacity to reduce queue backup"
-            )
+            recommendations.append("Consider scaling AI Planner or Queen capacity to reduce queue backup")
 
         # Plan completion recommendations
         if metrics.avg_plan_completion_percentage < 80:
-            recommendations.append(
-                "Review incomplete execution plans for blocking dependencies"
-            )
+            recommendations.append("Review incomplete execution plans for blocking dependencies")
 
         # General health recommendations
         if health == HealthStatus.CRITICAL:
-            recommendations.append(
-                "Immediate investigation required - multiple critical issues detected"
-            )
+            recommendations.append("Immediate investigation required - multiple critical issues detected")
         elif health == HealthStatus.WARNING:
-            recommendations.append(
-                "Monitor system closely and address warnings before they become critical"
-            )
+            recommendations.append("Monitor system closely and address warnings before they become critical")
 
         return recommendations
 
@@ -581,9 +541,7 @@ class PipelineMonitor:
                 # Keep only last 24 hours of metrics
                 cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
                 self.metrics_history = [
-                    m
-                    for m in self.metrics_history
-                    if datetime.fromisoformat(m.last_updated) > cutoff_time
+                    m for m in self.metrics_history if datetime.fromisoformat(m.last_updated) > cutoff_time
                 ]
 
                 # Check health
@@ -615,20 +573,14 @@ class PipelineMonitor:
 
     async def monitor_loop_async(self, interval_seconds: int = 60):
         """Async version of monitoring loop for non-blocking operation"""
-        logger.info(
-            f"Starting async pipeline monitor loop (interval: {interval_seconds}s)"
-        )
+        logger.info(f"Starting async pipeline monitor loop (interval: {interval_seconds}s)")
 
         while True:
             try:
                 # Run monitoring in thread pool to avoid blocking
-                metrics = await asyncio.get_event_loop().run_in_executor(
-                    None, self.collect_metrics
-                )
+                metrics = await asyncio.get_event_loop().run_in_executor(None, self.collect_metrics)
 
-                health, alerts = await asyncio.get_event_loop().run_in_executor(
-                    None, self.check_health, metrics
-                )
+                health, alerts = await asyncio.get_event_loop().run_in_executor(None, self.check_health, metrics)
 
                 # Update state
                 self.metrics_history.append(metrics)

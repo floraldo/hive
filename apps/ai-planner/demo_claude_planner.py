@@ -89,12 +89,8 @@ def demonstrate_claude_planning() -> None:
     print(f"Task ID: {complex_task['id']}")
     print(f"Description: {complex_task['task_description'][:100]}...")
     print(f"Priority: {complex_task['priority']}/100")
-    print(
-        f"Dependencies: {len(complex_task['context_data']['dependencies'])} technologies"
-    )
-    print(
-        f"Constraints: {len(complex_task['context_data']['constraints'])} requirements"
-    )
+    print(f"Dependencies: {len(complex_task['context_data']['dependencies'])} technologies")
+    print(f"Constraints: {len(complex_task['context_data']['constraints'])} requirements")
     print()
 
     # Insert task into planning queue
@@ -144,12 +140,8 @@ def demonstrate_claude_planning() -> None:
 
             print("PLAN METRICS:")
             metrics = plan.get("metrics", {})
-            print(
-                f"  Total Duration: {metrics.get('total_estimated_duration', 'N/A')} minutes"
-            )
-            print(
-                f"  Critical Path: {metrics.get('critical_path_duration', 'N/A')} minutes"
-            )
+            print(f"  Total Duration: {metrics.get('total_estimated_duration', 'N/A')} minutes")
+            print(f"  Critical Path: {metrics.get('critical_path_duration', 'N/A')} minutes")
             print(f"  Complexity: {metrics.get('complexity_breakdown', {})}")
             print(f"  Skills Required: {metrics.get('skill_requirements', {})}")
             print(f"  Confidence Score: {metrics.get('confidence_score', 'N/A')}")
@@ -218,9 +210,7 @@ def demonstrate_claude_planning() -> None:
 
     # Cleanup
     cursor.execute("DELETE FROM planning_queue WHERE id = ?", (task["id"],))
-    cursor.execute(
-        "DELETE FROM execution_plans WHERE planning_task_id = ?", (task["id"],)
-    )
+    cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (task["id"],))
     cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
     conn.commit()
     conn.close()

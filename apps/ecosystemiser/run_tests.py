@@ -142,9 +142,7 @@ Examples:
 
     parser.add_argument("--all", action="store_true", help="Run all test suites")
     parser.add_argument("--unit", action="store_true", help="Run unit tests only")
-    parser.add_argument(
-        "--integration", action="store_true", help="Run integration tests only"
-    )
+    parser.add_argument("--integration", action="store_true", help="Run integration tests only")
 
     args = parser.parse_args()
 

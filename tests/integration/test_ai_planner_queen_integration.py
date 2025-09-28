@@ -25,13 +25,15 @@ from unittest.mock import Mock, patch
 # Test imports - use proper path setup
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'apps', 'hive-orchestrator', 'src'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'apps', 'ai-planner', 'src'))
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps", "hive-orchestrator", "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps", "ai-planner", "src"))
 
 # Import components to test
 from hive_orchestrator.core.db import database_enhanced_optimized as db_enhanced
 from hive_orchestrator.core.db.database import get_connection, init_db, create_task
 from ai_planner.agent import AIPlanner
+
 
 class TestAIPlannerQueenIntegration:
     """Test complete AI Planner → Queen → Worker integration"""
@@ -39,7 +41,7 @@ class TestAIPlannerQueenIntegration:
     @pytest.fixture
     def temp_db(self):
         """Create temporary database for testing"""
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
             db_path = f.name
 
         # Initialize test database
@@ -49,11 +51,12 @@ class TestAIPlannerQueenIntegration:
 
         # Mock get_connection to use test DB
         original_get_connection = get_connection
+
         def mock_get_connection():
             return sqlite3.connect(db_path)
 
-        with patch('hive_orchestrator.core.db.database.get_connection', mock_get_connection):
-            with patch('ai_planner.agent.get_connection', mock_get_connection):
+        with patch("hive_orchestrator.core.db.database.get_connection", mock_get_connection):
+            with patch("ai_planner.agent.get_connection", mock_get_connection):
                 yield db_path
 
         # Cleanup
@@ -61,7 +64,8 @@ class TestAIPlannerQueenIntegration:
 
     def _create_test_schema(self, conn):
         """Create test database schema"""
-        conn.executescript('''
+        conn.executescript(
+            """
             CREATE TABLE planning_queue (
                 id TEXT PRIMARY KEY,
                 task_description TEXT NOT NULL,
@@ -133,7 +137,8 @@ class TestAIPlannerQueenIntegration:
             CREATE INDEX idx_execution_plans_status ON execution_plans (status);
             CREATE INDEX idx_tasks_status_type ON tasks (status, task_type);
             CREATE INDEX idx_tasks_payload_parent ON tasks (json_extract(payload, '$.parent_plan_id'));
-        ''')
+        """
+        )
         conn.commit()
 
     def test_planning_queue_to_execution_plan_flow(self, temp_db):
@@ -142,16 +147,19 @@ class TestAIPlannerQueenIntegration:
         task_id = str(uuid.uuid4())
 
         conn = sqlite3.connect(temp_db)
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO planning_queue (id, task_description, priority, requestor, context_data)
             VALUES (?, ?, ?, ?, ?)
-        ''', (
-            task_id,
-            "Create authentication API endpoints",
-            75,
-            "test_user",
-            json.dumps({"files_affected": 5, "complexity": "medium"})
-        ))
+        """,
+            (
+                task_id,
+                "Create authentication API endpoints",
+                75,
+                "test_user",
+                json.dumps({"files_affected": 5, "complexity": "medium"}),
+            ),
+        )
         conn.commit()
         conn.close()
 
@@ -159,73 +167,73 @@ class TestAIPlannerQueenIntegration:
         planner = AIPlanner(mock_mode=True)
 
         # Test task retrieval
-        with patch.object(planner, 'connect_database', return_value=True):
+        with patch.object(planner, "connect_database", return_value=True):
             planner.db_connection = sqlite3.connect(temp_db)
 
             task = planner.get_next_task()
             assert task is not None
-            assert task['id'] == task_id
-            assert task['task_description'] == "Create authentication API endpoints"
-            assert task['status'] == 'assigned'  # Should be marked as assigned
+            assert task["id"] == task_id
+            assert task["task_description"] == "Create authentication API endpoints"
+            assert task["status"] == "assigned"  # Should be marked as assigned
 
         # Test plan generation (mocked)
         mock_plan = {
-            'plan_id': f"plan_{task_id}",
-            'task_id': task_id,
-            'plan_name': 'Authentication API Implementation',
-            'sub_tasks': [
+            "plan_id": f"plan_{task_id}",
+            "task_id": task_id,
+            "plan_name": "Authentication API Implementation",
+            "sub_tasks": [
                 {
-                    'id': 'auth_1',
-                    'title': 'Design API Schema',
-                    'description': 'Create OpenAPI specification for auth endpoints',
-                    'assignee': 'worker:backend',
-                    'complexity': 'medium',
-                    'estimated_duration': 30,
-                    'workflow_phase': 'design',
-                    'required_skills': ['api_design', 'openapi'],
-                    'deliverables': ['openapi.yaml'],
-                    'dependencies': []
+                    "id": "auth_1",
+                    "title": "Design API Schema",
+                    "description": "Create OpenAPI specification for auth endpoints",
+                    "assignee": "worker:backend",
+                    "complexity": "medium",
+                    "estimated_duration": 30,
+                    "workflow_phase": "design",
+                    "required_skills": ["api_design", "openapi"],
+                    "deliverables": ["openapi.yaml"],
+                    "dependencies": [],
                 },
                 {
-                    'id': 'auth_2',
-                    'title': 'Implement JWT Service',
-                    'description': 'Create JWT token generation and validation',
-                    'assignee': 'worker:backend',
-                    'complexity': 'medium',
-                    'estimated_duration': 45,
-                    'workflow_phase': 'implementation',
-                    'required_skills': ['python', 'jwt', 'security'],
-                    'deliverables': ['jwt_service.py', 'tests/test_jwt.py'],
-                    'dependencies': ['auth_1']
-                }
+                    "id": "auth_2",
+                    "title": "Implement JWT Service",
+                    "description": "Create JWT token generation and validation",
+                    "assignee": "worker:backend",
+                    "complexity": "medium",
+                    "estimated_duration": 45,
+                    "workflow_phase": "implementation",
+                    "required_skills": ["python", "jwt", "security"],
+                    "deliverables": ["jwt_service.py", "tests/test_jwt.py"],
+                    "dependencies": ["auth_1"],
+                },
             ],
-            'metrics': {
-                'total_estimated_duration': 75,
-                'complexity_breakdown': {'medium': 2}
-            },
-            'status': 'generated',
-            'created_at': datetime.now(timezone.utc).isoformat()
+            "metrics": {"total_estimated_duration": 75, "complexity_breakdown": {"medium": 2}},
+            "status": "generated",
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
-        with patch.object(planner, 'generate_execution_plan', return_value=mock_plan):
+        with patch.object(planner, "generate_execution_plan", return_value=mock_plan):
             # Test plan saving
             success = planner.save_execution_plan(mock_plan)
             assert success
 
             # Verify execution plan was created
             conn = sqlite3.connect(temp_db)
-            cursor = conn.execute('SELECT * FROM execution_plans WHERE planning_task_id = ?', (task_id,))
+            cursor = conn.execute("SELECT * FROM execution_plans WHERE planning_task_id = ?", (task_id,))
             plan_row = cursor.fetchone()
             assert plan_row is not None
             assert plan_row[1] == task_id  # planning_task_id
-            assert plan_row[4] == 'generated'  # status
+            assert plan_row[4] == "generated"  # status
 
             # Verify subtasks were created
-            cursor = conn.execute('''
+            cursor = conn.execute(
+                """
                 SELECT COUNT(*) FROM tasks
                 WHERE task_type = 'planned_subtask'
                 AND json_extract(payload, '$.parent_plan_id') = ?
-            ''', (mock_plan['plan_id'],))
+            """,
+                (mock_plan["plan_id"],),
+            )
             subtask_count = cursor.fetchone()[0]
             assert subtask_count == 2
 
@@ -237,18 +245,24 @@ class TestAIPlannerQueenIntegration:
 
         # Create regular task
         regular_task_id = str(uuid.uuid4())
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, task_type, status, priority)
             VALUES (?, ?, ?, ?, ?)
-        ''', (regular_task_id, "Regular Task", "task", "queued", 60))
+        """,
+            (regular_task_id, "Regular Task", "task", "queued", 60),
+        )
 
         # Create execution plan
         plan_id = str(uuid.uuid4())
         planning_task_id = str(uuid.uuid4())
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO execution_plans (id, planning_task_id, plan_data, status)
             VALUES (?, ?, ?, ?)
-        ''', (plan_id, planning_task_id, json.dumps({"sub_tasks": []}), "generated"))
+        """,
+            (plan_id, planning_task_id, json.dumps({"sub_tasks": []}), "generated"),
+        )
 
         # Create planned subtasks
         subtask1_id = f"subtask_{plan_id}_1"
@@ -258,7 +272,7 @@ class TestAIPlannerQueenIntegration:
             "parent_plan_id": plan_id,
             "subtask_id": "1",
             "workflow_phase": "design",
-            "assignee": "worker:backend"
+            "assignee": "worker:backend",
         }
 
         subtask2_payload = {
@@ -266,42 +280,49 @@ class TestAIPlannerQueenIntegration:
             "subtask_id": "2",
             "workflow_phase": "implementation",
             "assignee": "worker:backend",
-            "dependencies": ["1"]
+            "dependencies": ["1"],
         }
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, task_type, status, priority, payload)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (subtask1_id, "Design API", "planned_subtask", "queued", 70, json.dumps(subtask1_payload)))
+        """,
+            (subtask1_id, "Design API", "planned_subtask", "queued", 70, json.dumps(subtask1_payload)),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, task_type, status, priority, payload)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (subtask2_id, "Implement API", "planned_subtask", "queued", 75, json.dumps(subtask2_payload)))
+        """,
+            (subtask2_id, "Implement API", "planned_subtask", "queued", 75, json.dumps(subtask2_payload)),
+        )
 
         conn.commit()
         conn.close()
 
         # Test enhanced task retrieval
-        with patch('hive_orchestrator.core.db.database_enhanced_optimized.get_connection',
-                   lambda: sqlite3.connect(temp_db)):
+        with patch(
+            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection", lambda: sqlite3.connect(temp_db)
+        ):
             tasks = db_enhanced.get_queued_tasks_with_planning_optimized(limit=10)
 
             assert len(tasks) == 3  # 1 regular + 2 planned subtasks
 
             # Check task types are preserved
-            task_types = [t['task_type'] for t in tasks]
-            assert 'task' in task_types
-            assert 'planned_subtask' in task_types
+            task_types = [t["task_type"] for t in tasks]
+            assert "task" in task_types
+            assert "planned_subtask" in task_types
 
             # Check planned subtasks have enhanced context
-            planned_tasks = [t for t in tasks if t['task_type'] == 'planned_subtask']
+            planned_tasks = [t for t in tasks if t["task_type"] == "planned_subtask"]
             assert len(planned_tasks) == 2
 
             for task in planned_tasks:
-                assert 'planner_context' in task
-                assert task['planner_context']['parent_plan_id'] == plan_id
-                assert task['planner_context']['workflow_phase'] in ['design', 'implementation']
+                assert "planner_context" in task
+                assert task["planner_context"]["parent_plan_id"] == plan_id
+                assert task["planner_context"]["workflow_phase"] in ["design", "implementation"]
 
     def test_dependency_resolution(self, temp_db):
         """Test dependency checking and resolution for planned subtasks"""
@@ -314,35 +335,35 @@ class TestAIPlannerQueenIntegration:
         task2_id = f"subtask_{plan_id}_2"
 
         # Task 1 - no dependencies
-        payload1 = {
-            "parent_plan_id": plan_id,
-            "subtask_id": "1",
-            "dependencies": []
-        }
+        payload1 = {"parent_plan_id": plan_id, "subtask_id": "1", "dependencies": []}
 
         # Task 2 - depends on task 1
         payload2 = {
             "parent_plan_id": plan_id,
             "subtask_id": "2",
-            "dependencies": ["1"]  # References subtask_id, not full task_id
+            "dependencies": ["1"],  # References subtask_id, not full task_id
         }
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, task_type, status, payload)
             VALUES (?, ?, ?, ?, ?)
-        ''', (task1_id, "Foundation Task", "planned_subtask", "queued", json.dumps(payload1)))
+        """,
+            (task1_id, "Foundation Task", "planned_subtask", "queued", json.dumps(payload1)),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, task_type, status, payload)
             VALUES (?, ?, ?, ?, ?)
-        ''', (task2_id, "Dependent Task", "planned_subtask", "queued", json.dumps(payload2)))
+        """,
+            (task2_id, "Dependent Task", "planned_subtask", "queued", json.dumps(payload2)),
+        )
 
         conn.commit()
 
         # Test dependency checking with task 1 not completed
-        with patch('hive_orchestrator.core.db.database_enhanced.get_connection',
-                   lambda: sqlite3.connect(temp_db)):
-
+        with patch("hive_orchestrator.core.db.database_enhanced.get_connection", lambda: sqlite3.connect(temp_db)):
             from hive_orchestrator.core.db.database_enhanced import check_subtask_dependencies
 
             # Task 1 should be ready (no dependencies)
@@ -352,7 +373,7 @@ class TestAIPlannerQueenIntegration:
             assert check_subtask_dependencies(task2_id) == False
 
         # Complete task 1
-        conn.execute('UPDATE tasks SET status = ? WHERE id = ?', ('completed', task1_id))
+        conn.execute("UPDATE tasks SET status = ? WHERE id = ?", ("completed", task1_id))
         conn.commit()
 
         # Now task 2 should be ready
@@ -370,87 +391,100 @@ class TestAIPlannerQueenIntegration:
         subtask_id = f"subtask_{plan_id}_1"
 
         # Create planning queue entry
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO planning_queue (id, task_description, status)
             VALUES (?, ?, ?)
-        ''', (planning_task_id, "Test task", "planned"))
+        """,
+            (planning_task_id, "Test task", "planned"),
+        )
 
         # Create execution plan
-        plan_data = {
-            "sub_tasks": [
-                {
-                    "id": "1",
-                    "title": "Test Subtask",
-                    "status": "queued"
-                }
-            ]
-        }
+        plan_data = {"sub_tasks": [{"id": "1", "title": "Test Subtask", "status": "queued"}]}
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO execution_plans (id, planning_task_id, plan_data, status)
             VALUES (?, ?, ?, ?)
-        ''', (plan_id, planning_task_id, json.dumps(plan_data), "executing"))
+        """,
+            (plan_id, planning_task_id, json.dumps(plan_data), "executing"),
+        )
 
         # Create subtask
-        payload = {
-            "parent_plan_id": plan_id,
-            "subtask_id": "1"
-        }
+        payload = {"parent_plan_id": plan_id, "subtask_id": "1"}
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, task_type, status, payload)
             VALUES (?, ?, ?, ?, ?)
-        ''', (subtask_id, "Test Subtask", "planned_subtask", "queued", json.dumps(payload)))
+        """,
+            (subtask_id, "Test Subtask", "planned_subtask", "queued", json.dumps(payload)),
+        )
 
         conn.commit()
 
         # Simulate worker execution
         # 1. Task gets assigned
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET status = ?, assignee = ?, assigned_at = ?
             WHERE id = ?
-        ''', ("assigned", "worker:backend", datetime.now(timezone.utc).isoformat(), subtask_id))
+        """,
+            ("assigned", "worker:backend", datetime.now(timezone.utc).isoformat(), subtask_id),
+        )
 
         # 2. Task starts execution
         run_id = str(uuid.uuid4())
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (id, task_id, worker_id, phase, status)
             VALUES (?, ?, ?, ?, ?)
-        ''', (run_id, subtask_id, "worker:backend", "apply", "running"))
+        """,
+            (run_id, subtask_id, "worker:backend", "apply", "running"),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET status = ?, started_at = ?
             WHERE id = ?
-        ''', ("in_progress", datetime.now(timezone.utc).isoformat(), subtask_id))
+        """,
+            ("in_progress", datetime.now(timezone.utc).isoformat(), subtask_id),
+        )
 
         # 3. Task completes successfully
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE runs SET status = ?, result = ?, completed_at = ?
             WHERE id = ?
-        ''', ("completed", json.dumps({"status": "success"}), datetime.now(timezone.utc).isoformat(), run_id))
+        """,
+            ("completed", json.dumps({"status": "success"}), datetime.now(timezone.utc).isoformat(), run_id),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET status = ?, completed_at = ?
             WHERE id = ?
-        ''', ("completed", datetime.now(timezone.utc).isoformat(), subtask_id))
+        """,
+            ("completed", datetime.now(timezone.utc).isoformat(), subtask_id),
+        )
 
         conn.commit()
 
         # Verify status pipeline
         # Check task status
-        cursor = conn.execute('SELECT status FROM tasks WHERE id = ?', (subtask_id,))
+        cursor = conn.execute("SELECT status FROM tasks WHERE id = ?", (subtask_id,))
         task_status = cursor.fetchone()[0]
         assert task_status == "completed"
 
         # Check run status
-        cursor = conn.execute('SELECT status, result FROM runs WHERE task_id = ?', (subtask_id,))
+        cursor = conn.execute("SELECT status, result FROM runs WHERE task_id = ?", (subtask_id,))
         run_row = cursor.fetchone()
         assert run_row[0] == "completed"
         run_result = json.loads(run_row[1])
         assert run_result["status"] == "success"
 
         # This would trigger plan progress updates in real system
-        cursor = conn.execute('SELECT status FROM execution_plans WHERE id = ?', (plan_id,))
+        cursor = conn.execute("SELECT status FROM execution_plans WHERE id = ?", (plan_id,))
         plan_status = cursor.fetchone()[0]
         assert plan_status == "executing"  # Could be updated to "completed" when all subtasks done
 
@@ -464,55 +498,71 @@ class TestAIPlannerQueenIntegration:
         plan_id = str(uuid.uuid4())
         subtask_id = f"subtask_{plan_id}_1"
 
-        payload = {
-            "parent_plan_id": plan_id,
-            "subtask_id": "1"
-        }
+        payload = {"parent_plan_id": plan_id, "subtask_id": "1"}
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO tasks (id, title, task_type, status, payload, retry_count)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (subtask_id, "Failing Task", "planned_subtask", "queued", json.dumps(payload), 0))
+        """,
+            (subtask_id, "Failing Task", "planned_subtask", "queued", json.dumps(payload), 0),
+        )
 
         conn.commit()
 
         # Simulate first failure
         run_id_1 = str(uuid.uuid4())
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (id, task_id, worker_id, status, result)
             VALUES (?, ?, ?, ?, ?)
-        ''', (run_id_1, subtask_id, "worker:backend", "failed",
-              json.dumps({"status": "failed", "error": "Network timeout"})))
+        """,
+            (
+                run_id_1,
+                subtask_id,
+                "worker:backend",
+                "failed",
+                json.dumps({"status": "failed", "error": "Network timeout"}),
+            ),
+        )
 
         # Update task for retry
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET status = ?, retry_count = ? WHERE id = ?
-        ''', ("queued", 1, subtask_id))
+        """,
+            ("queued", 1, subtask_id),
+        )
 
         conn.commit()
 
         # Verify retry logic
-        cursor = conn.execute('SELECT retry_count, status FROM tasks WHERE id = ?', (subtask_id,))
+        cursor = conn.execute("SELECT retry_count, status FROM tasks WHERE id = ?", (subtask_id,))
         row = cursor.fetchone()
         assert row[0] == 1  # retry_count incremented
         assert row[1] == "queued"  # back to queued for retry
 
         # Simulate second attempt success
         run_id_2 = str(uuid.uuid4())
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO runs (id, task_id, worker_id, status, result)
             VALUES (?, ?, ?, ?, ?)
-        ''', (run_id_2, subtask_id, "worker:backend", "completed",
-              json.dumps({"status": "success"})))
+        """,
+            (run_id_2, subtask_id, "worker:backend", "completed", json.dumps({"status": "success"})),
+        )
 
-        conn.execute('''
+        conn.execute(
+            """
             UPDATE tasks SET status = ? WHERE id = ?
-        ''', ("completed", subtask_id))
+        """,
+            ("completed", subtask_id),
+        )
 
         conn.commit()
 
         # Verify final state
-        cursor = conn.execute('SELECT status, retry_count FROM tasks WHERE id = ?', (subtask_id,))
+        cursor = conn.execute("SELECT status, retry_count FROM tasks WHERE id = ?", (subtask_id,))
         row = cursor.fetchone()
         assert row[0] == "completed"
         assert row[1] == 1  # retry count preserved
@@ -530,62 +580,64 @@ class TestAIPlannerQueenIntegration:
             "sub_tasks": [
                 {"id": "1", "title": "Parallel Task 1", "dependencies": []},
                 {"id": "2", "title": "Parallel Task 2", "dependencies": []},
-                {"id": "3", "title": "Sequential Task", "dependencies": ["1", "2"]}
+                {"id": "3", "title": "Sequential Task", "dependencies": ["1", "2"]},
             ]
         }
 
-        conn.execute('''
+        conn.execute(
+            """
             INSERT INTO execution_plans (id, planning_task_id, plan_data, status)
             VALUES (?, ?, ?, ?)
-        ''', (plan_id, str(uuid.uuid4()), json.dumps(plan_data), "executing"))
+        """,
+            (plan_id, str(uuid.uuid4()), json.dumps(plan_data), "executing"),
+        )
 
         # Create subtasks
         for i, subtask in enumerate(plan_data["sub_tasks"], 1):
             task_id = f"subtask_{plan_id}_{i}"
-            payload = {
-                "parent_plan_id": plan_id,
-                "subtask_id": subtask["id"],
-                "dependencies": subtask["dependencies"]
-            }
+            payload = {"parent_plan_id": plan_id, "subtask_id": subtask["id"], "dependencies": subtask["dependencies"]}
 
-            conn.execute('''
+            conn.execute(
+                """
                 INSERT INTO tasks (id, title, task_type, status, payload)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (task_id, subtask["title"], "planned_subtask", "queued", json.dumps(payload)))
+            """,
+                (task_id, subtask["title"], "planned_subtask", "queued", json.dumps(payload)),
+            )
 
         conn.commit()
 
         # Test enhanced task pickup with dependencies
-        with patch('hive_orchestrator.core.db.database_enhanced_optimized.get_connection',
-                   lambda: sqlite3.connect(temp_db)):
-
+        with patch(
+            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection", lambda: sqlite3.connect(temp_db)
+        ):
             tasks = db_enhanced.get_queued_tasks_with_planning_optimized(limit=10)
 
             # Should pick up tasks 1 and 2 (no dependencies), but not 3
             ready_tasks = []
             for task in tasks:
-                if task['task_type'] == 'planned_subtask':
+                if task["task_type"] == "planned_subtask":
                     # Simulate dependency checking
-                    deps = task.get('payload', {}).get('dependencies', [])
+                    deps = task.get("payload", {}).get("dependencies", [])
                     if not deps:  # No dependencies
                         ready_tasks.append(task)
 
             assert len(ready_tasks) == 2  # Tasks 1 and 2 should be ready
 
         # Complete tasks 1 and 2
-        conn.execute('UPDATE tasks SET status = ? WHERE id LIKE ?', ("completed", f"subtask_{plan_id}_1"))
-        conn.execute('UPDATE tasks SET status = ? WHERE id LIKE ?', ("completed", f"subtask_{plan_id}_2"))
+        conn.execute("UPDATE tasks SET status = ? WHERE id LIKE ?", ("completed", f"subtask_{plan_id}_1"))
+        conn.execute("UPDATE tasks SET status = ? WHERE id LIKE ?", ("completed", f"subtask_{plan_id}_2"))
         conn.commit()
 
         # Now task 3 should be available
-        with patch('hive_orchestrator.core.db.database_enhanced.get_connection',
-                   lambda: sqlite3.connect(temp_db)):
-
+        with patch("hive_orchestrator.core.db.database_enhanced.get_connection", lambda: sqlite3.connect(temp_db)):
             from hive_orchestrator.core.db.database_enhanced import check_subtask_dependencies
+
             task3_id = f"subtask_{plan_id}_3"
             assert check_subtask_dependencies(task3_id) == True
 
         conn.close()
+
 
 # Integration test that validates the entire pipeline
 def test_end_to_end_integration():
@@ -593,6 +645,7 @@ def test_end_to_end_integration():
     # This would be a comprehensive test using actual components
     # For now, we verify the test framework works
     assert True
+
 
 if __name__ == "__main__":
     # Run tests

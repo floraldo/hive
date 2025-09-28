@@ -95,7 +95,7 @@ class JobFacade:
         config: Dict[str, Any],
         correlation_id: Optional[str] = None,
         timeout: Optional[int] = None,
-        blocking: bool = True
+        blocking: bool = True,
     ) -> JobResult:
         """Submit a simulation job for execution.
 
@@ -110,23 +110,18 @@ class JobFacade:
         """
         # Create job request
         request = JobRequest(
-            job_type=JobType.SIMULATION,
-            config=config,
-            correlation_id=correlation_id,
-            timeout_seconds=timeout
+            job_type=JobType.SIMULATION, config=config, correlation_id=correlation_id, timeout_seconds=timeout
         )
 
         logger.info(f"Submitting simulation job {request.job_id}")
 
         # Publish job submitted event
-        self.event_bus.publish(SimulationEvent(
-            event_type="simulation_requested",
-            data={
-                "job_id": request.job_id,
-                "correlation_id": correlation_id,
-                "config": config
-            }
-        ))
+        self.event_bus.publish(
+            SimulationEvent(
+                event_type="simulation_requested",
+                data={"job_id": request.job_id, "correlation_id": correlation_id, "config": config},
+            )
+        )
 
         if blocking:
             # Execute synchronously (current implementation)
@@ -140,7 +135,7 @@ class JobFacade:
                 job_id=request.job_id,
                 job_type=JobType.SIMULATION,
                 status=JobStatus.PENDING,
-                metadata={"future": future}
+                metadata={"future": future},
             )
             self._jobs[request.job_id] = result
             return result
@@ -156,11 +151,8 @@ class JobFacade:
         """
         # Lazy import to avoid circular dependency
         if self._simulation_service is None:
-            from ecosystemiser.services.simulation_service import (
-                SimulationService,
-                SimulationConfig,
-                SimulationResult
-            )
+            from ecosystemiser.services.simulation_service import SimulationService, SimulationConfig, SimulationResult
+
             self._simulation_service = SimulationService()
 
         started_at = datetime.now()
@@ -168,10 +160,7 @@ class JobFacade:
         try:
             # Update job status
             self._jobs[request.job_id] = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.SIMULATION,
-                status=JobStatus.RUNNING,
-                started_at=started_at
+                job_id=request.job_id, job_type=JobType.SIMULATION, status=JobStatus.RUNNING, started_at=started_at
             )
 
             # Execute simulation
@@ -186,22 +175,24 @@ class JobFacade:
                 job_id=request.job_id,
                 job_type=JobType.SIMULATION,
                 status=JobStatus.COMPLETED,
-                result=sim_result.dict() if hasattr(sim_result, 'dict') else sim_result,
+                result=sim_result.dict() if hasattr(sim_result, "dict") else sim_result,
                 started_at=started_at,
                 completed_at=completed_at,
-                execution_time_seconds=execution_time
+                execution_time_seconds=execution_time,
             )
 
             # Publish completion event
-            self.event_bus.publish(SimulationEvent(
-                event_type="simulation_completed",
-                data={
-                    "job_id": request.job_id,
-                    "correlation_id": request.correlation_id,
-                    "status": "success",
-                    "execution_time": execution_time
-                }
-            ))
+            self.event_bus.publish(
+                SimulationEvent(
+                    event_type="simulation_completed",
+                    data={
+                        "job_id": request.job_id,
+                        "correlation_id": request.correlation_id,
+                        "status": "success",
+                        "execution_time": execution_time,
+                    },
+                )
+            )
 
         except TimeoutError:
             result = JobResult(
@@ -210,18 +201,16 @@ class JobFacade:
                 status=JobStatus.TIMEOUT,
                 error="Job execution timed out",
                 started_at=started_at,
-                completed_at=datetime.now()
+                completed_at=datetime.now(),
             )
 
             # Publish timeout event
-            self.event_bus.publish(SimulationEvent(
-                event_type="simulation_failed",
-                data={
-                    "job_id": request.job_id,
-                    "correlation_id": request.correlation_id,
-                    "error": "timeout"
-                }
-            ))
+            self.event_bus.publish(
+                SimulationEvent(
+                    event_type="simulation_failed",
+                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": "timeout"},
+                )
+            )
 
         except Exception as e:
             logger.exception(f"Job {request.job_id} failed with error")
@@ -231,18 +220,16 @@ class JobFacade:
                 status=JobStatus.FAILED,
                 error=str(e),
                 started_at=started_at,
-                completed_at=datetime.now()
+                completed_at=datetime.now(),
             )
 
             # Publish failure event
-            self.event_bus.publish(SimulationEvent(
-                event_type="simulation_failed",
-                data={
-                    "job_id": request.job_id,
-                    "correlation_id": request.correlation_id,
-                    "error": str(e)
-                }
-            ))
+            self.event_bus.publish(
+                SimulationEvent(
+                    event_type="simulation_failed",
+                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": str(e)},
+                )
+            )
 
         # Store result
         self._jobs[request.job_id] = result
@@ -253,7 +240,7 @@ class JobFacade:
         config: Dict[str, Any],
         correlation_id: Optional[str] = None,
         timeout: Optional[int] = None,
-        blocking: bool = True
+        blocking: bool = True,
     ) -> JobResult:
         """Submit an analysis job for execution.
 
@@ -268,10 +255,7 @@ class JobFacade:
         """
         # Create job request
         request = JobRequest(
-            job_type=JobType.ANALYSIS,
-            config=config,
-            correlation_id=correlation_id,
-            timeout_seconds=timeout
+            job_type=JobType.ANALYSIS, config=config, correlation_id=correlation_id, timeout_seconds=timeout
         )
 
         logger.info(f"Submitting analysis job {request.job_id}")
@@ -282,10 +266,7 @@ class JobFacade:
             # Future: Submit for async execution
             future = self.executor.submit(self._execute_analysis_sync, request)
             result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.ANALYSIS,
-                status=JobStatus.PENDING,
-                metadata={"future": future}
+                job_id=request.job_id, job_type=JobType.ANALYSIS, status=JobStatus.PENDING, metadata={"future": future}
             )
             self._jobs[request.job_id] = result
             return result
@@ -302,6 +283,7 @@ class JobFacade:
         # Lazy import to avoid circular dependency
         if self._analyser_service is None:
             from ecosystemiser.analyser import AnalyserService
+
             self._analyser_service = AnalyserService()
 
         started_at = datetime.now()
@@ -320,7 +302,7 @@ class JobFacade:
                 result=analysis_result,
                 started_at=started_at,
                 completed_at=completed_at,
-                execution_time_seconds=execution_time
+                execution_time_seconds=execution_time,
             )
 
         except Exception as e:
@@ -331,7 +313,7 @@ class JobFacade:
                 status=JobStatus.FAILED,
                 error=str(e),
                 started_at=started_at,
-                completed_at=datetime.now()
+                completed_at=datetime.now(),
             )
 
         self._jobs[request.job_id] = result
@@ -450,7 +432,7 @@ class JobFacade:
             SimulationResult
         """
         # Convert config to dict if needed
-        if hasattr(config, 'dict'):
+        if hasattr(config, "dict"):
             config_dict = config.dict()
         else:
             config_dict = config
@@ -463,6 +445,7 @@ class JobFacade:
             # If result.result is a dict representation of SimulationResult, return it
             # For backward compatibility with StudyService
             from ecosystemiser.services.simulation_service import SimulationResult
+
             if isinstance(result.result, dict):
                 # The dict should be compatible with SimulationResult
                 return SimulationResult(**result.result)

@@ -51,15 +51,11 @@ class TestDatabaseAdapter:
             adapter = DatabaseAdapter()
             assert adapter.db == mock_db
 
-    def test_get_deployment_pending_tasks_success(
-        self, mock_connection, sample_task_row
-    ):
+    def test_get_deployment_pending_tasks_success(self, mock_connection, sample_task_row):
         """Test successful retrieval of deployment pending tasks"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchall.return_value = [sample_task_row]
 
             adapter = DatabaseAdapter()
@@ -83,9 +79,7 @@ class TestDatabaseAdapter:
         """Test retrieval with no pending tasks"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchall.return_value = []
 
             adapter = DatabaseAdapter()
@@ -97,9 +91,7 @@ class TestDatabaseAdapter:
         """Test handling of database errors"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.execute.side_effect = Exception("Database connection failed")
 
             adapter = DatabaseAdapter()
@@ -113,9 +105,7 @@ class TestDatabaseAdapter:
         """Test successful task status update"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.rowcount = 1
 
             adapter = DatabaseAdapter()
@@ -134,9 +124,7 @@ class TestDatabaseAdapter:
         """Test task status update with metadata"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             # Mock existing metadata
             cursor.fetchone.return_value = ['{"existing": "data"}']
             cursor.rowcount = 1
@@ -159,9 +147,7 @@ class TestDatabaseAdapter:
         """Test task status update when task not found"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.rowcount = 0  # No rows affected
 
             adapter = DatabaseAdapter()
@@ -173,9 +159,7 @@ class TestDatabaseAdapter:
         """Test task status update with database error"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.execute.side_effect = Exception("Database error")
 
             adapter = DatabaseAdapter()
@@ -187,9 +171,7 @@ class TestDatabaseAdapter:
         """Test successful task retrieval by ID"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchone.return_value = sample_task_row
 
             adapter = DatabaseAdapter()
@@ -207,9 +189,7 @@ class TestDatabaseAdapter:
         """Test task retrieval when task not found"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchone.return_value = None
 
             adapter = DatabaseAdapter()
@@ -221,14 +201,10 @@ class TestDatabaseAdapter:
         """Test successful deployment event recording"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             adapter = DatabaseAdapter()
             details = {"deployment_id": "deploy-123", "strategy": "direct"}
-            result = adapter.record_deployment_event(
-                "task-001", "deployment_started", details
-            )
+            result = adapter.record_deployment_event("task-001", "deployment_started", details)
 
             assert result is True
 
@@ -249,9 +225,7 @@ class TestDatabaseAdapter:
         """Test deployment event recording with database error"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.execute.side_effect = Exception("Database error")
 
             adapter = DatabaseAdapter()
@@ -272,9 +246,7 @@ class TestDatabaseAdapter:
             ("deployment_completed", '{"duration": 45.2}', "2024-01-15T10:05:00"),
         ]
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchall.return_value = event_rows
 
             adapter = DatabaseAdapter()
@@ -293,9 +265,7 @@ class TestDatabaseAdapter:
         """Test deployment history retrieval with no events"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchall.return_value = []
 
             adapter = DatabaseAdapter()
@@ -307,9 +277,7 @@ class TestDatabaseAdapter:
         """Test successful deployment statistics retrieval"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             # Mock status counts query
             cursor.fetchall.return_value = [
                 ("deployed", 15),
@@ -368,9 +336,7 @@ class TestDatabaseAdapter:
         """Integration test for full database workflow"""
         conn, cursor = mock_connection
 
-        with patch(
-            "ai_deployer.database_adapter.get_pooled_connection", return_value=conn
-        ):
+        with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             # Setup mock responses
             cursor.fetchall.return_value = []  # No pending tasks initially
             cursor.rowcount = 1  # Status update succeeds
@@ -385,7 +351,5 @@ class TestDatabaseAdapter:
             status_updated = adapter.update_task_status("task-001", "deployed")
             assert status_updated is True
 
-            event_recorded = adapter.record_deployment_event(
-                "task-001", "deployment_completed", {"success": True}
-            )
+            event_recorded = adapter.record_deployment_event("task-001", "deployment_completed", {"success": True})
             assert event_recorded is True

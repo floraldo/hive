@@ -16,10 +16,10 @@ if sys.platform == "win32":
     # Set console code page to UTF-8
     os.system("chcp 65001 > nul")
     # Reconfigure stdout if available (Python 3.7+)
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
-    if hasattr(sys.stderr, 'reconfigure'):
-        sys.stderr.reconfigure(encoding='utf-8')
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
 
 # Add the workspace root to path for imports
 workspace_root = Path(__file__).parent.parent
@@ -48,7 +48,7 @@ def main():
                     print(f"  • {violation}")
                 except UnicodeEncodeError:
                     # Fallback to ASCII-safe output
-                    safe_violation = violation.encode('ascii', 'replace').decode('ascii')
+                    safe_violation = violation.encode("ascii", "replace").decode("ascii")
                     print(f"  - {safe_violation}")
             print()
 

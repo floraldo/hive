@@ -144,9 +144,7 @@ class KPICalculator:
         if total_generation > 0:
             self_consumed = total_generation - total_export
             kpis["self_consumption_rate"] = float(self_consumed / total_generation)
-            kpis["renewable_fraction"] = float(
-                total_generation / (total_generation + total_import)
-            )
+            kpis["renewable_fraction"] = float(total_generation / (total_generation + total_import))
         else:
             kpis["self_consumption_rate"] = 0.0
             kpis["renewable_fraction"] = 0.0
@@ -223,9 +221,7 @@ class KPICalculator:
 
         # Water self-sufficiency
         if total_rainwater > 0:
-            kpis["rainwater_utilization_rate"] = float(
-                (total_rainwater - total_overflow) / total_rainwater
-            )
+            kpis["rainwater_utilization_rate"] = float((total_rainwater - total_overflow) / total_rainwater)
 
         return kpis
 
@@ -347,9 +343,7 @@ class KPICalculator:
         }
 
         for category, keywords in categories.items():
-            category_kpis = {
-                k: v for k, v in kpis.items() if any(kw in k.lower() for kw in keywords)
-            }
+            category_kpis = {k: v for k, v in kpis.items() if any(kw in k.lower() for kw in keywords)}
 
             if category_kpis:
                 report.append(f"\n{category}:")

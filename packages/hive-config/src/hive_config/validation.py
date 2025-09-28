@@ -45,27 +45,20 @@ def validate_python_environment() -> Dict[str, any]:
     # Check Python version compatibility
     if not results["python_version"]["compatible"]:
         results["issues"].append(
-            f"Python {results['python_version']['current']} is not supported. "
-            f"Minimum required: Python 3.8"
+            f"Python {results['python_version']['current']} is not supported. " f"Minimum required: Python 3.8"
         )
     elif not results["python_version"]["recommended"]:
-        results["recommendations"].append(
-            f"Consider upgrading to Python 3.11+ for better performance and features"
-        )
+        results["recommendations"].append(f"Consider upgrading to Python 3.11+ for better performance and features")
 
     # Check for virtual environment
-    in_venv = hasattr(sys, "real_prefix") or (
-        hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
-    )
+    in_venv = hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
     results["virtual_environment"] = {
         "active": in_venv,
         "path": sys.prefix if in_venv else None,
     }
 
     if not in_venv:
-        results["recommendations"].append(
-            "Consider using a virtual environment for better dependency isolation"
-        )
+        results["recommendations"].append("Consider using a virtual environment for better dependency isolation")
 
     return results
 
@@ -255,9 +248,7 @@ def run_comprehensive_validation() -> Tuple[bool, Dict[str, any]]:
     return validation_results["overall_status"] == "PASSED", validation_results
 
 
-def format_validation_report(
-    results: Dict[str, any], include_details: bool = True
-) -> str:
+def format_validation_report(results: Dict[str, any], include_details: bool = True) -> str:
     """
     Format validation results into a human-readable report.
 
@@ -284,9 +275,7 @@ def format_validation_report(
         lines.append(
             f"  Version: {py_env['python_version']['current']} ({'✅' if py_env['python_version']['compatible'] else '❌'})"
         )
-        lines.append(
-            f"  Virtual Env: {'✅' if py_env['virtual_environment']['active'] else '⚠️'}"
-        )
+        lines.append(f"  Virtual Env: {'✅' if py_env['virtual_environment']['active'] else '⚠️'}")
 
         # Project Structure
         proj = results["project_structure"]
@@ -296,17 +285,13 @@ def format_validation_report(
 
         # Database
         db = results["database"]
-        lines.append(
-            f"Database: {'✅' if db['accessible'] and db['can_query'] else '❌'}"
-        )
+        lines.append(f"Database: {'✅' if db['accessible'] and db['can_query'] else '❌'}")
         if "task_count" in db:
             lines.append(f"  Tasks in DB: {db['task_count']}")
 
         # Import System
         imports = results["import_system"]
-        lines.append(
-            f"Import System: {'✅' if imports['all_imports_successful'] else '❌'}"
-        )
+        lines.append(f"Import System: {'✅' if imports['all_imports_successful'] else '❌'}")
         lines.append(f"  Paths found: {imports.get('hive_paths_found', 0)}")
 
         # Worker Requirements

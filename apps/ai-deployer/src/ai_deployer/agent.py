@@ -103,16 +103,14 @@ class DeploymentAgent:
             logger.warning(f"Event bus initialization failed: {e}")
             self.event_bus = None
 
-    async def run(self) -> None:
+    async def run_async(self) -> None:
         """
         Main agent loop - continuously polls for deployment tasks
         """
         self.running = True
         self.stats["start_time"] = datetime.now()
 
-        logger.info(
-            f"Deployment Agent starting (polling every {self.polling_interval}s)"
-        )
+        logger.info(f"Deployment Agent starting (polling every {self.polling_interval}s)")
 
         # Set up signal handlers
         signal.signal(signal.SIGINT, self._handle_shutdown)
@@ -125,7 +123,7 @@ class DeploymentAgent:
                     live.update(self._create_status_panel())
 
                     # Check for deployment_pending tasks
-                    tasks = await self._get_pending_tasks()
+                    tasks = await self._get_pending_tasks_async()
 
                     if tasks:
                         logger.info(f"Found {len(tasks)} deployment_pending tasks")
@@ -134,7 +132,7 @@ class DeploymentAgent:
                             if not self.running:
                                 break
 
-                            await self._process_task(task)
+                            await self._process_task_async(task)
                             live.update(self._create_status_panel())
 
                     # Sleep before next poll
@@ -146,7 +144,7 @@ class DeploymentAgent:
             finally:
                 self._cleanup()
 
-    async def _get_pending_tasks(self) -> List[Dict[str, Any]]:
+    async def _get_pending_tasks_async(self) -> List[Dict[str, Any]]:
         """Get tasks with deployment_pending status"""
         try:
             if ASYNC_DB_AVAILABLE:
@@ -159,7 +157,7 @@ class DeploymentAgent:
             logger.error(f"Error fetching deployment tasks: {e}")
             return []
 
-    async def _process_task(self, task: Dict[str, Any]) -> None:
+    async def _process_task_async(self, task: Dict[str, Any]) -> None:
         """
         Process a single deployment task
 
@@ -172,7 +170,7 @@ class DeploymentAgent:
             logger.info(f"Processing deployment task: {task_id}")
 
             # Update status to deploying
-            await self._update_task_status(task_id, "deploying")
+            await self._update_task_status_async(task_id, "deploying")
 
             # Perform deployment
             result = await self.orchestrator.deploy(task)
@@ -180,11 +178,11 @@ class DeploymentAgent:
             if result.success:
                 # Deployment succeeded
                 logger.info(f"Task {task_id} deployed successfully")
-                await self._update_task_status(task_id, "deployed")
+                await self._update_task_status_async(task_id, "deployed")
                 self.stats["successful"] += 1
 
                 # Trigger post-deployment monitoring
-                await self._trigger_monitoring(task)
+                await self._trigger_monitoring_async(task)
 
                 # Publish success event
                 if self.event_bus and create_task_event:
@@ -199,10 +197,10 @@ class DeploymentAgent:
                 logger.error(f"Task {task_id} deployment failed: {result.error}")
 
                 if result.rollback_attempted:
-                    await self._update_task_status(task_id, "rolled_back")
+                    await self._update_task_status_async(task_id, "rolled_back")
                     self.stats["rolled_back"] += 1
                 else:
-                    await self._update_task_status(task_id, "deployment_failed")
+                    await self._update_task_status_async(task_id, "deployment_failed")
                     self.stats["failed"] += 1
 
                 # Publish failure event
@@ -218,12 +216,10 @@ class DeploymentAgent:
 
         except Exception as e:
             logger.error(f"Error processing task {task_id}: {e}", exc_info=True)
-            await self._update_task_status(task_id, "deployment_failed")
+            await self._update_task_status_async(task_id, "deployment_failed")
             self.stats["errors"] += 1
 
-    async def _update_task_status(
-        self, task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None
-    ) -> None:
+    async def _update_task_status_async(self, task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         """Update task status in database"""
         try:
             if ASYNC_DB_AVAILABLE:
@@ -233,16 +229,14 @@ class DeploymentAgent:
         except Exception as e:
             logger.error(f"Error updating task {task_id} status to {status}: {e}")
 
-    async def _trigger_monitoring(self, task: Dict[str, Any]) -> None:
+    async def _trigger_monitoring_async(self, task: Dict[str, Any]) -> None:
         """Trigger post-deployment monitoring and health checks"""
         try:
             # Perform health check
             health_status = await self.orchestrator.check_health(task)
 
             if not health_status.healthy:
-                logger.warning(
-                    f"Deployment {task['id']} health check failed: {health_status.message}"
-                )
+                logger.warning(f"Deployment {task['id']} health check failed: {health_status.message}")
                 # Could trigger automatic rollback here if configured
 
         except Exception as e:
@@ -259,26 +253,18 @@ class DeploymentAgent:
         else:
             uptime_str = "00:00:00"
 
-        status_table.add_row(
-            "Status", "[green]Active[/green]" if self.running else "[red]Stopping[/red]"
-        )
+        status_table.add_row("Status", "[green]Active[/green]" if self.running else "[red]Stopping[/red]")
         status_table.add_row("Uptime", uptime_str)
         status_table.add_row("Total Deployed", str(self.stats["tasks_deployed"]))
 
         if self.stats["tasks_deployed"] > 0:
-            success_pct = (
-                self.stats["successful"] / self.stats["tasks_deployed"]
-            ) * 100
-            status_table.add_row(
-                "Successful", f"{self.stats['successful']} ({success_pct:.1f}%)"
-            )
+            success_pct = (self.stats["successful"] / self.stats["tasks_deployed"]) * 100
+            status_table.add_row("Successful", f"{self.stats['successful']} ({success_pct:.1f}%)")
             status_table.add_row("Failed", str(self.stats["failed"]))
             status_table.add_row("Rolled Back", str(self.stats["rolled_back"]))
 
         status_table.add_row("Errors", str(self.stats["errors"]))
-        status_table.add_row(
-            "Mode", "[yellow]TEST[/yellow]" if self.test_mode else "Production"
-        )
+        status_table.add_row("Mode", "[yellow]TEST[/yellow]" if self.test_mode else "Production")
 
         return Panel(
             status_table,
@@ -333,7 +319,7 @@ def main() -> None:
 
     # Run async event loop
     try:
-        asyncio.run(agent.run())
+        asyncio.run_async(agent.run_async())
     except KeyboardInterrupt:
         logger.info("Agent interrupted by user")
     except Exception as e:

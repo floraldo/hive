@@ -120,9 +120,7 @@ class QueenLite:
         self._validate_system_configuration()
 
         # State management: track active worker processes
-        self.active_workers: Dict[str, Dict[str, Any]] = (
-            {}
-        )  # task_id -> {process, run_id, phase}
+        self.active_workers: Dict[str, Dict[str, Any]] = {}  # task_id -> {process, run_id, phase}
 
         # Register Queen as a worker to satisfy foreign key constraints
         self._register_as_worker()
@@ -132,9 +130,7 @@ class QueenLite:
         if self.config:
             self.simple_mode = self.config.get("simple_mode", False)
         if self.simple_mode:
-            self.log.info(
-                "Running in HIVE_SIMPLE_MODE - some features may be simplified"
-            )
+            self.log.info("Running in HIVE_SIMPLE_MODE - some features may be simplified")
 
     def _register_as_worker(self):
         """Register Queen as a worker in the database."""
@@ -199,9 +195,7 @@ class QueenLite:
 
                 # In strict mode, we could raise an exception here
                 # For now, log and continue with degraded functionality
-                self.log.warning(
-                    "Continuing with degraded functionality due to validation failures"
-                )
+                self.log.warning("Continuing with degraded functionality due to validation failures")
 
         except ImportError as e:
             self.log.warning(f"Could not import validation functions: {e}")
@@ -209,9 +203,7 @@ class QueenLite:
             self.log.warning(f"System validation failed unexpectedly: {e}")
             # Continue anyway - validation is helpful but not critical
 
-    def _create_enhanced_environment(
-        self, root_path: Optional[Path] = None
-    ) -> Dict[str, str]:
+    def _create_enhanced_environment(self, root_path: Optional[Path] = None) -> Dict[str, str]:
         """
         Create enhanced environment with proper Python paths for worker processes.
 
@@ -272,23 +264,17 @@ class QueenLite:
                 correlation_id=correlation_id or f"workflow_{task_id}",
                 # Add additional context
                 phase=task.get("current_phase"),
-                description=task.get("task_description", "")[
-                    :100
-                ],  # Truncated for events
+                description=task.get("task_description", "")[:100],  # Truncated for events
                 **additional_payload,
             )
 
             # Publish event to bus
             event_id = self.event_bus.publish(event)
-            self.log.debug(
-                f"Published {event_type} event for task {task_id}: {event_id}"
-            )
+            self.log.debug(f"Published {event_type} event for task {task_id}: {event_id}")
             return event_id
 
         except Exception as e:
-            self.log.error(
-                f"Failed to publish {event_type} event for task {task_id}: {e}"
-            )
+            self.log.error(f"Failed to publish {event_type} event for task {task_id}: {e}")
             # Don't fail the operation if event publishing fails
             return ""
 
@@ -316,9 +302,7 @@ class QueenLite:
                 "queen-escalation-listener",
             )
 
-            self.log.info(
-                "Cross-agent event subscriptions established for choreographed workflow"
-            )
+            self.log.info("Cross-agent event subscriptions established for choreographed workflow")
 
         except Exception as e:
             self.log.error(f"Failed to setup event subscriptions: {e}")
@@ -331,17 +315,13 @@ class QueenLite:
             plan_name = payload.get("plan_name")
 
             if task_id:
-                self.log.info(
-                    f"🎯 Received plan completion for task {task_id}: {plan_name}"
-                )
+                self.log.info(f"🎯 Received plan completion for task {task_id}: {plan_name}")
 
                 # Trigger immediate processing of planned task
                 # This creates choreographed workflow where planning automatically triggers execution
                 task = hive_core_db.get_task(task_id)
                 if task and task.get("status") == "planned":
-                    self.log.info(
-                        f"Auto-triggering execution for planned task {task_id}"
-                    )
+                    self.log.info(f"Auto-triggering execution for planned task {task_id}")
                     hive_core_db.update_task_status(
                         task_id,
                         "queued",
@@ -362,9 +342,7 @@ class QueenLite:
             review_decision = payload.get("review_decision")
 
             if task_id and review_decision:
-                self.log.info(
-                    f"🔍 Received review decision for task {task_id}: {review_decision}"
-                )
+                self.log.info(f"🔍 Received review decision for task {task_id}: {review_decision}")
 
                 # Handle approved tasks by advancing them automatically
                 if review_decision == "approve":
@@ -372,9 +350,7 @@ class QueenLite:
                     if task:
                         # Advance task to next phase or mark complete
                         next_phase = self._advance_task_phase(task, success=True)
-                        self.log.info(
-                            f"Auto-advanced approved task {task_id} to phase: {next_phase}"
-                        )
+                        self.log.info(f"Auto-advanced approved task {task_id} to phase: {next_phase}")
 
                 # Handle rejected tasks by marking for rework
                 elif review_decision in ["reject", "rework"]:
@@ -403,9 +379,7 @@ class QueenLite:
 
                 # Add escalation to system notifications (future enhancement point)
                 # For now, just ensure proper logging for human attention
-                self.log.warning(
-                    f"ESCALATION ALERT: Task {task_id} requires human intervention"
-                )
+                self.log.warning(f"ESCALATION ALERT: Task {task_id} requires human intervention")
 
         except Exception as e:
             self.log.error(f"Error handling task escalated event: {e}")
@@ -442,9 +416,7 @@ class QueenLite:
         except Exception as e:
             raise RuntimeError(f"Failed to parse app config {config_file}: {e}")
 
-    def execute_app_task(
-        self, task: Dict[str, Any]
-    ) -> Optional[Tuple[subprocess.Popen, str]]:
+    def execute_app_task(self, task: Dict[str, Any]) -> Optional[Tuple[subprocess.Popen, str]]:
         """Execute an app task based on its hive-app.toml configuration"""
         task_id = task["id"]
         assignee = task.get("assignee", "")
@@ -459,26 +431,20 @@ class QueenLite:
             # Get task definition
             tasks_config = app_config.get("tasks", {})
             if task_name not in tasks_config:
-                raise ValueError(
-                    f"Task '{task_name}' not found in app '{app_name}' config"
-                )
+                raise ValueError(f"Task '{task_name}' not found in app '{app_name}' config")
 
             task_config = tasks_config[task_name]
             command_template = task_config.get("command", "")
 
             if not command_template:
-                raise ValueError(
-                    f"No command defined for task '{task_name}' in app '{app_name}'"
-                )
+                raise ValueError(f"No command defined for task '{task_name}' in app '{app_name}'")
 
             # For now, we'll execute the command as-is (without parameter substitution)
             # In the future, this can be enhanced to support parameter substitution
             command = command_template
 
             # Create run_id for tracking
-            run_id = (
-                f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-app"
-            )
+            run_id = f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-app"
 
             # Execute in app directory
             app_dir = self.hive.root / "apps" / app_name
@@ -496,9 +462,7 @@ class QueenLite:
                 env=os.environ.copy(),
             )
 
-            self.log.info(
-                f"[APP-SPAWN] Started {app_name}:{task_name} for {task_id} (PID: {process.pid})"
-            )
+            self.log.info(f"[APP-SPAWN] Started {app_name}:{task_name} for {task_id} (PID: {process.pid})")
             return process, run_id
 
         except FileNotFoundError as e:
@@ -511,18 +475,14 @@ class QueenLite:
             self.log.error(f"App task {task_id} failed - permission denied: {e}")
             return None
         except Exception as e:
-            self.log.error(
-                f"App task {task_id} failed - unexpected error: {type(e).__name__}: {e}"
-            )
+            self.log.error(f"App task {task_id} failed - unexpected error: {type(e).__name__}: {e}")
             return None
 
     # ================================================================================
     # WORKER LIFECYCLE MANAGEMENT (Spawn, Monitor, Cleanup)
     # ================================================================================
 
-    def spawn_worker(
-        self, task: Dict[str, Any], worker: str, phase: Phase
-    ) -> Optional[Tuple[subprocess.Popen, str]]:
+    def spawn_worker(self, task: Dict[str, Any], worker: str, phase: Phase) -> Optional[Tuple[subprocess.Popen, str]]:
         """
         Spawn a worker process for task execution
 
@@ -585,9 +545,7 @@ class QueenLite:
                 # But capture stderr briefly to catch initialization errors
                 stdout_pipe = subprocess.DEVNULL
                 stderr_pipe = subprocess.PIPE  # Capture errors during startup
-                self.log.info(
-                    f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=PIPE for error capture"
-                )
+                self.log.info(f"[DEBUG] Windows detected: using stdout=DEVNULL, stderr=PIPE for error capture")
             else:
                 # On Unix, pipes work fine and provide better monitoring
                 stdout_pipe = subprocess.PIPE
@@ -603,35 +561,25 @@ class QueenLite:
                 env=env,
             )
 
-            self.log.info(
-                f"[SPAWN] Spawned {worker} for {task_id} phase:{phase.value} (PID: {process.pid})"
-            )
+            self.log.info(f"[SPAWN] Spawned {worker} for {task_id} phase:{phase.value} (PID: {process.pid})")
             if self.live_output:
                 logger.info("-" * 70)
             return process, run_id
 
         except FileNotFoundError as e:
-            self.log.error(
-                f"Worker spawn failed for {task_id} - Python executable not found: {e}"
-            )
+            self.log.error(f"Worker spawn failed for {task_id} - Python executable not found: {e}")
             return None
         except PermissionError as e:
-            self.log.error(
-                f"Worker spawn failed for {task_id} - permission denied: {e}"
-            )
+            self.log.error(f"Worker spawn failed for {task_id} - permission denied: {e}")
             return None
         except OSError as e:
             self.log.error(f"Worker spawn failed for {task_id} - OS error: {e}")
             return None
         except Exception as e:
-            self.log.error(
-                f"Worker spawn failed for {task_id} - unexpected error: {type(e).__name__}: {e}"
-            )
+            self.log.error(f"Worker spawn failed for {task_id} - unexpected error: {type(e).__name__}: {e}")
             import traceback
 
-            self.log.debug(
-                f"Spawn failure traceback for {task_id}:\n{traceback.format_exc()}"
-            )
+            self.log.debug(f"Spawn failure traceback for {task_id}:\n{traceback.format_exc()}")
             return None
 
     def get_next_command_from_workflow(self, task: Dict[str, Any]) -> Optional[str]:
@@ -644,22 +592,17 @@ class QueenLite:
         phase_config = workflow.get(current_phase)
 
         if not phase_config:
-            self.log.warning(
-                f"No configuration found for phase '{current_phase}' in task {task['id']}"
-            )
+            self.log.warning(f"No configuration found for phase '{current_phase}' in task {task['id']}")
             return None
 
         return phase_config.get("command_template")
 
-    def _format_command(
-        self, template: str, task: Dict[str, Any], run_id: Optional[str] = None
-    ) -> str:
+    def _format_command(self, template: str, task: Dict[str, Any], run_id: Optional[str] = None) -> str:
         """Format command template with task data"""
         # Create format dictionary
         format_data = {
             "task_id": task["id"],
-            "run_id": run_id
-            or f"{task['id']}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
+            "run_id": run_id or f"{task['id']}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
         }
 
         # Add payload data
@@ -674,9 +617,7 @@ class QueenLite:
             self.log.warning(f"Missing parameter {e} for command template: {template}")
             return template
 
-    def _advance_task_phase(
-        self, task: Dict[str, Any], success: bool = True
-    ) -> Optional[str]:
+    def _advance_task_phase(self, task: Dict[str, Any], success: bool = True) -> Optional[str]:
         """Advance task to the next phase based on workflow definition"""
         workflow = task.get("workflow")
         if not workflow:
@@ -692,9 +633,7 @@ class QueenLite:
             next_phase = phase_config.get("next_phase_on_failure", "failed")
 
         if not next_phase:
-            self.log.warning(
-                f"No next phase defined for task {task['id']} in phase {current_phase}"
-            )
+            self.log.warning(f"No next phase defined for task {task['id']} in phase {current_phase}")
             return None
 
         # Update task phase
@@ -722,12 +661,8 @@ class QueenLite:
             )
         elif next_phase == "review_pending":
             # Special status for tasks awaiting intelligent review
-            hive_core_db.update_task_status(
-                task["id"], "review_pending", {"current_phase": current_phase}
-            )
-            self.log.info(
-                f"Task {task['id']} moved to review_pending for AI inspection"
-            )
+            hive_core_db.update_task_status(task["id"], "review_pending", {"current_phase": current_phase})
+            self.log.info(f"Task {task['id']} moved to review_pending for AI inspection")
             # Publish review requested event
             self._publish_task_event(
                 TaskEventType.REVIEW_REQUESTED,
@@ -738,9 +673,7 @@ class QueenLite:
             )
         else:
             # Move to next phase and back to queued for processing
-            hive_core_db.update_task_status(
-                task["id"], "queued", {"current_phase": next_phase}
-            )
+            hive_core_db.update_task_status(task["id"], "queued", {"current_phase": next_phase})
             self.log.info(f"Task {task['id']} advanced to phase '{next_phase}'")
 
         return next_phase
@@ -777,13 +710,9 @@ class QueenLite:
                 active_per_role[worker_type] += 1
 
         # Log details about AI Planner tasks
-        planner_tasks = [
-            t for t in queued_tasks if t.get("task_type") == "planned_subtask"
-        ]
+        planner_tasks = [t for t in queued_tasks if t.get("task_type") == "planned_subtask"]
         if planner_tasks:
-            self.log.info(
-                f"[AI-PLANNER] Found {len(planner_tasks)} planner-generated sub-tasks ready for execution"
-            )
+            self.log.info(f"[AI-PLANNER] Found {len(planner_tasks)} planner-generated sub-tasks ready for execution")
 
         self.log.info(
             f"[PARALLEL] Processing {len(queued_tasks)} tasks ({len(planner_tasks)} from planner) with {slots_free} free slots"
@@ -855,14 +784,10 @@ class QueenLite:
                         process_id=process.pid,
                     )
 
-                    self.log.info(
-                        f"Successfully spawned app task for {task_id} (PID: {process.pid})"
-                    )
+                    self.log.info(f"Successfully spawned app task for {task_id} (PID: {process.pid})")
                 else:
                     # App task spawn failed - revert to queued
-                    self.log.error(
-                        f"Failed to spawn app task {task_id} - reverting to queued"
-                    )
+                    self.log.error(f"Failed to spawn app task {task_id} - reverting to queued")
                     hive_core_db.update_task_status(
                         task_id,
                         "queued",
@@ -929,14 +854,10 @@ class QueenLite:
                     process_id=process.pid,
                 )
 
-                self.log.info(
-                    f"Successfully spawned {worker} for {task_id} (PID: {process.pid})"
-                )
+                self.log.info(f"Successfully spawned {worker} for {task_id} (PID: {process.pid})")
             else:
                 # HARDENING: Spawn failed - revert task to queued status
-                self.log.info(
-                    f"Failed to spawn {worker} for {task_id} - reverting to queued"
-                )
+                self.log.info(f"Failed to spawn {worker} for {task_id} - reverting to queued")
                 hive_core_db.update_task_status(
                     task_id,
                     "queued",
@@ -956,9 +877,7 @@ class QueenLite:
 
                 # Wait up to N seconds for graceful shutdown
                 try:
-                    shutdown_timeout = self.hive.config.get("orchestration", {}).get(
-                        "graceful_shutdown_seconds", 5
-                    )
+                    shutdown_timeout = self.hive.config.get("orchestration", {}).get("graceful_shutdown_seconds", 5)
                     process.wait(timeout=shutdown_timeout)
                 except subprocess.TimeoutExpired:
                     # Force kill if not responding
@@ -1019,43 +938,25 @@ class QueenLite:
                 current_assignee = task.get("assignee", "")
 
                 # Preserve app task assignees (they have special format)
-                should_preserve_assignee = (
-                    current_assignee and current_assignee.startswith("app:")
-                )
+                should_preserve_assignee = current_assignee and current_assignee.startswith("app:")
 
                 if started_at:
-                    start_time = datetime.fromisoformat(
-                        started_at.replace("Z", "+00:00")
-                    )
-                    age_minutes = (
-                        datetime.now(timezone.utc) - start_time
-                    ).total_seconds() / 60
+                    start_time = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+                    age_minutes = (datetime.now(timezone.utc) - start_time).total_seconds() / 60
 
                     # Only recover if task has been stuck for more than zombie detection threshold
-                    zombie_threshold = self.hive.config.get(
-                        "zombie_detection_minutes", 5
-                    )
+                    zombie_threshold = self.hive.config.get("zombie_detection_minutes", 5)
                     if age_minutes >= zombie_threshold:
                         age_str = f"{age_minutes:.1f} minutes"
-                        self.log.info(
-                            f"[RECOVER] Recovering zombie task: {task_id} (stale for {age_str})"
-                        )
+                        self.log.info(f"[RECOVER] Recovering zombie task: {task_id} (stale for {age_str})")
 
                         # Reset to queued for retry, preserving assignee for app tasks
                         hive_core_db.update_task_status(
                             task_id,
                             "queued",
                             {
-                                "current_phase": (
-                                    "plan"
-                                    if not should_preserve_assignee
-                                    else "execute"
-                                ),
-                                "assignee": (
-                                    current_assignee
-                                    if should_preserve_assignee
-                                    else None
-                                ),
+                                "current_phase": ("plan" if not should_preserve_assignee else "execute"),
+                                "assignee": (current_assignee if should_preserve_assignee else None),
                                 "assigned_at": None,
                                 "started_at": None,
                                 "worktree": None,
@@ -1064,19 +965,13 @@ class QueenLite:
                         )
                 else:
                     # No start time means it's definitely stuck
-                    self.log.info(
-                        f"[RECOVER] Recovering zombie task without start time: {task_id}"
-                    )
+                    self.log.info(f"[RECOVER] Recovering zombie task without start time: {task_id}")
                     hive_core_db.update_task_status(
                         task_id,
                         "queued",
                         {
-                            "current_phase": (
-                                "plan" if not should_preserve_assignee else "execute"
-                            ),
-                            "assignee": (
-                                current_assignee if should_preserve_assignee else None
-                            ),
+                            "current_phase": ("plan" if not should_preserve_assignee else "execute"),
+                            "assignee": (current_assignee if should_preserve_assignee else None),
                             "assigned_at": None,
                             "started_at": None,
                             "worktree": None,
@@ -1101,9 +996,7 @@ class QueenLite:
         # Clean up completed workers
         self._cleanup_completed_workers(completed)
 
-    def _process_finished_worker(
-        self, task_id: str, metadata: Dict[str, Any], completed: List[str]
-    ) -> bool:
+    def _process_finished_worker(self, task_id: str, metadata: Dict[str, Any], completed: List[str]) -> bool:
         """Process a finished worker and return True if processing should continue to next worker"""
         process = metadata["process"]
         poll = process.poll()
@@ -1124,9 +1017,7 @@ class QueenLite:
                 try:
                     stderr_output = process.stderr.read()
                     if stderr_output:
-                        self.log.error(
-                            f"Worker {task_id} stderr: {stderr_output[:500]}"
-                        )
+                        self.log.error(f"Worker {task_id} stderr: {stderr_output[:500]}")
                 except (IOError, OSError) as e:
                     self.log.debug(f"Could not read stderr for worker {task_id}: {e}")
 
@@ -1136,9 +1027,7 @@ class QueenLite:
         # Handle successful worker completion
         return self._handle_worker_success(task_id, task, metadata, completed)
 
-    def _handle_worker_failure(
-        self, task_id: str, task: Dict[str, Any], completed: List[str]
-    ):
+    def _handle_worker_failure(self, task_id: str, task: Dict[str, Any], completed: List[str]):
         """Handle worker process failure"""
         self.log.info(f"Worker failed for {task_id} - reverting to queued")
 
@@ -1174,9 +1063,7 @@ class QueenLite:
         # Handle regular worker tasks
         run_id = metadata.get("run_id")
         if not run_id:
-            self.log.warning(
-                f"Worker for {task_id} finished successfully but no run_id was found."
-            )
+            self.log.warning(f"Worker for {task_id} finished successfully but no run_id was found.")
             return self._handle_task_failure(task_id, task, current_phase, completed)
 
         run_data = hive_core_db.get_run(run_id)
@@ -1191,13 +1078,9 @@ class QueenLite:
             status = run_data.get("result", {}).get("status", "failed")
 
             if status == "success":
-                return self._handle_task_success(
-                    task_id, task, current_phase, completed
-                )
+                return self._handle_task_success(task_id, task, current_phase, completed)
             else:
-                return self._handle_task_failure(
-                    task_id, task, current_phase, completed
-                )
+                return self._handle_task_failure(task_id, task, current_phase, completed)
 
         except Exception as e:
             self.log.info(f"Error processing result for {task_id}: {e}")
@@ -1261,9 +1144,7 @@ class QueenLite:
             else:
                 # Spawn failed for TEST phase - mark as failed
                 self.log.error(f"Failed to spawn TEST phase for {task_id}")
-                hive_core_db.update_task_status(
-                    task_id, "failed", {"failure_reason": "Failed to spawn TEST phase"}
-                )
+                hive_core_db.update_task_status(task_id, "failed", {"failure_reason": "Failed to spawn TEST phase"})
                 # Publish task failure event
                 self._publish_task_event(
                     TaskEventType.FAILED,
@@ -1306,9 +1187,7 @@ class QueenLite:
 
         if retry_count < max_retries:
             # Retry the task
-            self.log.info(
-                f"Task {task_id} {current_phase} failed - retrying (attempt {retry_count + 1}/{max_retries})"
-            )
+            self.log.info(f"Task {task_id} {current_phase} failed - retrying (attempt {retry_count + 1}/{max_retries})")
             hive_core_db.update_task_status(
                 task_id,
                 "queued",
@@ -1325,9 +1204,7 @@ class QueenLite:
         else:
             # Max retries reached
             hive_core_db.update_task_status(task_id, "failed", {})
-            self.log.info(
-                f"Task {task_id} {current_phase} failed after {retry_count} retries"
-            )
+            self.log.info(f"Task {task_id} {current_phase} failed after {retry_count} retries")
             # Publish task failure event
             self._publish_task_event(
                 TaskEventType.FAILED,
@@ -1354,15 +1231,11 @@ class QueenLite:
                 continue
 
             try:
-                started_at = datetime.fromisoformat(
-                    task["started_at"].replace("Z", "+00:00")
-                )
+                started_at = datetime.fromisoformat(task["started_at"].replace("Z", "+00:00"))
                 elapsed_seconds = (current_time - started_at).total_seconds()
 
                 if elapsed_seconds > timeout_threshold:
-                    self.log.warning(
-                        f"Worker for {task_id} timed out after {elapsed_seconds/60:.1f} minutes"
-                    )
+                    self.log.warning(f"Worker for {task_id} timed out after {elapsed_seconds/60:.1f} minutes")
 
                     # Kill the timed-out worker
                     process = metadata["process"]
@@ -1372,9 +1245,7 @@ class QueenLite:
                     except subprocess.TimeoutExpired:
                         process.kill()
                     except (OSError, ProcessLookupError, AttributeError) as e:
-                        logger.debug(
-                            f"Process already terminated or error during cleanup: {e}"
-                        )
+                        logger.debug(f"Process already terminated or error during cleanup: {e}")
 
                     # Reset task to queued for retry
                     hive_core_db.update_task_status(
@@ -1436,26 +1307,18 @@ class QueenLite:
                 task = hive_core_db.get_task(task_id)
                 if task and "started_at" in task:
                     try:
-                        started = datetime.fromisoformat(
-                            task["started_at"].replace("Z", "+00:00")
-                        )
-                        runtime_sec = int(
-                            (datetime.now(timezone.utc) - started).total_seconds()
-                        )
+                        started = datetime.fromisoformat(task["started_at"].replace("Z", "+00:00"))
+                        runtime_sec = int((datetime.now(timezone.utc) - started).total_seconds())
                         runtime_str = f"{runtime_sec//60}m {runtime_sec%60}s"
                     except (ValueError, TypeError, AttributeError) as e:
-                        logger.debug(
-                            f"Could not calculate runtime for task {task_id}: {e}"
-                        )
+                        logger.debug(f"Could not calculate runtime for task {task_id}: {e}")
                         runtime_str = "?"
                 else:
                     runtime_str = "?"
 
                 # Handle phase as either string or Enum
                 phase_str = phase.value if hasattr(phase, "value") else phase
-                logger.info(
-                    f"  [WORK] [{worker_type.upper()}] {task_id} ({phase_str}, {runtime_str}, PID: {pid})"
-                )
+                logger.info(f"  [WORK] [{worker_type.upper()}] {task_id} ({phase_str}, {runtime_str}, PID: {pid})")
 
         # Show queued workers
         if queued_workers:
@@ -1491,9 +1354,7 @@ class QueenLite:
         if not queued_tasks:
             return
 
-        self.log.info(
-            f"[PARALLEL] Processing {len(queued_tasks)} tasks with {slots_free} free slots"
-        )
+        self.log.info(f"[PARALLEL] Processing {len(queued_tasks)} tasks with {slots_free} free slots")
         for task in queued_tasks:
             task_id = task["id"]
 
@@ -1519,9 +1380,7 @@ class QueenLite:
                 continue
 
             # Format and execute command
-            run_id = (
-                f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
-            )
+            run_id = f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
             command = self._format_command(command_template, task, run_id)
 
             # Create run record if it's a worker task
@@ -1567,15 +1426,11 @@ class QueenLite:
                     "phase": current_phase,
                     "worker_type": "workflow",
                 }
-                self.log.info(
-                    f"[PARALLEL] Spawned task {task_id} phase '{current_phase}' (PID: {process.pid})"
-                )
+                self.log.info(f"[PARALLEL] Spawned task {task_id} phase '{current_phase}' (PID: {process.pid})")
 
             except Exception as e:
                 self.log.error(f"Failed to execute task {task_id}: {e}")
-                hive_core_db.update_task_status(
-                    task_id, "failed", {"failure_reason": str(e)}
-                )
+                hive_core_db.update_task_status(task_id, "failed", {"failure_reason": str(e)})
                 # Publish task failure event
                 self._publish_task_event(
                     TaskEventType.FAILED,
@@ -1588,9 +1443,7 @@ class QueenLite:
 
             # Check capacity again
             if len(self.active_workers) >= max_parallel:
-                self.log.info(
-                    f"[PARALLEL] Reached max capacity ({max_parallel}), stopping task spawn"
-                )
+                self.log.info(f"[PARALLEL] Reached max capacity ({max_parallel}), stopping task spawn")
                 break
 
     def process_review_tasks(self):
@@ -1625,9 +1478,7 @@ class QueenLite:
                 continue
 
             success = poll == 0
-            self.log.info(
-                f"Task {task_id} phase '{metadata['phase']}' finished with exit code {poll}"
-            )
+            self.log.info(f"Task {task_id} phase '{metadata['phase']}' finished with exit code {poll}")
 
             # Advance to next phase based on success/failure
             self._advance_task_phase(task, success=success)
@@ -1722,17 +1573,13 @@ class QueenLite:
                 # Get task definition
                 tasks_config = app_config.get("tasks", {})
                 if task_name not in tasks_config:
-                    raise ValueError(
-                        f"Task '{task_name}' not found in app '{app_name}' config"
-                    )
+                    raise ValueError(f"Task '{task_name}' not found in app '{app_name}' config")
 
                 task_config = tasks_config[task_name]
                 command_template = task_config.get("command", "")
 
                 if not command_template:
-                    raise ValueError(
-                        f"No command defined for task '{task_name}' in app '{app_name}'"
-                    )
+                    raise ValueError(f"No command defined for task '{task_name}' in app '{app_name}'")
 
                 command = command_template
                 run_id = f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-app"
@@ -1749,33 +1596,23 @@ class QueenLite:
                     env=os.environ.copy(),
                 )
 
-                self.log.info(
-                    f"[APP-SPAWN-ASYNC] Started {app_name}:{task_name} for {task_id} (PID: {process.pid})"
-                )
+                self.log.info(f"[APP-SPAWN-ASYNC] Started {app_name}:{task_name} for {task_id} (PID: {process.pid})")
                 return process, run_id
 
             except FileNotFoundError as e:
                 self.log.error(f"Async app task {task_id} failed - file not found: {e}")
                 return None
             except ValueError as e:
-                self.log.error(
-                    f"Async app task {task_id} failed - invalid configuration: {e}"
-                )
+                self.log.error(f"Async app task {task_id} failed - invalid configuration: {e}")
                 return None
             except PermissionError as e:
-                self.log.error(
-                    f"Async app task {task_id} failed - permission denied: {e}"
-                )
+                self.log.error(f"Async app task {task_id} failed - permission denied: {e}")
                 return None
             except Exception as e:
-                self.log.error(
-                    f"Async app task {task_id} failed - unexpected error: {type(e).__name__}: {e}"
-                )
+                self.log.error(f"Async app task {task_id} failed - unexpected error: {type(e).__name__}: {e}")
                 return None
 
-        async def spawn_worker_async(
-            self, task: Dict[str, Any], worker: str, phase: Phase
-        ):
+        async def spawn_worker_async(self, task: Dict[str, Any], worker: str, phase: Phase):
             """
             Async version of spawn_worker for non-blocking worker process creation.
 
@@ -1790,9 +1627,7 @@ class QueenLite:
             task_id = task["id"]
             run_id = f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{phase.value}"
 
-            self.log.info(
-                f"Delegating workspace creation to async worker for task: {task_id}"
-            )
+            self.log.info(f"Delegating workspace creation to async worker for task: {task_id}")
 
             # Determine mode from task definition, default to "repo" if not specified
             mode = task.get("workspace", "repo")
@@ -1832,37 +1667,25 @@ class QueenLite:
                     env=env,
                 )
 
-                self.log.info(
-                    f"[SPAWN-ASYNC] Spawned {worker} for {task_id} phase:{phase.value} (PID: {process.pid})"
-                )
+                self.log.info(f"[SPAWN-ASYNC] Spawned {worker} for {task_id} phase:{phase.value} (PID: {process.pid})")
                 if self.live_output:
                     logger.info("-" * 70)
                 return process, run_id
 
             except FileNotFoundError as e:
-                self.log.error(
-                    f"Async worker spawn failed for {task_id} - Python executable not found: {e}"
-                )
+                self.log.error(f"Async worker spawn failed for {task_id} - Python executable not found: {e}")
                 return None
             except PermissionError as e:
-                self.log.error(
-                    f"Async worker spawn failed for {task_id} - permission denied: {e}"
-                )
+                self.log.error(f"Async worker spawn failed for {task_id} - permission denied: {e}")
                 return None
             except OSError as e:
-                self.log.error(
-                    f"Async worker spawn failed for {task_id} - OS error: {e}"
-                )
+                self.log.error(f"Async worker spawn failed for {task_id} - OS error: {e}")
                 return None
             except Exception as e:
-                self.log.error(
-                    f"Async worker spawn failed for {task_id} - unexpected error: {type(e).__name__}: {e}"
-                )
+                self.log.error(f"Async worker spawn failed for {task_id} - unexpected error: {type(e).__name__}: {e}")
                 import traceback
 
-                self.log.debug(
-                    f"Async spawn failure traceback for {task_id}:\\n{traceback.format_exc()}"
-                )
+                self.log.debug(f"Async spawn failure traceback for {task_id}:\\n{traceback.format_exc()}")
                 return None
 
     # ================================================================================
@@ -1903,9 +1726,7 @@ class QueenLite:
 
                     # Check if all work is done (async)
                     stats = self.hive.get_task_stats()
-                    review_pending_tasks = await get_tasks_by_status_async(
-                        "review_pending"
-                    )
+                    review_pending_tasks = await get_tasks_by_status_async("review_pending")
                     review_pending = len(review_pending_tasks)
 
                     if (
@@ -1915,15 +1736,12 @@ class QueenLite:
                         and stats["in_progress"] == 0
                         and review_pending == 0
                     ):
-
                         if stats["completed"] > 0 or stats["failed"] > 0:
                             self.log.info("All tasks completed. Exiting async mode...")
                             break
 
                     # Non-blocking sleep
-                    await asyncio.sleep(
-                        self.hive.config["orchestration"]["status_refresh_seconds"]
-                    )
+                    await asyncio.sleep(self.hive.config["orchestration"]["status_refresh_seconds"])
 
             except KeyboardInterrupt:
                 self.log.info("\nQueenLite async mode shutting down...")
@@ -1940,9 +1758,7 @@ class QueenLite:
             """Async version of workflow task processing."""
             try:
                 # Get queued tasks concurrently
-                queued_tasks = await get_queued_tasks_async(
-                    limit=50
-                )  # Higher limit for async
+                queued_tasks = await get_queued_tasks_async(limit=50)  # Higher limit for async
 
                 if not queued_tasks:
                     return
@@ -1955,9 +1771,7 @@ class QueenLite:
                 tasks_to_process = []
                 for task in queued_tasks:
                     if len(self.active_workers) < max_concurrent:
-                        tasks_to_process.append(
-                            self._process_single_workflow_task_async(task, semaphore)
-                        )
+                        tasks_to_process.append(self._process_single_workflow_task_async(task, semaphore))
 
                 if tasks_to_process:
                     await asyncio.gather(*tasks_to_process, return_exceptions=True)
@@ -1965,9 +1779,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error in async workflow task processing: {e}")
 
-        async def _process_single_workflow_task_async(
-            self, task: Dict[str, Any], semaphore: asyncio.Semaphore
-        ):
+        async def _process_single_workflow_task_async(self, task: Dict[str, Any], semaphore: asyncio.Semaphore):
             """Process a single workflow task asynchronously."""
             async with semaphore:
                 try:
@@ -1988,9 +1800,7 @@ class QueenLite:
                         await self._process_regular_task_async(task)
 
                 except Exception as e:
-                    self.log.error(
-                        f"Error processing async task {task.get('id', 'unknown')}: {e}"
-                    )
+                    self.log.error(f"Error processing async task {task.get('id', 'unknown')}: {e}")
 
         async def _process_app_task_async(self, task: Dict[str, Any]):
             """Process app task asynchronously."""
@@ -2062,9 +1872,7 @@ class QueenLite:
                     run_id = f"{task_id}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
 
                     # Create async subprocess for non-blocking execution
-                    result = await self.spawn_worker_async(
-                        task, "workflow", Phase.APPLY
-                    )
+                    result = await self.spawn_worker_async(task, "workflow", Phase.APPLY)
                     if result:
                         process, run_id = result
                         self.active_workers[task_id] = {
@@ -2087,9 +1895,7 @@ class QueenLite:
                 # For now, just check for review_pending tasks without blocking
                 review_tasks = await get_tasks_by_status_async("review_pending")
                 if review_tasks:
-                    self.log.debug(
-                        f"Found {len(review_tasks)} tasks pending review (async)"
-                    )
+                    self.log.debug(f"Found {len(review_tasks)} tasks pending review (async)")
 
             except Exception as e:
                 self.log.error(f"Error in async review task processing: {e}")
@@ -2112,9 +1918,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error in async process monitoring: {e}")
 
-        async def _monitor_single_worker_async(
-            self, task_id: str, metadata: Dict[str, Any]
-        ):
+        async def _monitor_single_worker_async(self, task_id: str, metadata: Dict[str, Any]):
             """Monitor a single worker process asynchronously."""
             try:
                 process = metadata["process"]
@@ -2127,9 +1931,7 @@ class QueenLite:
                     if return_code == 0:
                         await self._handle_worker_success_async(task_id, metadata)
                     else:
-                        await self._handle_worker_failure_async(
-                            task_id, metadata, return_code
-                        )
+                        await self._handle_worker_failure_async(task_id, metadata, return_code)
 
                     # Remove from active workers
                     if task_id in self.active_workers:
@@ -2138,9 +1940,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error monitoring async worker {task_id}: {e}")
 
-        async def _handle_worker_success_async(
-            self, task_id: str, metadata: Dict[str, Any]
-        ):
+        async def _handle_worker_success_async(self, task_id: str, metadata: Dict[str, Any]):
             """Handle successful worker completion asynchronously."""
             try:
                 task = await get_task_async(task_id)
@@ -2161,13 +1961,9 @@ class QueenLite:
                     self.log.info(f"OK Async task {task_id} completed successfully")
 
             except Exception as e:
-                self.log.error(
-                    f"Error handling async worker success for {task_id}: {e}"
-                )
+                self.log.error(f"Error handling async worker success for {task_id}: {e}")
 
-        async def _handle_worker_failure_async(
-            self, task_id: str, metadata: Dict[str, Any], return_code: int
-        ):
+        async def _handle_worker_failure_async(self, task_id: str, metadata: Dict[str, Any], return_code: int):
             """Handle worker failure asynchronously."""
             try:
                 # Update task status
@@ -2191,24 +1987,16 @@ class QueenLite:
                     )
                     await self.event_bus.publish_async(event)
 
-                self.log.error(
-                    f"FAIL Async task {task_id} failed with return code {return_code}"
-                )
+                self.log.error(f"FAIL Async task {task_id} failed with return code {return_code}")
 
             except Exception as e:
-                self.log.error(
-                    f"Error handling async worker failure for {task_id}: {e}"
-                )
+                self.log.error(f"Error handling async worker failure for {task_id}: {e}")
 
 
 def main():
     """Main CLI entry point with async support"""
-    parser = argparse.ArgumentParser(
-        description="QueenLite - Streamlined Queen Orchestrator"
-    )
-    parser.add_argument(
-        "--live", action="store_true", help="Enable live streaming output from workers"
-    )
+    parser = argparse.ArgumentParser(description="QueenLite - Streamlined Queen Orchestrator")
+    parser.add_argument("--live", action="store_true", help="Enable live streaming output from workers")
     parser.add_argument(
         "--async",
         action="store_true",
@@ -2235,9 +2023,7 @@ def main():
 
         asyncio.run(queen.run_forever_async())
     elif args.async_mode and not ASYNC_ENABLED:
-        log.warning(
-            "Async mode requested but not available. Falling back to sync mode."
-        )
+        log.warning("Async mode requested but not available. Falling back to sync mode.")
         log.info("To enable async mode, ensure all async dependencies are installed.")
         queen.run_forever()
     else:

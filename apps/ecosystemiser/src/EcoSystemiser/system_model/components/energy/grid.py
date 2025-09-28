@@ -35,22 +35,14 @@ class GridTechnicalParams(TransmissionTechnicalParams):
     feed_in_tariff: float = Field(0.08, description="Export electricity price [$/kWh]")
 
     # STANDARD fidelity additions
-    grid_losses: Optional[float] = Field(
-        None, description="Transmission loss factor [%]"
-    )
+    grid_losses: Optional[float] = Field(None, description="Transmission loss factor [%]")
 
     # DETAILED fidelity parameters
-    voltage_limits: Optional[Dict[str, float]] = Field(
-        None, description="Voltage limits {min_pu, max_pu}"
-    )
-    power_factor_limits: Optional[Dict[str, float]] = Field(
-        None, description="Power factor requirements"
-    )
+    voltage_limits: Optional[Dict[str, float]] = Field(None, description="Voltage limits {min_pu, max_pu}")
+    power_factor_limits: Optional[Dict[str, float]] = Field(None, description="Power factor requirements")
 
     # RESEARCH fidelity parameters
-    grid_impedance_model: Optional[Dict[str, Any]] = Field(
-        None, description="Detailed grid impedance model"
-    )
+    grid_impedance_model: Optional[Dict[str, Any]] = Field(None, description="Detailed grid impedance model")
 
 
 # =============================================================================
@@ -184,9 +176,7 @@ class GridOptimizationStandard(GridOptimizationSimple):
         # STANDARD: Acknowledge grid losses (actual implementation would be in energy balance)
         grid_losses = getattr(comp.technical, "grid_losses", None)
         if grid_losses and grid_losses > 0 and comp.P_draw is not None:
-            logger.debug(
-                f"STANDARD: Grid losses of {grid_losses*100:.1f}% acknowledged"
-            )
+            logger.debug(f"STANDARD: Grid losses of {grid_losses*100:.1f}% acknowledged")
             # Note: Actual loss implementation would be in system-level energy balance
             # Could add: constraints.append(comp.P_draw_effective == comp.P_draw * (1 - grid_losses))
 
@@ -292,9 +282,7 @@ class Grid(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return GridOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for Grid optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for Grid optimization: {fidelity}")
 
     def add_optimization_vars(self, N: int):
         """Create CVXPY optimization variables."""

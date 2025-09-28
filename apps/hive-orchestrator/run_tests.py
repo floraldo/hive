@@ -48,9 +48,7 @@ def run_tests():
 
         test_file = test_dir / "test_integration.py"
         if test_file.exists():
-            result = subprocess.run(
-                [sys.executable, str(test_file)], capture_output=True, text=True
-            )
+            result = subprocess.run([sys.executable, str(test_file)], capture_output=True, text=True)
             logger.info(result.stdout)
             if result.stderr:
                 logger.info("STDERR:", result.stderr)

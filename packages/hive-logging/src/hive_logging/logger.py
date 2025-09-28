@@ -25,7 +25,7 @@ def setup_logging(
     log_to_file: bool = False,
     log_file_path: Optional[str] = None,
     json_format: bool = False,
-):
+) -> None:
     """
     Configure the root logger for an application. This should be called once at startup.
 
@@ -49,17 +49,13 @@ def setup_logging(
     # Define the formatter
     if json_format and HAS_JSON_LOGGER:
         # JSON format: {"timestamp": "...", "level": "...", "name": "...", "message": "..."}
-        formatter = jsonlogger.JsonFormatter(
-            "%(asctime)s %(name)s %(levelname)s %(message)s"
-        )
+        formatter = jsonlogger.JsonFormatter("%(asctime)s %(name)s %(levelname)s %(message)s")
     else:
         if json_format and not HAS_JSON_LOGGER:
             logger.warning(
                 "JSON logging requested but python-json-logger not available, falling back to standard format"
             )
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     # Console Handler (always on)
     console_handler = logging.StreamHandler(sys.stdout)
@@ -115,9 +111,7 @@ def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:
         handler.setLevel(logger.level)
 
         # Create formatter
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
 
         # Add handler to logger

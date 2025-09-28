@@ -13,11 +13,7 @@ class ClaudeServiceInterface(ABC):
 
     @abstractmethod
     async def call_claude_async(
-        self,
-        prompt: str,
-        max_tokens: int = 1000,
-        temperature: float = 0.7,
-        **kwargs
+        self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7, **kwargs
     ) -> Dict[str, Any]:
         """
         Make an async call to Claude API.
@@ -49,9 +45,7 @@ class PlannerBridgeInterface(ABC):
 
     @abstractmethod
     async def create_plan_async(
-        self,
-        task_description: str,
-        context: Optional[Dict[str, Any]] = None
+        self, task_description: str, context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Create a plan for the given task.
@@ -66,11 +60,7 @@ class PlannerBridgeInterface(ABC):
         pass
 
     @abstractmethod
-    async def refine_plan_async(
-        self,
-        plan: Dict[str, Any],
-        feedback: str
-    ) -> Dict[str, Any]:
+    async def refine_plan_async(self, plan: Dict[str, Any], feedback: str) -> Dict[str, Any]:
         """
         Refine an existing plan based on feedback.
 
@@ -89,10 +79,7 @@ class ReviewerBridgeInterface(ABC):
 
     @abstractmethod
     async def review_code_async(
-        self,
-        code: str,
-        language: str = "python",
-        context: Optional[str] = None
+        self, code: str, language: str = "python", context: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Review code using Claude.
@@ -108,11 +95,7 @@ class ReviewerBridgeInterface(ABC):
         pass
 
     @abstractmethod
-    async def suggest_improvements_async(
-        self,
-        code: str,
-        issues: List[str]
-    ) -> Dict[str, Any]:
+    async def suggest_improvements_async(self, code: str, issues: List[str]) -> Dict[str, Any]:
         """
         Suggest improvements for identified issues.
 

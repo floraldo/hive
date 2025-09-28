@@ -14,6 +14,7 @@ from unittest.mock import Mock, patch
 
 class SingletonAntiPattern:
     """Example of problematic singleton pattern"""
+
     _instance = None
     _lock = threading.Lock()
 
@@ -45,6 +46,7 @@ class SingletonAntiPattern:
 
 class DIService:
     """Example of proper DI service"""
+
     def __init__(self, initial_value: int = 0):
         self.value = initial_value
         self.initialization_count = 1
@@ -208,11 +210,7 @@ class TestDependencyInjectionSolution:
             container = DIContainer()
 
             # Register service as singleton
-            container.register(
-                DIService,
-                lambda: DIService(initial_value=100),
-                Lifecycle.SINGLETON
-            )
+            container.register(DIService, lambda: DIService(initial_value=100), Lifecycle.SINGLETON)
 
             # Resolve multiple times - should get same instance
             service1 = container.resolve(DIService)

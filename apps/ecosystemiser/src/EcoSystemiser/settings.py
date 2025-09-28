@@ -135,9 +135,7 @@ class APISettings(BaseSettings):
     """API configuration"""
 
     title: str = Field(default="EcoSystemiser Platform API")
-    description: str = Field(
-        default="Modular platform for climate, demand, and optimization"
-    )
+    description: str = Field(default="Modular platform for climate, demand, and optimization")
     version: str = Field(default="3.0.0")
 
     # Versioning
@@ -263,9 +261,7 @@ class Settings(BaseSettings):
     """Main settings container for EcoSystemiser platform"""
 
     # Environment
-    environment: str = Field(
-        default="development", pattern="^(development|staging|production)$"
-    )
+    environment: str = Field(default="development", pattern="^(development|staging|production)$")
     debug: bool = Field(default=False)
     testing: bool = Field(default=False)
 

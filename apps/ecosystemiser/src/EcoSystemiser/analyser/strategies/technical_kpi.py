@@ -25,9 +25,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         """Initialize technical KPI analysis."""
         super().__init__(name="TechnicalKPI")
 
-    def run(
-        self, results_data: Dict[str, Any], metadata: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
         """Calculate technical KPIs from results data.
 
         Args:
@@ -67,13 +65,11 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         components = results_data.get("components", {})
 
         has_energy = any(
-            comp.get("type") in ["battery", "solar_pv", "grid", "generator"]
-            for comp in components.values()
+            comp.get("type") in ["battery", "solar_pv", "grid", "generator"] for comp in components.values()
         )
 
         has_water = any(
-            comp.get("type") in ["water_storage", "water_demand", "rainwater_source"]
-            for comp in components.values()
+            comp.get("type") in ["water_storage", "water_demand", "rainwater_source"] for comp in components.values()
         )
 
         if has_energy and has_water:
@@ -204,9 +200,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         return kpis
 
-    def _calculate_battery_kpis(
-        self, flows: Dict, components: Dict
-    ) -> Dict[str, float]:
+    def _calculate_battery_kpis(self, flows: Dict, components: Dict) -> Dict[str, float]:
         """Calculate battery-specific KPIs.
 
         Args:
@@ -235,9 +229,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         # Calculate cycles (simplified: total throughput / capacity)
         capacity = battery.get("technical", {}).get("capacity_nominal", 0)
         if capacity > 0:
-            kpis["battery_cycles"] = (battery_charge + battery_discharge) / (
-                2 * capacity
-            )
+            kpis["battery_cycles"] = (battery_charge + battery_discharge) / (2 * capacity)
         else:
             kpis["battery_cycles"] = 0
 
@@ -277,9 +269,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             kpis["average_demand"] = float(np.mean(grid_array))
 
             if kpis["average_demand"] > 0:
-                kpis["peak_to_average_ratio"] = (
-                    kpis["peak_demand"] / kpis["average_demand"]
-                )
+                kpis["peak_to_average_ratio"] = kpis["peak_demand"] / kpis["average_demand"]
             else:
                 kpis["peak_to_average_ratio"] = 0
 
@@ -291,9 +281,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         return kpis
 
-    def _get_flow_sum(
-        self, flows: Dict, component: str, direction: str = None
-    ) -> float:
+    def _get_flow_sum(self, flows: Dict, component: str, direction: str = None) -> float:
         """Get the sum of flows for a component.
 
         Args:

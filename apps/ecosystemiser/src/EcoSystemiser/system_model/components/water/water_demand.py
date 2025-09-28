@@ -36,33 +36,19 @@ class WaterDemandTechnicalParams(DemandTechnicalParams):
 
     # Water-specific parameters (in cubic meters and m³/h)
     demand_type: str = Field("residential", description="Type of water demand")
-    pressure_requirement: Optional[float] = Field(
-        None, description="Required supply pressure [bar]"
-    )
+    pressure_requirement: Optional[float] = Field(None, description="Required supply pressure [bar]")
 
     # STANDARD fidelity additions
-    seasonal_variation: Optional[float] = Field(
-        None, description="Seasonal variation factor (0-1)"
-    )
-    pressure_dependency: Optional[Dict[str, float]] = Field(
-        None, description="Pressure-dependent demand response"
-    )
+    seasonal_variation: Optional[float] = Field(None, description="Seasonal variation factor (0-1)")
+    pressure_dependency: Optional[Dict[str, float]] = Field(None, description="Pressure-dependent demand response")
 
     # DETAILED fidelity parameters
-    occupancy_coupling: Optional[Dict[str, Any]] = Field(
-        None, description="Occupancy-driven demand variations"
-    )
-    conservation_measures: Optional[Dict[str, float]] = Field(
-        None, description="Water conservation effectiveness"
-    )
+    occupancy_coupling: Optional[Dict[str, Any]] = Field(None, description="Occupancy-driven demand variations")
+    conservation_measures: Optional[Dict[str, float]] = Field(None, description="Water conservation effectiveness")
 
     # RESEARCH fidelity parameters
-    behavioral_model: Optional[Dict[str, Any]] = Field(
-        None, description="Detailed user behavior modeling"
-    )
-    stochastic_model: Optional[Dict[str, Any]] = Field(
-        None, description="Stochastic demand model parameters"
-    )
+    behavioral_model: Optional[Dict[str, Any]] = Field(None, description="Detailed user behavior modeling")
+    stochastic_model: Optional[Dict[str, Any]] = Field(None, description="Stochastic demand model parameters")
 
 
 class WaterDemandParams(ComponentParams):
@@ -135,9 +121,7 @@ class WaterDemandPhysicsStandard(WaterDemandPhysicsSimple):
             # Simplified seasonal adjustment
             # In real implementation, would use actual calendar date
             day_of_year = (t // 24) % 365
-            seasonal_factor = 1 + seasonal_variation * np.sin(
-                2 * np.pi * day_of_year / 365
-            )
+            seasonal_factor = 1 + seasonal_variation * np.sin(2 * np.pi * day_of_year / 365)
             demand_after_simple = demand_after_simple * max(0.1, seasonal_factor)
 
         return max(0.0, demand_after_simple)
@@ -210,9 +194,7 @@ class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
             seasonal_variation = getattr(comp.technical, "seasonal_variation", None)
             if seasonal_variation:
                 # Log awareness but maintain exact demand for now
-                logger.debug(
-                    f"STANDARD: Seasonal variation acknowledged for {comp.name}"
-                )
+                logger.debug(f"STANDARD: Seasonal variation acknowledged for {comp.name}")
 
             # Apply exact demand constraint (same as SIMPLE for now)
             constraints.append(comp.Q_in == demand_exact)
@@ -262,9 +244,7 @@ class WaterDemand(Component):
         # Profile should be assigned by the system/builder
         # Initialize as None, will be set by assign_profiles
         if not hasattr(self, "profile") or self.profile is None:
-            logger.warning(
-                f"No water demand profile assigned to {self.name}. Using zero demand."
-            )
+            logger.warning(f"No water demand profile assigned to {self.name}. Using zero demand.")
             self.profile = np.zeros(getattr(self, "N", 24))
         else:
             self.profile = np.array(self.profile)
@@ -308,9 +288,7 @@ class WaterDemand(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return WaterDemandOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for WaterDemand optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for WaterDemand optimization: {fidelity}")
 
     def rule_based_demand(self, t: int) -> float:
         """
@@ -320,11 +298,7 @@ class WaterDemand(Component):
         delegates the actual physics calculation to the strategy object.
         """
         # Check bounds
-        if (
-            not hasattr(self, "profile")
-            or self.profile is None
-            or t >= len(self.profile)
-        ):
+        if not hasattr(self, "profile") or self.profile is None or t >= len(self.profile):
             return 0.0
 
         # Get normalized profile value for this timestep
@@ -335,10 +309,7 @@ class WaterDemand(Component):
 
         # Log for debugging if needed
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(
-                f"{self.name} at t={t}: profile={profile_value:.3f}, "
-                f"demand={demand_output:.3f}m³/h"
-            )
+            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, " f"demand={demand_output:.3f}m³/h")
 
         return demand_output
 

@@ -35,43 +35,25 @@ class WaterStorageTechnicalParams(StorageTechnicalParams):
     """
 
     # Water-specific parameters (in cubic meters and m³/h)
-    storage_type: str = Field(
-        "tank", description="Type of water storage (tank, reservoir, cistern)"
-    )
-    loss_rate_daily: float = Field(
-        0.01, description="Daily loss rate (evaporation, leakage) [%]"
-    )
+    storage_type: str = Field("tank", description="Type of water storage (tank, reservoir, cistern)")
+    loss_rate_daily: float = Field(0.01, description="Daily loss rate (evaporation, leakage) [%]")
     water_quality_class: Optional[str] = Field(
         None,
         description="Water quality classification (potable, greywater, blackwater)",
     )
 
     # STANDARD fidelity additions
-    temperature_effects: Optional[Dict[str, float]] = Field(
-        None, description="Temperature-dependent loss rates"
-    )
-    mixing_model: Optional[str] = Field(
-        None, description="Water mixing model (FIFO, LIFO, perfect_mix)"
-    )
+    temperature_effects: Optional[Dict[str, float]] = Field(None, description="Temperature-dependent loss rates")
+    mixing_model: Optional[str] = Field(None, description="Water mixing model (FIFO, LIFO, perfect_mix)")
 
     # DETAILED fidelity parameters
-    stratification_model: Optional[Dict[str, Any]] = Field(
-        None, description="Thermal stratification in water storage"
-    )
-    water_quality_decay: Optional[Dict[str, float]] = Field(
-        None, description="Water quality degradation parameters"
-    )
-    membrane_fouling: Optional[Dict[str, Any]] = Field(
-        None, description="Membrane fouling model for advanced storage"
-    )
+    stratification_model: Optional[Dict[str, Any]] = Field(None, description="Thermal stratification in water storage")
+    water_quality_decay: Optional[Dict[str, float]] = Field(None, description="Water quality degradation parameters")
+    membrane_fouling: Optional[Dict[str, Any]] = Field(None, description="Membrane fouling model for advanced storage")
 
     # RESEARCH fidelity parameters
-    cfd_model: Optional[Dict[str, Any]] = Field(
-        None, description="Computational fluid dynamics model parameters"
-    )
-    biofilm_model: Optional[Dict[str, Any]] = Field(
-        None, description="Biofilm growth and water quality modeling"
-    )
+    cfd_model: Optional[Dict[str, Any]] = Field(None, description="Computational fluid dynamics model parameters")
+    biofilm_model: Optional[Dict[str, Any]] = Field(None, description="Biofilm growth and water quality modeling")
 
 
 # =============================================================================
@@ -88,9 +70,7 @@ class WaterStoragePhysicsSimple(BaseStoragePhysics):
     - Physical bounds enforcement (0 <= V <= V_max)
     """
 
-    def rule_based_update_state(
-        self, t: int, V_old: float, inflow: float, outflow: float
-    ) -> float:
+    def rule_based_update_state(self, t: int, V_old: float, inflow: float, outflow: float) -> float:
         """
         Implement SIMPLE water storage physics with daily loss rate.
 
@@ -111,9 +91,7 @@ class WaterStoragePhysicsSimple(BaseStoragePhysics):
 
         # Calculate volume changes
         volume_gained = inflow * efficiency
-        volume_lost = outflow + (
-            V_old * hourly_loss_rate
-        )  # Outflow + evaporation/leakage
+        volume_lost = outflow + (V_old * hourly_loss_rate)  # Outflow + evaporation/leakage
 
         # Net volume change
         net_change = volume_gained - volume_lost
@@ -132,9 +110,7 @@ class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
     - Mixing model effects on loss rates
     """
 
-    def rule_based_update_state(
-        self, t: int, V_old: float, inflow: float, outflow: float
-    ) -> float:
+    def rule_based_update_state(self, t: int, V_old: float, inflow: float, outflow: float) -> float:
         """
         Implement STANDARD water storage physics with temperature effects.
 
@@ -144,9 +120,7 @@ class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
         volume_after_simple = super().rule_based_update_state(t, V_old, inflow, outflow)
 
         # 2. Add STANDARD-specific physics: temperature-dependent losses
-        temperature_effects = getattr(
-            self.params.technical, "temperature_effects", None
-        )
+        temperature_effects = getattr(self.params.technical, "temperature_effects", None)
         if temperature_effects:
             # Simplified temperature adjustment
             # In real implementation, would use actual ambient temperature
@@ -156,11 +130,7 @@ class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
             additional_loss_multiplier = 1 + temp_factor * temp_deviation / 10
 
             # Apply additional temperature-dependent loss
-            additional_loss = (
-                V_old
-                * (self.params.technical.loss_rate_daily / 24.0)
-                * (additional_loss_multiplier - 1)
-            )
+            additional_loss = V_old * (self.params.technical.loss_rate_daily / 24.0) * (additional_loss_multiplier - 1)
             volume_after_standard = volume_after_simple - additional_loss
 
             return self.apply_bounds(volume_after_standard)
@@ -402,9 +372,7 @@ class WaterStorage(Component):
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return WaterStorageOptimizationStandard(self.params, self)
         else:
-            raise ValueError(
-                f"Unknown fidelity level for WaterStorage optimization: {fidelity}"
-            )
+            raise ValueError(f"Unknown fidelity level for WaterStorage optimization: {fidelity}")
 
     def rule_based_update_state(self, t: int, inflow: float, outflow: float):
         """
@@ -421,9 +389,7 @@ class WaterStorage(Component):
         current_level = self.water_level[t]
 
         # Delegate to physics strategy
-        new_level = self.physics.rule_based_update_state(
-            t, current_level, inflow, outflow
-        )
+        new_level = self.physics.rule_based_update_state(t, current_level, inflow, outflow)
 
         # Update state
         self.water_level[t + 1] = new_level
@@ -431,8 +397,7 @@ class WaterStorage(Component):
         # Log for debugging if needed
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
-                f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, "
-                f"outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
+                f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, " f"outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
             )
 
     def add_optimization_vars(self, N: Optional[int] = None):
@@ -452,9 +417,7 @@ class WaterStorage(Component):
         """Delegate constraint creation to optimization strategy."""
         return self.optimization.set_constraints()
 
-    def rule_based_operation(
-        self, water_demand: float, water_supply: float, t: int
-    ) -> tuple:
+    def rule_based_operation(self, water_demand: float, water_supply: float, t: int) -> tuple:
         """Rule-based water storage operation with fidelity-aware performance.
 
         Args:

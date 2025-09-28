@@ -51,6 +51,6 @@ __all__ = [
     "run_all_golden_rules",
     # Enhanced AST-based validation
     "EnhancedValidator",
-    "GoldenRuleVisitor", 
+    "GoldenRuleVisitor",
     "Violation",
 ]

@@ -53,7 +53,7 @@ class PipelineMetrics:
             "total_duration_ms": self.total_duration_ms,
             "stage_durations": self.stage_durations,
             "error_counts": dict(self.error_counts),
-            "last_execution_time": self.last_execution_time.isoformat() if self.last_execution_time else None
+            "last_execution_time": self.last_execution_time.isoformat() if self.last_execution_time else None,
         }
 
 
@@ -124,22 +124,20 @@ class PipelineMonitor:
                     self.metrics.error_counts[error] += 1
 
             # Add to history
-            self.execution_history.append({
-                "execution_id": execution_id,
-                "timestamp": datetime.now(),
-                "duration_ms": duration_ms,
-                "success": success,
-                "error": error
-            })
+            self.execution_history.append(
+                {
+                    "execution_id": execution_id,
+                    "timestamp": datetime.now(),
+                    "duration_ms": duration_ms,
+                    "success": success,
+                    "error": error,
+                }
+            )
 
             logger.info(f"Completed execution {execution_id}: success={success}, duration={duration_ms:.2f}ms")
 
     def record_stage_execution(
-        self,
-        stage_name: str,
-        duration_ms: float,
-        success: bool,
-        error: Optional[str] = None
+        self, stage_name: str, duration_ms: float, success: bool, error: Optional[str] = None
     ) -> None:
         """Record execution of a pipeline stage"""
         with self.lock:
@@ -172,7 +170,7 @@ class PipelineMonitor:
                     "average_duration_ms": stage.average_duration_ms,
                     "error_rate": stage.error_rate,
                     "last_error": stage.last_error,
-                    "last_execution": stage.last_execution.isoformat() if stage.last_execution else None
+                    "last_execution": stage.last_execution.isoformat() if stage.last_execution else None,
                 }
                 for name, stage in self.stage_metrics.items()
             }
@@ -196,16 +194,15 @@ class PipelineMonitor:
                     new_history.append(execution)
 
             self.execution_history = new_history
-            logger.info(f"Cleared old history for pipeline {self.pipeline_name}, kept {len(self.execution_history)} records")
+            logger.info(
+                f"Cleared old history for pipeline {self.pipeline_name}, kept {len(self.execution_history)} records"
+            )
 
     def get_health_status(self) -> Dict[str, Any]:
         """Get pipeline health status"""
         with self.lock:
             # Determine health based on recent performance
-            recent_failures = sum(
-                1 for exec in list(self.execution_history)[-10:]
-                if not exec.get("success", False)
-            )
+            recent_failures = sum(1 for exec in list(self.execution_history)[-10:] if not exec.get("success", False))
 
             if recent_failures >= 5:
                 health = "unhealthy"
@@ -220,7 +217,9 @@ class PipelineMonitor:
                 "success_rate": self.metrics.success_rate,
                 "recent_failures": recent_failures,
                 "active_executions": len(self._active_executions),
-                "last_execution": self.metrics.last_execution_time.isoformat() if self.metrics.last_execution_time else None
+                "last_execution": self.metrics.last_execution_time.isoformat()
+                if self.metrics.last_execution_time
+                else None,
             }
 
 
@@ -242,20 +241,12 @@ class MonitoringService:
     def get_all_metrics(self) -> Dict[str, Any]:
         """Get metrics for all pipelines"""
         with self.lock:
-            return {
-                name: monitor.get_metrics()
-                for name, monitor in self.monitors.items()
-            }
+            return {name: monitor.get_metrics() for name, monitor in self.monitors.items()}
 
     def get_health_summary(self) -> Dict[str, Any]:
         """Get health summary for all pipelines"""
         with self.lock:
-            summary = {
-                "healthy": 0,
-                "degraded": 0,
-                "unhealthy": 0,
-                "pipelines": {}
-            }
+            summary = {"healthy": 0, "degraded": 0, "unhealthy": 0, "pipelines": {}}
 
             for name, monitor in self.monitors.items():
                 health = monitor.get_health_status()
