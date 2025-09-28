@@ -12,7 +12,7 @@ This module provides the foundation for all climate data adapters with:
 import asyncio
 import hashlib
 import json
-from hive_logging import get_logger
+from EcoSystemiser.hive_logging_adapter import get_logger
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass

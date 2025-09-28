@@ -1,4 +1,4 @@
-from hive_logging import get_logger
+from EcoSystemiser.hive_logging_adapter import get_logger
 """
 Comprehensive validation and quality control module for climate data.
 
