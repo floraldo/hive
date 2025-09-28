@@ -7,14 +7,14 @@ integrity and catch configuration issues early.
 
 import os
 import sys
-import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from .loader import find_project_root
 from .path_manager import get_hive_paths, validate_hive_imports
+from hive_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ValidationError(Exception):

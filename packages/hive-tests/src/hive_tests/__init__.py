@@ -12,11 +12,42 @@ from .architectural_validators import (
     validate_colocated_tests,
     validate_no_syspath_hacks,
     validate_single_config_source,
+    validate_package_app_discipline,
+    validate_dependency_direction,
+    validate_interface_contracts,
+    validate_error_handling_standards,
+    validate_logging_standards,
+    validate_service_layer_discipline,
+    validate_inherit_extend_pattern,
+    validate_communication_patterns,
+    validate_package_naming_consistency,
+    validate_development_tools_consistency,
+    validate_async_pattern_consistency,
+    validate_cli_pattern_consistency,
+    run_all_golden_rules,
 )
 
 __all__ = [
+    # Original validators
     "validate_app_contracts",
-    "validate_colocated_tests",
+    "validate_colocated_tests", 
     "validate_no_syspath_hacks",
     "validate_single_config_source",
+    
+    # Golden Rules validators
+    "validate_package_app_discipline",
+    "validate_dependency_direction",
+    "validate_interface_contracts",
+    "validate_error_handling_standards",
+    "validate_logging_standards",
+    "validate_service_layer_discipline",
+    "validate_inherit_extend_pattern",
+    "validate_communication_patterns",
+    "validate_package_naming_consistency",
+    "validate_development_tools_consistency",
+    "validate_async_pattern_consistency",
+    "validate_cli_pattern_consistency",
+    
+    # Orchestration
+    "run_all_golden_rules",
 ]

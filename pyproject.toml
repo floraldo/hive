@@ -24,10 +24,10 @@ golden-test = "hive_tests.golden_runner:main"
 pytest = "^8.3.2"
 pytest-cov = "^4.1.0"
 pytest-asyncio = "*"
-black = "*"
-isort = "*"
-mypy = "*"
-ruff = "^0.1.0"  # Fast Python linter - replaces many tools
+black = "^24.8.0"
+isort = "^5.13.0"
+mypy = "^1.8.0"
+ruff = "^0.1.15"  # Fast Python linter - replaces many tools
 flask = "^3.0.0"
 flask-cors = "^4.0.0"
 

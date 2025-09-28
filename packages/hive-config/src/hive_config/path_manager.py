@@ -11,13 +11,13 @@ Usage:
 """
 
 import sys
-import logging
 from pathlib import Path
 from typing import List, Optional
 
 from .loader import find_project_root
+from hive_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_hive_paths() -> List[Path]:

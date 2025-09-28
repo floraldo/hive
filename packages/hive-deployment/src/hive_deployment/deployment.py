@@ -172,7 +172,7 @@ def deploy_update_env_file(ssh: SSHClient, env_file_path: str, port: int, config
     return True
 
 
-def deploy_set_permissions(ssh: SSHClient, remote_app_dir: str, config: Dict[str, Any]) -> bool:
+def deploy_set_permissions(ssh: SSHClient, remote_app_dir: str, config: Dict[str, Any], deployment_config: Optional[Dict[str, str]] = None) -> bool:
     """
     Sets the appropriate permissions for the application files.
     
@@ -187,7 +187,10 @@ def deploy_set_permissions(ssh: SSHClient, remote_app_dir: str, config: Dict[str
     log.info(f"Setting permissions for {remote_app_dir}...")
     
     # Set ownership
-    exit_code, _, stderr = run_remote_command(ssh, f"chown -R {SERVER_USER}:{NGINX_USER_GROUP} '{remote_app_dir}'", config=config, sudo=True, check=False)
+    depl_config = deployment_config or get_deployment_config()
+    server_user = depl_config["server_user"]
+    nginx_user_group = depl_config["nginx_user_group"]
+    exit_code, _, stderr = run_remote_command(ssh, f"chown -R {server_user}:{nginx_user_group} '{remote_app_dir}'", config=config, sudo=True, check=False)
     if exit_code != 0:
         log.error(f"Failed to set ownership: {stderr}")
         return False
@@ -663,7 +666,8 @@ def deploy_application(
 def rollback_deployment(
     ssh: SSHClient,
     app_name: str,
-    config: Dict[str, Any]
+    config: Dict[str, Any],
+    deployment_config: Optional[Dict[str, str]] = None
 ) -> bool:
     """
     Rollback a failed deployment by stopping services and optionally removing files.
@@ -689,7 +693,8 @@ def rollback_deployment(
         run_remote_command(ssh, cmd, f"Disable {service_name}")
         
         # Remove nginx config
-        nginx_conf = f"{NGINX_CONF_D_DIR}/{app_name}.conf"
+        depl_config = deployment_config or get_deployment_config()
+        nginx_conf = f"{depl_config['nginx_conf_d_dir']}/{app_name}.conf"
         cmd = f"sudo rm -f {nginx_conf}"
         run_remote_command(ssh, cmd, f"Remove nginx config")
         
@@ -699,7 +704,7 @@ def rollback_deployment(
         
         # Optionally remove application directory
         if config.get('rollback_remove_files', False):
-            remote_app_dir = f"{BASE_REMOTE_APPS_DIR}/{app_name}"
+            remote_app_dir = f"{depl_config['base_remote_apps_dir']}/{app_name}"
             cmd = f"sudo rm -rf {remote_app_dir}"
             run_remote_command(ssh, cmd, f"Remove application directory")
         

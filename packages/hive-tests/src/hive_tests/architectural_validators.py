@@ -134,6 +134,15 @@ def validate_single_config_source(project_root: Path) -> Tuple[bool, List[str]]:
     """
     violations = []
 
+    # Check for forbidden duplicate configuration files
+    forbidden_config = project_root / "packages" / "hive-db" / "src" / "hive_db" / "config.py"
+    if forbidden_config.exists():
+        violations.append(
+            "CRITICAL: Duplicate configuration source detected - "
+            "packages/hive-db/src/hive_db/config.py should not exist. "
+            "Use hive-config package exclusively."
+        )
+
     # Check for setup.py files
     setup_files = list(project_root.rglob("setup.py"))
     # Filter out virtual environments and worktrees
@@ -638,6 +647,83 @@ def validate_error_handling_standards(project_root: Path) -> Tuple[bool, List[st
     return len(violations) == 0, violations
 
 
+def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Validate that packages don't contain hardcoded environment-specific values.
+
+    Ensures:
+    - No hardcoded server paths, usernames, or hostnames in generic packages
+    - Deployment configuration uses environment variables or configuration files
+    - Generic packages remain environment-agnostic
+    - Prevents coupling between infrastructure code and specific deployment environments
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    # Focus on packages directory - these should be environment-agnostic
+    packages_dir = project_root / "packages"
+    if not packages_dir.exists():
+        return True, violations
+
+    # Hardcoded values that indicate environment coupling
+    hardcoded_patterns = [
+        # Server paths that should be configurable
+        (r'/home/smarthoo[^/]*', 'hardcoded user home directory'),
+        (r'/home/deploy[^/]*', 'hardcoded deployment user directory'),
+        (r'/etc/nginx/conf\.d', 'hardcoded nginx config directory'),
+        (r'/etc/systemd/system', 'hardcoded systemd directory'),
+
+        # Hostnames and domains
+        (r'tasks\.smarthoods\.eco', 'hardcoded hostname'),
+        (r'smarthoods\.eco', 'hardcoded domain name'),
+
+        # User accounts
+        (r'"smarthoo"', 'hardcoded username'),
+        (r"'smarthoo'", 'hardcoded username'),
+        (r'"www-data"', 'hardcoded user group'),
+        (r"'www-data'", 'hardcoded user group'),
+
+        # Base directory constants (should use env vars)
+        (r'BASE_REMOTE_APPS_DIR\s*=\s*["\']/', 'hardcoded base directory assignment'),
+    ]
+
+    for package_dir in packages_dir.iterdir():
+        if not package_dir.is_dir() or package_dir.name.startswith('.'):
+            continue
+
+        for py_file in package_dir.rglob("*.py"):
+            # Skip test files, __pycache__, and virtual environments
+            if any(skip in str(py_file) for skip in [
+                "test", "__pycache__", ".venv", ".pytest_cache"
+            ]):
+                continue
+
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Check each hardcoded pattern
+                import re
+                for pattern, description in hardcoded_patterns:
+                    matches = re.finditer(pattern, content)
+                    for match in matches:
+                        # Find line number for better error reporting
+                        line_num = content[:match.start()].count('\n') + 1
+                        violations.append(
+                            f"Hardcoded environment value ({description}): "
+                            f"{py_file.relative_to(project_root)}:{line_num} "
+                            f"- Found: {match.group()}"
+                        )
+
+            except Exception as e:
+                # Skip files that can't be read
+                continue
+
+    return len(violations) == 0, violations
+
+
 def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
     """
     Golden Rule 9: Logging Standards
@@ -787,3 +873,239 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
                     )
 
     return len(violations) == 0, violations
+
+
+def validate_package_naming_consistency(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 12: Package Naming Consistency
+    
+    Validate that package names, directory names, and module names
+    are consistent across the workspace.
+    
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    packages_dir = project_root / "packages"
+    
+    if not packages_dir.exists():
+        return True, []  # No packages to validate
+        
+    for package_dir in packages_dir.iterdir():
+        if not package_dir.is_dir() or package_dir.name.startswith('.'):
+            continue
+            
+        package_name = package_dir.name
+        pyproject_file = package_dir / "pyproject.toml"
+        
+        if not pyproject_file.exists():
+            violations.append(f"Package '{package_name}' missing pyproject.toml")
+            continue
+            
+        try:
+            pyproject = toml.load(pyproject_file)
+            
+            # Check that package name in pyproject.toml matches directory name
+            declared_name = pyproject.get("tool", {}).get("poetry", {}).get("name", "")
+            if declared_name != package_name:
+                violations.append(f"Package '{package_name}' directory name doesn't match pyproject.toml name '{declared_name}'")
+            
+            # Check that source directory matches package name (with underscores)
+            expected_src_name = package_name.replace("-", "_")
+            src_dir = package_dir / "src" / expected_src_name
+            if not src_dir.exists():
+                violations.append(f"Package '{package_name}' missing expected src directory 'src/{expected_src_name}'")
+                
+        except Exception as e:
+            violations.append(f"Package '{package_name}' has malformed pyproject.toml: {e}")
+    
+    return len(violations) == 0, violations
+
+
+def validate_development_tools_consistency(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 13: Development Tools Consistency
+    
+    Validate that all packages and apps use standardized versions
+    of development tools (pytest, black, mypy, ruff, isort).
+    
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    
+    # Standard tool versions
+    standard_versions = {
+        "pytest": "^8.3.2",
+        "black": "^24.8.0", 
+        "mypy": "^1.8.0",
+        "ruff": "^0.1.15",
+        "isort": "^5.13.0"
+    }
+    
+    # Check all pyproject.toml files
+    for pyproject_file in project_root.rglob("pyproject.toml"):
+        # Skip virtual environment and hidden directories
+        if ".venv" in str(pyproject_file) or "/.git/" in str(pyproject_file):
+            continue
+            
+        try:
+            pyproject = toml.load(pyproject_file)
+            dev_deps = pyproject.get("tool", {}).get("poetry", {}).get("group", {}).get("dev", {}).get("dependencies", {})
+            
+            # Check each standard tool if it exists
+            for tool, expected_version in standard_versions.items():
+                if tool in dev_deps:
+                    actual_version = dev_deps[tool]
+                    if actual_version != expected_version and actual_version != "*":
+                        rel_path = pyproject_file.relative_to(project_root)
+                        violations.append(f"{rel_path}: {tool} version '{actual_version}' should be '{expected_version}'")
+                        
+        except Exception as e:
+            rel_path = pyproject_file.relative_to(project_root)
+            violations.append(f"{rel_path}: Failed to parse pyproject.toml: {e}")
+    
+    return len(violations) == 0, violations
+
+
+def validate_async_pattern_consistency(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 14: Async Pattern Consistency
+    
+    Validate that async code follows consistent patterns:
+    - Use hive-async utilities for common patterns
+    - Proper async context managers
+    - Consistent error handling in async code
+    
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    
+    # Find Python files that use async
+    for py_file in project_root.rglob("*.py"):
+        # Skip virtual environment and hidden directories
+        if ".venv" in str(py_file) or "/.git/" in str(py_file):
+            continue
+            
+        try:
+            with open(py_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            tree = ast.parse(content)
+            
+            for node in ast.walk(tree):
+                # Check for async functions
+                if isinstance(node, ast.AsyncFunctionDef):
+                    rel_path = py_file.relative_to(project_root)
+                    
+                    # Look for connection pool patterns that should use hive-async
+                    if "connection" in node.name.lower() and "pool" in node.name.lower():
+                        # Check if hive_async is imported
+                        has_hive_async_import = any(
+                            isinstance(n, ast.ImportFrom) and n.module and "hive_async" in n.module
+                            for n in ast.walk(tree)
+                        )
+                        if not has_hive_async_import:
+                            violations.append(f"{rel_path}: Async connection handling should use hive-async utilities")
+                            
+        except (UnicodeDecodeError, SyntaxError):
+            # Skip files that can't be parsed (binary files, syntax errors)
+            continue
+        except Exception:
+            # Skip other parsing errors
+            continue
+    
+    return len(violations) == 0, violations
+
+
+def validate_cli_pattern_consistency(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 15: CLI Pattern Consistency
+    
+    Validate that CLI implementations use standardized patterns:
+    - Use hive-cli base classes and utilities
+    - Consistent output formatting with Rich
+    - Proper error handling and validation
+    
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    
+    # Find CLI-related files
+    cli_files = []
+    for py_file in project_root.rglob("*.py"):
+        # Skip virtual environment and hidden directories
+        if ".venv" in str(py_file) or "/.git/" in str(py_file):
+            continue
+            
+        if "cli" in py_file.name or py_file.name == "__main__.py":
+            cli_files.append(py_file)
+    
+    for cli_file in cli_files:
+        try:
+            with open(cli_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            rel_path = cli_file.relative_to(project_root)
+            
+            # Check for Click usage without hive-cli
+            if "import click" in content and "from hive_cli" not in content:
+                # Look for complex CLI patterns that should use hive-cli
+                if any(pattern in content for pattern in ["@click.group", "@click.command", "click.echo"]):
+                    violations.append(f"{rel_path}: CLI should use hive-cli utilities for consistency")
+                    
+        except (UnicodeDecodeError, SyntaxError):
+            # Skip files that can't be parsed
+            continue
+        except Exception:
+            # Skip other parsing errors
+            continue
+    
+    return len(violations) == 0, violations
+
+
+def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
+    """
+    Run all Golden Rules validation.
+    
+    Returns:
+        Tuple of (all_passed, results_dict)
+    """
+    results = {}
+    all_passed = True
+    
+    # Run all golden rule validators
+    golden_rules = [
+        ("Golden Rule 5: Package vs App Discipline", validate_package_app_discipline),
+        ("Golden Rule 6: Dependency Direction", validate_dependency_direction),
+        ("Golden Rule 7: Interface Contracts", validate_interface_contracts),
+        ("Golden Rule 8: Error Handling Standards", validate_error_handling_standards),
+        ("Golden Rule 9: Logging Standards", validate_logging_standards),
+        ("Golden Rule 10: Service Layer Discipline", validate_service_layer_discipline),
+        ("Golden Rule 10: Inherit → Extend Pattern", validate_inherit_extend_pattern),
+        ("Golden Rule 11: Communication Patterns", validate_communication_patterns),
+        ("Golden Rule 12: Package Naming Consistency", validate_package_naming_consistency),
+        ("Golden Rule 13: Development Tools Consistency", validate_development_tools_consistency),
+        ("Golden Rule 14: Async Pattern Consistency", validate_async_pattern_consistency),
+        ("Golden Rule 15: CLI Pattern Consistency", validate_cli_pattern_consistency),
+    ]
+    
+    for rule_name, validator_func in golden_rules:
+        try:
+            passed, violations = validator_func(project_root)
+            results[rule_name] = {
+                "passed": passed,
+                "violations": violations
+            }
+            if not passed:
+                all_passed = False
+        except Exception as e:
+            results[rule_name] = {
+                "passed": False,
+                "violations": [f"Validation error: {e}"]
+            }
+            all_passed = False
+    
+    return all_passed, results

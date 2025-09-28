@@ -11,11 +11,11 @@ Implements hierarchical configuration loading with proper precedence:
 from pathlib import Path
 from typing import Dict, Optional, List
 import os
-import logging
 
 from .models import AppConfig, ConfigSources
+from hive_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def find_project_root() -> Path:

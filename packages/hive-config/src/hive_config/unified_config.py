@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from pydantic import BaseModel, Field, ValidationError
-import logging
+from hive_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DatabaseConfig(BaseModel):

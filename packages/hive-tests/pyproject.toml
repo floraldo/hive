@@ -7,11 +7,11 @@ packages = [{include = "hive_tests", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-pytest = "*"
+pytest = "^8.3.2"
 toml = "*"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "*"
+pytest = "^8.3.2"
 black = "*"
 isort = "*"
 mypy = "*"
