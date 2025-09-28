@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Monte Carlo Uncertainty Report - {{ study_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="display-5">
+                        <i class="fas fa-dice"></i> Monte Carlo Uncertainty Analysis Report
+                    </h1>
+                    <p class="text-muted">
+                        Study ID: {{ study_id }} | Generated: {{ timestamp }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3><i class="fas fa-chart-bar"></i> Executive Summary</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <h2 class="text-primary">{{ num_samples }}</h2>
+                                <p class="text-muted">Total Samples</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <h2 class="text-success">{{ "%.2f"|format(execution_time) }}s</h2>
+                                <p class="text-muted">Analysis Time</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <h2 class="text-info">{{ sampling_method|upper }}</h2>
+                                <p class="text-muted">Sampling Method</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <h2 class="text-warning">
+                                    {% if uncertainty_analysis.statistics %}
+                                        {{ "%.1f"|format(uncertainty_analysis.statistics.std|default(0)) }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </h2>
+                                <p class="text-muted">Std Deviation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistical Summary -->
+    {% if uncertainty_analysis.statistics %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-calculator"></i> Statistical Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Mean</strong></td>
+                                        <td>{{ "%.4f"|format(uncertainty_analysis.statistics.mean|default(0)) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Standard Deviation</strong></td>
+                                        <td>{{ "%.4f"|format(uncertainty_analysis.statistics.std|default(0)) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Minimum</strong></td>
+                                        <td>{{ "%.4f"|format(uncertainty_analysis.statistics.min|default(0)) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Maximum</strong></td>
+                                        <td>{{ "%.4f"|format(uncertainty_analysis.statistics.max|default(0)) }}</td>
+                                    </tr>
+                                    {% if uncertainty_analysis.statistics.skewness %}
+                                    <tr>
+                                        <td><strong>Skewness</strong></td>
+                                        <td>{{ "%.4f"|format(uncertainty_analysis.statistics.skewness) }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if uncertainty_analysis.statistics.kurtosis %}
+                                    <tr>
+                                        <td><strong>Kurtosis</strong></td>
+                                        <td>{{ "%.4f"|format(uncertainty_analysis.statistics.kurtosis) }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Confidence Intervals -->
+                        {% if uncertainty_analysis.confidence_intervals %}
+                        <div class="col-md-6">
+                            <h5>Confidence Intervals</h5>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Level</th>
+                                        <th>Lower Bound</th>
+                                        <th>Upper Bound</th>
+                                        <th>Width</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for level, ci in uncertainty_analysis.confidence_intervals.items() %}
+                                    <tr>
+                                        <td><strong>{{ level }}</strong></td>
+                                        <td>{{ "%.4f"|format(ci.lower|default(ci)) }}</td>
+                                        <td>{{ "%.4f"|format(ci.upper|default(ci)) }}</td>
+                                        <td>{{ "%.4f"|format((ci.upper|default(ci) - ci.lower|default(ci))|abs) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Visualizations -->
+    <div class="row mt-4">
+        <!-- Uncertainty Distribution Plot -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-chart-area"></i> Uncertainty Distribution</h4>
+                </div>
+                <div class="card-body">
+                    {% if plots.uncertainty %}
+                        <div id="uncertainty-plot" style="height: 400px;"></div>
+                        <script>
+                            Plotly.newPlot('uncertainty-plot', {{ plots.uncertainty | tojson | safe }});
+                        </script>
+                    {% else %}
+                        <p class="text-muted">Distribution visualization not available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Analysis Plot -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Risk Analysis</h4>
+                </div>
+                <div class="card-body">
+                    {% if plots.risk %}
+                        <div id="risk-plot" style="height: 400px;"></div>
+                        <script>
+                            Plotly.newPlot('risk-plot', {{ plots.risk | tojson | safe }});
+                        </script>
+                    {% else %}
+                        <p class="text-muted">Risk visualization not available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensitivity Analysis -->
+    {% if plots.sensitivity %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-sort-amount-down"></i> Sensitivity Analysis</h4>
+                </div>
+                <div class="card-body">
+                    <div id="sensitivity-plot" style="height: 500px;"></div>
+                    <script>
+                        Plotly.newPlot('sensitivity-plot', {{ plots.sensitivity | tojson | safe }});
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Risk Metrics -->
+    {% if uncertainty_analysis.risk_metrics or uncertainty_analysis.risk %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-shield-alt"></i> Risk Metrics</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% set risk = uncertainty_analysis.risk_metrics or uncertainty_analysis.risk %}
+                        {% if risk.var_95 %}
+                        <div class="col-md-3">
+                            <div class="alert alert-warning text-center">
+                                <h5>VaR (95%)</h5>
+                                <h3>{{ "%.2f"|format(risk.var_95) }}</h3>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if risk.cvar_95 %}
+                        <div class="col-md-3">
+                            <div class="alert alert-danger text-center">
+                                <h5>CVaR (95%)</h5>
+                                <h3>{{ "%.2f"|format(risk.cvar_95) }}</h3>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if risk.prob_exceed_mean %}
+                        <div class="col-md-3">
+                            <div class="alert alert-info text-center">
+                                <h5>P(>Mean)</h5>
+                                <h3>{{ "%.1%"|format(risk.prob_exceed_mean) }}</h3>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if risk.risk_ratio %}
+                        <div class="col-md-3">
+                            <div class="alert alert-secondary text-center">
+                                <h5>Risk Ratio</h5>
+                                <h3>{{ "%.3f"|format(risk.risk_ratio) }}</h3>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scenario Analysis -->
+    {% if plots.scenarios %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-sitemap"></i> Scenario Comparison</h4>
+                </div>
+                <div class="card-body">
+                    <div id="scenarios-plot" style="height: 400px;"></div>
+                    <script>
+                        Plotly.newPlot('scenarios-plot', {{ plots.scenarios | tojson | safe }});
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Export Options -->
+    <div class="row mt-4 mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Export Options</h5>
+                    <div class="btn-group" role="group">
+                        <button onclick="window.print()" class="btn btn-outline-primary">
+                            <i class="fas fa-print"></i> Print Report
+                        </button>
+                        <a href="/download/{{ study_id }}" class="btn btn-outline-success">
+                            <i class="fas fa-download"></i> Download HTML
+                        </a>
+                        <a href="/api/study/{{ study_id }}" class="btn btn-outline-info">
+                            <i class="fas fa-code"></i> View JSON
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.metric-card {
+    padding: 20px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-bottom: 20px;
+}
+
+.metric-card h2 {
+    color: white !important;
+}
+
+.metric-card p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+@media print {
+    .btn-group {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

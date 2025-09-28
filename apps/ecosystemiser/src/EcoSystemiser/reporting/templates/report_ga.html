@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}GA Optimization Report - {{ study_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="display-5">
+                        <i class="fas fa-dna"></i> Genetic Algorithm Optimization Report
+                    </h1>
+                    <p class="text-muted">
+                        Study ID: {{ study_id }} | Generated: {{ timestamp }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3><i class="fas fa-chart-line"></i> Executive Summary</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <h2 class="text-primary">{{ num_simulations }}</h2>
+                                <p class="text-muted">Total Evaluations</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <h2 class="text-success">{{ "%.2f"|format(execution_time) }}s</h2>
+                                <p class="text-muted">Execution Time</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <h2 class="text-info">{{ summary.get('convergence_status', 'N/A') }}</h2>
+                                <p class="text-muted">Convergence Status</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <h2 class="text-warning">
+                                    {% if best_result.pareto_front %}
+                                        {{ best_result.pareto_front|length }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </h2>
+                                <p class="text-muted">Pareto Solutions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Objectives Configuration -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-bullseye"></i> Optimization Objectives</h4>
+                </div>
+                <div class="card-body">
+                    {% if objectives %}
+                        <ul class="list-group">
+                            {% for obj in objectives %}
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success"></i> {{ obj }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No objectives specified</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visualizations -->
+    <div class="row mt-4">
+        <!-- Pareto Frontier Plot -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-chart-scatter"></i> Pareto Frontier</h4>
+                </div>
+                <div class="card-body">
+                    {% if plots.pareto_front %}
+                        <div id="pareto-plot" style="height: 400px;"></div>
+                        <script>
+                            Plotly.newPlot('pareto-plot', {{ plots.pareto_front | tojson | safe }});
+                        </script>
+                    {% else %}
+                        <p class="text-muted">Pareto frontier visualization not available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Convergence Plot -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-chart-line"></i> Convergence History</h4>
+                </div>
+                <div class="card-body">
+                    {% if plots.convergence %}
+                        <div id="convergence-plot" style="height: 400px;"></div>
+                        <script>
+                            Plotly.newPlot('convergence-plot', {{ plots.convergence | tojson | safe }});
+                        </script>
+                    {% else %}
+                        <p class="text-muted">Convergence visualization not available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Best Solution Details -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-trophy"></i> Best Solution Found</h4>
+                </div>
+                <div class="card-body">
+                    {% if best_result.best_solution %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for value in best_result.best_solution %}
+                                    <tr>
+                                        <td>Parameter {{ loop.index }}</td>
+                                        <td><code>{{ "%.4f"|format(value) }}</code></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if best_result.best_objectives %}
+                        <h5 class="mt-4">Objective Values:</h5>
+                        <div class="row">
+                            {% for obj_val in best_result.best_objectives %}
+                            <div class="col-md-4">
+                                <div class="alert alert-info">
+                                    <strong>Objective {{ loop.index }}:</strong> {{ "%.4f"|format(obj_val) }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">No best solution data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Algorithm Metrics -->
+    {% if best_result.algorithm_metadata %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-cogs"></i> Algorithm Performance Metrics</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for key, value in best_result.algorithm_metadata.items() %}
+                        <div class="col-md-3">
+                            <div class="metric-small">
+                                <strong>{{ key.replace('_', ' ').title() }}:</strong>
+                                <span class="badge bg-secondary">{{ "%.3f"|format(value) }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Export Options -->
+    <div class="row mt-4 mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Export Options</h5>
+                    <div class="btn-group" role="group">
+                        <button onclick="window.print()" class="btn btn-outline-primary">
+                            <i class="fas fa-print"></i> Print Report
+                        </button>
+                        <a href="/download/{{ study_id }}" class="btn btn-outline-success">
+                            <i class="fas fa-download"></i> Download HTML
+                        </a>
+                        <a href="/api/study/{{ study_id }}" class="btn btn-outline-info">
+                            <i class="fas fa-code"></i> View JSON
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.metric-card {
+    padding: 20px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    margin-bottom: 20px;
+}
+
+.metric-small {
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+@media print {
+    .btn-group {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
