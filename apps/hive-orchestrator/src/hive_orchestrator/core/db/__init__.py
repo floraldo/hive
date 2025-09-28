@@ -79,7 +79,8 @@ try:
         get_tasks_by_status_async,
         update_task_status_async,
         get_task_async,
-        get_queued_tasks_async
+        get_queued_tasks_async,
+        create_run_async
     )
     ASYNC_AVAILABLE = True
 except ImportError:
@@ -147,5 +148,6 @@ if ASYNC_AVAILABLE:
         'get_tasks_by_status_async',
         'update_task_status_async',
         'get_task_async',
-        'get_queued_tasks_async'
+        'get_queued_tasks_async',
+        'create_run_async'
     ])

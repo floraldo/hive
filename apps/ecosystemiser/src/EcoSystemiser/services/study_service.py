@@ -1,5 +1,5 @@
 """Multi-simulation orchestration service for parametric studies and optimization workflows."""
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Union
 from pydantic import BaseModel, Field

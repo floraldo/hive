@@ -17,35 +17,21 @@ class SSHClient:
     Compatible with deployment utilities and remote operations.
     """
     
-    def __init__(
-        self,
-        host: str,
-        username: str,
-        password: Optional[str] = None,
-        port: int = 22,
-        key_filename: Optional[str] = None,
-        connect_timeout: int = 10,
-        sudo_password: Optional[str] = None
-    ):
+    def __init__(self, config: Dict[str, Any]):
         """
-        Initialize an SSH client.
-        
+        Initialize an SSH client from a configuration dictionary.
+
         Args:
-            host: Hostname or IP address
-            username: SSH username
-            password: SSH password
-            port: SSH port (default: 22)
-            key_filename: Path to private key file (optional)
-            connect_timeout: Connection timeout in seconds (default: 10)
-            sudo_password: Password for sudo operations (optional)
+            config: SSH configuration dictionary containing connection parameters
         """
-        self.host = host
-        self.username = username
-        self.password = password
-        self.port = port
-        self.key_filename = key_filename
-        self.connect_timeout = connect_timeout
-        self.sudo_password = sudo_password
+        self.config = config
+        self.host = config.get('host')
+        self.username = config.get('username')
+        self.password = config.get('password')
+        self.port = int(config.get('port', 22))
+        self.key_filename = config.get('key_filename')
+        self.connect_timeout = int(config.get('connect_timeout', 10))
+        self.sudo_password = config.get('sudo_password')
         self.client = None
         self.sftp = None
         
@@ -215,23 +201,14 @@ class SSHClient:
 def create_ssh_client_from_config(config: Dict[str, Any]) -> SSHClient:
     """
     Create an SSH client from a configuration dictionary.
-    
+
     Args:
         config: Dictionary containing SSH configuration with 'ssh' key
-        
+
     Returns:
         SSHClient: Configured SSH client
     """
-    # Extract SSH configuration
     ssh_config = config.get('ssh', {})
-    
-    # Create the SSH client
-    client = SSHClient(
-        host=ssh_config.get('host'),
-        username=ssh_config.get('username'),
-        password=ssh_config.get('password'),
-        port=int(ssh_config.get('port', 22)),
-        sudo_password=ssh_config.get('sudo_password')
-    )
-    
-    return client
+    if not ssh_config.get('host') or not ssh_config.get('username'):
+        raise ValueError("SSH config must contain 'host' and 'username'")
+    return SSHClient(config=ssh_config)

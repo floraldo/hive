@@ -22,6 +22,7 @@ logger = get_logger(__name__)
 
 
 def get_postgres_connection(
+    config: Optional[Dict[str, Any]] = None,
     host: Optional[str] = None,
     port: Optional[int] = None,
     database: Optional[str] = None,
@@ -33,11 +34,12 @@ def get_postgres_connection(
     Get a PostgreSQL database connection.
 
     Args:
-        host: Database host (defaults to DB_HOST env var)
-        port: Database port (defaults to DB_PORT env var or 5432)
-        database: Database name (defaults to DB_NAME env var)
-        user: Database user (defaults to DB_USER env var)
-        password: Database password (defaults to DB_PASSWORD env var)
+        config: Configuration dictionary with database settings
+        host: Database host (overrides config)
+        port: Database port (overrides config)
+        database: Database name (overrides config)
+        user: Database user (overrides config)
+        password: Database password (overrides config)
         **kwargs: Additional connection parameters
 
     Returns:
@@ -46,14 +48,17 @@ def get_postgres_connection(
     Raises:
         ImportError: If psycopg2 is not installed
         psycopg2.Error: If connection fails
+        ValueError: If required parameters are missing
 
-    Environment Variables:
-        DB_HOST: Database host
-        DB_PORT: Database port (default: 5432)
-        DB_NAME: Database name
-        DB_USER: Database user
-        DB_PASSWORD: Database password
-        DATABASE_URL: Full connection URL (overrides individual parameters)
+    Config Structure:
+        {
+            'host': 'localhost',
+            'port': 5432,
+            'database': 'mydb',
+            'user': 'myuser',
+            'password': 'mypass',
+            'database_url': 'postgresql://...'  # optional full URL
+        }
     """
     if not PSYCOPG2_AVAILABLE:
         raise ImportError(
@@ -61,26 +66,34 @@ def get_postgres_connection(
             "Install it with: pip install psycopg2-binary"
         )
 
-    # Check for full DATABASE_URL first
-    database_url = os.getenv('DATABASE_URL')
+    # Initialize config if not provided
+    if config is None:
+        config = {}
+
+    # Check for full DATABASE_URL first (from config or direct parameter)
+    database_url = config.get('database_url')
     if database_url and not any([host, port, database, user, password]):
         try:
             conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor, **kwargs)
-            logger.info("PostgreSQL connection established via DATABASE_URL")
+            logger.info("PostgreSQL connection established via database_url")
             return conn
         except psycopg2.Error as e:
-            logger.error(f"Failed to connect via DATABASE_URL: {e}")
+            logger.error(f"Failed to connect via database_url: {e}")
             raise
 
-    # Use individual parameters with environment fallbacks
+    # Use individual parameters with config fallbacks
     connection_params = {
-        'host': host or os.getenv('DB_HOST', 'localhost'),
-        'port': port or int(os.getenv('DB_PORT', '5432')),
-        'database': database or os.getenv('DB_NAME'),
-        'user': user or os.getenv('DB_USER'),
-        'password': password or os.getenv('DB_PASSWORD'),
+        'host': host or config.get('host', 'localhost'),
+        'port': port or config.get('port', 5432),
+        'database': database or config.get('database'),
+        'user': user or config.get('user'),
+        'password': password or config.get('password'),
         'cursor_factory': RealDictCursor
     }
+
+    # Ensure port is integer
+    if isinstance(connection_params['port'], str):
+        connection_params['port'] = int(connection_params['port'])
 
     # Add any additional parameters
     connection_params.update(kwargs)
@@ -103,6 +116,7 @@ def get_postgres_connection(
 
 @contextmanager
 def postgres_transaction(
+    config: Optional[Dict[str, Any]] = None,
     host: Optional[str] = None,
     port: Optional[int] = None,
     database: Optional[str] = None,
@@ -120,7 +134,8 @@ def postgres_transaction(
         PostgreSQL connection in transaction mode
 
     Example:
-        with postgres_transaction() as conn:
+        config = {'host': 'localhost', 'database': 'mydb', 'user': 'user', 'password': 'pass'}
+        with postgres_transaction(config) as conn:
             with conn.cursor() as cur:
                 cur.execute("INSERT INTO users (name) VALUES (%s)", ("Alice",))
                 cur.execute("INSERT INTO users (name) VALUES (%s)", ("Bob",))
@@ -128,7 +143,7 @@ def postgres_transaction(
     """
     conn = None
     try:
-        conn = get_postgres_connection(host, port, database, user, password, **kwargs)
+        conn = get_postgres_connection(config, host, port, database, user, password, **kwargs)
         yield conn
         conn.commit()
         logger.debug("PostgreSQL transaction committed")
@@ -147,6 +162,7 @@ def postgres_transaction(
 def create_connection_pool(
     minconn: int = 1,
     maxconn: int = 10,
+    config: Optional[Dict[str, Any]] = None,
     host: Optional[str] = None,
     port: Optional[int] = None,
     database: Optional[str] = None,
@@ -160,13 +176,15 @@ def create_connection_pool(
     Args:
         minconn: Minimum connections in pool
         maxconn: Maximum connections in pool
+        config: Configuration dictionary with database settings
         Other args: Same as get_postgres_connection()
 
     Returns:
         Connection pool object
 
     Example:
-        pool = create_connection_pool(minconn=2, maxconn=20)
+        config = {'host': 'localhost', 'database': 'mydb', 'user': 'user', 'password': 'pass'}
+        pool = create_connection_pool(minconn=2, maxconn=20, config=config)
 
         # Get connection from pool
         conn = pool.getconn()
@@ -179,27 +197,35 @@ def create_connection_pool(
     if not PSYCOPG2_AVAILABLE:
         raise ImportError("psycopg2-binary is required for connection pooling")
 
+    # Initialize config if not provided
+    if config is None:
+        config = {}
+
     # Use same parameter resolution as get_postgres_connection
-    database_url = os.getenv('DATABASE_URL')
+    database_url = config.get('database_url')
     if database_url and not any([host, port, database, user, password]):
         try:
             pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn, maxconn, database_url, cursor_factory=RealDictCursor, **kwargs
             )
-            logger.info(f"PostgreSQL connection pool created via DATABASE_URL: {minconn}-{maxconn} connections")
+            logger.info(f"PostgreSQL connection pool created via database_url: {minconn}-{maxconn} connections")
             return pool
         except psycopg2.Error as e:
-            logger.error(f"Failed to create connection pool via DATABASE_URL: {e}")
+            logger.error(f"Failed to create connection pool via database_url: {e}")
             raise
 
     connection_params = {
-        'host': host or os.getenv('DB_HOST', 'localhost'),
-        'port': port or int(os.getenv('DB_PORT', '5432')),
-        'database': database or os.getenv('DB_NAME'),
-        'user': user or os.getenv('DB_USER'),
-        'password': password or os.getenv('DB_PASSWORD'),
+        'host': host or config.get('host', 'localhost'),
+        'port': port or config.get('port', 5432),
+        'database': database or config.get('database'),
+        'user': user or config.get('user'),
+        'password': password or config.get('password'),
         'cursor_factory': RealDictCursor
     }
+
+    # Ensure port is integer
+    if isinstance(connection_params['port'], str):
+        connection_params['port'] = int(connection_params['port'])
     connection_params.update(kwargs)
 
     # Validate required parameters
@@ -219,6 +245,7 @@ def create_connection_pool(
 
 
 def get_postgres_info(
+    config: Optional[Dict[str, Any]] = None,
     host: Optional[str] = None,
     port: Optional[int] = None,
     database: Optional[str] = None,
@@ -235,7 +262,7 @@ def get_postgres_info(
         Dictionary with database information
     """
     try:
-        with postgres_transaction(host, port, database, user, password) as conn:
+        with postgres_transaction(config, host, port, database, user, password) as conn:
             with conn.cursor() as cur:
                 # Get PostgreSQL version
                 cur.execute("SELECT version()")
@@ -257,14 +284,18 @@ def get_postgres_info(
                 cur.execute("SELECT current_database(), current_user")
                 db_info = cur.fetchone()
 
+                # Initialize config if not provided for info display
+                if config is None:
+                    config = {}
+
                 return {
                     'database': db_info['current_database'],
                     'user': db_info['current_user'],
                     'version': pg_version,
                     'size': db_size,
                     'table_count': table_count,
-                    'host': host or os.getenv('DB_HOST', 'localhost'),
-                    'port': port or int(os.getenv('DB_PORT', '5432'))
+                    'host': host or config.get('host', 'localhost'),
+                    'port': port or config.get('port', 5432)
                 }
 
     except Exception as e:

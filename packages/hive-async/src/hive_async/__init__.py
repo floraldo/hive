@@ -3,7 +3,7 @@
 from .context import AsyncResourceManager, async_context
 from .retry import async_retry, AsyncRetryConfig
 from .pools import ConnectionPool, AsyncConnectionManager
-from .tasks import TaskManager, gather_with_concurrency
+from .tasks import gather_with_concurrency, run_with_timeout
 
 __all__ = [
     # Context management
@@ -19,6 +19,6 @@ __all__ = [
     "AsyncConnectionManager",
 
     # Task management
-    "TaskManager",
     "gather_with_concurrency",
+    "run_with_timeout",
 ]

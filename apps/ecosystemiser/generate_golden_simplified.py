@@ -1,6 +1,3 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Simplified golden dataset generation - run original Systemiser to get baseline results.
@@ -9,11 +6,9 @@ import sys
 import json
 from pathlib import Path
 import subprocess
-import logging
+from hive_logging import get_logger
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('GoldenDataset')
+logger = get_logger('GoldenDataset')
 
 def run_original_systemiser():
     """Run the original Systemiser and capture its output."""

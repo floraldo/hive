@@ -69,7 +69,16 @@ class ClaudeBridgeConfig:
     def __init__(self, mock_mode=True):
         self.mock_mode = mock_mode
 
-def get_claude_service(config=None, rate_config=None):
+def get_claude_service(config: Optional[Dict[str, Any]] = None, rate_config: Optional[Dict[str, Any]] = None) -> ClaudeService:
+    """Get a Claude service instance with optional configuration.
+
+    Args:
+        config: Optional Claude service configuration
+        rate_config: Optional rate limiting configuration
+
+    Returns:
+        Configured Claude service instance
+    """
     return ClaudeService(config, rate_config)
 # Import error classes from our core module following the "inherit -> extend" pattern
 from ai_planner.core.errors import (

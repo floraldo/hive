@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 from copy import deepcopy
 
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

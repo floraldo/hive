@@ -97,9 +97,8 @@ def validate_no_syspath_hacks(project_root: Path) -> Tuple[bool, List[str]]:
             continue
 
         for py_file in base_dir.rglob("*.py"):
-            # Skip the path manager itself, verification scripts, and virtual environments
-            if ("path_manager.py" in str(py_file) or
-                "verify_environment.py" in str(py_file) or
+            # Skip verification scripts and virtual environments
+            if ("verify_environment.py" in str(py_file) or
                 "architectural_validators.py" in str(py_file) or
                 ".venv" in str(py_file) or
                 "__pycache__" in str(py_file)):
@@ -781,18 +780,36 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                     )
 
                     if not has_hive_logging:
-                        # Allow standard logging in infrastructure packages
-                        # Check if this is an infrastructure package
-                        is_infrastructure = False
+                        # Allow standard logging ONLY in core logging infrastructure
+                        # Check if this is the hive-logging package itself
+                        is_logging_infrastructure = False
                         for part in py_file.parts:
-                            if part in ["hive-logging", "hive-testing-utils", "hive-config"]:
-                                is_infrastructure = True
+                            if part in ["hive-logging"]:
+                                is_logging_infrastructure = True
                                 break
 
-                        if not is_infrastructure:
+                        if not is_logging_infrastructure:
                             violations.append(
                                 f"Uses logging but doesn't import hive_logging: {py_file.relative_to(project_root)}"
                             )
+
+                # Check for direct import logging violations (stricter enforcement)
+                if "import logging" in content and not content.startswith("\"\"\"") and "# type: ignore" not in content:
+                    # Only allow import logging in hive-logging package itself
+                    is_logging_infrastructure = False
+                    for part in py_file.parts:
+                        if part in ["hive-logging"]:
+                            is_logging_infrastructure = True
+                            break
+
+                    if not is_logging_infrastructure:
+                        line_num = 0
+                        for line in content.split('\n'):
+                            line_num += 1
+                            if "import logging" in line and not line.strip().startswith('#'):
+                                violations.append(
+                                    f"Direct 'import logging' found (use hive_logging): {py_file.relative_to(project_root)}:{line_num}"
+                                )
 
             except Exception as e:
                 # Skip files that can't be read
@@ -1066,6 +1083,121 @@ def validate_cli_pattern_consistency(project_root: Path) -> Tuple[bool, List[str
     return len(violations) == 0, violations
 
 
+def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 16: No Global State Access
+
+    Validate that no global state access patterns exist in the codebase.
+    All configuration should be injected via dependency injection.
+
+    Forbidden patterns:
+    - Global configuration singletons
+    - Direct os.getenv() calls outside config modules
+    - Module-level state variables
+    - Singleton pattern implementations
+
+    Allowed patterns:
+    - Configuration passed via function parameters
+    - Environment variable access in config loading functions
+    - Constants and immutable module-level data
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    base_dirs = [project_root / "apps", project_root / "packages"]
+
+    for base_dir in base_dirs:
+        if not base_dir.exists():
+            continue
+
+        for py_file in base_dir.rglob("*.py"):
+            # Skip test files, __pycache__, virtual environments, and config modules
+            if any(skip in str(py_file) for skip in [
+                "test", "__pycache__", ".venv", ".pytest_cache",
+                "architectural_validators.py"  # Skip self
+            ]):
+                continue
+
+            # Allow os.getenv in specific config-related files
+            config_related_files = [
+                "unified_config.py", "config.py", "settings.py",
+                "environment.py", "loader.py", "paths.py"
+            ]
+            is_config_file = any(config_file in py_file.name for config_file in config_related_files)
+
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                rel_path = py_file.relative_to(project_root)
+
+                # Check for global singleton patterns
+                singleton_patterns = [
+                    "_instance",
+                    "_config_instance",
+                    "_global_config",
+                    "_singleton",
+                    "global_instance",
+                    "_cache_instance"
+                ]
+
+                for pattern in singleton_patterns:
+                    if pattern in content:
+                        # Verify it's actually a global variable declaration
+                        lines = content.split('\n')
+                        for line_num, line in enumerate(lines, 1):
+                            stripped = line.strip()
+                            if (stripped.startswith(f"{pattern}:") or
+                                stripped.startswith(f"{pattern} =") or
+                                f"global {pattern}" in stripped):
+                                violations.append(
+                                    f"Global singleton pattern '{pattern}' found: {rel_path}:{line_num}"
+                                )
+
+                # Check for direct os.getenv() calls outside config modules
+                if not is_config_file and "os.getenv(" in content:
+                    lines = content.split('\n')
+                    for line_num, line in enumerate(lines, 1):
+                        if "os.getenv(" in line and not line.strip().startswith('#'):
+                            violations.append(
+                                f"Direct os.getenv() call outside config module: {rel_path}:{line_num}"
+                            )
+
+                # Check for global load_config() and get_config() calls
+                forbidden_global_calls = [
+                    "load_config()",
+                    "get_config()",
+                    "reset_config()"
+                ]
+
+                for call in forbidden_global_calls:
+                    if call in content:
+                        lines = content.split('\n')
+                        for line_num, line in enumerate(lines, 1):
+                            if call in line and not line.strip().startswith('#'):
+                                violations.append(
+                                    f"Global config call '{call}' found: {rel_path}:{line_num}"
+                                )
+
+                # Check for singleton class patterns
+                if "class " in content:
+                    lines = content.split('\n')
+                    for line_num, line in enumerate(lines, 1):
+                        if "class " in line and any(pattern in line.lower() for pattern in [
+                            "singleton", "_instance", "metaclass"
+                        ]):
+                            violations.append(
+                                f"Singleton class pattern found: {rel_path}:{line_num}"
+                            )
+
+            except Exception as e:
+                # Skip files that can't be read
+                continue
+
+    return len(violations) == 0, violations
+
+
 def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
     """
     Run all Golden Rules validation.
@@ -1090,6 +1222,7 @@ def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
         ("Golden Rule 13: Development Tools Consistency", validate_development_tools_consistency),
         ("Golden Rule 14: Async Pattern Consistency", validate_async_pattern_consistency),
         ("Golden Rule 15: CLI Pattern Consistency", validate_cli_pattern_consistency),
+        ("Golden Rule 16: No Global State Access", validate_no_global_state_access),
     ]
     
     for rule_name, validator_func in golden_rules:

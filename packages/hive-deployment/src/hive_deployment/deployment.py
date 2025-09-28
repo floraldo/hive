@@ -213,16 +213,17 @@ def deploy_set_permissions(ssh: SSHClient, remote_app_dir: str, config: Dict[str
 
 
 def deploy_systemd_service(
-    ssh: SSHClient, 
-    app_name: str, 
-    remote_app_dir: str, 
+    ssh: SSHClient,
+    app_name: str,
+    remote_app_dir: str,
     venv_path: str,
-    systemd_service_path: str, 
-    port: int, 
+    systemd_service_path: str,
+    port: int,
     config: Dict[str, Any],
     workers: int = 3,
     restart_sec: int = 5,
-    custom_exec_start: str = None
+    custom_exec_start: str = None,
+    deployment_config: Optional[Dict[str, str]] = None
 ) -> bool:
     """
     Creates and enables a systemd service for the application.
@@ -251,12 +252,15 @@ def deploy_systemd_service(
         exec_start = f"{venv_path}/bin/gunicorn --workers {workers} --bind 127.0.0.1:{port} wsgi:application"
     
     # Create systemd service file content
+    depl_config = deployment_config or get_deployment_config()
+    server_user = depl_config["server_user"]
+    nginx_user_group = depl_config["nginx_user_group"]
     systemd_content = f"""[Unit]
 Description=Gunicorn instance for {app_name}
 After=network.target
 [Service]
-User={SERVER_USER}
-Group={NGINX_USER_GROUP}
+User={server_user}
+Group={nginx_user_group}
 WorkingDirectory={remote_app_dir}
 Environment="SCRIPT_NAME=/{app_name}"
 ExecStart={exec_start}

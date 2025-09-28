@@ -7,7 +7,7 @@ Preserves diurnal and seasonal patterns for building energy modeling.
 import xarray as xr
 import numpy as np
 import pandas as pd
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from typing import Dict, Optional, Tuple, List
 
 logger = get_logger(__name__)

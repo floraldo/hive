@@ -11,7 +11,7 @@ from scipy.stats import gaussian_kde
 import itertools
 
 from ecosystemiser.discovery.base import BaseOptimizationAlgorithm, OptimizationConfig, OptimizationResult, OptimizationStatus
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

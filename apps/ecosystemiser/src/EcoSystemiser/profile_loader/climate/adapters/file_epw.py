@@ -7,7 +7,7 @@ from datetime import datetime, date
 from typing import List, Dict, Optional, Union, Tuple, Any
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 import os
 from io import StringIO
 import urllib.request

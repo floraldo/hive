@@ -17,7 +17,7 @@ import json
 from ecosystemiser.core.events import SimulationEvent as Event, AnalysisEvent
 from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
 from ecosystemiser.core.errors import ProfileError as ProcessingError
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.analyser.service import AnalyserService
 
 logger = get_logger(__name__)

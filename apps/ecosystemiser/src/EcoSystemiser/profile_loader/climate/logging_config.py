@@ -8,7 +8,7 @@ Provides consistent, structured logging across the platform with:
 - Error context preservation
 """
 
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 import sys
 from typing import Any, Dict, Optional
 from contextvars import ContextVar

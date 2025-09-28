@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import json
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 logger = get_logger(__name__)
 
 class PlotFactory:

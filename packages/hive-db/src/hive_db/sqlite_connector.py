@@ -13,12 +13,17 @@ from contextlib import contextmanager
 logger = get_logger(__name__)
 
 
-def get_sqlite_connection(db_path: str, **kwargs) -> sqlite3.Connection:
+def get_sqlite_connection(
+    db_path: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
+    **kwargs
+) -> sqlite3.Connection:
     """
     Get a SQLite database connection.
 
     Args:
-        db_path: Path to the SQLite database file
+        db_path: Path to the SQLite database file (overrides config)
+        config: Configuration dictionary with database settings
         **kwargs: Additional connection parameters
 
     Returns:
@@ -26,21 +31,38 @@ def get_sqlite_connection(db_path: str, **kwargs) -> sqlite3.Connection:
 
     Raises:
         sqlite3.Error: If connection fails
+        ValueError: If no database path is provided
+
+    Config Structure:
+        {
+            'db_path': '/path/to/database.sqlite',
+            'timeout': 30.0,
+            'check_same_thread': False
+        }
     """
+    # Initialize config if not provided
+    if config is None:
+        config = {}
+
+    # Determine database path from parameter or config
+    final_db_path = db_path or config.get('db_path')
+    if not final_db_path:
+        raise ValueError("Database path must be provided either directly or via config['db_path']")
+
     # Ensure parent directory exists
-    db_file = Path(db_path)
+    db_file = Path(final_db_path)
     db_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Default connection parameters for reliability
     defaults = {
-        'timeout': 30.0,
-        'check_same_thread': False,
-        'isolation_level': None  # Autocommit mode
+        'timeout': config.get('timeout', 30.0),
+        'check_same_thread': config.get('check_same_thread', False),
+        'isolation_level': config.get('isolation_level', None)  # Autocommit mode
     }
     defaults.update(kwargs)
 
     try:
-        conn = sqlite3.connect(db_path, **defaults)
+        conn = sqlite3.connect(final_db_path, **defaults)
         conn.row_factory = sqlite3.Row  # Enable row access by column name
 
         # Enable WAL mode for better concurrency
@@ -49,35 +71,41 @@ def get_sqlite_connection(db_path: str, **kwargs) -> sqlite3.Connection:
         # Enable foreign key constraints
         conn.execute('PRAGMA foreign_keys=ON')
 
-        logger.info(f"SQLite connection established: {db_path}")
+        logger.info(f"SQLite connection established: {final_db_path}")
         return conn
 
     except sqlite3.Error as e:
-        logger.error(f"Failed to connect to SQLite database {db_path}: {e}")
+        logger.error(f"Failed to connect to SQLite database {final_db_path}: {e}")
         raise
 
 
 @contextmanager
-def sqlite_transaction(db_path: str, **kwargs):
+def sqlite_transaction(
+    db_path: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
+    **kwargs
+):
     """
     Context manager for SQLite transactions.
 
     Args:
-        db_path: Path to the SQLite database file
+        db_path: Path to the SQLite database file (overrides config)
+        config: Configuration dictionary with database settings
         **kwargs: Additional connection parameters
 
     Yields:
         SQLite connection in transaction mode
 
     Example:
-        with sqlite_transaction("/path/to/db.sqlite") as conn:
+        config = {'db_path': '/path/to/db.sqlite'}
+        with sqlite_transaction(config=config) as conn:
             conn.execute("INSERT INTO users (name) VALUES (?)", ("Alice",))
             conn.execute("INSERT INTO users (name) VALUES (?)", ("Bob",))
             # Transaction commits automatically on success
     """
     conn = None
     try:
-        conn = get_sqlite_connection(db_path, **kwargs)
+        conn = get_sqlite_connection(db_path, config, **kwargs)
         conn.execute('BEGIN')
         yield conn
         conn.commit()
@@ -94,72 +122,10 @@ def sqlite_transaction(db_path: str, **kwargs):
             conn.close()
 
 
-def create_table_if_not_exists(conn: sqlite3.Connection, table_name: str, schema: str) -> None:
-    """
-    Create a table if it doesn't exist.
-
-    Args:
-        conn: SQLite connection
-        table_name: Name of the table to create
-        schema: SQL schema definition for the table
-
-    Example:
-        schema = '''
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        '''
-        create_table_if_not_exists(conn, "users", schema)
-    """
-    try:
-        sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({schema})"
-        conn.execute(sql)
-        logger.debug(f"Table {table_name} created or verified")
-
-    except sqlite3.Error as e:
-        logger.error(f"Failed to create table {table_name}: {e}")
-        raise
 
 
-def get_sqlite_info(db_path: str) -> Dict[str, Any]:
-    """
-    Get information about a SQLite database.
-
-    Args:
-        db_path: Path to the SQLite database file
-
-    Returns:
-        Dictionary with database information
-    """
-    try:
-        with sqlite_transaction(db_path) as conn:
-            # Get database size
-            db_file = Path(db_path)
-            file_size = db_file.stat().st_size if db_file.exists() else 0
-
-            # Get table count
-            cursor = conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table'")
-            table_count = cursor.fetchone()[0]
-
-            # Get SQLite version
-            cursor = conn.execute("SELECT sqlite_version()")
-            sqlite_version = cursor.fetchone()[0]
-
-            return {
-                'db_path': str(db_path),
-                'file_size_bytes': file_size,
-                'table_count': table_count,
-                'sqlite_version': sqlite_version,
-                'exists': db_file.exists()
-            }
-
-    except sqlite3.Error as e:
-        logger.error(f"Failed to get SQLite info for {db_path}: {e}")
-        raise
 
 
 # Convenience aliases
 connect = get_sqlite_connection
 transaction = sqlite_transaction
-create_table = create_table_if_not_exists
-info = get_sqlite_info

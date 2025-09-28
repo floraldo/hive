@@ -6,7 +6,7 @@ import pandas as pd
 from typing import Optional, Literal, Dict, Tuple, List
 from scipy import stats
 from scipy.stats import norm
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from dataclasses import dataclass
 from enum import Enum
 

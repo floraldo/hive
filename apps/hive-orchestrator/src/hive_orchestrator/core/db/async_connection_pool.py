@@ -12,7 +12,7 @@ from hive_logging import get_logger
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Optional, Dict, Any, Set
+from typing import Optional, Dict, Any, Set, List
 from dataclasses import dataclass
 
 from hive_config.paths import DB_PATH, ensure_directory
@@ -412,3 +412,144 @@ async def async_pool_health_check() -> Dict[str, Any]:
             'status': 'not_initialized',
             'message': 'Async connection pool not initialized'
         }
+
+
+# Async database operations
+async def create_task_async(task_type: str, task_data: Dict[str, Any], priority: int = 5,
+                           worker_hint: Optional[str] = None, timeout_seconds: Optional[int] = None) -> str:
+    """Create a new task asynchronously."""
+    import json
+    from datetime import datetime, timezone
+    import uuid
+
+    task_id = str(uuid.uuid4())
+    task_data_json = json.dumps(task_data)
+    created_at = datetime.now(timezone.utc).isoformat()
+
+    async with get_async_connection() as conn:
+        await conn.execute('''
+            INSERT INTO tasks (task_id, task_type, task_data, status, priority, worker_hint,
+                             timeout_seconds, created_at, updated_at)
+            VALUES (?, ?, ?, 'queued', ?, ?, ?, ?, ?)
+        ''', (task_id, task_type, task_data_json, priority, worker_hint, timeout_seconds,
+              created_at, created_at))
+        await conn.commit()
+
+    return task_id
+
+
+async def get_task_async(task_id: str) -> Optional[Dict[str, Any]]:
+    """Get a task by ID asynchronously."""
+    import json
+
+    async with get_async_connection() as conn:
+        cursor = await conn.execute('SELECT * FROM tasks WHERE task_id = ?', (task_id,))
+        row = await cursor.fetchone()
+
+        if row:
+            task = dict(row)
+            if task['task_data']:
+                task['task_data'] = json.loads(task['task_data'])
+            return task
+        return None
+
+
+async def get_queued_tasks_async(limit: int = 10, task_type: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Get queued tasks asynchronously."""
+    import json
+    from typing import List
+
+    async with get_async_connection() as conn:
+        if task_type:
+            cursor = await conn.execute('''
+                SELECT * FROM tasks
+                WHERE status = 'queued' AND task_type = ?
+                ORDER BY priority DESC, created_at ASC
+                LIMIT ?
+            ''', (task_type, limit))
+        else:
+            cursor = await conn.execute('''
+                SELECT * FROM tasks
+                WHERE status = 'queued'
+                ORDER BY priority DESC, created_at ASC
+                LIMIT ?
+            ''', (limit,))
+
+        rows = await cursor.fetchall()
+        tasks = []
+        for row in rows:
+            task = dict(row)
+            if task['task_data']:
+                task['task_data'] = json.loads(task['task_data'])
+            tasks.append(task)
+
+        return tasks
+
+
+async def get_tasks_by_status_async(status: str, limit: int = 50) -> List[Dict[str, Any]]:
+    """Get tasks by status asynchronously."""
+    import json
+    from typing import List
+
+    async with get_async_connection() as conn:
+        cursor = await conn.execute('''
+            SELECT * FROM tasks
+            WHERE status = ?
+            ORDER BY updated_at DESC
+            LIMIT ?
+        ''', (status, limit))
+
+        rows = await cursor.fetchall()
+        tasks = []
+        for row in rows:
+            task = dict(row)
+            if task['task_data']:
+                task['task_data'] = json.loads(task['task_data'])
+            tasks.append(task)
+
+        return tasks
+
+
+async def update_task_status_async(task_id: str, status: str, worker_id: Optional[str] = None,
+                                  result_data: Optional[Dict[str, Any]] = None) -> bool:
+    """Update task status asynchronously."""
+    import json
+    from datetime import datetime, timezone
+
+    updated_at = datetime.now(timezone.utc).isoformat()
+    result_json = json.dumps(result_data) if result_data else None
+
+    async with get_async_connection() as conn:
+        if worker_id:
+            cursor = await conn.execute('''
+                UPDATE tasks
+                SET status = ?, assigned_worker = ?, result_data = ?, updated_at = ?
+                WHERE task_id = ?
+            ''', (status, worker_id, result_json, updated_at, task_id))
+        else:
+            cursor = await conn.execute('''
+                UPDATE tasks
+                SET status = ?, result_data = ?, updated_at = ?
+                WHERE task_id = ?
+            ''', (status, result_json, updated_at, task_id))
+
+        await conn.commit()
+        return cursor.rowcount > 0
+
+
+async def create_run_async(task_id: str, worker_id: str, run_type: str = "execution") -> str:
+    """Create a new task run asynchronously."""
+    import uuid
+    from datetime import datetime, timezone
+
+    run_id = str(uuid.uuid4())
+    started_at = datetime.now(timezone.utc).isoformat()
+
+    async with get_async_connection() as conn:
+        await conn.execute('''
+            INSERT INTO task_runs (run_id, task_id, worker_id, run_type, status, started_at)
+            VALUES (?, ?, ?, ?, 'running', ?)
+        ''', (run_id, task_id, worker_id, run_type, started_at))
+        await conn.commit()
+
+    return run_id

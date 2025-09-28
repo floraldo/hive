@@ -9,8 +9,8 @@ import json
 import uuid
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
-from ecosystemiser.hive_logging_adapter import get_logger
-from ecosystemiser.hive_env import get_app_settings
+from hive_logging import get_logger
+from hive_config import load_config_for_app
 try:
     import redis
     from redis import Redis
@@ -54,8 +54,8 @@ class JobManager:
             return
         
         # Get Redis URL from centralized configuration
-        settings = get_app_settings()
-        redis_url = redis_url or settings.get("REDIS_URL", "redis://localhost:6379/0")
+        config = load_config_for_app("ecosystemiser").config
+        redis_url = redis_url or config.get("REDIS_URL", "redis://localhost:6379/0")
         
         try:
             self.redis = Redis.from_url(redis_url, decode_responses=True)

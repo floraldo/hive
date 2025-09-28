@@ -1,4 +1,3 @@
-from hive_logging import get_logger
 #!/usr/bin/env python3
 """
 EcoSystemiser Environment Verification Script
@@ -13,6 +12,9 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Tuple
 import json
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 class EnvironmentVerifier:
     """Verifies EcoSystemiser environment and Hive integration."""

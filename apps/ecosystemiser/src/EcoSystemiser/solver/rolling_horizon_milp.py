@@ -1,5 +1,5 @@
 """Rolling horizon MILP solver for large-scale optimization problems."""
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from typing import Dict, Any, Optional, List
 import numpy as np
 import cvxpy as cp

@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from .loader import find_project_root
-from .path_manager import get_hive_paths, validate_hive_imports
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -174,43 +173,6 @@ def validate_database_connectivity() -> Dict[str, any]:
     return results
 
 
-def validate_import_system() -> Dict[str, any]:
-    """
-    Validate the centralized import system and package availability.
-
-    Returns:
-        Dictionary with import validation results
-    """
-    results = {
-        'path_manager_working': False,
-        'all_imports_successful': False,
-        'issues': [],
-        'import_results': {}
-    }
-
-    try:
-        # Test path discovery
-        hive_paths = get_hive_paths()
-        results['hive_paths_found'] = len(hive_paths)
-        results['path_manager_working'] = len(hive_paths) > 0
-
-        # Test imports
-        import_results = validate_hive_imports()
-        results['import_results'] = import_results
-
-        failed_imports = [mod for mod, result in import_results.items() if result != 'SUCCESS']
-        results['all_imports_successful'] = len(failed_imports) == 0
-
-        if failed_imports:
-            results['issues'].extend([
-                f"Import failed: {mod} - {import_results[mod]}"
-                for mod in failed_imports
-            ])
-
-    except Exception as e:
-        results['issues'].append(f"Import system validation error: {e}")
-
-    return results
 
 
 def validate_worker_requirements() -> Dict[str, any]:
@@ -265,7 +227,6 @@ def run_comprehensive_validation() -> Tuple[bool, Dict[str, any]]:
         'python_environment': validate_python_environment(),
         'project_structure': validate_project_structure(),
         'database': validate_database_connectivity(),
-        'import_system': validate_import_system(),
         'worker_requirements': validate_worker_requirements()
     }
 
@@ -281,8 +242,6 @@ def run_comprehensive_validation() -> Tuple[bool, Dict[str, any]]:
     if not validation_results['database']['accessible']:
         critical_failures.append('Database not accessible')
 
-    if not validation_results['import_system']['all_imports_successful']:
-        critical_failures.append('Import system failures')
 
     if not validation_results['worker_requirements']['modules_importable']:
         critical_failures.append('Worker modules not importable')

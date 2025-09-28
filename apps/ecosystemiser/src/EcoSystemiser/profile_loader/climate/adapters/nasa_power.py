@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Any, Optional, Tuple
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.profile_loader.climate.utils.chunking import split_date_range, concatenate_chunked_results, estimate_memory_usage
 
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter

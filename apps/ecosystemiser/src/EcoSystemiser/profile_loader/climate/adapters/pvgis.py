@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
 

@@ -9,7 +9,7 @@ with support for:
 - Resource pooling and cleanup
 """
 
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from typing import Dict, Type, Optional, Any
 
 from ecosystemiser.settings import get_settings

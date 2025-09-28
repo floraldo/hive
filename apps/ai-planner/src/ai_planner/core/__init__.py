@@ -7,7 +7,7 @@ Contains the core infrastructure that extends generic Hive packages:
 - Database layer (extends hive-db-utils via hive-orchestrator)
 - AI Planner-specific service interfaces
 
-This follows the "inherit → extend" pattern:
+This follows the "inherit -> extend" pattern:
 - Generic packages provide reusable infrastructure
 - Core components add AI Planner-specific business logic
 """

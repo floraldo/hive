@@ -18,7 +18,7 @@ from datetime import datetime
 from enum import Enum
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Union, AsyncIterator, Tuple
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Header, Response, Depends
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware

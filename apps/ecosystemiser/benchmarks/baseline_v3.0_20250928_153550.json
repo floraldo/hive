@@ -1,0 +1,89 @@
+{
+  "benchmark_info": {
+    "version": "3.0",
+    "timestamp": "2025-09-28T13:35:46.365197",
+    "platform": {
+      "python_version": "3.11.9",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "processor": "Intel64 Family 6 Model 165 Stepping 2, GenuineIntel",
+      "architecture": "64bit"
+    },
+    "system_spec": {
+      "total_memory_gb": 15.78,
+      "cpu_count": 12,
+      "cpu_logical_count": 12
+    }
+  },
+  "fidelity_benchmarks": [
+    {
+      "fidelity_level": "SIMPLE",
+      "solve_time_s": 0.0018,
+      "peak_memory_mb": 0.0,
+      "status": "optimal",
+      "total_cost": 1000.0,
+      "error": null
+    },
+    {
+      "fidelity_level": "STANDARD",
+      "solve_time_s": 0.011,
+      "peak_memory_mb": 0.0,
+      "status": "optimal",
+      "total_cost": 1000.0,
+      "error": null
+    },
+    {
+      "fidelity_level": "DETAILED",
+      "solve_time_s": 0.0505,
+      "peak_memory_mb": 0.0,
+      "status": "optimal",
+      "total_cost": 1000.0,
+      "error": null
+    },
+    {
+      "fidelity_level": "RESEARCH",
+      "solve_time_s": 0.1006,
+      "peak_memory_mb": 0.0,
+      "status": "optimal",
+      "total_cost": 1000.0,
+      "error": null
+    }
+  ],
+  "rolling_horizon_benchmarks": [
+    {
+      "warm_start_enabled": false,
+      "solve_time_s": 0.0109,
+      "peak_memory_mb": 0.0,
+      "status": "optimal",
+      "total_cost": 1000.0,
+      "horizon_count": 3,
+      "error": null
+    },
+    {
+      "warm_start_enabled": true,
+      "solve_time_s": 0.0075,
+      "peak_memory_mb": 0.0,
+      "status": "optimal",
+      "total_cost": 1000.0,
+      "horizon_count": 3,
+      "error": null
+    }
+  ],
+  "summary": {
+    "fidelity_performance": {
+      "successful_levels": 4,
+      "total_levels": 4,
+      "fastest_solve_s": 0.0018,
+      "slowest_solve_s": 0.1006,
+      "peak_memory_mb": 0.0
+    },
+    "rolling_horizon_performance": {
+      "warm_start_speedup": 1.45,
+      "memory_overhead_mb": 0.0
+    },
+    "recommendations": [
+      "Majority of fidelity levels functional - foundation is solid",
+      "Warm-starting provides performance benefit - enable by default",
+      "v3.0 foundation benchmark completed - ready for strategic development"
+    ]
+  }
+}

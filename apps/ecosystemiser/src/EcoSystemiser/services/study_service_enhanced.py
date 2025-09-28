@@ -6,7 +6,7 @@ enabling true exploration of design spaces for the intelligent co-pilot vision.
 
 from typing import Dict, Any, List
 import copy
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

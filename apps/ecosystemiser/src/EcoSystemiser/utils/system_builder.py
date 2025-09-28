@@ -3,7 +3,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
 import numpy as np
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.system_model.system import System
 from ecosystemiser.component_data.repository import ComponentRepository
 from ecosystemiser.system_model.components.shared.registry import get_component_class, COMPONENT_REGISTRY

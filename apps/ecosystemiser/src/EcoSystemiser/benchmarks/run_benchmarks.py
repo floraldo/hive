@@ -1,4 +1,4 @@
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 #!/usr/bin/env python3
 """
 Performance Benchmarking Script for EcoSystemiser
@@ -38,7 +38,7 @@ except ImportError:
 from ecosystemiser.services.simulation_service import SimulationService, FidelityLevel
 from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
 from ecosystemiser.utils.system_builder import SystemBuilder
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

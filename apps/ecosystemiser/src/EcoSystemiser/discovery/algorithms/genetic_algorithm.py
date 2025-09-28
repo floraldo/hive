@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 import copy
 
 from ecosystemiser.discovery.base import BaseOptimizationAlgorithm, OptimizationConfig, OptimizationResult
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

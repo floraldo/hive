@@ -7,7 +7,7 @@ from typing import Optional
 
 from ecosystemiser.analyser import AnalyserService
 from ecosystemiser.reporting import create_app, run_server
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

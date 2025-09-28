@@ -274,16 +274,16 @@ class HiveConfig(BaseModel):
         return errors
 
 
-# Global configuration instance
-_config_instance: Optional[HiveConfig] = None
-
-
-def load_config(
+# Configuration loading utilities for dependency injection
+def create_config_from_sources(
     config_path: Optional[Path] = None,
     use_environment: bool = True
 ) -> HiveConfig:
     """
-    Load the global Hive configuration
+    Create a Hive configuration instance from various sources
+
+    This replaces the global singleton pattern with a pure function
+    that can be used for dependency injection.
 
     Args:
         config_path: Optional path to configuration file
@@ -292,49 +292,37 @@ def load_config(
     Returns:
         HiveConfig instance
     """
-    global _config_instance
+    # Try to load from file first
+    if config_path and config_path.exists():
+        config = HiveConfig.from_file(config_path)
+    else:
+        # Look for default config locations
+        default_paths = [
+            Path("hive_config.json"),
+            Path("config/hive_config.json"),
+            Path.home() / ".hive" / "config.json"
+        ]
 
-    if _config_instance is None:
-        # Try to load from file first
-        if config_path and config_path.exists():
-            _config_instance = HiveConfig.from_file(config_path)
-        else:
-            # Look for default config locations
-            default_paths = [
-                Path("hive_config.json"),
-                Path("config/hive_config.json"),
-                Path.home() / ".hive" / "config.json"
-            ]
+        config = None
+        for path in default_paths:
+            if path.exists():
+                config = HiveConfig.from_file(path)
+                break
 
-            for path in default_paths:
-                if path.exists():
-                    _config_instance = HiveConfig.from_file(path)
-                    break
-            else:
-                _config_instance = HiveConfig()
+        if config is None:
+            config = HiveConfig()
 
-        # Override with environment variables if requested
-        if use_environment:
-            env_config = HiveConfig.from_environment()
-            # Merge environment config with file config
-            for key, value in env_config.dict(exclude_unset=True).items():
-                if value is not None:
-                    setattr(_config_instance, key, value)
+    # Override with environment variables if requested
+    if use_environment:
+        env_config = HiveConfig.from_environment()
+        # Merge environment config with file config
+        for key, value in env_config.dict(exclude_unset=True).items():
+            if value is not None:
+                setattr(config, key, value)
 
-        # Validate configuration
-        errors = _config_instance.validate()
-        if errors:
-            logger.warning(f"Configuration validation warnings: {errors}")
+    # Validate configuration
+    errors = config.validate()
+    if errors:
+        logger.warning(f"Configuration validation warnings: {errors}")
 
-    return _config_instance
-
-
-def get_config() -> Optional[HiveConfig]:
-    """Get the global configuration instance"""
-    return _config_instance
-
-
-def reset_config():
-    """Reset the global configuration (mainly for testing)"""
-    global _config_instance
-    _config_instance = None
+    return config

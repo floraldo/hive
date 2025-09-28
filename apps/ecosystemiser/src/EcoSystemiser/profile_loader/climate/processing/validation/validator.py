@@ -8,7 +8,7 @@ profiles to climate datasets.
 import xarray as xr
 from typing import Optional, Dict, Any
 from ecosystemiser.profile_loader.climate.processing.validation.base import QCProfile, QCReport
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

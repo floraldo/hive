@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional
 import pandas as pd
 from datetime import datetime
 
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
 from ecosystemiser.core.events import AnalysisEvent
 from ecosystemiser.analyser.strategies import BaseAnalysis, TechnicalKPIAnalysis, EconomicAnalysis, SensitivityAnalysis

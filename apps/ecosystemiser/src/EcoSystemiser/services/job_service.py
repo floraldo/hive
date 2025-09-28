@@ -4,7 +4,7 @@ Job service for processing climate data requests asynchronously.
 This module provides functions for the arq worker to process climate jobs.
 """
 
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from typing import Any, Dict
 from ecosystemiser.profile_loader.climate.service import get_enhanced_climate_service
 from ecosystemiser.profile_loader.climate.data_models import ClimateRequest

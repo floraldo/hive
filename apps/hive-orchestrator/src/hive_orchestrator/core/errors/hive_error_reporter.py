@@ -11,7 +11,7 @@ Extends the generic error handling toolkit with Hive orchestration error reporti
 from hive_logging import get_logger
 import sqlite3
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from hive_errors import BaseErrorReporter
 from hive_config import get_config

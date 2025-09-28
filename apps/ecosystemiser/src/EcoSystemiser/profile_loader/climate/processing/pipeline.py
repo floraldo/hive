@@ -6,7 +6,7 @@ with configurable steps and proper error handling.
 """
 
 import xarray as xr
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from typing import List, Callable, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum

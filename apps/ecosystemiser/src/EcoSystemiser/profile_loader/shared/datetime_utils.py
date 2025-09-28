@@ -9,7 +9,7 @@ pandas best practices and performance optimizations.
 import warnings
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 import numpy as np
 import pandas as pd
 import xarray as xr

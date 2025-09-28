@@ -30,26 +30,19 @@ try:
         start_time = time.time()
 
         try:
-            # Test new inherit→extend pattern
-            from ecosystemiser.hive_env import get_ecosystemiser_config, get_ecosystemiser_settings
+            # Test new inherit→extend pattern with direct hive-config imports
+            from hive_config import load_config_for_app
 
-            config = get_ecosystemiser_config()
+            config = load_config_for_app("ecosystemiser")
             logger.info(f"SUCCESS: App config loaded for '{config.app_name}'")
             logger.info(f"Config keys: {len(config.config)}")
 
-            settings = get_ecosystemiser_settings()
+            settings = config.config
             eco_keys = [k for k in settings.keys() if 'ECOSYSTEMISER' in k]
             logger.info(f"EcoSystemiser-specific keys: {len(eco_keys)}")
 
-            # Test legacy compatibility (should show deprecation warning)
-            from ecosystemiser.hive_env import get_app_config
-            with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter("always")
-                legacy_config = get_app_config()
-                if w and any("deprecated" in str(warning.message) for warning in w):
-                    logger.info("SUCCESS: Deprecation warnings working correctly")
-
-            logger.info(f"Legacy config keys: {len(legacy_config)}")
+            # No legacy compatibility test needed - we've eliminated the wrappers
+            logger.info("SUCCESS: Using direct hive-config imports (no deprecated wrappers)")
 
             elapsed = time.time() - start_time
             logger.info(f"Config test completed in {elapsed:.3f}s")
@@ -105,20 +98,13 @@ try:
         start_time = time.time()
 
         try:
-            # Test new proper import
+            # Test direct hive_logging import
             from hive_logging import get_logger
-            proper_logger = get_logger("foundation_test")
-            proper_logger.info("Testing proper hive_logging import")
+            test_logger = get_logger("foundation_test")
+            test_logger.info("Testing direct hive_logging import")
 
-            # Test legacy import (should show deprecation warning)
-            from ecosystemiser.hive_logging_adapter import get_logger as legacy_get_logger
-            with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter("always")
-                legacy_logger = legacy_get_logger("legacy_test")
-                if w and any("deprecated" in str(warning.message) for warning in w):
-                    logger.info("SUCCESS: Legacy logging deprecation working correctly")
-
-            legacy_logger.info("Testing legacy logging adapter")
+            # No legacy compatibility test needed - we've eliminated the wrappers
+            logger.info("SUCCESS: Using direct hive_logging imports (no deprecated wrappers)")
 
             elapsed = time.time() - start_time
             logger.info(f"Logging test completed in {elapsed:.3f}s")

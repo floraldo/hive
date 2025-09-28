@@ -2,7 +2,7 @@
 import numpy as np
 import cvxpy as cp
 from typing import Dict, Any, Optional, List
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 logger = get_logger(__name__)
 
 class System:

@@ -4,7 +4,7 @@ Arq worker configuration for processing climate jobs.
 Run with: arq ecosystemiser.worker.WorkerSettings
 """
 
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from typing import Any, Dict
 
 from arq import cron

@@ -9,7 +9,7 @@ Initializes all components with the new architecture:
 - API versioning
 """
 
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 
 import asyncio
 from contextlib import asynccontextmanager

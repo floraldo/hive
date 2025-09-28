@@ -9,7 +9,7 @@ from datetime import datetime
 
 from ecosystemiser.analyser import AnalyserService
 from ecosystemiser.datavis.plot_factory import PlotFactory
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.reporting.generator import HTMLReportGenerator
 
 logger = get_logger(__name__)

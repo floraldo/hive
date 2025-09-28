@@ -8,7 +8,7 @@ fixes DST edge cases, and provides standardized UTC conversion.
 import sys
 from datetime import datetime, timezone
 from typing import Optional, Union, List
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 import pandas as pd
 import numpy as np
 import xarray as xr

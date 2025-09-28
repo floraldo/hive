@@ -3,7 +3,7 @@
 import xarray as xr
 import pandas as pd
 from typing import Dict, Optional
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 logger = get_logger(__name__)
 
 def apply_subset(ds: xr.Dataset, subset: Dict[str, str]) -> xr.Dataset:

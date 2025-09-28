@@ -13,40 +13,12 @@ from typing import Dict, Optional, List
 import os
 
 from .models import AppConfig, ConfigSources
+from .paths import get_project_root as find_project_root
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def find_project_root() -> Path:
-    """
-    Find Hive project root by looking for pyproject.toml with workspace configuration.
-
-    Returns:
-        Path to the Hive project root
-
-    Raises:
-        RuntimeError: If Hive project root cannot be found
-    """
-    current = Path.cwd()
-
-    while current != current.parent:
-        pyproject = current / "pyproject.toml"
-        if pyproject.exists():
-            try:
-                content = pyproject.read_text(encoding='utf-8')
-                if "hive-workspace" in content or ("tool.poetry" in content and "workspace" in content):
-                    logger.debug(f"Found Hive project root at: {current}")
-                    return current
-            except (OSError, UnicodeDecodeError) as e:
-                logger.debug(f"Could not read {pyproject}: {e}")
-
-        current = current.parent
-
-    raise RuntimeError(
-        "Could not find Hive project root. "
-        "Make sure you're running from within a Hive workspace with pyproject.toml"
-    )
 
 
 def load_config_for_app(app_name: str) -> AppConfig:

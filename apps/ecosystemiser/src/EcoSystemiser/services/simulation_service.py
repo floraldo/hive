@@ -1,5 +1,5 @@
 """Main simulation service orchestrator."""
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from pathlib import Path
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field

@@ -6,7 +6,7 @@ This module provides a single entry point for all profile services
 """
 
 from typing import Dict, Type, Optional, Any, List
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.profile_loader.shared.service import BaseProfileService
 from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
 from ecosystemiser.profile_loader.climate.service import ClimateService

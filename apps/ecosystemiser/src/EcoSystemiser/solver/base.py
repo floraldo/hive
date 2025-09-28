@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 logger = get_logger(__name__)
 
 class SolverConfig(BaseModel):

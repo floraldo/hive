@@ -7,26 +7,9 @@ the entire Hive ecosystem.
 
 from pathlib import Path
 from typing import Optional
+from hive_config.paths import get_project_root
 
 
-def get_project_root() -> Path:
-    """
-    Get the root directory of the Hive project.
-
-    Returns:
-        Path to the project root (directory containing pyproject.toml)
-    """
-    current = Path(__file__).resolve()
-
-    # Walk up the directory tree looking for pyproject.toml
-    for parent in current.parents:
-        if (parent / "pyproject.toml").exists():
-            # Check if this looks like the Hive root by checking for apps/ and packages/
-            if (parent / "apps").exists() and (parent / "packages").exists():
-                return parent
-
-    # Fallback: assume we're in packages/hive-testing-utils and go up
-    return Path(__file__).parent.parent.parent.parent.parent
 
 
 def find_hive_app_root(start_path: Optional[Path] = None) -> Optional[Path]:

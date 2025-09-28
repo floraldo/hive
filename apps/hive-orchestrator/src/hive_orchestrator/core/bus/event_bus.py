@@ -14,14 +14,14 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Callable, Union
 from contextlib import contextmanager
 
-from hive_db import get_connection, get_pooled_connection
+from hive_db import get_sqlite_connection
 from hive_config import get_config
 from hive_orchestrator.core.errors.hive_exceptions import EventBusError, EventPublishError, EventSubscribeError
 
 # Async imports for Phase 4.1
 try:
     import asyncio
-    from hive_db import get_async_connection
+    from ..db import get_async_connection
     ASYNC_AVAILABLE = True
 except ImportError:
     ASYNC_AVAILABLE = False
@@ -53,7 +53,7 @@ class EventBus:
 
     def _ensure_event_tables(self):
         """Ensure event storage tables exist"""
-        with get_pooled_connection() as conn:
+        with get_sqlite_connection() as conn:
             cursor = conn.cursor()
 
             # Events table
@@ -128,7 +128,7 @@ class EventBus:
                 event.correlation_id = correlation_id
 
             # Store in database
-            with get_pooled_connection() as conn:
+            with get_sqlite_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
                     INSERT INTO events (
@@ -275,7 +275,7 @@ class EventBus:
 
         query = " ".join(query_parts)
 
-        with get_pooled_connection() as conn:
+        with get_sqlite_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(query, params)
             rows = cursor.fetchall()
@@ -487,7 +487,7 @@ class EventBus:
         )
         cutoff_date = cutoff_date.replace(day=cutoff_date.day - days_to_keep)
 
-        with get_pooled_connection() as conn:
+        with get_sqlite_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
                 "DELETE FROM events WHERE timestamp < ?",

@@ -10,7 +10,7 @@ This is the new service implementation that leverages:
 
 import asyncio
 import xarray as xr
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from typing import Tuple, Optional, Dict, Any, List
 from datetime import datetime
 from pathlib import Path

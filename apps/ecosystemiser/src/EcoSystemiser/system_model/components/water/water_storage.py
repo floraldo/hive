@@ -3,7 +3,7 @@ import cvxpy as cp
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.system_model.components.shared.registry import register_component
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.archetypes import StorageTechnicalParams, FidelityLevel

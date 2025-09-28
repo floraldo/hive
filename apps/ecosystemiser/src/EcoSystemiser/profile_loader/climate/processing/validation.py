@@ -1,4 +1,4 @@
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 """
 Comprehensive validation and quality control module for climate data.
 
@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 import json
 
 logger = get_logger(__name__)

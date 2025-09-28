@@ -7,9 +7,7 @@ and utility functions following the Hive inherit-extend pattern.
 
 from .sqlite_connector import (
     get_sqlite_connection,
-    sqlite_transaction,
-    create_table_if_not_exists,
-    get_sqlite_info
+    sqlite_transaction
 )
 
 from .postgres_connector import (
@@ -41,6 +39,7 @@ from .async_pool import (
 
 from .utils import (
     table_exists,
+    create_table_if_not_exists,
     get_table_schema,
     execute_script,
     backup_database,
@@ -62,8 +61,6 @@ __all__ = [
     # SQLite utilities
     'get_sqlite_connection',
     'sqlite_transaction',
-    'create_table_if_not_exists',
-    'get_sqlite_info',
     'connect_sqlite',
 
     # PostgreSQL utilities
@@ -93,6 +90,7 @@ __all__ = [
 
     # Database utilities
     'table_exists',
+    'create_table_if_not_exists',
     'get_table_schema',
     'execute_script',
     'backup_database',

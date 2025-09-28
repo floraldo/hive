@@ -3,7 +3,7 @@ from typing import Dict, Any
 import cvxpy as cp
 import numpy as np
 import time
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from ecosystemiser.solver.base import BaseSolver, SolverResult
 
 logger = get_logger(__name__)

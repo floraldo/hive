@@ -6,7 +6,7 @@ This service handles loading and processing of energy demand profiles
 """
 
 import asyncio
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd

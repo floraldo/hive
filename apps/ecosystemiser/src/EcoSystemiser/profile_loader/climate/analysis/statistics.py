@@ -4,7 +4,7 @@ import xarray as xr
 import numpy as np
 from scipy import stats
 from typing import Dict, Tuple, List
-from ecosystemiser.hive_logging_adapter import get_logger
+from hive_logging import get_logger
 logger = get_logger(__name__)
 
 def describe(

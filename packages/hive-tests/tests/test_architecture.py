@@ -15,6 +15,7 @@ from hive_tests.architectural_validators import (
     validate_colocated_tests,
     validate_no_syspath_hacks,
     validate_single_config_source,
+    validate_no_hardcoded_env_values,
     validate_package_app_discipline,
     validate_dependency_direction,
     validate_interface_contracts,
@@ -253,6 +254,46 @@ class TestArchitecturalCompliance:
                 "  4. Convert any setuptools configurations to Poetry format\n\n"
                 "📖 This enforces modern Python packaging standards and\n"
                 "   prevents the confusion of multiple config systems."
+            )
+
+            pytest.fail(failure_message)
+
+    def test_no_hardcoded_env_values(self, project_root):
+        """
+        🔒 GOLDEN TEST 4.5: No Hardcoded Environment Values
+
+        Enforce environment-agnostic packages.
+
+        This test ensures that:
+        - No hardcoded server paths, usernames, or hostnames in packages
+        - Deployment configuration uses environment variables
+        - Generic packages remain environment-agnostic
+        - No coupling between infrastructure code and specific environments
+
+        🎯 Gravity Effect: Prevents environment-specific coupling in
+           generic packages, enabling true portability and reusability.
+        """
+        is_valid, violations = validate_no_hardcoded_env_values(project_root)
+
+        if not is_valid:
+            failure_message = (
+                "❌ Hardcoded Environment Values FOUND\n\n"
+                "Environment coupling violations found:\n\n"
+            )
+            for violation in violations[:10]:
+                failure_message += f"  • {violation}\n"
+
+            if len(violations) > 10:
+                failure_message += f"  ... and {len(violations) - 10} more violations\n"
+
+            failure_message += (
+                "\n🔧 To fix this:\n"
+                "  1. Replace hardcoded paths with environment variables\n"
+                "  2. Use get_deployment_config() in hive-deployment\n"
+                "  3. Pass deployment_config to functions instead of constants\n"
+                "  4. Make packages configurable, not environment-specific\n\n"
+                "📖 This enforces portability and prevents coupling between\n"
+                "   generic infrastructure and specific deployment environments."
             )
 
             pytest.fail(failure_message)
