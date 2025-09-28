@@ -5,7 +5,7 @@ This module provides backward compatibility by importing from the new core modul
 All new code should import directly from ecosystemiser.core.errors.
 """
 
-from typing import Optional
+from typing import Optional, Dict, Any
 
 # Import everything from the new core module
 from ecosystemiser.core.errors import (
@@ -60,7 +60,7 @@ class ValidationError(ComponentValidationError):
         if field is not None:
             kwargs['parameter_name'] = field
         super().__init__(message, **kwargs)
-def handle_error(error, context=None, additional_info=None):
+def handle_error(error: Exception, context: Optional[str] = None, additional_info: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Legacy handle_error function"""
     return get_error_reporter().report_error(error, context, additional_info)
 

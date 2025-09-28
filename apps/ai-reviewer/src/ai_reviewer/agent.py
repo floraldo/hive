@@ -256,7 +256,7 @@ class ReviewAgent:
                     error_type=type(e).__name__
                 )
 
-    def _display_review_result(self, result):
+    def _display_review_result(self, result: Dict[str, Any]) -> None:
         """Display review results in a nice format"""
         # Create metrics table
         metrics_table = Table(title="Quality Metrics")
@@ -384,7 +384,7 @@ class ReviewAgent:
             return 0
         return int((self.stats[stat] / self.stats["tasks_reviewed"]) * 100)
 
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum: int, frame: Any) -> None:
         """Handle shutdown signals"""
         logger.info(f"Received signal {signum}, initiating shutdown")
         self.running = False
@@ -650,7 +650,7 @@ class ReviewAgent:
             await self._shutdown()
 
 
-def main():
+def main() -> None:
     """Main entry point for the autonomous agent"""
     parser = argparse.ArgumentParser(description="AI Reviewer Autonomous Agent")
     parser.add_argument("--test-mode", action="store_true", help="Run in test mode")
@@ -683,7 +683,7 @@ def main():
         asyncio.run(agent.run())
 
 
-def run_daemon():
+def run_daemon() -> None:
     """Entry point for daemon mode"""
     # This is called by the hive-app.toml daemon configuration
     main()

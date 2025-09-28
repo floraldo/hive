@@ -36,7 +36,7 @@ class ClaudeService:
     def __init__(self, config=None, rate_config=None):
         self.mock_mode = getattr(config, 'mock_mode', True)
 
-    def generate_execution_plan(self, task_description, context_data, priority, requestor, use_cache=True):
+    def generate_execution_plan(self, task_description: str, context_data: Dict[str, Any], priority: int, requestor: str, use_cache: bool = True) -> Dict[str, Any]:
         # Mock implementation - replace with actual Claude integration
         return {
             'plan_id': f"plan_{uuid.uuid4().hex[:8]}",
@@ -1008,8 +1008,19 @@ class WorkflowEventType(Enum):
     PLAN_GENERATED = "plan_generated"
     BLOCKED = "blocked"
 
-def create_workflow_event(event_type, workflow_id, task_id, source_agent, **kwargs):
-    """Create a workflow event"""
+def create_workflow_event(event_type: WorkflowEventType, workflow_id: str, task_id: str, source_agent: str, **kwargs) -> Dict[str, Any]:
+    """Create a workflow event.
+
+    Args:
+        event_type: Type of workflow event
+        workflow_id: Unique workflow identifier
+        task_id: Task ID associated with the event
+        source_agent: Agent creating the event
+        **kwargs: Additional event data
+
+    Returns:
+        Workflow event dictionary
+    """
     return {
         "event_type": event_type.value,
         "workflow_id": workflow_id,
@@ -1026,20 +1037,36 @@ class MockEventBus:
         logger.debug(f"Mock event published: {event['event_type']} for task {event.get('task_id', 'unknown')}")
         return f"mock_event_{int(time.time())}"
 
-def get_event_bus():
-    """Get event bus instance"""
+def get_event_bus() -> MockEventBus:
+    """Get event bus instance.
+
+    Returns:
+        Mock event bus for development
+    """
     return MockEventBus()
 
 # Async event functions (if needed)
 ASYNC_EVENTS_AVAILABLE = False
 
-async def publish_event_async(event, correlation_id=None):
-    """Mock async event publishing"""
+async def publish_event_async(event: Dict[str, Any], correlation_id: Optional[str] = None) -> str:
+    """Mock async event publishing.
+
+    Args:
+        event: Event data to publish
+        correlation_id: Optional correlation ID for event tracking
+
+    Returns:
+        Mock event ID
+    """
     return f"mock_async_event_{int(time.time())}"
 
 
-def main():
-    """Entry point for AI Planner Agent"""
+def main() -> int:
+    """Entry point for AI Planner Agent
+
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description='AI Planner Agent - Intelligent Task Planning')

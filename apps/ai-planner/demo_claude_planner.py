@@ -17,7 +17,7 @@ from ai_planner.claude_bridge import RobustClaudePlannerBridge
 from hive_db import get_connection, init_db
 
 
-def demonstrate_claude_planning():
+def demonstrate_claude_planning() -> None:
     """Demonstrate the complete Claude-powered planning workflow"""
 
     print("=" * 70)
