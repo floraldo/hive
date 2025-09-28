@@ -8,7 +8,7 @@ including tables for simulations, studies, analysis results, and optimization ru
 import sqlite3
 from pathlib import Path
 from typing import Optional
-from EcoSystemiser.db.connection import get_db_connection
+from EcoSystemiser.db import get_ecosystemiser_connection
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
@@ -19,10 +19,9 @@ def ensure_database_schema(db_path: Optional[Path] = None):
     Ensure all EcoSystemiser database tables exist.
 
     Args:
-        db_path: Optional path to database
+        db_path: Optional path to database (ignored, uses configured path)
     """
-    conn = get_db_connection(db_path)
-    try:
+    with get_ecosystemiser_connection() as conn:
         _create_simulation_tables(conn)
         _create_study_tables(conn)
         _create_analysis_tables(conn)
@@ -31,8 +30,6 @@ def ensure_database_schema(db_path: Optional[Path] = None):
         _create_event_tables(conn)
         conn.commit()
         logger.info("EcoSystemiser database schema initialized")
-    finally:
-        conn.close()
 
 
 def _create_simulation_tables(conn: sqlite3.Connection):

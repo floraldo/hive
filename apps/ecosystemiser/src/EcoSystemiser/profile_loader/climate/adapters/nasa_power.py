@@ -6,12 +6,16 @@ import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Any, Optional, Tuple
 from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.profile_loader.utils.chunking import split_date_range, concatenate_chunked_results, estimate_memory_usage
+from EcoSystemiser.profile_loader.climate.utils.chunking import split_date_range, concatenate_chunked_results, estimate_memory_usage
 
-from EcoSystemiser.profile_loader.climate.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-from EcoSystemiser.profile_loader.data_models import CANONICAL_VARIABLES
-from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError
+from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from EcoSystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+from EcoSystemiser.profile_loader.climate.adapters.errors import (
+    DataFetchError,
+    DataParseError,
+    ValidationError
+)
 
 logger = get_logger(__name__)
 
@@ -415,7 +419,7 @@ class NASAPowerAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize NASA POWER adapter"""
-        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (NASA POWER has no strict limits)
         rate_config = RateLimitConfig(

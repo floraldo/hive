@@ -8,9 +8,13 @@ from typing import List, Dict, Optional, Tuple, Any
 from EcoSystemiser.hive_logging_adapter import get_logger
 import os
 
-from EcoSystemiser.profile_loader.climate.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError
+from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from EcoSystemiser.profile_loader.climate.adapters.errors import (
+    DataFetchError,
+    DataParseError,
+    ValidationError
+)
 
 logger = get_logger(__name__)
 
@@ -136,7 +140,7 @@ class ERA5Adapter(BaseAdapter):
     
     def __init__(self):
         """Initialize ERA5 adapter"""
-        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (CDS API has no strict limits but be reasonable)
         rate_config = RateLimitConfig(

@@ -6,10 +6,14 @@ import numpy as np
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional, Tuple, Any
 from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.profile_loader.climate.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-from EcoSystemiser.profile_loader.data_models import CANONICAL_VARIABLES
-from EcoSystemiser.errors import DataFetchError, DataParseError, ValidationError, ErrorCode
+from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from EcoSystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+from EcoSystemiser.profile_loader.climate.adapters.errors import (
+    DataFetchError,
+    DataParseError,
+    ValidationError
+)
 
 logger = get_logger(__name__)
 
@@ -90,7 +94,7 @@ class MeteostatAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize Meteostat adapter"""
-        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (Meteostat has limits)
         rate_config = RateLimitConfig(
@@ -131,8 +135,7 @@ class MeteostatAdapter(BaseAdapter):
         """Fetch raw data from Meteostat"""
         if not self._meteostat_available:
             raise DataFetchError(
-                code=ErrorCode.DATA_FETCH_ERROR,
-                message="Meteostat library not installed. Install with: pip install meteostat",
+                "Meteostat library not installed. Install with: pip install meteostat",
                 adapter_name="meteostat"
             )
         
@@ -224,20 +227,19 @@ class MeteostatAdapter(BaseAdapter):
             raise ValidationError("Variables list cannot be empty", field='variables', value=variables)
     
     async def fetch(
-        self, 
-        *, 
-        lat: float, 
-        lon: float, 
+        self,
+        *,
+        lat: float,
+        lon: float,
         variables: List[str],
-        period: Dict, 
+        period: Dict,
         resolution: str = '1H'
     ) -> xr.Dataset:
         """Fetch climate data from Meteostat API"""
-        
+
         if not self._meteostat_available:
             raise DataFetchError(
-                code=ErrorCode.DATA_FETCH_ERROR,
-                message="Meteostat library not installed. Install with: pip install meteostat",
+                "Meteostat library not installed. Install with: pip install meteostat",
                 adapter_name="meteostat"
             )
         
@@ -264,8 +266,7 @@ class MeteostatAdapter(BaseAdapter):
         except Exception as e:
             self.logger.error(f"Error fetching Meteostat data: {e}")
             raise DataFetchError(
-                code=ErrorCode.DATA_FETCH_ERROR,
-                message=f"Failed to fetch data from Meteostat: {str(e)}",
+                f"Failed to fetch data from Meteostat: {str(e)}",
                 adapter_name="meteostat"
             ) from e
     

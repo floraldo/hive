@@ -19,7 +19,7 @@ import sys
 
 from EcoSystemiser.settings import get_settings
 from EcoSystemiser.observability import init_observability, get_logger
-from EcoSystemiser.errors import ClimateError
+from EcoSystemiser.core.errors import ProfileError as ClimateError
 
 # Get settings and logger
 settings = get_settings()

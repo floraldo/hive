@@ -10,8 +10,8 @@ from typing import List, Dict, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from EcoSystemiser.hive_logging_adapter import get_logger
-from EcoSystemiser.profile_loader.climate.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
 
 # Import QC classes
 try:
@@ -133,7 +133,7 @@ class PVGISAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize PVGIS adapter"""
-        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure rate limiting (PVGIS is free but be reasonable)
         rate_config = RateLimitConfig(

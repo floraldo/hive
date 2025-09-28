@@ -30,10 +30,10 @@ import numpy as np
 
 from EcoSystemiser.profile_loader.data_models import ClimateRequest, ClimateResponse, Mode, Resolution
 from EcoSystemiser.profile_loader.job_manager import JobManager, JobStatus, get_job_manager
-from EcoSystemiser.errors import (
-    ClimateError,
-    ValidationError,
-    DataFetchError
+from EcoSystemiser.core.errors import (
+    ProfileError as ClimateError,
+    ProfileValidationError as ValidationError,
+    ProfileLoadError as DataFetchError
 )
 from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler
 

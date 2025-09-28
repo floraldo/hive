@@ -6,7 +6,7 @@ authors = ["Hive Platform Team <hive@example.com>"]
 packages = [{include = "EcoSystemiser", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 # External dependencies
 fastapi = "^0.110.0"
 uvicorn = "^0.23.0"
@@ -35,8 +35,8 @@ requests = "^2.26.0"
 # Hive workspace dependencies
 hive-logging = {path = "../../packages/hive-logging", develop = true}
 hive-config = {path = "../../packages/hive-config", develop = true}
-hive-errors = {path = "../../packages/hive-errors", develop = true}
-hive-bus = {path = "../../packages/hive-bus", develop = true}
+hive-error-handling = {path = "../../packages/hive-error-handling", develop = true}
+hive-messaging = {path = "../../packages/hive-messaging", develop = true}
 hive-db-utils = {path = "../../packages/hive-db-utils", develop = true}
 
 [tool.poetry.group.dev.dependencies]
@@ -61,7 +61,7 @@ pythonpath = ["src"]
 
 [tool.black]
 line-length = 120
-target-version = ["py310", "py311"]
+target-version = ["py311"]
 include = '\.pyi?$'
 
 [tool.isort]

@@ -34,7 +34,7 @@ from tenacity import (
 # Import centralized settings
 from EcoSystemiser.settings import get_settings, Settings
 # Import config models from centralized location to avoid circular dependency
-from EcoSystemiser.profile_loader.config_models import HTTPConfig, RateLimitConfig, CacheConfig, RateLimitStrategy
+from EcoSystemiser.profile_loader.climate.config_models import HTTPConfig, RateLimitConfig, CacheConfig, RateLimitStrategy
 
 logger = get_logger(__name__)
 
@@ -247,7 +247,7 @@ class SharedHTTPClient:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=60),
         retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
-        before_sleep=before_sleep_log(logger, logging.WARNING)
+        before_sleep=before_sleep_log(logger, "WARNING")
     )
     async def get(
         self,
@@ -273,7 +273,7 @@ class SharedHTTPClient:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=60),
         retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
-        before_sleep=before_sleep_log(logger, logging.WARNING)
+        before_sleep=before_sleep_log(logger, "WARNING")
     )
     async def post(
         self,

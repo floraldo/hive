@@ -22,7 +22,7 @@ from EcoSystemiser.events import (
     create_analysis_event,
     AnalysisEvent
 )
-from EcoSystemiser.errors import ProcessingError, ErrorCode
+from EcoSystemiser.core.errors import ProfileError as ProcessingError
 from EcoSystemiser.analyser.service import AnalyserService
 
 logger = get_logger(__name__)
@@ -243,8 +243,7 @@ class AnalyserWorker:
 
             logger.error(f"Analysis {analysis_id} failed: {e}")
             raise ProcessingError(
-                message=f"Analysis execution failed: {str(e)}",
-                code=ErrorCode.PROCESSING_FAILED,
+                f"Analysis execution failed: {str(e)}",
                 details={'analysis_id': analysis_id, 'strategies': strategies}
             )
 

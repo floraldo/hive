@@ -42,7 +42,8 @@
       "Bash(git add:*)",
       "Bash(git -C /c/git/hive ls-files)",
       "Bash(PYTHONPATH=packages/hive-testing-utils/src python -c:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": []

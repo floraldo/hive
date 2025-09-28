@@ -194,8 +194,6 @@ class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
             seasonal_variation = getattr(comp.technical, 'seasonal_variation', None)
             if seasonal_variation:
                 # Log awareness but maintain exact demand for now
-                from hive_logging import get_logger
-                logger = get_logger(__name__)
                 logger.debug(f"STANDARD: Seasonal variation acknowledged for {comp.name}")
 
             # Apply exact demand constraint (same as SIMPLE for now)

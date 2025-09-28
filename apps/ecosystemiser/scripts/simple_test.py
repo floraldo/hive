@@ -17,16 +17,14 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
 
-# Add the app root to path
-app_root = Path(__file__).parent
-# Import directly with absolute imports
-from profile_loader.climate.data_models import ClimateRequest, CANONICAL_VARIABLES
-from profile_loader.climate.adapters.base import BaseAdapter
-from profile_loader.climate.adapters.capabilities import (
+# Use proper absolute imports following Golden Rules
+from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, CANONICAL_VARIABLES
+from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities, TemporalCoverage, SpatialCoverage,
     DataFrequency, AuthType, RateLimits, QualityFeatures
 )
-from errors import DataFetchError, DataParseError, ValidationError
+from EcoSystemiser.core.errors import ProfileLoadError as DataFetchError, ProfileValidationError as DataParseError, ComponentValidationError as ValidationError
 
 def test_direct_adapter():
     """Test creating a simple mock adapter directly."""

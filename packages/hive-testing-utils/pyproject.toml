@@ -6,7 +6,7 @@ authors = ["Hive System <hive@example.com>"]
 packages = [{include = "hive_testing_utils", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 pytest = "*"
 toml = "*"
 

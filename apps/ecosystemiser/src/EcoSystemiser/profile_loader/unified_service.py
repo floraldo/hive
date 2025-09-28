@@ -11,8 +11,8 @@ from EcoSystemiser.profile_loader.shared.service import BaseProfileService
 from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
 from EcoSystemiser.profile_loader.climate.service import ClimateService
 from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest
-from EcoSystemiser.demand.service import DemandService
-from EcoSystemiser.demand.models import DemandRequest
+from EcoSystemiser.profile_loader.demand.service import DemandService
+from EcoSystemiser.profile_loader.demand.models import DemandRequest
 
 logger = get_logger(__name__)
 

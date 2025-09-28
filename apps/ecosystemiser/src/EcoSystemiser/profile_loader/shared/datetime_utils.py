@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from EcoSystemiser.profile_loader.timezone import TimezoneHandler, to_utc, ensure_utc
+from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler, to_utc, ensure_utc
 
 logger = get_logger(__name__)
 

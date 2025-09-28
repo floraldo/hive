@@ -6,7 +6,7 @@ authors = ["Hive System <hive@example.com>"]
 packages = []
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 
 [tool.poetry.scripts]
 # Core Hive Services

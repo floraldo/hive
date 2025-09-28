@@ -12,9 +12,9 @@ import os
 from io import StringIO
 import urllib.request
 
-from EcoSystemiser.profile_loader.climate.base import BaseAdapter
-from EcoSystemiser.profile_loader.climate.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
-from EcoSystemiser.errors import DataParseError, ErrorCode
+from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
+from EcoSystemiser.profile_loader.climate.adapters.capabilities import AdapterCapabilities, TemporalCoverage, SpatialCoverage, DataFrequency, AuthType, RateLimits, QualityFeatures
+from EcoSystemiser.profile_loader.climate.adapters.errors import DataParseError
 
 # Import QC classes
 try:
@@ -217,7 +217,7 @@ class FileEPWAdapter(BaseAdapter):
     
     def __init__(self):
         """Initialize EPW file adapter"""
-        from EcoSystemiser.profile_loader.climate.base import RateLimitConfig, CacheConfig, HTTPConfig
+        from EcoSystemiser.profile_loader.climate.adapters.base import RateLimitConfig, CacheConfig, HTTPConfig
         
         # Configure minimal settings (file-based, no HTTP rate limits needed)
         rate_config = RateLimitConfig(
@@ -350,9 +350,8 @@ class FileEPWAdapter(BaseAdapter):
             # Validate minimum file length
             if len(lines) < 9:  # At least 8 header lines + 1 data line
                 raise DataParseError(
-                    code=ErrorCode.SOURCE_INVALID_RESPONSE,
-                    message="EPW file too short - missing header or data rows",
-                    adapter_name="file_epw",
+                    "EPW file too short - missing header or data rows",
+                    field="file_content",
                     details={"line_count": len(lines), "minimum_required": 9}
                 )
             
@@ -385,9 +384,8 @@ class FileEPWAdapter(BaseAdapter):
             
             if not data_lines:
                 raise DataParseError(
-                    code=ErrorCode.SOURCE_INVALID_RESPONSE,
-                    message="No data lines found after header",
-                    adapter_name="file_epw",
+                    "No data lines found after header",
+                    field="data_content",
                     details={"header_lines": data_start, "total_lines": len(lines)}
                 )
             
@@ -397,9 +395,8 @@ class FileEPWAdapter(BaseAdapter):
                 df = pd.read_csv(StringIO(data_str), header=None, names=self.EPW_COLUMNS)
             except pd.errors.ParserError as e:
                 raise DataParseError(
-                    code=ErrorCode.SOURCE_INVALID_RESPONSE,
-                    message=f"Failed to parse EPW CSV data: {str(e)}",
-                    adapter_name="file_epw",
+                    f"Failed to parse EPW CSV data: {str(e)}",
+                    field="csv_data",
                     details={
                         "parser_error": str(e),
                         "data_lines": len(data_lines),
@@ -408,9 +405,8 @@ class FileEPWAdapter(BaseAdapter):
                 )
             except Exception as e:
                 raise DataParseError(
-                    code=ErrorCode.SOURCE_INVALID_RESPONSE,
-                    message=f"Unexpected error parsing EPW data: {str(e)}",
-                    adapter_name="file_epw",
+                    f"Unexpected error parsing EPW data: {str(e)}",
+                    field="data_parsing",
                     details={"error_type": type(e).__name__, "error": str(e)}
                 )
         
@@ -455,9 +451,8 @@ class FileEPWAdapter(BaseAdapter):
                 )
             except Exception as e:
                 raise DataParseError(
-                    code=ErrorCode.SOURCE_INVALID_RESPONSE,
-                    message=f"Failed to create datetime index: {str(e)}",
-                    adapter_name="file_epw",
+                    f"Failed to create datetime index: {str(e)}",
+                    field="datetime_creation",
                     details={"error": str(e), "sample_dates": df_time.head().to_dict()}
                 )
             
@@ -472,9 +467,8 @@ class FileEPWAdapter(BaseAdapter):
             
             if df.empty:
                 raise DataParseError(
-                    code=ErrorCode.SOURCE_INVALID_RESPONSE,
-                    message="All datetime values were invalid after parsing",
-                    adapter_name="file_epw",
+                    "All datetime values were invalid after parsing",
+                    field="datetime_values",
                     details={"original_rows": len(data_lines)}
                 )
             
@@ -486,9 +480,8 @@ class FileEPWAdapter(BaseAdapter):
         except Exception as e:
             # Catch any other unexpected errors
             raise DataParseError(
-                code=ErrorCode.SOURCE_INVALID_RESPONSE,
-                message=f"Failed to parse EPW file: {str(e)}",
-                adapter_name="file_epw",
+                f"Failed to parse EPW file: {str(e)}",
+                field="file_parsing",
                 details={"error_type": type(e).__name__, "error": str(e)}
             )
     

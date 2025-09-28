@@ -13,6 +13,7 @@ from datetime import datetime
 from contextlib import contextmanager
 
 from EcoSystemiser.hive_logging_adapter import get_logger
+from EcoSystemiser.db import get_ecosystemiser_connection
 
 logger = get_logger(__name__)
 
@@ -35,13 +36,9 @@ class SQLiteLoader:
 
     @contextmanager
     def _get_connection(self):
-        """Context manager for database connections."""
-        conn = sqlite3.connect(str(self.db_path))
-        conn.row_factory = sqlite3.Row  # Enable column access by name
-        try:
+        """Context manager for database connections using shared service."""
+        with get_ecosystemiser_connection() as conn:
             yield conn
-        finally:
-            conn.close()
 
     def _init_database(self):
         """Initialize the database schema if it doesn't exist."""

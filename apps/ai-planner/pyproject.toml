@@ -14,12 +14,12 @@ packages = [{include = "ai_planner", from = "src"}]
 python = "^3.11"
 pydantic = "^2.5.0"
 
-# Local Hive packages with relative paths
+# Hive workspace dependencies
 hive-config = {path = "../../packages/hive-config", develop = true}
-hive-core-db = {path = "../../packages/hive-core-db", develop = true}
+hive-db-utils = {path = "../../packages/hive-db-utils", develop = true}
 hive-logging = {path = "../../packages/hive-logging", develop = true}
-hive-claude-bridge = {path = "../../packages/hive-claude-bridge", develop = true}
-hive-errors = {path = "../../packages/hive-errors", develop = true}
+hive-error-handling = {path = "../../packages/hive-error-handling", develop = true}
+hive-messaging = {path = "../../packages/hive-messaging", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
@@ -36,11 +36,11 @@ pythonpath = ["src"]
 addopts = "--cov=ai_planner --cov-report=html --cov-fail-under=80"
 
 [tool.black]
-line-length = 100
+line-length = 120
 target-version = ['py311']
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings

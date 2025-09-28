@@ -18,9 +18,13 @@ import pandas as pd
 import re
 
 from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse, CANONICAL_VARIABLES
-from EcoSystemiser.errors import (
-    ClimateError, AdapterError, ValidationError,
-    ProcessingError, TemporalError, LocationError, ErrorCode
+from EcoSystemiser.core.errors import (
+    ProfileError as ClimateError,
+    ProfileLoadError as AdapterError,
+    ProfileValidationError as ValidationError,
+    ProfileError as ProcessingError,
+    ProfileError as TemporalError,
+    ProfileError as LocationError
 )
 from EcoSystemiser.profile_loader.climate.processing.resampling import resample_dataset
 from EcoSystemiser.profile_loader.climate.processing.validation import apply_quality_control
@@ -591,14 +595,13 @@ class ClimateService(BaseProfileService):
         
         # If we get here, all adapters have failed
         raise AdapterError(
-            code=ErrorCode.ADAPTER_ERROR,
-            message="All available adapters failed to fetch data",
+            "All available adapters failed to fetch data",
             adapter_name="factory",
             details={
                 'available_adapters': available_adapters,
                 'preferred_adapters': preferred_adapters
             },
-            suggested_action="Check adapter configuration and try again later"
+            recovery_suggestion="Check adapter configuration and try again later"
         )
     
     async def _fetch_from_adapter(
@@ -684,8 +687,7 @@ class ClimateService(BaseProfileService):
         except Exception as e:
             logger.error(f"Data processing failed: {e}", exc_info=True)
             raise ProcessingError(
-                code=ErrorCode.PROCESSING_FAILED,
-                message=f"Failed to process data: {str(e)}"
+                f"Failed to process data: {str(e)}"
             )
     
     def _apply_mode(self, ds: xr.Dataset, req: ClimateRequest) -> xr.Dataset:
@@ -704,8 +706,7 @@ class ClimateService(BaseProfileService):
         except Exception as e:
             logger.error(f"Mode application failed: {e}")
             raise ProcessingError(
-                code=ErrorCode.PROCESSING_FAILED,
-                message=f"Failed to apply {req.mode} mode: {str(e)}"
+                f"Failed to apply {req.mode} mode: {str(e)}"
             )
     
     def _compute_average_mode(self, ds: xr.Dataset) -> xr.Dataset:
@@ -860,8 +861,7 @@ class ClimateService(BaseProfileService):
         except Exception as e:
             logger.error(f"Failed to build response: {e}")
             raise ProcessingError(
-                code=ErrorCode.PROCESSING_FAILED,
-                message=f"Failed to build response: {str(e)}"
+                f"Failed to build response: {str(e)}"
             )
     
     def get_service_info(self) -> Dict[str, Any]:

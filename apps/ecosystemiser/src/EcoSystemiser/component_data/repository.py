@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 import yaml
 import json
-from EcoSystemiser.db.connection import ecosystemiser_transaction, get_ecosystemiser_db_path
+from EcoSystemiser.db import ecosystemiser_transaction, get_ecosystemiser_db_path
 from EcoSystemiser.hive_logging_adapter import get_logger
 logger = get_logger(__name__)
 

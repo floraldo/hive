@@ -110,7 +110,7 @@ def create_app() -> FastAPI:
     @app.middleware("http")
     async def correlation_id_middleware(request, call_next):
         """Add correlation ID to requests"""
-        from EcoSystemiser.errors import CorrelationIDMiddleware
+        from EcoSystemiser.core.errors import CorrelationIDMiddleware
         from EcoSystemiser.profile_loader.logging_config import set_correlation_id, clear_context
         
         # Get or create correlation ID

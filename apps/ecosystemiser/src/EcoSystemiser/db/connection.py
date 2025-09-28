@@ -83,52 +83,17 @@ def ecosystemiser_transaction(db_path: Optional[Path] = None):
         conn.close()
 
 
-class ConnectionPool:
-    """
-    Simple connection pool for EcoSystemiser database.
+# DEPRECATED: Custom ConnectionPool class removed
+# EcoSystemiser now uses the shared Hive database service for connection management.
+# This provides better resource management, connection validation, and thread safety.
+#
+# For new code, use:
+# - get_ecosystemiser_connection() for context-managed connections
+# - ecosystemiser_transaction() for transactional operations
+#
+# These functions are available from EcoSystemiser.db and use the shared
+# connection pooling service from hive-orchestrator/core/db.
 
-    This manages a pool of database connections to improve performance
-    for multi-threaded operations.
-    """
-
-    def __init__(self, pool_size: int = 5):
-        """
-        Initialize connection pool.
-
-        Args:
-            pool_size: Maximum number of connections in pool
-        """
-        self.pool_size = pool_size
-        self.connections = []
-        self.db_path = get_ecosystemiser_db_path()
-
-    def get_connection(self) -> sqlite3.Connection:
-        """Get a connection from the pool or create a new one."""
-        if self.connections:
-            return self.connections.pop()
-        return get_db_connection(self.db_path)
-
-    def return_connection(self, conn: sqlite3.Connection):
-        """Return a connection to the pool."""
-        if len(self.connections) < self.pool_size:
-            self.connections.append(conn)
-        else:
-            conn.close()
-
-    def close_all(self):
-        """Close all connections in the pool."""
-        while self.connections:
-            conn = self.connections.pop()
-            conn.close()
-
-
-# Global connection pool instance
-_connection_pool = None
-
-
-def get_connection_pool() -> ConnectionPool:
-    """Get the global connection pool instance."""
-    global _connection_pool
-    if _connection_pool is None:
-        _connection_pool = ConnectionPool()
-    return _connection_pool
+# Legacy connection pool functionality has been moved to the shared service.
+# If you need the old ConnectionPool interface, consider refactoring to use
+# the new context manager approach for better resource management.

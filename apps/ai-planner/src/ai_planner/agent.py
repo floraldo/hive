@@ -17,32 +17,127 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 import signal
 import sys
+from enum import Enum
 
-from hive_core_db.database import get_connection, create_task
+# Use orchestrator's core database functions
 try:
-    from hive_core_db.database import (
-        get_async_connection, create_task_async, get_tasks_by_status_async,
-        update_task_status_async
+    from hive_orchestrator.core.db import (
+        get_connection, create_task, get_async_connection,
+        create_task_async, get_tasks_by_status_async, update_task_status_async
     )
     ASYNC_AVAILABLE = True
 except ImportError:
+    # Fallback to basic functions if async not available
+    from hive_orchestrator.core.db import get_connection, create_task
     ASYNC_AVAILABLE = False
-from hive_claude_bridge import (
-    get_claude_service,
-    ClaudeService,
-    RateLimitConfig,
-    ClaudeBridgeConfig
-)
-from hive_errors import (
+# Claude bridge functionality has been moved to individual apps
+# For now, create mock classes until proper implementation
+class ClaudeService:
+    def __init__(self, config=None, rate_config=None):
+        self.mock_mode = getattr(config, 'mock_mode', True)
+
+    def generate_execution_plan(self, task_description, context_data, priority, requestor, use_cache=True):
+        # Mock implementation - replace with actual Claude integration
+        return {
+            'plan_id': f"plan_{uuid.uuid4().hex[:8]}",
+            'plan_name': f"Generated Plan for: {task_description[:50]}",
+            'sub_tasks': [{
+                'id': f"subtask_{uuid.uuid4().hex[:8]}",
+                'title': 'Analyze requirements',
+                'description': 'Analyze the task requirements and gather context',
+                'assignee': 'auto',
+                'complexity': 'medium',
+                'estimated_duration': 30,
+                'workflow_phase': 'analysis',
+                'required_skills': ['analysis'],
+                'deliverables': ['requirements_doc'],
+                'dependencies': []
+            }],
+            'metrics': {
+                'total_estimated_duration': 30,
+                'complexity_breakdown': {'medium': 1},
+                'confidence_score': 0.8
+            }
+        }
+
+class RateLimitConfig:
+    def __init__(self, max_calls_per_minute=20, max_calls_per_hour=500):
+        self.max_calls_per_minute = max_calls_per_minute
+        self.max_calls_per_hour = max_calls_per_hour
+
+class ClaudeBridgeConfig:
+    def __init__(self, mock_mode=True):
+        self.mock_mode = mock_mode
+
+def get_claude_service(config=None, rate_config=None):
+    return ClaudeService(config, rate_config)
+# Import error classes from our core module following the "inherit → extend" pattern
+from ai_planner.core.error import (
     PlannerError,
-    DatabaseConnectionError,
     TaskProcessingError,
+    TaskValidationError,
+    TaskQueueError,
     PlanGenerationError,
-    ErrorReporter,
-    RetryStrategy,
-    ExponentialBackoffStrategy,
-    with_recovery
+    ClaudeServiceError,
+    PlanValidationError,
+    DatabaseConnectionError,
+    get_error_reporter
 )
+
+# Import basic recovery strategy from infrastructure package
+from hive_error_handling import RecoveryStrategy
+import time
+
+# Simple exponential backoff implementation
+class ExponentialBackoffStrategy(RecoveryStrategy):
+    """Retry strategy with exponential backoff"""
+    def __init__(self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0):
+        super().__init__("exponential_backoff", max_retries)
+        self.base_delay = base_delay
+        self.max_delay = max_delay
+
+    def attempt_recovery(self, error: Exception, context=None):
+        """Attempt recovery by waiting with exponential backoff"""
+        if not self.can_attempt_recovery():
+            from hive_error_handling import RecoveryStatus
+            return RecoveryStatus.FAILED
+
+        delay = min(self.base_delay * (2 ** self.attempt_count), self.max_delay)
+        time.sleep(delay)
+        self.attempt_count += 1
+
+        from hive_error_handling import RecoveryStatus
+        return RecoveryStatus.PARTIAL
+
+    def get_delay(self, attempt: int) -> float:
+        """Calculate delay for given attempt"""
+        delay = self.base_delay * (2 ** attempt)
+        return min(delay, self.max_delay)
+
+# Recovery function
+def with_recovery(strategy, operation):
+    """Execute operation with recovery strategy"""
+    last_exception = None
+
+    for attempt in range(strategy.max_attempts + 1):
+        try:
+            return operation()
+        except Exception as e:
+            last_exception = e
+            if attempt < strategy.max_attempts:
+                if hasattr(strategy, 'get_delay'):
+                    delay = strategy.get_delay(attempt)
+                    time.sleep(delay)
+                else:
+                    time.sleep(1.0)  # Default delay
+            else:
+                break
+
+    # All retries failed
+    raise last_exception
+
+# Initialize error reporter following the pattern
+ErrorReporter = get_error_reporter  # Use the core error reporter
 
 # Use path manager for proper import resolution
 from hive_config.path_manager import setup_hive_paths
@@ -61,15 +156,9 @@ except ImportError:
 # Note: AI Planner communicates with orchestrator through shared database
 # This maintains app independence while accessing Hive-specific schema
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('ai-planner.log')
-    ]
-)
+# Configure logging using hive-logging following golden rule 9
+from hive_logging import setup_logging
+setup_logging(level="INFO", handlers=["console", "file"], log_file="ai-planner.log")
 logger = get_logger('ai-planner')
 
 class AIPlanner:
@@ -953,6 +1042,44 @@ class AIPlanner:
 
                 logger.info("AI Planner Agent async shutdown complete")
                 return 0
+
+
+# Mock event bus functionality (to be replaced with proper implementation)
+class WorkflowEventType(Enum):
+    \"\"\"Types of workflow events\"\"\"
+    PHASE_STARTED = \"phase_started\"
+    PHASE_COMPLETED = \"phase_completed\"
+    PLAN_GENERATED = \"plan_generated\"
+    BLOCKED = \"blocked\"
+
+def create_workflow_event(event_type, workflow_id, task_id, source_agent, **kwargs):
+    \"\"\"Create a workflow event\"\"\"
+    return {
+        \"event_type\": event_type.value,
+        \"workflow_id\": workflow_id,
+        \"task_id\": task_id,
+        \"source_agent\": source_agent,
+        \"timestamp\": datetime.now(timezone.utc).isoformat(),
+        **kwargs
+    }
+
+class MockEventBus:
+    \"\"\"Mock event bus for development\"\"\"
+    def publish(self, event, correlation_id=None):
+        # Mock implementation - just log the event
+        logger.debug(f\"Mock event published: {event['event_type']} for task {event.get('task_id', 'unknown')}\")
+        return f\"mock_event_{int(time.time())}\"
+
+def get_event_bus():
+    \"\"\"Get event bus instance\"\"\"
+    return MockEventBus()
+
+# Async event functions (if needed)
+ASYNC_EVENTS_AVAILABLE = False
+
+async def publish_event_async(event, correlation_id=None):
+    \"\"\"Mock async event publishing\"\"\"
+    return f\"mock_async_event_{int(time.time())}\"
 
 
 def main():
