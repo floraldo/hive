@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ecosystemiser"
-version = "2.0.0"
+version = "3.0.0"
 description = "Energy ecosystem optimization and simulation platform"
 authors = ["Hive Platform Team <hive@example.com>"]
 packages = [{include = "EcoSystemiser", from = "src"}]

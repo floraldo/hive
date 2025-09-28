@@ -13,7 +13,26 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import uuid
 
-from hive_error_handling import BaseError, BaseErrorReporter, RecoveryStrategy
+try:
+    from hive_error_handling import BaseError, BaseErrorReporter, RecoveryStrategy
+except ImportError:
+    # Fallback implementation if hive_error_handling is not available
+    class BaseError(Exception):
+        def __init__(self, message: str, component: str = "unknown", **kwargs):
+            super().__init__(message)
+            self.message = message
+            self.component = component
+            self.timestamp = datetime.now(timezone.utc)
+            self.error_id = str(uuid.uuid4())
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
+    class BaseErrorReporter:
+        def report_error(self, error: BaseError):
+            print(f"Error in {error.component}: {error.message}")
+
+    class RecoveryStrategy:
+        pass
 from EcoSystemiser.hive_logging_adapter import get_logger
 
 logger = get_logger(__name__)
@@ -632,5 +651,20 @@ __all__ = [
 
     # Reporter
     "EcoSystemiserErrorReporter",
-    "get_error_reporter"
+    "get_error_reporter",
+
+    # Legacy aliases for backward compatibility
+    "AdapterError",
+    "ValidationError"
 ]
+
+
+# ===============================================================================
+# LEGACY ALIASES FOR BACKWARD COMPATIBILITY
+# ===============================================================================
+
+# AdapterError alias for profile loading errors
+AdapterError = ProfileLoadError
+
+# ValidationError alias for component validation errors
+ValidationError = ComponentValidationError

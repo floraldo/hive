@@ -17,7 +17,7 @@ from EcoSystemiser.profile_loader.climate.processing.validation import validate_
 from EcoSystemiser.profile_loader.climate.processing.resampling import resample_dataset
 from EcoSystemiser.profile_loader.climate.adapters.factory import get_adapter
 from EcoSystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
-from EcoSystemiser.errors import DataSourceError
+from EcoSystemiser.core.errors import DataSourceError
 
 
 class TestRealServiceIntegration:
@@ -363,7 +363,7 @@ class TestRealFileOperations:
             assert "time" in df.index.name
         except Exception as e:
             # If parsing fails, it should be a specific error
-            from EcoSystemiser.errors import DataParseError
+            from EcoSystemiser.core.errors import DataParseError
             assert isinstance(e, DataParseError)
     
     def test_real_cache_operations(self):

@@ -19,12 +19,8 @@ from EcoSystemiser.discovery.encoders.parameter_encoder import SystemConfigEncod
 from EcoSystemiser.discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
 
 # EcoSystemiser Event Bus integration
-from EcoSystemiser.event_bus import EcoSystemiserEventBus, sync_event_publisher
-from EcoSystemiser.events import (
-    EcoSystemiserEventType,
-    create_study_event,
-    create_simulation_event
-)
+from EcoSystemiser.core.bus import get_ecosystemiser_event_bus
+from EcoSystemiser.core.events import SimulationEvent, StudyEvent
 
 logger = get_logger(__name__)
 
@@ -118,17 +114,19 @@ class StudyService:
         start_time = datetime.now()
 
         # Publish study started event
-        study_started_event = create_study_event(
-            event_type=EcoSystemiserEventType.STUDY_STARTED,
+        event_bus = get_ecosystemiser_event_bus()
+        study_started_event = StudyEvent.started(
             study_id=config.study_id,
-            source_agent="StudyService",
-            study_type=config.study_type,
-            results_path=str(config.output_dir) if config.output_dir else None
+            config={
+                "study_type": config.study_type,
+                "results_path": str(config.output_dir) if config.output_dir else None
+            },
+            source_agent="StudyService"
         )
-        # Publish study started event using sync publisher
-        success = sync_event_publisher.try_publish_study_event(study_started_event)
-        if not success:
-            logger.debug("Could not publish study started event from sync context")
+        try:
+            event_bus.publish(study_started_event)
+        except Exception as e:
+            logger.debug(f"Could not publish study started event: {e}")
 
         try:
             # Generate simulation configurations based on study type
@@ -157,36 +155,41 @@ class StudyService:
             logger.info(f"Study completed: {study_result.successful_simulations}/{study_result.num_simulations} successful")
 
             # Publish study completed event
-            study_completed_event = create_study_event(
-                event_type=EcoSystemiserEventType.STUDY_COMPLETED,
+            study_completed_event = StudyEvent.completed(
                 study_id=config.study_id,
-                source_agent="StudyService",
-                study_type=config.study_type,
-                results_path=str(config.output_dir) if config.output_dir else None,
-                total_simulations=study_result.num_simulations,
-                completed_simulations=study_result.successful_simulations,
-                duration_seconds=study_result.execution_time
+                results={
+                    "study_type": config.study_type,
+                    "results_path": str(config.output_dir) if config.output_dir else None,
+                    "total_simulations": study_result.num_simulations,
+                    "completed_simulations": study_result.successful_simulations
+                },
+                duration_seconds=study_result.execution_time,
+                source_agent="StudyService"
             )
-            success = sync_event_publisher.try_publish_study_event(study_completed_event)
-            if not success:
-                logger.debug("Could not publish study completed event from sync context")
+            try:
+                event_bus.publish(study_completed_event)
+            except Exception as e:
+                logger.debug(f"Could not publish study completed event: {e}")
 
             return study_result
 
         except Exception as e:
             # Publish study failed event
             execution_time = (datetime.now() - start_time).total_seconds()
-            study_failed_event = create_study_event(
-                event_type=EcoSystemiserEventType.STUDY_FAILED,
+            study_failed_event = StudyEvent.failed(
                 study_id=config.study_id,
-                source_agent="StudyService",
-                study_type=config.study_type,
-                results_path=str(config.output_dir) if config.output_dir else None,
-                duration_seconds=execution_time
+                error_message=str(e),
+                error_details={
+                    "study_type": config.study_type,
+                    "results_path": str(config.output_dir) if config.output_dir else None,
+                    "duration_seconds": execution_time
+                },
+                source_agent="StudyService"
             )
-            success = sync_event_publisher.try_publish_study_event(study_failed_event)
-            if not success:
-                logger.debug("Could not publish study failed event from sync context")
+            try:
+                event_bus.publish(study_failed_event)
+            except Exception as e_pub:
+                logger.debug(f"Could not publish study failed event: {e_pub}")
 
             logger.error(f"Study failed: {config.study_id} - {str(e)}")
             raise

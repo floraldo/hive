@@ -7,13 +7,11 @@ from pathlib import Path
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from EcoSystemiser.hive_bus import (
-    Event, EventBus, WorkflowEventType, TaskEventType,
-    create_workflow_event, create_task_event, get_event_bus
+from EcoSystemiser.core.bus import (
+    get_ecosystemiser_event_bus, EcoSystemiserEventBus
 )
-from EcoSystemiser.events import (
-    EcoSystemiserEventType, SimulationEvent, StudyEvent,
-    create_simulation_event, create_study_event
+from EcoSystemiser.core.events import (
+    SimulationEvent, StudyEvent, AnalysisEvent
 )
 
 
@@ -38,16 +36,15 @@ class TestEventBus:
                 del os.environ['ECOSYSTEMISER_DB_PATH']
 
     def test_event_creation(self):
-        """Test creating an event."""
-        event = Event(
-            event_type="test.event",
-            source_agent="test_agent",
-            payload={"key": "value"}
+        """Test creating a simulation event."""
+        event = SimulationEvent.started(
+            simulation_id="test_sim_123",
+            config={"key": "value"}
         )
 
-        assert event.event_type == "test.event"
-        assert event.source_agent == "test_agent"
-        assert event.payload == {"key": "value"}
+        assert event.event_type == "simulation.started"
+        assert event.simulation_id == "test_sim_123"
+        assert event.payload["config"] == {"key": "value"}
         assert event.event_id is not None
         assert event.timestamp is not None
 

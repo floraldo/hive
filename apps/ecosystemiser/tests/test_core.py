@@ -17,7 +17,7 @@ from EcoSystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from EcoSystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerAdapter
 from EcoSystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
 from EcoSystemiser.profile_loader.shared.timezone import TimezoneHandler
-from EcoSystemiser.errors import AdapterError, ValidationError
+from EcoSystemiser.core.errors import AdapterError, ValidationError
 
 
 class TestAdapterFactory:

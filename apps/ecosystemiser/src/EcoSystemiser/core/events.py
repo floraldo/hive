@@ -12,7 +12,19 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
 import uuid
 
-from hive_messaging import BaseEvent
+try:
+    from hive_messaging import BaseEvent
+except ImportError:
+    # Fallback implementation if hive_messaging is not available
+    class BaseEvent:
+        def __init__(self, event_type: str, source: str = "unknown", **kwargs):
+            self.event_type = event_type
+            self.source = source
+            self.timestamp = datetime.now(timezone.utc)
+            self.event_id = str(uuid.uuid4())
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -250,6 +262,88 @@ class AnalysisEvent(EcoSystemiserEvent):
             analysis_id=analysis_id,
             payload={
                 "analysis_id": analysis_id,
+                "error_message": error_message,
+                "error_details": error_details or {},
+                "status": "failed"
+            },
+            **kwargs
+        )
+
+
+# ===============================================================================
+# STUDY EVENTS
+# ===============================================================================
+
+class StudyEvent(EcoSystemiserEvent):
+    """Events related to multi-simulation study lifecycle and execution"""
+
+    def __init__(self, event_type: str, **kwargs):
+        super().__init__(
+            event_type=f"study.{event_type}",
+            source=kwargs.get("source", "study"),
+            **kwargs
+        )
+
+    @classmethod
+    def started(
+        cls,
+        study_id: str,
+        config: Dict[str, Any],
+        source_agent: str = "StudyService",
+        **kwargs
+    ) -> "StudyEvent":
+        """Create study started event"""
+        return cls(
+            event_type="started",
+            study_id=study_id,
+            source=source_agent,
+            payload={
+                "study_id": study_id,
+                "config": config,
+                "status": "started"
+            },
+            **kwargs
+        )
+
+    @classmethod
+    def completed(
+        cls,
+        study_id: str,
+        results: Dict[str, Any],
+        duration_seconds: float,
+        source_agent: str = "StudyService",
+        **kwargs
+    ) -> "StudyEvent":
+        """Create study completed event"""
+        return cls(
+            event_type="completed",
+            study_id=study_id,
+            source=source_agent,
+            payload={
+                "study_id": study_id,
+                "results": results,
+                "duration_seconds": duration_seconds,
+                "status": "completed"
+            },
+            **kwargs
+        )
+
+    @classmethod
+    def failed(
+        cls,
+        study_id: str,
+        error_message: str,
+        error_details: Optional[Dict[str, Any]] = None,
+        source_agent: str = "StudyService",
+        **kwargs
+    ) -> "StudyEvent":
+        """Create study failed event"""
+        return cls(
+            event_type="failed",
+            study_id=study_id,
+            source=source_agent,
+            payload={
+                "study_id": study_id,
                 "error_message": error_message,
                 "error_details": error_details or {},
                 "status": "failed"

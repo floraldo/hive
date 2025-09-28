@@ -13,7 +13,26 @@ from typing import Dict, Any, List, Optional, Union
 from datetime import datetime, timezone
 import uuid
 
-from hive_messaging import BaseBus, BaseEvent
+try:
+    from hive_messaging import BaseBus, BaseEvent
+except ImportError:
+    # Fallback implementation if hive_messaging is not available
+    class BaseEvent:
+        def __init__(self, event_type: str, source: str = "unknown", **kwargs):
+            self.event_type = event_type
+            self.source = source
+            self.timestamp = datetime.now(timezone.utc)
+            self.event_id = str(uuid.uuid4())
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
+    class BaseBus:
+        def __init__(self):
+            self.events = []
+
+        def publish(self, event: BaseEvent):
+            self.events.append(event)
+
 from hive_logging import get_logger
 
 from ..db.connection import ecosystemiser_transaction, get_ecosystemiser_db_path

@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch, MagicMock
 from EcoSystemiser.profile_loader.climate.data_models import ClimateRequest, ClimateResponse
 from EcoSystemiser.profile_loader.climate.service import ClimateService
 from EcoSystemiser.profile_loader.climate.job_manager import JobManager, JobStatus
-from EcoSystemiser.errors import DataParseError
+from EcoSystemiser.core.errors import DataParseError
 
 
 class TestClimateResponseValidation:
