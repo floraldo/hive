@@ -1,70 +1,54 @@
-# Hive Platform Pre-Commit Configuration
-# Architectural Immune System - First Line of Defense
-
 repos:
-  # Enhanced Golden Rules - World-Class Architectural Validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args: [--max-line-length=88, --extend-ignore=E203,W503]
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.35.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+        files: \.(md|markdown)$
+        exclude: ^(\.github/|node_modules/|\.venv/)
+
   - repo: local
     hooks:
       - id: enhanced-golden-rules
         name: Enhanced Golden Rules Validation
-        entry: python scripts/validate_golden_rules.py
+        entry: python -m pytest packages/hive-tests/tests/unit/test_architecture.py::TestArchitecturalCompliance::test_enhanced_golden_rules -v
         language: system
-        files: \.py$
         pass_filenames: false
+        always_run: true
+        stages: [commit]
         
-  # Standard code quality tools
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
-    hooks:
-      - id: black
-        name: Black Code Formatting
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        name: Import Sorting
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.15
-    hooks:
-      - id: ruff
-        name: Ruff Linting
-        args: [--fix, --exit-non-zero-on-fix]
-        
-  # Security scanning
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
-    hooks:
-      - id: bandit
-        name: Security Scanning
-        args: [-r, -x, tests/]
-
-  # Documentation and typing
-  # Temporarily disabled due to types-all package issues
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.8.0
-  #   hooks:
-  #     - id: mypy
-  #       name: Type Checking
-  #       additional_dependencies: []
-  #       args: [--ignore-missing-imports]
-        
-default_stages: [commit]
-fail_fast: true
-
-# Configuration
-ci:
-    autofix_commit_msg: |
-        Auto-fix by pre-commit hooks
-
-        Applied automatic fixes from pre-commit hooks:
-        - Code formatting (black)
-        - Import sorting (isort)
-        - Linting fixes (ruff)
-
-        Architectural validation passed
-    autofix_prs: true
-    autoupdate_branch: ''
-    autoupdate_commit_msg: 'Pre-commit autoupdate'
-    autoupdate_schedule: weekly
+      - id: repository-hygiene-check
+        name: Repository Hygiene Check
+        entry: python scripts/operational_excellence/automated_hygiene.py --all
+        language: system
+        pass_filenames: false
+        always_run: false
+        stages: [manual]
