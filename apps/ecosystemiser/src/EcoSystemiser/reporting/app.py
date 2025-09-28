@@ -118,6 +118,114 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 
         return render_template('report.html', **report_data)
 
+    @app.route('/report/ga/<study_id>')
+    def report_ga(study_id):
+        """Generate GA optimization report from study results."""
+        # Look for study results file
+        results_dir = Path(app.config.get('RESULTS_DIR', 'results'))
+        study_file = results_dir / f'ga_optimization_{study_id}.json'
+
+        if not study_file.exists():
+            # Try alternative naming patterns
+            study_file = results_dir / f'{study_id}.json'
+            if not study_file.exists():
+                return render_template('error.html',
+                                     error=f"Study results not found: {study_id}"), 404
+
+        # Load study results
+        with open(study_file, 'r') as f:
+            study_data = json.load(f)
+
+        # Extract GA-specific results
+        ga_result = study_data.get('best_result', {})
+
+        # Generate GA-specific plots
+        plots = {}
+        if ga_result:
+            plots['pareto_front'] = app.plot_factory.create_ga_pareto_front_plot(ga_result)
+            plots['convergence'] = app.plot_factory.create_ga_convergence_plot(ga_result)
+
+        # Prepare report data
+        report_data = {
+            'study_id': study_id,
+            'study_type': 'genetic_algorithm',
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'summary': study_data.get('summary_statistics', {}),
+            'best_result': ga_result,
+            'num_simulations': study_data.get('num_simulations', 0),
+            'execution_time': study_data.get('execution_time', 0),
+            'plots': plots,
+            'objectives': study_data.get('configuration', {}).get('objectives', [])
+        }
+
+        return render_template('report_ga.html', **report_data)
+
+    @app.route('/report/mc/<study_id>')
+    def report_mc(study_id):
+        """Generate MC uncertainty analysis report from study results."""
+        # Look for study results file
+        results_dir = Path(app.config.get('RESULTS_DIR', 'results'))
+        study_file = results_dir / f'mc_uncertainty_{study_id}.json'
+
+        if not study_file.exists():
+            # Try alternative naming patterns
+            study_file = results_dir / f'{study_id}.json'
+            if not study_file.exists():
+                return render_template('error.html',
+                                     error=f"Study results not found: {study_id}"), 404
+
+        # Load study results
+        with open(study_file, 'r') as f:
+            study_data = json.load(f)
+
+        # Extract MC-specific results
+        mc_result = study_data.get('best_result', {})
+
+        # Generate MC-specific plots
+        plots = {}
+        if mc_result:
+            plots['uncertainty'] = app.plot_factory.create_uncertainty_distribution_plot(mc_result)
+            plots['risk'] = app.plot_factory.create_risk_analysis_plot(mc_result)
+            if 'sensitivity' in mc_result:
+                plots['sensitivity'] = app.plot_factory.create_sensitivity_tornado_plot(mc_result)
+            if 'scenarios' in mc_result:
+                plots['scenarios'] = app.plot_factory.create_scenario_comparison_plot(mc_result)
+
+        # Prepare report data
+        report_data = {
+            'study_id': study_id,
+            'study_type': 'monte_carlo',
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'summary': study_data.get('summary_statistics', {}),
+            'uncertainty_analysis': mc_result.get('uncertainty_analysis', {}),
+            'num_samples': study_data.get('num_simulations', 0),
+            'execution_time': study_data.get('execution_time', 0),
+            'plots': plots,
+            'sampling_method': study_data.get('configuration', {}).get('sampling_method', 'lhs')
+        }
+
+        return render_template('report_mc.html', **report_data)
+
+    @app.route('/api/study/<study_id>')
+    def api_study(study_id):
+        """API endpoint to retrieve study results."""
+        results_dir = Path(app.config.get('RESULTS_DIR', 'results'))
+
+        # Try different file patterns
+        patterns = [
+            f'ga_optimization_{study_id}.json',
+            f'mc_uncertainty_{study_id}.json',
+            f'{study_id}.json'
+        ]
+
+        for pattern in patterns:
+            study_file = results_dir / pattern
+            if study_file.exists():
+                with open(study_file, 'r') as f:
+                    return jsonify(json.load(f))
+
+        return jsonify({'error': f'Study not found: {study_id}'}), 404
+
     @app.route('/api/analyze', methods=['POST'])
     def api_analyze():
         """API endpoint for programmatic analysis."""

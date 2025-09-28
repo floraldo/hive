@@ -15,16 +15,25 @@ import webbrowser
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, List, Tuple
+import tempfile
 import sys
 import os
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from src.EcoSystemiser.study.service import StudyService
-from src.EcoSystemiser.datavis.plot_factory import PlotFactory
-from src.EcoSystemiser.reporting.generator import HTMLReportGenerator
-from hive_logging import get_logger
+# Proper imports without path manipulation
+try:
+    from ecosystemiser.services.study_service import StudyService
+    from ecosystemiser.datavis.plot_factory import PlotFactory
+    from ecosystemiser.reporting.generator import HTMLReportGenerator
+    from ecosystemiser.reporting.app import create_app
+    from hive_logging import get_logger
+except ImportError as e:
+    # Fallback for development - add src to path
+    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+    from ecosystemiser.services.study_service import StudyService
+    from ecosystemiser.datavis.plot_factory import PlotFactory
+    from ecosystemiser.reporting.generator import HTMLReportGenerator
+    from ecosystemiser.reporting.app import create_app
+    from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -43,10 +52,10 @@ class MicrogridDemoRunner:
         """
         Step 1: Define the Berlin microgrid design problem.
         """
-        print("\n" + "="*70)
-        print("🏗️  STEP 1: DEFINING THE DESIGN PROBLEM")
-        print("="*70)
-        print("""
+        logger.info("="*70)
+        logger.info("🏗️  STEP 1: DEFINING THE DESIGN PROBLEM")
+        logger.info("="*70)
+        logger.info("""
         Location: Berlin, Germany (52.52°N, 13.405°E)
         Objective: Design a residential microgrid that:
         - Minimizes total cost of ownership (TCO)
@@ -118,27 +127,27 @@ class MicrogridDemoRunner:
             }
         }
 
-        print("\n✅ Design problem configured successfully")
+        logger.info("\n✅ Design problem configured successfully")
         return config
 
     def run_ga_optimization(self, config: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         """
         Step 2: Run Genetic Algorithm optimization to find Pareto-optimal designs.
         """
-        print("\n" + "="*70)
-        print("🧬  STEP 2: RUNNING GENETIC ALGORITHM OPTIMIZATION")
-        print("="*70)
-        print("""
+        logger.info("\n" + "="*70)
+        logger.info("🧬  STEP 2: RUNNING GENETIC ALGORITHM OPTIMIZATION")
+        logger.info("="*70)
+        logger.info("""
         Using NSGA-II (Non-dominated Sorting Genetic Algorithm II)
         Population: 50 | Generations: 100
         This will explore the trade-off between cost and renewable fraction...
         """)
 
         # Simulate optimization progress
-        print("\nOptimization Progress:")
+        logger.info("\nOptimization Progress:")
         for gen in range(0, 101, 20):
             time.sleep(0.5)  # Simulate computation
-            print(f"  Generation {gen:3d}/100 [{'█' * (gen//5):20s}] {gen}%")
+            logger.info(f"  Generation {gen:3d}/100 [{'█' * (gen//5):20s}] {gen}%")
 
         # Run actual optimization (or simulate results for demo)
         study_id = f"ga_berlin_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -190,9 +199,9 @@ class MicrogridDemoRunner:
         with open(results_file, 'w') as f:
             json.dump(results, f, indent=2)
 
-        print(f"\n✅ Optimization completed!")
-        print(f"   Found {len(results['best_result']['pareto_front'])} Pareto-optimal solutions")
-        print(f"   Results saved to: {results_file}")
+        logger.info(f"\n✅ Optimization completed!")
+        logger.info(f"   Found {len(results['best_result']['pareto_front'])} Pareto-optimal solutions")
+        logger.info(f"   Results saved to: {results_file}")
 
         return study_id, results
 
@@ -200,32 +209,32 @@ class MicrogridDemoRunner:
         """
         Step 3: Extract the best balanced design from the Pareto front.
         """
-        print("\n" + "="*70)
-        print("🎯  STEP 3: SELECTING BEST DESIGN FROM PARETO FRONT")
-        print("="*70)
+        logger.info("\n" + "="*70)
+        logger.info("🎯  STEP 3: SELECTING BEST DESIGN FROM PARETO FRONT")
+        logger.info("="*70)
 
         pareto_front = ga_results['best_result']['pareto_front']
 
-        print("\nPareto-optimal solutions found:")
-        print("-" * 60)
-        print(f"{'ID':>3} | {'Solar':>6} | {'Battery':>7} | {'Wind':>4} | {'TCO':>7} | {'Renewable':>9}")
-        print(f"{'':>3} | {'(kW)':>6} | {'(kWh)':>7} | {'':>4} | {'(M€)':>7} | {'(%)':>9}")
-        print("-" * 60)
+        logger.info("\nPareto-optimal solutions found:")
+        logger.info("-" * 60)
+        logger.info(f"{'ID':>3} | {'Solar':>6} | {'Battery':>7} | {'Wind':>4} | {'TCO':>7} | {'Renewable':>9}")
+        logger.info(f"{'':>3} | {'(kW)':>6} | {'(kWh)':>7} | {'':>4} | {'(M€)':>7} | {'(%)':>9}")
+        logger.info("-" * 60)
 
         for solution in pareto_front:
-            print(f"{solution['id']:3d} | {solution['solar_capacity_kw']:6.0f} | "
+            logger.info(f"{solution['id']:3d} | {solution['solar_capacity_kw']:6.0f} | "
                   f"{solution['battery_capacity_kwh']:7.0f} | {solution['wind_turbines']:4d} | "
                   f"{solution['tco_million_eur']:7.1f} | {solution['renewable_fraction']*100:8.1f}%")
 
         # Select balanced solution (middle of Pareto front)
         best_design = pareto_front[1]  # Middle solution
 
-        print("\n🏆 Selected Design (Best Balance):")
-        print(f"   Solar Capacity: {best_design['solar_capacity_kw']} kW")
-        print(f"   Battery Storage: {best_design['battery_capacity_kwh']} kWh")
-        print(f"   Wind Turbines: {best_design['wind_turbines']} × 10kW")
-        print(f"   Total Cost: €{best_design['tco_million_eur']:.1f}M over 20 years")
-        print(f"   Renewable Fraction: {best_design['renewable_fraction']*100:.1f}%")
+        logger.info("\n🏆 Selected Design (Best Balance):")
+        logger.info(f"   Solar Capacity: {best_design['solar_capacity_kw']} kW")
+        logger.info(f"   Battery Storage: {best_design['battery_capacity_kwh']} kWh")
+        logger.info(f"   Wind Turbines: {best_design['wind_turbines']} × 10kW")
+        logger.info(f"   Total Cost: €{best_design['tco_million_eur']:.1f}M over 20 years")
+        logger.info(f"   Renewable Fraction: {best_design['renewable_fraction']*100:.1f}%")
 
         return best_design
 
@@ -233,10 +242,10 @@ class MicrogridDemoRunner:
         """
         Step 4: Run Monte Carlo uncertainty analysis on the selected design.
         """
-        print("\n" + "="*70)
-        print("🎲  STEP 4: RUNNING MONTE CARLO UNCERTAINTY ANALYSIS")
-        print("="*70)
-        print("""
+        logger.info("\n" + "="*70)
+        logger.info("🎲  STEP 4: RUNNING MONTE CARLO UNCERTAINTY ANALYSIS")
+        logger.info("="*70)
+        logger.info("""
         Analyzing financial risk under uncertainty:
         - Electricity price volatility: ±20%
         - Solar/battery cost uncertainty: ±15%
@@ -245,10 +254,10 @@ class MicrogridDemoRunner:
         """)
 
         # Simulate MC progress
-        print("\nMonte Carlo Simulation Progress:")
+        logger.info("\nMonte Carlo Simulation Progress:")
         for sample in range(0, 1001, 200):
             time.sleep(0.5)  # Simulate computation
-            print(f"  Sample {sample:4d}/1000 [{'█' * (sample//50):20s}] {sample//10}%")
+            logger.info(f"  Sample {sample:4d}/1000 [{'█' * (sample//50):20s}] {sample//10}%")
 
         study_id = f"mc_berlin_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -293,10 +302,10 @@ class MicrogridDemoRunner:
         with open(results_file, 'w') as f:
             json.dump(results, f, indent=2)
 
-        print(f"\n✅ Uncertainty analysis completed!")
-        print(f"   TCO Range (95% CI): €{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['lower']:.1f}M - "
+        logger.info(f"\n✅ Uncertainty analysis completed!")
+        logger.info(f"   TCO Range (95% CI): €{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['lower']:.1f}M - "
               f"€{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['upper']:.1f}M")
-        print(f"   Results saved to: {results_file}")
+        logger.info(f"   Results saved to: {results_file}")
 
         return study_id, results
 
@@ -304,24 +313,24 @@ class MicrogridDemoRunner:
         """
         Step 5: Generate interactive HTML reports for both studies.
         """
-        print("\n" + "="*70)
-        print("📊  STEP 5: GENERATING INTERACTIVE HTML REPORTS")
-        print("="*70)
+        logger.info("\n" + "="*70)
+        logger.info("📊  STEP 5: GENERATING INTERACTIVE HTML REPORTS")
+        logger.info("="*70)
 
         reports_generated = []
 
         # Generate GA report
-        print("\nGenerating Genetic Algorithm optimization report...")
+        logger.info("\nGenerating Genetic Algorithm optimization report...")
         ga_report = self.results_dir / f"report_{ga_study_id}.html"
         # In real implementation, would call report generator
         reports_generated.append(ga_report)
-        print(f"   ✅ GA Report: {ga_report}")
+        logger.info(f"   ✅ GA Report: {ga_report}")
 
         # Generate MC report
-        print("\nGenerating Monte Carlo uncertainty analysis report...")
+        logger.info("\nGenerating Monte Carlo uncertainty analysis report...")
         mc_report = self.results_dir / f"report_{mc_study_id}.html"
         reports_generated.append(mc_report)
-        print(f"   ✅ MC Report: {mc_report}")
+        logger.info(f"   ✅ MC Report: {mc_report}")
 
         return reports_generated
 
@@ -330,11 +339,11 @@ class MicrogridDemoRunner:
         """
         Print final summary and recommendations.
         """
-        print("\n" + "="*70)
-        print("🎉  DEMONSTRATION COMPLETE - SUMMARY & RECOMMENDATIONS")
-        print("="*70)
+        logger.info("\n" + "="*70)
+        logger.info("🎉  DEMONSTRATION COMPLETE - SUMMARY & RECOMMENDATIONS")
+        logger.info("="*70)
 
-        print("""
+        logger.info("""
         📋 EXECUTIVE SUMMARY
         ────────────────────
 
@@ -362,9 +371,9 @@ class MicrogridDemoRunner:
         """)
 
         for i, report in enumerate(reports, 1):
-            print(f"           {i}. {report}")
+            logger.info(f"           {i}. {report}")
 
-        print("""
+        logger.info("""
 
         🚀 NEXT STEPS:
            1. Share reports with stakeholders for feedback
@@ -378,10 +387,10 @@ class MicrogridDemoRunner:
 
     def run(self):
         """Execute the complete demonstration workflow."""
-        print("\n" + "🌟"*35)
-        print(" "*20 + "ECOSYSTEMISER v3.0 - FULL DEMONSTRATION")
-        print(" "*15 + "Intelligent Energy System Design & Optimization")
-        print("🌟"*35)
+        logger.info("\n" + "🌟"*35)
+        logger.info(" "*20 + "ECOSYSTEMISER v3.0 - FULL DEMONSTRATION")
+        logger.info(" "*15 + "Intelligent Energy System Design & Optimization")
+        logger.info("🌟"*35)
 
         try:
             # Step 1: Define the problem
@@ -413,10 +422,11 @@ class MicrogridDemoRunner:
             if response.lower() == 'y':
                 for report in reports:
                     webbrowser.open(f"file://{report.absolute()}")
+                    logger.info(f"Opening report: {report}")
 
         except Exception as e:
             logger.error(f"Error during demonstration: {e}")
-            print(f"\n❌ Error: {e}")
+            logger.error(f"\n❌ Error: {e}")
             return 1
 
         return 0

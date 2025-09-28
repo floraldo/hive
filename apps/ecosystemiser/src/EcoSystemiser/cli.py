@@ -339,9 +339,11 @@ def discover():
 @click.option('--output', '-o', help='Output directory for results')
 @click.option('--workers', '-w', default=4, type=int,
               help='Number of parallel workers')
+@click.option('--report', is_flag=True,
+              help='Generate HTML report after optimization')
 @click.option('--verbose', is_flag=True, help='Verbose output')
 def optimize(config, objectives, population, generations, variables, multi_objective,
-            mutation_rate, crossover_rate, output, workers, verbose):
+            mutation_rate, crossover_rate, output, workers, report, verbose):
     """
     Run genetic algorithm optimization to find optimal system configurations.
 
@@ -430,6 +432,27 @@ def optimize(config, objectives, population, generations, variables, multi_objec
                 }, f, indent=2, default=str)
 
             click.echo(f"  Results saved to: {results_file}")
+
+            # Generate report if requested
+            if report:
+                click.echo("\n[INFO] Generating HTML report...")
+                from ecosystemiser.reporting.generator import HTMLReportGenerator
+                from ecosystemiser.datavis.plot_factory import PlotFactory
+
+                plot_factory = PlotFactory()
+                report_generator = HTMLReportGenerator()
+
+                # Generate plots
+                plots = {
+                    'pareto_front': plot_factory.create_ga_pareto_front_plot(result.best_result),
+                    'convergence': plot_factory.create_ga_convergence_plot(result.best_result)
+                }
+
+                # Generate HTML report
+                html = report_generator.generate_ga_optimization_report(result.dict(), plots)
+                report_file = output_dir / f"ga_report_{result.study_id}.html"
+                report_generator.save_report(html, report_file)
+                click.echo(f"  HTML report saved to: {report_file}")
         else:
             click.echo(f"  Study ID: {result.study_id}")
 
@@ -908,22 +931,88 @@ def server(host, port, debug):
         click.echo(f"Server error: {e}", err=True)
         sys.exit(1)
 
-@report.command()
-@click.argument('results_file', type=click.Path(exists=True))
+@report.command('generate')
+@click.argument('study_file', type=click.Path(exists=True))
 @click.option('--output', '-o', type=click.Path(), default='report.html',
               help='Output HTML file path')
-def generate(results_file, output):
-    """Generate a standalone HTML report."""
-    from ecosystemiser.analyser import AnalyserService
+@click.option('--type', 'study_type', type=click.Choice(['auto', 'ga', 'mc']),
+              default='auto', help='Type of study (auto-detect by default)')
+def generate(study_file, output, study_type):
+    """Generate a standalone HTML report from study results.
+
+    Examples:
+        ecosys report generate ga_optimization_123.json
+        ecosys report generate mc_uncertainty_456.json --output analysis.html
+    """
+    from ecosystemiser.reporting.generator import HTMLReportGenerator
     from ecosystemiser.datavis.plot_factory import PlotFactory
+    import json
 
     try:
-        # Run analysis
-        analyser = AnalyserService()
-        analysis_results = analyser.analyse(results_file)
+        # Load study results
+        with open(study_file, 'r') as f:
+            study_data = json.load(f)
 
-        # Load raw results
-        with open(results_file, 'r') as f:
+        # Auto-detect study type if needed
+        if study_type == 'auto':
+            if 'pareto_front' in study_data.get('best_result', {}):
+                study_type = 'ga'
+            elif 'uncertainty_analysis' in study_data.get('best_result', {}):
+                study_type = 'mc'
+            else:
+                click.echo("Could not auto-detect study type. Please specify with --type", err=True)
+                sys.exit(1)
+
+        click.echo(f"Generating {study_type.upper()} report from: {study_file}")
+
+        # Create generators
+        plot_factory = PlotFactory()
+        report_generator = HTMLReportGenerator()
+
+        # Generate appropriate report
+        if study_type == 'ga':
+            # Generate GA plots
+            plots = {}
+            if 'best_result' in study_data:
+                plots['pareto_front'] = plot_factory.create_ga_pareto_front_plot(study_data['best_result'])
+                plots['convergence'] = plot_factory.create_ga_convergence_plot(study_data['best_result'])
+
+            # Generate GA report
+            html = report_generator.generate_ga_optimization_report(study_data, plots)
+
+        else:  # MC
+            # Generate MC plots
+            plots = {}
+            if 'best_result' in study_data:
+                mc_result = study_data['best_result']
+                plots['uncertainty'] = plot_factory.create_uncertainty_distribution_plot(mc_result)
+                plots['risk'] = plot_factory.create_risk_analysis_plot(mc_result)
+                if 'sensitivity' in mc_result or 'sensitivity_analysis' in mc_result:
+                    plots['sensitivity'] = plot_factory.create_sensitivity_tornado_plot(mc_result)
+
+            # Generate MC report
+            html = report_generator.generate_mc_uncertainty_report(study_data, plots)
+
+        # Save report
+        output_path = Path(output)
+        report_generator.save_report(html, output_path)
+        click.echo(f"HTML report saved to: {output_path}")
+
+        # Open in browser if available
+        import webbrowser
+        webbrowser.open(f'file://{output_path.absolute()}')
+
+    except FileNotFoundError:
+        click.echo(f"Error: Study file not found: {study_file}", err=True)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        click.echo(f"Error parsing study file: {e}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Error generating report: {e}", err=True)
+        if verbose:
+            logger.exception("Failed to generate report")
+        sys.exit(1)
             raw_results = json.load(f)
 
         # Generate plots

@@ -305,9 +305,17 @@ class ClimateService(BaseProfileService):
     - Unified profile service interface
     """
     
-    def __init__(self):
-        """Initialize enhanced climate service with centralized location resolution"""
-        self.config = get_config()
+    def __init__(self, config=None):
+        """Initialize enhanced climate service with centralized location resolution
+
+        Args:
+            config: Optional configuration object. If not provided, uses default settings.
+        """
+        if config is None:
+            # Fallback to settings import only when no config provided
+            self.config = get_config()
+        else:
+            self.config = config
         self.processing_pipeline = ProcessingPipeline()
         self.location_resolver = LocationResolver()  # Centralized geocoding service
 

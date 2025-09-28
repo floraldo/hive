@@ -13,32 +13,20 @@ import json
 import sys
 from pathlib import Path
 
-# Add parent directory to path to import EcoSystemiser
+# Add parent directory to path for imports
 import os
 parent_dir = str(Path(__file__).parent.parent / "src")
 if parent_dir not in sys.path:
-# Also add parent for direct imports
-parent_parent_dir = str(Path(__file__).parent.parent.parent)
-if parent_parent_dir not in sys.path:
-# Now try imports with better path
-try:
-    # Try relative import first
-    from apps.EcoSystemiser.src.EcoSystemiser.profile_loader.climate import (
-        get_profile_sync, 
-        ClimateRequest,
-        ClimateResponse
-    )
-    from apps.EcoSystemiser.src.EcoSystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
-    from apps.EcoSystemiser.src.EcoSystemiser.profile_loader.climate.adapters.factory import list_available_adapters
-except ImportError:
-    # Try direct import
-    from ecosystemiser.profile_loader.climate import (
-        get_profile_sync, 
-        ClimateRequest,
-        ClimateResponse
-    )
-    from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
-    from ecosystemiser.profile_loader.climate.adapters.factory import list_available_adapters
+    sys.path.insert(0, parent_dir)
+
+# Import EcoSystemiser modules
+from ecosystemiser.profile_loader.climate import (
+    get_profile_sync,
+    ClimateRequest,
+    ClimateResponse
+)
+from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+from ecosystemiser.profile_loader.climate.adapters.factory import list_available_adapters
 
 # Page configuration
 st.set_page_config(

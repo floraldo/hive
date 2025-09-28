@@ -92,13 +92,19 @@ class ProcessingPipeline:
     postprocessing (analytics/derived metrics) stages.
     """
     
-    def __init__(self):
+    def __init__(self, config=None):
         """
         Initialize processing pipeline with default configuration.
+
+        Args:
+            config: Optional configuration object. If None, falls back to get_config()
         """
-        # Load central config
-        central_config = get_config()
-        self.config = central_config
+        # Load central config with fallback
+        if config is None:
+            central_config = get_config()
+            self.config = central_config
+        else:
+            self.config = config
         
         self.preprocessing_steps: List[ProcessingStep] = []
         self.postprocessing_steps: List[ProcessingStep] = []

@@ -694,12 +694,10 @@ async def process_job_async(
 
         # Send notifications if configured
         if job_request.callback_url:
-            # TODO: Implement callback notification
-            logger.info(f"Job {job_id} completed - callback URL configured: {job_request.callback_url}")
+            await _send_callback_notification(job_id, job_request.callback_url, serializable_result)
 
         if job_request.notification_email:
-            # TODO: Implement email notification
-            logger.info(f"Job {job_id} completed - email notification configured: {job_request.notification_email}")
+            await _send_email_notification(job_id, job_request.notification_email, serializable_result)
 
     except Exception as e:
         # Handle failure using distributed job manager
@@ -877,16 +875,19 @@ async def get_climate_profile(
         )
 
 @router.get("/processing/options")
-async def get_processing_options():
+async def get_processing_options(config=None):
     """
     Get available processing options and their defaults.
-    
+
     This helps clients understand what processing capabilities are available.
+
+    Args:
+        config: Optional configuration object. If not provided, uses default settings.
     """
-    from settings import get_settings
-    get_config = get_settings
-    
-    config = get_config()
+    if config is None:
+        # Fallback to settings import only when no config provided
+        from settings import get_settings
+        config = get_settings()
     
     return {
         "preprocessing": {
@@ -943,3 +944,48 @@ async def get_processing_options():
     }
 
 # This router is now included in the main FastAPI app in main.py
+
+# Helper functions for notifications
+async def _send_callback_notification(job_id: str, callback_url: str, result: Dict[str, Any]) -> None:
+    """Send HTTP callback notification when job completes."""
+    try:
+        import httpx
+        payload = {
+            "job_id": job_id,
+            "status": "completed",
+            "result": result,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                callback_url,
+                json=payload,
+                timeout=30.0,
+                headers={"Content-Type": "application/json"}
+            )
+            response.raise_for_status()
+            logger.info(f"Callback notification sent successfully for job {job_id}")
+
+    except Exception as e:
+        logger.error(f"Failed to send callback notification for job {job_id}: {e}")
+
+async def _send_email_notification(job_id: str, email: str, result: Dict[str, Any]) -> None:
+    """Send email notification when job completes."""
+    try:
+        # Placeholder implementation - would integrate with email service
+        # In production, this would use SendGrid, AWS SES, or similar
+        logger.info(f"Email notification for job {job_id} would be sent to {email}")
+        logger.info(f"Result summary: {len(result.get('data', []))} data points processed")
+
+        # TODO: Integrate with actual email service
+        # Example:
+        # await email_service.send_notification(
+        #     to=email,
+        #     subject=f"Climate Data Job {job_id} Complete",
+        #     template="job_completion",
+        #     context={"job_id": job_id, "result": result}
+        # )
+
+    except Exception as e:
+        logger.error(f"Failed to send email notification for job {job_id}: {e}")

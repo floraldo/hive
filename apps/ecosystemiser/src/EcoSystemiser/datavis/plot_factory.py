@@ -1090,6 +1090,111 @@ class PlotFactory:
 
         return fig.to_dict()
 
+    def create_sensitivity_tornado_plot(self, mc_result: Dict[str, Any]) -> Dict:
+        """
+        Create a tornado plot for sensitivity analysis showing parameter importance.
+
+        Args:
+            mc_result: Monte Carlo result with sensitivity analysis
+
+        Returns:
+            Plotly figure data for tornado plot
+        """
+        # Extract sensitivity data
+        sensitivity_data = mc_result.get('sensitivity_analysis') or mc_result.get('sensitivity', {})
+
+        if not sensitivity_data:
+            return {}
+
+        # Collect sensitivity indices for each parameter
+        parameters = []
+        sensitivities = []
+        colors = []
+
+        for param, data in sensitivity_data.items():
+            if isinstance(data, dict):
+                # Extract first-order sensitivity index
+                si = data.get('first_order') or data.get('sensitivity_index', 0)
+                parameters.append(param.replace('_', ' ').title())
+                sensitivities.append(abs(si))  # Use absolute value for magnitude
+                # Color based on positive/negative correlation
+                correlation = data.get('correlation', 0)
+                colors.append('#d32f2f' if correlation < 0 else '#388e3c')
+            elif isinstance(data, (int, float)):
+                parameters.append(param.replace('_', ' ').title())
+                sensitivities.append(abs(data))
+                colors.append('#1976d2')  # Default blue
+
+        # Sort by sensitivity magnitude
+        sorted_indices = sorted(range(len(sensitivities)), key=lambda i: sensitivities[i], reverse=True)
+        parameters = [parameters[i] for i in sorted_indices]
+        sensitivities = [sensitivities[i] for i in sorted_indices]
+        colors = [colors[i] for i in sorted_indices]
+
+        # Create tornado plot
+        fig = go.Figure()
+
+        # Add bars
+        fig.add_trace(go.Bar(
+            y=parameters,
+            x=sensitivities,
+            orientation='h',
+            marker=dict(
+                color=colors,
+                line=dict(width=1, color='rgba(0,0,0,0.3)')
+            ),
+            text=[f'{s:.3f}' for s in sensitivities],
+            textposition='outside',
+            hovertemplate='<b>%{y}</b><br>' +
+                         'Sensitivity: %{x:.3f}<br>' +
+                         '<extra></extra>'
+        ))
+
+        # Update layout
+        fig.update_layout(
+            title=dict(
+                text='Sensitivity Analysis - Parameter Importance',
+                font=dict(size=20, color='#333')
+            ),
+            xaxis=dict(
+                title='Sensitivity Index',
+                titlefont=dict(size=14),
+                showgrid=True,
+                gridwidth=1,
+                gridcolor='lightgray',
+                range=[0, max(sensitivities) * 1.1] if sensitivities else [0, 1]
+            ),
+            yaxis=dict(
+                title='Parameters',
+                titlefont=dict(size=14),
+                showgrid=False
+            ),
+            height=max(400, len(parameters) * 40),  # Dynamic height based on parameters
+            margin=dict(l=150, r=50, t=50, b=50),
+            paper_bgcolor='white',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(family='Segoe UI', size=12)
+        )
+
+        # Add reference line at 0.5 if applicable
+        if max(sensitivities) > 0.5:
+            fig.add_shape(
+                type="line",
+                x0=0.5, y0=-0.5, x1=0.5, y1=len(parameters)-0.5,
+                line=dict(color="red", width=2, dash="dash")
+            )
+            fig.add_annotation(
+                x=0.5, y=len(parameters)-1,
+                text="High Sensitivity Threshold",
+                showarrow=False,
+                font=dict(size=10, color="red"),
+                textangle=90,
+                xanchor='right',
+                yanchor='top'
+            )
+
+        return fig.to_dict()
+
     def create_scenario_comparison_plot(self, mc_result: Dict[str, Any]) -> Dict:
         """Create scenario comparison visualization.
 

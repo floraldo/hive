@@ -134,8 +134,7 @@ def create_app() -> FastAPI:
             clear_context()
     
     # Add versioned routers
-    # TODO: Implement create_versioned_app or remove this line
-    # app = create_versioned_app(app)
+    # Note: Versioning is handled through API prefix routing
     
     # Add version-specific documentation
     for version in settings.api.supported_versions:
