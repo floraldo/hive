@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Add paths for imports
 eco_path = Path(__file__).parent.parent / 'src' / 'EcoSystemiser'
-systemiser_path = Path(__file__).parent.parent.parent / 'Systemiser'
+systemiser_path = Path(__file__).parent.parent.parent / 'legacy' / 'Systemiser'
 
 def run_original_systemiser_milp():
     """Run MILP optimization with original Systemiser."""

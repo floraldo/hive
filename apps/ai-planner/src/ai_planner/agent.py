@@ -93,7 +93,7 @@ ErrorReporter = get_error_reporter  # Use the core error reporter
 # Database imports - use orchestrator's extended database layer for Hive schema
 try:
     # Import the orchestrator's Hive-specific database layer (extends hive-db-utils)
-    from hive_orchestrator.core.db import get_database, get_pooled_connection
+    from hive_orchestrator.core.db import get_connection, get_pooled_connection
     DATABASE_AVAILABLE = True
 except ImportError:
     # Fallback to generic database utilities if orchestrator not available

@@ -1,6 +1,3 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Golden Test Runner - Convenient CLI for running architectural tests
@@ -27,6 +24,10 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Optional
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def run_global_tests(verbose: bool = False, test_name: Optional[str] = None):

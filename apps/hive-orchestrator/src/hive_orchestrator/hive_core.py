@@ -17,7 +17,7 @@ from typing import Dict, Any, List, Optional
 from hive_logging import setup_logging, get_logger
 
 # Hive database system - use internal core database layer
-from .core.db import get_database, get_pooled_connection
+from .core.db import get_connection, get_pooled_connection
 from .core import db as hive_core_db
 
 # Hive utilities for path management

@@ -17,11 +17,8 @@ hive-clean = "hive_orchestrator.clean_hive:main"
 ai-reviewer = "ai_reviewer.agent:main"
 ai-planner = "ai_planner.agent:main"
 
-# EcoSystemiser Application
-ecosystemiser = "EcoSystemiser.cli:cli"
-
 # Testing & Quality Tools
-golden-test = "hive_testing_utils.golden_runner:main"
+golden-test = "hive_tests.golden_runner:main"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
@@ -48,13 +45,11 @@ hive-logging = {path = "packages/hive-logging", develop = true}
 hive-db = {path = "packages/hive-db", develop = true}
 hive-deployment = {path = "packages/hive-deployment", develop = true}
 hive-config = {path = "packages/hive-config", develop = true}
-hive-config = {path = "packages/hive-config", develop = true}
 hive-tests = {path = "packages/hive-tests", develop = true}
 hive-bus = {path = "packages/hive-bus", develop = true}
 hive-errors = {path = "packages/hive-errors", develop = true}
 
 # Applications
-ecosystemiser = {path = "apps/ecosystemiser", develop = true}
 hive-orchestrator = {path = "apps/hive-orchestrator", develop = true}
 ai-planner = {path = "apps/ai-planner", develop = true}
 ai-reviewer = {path = "apps/ai-reviewer", develop = true}

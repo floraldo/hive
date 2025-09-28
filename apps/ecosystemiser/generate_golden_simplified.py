@@ -19,7 +19,7 @@ def run_original_systemiser():
     """Run the original Systemiser and capture its output."""
 
     # Change to Systemiser directory
-    systemiser_dir = Path(__file__).parent.parent / 'Systemiser'
+    systemiser_dir = Path(__file__).parent.parent / 'legacy' / 'Systemiser'
 
     logger.info(f"Running original Systemiser from: {systemiser_dir}")
 

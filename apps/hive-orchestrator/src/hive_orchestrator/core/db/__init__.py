@@ -3,7 +3,11 @@ Hive Core DB - Internal state management database for the Hive orchestration sys
 
 This package manages Hive's private, internal database for task orchestration,
 worker management, and execution tracking. It is NOT for general application use.
+
+Extends the generic hive_db package with Hive Orchestrator-specific functionality.
 """
+
+from hive_db import get_sqlite_connection, sqlite_transaction, create_table_if_not_exists
 
 from .database import (
     init_db,

@@ -10,7 +10,7 @@ of the platform's architectural integrity.
 
 import pytest
 from pathlib import Path
-from hive_testing_utils.architectural_validators import (
+from hive_tests.architectural_validators import (
     validate_app_contracts,
     validate_colocated_tests,
     validate_no_syspath_hacks,

@@ -7,11 +7,14 @@ This module provides the core database functionality for Hive's internal operati
 - Worker registration and heartbeat monitoring
 - Result storage and retrieval
 
+Extends the generic hive_db package with Hive Orchestrator-specific functionality.
+
 Database Location: hive/db/hive-internal.db
 """
 
 import sqlite3
 from hive_logging import get_logger
+from hive_db import get_sqlite_connection, sqlite_transaction, create_table_if_not_exists
 import json
 import uuid
 from datetime import datetime, timezone

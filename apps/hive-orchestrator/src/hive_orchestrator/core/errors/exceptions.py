@@ -1,13 +1,17 @@
 """
 Hive System Exception Hierarchy
 Provides structured exceptions for all components
+
+Extends the generic hive-errors package with Hive Orchestrator-specific context.
 """
 
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
+from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
 
-class HiveError(Exception):
+
+class HiveError(BaseError):
     """
     Base exception for all Hive system errors
 
@@ -25,15 +29,19 @@ class HiveError(Exception):
         component: Optional[str] = None,
         operation: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
-        recovery_suggestions: Optional[List[str]] = None
+        recovery_suggestions: Optional[List[str]] = None,
+        original_error: Optional[Exception] = None
     ):
-        super().__init__(message)
-        self.message = message
-        self.component = component or "unknown"
-        self.operation = operation or "unknown"
-        self.details = details or {}
+        super().__init__(
+            message=message,
+            component=component or "hive-orchestrator",
+            operation=operation,
+            details=details,
+            recovery_suggestions=recovery_suggestions,
+            original_error=original_error
+        )
+        # Additional Hive Orchestrator-specific attributes can be added here
         self.timestamp = datetime.now()
-        self.recovery_suggestions = recovery_suggestions or []
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert exception to dictionary for logging/storage"""

@@ -1,10 +1,10 @@
 """
-Pytest configuration for hive-testing-utils.
+Pytest configuration for hive-tests.
 """
 
 import pytest
 from pathlib import Path
-from hive_testing_utils.test_helpers import get_project_root
+from hive_tests.test_helpers import get_project_root
 
 
 @pytest.fixture
