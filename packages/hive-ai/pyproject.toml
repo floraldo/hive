@@ -1,0 +1,82 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hive-ai"
+version = "1.0.0"
+description = "Advanced AI/ML infrastructure for the Hive platform"
+authors = ["Hive Platform Team"]
+readme = "README.md"
+packages = [{include = "hive_ai", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.5.0"
+anthropic = "^0.34.0"
+openai = "^1.3.0"
+tiktoken = "^0.5.1"
+numpy = "^1.24.0"
+scipy = "^1.11.0"
+httpx = "^0.25.0"
+tenacity = "^8.0.0"
+
+# Hive platform dependencies
+hive-config = {path = "../hive-config", develop = true}
+hive-db = {path = "../hive-db", develop = true}
+hive-logging = {path = "../hive-logging", develop = true}
+hive-errors = {path = "../hive-errors", develop = true}
+hive-async = {path = "../hive-async", develop = true}
+hive-cache = {path = "../hive-cache", develop = true}
+hive-models = {path = "../hive-models", develop = true}
+
+# Optional vector database dependencies
+pinecone-client = {version = "^2.2.0", optional = true}
+weaviate-client = {version = "^3.24.0", optional = true}
+chromadb = {version = "^0.4.0", optional = true}
+faiss-cpu = {version = "^1.7.0", optional = true}
+
+[tool.poetry.extras]
+vector-pinecone = ["pinecone-client"]
+vector-weaviate = ["weaviate-client"]
+vector-chroma = ["chromadb"]
+vector-faiss = ["faiss-cpu"]
+vector-all = ["pinecone-client", "weaviate-client", "chromadb", "faiss-cpu"]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.11.1"
+pytest-benchmark = "^5.1.0"
+hypothesis = "^6.100.0"
+black = "^24.8.0"
+mypy = "^1.8.0"
+ruff = "^0.1.15"
+isort = "^5.13.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--cov=hive_ai --cov-report=html --cov-fail-under=90 --hypothesis-show-statistics"
+asyncio_mode = "auto"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["hive_ai"]
+show_error_codes = true
+strict = true
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100

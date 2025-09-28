@@ -3,14 +3,14 @@
 import asyncio
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
-import logging
+from hive_logging import get_logger
 
 from .metrics_collector import MetricsCollector
 from .system_monitor import SystemMonitor
 from .async_profiler import AsyncProfiler
 from .performance_analyzer import PerformanceAnalyzer, AnalysisReport
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MonitoringService:

@@ -1,5 +1,6 @@
 """Power demand component with MILP optimization support and hierarchical fidelity."""
 
+import logging
 from typing import Any, Dict, List, Optional
 
 import cvxpy as cp

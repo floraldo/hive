@@ -1,7 +1,7 @@
 """Core Redis cache client with async operations and circuit breaker."""
 
 import asyncio
-import logging
+from hive_logging import get_logger
 from typing import Any, Dict, List, Optional, Union, AsyncGenerator, Callable
 import time
 import json
@@ -24,7 +24,7 @@ from .exceptions import (
     CacheKeyError,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CircuitBreaker:
@@ -199,7 +199,8 @@ class HiveCacheClient:
             if self.config.enable_json_fallback and self.config.serialization_format != "json":
                 try:
                     return json.loads(data.decode("utf-8"))
-                except:
+                except Exception as e:
+                    logger.warning(f"JSON fallback deserialization failed: {e}")
                     pass
 
             raise CacheSerializationError(f"Failed to deserialize value: {e}")

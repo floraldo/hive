@@ -152,9 +152,9 @@ def create_minimal_ecosystemiser():
     )
     solar = SolarPV("SolarPV", solar_params, system.N)
     print(f"DEBUG: Before assignment - solar.profile: {getattr(solar, 'profile', 'NOT_SET')}")
-    print(f"DEBUG: Assigning solar_profile with values: {solar_profile[:5]}")
+    print(f"DEBUG: Assigning solar_profile with daylight values: {solar_profile[7:13]}")  # Show daylight hours
     solar.profile = solar_profile  # Already normalized (0-1)
-    print(f"DEBUG: After assignment - solar.profile: {solar.profile[:5] if solar.profile is not None else 'None'}")
+    print(f"DEBUG: After assignment - solar.profile daylight: {solar.profile[7:13] if solar.profile is not None else 'None'}")
 
     # Power demand component (12.5 kW peak, matching golden dataset)
     demand_params = PowerDemandParams(

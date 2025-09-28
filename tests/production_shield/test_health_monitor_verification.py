@@ -14,6 +14,9 @@ Ensures the guardian itself is properly guarded.
 import asyncio
 import json
 import os
+
+# Import the production monitor
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -24,8 +27,6 @@ import aiohttp
 import pytest
 from aiohttp import web
 
-# Import the production monitor
-import sys
 sys.path.append(str(Path(__file__).parent.parent.parent / "scripts" / "operational_excellence"))
 from production_monitor import ProductionMonitor, ServiceEndpoint
 
