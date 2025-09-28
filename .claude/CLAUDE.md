@@ -493,3 +493,181 @@ When working on Hive codebase:
 8. **USE** Poetry workspace path dependencies for all internal imports
 
 This architecture ensures clean, maintainable, and scalable code that follows established patterns and prevents common architectural anti-patterns.
+
+# ═══════════════════════════════════════════════════
+# POETRY DEPENDENCY MANAGEMENT WORKFLOW
+# ═══════════════════════════════════════════════════
+
+## How Poetry Works with Hive Workspace
+
+### **No Poetry Unlock Required for Package Updates**
+
+Poetry workspace dependencies with `develop = true` automatically use the latest local code:
+
+```toml
+# In any app's pyproject.toml
+[tool.poetry.dependencies]
+hive-logging = {path = "../../packages/hive-logging", develop = true}
+```
+
+**Key Benefits:**
+- **Editable Installs**: Changes to package source code are immediately available
+- **No Lock File Updates**: poetry.lock doesn't need updating for local package changes
+- **Live Development**: Edit packages/hive-logging/src and all apps see changes instantly
+- **Zero Friction**: No `poetry update` or `poetry install` needed for local changes
+
+### **When to Update Poetry.lock**
+
+poetry.lock only needs updating when:
+- **External dependencies change** (new PyPI packages, version bumps)
+- **New workspace apps added** (new path dependencies)
+- **Poetry configuration changes** (build system, scripts)
+
+```bash
+# Only needed for external dependency changes
+poetry lock --no-update
+poetry install
+```
+
+### **Dependency Management Commands**
+
+```bash
+# ✅ Add new external dependency
+cd apps/my-app
+poetry add requests
+
+# ✅ Add new workspace dependency
+cd apps/my-app
+poetry add --editable ../../packages/hive-new-package
+
+# ✅ Update external dependencies
+poetry update requests
+
+# ❌ NOT NEEDED: Update workspace packages
+# Changes are automatically available!
+```
+
+### **Development Workflow**
+
+**1. Normal Development (No Poetry Commands Needed):**
+```bash
+# Edit any package
+vim packages/hive-logging/src/hive_logging/logger.py
+
+# Use immediately in any app
+python apps/ai-planner/src/ai_planner/agent.py
+# ↑ Automatically uses latest hive-logging code
+```
+
+**2. Adding New Dependencies:**
+```bash
+# External package
+cd apps/my-app
+poetry add pandas
+
+# Workspace package
+cd apps/my-app
+poetry add --editable ../../packages/hive-utils
+```
+
+**3. Creating New Apps:**
+```bash
+# 1. Create app structure
+mkdir -p apps/new-app/src/new_app/core
+
+# 2. Create pyproject.toml with workspace deps
+cd apps/new-app
+poetry init
+poetry add --editable ../../packages/hive-config
+poetry add --editable ../../packages/hive-logging
+poetry add --editable ../../packages/hive-error-handling
+
+# 3. Implement core/ extensions following patterns
+```
+
+## Poetry Architecture Benefits
+
+### **1. Instant Development Feedback**
+- Edit package → Test immediately in apps
+- No intermediate build/install steps
+- True live development experience
+
+### **2. Consistent Dependency Resolution**
+- All apps use same package versions
+- poetry.lock ensures reproducible builds
+- Workspace ensures local consistency
+
+### **3. Clean Separation of Concerns**
+- **Local packages**: Use `develop = true` for instant updates
+- **External packages**: Managed through poetry.lock for stability
+- **Clear distinction**: Workspace vs external dependencies
+
+### **4. Team Collaboration**
+- poetry.lock tracks external dependencies precisely
+- Workspace dependencies always use latest local code
+- No "works on my machine" issues with local packages
+
+## Common Patterns
+
+### **Package Development Cycle**
+```bash
+# 1. Edit package (no commands needed)
+vim packages/hive-logging/src/hive_logging/logger.py
+
+# 2. Test in multiple apps (automatic)
+python apps/ai-planner/tests/test_logging.py  # Uses latest immediately
+python apps/ai-reviewer/tests/test_logging.py # Uses latest immediately
+
+# 3. Run tests across workspace
+python -m pytest packages/hive-logging/tests/
+python -m pytest apps/*/tests/
+```
+
+### **Adding New Package Features**
+```bash
+# 1. Implement in generic package
+vim packages/hive-error-handling/src/hive_error_handling/new_feature.py
+
+# 2. Extend in app core modules (automatic import)
+vim apps/ai-planner/src/ai_planner/core/error.py
+# Add: from hive_error_handling import NewFeature
+
+# 3. Use in business logic (follows pattern)
+vim apps/ai-planner/src/ai_planner/agent.py
+# Add: from ai_planner.core.error import AppSpecificError
+```
+
+### **Dependency Troubleshooting**
+
+**Problem**: ImportError for workspace package
+```bash
+# ✅ Solution: Check Poetry workspace installation
+poetry install
+
+# ✅ Verify editable install
+poetry show --tree | grep hive-
+
+# ✅ Check path references in pyproject.toml
+grep -r "path.*hive-" apps/*/pyproject.toml
+```
+
+**Problem**: Old code still running
+```bash
+# ✅ Verify develop=true in pyproject.toml
+grep -A5 "\[tool\.poetry\.dependencies\]" apps/my-app/pyproject.toml
+
+# ✅ Reinstall if needed
+cd apps/my-app && poetry install
+```
+
+## Summary
+
+**Poetry + Workspace = Zero-Friction Development**
+
+- ✅ **Edit packages**: Changes immediately available everywhere
+- ✅ **No unlock needed**: poetry.lock stays stable for local changes
+- ✅ **True editable installs**: Development feels seamless
+- ✅ **External deps managed**: poetry.lock controls PyPI packages
+- ✅ **Team consistency**: Everyone gets same environment
+
+**Remember**: The power of `develop = true` means you edit once, run everywhere instantly!

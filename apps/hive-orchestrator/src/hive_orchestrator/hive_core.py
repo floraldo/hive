@@ -18,6 +18,7 @@ from hive_logging import setup_logging, get_logger
 
 # Hive database system - use internal core database layer
 from .core.db import get_database, get_pooled_connection
+from .core import db as hive_core_db
 
 # Hive utilities for path management
 from hive_utils.paths import PROJECT_ROOT, HIVE_DIR, WORKTREES_DIR, LOGS_DIR

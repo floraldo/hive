@@ -9,7 +9,7 @@ from datetime import datetime
 
 from ai_reviewer import ReviewEngine, ReviewAgent
 from ai_reviewer.database_adapter import DatabaseAdapter
-from hive_core_db import Task, TaskStatus
+from hive_db_utils import Task, TaskStatus
 
 
 class TestIntegration:
@@ -237,7 +237,7 @@ class TestRealDatabaseIntegration:
     async def test_real_database_operations(self):
         """Test with actual database operations"""
         from hive_config import HiveConfig
-        from hive_core_db import HiveDatabase
+        from hive_db_utils import HiveDatabase
 
         config = HiveConfig()
         db = HiveDatabase(config.database_url)
@@ -282,7 +282,7 @@ class TestRealDatabaseIntegration:
     async def test_full_system_with_ai(self):
         """Test the complete system with real AI capabilities"""
         from hive_config import HiveConfig
-        from hive_core_db import HiveDatabase
+        from hive_db_utils import HiveDatabase
 
         config = HiveConfig()
         db = HiveDatabase(config.database_url)

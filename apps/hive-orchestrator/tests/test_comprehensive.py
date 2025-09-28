@@ -20,7 +20,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 # All packages available through Poetry workspace imports
 
 from hive_orchestrator.hive_core import HiveCore
-import hive_core_db
+from hive_orchestrator.core import db as hive_core_db
 from hive_utils.paths import DB_PATH
 
 

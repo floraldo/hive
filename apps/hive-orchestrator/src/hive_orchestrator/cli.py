@@ -10,10 +10,13 @@ Provides commands to manage the Queen coordinator and Worker agents.
 import click
 import json
 import os
-import logging
 from pathlib import Path
 from typing import Optional
+
+from hive_logging import get_logger
 from datetime import datetime
+
+logger = get_logger(__name__)
 
 from .queen import main as queen_main
 from .worker import main as worker_main
@@ -57,7 +60,7 @@ def start_queen(config: Optional[str], debug: bool):
         raise click.Exit(1)
     except Exception as e:
         click.echo(f"Error starting queen: {e}", err=True)
-        logging.error(f"Queen startup error: {e}")
+        logger.error(f"Queen startup error: {e}")
         raise click.Exit(1)
 
 
@@ -93,7 +96,7 @@ def start_worker(mode: str, name: Optional[str], debug: bool):
         raise click.Exit(1)
     except Exception as e:
         click.echo(f"Error starting worker: {e}", err=True)
-        logging.error(f"Worker startup error: {e}")
+        logger.error(f"Worker startup error: {e}")
         raise click.Exit(1)
 
 
@@ -102,7 +105,7 @@ def status():
     """Show orchestrator status."""
     try:
         # Import here to avoid circular dependencies
-        from hive_core_db.database import get_connection
+        from hive_db_utils import get_connection
 
         conn = get_connection()
         cursor = conn.cursor()
@@ -151,7 +154,7 @@ def status():
         raise click.Exit(1)
     except Exception as e:
         click.echo(f"Error getting status: {e}", err=True)
-        logging.error(f"Status command error: {e}")
+        logger.error(f"Status command error: {e}")
         raise click.Exit(1)
 
 
@@ -160,7 +163,8 @@ def status():
 def review_escalated(task_id: str):
     """Review an escalated task requiring human decision."""
     try:
-        from hive_core_db.database import get_connection, TaskStatus
+        from hive_db_utils import get_connection
+        from hive_orchestrator.core.db import TaskStatus
         from rich.console import Console
         from rich.panel import Panel
         from rich.table import Table
@@ -305,7 +309,7 @@ def review_escalated(task_id: str):
         raise click.Exit(1)
     except Exception as e:
         click.echo(f"Error reviewing task: {e}", err=True)
-        logging.error(f"Review escalated error: {e}")
+        logger.error(f"Review escalated error: {e}")
         raise click.Exit(1)
 
 
@@ -313,7 +317,8 @@ def review_escalated(task_id: str):
 def list_escalated():
     """List all tasks requiring human review."""
     try:
-        from hive_core_db.database import get_connection, TaskStatus
+        from hive_db_utils import get_connection
+        from hive_orchestrator.core.db import TaskStatus
         from rich.console import Console
         from rich.table import Table
         from rich import box
@@ -399,7 +404,7 @@ def list_escalated():
         raise click.Exit(1)
     except Exception as e:
         click.echo(f"Error listing escalated tasks: {e}", err=True)
-        logging.error(f"List escalated error: {e}")
+        logger.error(f"List escalated error: {e}")
         raise click.Exit(1)
 
 
@@ -421,7 +426,7 @@ def queue_task(task_description: str, role: Optional[str], priority: int):
             raise click.ClickException("Role name too long (max 50 characters)")
 
         # Import here to avoid circular dependencies
-        from hive_core_db import create_task
+        from hive_orchestrator.core.db import create_task
 
         task_id = create_task(
             title=task_description[:50],  # Truncate title
@@ -440,7 +445,7 @@ def queue_task(task_description: str, role: Optional[str], priority: int):
         raise  # Re-raise click exceptions as-is
     except Exception as e:
         click.echo(f"Error queuing task: {e}", err=True)
-        logging.error(f"Queue task error: {e}")
+        logger.error(f"Queue task error: {e}")
         raise click.Exit(1)
 
 

@@ -10,7 +10,7 @@ from datetime import datetime
 from ai_reviewer.agent import ReviewAgent
 from ai_reviewer.reviewer import ReviewEngine, ReviewResult, ReviewDecision, QualityMetrics
 from ai_reviewer.database_adapter import DatabaseAdapter
-from hive_core_db import Task, TaskStatus
+from hive_db_utils import Task, TaskStatus
 
 
 @pytest.fixture

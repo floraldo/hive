@@ -14,6 +14,7 @@ from typing import Dict, Any
 # Imports now handled by Poetry workspace dependencies
 # Import from orchestrator core for Hive-specific database access
 from hive_orchestrator.core.db import get_database, get_pooled_connection
+from hive_orchestrator.core import db as hive_core_db
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewEngine
 from ai_reviewer.robust_claude_bridge import RobustClaudeBridge, ClaudeReviewResponse

@@ -14,14 +14,14 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Callable, Union
 from contextlib import contextmanager
 
-from hive_core_db.connection_pool import get_pooled_connection
+from hive_db_utils import get_connection, get_pooled_connection
 from hive_db_utils.config import get_config
-from hive_errors import EventBusError, EventPublishError, EventSubscribeError
+from hive_orchestrator.core.errors.hive_exceptions import EventBusError, EventPublishError, EventSubscribeError
 
 # Async imports for Phase 4.1
 try:
     import asyncio
-    from hive_core_db.async_connection_pool import get_async_connection
+    from hive_db_utils import get_async_connection
     ASYNC_AVAILABLE = True
 except ImportError:
     ASYNC_AVAILABLE = False

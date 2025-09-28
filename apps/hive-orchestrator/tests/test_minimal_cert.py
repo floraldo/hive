@@ -33,7 +33,7 @@ def test_2_database():
     print("Testing database...")
     try:
         # Test connection pool class creation and basic configuration
-        import hive_core_db.connection_pool as cp
+        import hive_db_utils as cp
         pool = cp.ConnectionPool()
         assert pool.max_connections > 0
         assert pool.connection_timeout > 0

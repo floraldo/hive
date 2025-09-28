@@ -101,7 +101,7 @@ class V3CertificationTest:
     def test_2_database_connection_pool(self) -> bool:
         """Test database connection pool with centralized config"""
         try:
-            from hive_core_db.connection_pool import ConnectionPool, get_pooled_connection
+            from hive_db_utils import ConnectionPool, get_pooled_connection
 
             self.log("Testing database connection pool initialization...")
             # Test pool initialization with centralized config
@@ -181,7 +181,7 @@ class V3CertificationTest:
         """Test improved error handling (no bare exceptions)"""
         try:
             # Test that our fixed files don't have bare exceptions
-            from hive_core_db.connection_pool import ConnectionPool, get_pooled_connection
+            from hive_db_utils import ConnectionPool, get_pooled_connection
 
             # This should work without bare exception issues
             pool = ConnectionPool(max_connections=1)
@@ -242,7 +242,7 @@ class V3CertificationTest:
         try:
             # Test that all components can work together
             from hive_db_utils.config import get_config
-            from hive_core_db.connection_pool import get_pooled_connection
+            from hive_db_utils import get_pooled_connection
             from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
 
             # Get centralized config

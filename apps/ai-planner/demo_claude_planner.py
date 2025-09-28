@@ -14,7 +14,7 @@ from datetime import datetime
 
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import RobustClaudePlannerBridge
-from hive_core_db.database import get_connection, init_db
+from hive_db_utils import get_connection, init_db
 
 
 def demonstrate_claude_planning():

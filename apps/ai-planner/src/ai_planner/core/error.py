@@ -11,8 +11,9 @@ Extends the generic error handling toolkit with AI Planner capabilities:
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import uuid
+import time
 
-from hive_error_handling import BaseError, BaseErrorReporter, RecoveryStrategy
+from hive_error_handling import BaseError, BaseErrorReporter, RecoveryStrategy, RecoveryStatus
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -386,6 +387,52 @@ def get_error_reporter() -> PlannerErrorReporter:
     return _error_reporter
 
 
+# ===============================================================================
+# RECOVERY STRATEGIES
+# ===============================================================================
+
+class ExponentialBackoffStrategy(RecoveryStrategy):
+    """Retry strategy with exponential backoff for AI Planner operations"""
+
+    def __init__(self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0):
+        super().__init__("exponential_backoff", max_retries)
+        self.base_delay = base_delay
+        self.max_delay = max_delay
+
+    def attempt_recovery(self, error: Exception, context=None):
+        """Attempt recovery by waiting with exponential backoff"""
+        if not self.can_attempt_recovery():
+            return RecoveryStatus.FAILED
+
+        delay = min(self.base_delay * (2 ** self.attempt_count), self.max_delay)
+        time.sleep(delay)
+        self.attempt_count += 1
+
+        return RecoveryStatus.PARTIAL
+
+    def get_delay(self, attempt: int) -> float:
+        """Calculate delay for given attempt"""
+        delay = self.base_delay * (2 ** attempt)
+        return min(delay, self.max_delay)
+
+
+def with_recovery(strategy, operation):
+    """Execute operation with recovery strategy"""
+    last_error = None
+
+    while strategy.can_attempt_recovery():
+        try:
+            return operation()
+        except Exception as e:
+            last_error = e
+            recovery_result = strategy.attempt_recovery(e)
+            if recovery_result == RecoveryStatus.FAILED:
+                break
+
+    # If we get here, recovery failed
+    raise last_error if last_error else Exception("Recovery failed")
+
+
 # Export main classes and functions
 __all__ = [
     # Base classes
@@ -403,6 +450,10 @@ __all__ = [
 
     # Database errors
     "DatabaseConnectionError",
+
+    # Recovery strategies
+    "ExponentialBackoffStrategy",
+    "with_recovery",
 
     # Reporter
     "PlannerErrorReporter",

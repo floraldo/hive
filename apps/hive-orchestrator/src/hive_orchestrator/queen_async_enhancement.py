@@ -9,6 +9,10 @@ import sys
 from typing import Dict, Any, Tuple, Optional
 from pathlib import Path
 
+# Hive database system - use orchestrator's core database layer
+from hive_orchestrator.core import db as hive_core_db
+from hive_logging import setup_logging
+
 # This enhancement modifies the existing Queen behavior
 def enhance_queen_async_worker_spawning():
     """
