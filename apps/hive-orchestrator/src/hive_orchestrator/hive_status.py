@@ -318,7 +318,7 @@ class HiveStatus:
                     logger.info(f"{icon} [{task['id']}] {reason} | "
                           f"Fix: {self.color(fix_task_id, 'yellow')}")
                 else:
-                    print(f"{icon} [{task['id']}] {reason}")
+                    logger.info(f"{icon} [{task['id']}] {reason}")
             logger.info()
         
         # Recent events
