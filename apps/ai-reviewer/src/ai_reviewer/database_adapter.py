@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
 
-import hive_db_utils as hive_core_db
+import hive_db as hive_core_db
 from hive_logging import get_logger
 
 

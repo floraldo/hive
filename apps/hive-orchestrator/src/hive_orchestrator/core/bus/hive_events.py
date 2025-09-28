@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 
-from hive_messaging import BaseEvent
+from hive_bus import BaseEvent
 
 
 class TaskStatus(Enum):

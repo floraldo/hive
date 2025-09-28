@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "hive-error-handling"
+name = "hive-errors"
 version = "0.1.0"
 description = "Generic error handling and reporting toolkit"
 authors = ["Hive System <hive@example.com>"]
-packages = [{include = "hive_error_handling", from = "src"}]
+packages = [{include = "hive_errors", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"

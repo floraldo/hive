@@ -16,10 +16,11 @@ pydantic = "^2.5.0"
 
 # Hive workspace dependencies
 hive-config = {path = "../../packages/hive-config", develop = true}
-hive-db-utils = {path = "../../packages/hive-db-utils", develop = true}
+hive-db = {path = "../../packages/hive-db", develop = true}
 hive-logging = {path = "../../packages/hive-logging", develop = true}
-hive-error-handling = {path = "../../packages/hive-error-handling", develop = true}
-hive-messaging = {path = "../../packages/hive-messaging", develop = true}
+hive-errors = {path = "../../packages/hive-errors", develop = true}
+hive-bus = {path = "../../packages/hive-bus", develop = true}
+hive-orchestrator = {path = "../hive-orchestrator", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

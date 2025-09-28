@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 import uuid
 import time
 
-from hive_error_handling import BaseError, BaseErrorReporter, RecoveryStrategy, RecoveryStatus
+from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy, RecoveryStatus
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

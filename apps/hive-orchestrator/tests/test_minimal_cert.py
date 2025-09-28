@@ -17,7 +17,7 @@ def test_1_configuration():
     """Test configuration system"""
     print("Testing configuration...")
     try:
-        from hive_db_utils.config import get_config
+        from hive_db.config import get_config
         config = get_config()
         assert config.env in ["development", "testing", "production"]
         claude_config = config.get_claude_config()
@@ -33,7 +33,7 @@ def test_2_database():
     print("Testing database...")
     try:
         # Test connection pool class creation and basic configuration
-        import hive_db_utils as cp
+        import hive_db as cp
         pool = cp.ConnectionPool()
         assert pool.max_connections > 0
         assert pool.connection_timeout > 0

@@ -23,7 +23,7 @@ from enum import Enum
 logger = get_logger(__name__)
 
 # Use the authoritative path singleton
-from hive_utils.paths import DB_PATH, ensure_directory
+from hive_config.paths import DB_PATH, ensure_directory
 
 # Import connection pool for proper connection management
 from .connection_pool import get_pooled_connection, close_pool

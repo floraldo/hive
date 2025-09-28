@@ -105,7 +105,7 @@ def status():
     """Show orchestrator status."""
     try:
         # Import here to avoid circular dependencies
-        from hive_db_utils import get_connection
+        from hive_db import get_connection
 
         conn = get_connection()
         cursor = conn.cursor()
@@ -163,7 +163,7 @@ def status():
 def review_escalated(task_id: str):
     """Review an escalated task requiring human decision."""
     try:
-        from hive_db_utils import get_connection
+        from hive_db import get_connection
         from hive_orchestrator.core.db import TaskStatus
         from rich.console import Console
         from rich.panel import Panel
@@ -317,7 +317,7 @@ def review_escalated(task_id: str):
 def list_escalated():
     """List all tasks requiring human review."""
     try:
-        from hive_db_utils import get_connection
+        from hive_db import get_connection
         from hive_orchestrator.core.db import TaskStatus
         from rich.console import Console
         from rich.table import Table

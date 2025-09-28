@@ -19,7 +19,7 @@ from .planner_bridge import ClaudePlannerBridge
 from .reviewer_bridge import ClaudeReviewerBridge
 from .exceptions import ClaudeRateLimitError, ClaudeServiceError
 from hive_errors import ErrorReporter
-from hive_db_utils.config import get_config
+from hive_db.config import get_config
 
 logger = get_logger(__name__)
 

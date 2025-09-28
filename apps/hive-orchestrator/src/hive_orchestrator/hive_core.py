@@ -21,7 +21,7 @@ from .core.db import get_database, get_pooled_connection
 from .core import db as hive_core_db
 
 # Hive utilities for path management
-from hive_utils.paths import PROJECT_ROOT, HIVE_DIR, WORKTREES_DIR, LOGS_DIR
+from hive_config.paths import PROJECT_ROOT, HIVE_DIR, WORKTREES_DIR, LOGS_DIR
 
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""

@@ -72,7 +72,7 @@ class ClaudeBridgeConfig:
 def get_claude_service(config=None, rate_config=None):
     return ClaudeService(config, rate_config)
 # Import error classes from our core module following the "inherit → extend" pattern
-from ai_planner.core.error import (
+from ai_planner.core.errors import (
     PlannerError,
     TaskProcessingError,
     TaskValidationError,
@@ -85,7 +85,7 @@ from ai_planner.core.error import (
 )
 
 # Import recovery strategies from core module (follows "inherit → extend" pattern)
-from ai_planner.core.error import ExponentialBackoffStrategy, with_recovery
+from ai_planner.core.errors import ExponentialBackoffStrategy, with_recovery
 
 # Initialize error reporter following the pattern
 ErrorReporter = get_error_reporter  # Use the core error reporter
@@ -97,7 +97,7 @@ try:
     DATABASE_AVAILABLE = True
 except ImportError:
     # Fallback to generic database utilities if orchestrator not available
-    from hive_db_utils import get_config
+    from hive_db import get_config
     DATABASE_AVAILABLE = False
 
 # Note: AI Planner communicates with orchestrator through shared database
@@ -993,40 +993,40 @@ class AIPlanner:
 
 # Mock event bus functionality (to be replaced with proper implementation)
 class WorkflowEventType(Enum):
-    \"\"\"Types of workflow events\"\"\"
-    PHASE_STARTED = \"phase_started\"
-    PHASE_COMPLETED = \"phase_completed\"
-    PLAN_GENERATED = \"plan_generated\"
-    BLOCKED = \"blocked\"
+    """Types of workflow events"""
+    PHASE_STARTED = "phase_started"
+    PHASE_COMPLETED = "phase_completed"
+    PLAN_GENERATED = "plan_generated"
+    BLOCKED = "blocked"
 
 def create_workflow_event(event_type, workflow_id, task_id, source_agent, **kwargs):
-    \"\"\"Create a workflow event\"\"\"
+    """Create a workflow event"""
     return {
-        \"event_type\": event_type.value,
-        \"workflow_id\": workflow_id,
-        \"task_id\": task_id,
-        \"source_agent\": source_agent,
-        \"timestamp\": datetime.now(timezone.utc).isoformat(),
+        "event_type": event_type.value,
+        "workflow_id": workflow_id,
+        "task_id": task_id,
+        "source_agent": source_agent,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         **kwargs
     }
 
 class MockEventBus:
-    \"\"\"Mock event bus for development\"\"\"
+    """Mock event bus for development"""
     def publish(self, event, correlation_id=None):
         # Mock implementation - just log the event
-        logger.debug(f\"Mock event published: {event['event_type']} for task {event.get('task_id', 'unknown')}\")
-        return f\"mock_event_{int(time.time())}\"
+        logger.debug(f"Mock event published: {event['event_type']} for task {event.get('task_id', 'unknown')}")
+        return f"mock_event_{int(time.time())}"
 
 def get_event_bus():
-    \"\"\"Get event bus instance\"\"\"
+    """Get event bus instance"""
     return MockEventBus()
 
 # Async event functions (if needed)
 ASYNC_EVENTS_AVAILABLE = False
 
 async def publish_event_async(event, correlation_id=None):
-    \"\"\"Mock async event publishing\"\"\"
-    return f\"mock_async_event_{int(time.time())}\"
+    """Mock async event publishing"""
+    return f"mock_async_event_{int(time.time())}"
 
 
 def main():

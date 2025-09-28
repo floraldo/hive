@@ -7,7 +7,7 @@ These contain the business logic for Hive-specific error scenarios.
 
 from typing import Dict, Any, List, Optional
 
-from hive_error_handling import BaseError
+from hive_errors import BaseError
 
 
 class HiveError(BaseError):

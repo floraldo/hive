@@ -89,7 +89,7 @@ async def distributed_compute(tasks: List[Dict[str, Any]]) -> List[Any]:
     }
 
     # Insert into database
-    from hive_utils.paths import DB_PATH
+    from hive_config.paths import DB_PATH
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()

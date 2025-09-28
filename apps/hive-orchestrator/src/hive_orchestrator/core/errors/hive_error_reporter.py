@@ -13,8 +13,8 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-from hive_error_handling import BaseErrorReporter
-from hive_db_utils import get_config
+from hive_errors import BaseErrorReporter
+from hive_db import get_config
 
 from .hive_exceptions import HiveError
 

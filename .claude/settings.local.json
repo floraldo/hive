@@ -43,7 +43,8 @@
       "Bash(git -C /c/git/hive ls-files)",
       "Bash(PYTHONPATH=packages/hive-testing-utils/src python -c:*)",
       "Bash(test:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(poetry install:*)"
     ],
     "deny": [],
     "ask": []

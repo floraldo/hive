@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 import uuid
 
 try:
-    from hive_error_handling import BaseError, BaseErrorReporter, RecoveryStrategy
+    from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
 except ImportError:
     # Fallback implementation if hive_error_handling is not available
     class BaseError(Exception):

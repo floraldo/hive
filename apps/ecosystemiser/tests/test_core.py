@@ -114,7 +114,7 @@ class TestDataModels:
         )
         assert request.location == (40.7, -74.0)
         assert "temp_air" in request.variables
-        assert request.mode == "observed"
+        assert request.mode.value == "observed"
         
     def test_base_profile_request_inheritance(self):
         """Test that ClimateRequest properly inherits from BaseProfileRequest."""
@@ -124,7 +124,7 @@ class TestDataModels:
             period={"year": 2020}
         )
         assert isinstance(request, BaseProfileRequest)
-        assert request.mode == ProfileMode.OBSERVED.value
+        assert request.mode.value == ProfileMode.OBSERVED.value
         
     def test_canonical_variables(self):
         """Test that canonical variables are defined."""

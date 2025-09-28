@@ -21,7 +21,7 @@ from hive_logging import setup_logging, get_logger
 from hive_orchestrator.core import db as hive_core_db
 
 # Hive utilities for path management
-from hive_utils.paths import (
+from hive_config.paths import (
     PROJECT_ROOT,
     WORKTREES_DIR,
     LOGS_DIR,

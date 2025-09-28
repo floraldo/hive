@@ -13,9 +13,9 @@ from hive_logging import get_logger
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime, timezone
 
-from hive_messaging import BaseBus, BaseEvent
-from hive_db_utils import get_config
-from hive_error_handling import BaseError
+from hive_bus import BaseBus, BaseEvent
+from hive_db import get_config
+from hive_errors import BaseError
 
 from .hive_events import TaskEvent, AgentEvent, WorkflowEvent
 from ..db.connection_pool import get_pooled_connection

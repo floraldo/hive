@@ -12,7 +12,7 @@ from pathlib import Path
 def test_config():
     """Test configuration system"""
     try:
-        from hive_db_utils.config import get_config
+        from hive_db.config import get_config
         config = get_config()
         print(f"Environment: {config.env}")
         print(f"Debug mode: {config.get_bool('debug_mode')}")

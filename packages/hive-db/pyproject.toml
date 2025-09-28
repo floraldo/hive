@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "hive-db-utils"
+name = "hive-db"
 version = "1.0.0"
 description = "Generic database utilities and configuration management for Hive applications"
 authors = ["Hive System <hive@example.com>"]
-packages = [{include = "hive_db_utils", from = "src"}]
+packages = [{include = "hive_db", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"

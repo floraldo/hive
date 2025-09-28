@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "hive-messaging"
+name = "hive-bus"
 version = "0.1.0"
-description = "Generic messaging and event bus toolkit"
+description = "Generic event bus and messaging toolkit"
 authors = ["Hive System <hive@example.com>"]
-packages = [{include = "hive_messaging", from = "src"}]
+packages = [{include = "hive_bus", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"

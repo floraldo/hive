@@ -13,7 +13,7 @@ import pytest
 from pathlib import Path
 
 # Import the validators from hive-testing-utils
-from hive_testing_utils.architectural_validators import (
+from hive_tests.architectural_validators import (
     validate_app_contracts,
     validate_colocated_tests,
     validate_no_syspath_hacks,

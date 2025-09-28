@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 import uuid
 
 try:
-    from hive_messaging import BaseEvent
+    from hive_bus import BaseEvent
 except ImportError:
     # Fallback implementation if hive_messaging is not available
     class BaseEvent:

@@ -26,7 +26,7 @@ from .hive_core import HiveCore
 from .config import get_config
 
 # Hive utilities for path management
-from hive_utils.paths import PROJECT_ROOT, LOGS_DIR, ensure_directory
+from hive_config.paths import PROJECT_ROOT, LOGS_DIR, ensure_directory
 
 # Hive database system - use orchestrator's core layer
 from hive_orchestrator.core import db as hive_core_db

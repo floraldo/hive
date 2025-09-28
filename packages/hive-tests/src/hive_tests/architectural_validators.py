@@ -713,3 +713,77 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                 continue
 
     return len(violations) == 0, violations
+
+def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 10: Inherit → Extend Pattern
+
+    Validate that:
+    - All apps with core modules properly extend base packages
+    - Core module naming matches package naming (e.g., errors.py not error.py)
+    - All extended modules import from the base package first
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    # Define the expected core module patterns
+    expected_patterns = {
+        'errors': 'hive_errors',  # Should have errors.py extending hive_errors
+        'bus': 'hive_bus',         # Should have bus.py extending hive_bus
+        'db': 'hive_db',           # Should have db.py extending hive_db
+    }
+
+    apps_dir = project_root / "apps"
+    if not apps_dir.exists():
+        return False, ["apps/ directory does not exist"]
+
+    for app_dir in apps_dir.iterdir():
+        if app_dir.is_dir() and not app_dir.name.startswith('.') and app_dir.name != 'legacy':
+            app_name = app_dir.name
+
+            # Find the app's source directory
+            src_dirs = list(app_dir.glob("src/*/core"))
+            if not src_dirs:
+                continue
+
+            core_dir = src_dirs[0]
+
+            # Check each expected pattern
+            for module_name, base_package in expected_patterns.items():
+                module_file = core_dir / f"{module_name}.py"
+                module_dir = core_dir / module_name
+
+                # If the module exists (either as file or directory)
+                if module_file.exists() or module_dir.exists():
+                    # Check that it imports from the base package
+                    check_file = module_file if module_file.exists() else (module_dir / "__init__.py")
+
+                    if check_file.exists():
+                        try:
+                            with open(check_file, 'r', encoding='utf-8') as f:
+                                content = f.read()
+
+                            # Check for proper import
+                            if f"from {base_package}" not in content and f"import {base_package}" not in content:
+                                violations.append(
+                                    f"App '{app_name}' core/{module_name} doesn't import from {base_package}"
+                                )
+                        except Exception:
+                            continue
+
+            # Check for incorrect naming (error.py instead of errors.py)
+            incorrect_names = {
+                'error.py': 'errors.py',
+                'messaging.py': 'bus.py',
+                'database.py': 'db.py',
+            }
+
+            for incorrect, correct in incorrect_names.items():
+                if (core_dir / incorrect).exists():
+                    violations.append(
+                        f"App '{app_name}' has core/{incorrect}, should be core/{correct}"
+                    )
+
+    return len(violations) == 0, violations

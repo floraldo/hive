@@ -12,7 +12,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import uuid
 
-from hive_error_handling import BaseError, BaseErrorReporter, RecoveryStrategy
+from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

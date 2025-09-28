@@ -21,7 +21,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 
 from hive_orchestrator.hive_core import HiveCore
 from hive_orchestrator.core import db as hive_core_db
-from hive_utils.paths import DB_PATH
+from hive_config.paths import DB_PATH
 
 
 class HiveTestSuite:

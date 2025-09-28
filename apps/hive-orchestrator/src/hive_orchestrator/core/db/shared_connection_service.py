@@ -14,8 +14,8 @@ from contextlib import contextmanager
 from queue import Queue, Empty, Full
 
 from hive_logging import get_logger
-from hive_utils.paths import ensure_directory
-from hive_db_utils.config import get_config
+from hive_config.paths import ensure_directory
+from hive_db.config import get_config
 
 logger = get_logger(__name__)
 
