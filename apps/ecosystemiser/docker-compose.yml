@@ -1,0 +1,159 @@
+version: '3.8'
+
+services:
+  # Main EcoSystemiser FastAPI Application
+  ecosystemiser-api:
+    build:
+      context: ../..
+      dockerfile: apps/ecosystemiser/Dockerfile
+    container_name: ecosystemiser-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ECOSYS_ENV=production
+      - ECOSYS_LOG_LEVEL=INFO
+      - HIVE_BUS_ENABLED=true
+      - HIVE_BUS_HOST=hive-bus
+      - HIVE_BUS_PORT=5672
+      - DATABASE_URL=sqlite:///app/data/ecosystemiser.db
+    volumes:
+      - ./results:/app/results
+      - ./reports:/app/reports
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - ecosys-network
+    depends_on:
+      - hive-bus
+    restart: unless-stopped
+    command: ["python", "-m", "uvicorn", "EcoSystemiser.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+
+  # Analyser Worker Service
+  analyser-worker:
+    build:
+      context: ../..
+      dockerfile: apps/ecosystemiser/Dockerfile
+    container_name: analyser-worker
+    environment:
+      - ECOSYS_ENV=production
+      - ECOSYS_LOG_LEVEL=INFO
+      - WORKER_TYPE=analyser
+      - HIVE_BUS_ENABLED=true
+      - HIVE_BUS_HOST=hive-bus
+      - HIVE_BUS_PORT=5672
+      - DATABASE_URL=sqlite:///app/data/ecosystemiser.db
+    volumes:
+      - ./results:/app/results
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - ecosys-network
+    depends_on:
+      - hive-bus
+      - ecosystemiser-api
+    restart: unless-stopped
+    command: ["python", "-m", "EcoSystemiser.analyser.worker"]
+
+  # Flask Reporting Application
+  reporting-app:
+    build:
+      context: ../..
+      dockerfile: apps/ecosystemiser/Dockerfile
+    container_name: reporting-app
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=EcoSystemiser.reporting.app
+      - RESULTS_DIR=/app/results
+      - REPORTS_DIR=/app/reports
+    volumes:
+      - ./results:/app/results
+      - ./reports:/app/reports
+      - ./data:/app/data
+    networks:
+      - ecosys-network
+    restart: unless-stopped
+    command: ["python", "-m", "flask", "run", "--host", "0.0.0.0", "--port", "5000"]
+
+  # Optional: Streamlit Dashboard
+  dashboard:
+    build:
+      context: ../..
+      dockerfile: apps/ecosystemiser/Dockerfile
+    container_name: dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - API_BASE_URL=http://ecosystemiser-api:8000
+    volumes:
+      - ./dashboard:/app/dashboard
+      - ./data:/app/data
+    networks:
+      - ecosys-network
+    depends_on:
+      - ecosystemiser-api
+    restart: unless-stopped
+    profiles:
+      - dashboard  # Only start if explicitly requested
+    command: ["streamlit", "run", "apps/ecosystemiser/dashboard/app.py"]
+
+  # Message Bus (using Redis as lightweight alternative to RabbitMQ)
+  hive-bus:
+    image: redis:7-alpine
+    container_name: hive-bus
+    ports:
+      - "6379:6379"
+    volumes:
+      - hive-bus-data:/data
+    networks:
+      - ecosys-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Optional: PostgreSQL for production (instead of SQLite)
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecosys-postgres
+    environment:
+      - POSTGRES_DB=ecosystemiser
+      - POSTGRES_USER=ecosys
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ecosys2024}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ecosys-network
+    restart: unless-stopped
+    profiles:
+      - postgres  # Only start if explicitly requested
+
+  # Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - ecosys-network
+    depends_on:
+      - ecosystemiser-api
+      - reporting-app
+    restart: unless-stopped
+    profiles:
+      - production  # Only start in production mode
+
+networks:
+  ecosys-network:
+    driver: bridge
+
+volumes:
+  hive-bus-data:
+  postgres-data:
