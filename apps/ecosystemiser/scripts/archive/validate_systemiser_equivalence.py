@@ -16,33 +16,35 @@ from pathlib import Path
 import numpy as np
 
 # Add path for imports
-eco_path = Path(__file__).parent / "src" / "EcoSystemiser"
-from solver.rule_based_engine import RuleBasedEngine
-from system_model.components.energy.battery import (
+eco_path = Path(__file__).parent.parent / "src"
+sys.path.insert(0, str(eco_path))
+
+from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
+from ecosystemiser.system_model.components.energy.battery import (
     Battery,
     BatteryParams,
     BatteryTechnicalParams,
 )
-from system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
-from system_model.components.energy.power_demand import (
+from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
+from ecosystemiser.system_model.components.energy.power_demand import (
     PowerDemand,
     PowerDemandParams,
     PowerDemandTechnicalParams,
 )
-from system_model.components.energy.solar_pv import (
+from ecosystemiser.system_model.components.energy.solar_pv import (
     SolarPV,
     SolarPVParams,
     SolarPVTechnicalParams,
 )
-from system_model.components.shared.archetypes import FidelityLevel
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 
 # Import EcoSystemiser components
-from system_model.system import System
+from ecosystemiser.system_model.system import System
 
 
 def load_golden_dataset():
     """Load the golden dataset from the Systemiser baseline."""
-    golden_path = Path(__file__).parent / "tests" / "systemiser_minimal_golden.json"
+    golden_path = Path(__file__).parent.parent / "tests" / "systemiser_minimal_golden.json"
     with open(golden_path, "r") as f:
         return json.load(f)
 

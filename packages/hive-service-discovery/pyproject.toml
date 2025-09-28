@@ -1,0 +1,49 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hive-service-discovery"
+version = "1.0.0"
+description = "Intelligent service discovery and load balancing for Hive platform"
+authors = ["Hive Platform Engineering <engineering@hive.com>"]
+readme = "README.md"
+packages = [{include = "hive_service_discovery", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aioredis = "^2.0.1"
+consul = "^1.1.0"
+pydantic = "^2.5.0"
+asyncio-mqtt = "^0.16.1"
+httpx = "^0.25.0"
+tenacity = "^8.2.3"
+async-timeout = "^4.0.3"
+zeroconf = "^0.119.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.23.0"
+pytest-cov = "^4.1.0"
+black = "^24.8.0"
+mypy = "^1.8.0"
+ruff = "^0.1.15"
+isort = "^5.13.0"
+
+[tool.black]
+line-length = 120
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120

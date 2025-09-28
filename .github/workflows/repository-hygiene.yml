@@ -10,7 +10,7 @@ on:
       create_issue:
         description: 'Create housekeeping issue if findings exist'
         required: false
-        default: 'true'
+        default: true
         type: boolean
 
 permissions:

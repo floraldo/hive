@@ -1,5 +1,5 @@
 """
-Generic base exception classes.
+Generic base exception classes with enhanced resilience patterns.
 
 These are pure, business-logic-free exception patterns that can be used
 to build robust error handling for any system.
@@ -78,3 +78,130 @@ class ResourceError(BaseError):
     """Generic resource-related error (memory, disk, etc.)"""
 
     pass
+
+
+class CircuitBreakerOpenError(BaseError):
+    """
+    Error raised when circuit breaker is open and preventing operation execution.
+
+    This error indicates that the circuit breaker has detected too many failures
+    and is preventing further operations to allow the system to recover.
+    """
+
+    def __init__(
+        self,
+        message: str = "Circuit breaker is open - operation blocked",
+        component: str = "circuit_breaker",
+        operation: Optional[str] = None,
+        failure_count: Optional[int] = None,
+        recovery_time: Optional[float] = None,
+        **kwargs
+    ):
+        super().__init__(message, component, operation, **kwargs)
+        self.failure_count = failure_count
+        self.recovery_time = recovery_time
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert error to dictionary with circuit breaker details"""
+        result = super().to_dict()
+        result.update({
+            "failure_count": self.failure_count,
+            "recovery_time": self.recovery_time,
+        })
+        return result
+
+
+class AsyncTimeoutError(BaseError):
+    """
+    Enhanced timeout error for async operations with additional context.
+
+    Extends the standard asyncio.TimeoutError to provide more detailed
+    information about the timeout context and recovery suggestions.
+    """
+
+    def __init__(
+        self,
+        message: str = "Async operation timed out",
+        component: str = "async_timeout",
+        operation: Optional[str] = None,
+        timeout_duration: Optional[float] = None,
+        elapsed_time: Optional[float] = None,
+        **kwargs
+    ):
+        super().__init__(message, component, operation, **kwargs)
+        self.timeout_duration = timeout_duration
+        self.elapsed_time = elapsed_time
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert error to dictionary with timeout details"""
+        result = super().to_dict()
+        result.update({
+            "timeout_duration": self.timeout_duration,
+            "elapsed_time": self.elapsed_time,
+        })
+        return result
+
+
+class RetryExhaustedError(BaseError):
+    """
+    Error raised when all retry attempts have been exhausted.
+
+    Provides detailed information about the retry attempts and
+    the original error that caused the retries to fail.
+    """
+
+    def __init__(
+        self,
+        message: str = "All retry attempts exhausted",
+        component: str = "retry_mechanism",
+        operation: Optional[str] = None,
+        max_attempts: Optional[int] = None,
+        attempt_count: Optional[int] = None,
+        last_error: Optional[Exception] = None,
+        **kwargs
+    ):
+        super().__init__(message, component, operation, original_error=last_error, **kwargs)
+        self.max_attempts = max_attempts
+        self.attempt_count = attempt_count
+        self.last_error = last_error
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert error to dictionary with retry details"""
+        result = super().to_dict()
+        result.update({
+            "max_attempts": self.max_attempts,
+            "attempt_count": self.attempt_count,
+            "last_error": str(self.last_error) if self.last_error else None,
+        })
+        return result
+
+
+class PoolExhaustedError(BaseError):
+    """
+    Error raised when connection or resource pool is exhausted.
+
+    This error indicates that all connections/resources in a pool
+    are currently in use and no new ones can be created.
+    """
+
+    def __init__(
+        self,
+        message: str = "Resource pool exhausted",
+        component: str = "connection_pool",
+        operation: Optional[str] = None,
+        pool_size: Optional[int] = None,
+        active_connections: Optional[int] = None,
+        **kwargs
+    ):
+        super().__init__(message, component, operation, **kwargs)
+        self.pool_size = pool_size
+        self.active_connections = active_connections
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert error to dictionary with pool details"""
+        result = super().to_dict()
+        result.update({
+            "pool_size": self.pool_size,
+            "active_connections": self.active_connections,
+        })
+        return result

@@ -2,7 +2,7 @@
 Async Configuration Management for High-Performance Applications
 
 Provides non-blocking configuration loading with concurrent file I/O,
-hot-reload capability, and caching.
+optional hot-reload capability, and caching.
 """
 
 import asyncio
@@ -12,8 +12,17 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 import aiofiles
 import aiofiles.os
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileModifiedEvent
+
+# Optional watchdog import for hot-reload functionality
+try:
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler, FileModifiedEvent
+    WATCHDOG_AVAILABLE = True
+except ImportError:
+    WATCHDOG_AVAILABLE = False
+    Observer = None
+    FileSystemEventHandler = None
+    FileModifiedEvent = None
 
 from hive_logging import get_logger
 from .secure_config import SecureConfigLoader
@@ -21,11 +30,21 @@ from .secure_config import SecureConfigLoader
 logger = get_logger(__name__)
 
 
-class ConfigFileHandler(FileSystemEventHandler):
+class ConfigFileHandler:
     """Handle configuration file changes for hot-reload"""
 
     def __init__(self, callback):
         """Initialize with callback function"""
+        if not WATCHDOG_AVAILABLE:
+            raise ImportError(
+                "watchdog package is required for hot-reload functionality. "
+                "Install with: pip install watchdog"
+            )
+
+        # Only inherit from FileSystemEventHandler if watchdog is available
+        self.__class__.__bases__ = (FileSystemEventHandler,)
+        super().__init__()
+
         self.callback = callback
         self.debounce_timer = None
 
@@ -38,7 +57,10 @@ class ConfigFileHandler(FileSystemEventHandler):
 
             # Wait 500ms before triggering reload
             loop = asyncio.get_event_loop()
-            self.debounce_timer = loop.call_later(0.5, lambda: asyncio.create_task(self.callback(event.src_path)))
+            self.debounce_timer = loop.call_later(
+                0.5,
+                lambda: asyncio.create_task(self.callback(event.src_path))
+            )
 
 
 class AsyncConfigLoader:
@@ -48,292 +70,362 @@ class AsyncConfigLoader:
     Features:
     - Async file I/O for non-blocking operations
     - Concurrent loading of multiple config sources
-    - Hot-reload capability with file watching
-    - Configuration caching with TTL
-    - Secure config decryption support
+    - Optional hot-reload capability (requires watchdog package)
+    - Secure encrypted configuration support
+    - Configuration caching and validation
     """
 
     def __init__(
-        self, cache_ttl: float = 300.0, enable_hot_reload: bool = False, master_key: Optional[str] = None  # 5 minutes
+        self,
+        enable_hot_reload: bool = False,
+        cache_configs: bool = True,
+        secure_loader: Optional[SecureConfigLoader] = None
     ):
         """
-        Initialize async config loader
+        Initialize async configuration loader
 
         Args:
-            cache_ttl: Cache time-to-live in seconds
-            enable_hot_reload: Enable file watching for hot-reload
-            master_key: Master key for encrypted configs
+            enable_hot_reload: Enable file watching for configuration changes
+                              (requires watchdog package)
+            cache_configs: Enable configuration caching for performance
+            secure_loader: SecureConfigLoader instance for encrypted configs
         """
-        self._cache: Dict[str, Dict[str, Any]] = {}
-        self._cache_timestamps: Dict[str, float] = {}
-        self._cache_ttl = cache_ttl
-        self._enable_hot_reload = enable_hot_reload
-        self._watched_files: Set[Path] = set()
-        self._observer = None
-        self._reload_callbacks: List[callable] = []
-        self._secure_loader = SecureConfigLoader(master_key) if master_key else None
-        self._lock = asyncio.Lock()
+        self.enable_hot_reload = enable_hot_reload
+        self.cache_configs = cache_configs
+        self.secure_loader = secure_loader or SecureConfigLoader()
 
-    async def load_file_async(self, file_path: Path) -> Dict[str, Any]:
+        # Configuration cache
+        self._config_cache: Dict[str, Dict[str, Any]] = {}
+        self._file_timestamps: Dict[str, float] = {}
+
+        # Hot-reload infrastructure (only if enabled and available)
+        self._observer: Optional[Observer] = None
+        self._watched_paths: Set[str] = set()
+        self._reload_callbacks: List[callable] = []
+
+        # Validate hot-reload capability
+        if self.enable_hot_reload and not WATCHDOG_AVAILABLE:
+            logger.warning(
+                "Hot-reload requested but watchdog package not available. "
+                "Install with: pip install watchdog. Disabling hot-reload."
+            )
+            self.enable_hot_reload = False
+
+    async def load_config_async(
+        self,
+        config_path: Path,
+        config_type: str = "env"
+    ) -> Dict[str, Any]:
         """
         Load configuration file asynchronously
 
         Args:
-            file_path: Path to configuration file
+            config_path: Path to configuration file
+            config_type: Type of config file ("env", "json", "yaml")
 
         Returns:
             Dictionary of configuration values
         """
+        config_key = str(config_path)
+
+        # Check cache first (if enabled)
+        if self.cache_configs and await self._is_cache_valid_async(config_path):
+            logger.debug(f"Using cached config for {config_path}")
+            return self._config_cache.get(config_key, {})
+
+        logger.debug(f"Loading config from {config_path}")
+
+        try:
+            # Check if file exists
+            if not await aiofiles.os.path.exists(config_path):
+                logger.warning(f"Config file not found: {config_path}")
+                return {}
+
+            # Load based on config type
+            if config_type == "env" or config_path.suffix in [".env", ".encrypted"]:
+                config = await self._load_env_config_async(config_path)
+            elif config_type == "json" or config_path.suffix == ".json":
+                config = await self._load_json_config_async(config_path)
+            elif config_type == "yaml" or config_path.suffix in [".yaml", ".yml"]:
+                config = await self._load_yaml_config_async(config_path)
+            else:
+                # Default to env format
+                config = await self._load_env_config_async(config_path)
+
+            # Cache the result
+            if self.cache_configs:
+                self._config_cache[config_key] = config
+                stat = await aiofiles.os.stat(config_path)
+                self._file_timestamps[config_key] = stat.st_mtime
+
+            # Setup hot-reload if enabled
+            if self.enable_hot_reload:
+                await self._setup_file_watching_async(config_path)
+
+            return config
+
+        except Exception as e:
+            logger.error(f"Failed to load config from {config_path}: {e}")
+            return {}
+
+    async def _load_env_config_async(self, config_path: Path) -> Dict[str, Any]:
+        """Load environment-style configuration file"""
         config = {}
 
         try:
-            # Check if file is encrypted
-            if file_path.suffix == ".encrypted" or ".encrypted" in str(file_path):
-                if self._secure_loader:
-                    # Use sync secure loader (decrypt is CPU-bound)
-                    plain_text = await asyncio.to_thread(self._secure_loader.decrypt_file, file_path)
-                    config = self._parse_env_content(plain_text)
-                else:
-                    logger.warning(f"Cannot load encrypted file without master key: {file_path}")
-                    return config
+            # Check if encrypted
+            if ".encrypted" in str(config_path) or config_path.suffix == ".encrypted":
+                # Use secure loader for encrypted files
+                content = self.secure_loader.decrypt_file(config_path)
             else:
-                # Async file read
-                async with aiofiles.open(file_path, mode="r") as f:
+                # Read plain text file
+                async with aiofiles.open(config_path, 'r') as f:
                     content = await f.read()
 
-                if file_path.suffix == ".json":
-                    config = json.loads(content)
-                elif file_path.suffix == ".toml":
-                    import toml
+            # Parse env format
+            for line in content.split('\n'):
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    config[key.strip()] = value.strip().strip('"').strip("'")
 
-                    config = await asyncio.to_thread(toml.loads, content)
-                else:  # Assume .env format
-                    config = self._parse_env_content(content)
-
-            logger.debug(f"Loaded config from {file_path}")
-
-        except FileNotFoundError:
-            logger.debug(f"Config file not found: {file_path}")
         except Exception as e:
-            logger.error(f"Failed to load config from {file_path}: {e}")
+            logger.error(f"Failed to load env config: {e}")
 
         return config
 
-    def _parse_env_content(self, content: str) -> Dict[str, Any]:
-        """Parse environment file content"""
-        config = {}
-        for line in content.split("\n"):
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                key, value = line.split("=", 1)
-                # Remove quotes
-                value = value.strip().strip('"').strip("'")
-                config[key.strip()] = value
-        return config
+    async def _load_json_config_async(self, config_path: Path) -> Dict[str, Any]:
+        """Load JSON configuration file"""
+        try:
+            async with aiofiles.open(config_path, 'r') as f:
+                content = await f.read()
+                return json.loads(content)
+        except Exception as e:
+            logger.error(f"Failed to load JSON config: {e}")
+            return {}
 
-    async def load_config_async(
-        self, app_name: str, project_root: Path, config_files: Optional[List[str]] = None
+    async def _load_yaml_config_async(self, config_path: Path) -> Dict[str, Any]:
+        """Load YAML configuration file"""
+        try:
+            # YAML support is optional
+            import yaml
+
+            async with aiofiles.open(config_path, 'r') as f:
+                content = await f.read()
+                return yaml.safe_load(content) or {}
+        except ImportError:
+            logger.error("PyYAML package required for YAML config support")
+            return {}
+        except Exception as e:
+            logger.error(f"Failed to load YAML config: {e}")
+            return {}
+
+    async def load_multiple_configs_async(
+        self,
+        config_paths: List[Path]
     ) -> Dict[str, Any]:
         """
-        Load configuration for an application
+        Load multiple configuration files concurrently
 
         Args:
-            app_name: Name of the application
-            project_root: Root directory of the project
-            config_files: Optional list of specific config files
+            config_paths: List of configuration file paths
 
         Returns:
-            Merged configuration dictionary
+            Merged configuration dictionary (later files override earlier)
         """
-        # Check cache
-        cache_key = f"{app_name}:{project_root}"
-        if cache_key in self._cache:
-            import time
+        # Create concurrent loading tasks
+        tasks = [
+            self.load_config_async(path)
+            for path in config_paths
+        ]
 
-            if time.time() - self._cache_timestamps[cache_key] < self._cache_ttl:
-                logger.debug(f"Using cached config for {app_name}")
-                return self._cache[cache_key]
+        # Wait for all configs to load
+        config_results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Define config file search paths
-        if not config_files:
-            app_dir = project_root / "apps" / app_name
-            config_files = [
-                project_root / ".env",
-                project_root / ".env.local",
-                project_root / ".env.prod",
-                project_root / ".env.prod.encrypted",
-                app_dir / ".env",
-                app_dir / ".env.local",
-                app_dir / "config.json",
-                app_dir / "config.toml",
-            ]
-
-        # Convert to Path objects
-        config_paths = [Path(f) if not isinstance(f, Path) else f for f in config_files]
-
-        # Filter existing files
-        existing_paths = [p for p in config_paths if p.exists()]
-
-        # Load all configs concurrently
-        configs = await asyncio.gather(*[self.load_file_async(path) for path in existing_paths], return_exceptions=True)
-
-        # Merge configurations (later files override earlier)
+        # Merge configurations
         merged_config = {}
-        for i, config in enumerate(configs):
-            if isinstance(config, Exception):
-                logger.error(f"Failed to load {existing_paths[i]}: {config}")
-            else:
-                merged_config.update(config)
+        for i, result in enumerate(config_results):
+            if isinstance(result, Exception):
+                logger.error(f"Failed to load config {config_paths[i]}: {result}")
+                continue
 
-        # Add environment variables (highest priority)
-        env_prefix = f"{app_name.upper().replace('-', '_')}_"
-        for key, value in os.environ.items():
-            if key.startswith(env_prefix):
-                config_key = key[len(env_prefix) :]
-                merged_config[config_key] = value
-
-        # Update cache
-        async with self._lock:
-            import time
-
-            self._cache[cache_key] = merged_config
-            self._cache_timestamps[cache_key] = time.time()
-
-        # Enable hot-reload if requested
-        if self._enable_hot_reload:
-            for path in existing_paths:
-                await self._watch_file_async(path)
+            if isinstance(result, dict):
+                merged_config.update(result)
+                logger.debug(f"Merged config from {config_paths[i]}")
 
         return merged_config
 
-    async def load_configs_concurrent_async(self, app_configs: List[Tuple[str, Path]]) -> Dict[str, Dict[str, Any]]:
-        """
-        Load multiple application configs concurrently
+    async def _is_cache_valid_async(self, config_path: Path) -> bool:
+        """Check if cached configuration is still valid"""
+        config_key = str(config_path)
 
-        Args:
-            app_configs: List of (app_name, project_root) tuples
+        if config_key not in self._config_cache:
+            return False
 
-        Returns:
-            Dictionary mapping app_name to config
-        """
-        configs = await asyncio.gather(*[self.load_config_async(app_name, root) for app_name, root in app_configs])
+        try:
+            stat = await aiofiles.os.stat(config_path)
+            cached_mtime = self._file_timestamps.get(config_key, 0)
+            return stat.st_mtime <= cached_mtime
+        except Exception:
+            return False
 
-        return {app_configs[i][0]: config for i, config in enumerate(configs)}
-
-    async def _watch_file_async(self, file_path: Path):
-        """Start watching a config file for changes"""
-        if not self._enable_hot_reload or file_path in self._watched_files:
+    async def _setup_file_watching_async(self, config_path: Path) -> None:
+        """Setup file watching for hot-reload (if enabled and available)"""
+        if not self.enable_hot_reload or not WATCHDOG_AVAILABLE:
             return
 
-        self._watched_files.add(file_path)
+        path_str = str(config_path.parent)
 
-        if not self._observer:
-            self._observer = Observer()
-            self._observer.start()
+        if path_str in self._watched_paths:
+            return
 
-        # Create handler for this file
-        handler = ConfigFileHandler(self._handle_file_change)
-        self._observer.schedule(handler, str(file_path.parent), recursive=False)
+        try:
+            if self._observer is None:
+                self._observer = Observer()
+                self._observer.start()
+                logger.debug("Started configuration file observer")
 
-        logger.info(f"Watching config file for changes: {file_path}")
+            # Create event handler
+            handler = ConfigFileHandler(self._on_config_change_async)
 
-    async def _handle_file_change_async(self, file_path: str):
+            # Watch the directory
+            self._observer.schedule(handler, path_str, recursive=False)
+            self._watched_paths.add(path_str)
+
+            logger.debug(f"Watching directory for config changes: {path_str}")
+
+        except Exception as e:
+            logger.error(f"Failed to setup file watching: {e}")
+
+    async def _on_config_change_async(self, file_path: str) -> None:
         """Handle configuration file changes"""
-        logger.info(f"Config file changed: {file_path}")
+        logger.info(f"Configuration file changed: {file_path}")
 
-        # Clear cache for affected configs
-        async with self._lock:
-            path = Path(file_path)
-            keys_to_clear = [key for key in self._cache.keys() if path.name in key or str(path) in key]
-            for key in keys_to_clear:
-                del self._cache[key]
-                del self._cache_timestamps[key]
+        # Clear cache for changed file
+        if str(file_path) in self._config_cache:
+            del self._config_cache[str(file_path)]
+            logger.debug(f"Cleared cache for {file_path}")
 
-        # Trigger reload callbacks
+        # Notify callbacks
         for callback in self._reload_callbacks:
             try:
                 if asyncio.iscoroutinefunction(callback):
                     await callback(file_path)
                 else:
-                    await asyncio.to_thread(callback, file_path)
+                    callback(file_path)
             except Exception as e:
-                logger.error(f"Reload callback failed: {e}")
+                logger.error(f"Error in reload callback: {e}")
 
-    def add_reload_callback(self, callback: callable):
-        """Add a callback to trigger on config reload"""
+    def add_reload_callback(self, callback: callable) -> None:
+        """Add callback to be called when configuration files change"""
+        if not self.enable_hot_reload:
+            logger.warning("Hot-reload not enabled, callback will not be triggered")
+            return
+
         self._reload_callbacks.append(callback)
+        logger.debug("Added configuration reload callback")
 
-    def remove_reload_callback(self, callback: callable):
-        """Remove a reload callback"""
-        if callback in self._reload_callbacks:
-            self._reload_callbacks.remove(callback)
+    def clear_cache(self) -> None:
+        """Clear all cached configurations"""
+        self._config_cache.clear()
+        self._file_timestamps.clear()
+        logger.debug("Cleared configuration cache")
 
-    async def clear_cache_async(self, app_name: Optional[str] = None):
-        """Clear configuration cache"""
-        async with self._lock:
-            if app_name:
-                keys_to_clear = [k for k in self._cache.keys() if app_name in k]
-                for key in keys_to_clear:
-                    del self._cache[key]
-                    del self._cache_timestamps[key]
-                logger.debug(f"Cleared cache for {app_name}")
-            else:
-                self._cache.clear()
-                self._cache_timestamps.clear()
-                logger.debug("Cleared all configuration cache")
-
-    def get_cache_stats(self) -> Dict[str, Any]:
-        """Get cache statistics"""
-        import time
-
-        current_time = time.time()
-
-        return {
-            "cached_configs": len(self._cache),
-            "cache_ttl": self._cache_ttl,
-            "watched_files": len(self._watched_files),
-            "hot_reload_enabled": self._enable_hot_reload,
-            "cache_ages": {key: current_time - timestamp for key, timestamp in self._cache_timestamps.items()},
-        }
-
-    async def shutdown_async(self):
-        """Clean shutdown of config loader"""
-        if self._observer:
+    def stop_watching(self) -> None:
+        """Stop file watching and cleanup resources"""
+        if self._observer and self._observer.is_alive():
             self._observer.stop()
-            self._observer.join(timeout=5)
-            logger.info("Stopped file watcher")
+            self._observer.join()
+            self._observer = None
+            self._watched_paths.clear()
+            logger.debug("Stopped configuration file watching")
 
-        self._cache.clear()
-        self._cache_timestamps.clear()
-        self._watched_files.clear()
-        self._reload_callbacks.clear()
-
-
-# Global async config loader instance
-_global_async_loader: Optional[AsyncConfigLoader] = None
+    def __del__(self):
+        """Cleanup on garbage collection"""
+        self.stop_watching()
 
 
-async def get_async_config_loader_async(
-    enable_hot_reload: bool = False, master_key: Optional[str] = None
+# Factory function for easy instantiation
+def create_async_config_loader(
+    enable_hot_reload: bool = False,
+    cache_configs: bool = True,
+    master_key: Optional[str] = None
 ) -> AsyncConfigLoader:
-    """Get or create global async config loader"""
-    global _global_async_loader
+    """
+    Create an AsyncConfigLoader with optional secure configuration support
 
-    if _global_async_loader is None:
-        master_key = master_key or os.environ.get("HIVE_MASTER_KEY")
-        _global_async_loader = AsyncConfigLoader(enable_hot_reload=enable_hot_reload, master_key=master_key)
-        logger.info("Async config loader initialized")
+    Args:
+        enable_hot_reload: Enable file watching (requires watchdog package)
+        cache_configs: Enable configuration caching
+        master_key: Master key for encrypted configuration files
 
-    return _global_async_loader
+    Returns:
+        Configured AsyncConfigLoader instance
+    """
+    secure_loader = SecureConfigLoader(master_key) if master_key else None
+
+    loader = AsyncConfigLoader(
+        enable_hot_reload=enable_hot_reload,
+        cache_configs=cache_configs,
+        secure_loader=secure_loader
+    )
+
+    if enable_hot_reload and not WATCHDOG_AVAILABLE:
+        logger.warning(
+            "Hot-reload requested but watchdog not available. "
+            "Install with: pip install watchdog"
+        )
+
+    return loader
 
 
-# Convenience functions
-async def load_app_config_async(app_name: str, project_root: Path = None) -> Dict[str, Any]:
-    """Load configuration for an app asynchronously"""
-    if project_root is None:
-        from .loader import find_project_root
+# Async utility functions
+async def load_app_config_async(
+    app_name: str,
+    project_root: Path,
+    enable_hot_reload: bool = False
+) -> Dict[str, Any]:
+    """
+    Load application configuration with standard fallback hierarchy
 
-        project_root = find_project_root()
+    Loads in order (later configs override earlier):
+    1. Global .env
+    2. Global .env.prod (if exists)
+    3. Global .env.prod.encrypted (if master key available)
+    4. App-specific .env
+    5. App-specific .env.prod (if exists)
+    6. App-specific .env.prod.encrypted (if master key available)
 
-    loader = await get_async_config_loader_async()
-    return await loader.load_config_async(app_name, project_root)
+    Args:
+        app_name: Name of the application
+        project_root: Root directory of the project
+        enable_hot_reload: Enable configuration hot-reload
+
+    Returns:
+        Merged configuration dictionary
+    """
+    loader = create_async_config_loader(enable_hot_reload=enable_hot_reload)
+
+    # Define config file hierarchy
+    app_dir = project_root / "apps" / app_name
+    config_paths = [
+        project_root / ".env",
+        project_root / ".env.prod",
+        project_root / ".env.prod.encrypted",
+        app_dir / ".env",
+        app_dir / ".env.prod",
+        app_dir / ".env.prod.encrypted",
+    ]
+
+    # Filter to existing files
+    existing_paths = []
+    for path in config_paths:
+        if await aiofiles.os.path.exists(path):
+            existing_paths.append(path)
+
+    if not existing_paths:
+        logger.warning(f"No configuration files found for app {app_name}")
+        return {}
+
+    logger.debug(f"Loading configs for {app_name}: {[str(p) for p in existing_paths]}")
+    return await loader.load_multiple_configs_async(existing_paths)

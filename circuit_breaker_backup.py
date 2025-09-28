@@ -1,5 +1,4 @@
 """Circuit breaker pattern for external service calls"""
-from hive_errors import CircuitBreakerOpenError
 
 import time
 from enum import Enum
@@ -47,7 +46,7 @@ class CircuitBreaker:
     def call(self, func: Callable, *args, **kwargs) -> Any:
         """Call function through circuit breaker"""
         if self.state == CircuitState.OPEN:
-            raise CircuitBreakerOpenError("Circuit breaker is OPEN", failure_count=self.failure_count, recovery_time=self.recovery_timeout)
+            raise Exception("Circuit breaker is OPEN")
 
         try:
             result = func(*args, **kwargs)
@@ -90,7 +89,7 @@ def circuit_breaker(
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             if breaker.state == CircuitState.OPEN:
-                raise CircuitBreakerOpenError("Circuit breaker is OPEN", failure_count=self.failure_count, recovery_time=self.recovery_timeout)
+                raise Exception("Circuit breaker is OPEN")
 
             try:
                 result = await func(*args, **kwargs)

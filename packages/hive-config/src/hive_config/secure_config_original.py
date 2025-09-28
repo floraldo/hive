@@ -3,13 +3,11 @@ Secure Configuration Management for Production Environments
 
 Provides encrypted secrets management for production deployments.
 Supports both plain .env files (development) and encrypted .env.prod files (production).
-Enhanced with random salt encryption to prevent rainbow table attacks.
 """
 
 import base64
 import json
 import os
-import secrets
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -24,13 +22,12 @@ logger = get_logger(__name__)
 
 class SecureConfigLoader:
     """
-    Secure configuration loader with enhanced encryption support
+    Secure configuration loader with encryption support
 
     Supports:
     - Plain .env files for development
-    - Encrypted .env.prod files for production with random salts
+    - Encrypted .env.prod files for production
     - Master key from HIVE_MASTER_KEY environment variable
-    - Backward compatibility with legacy static salt files
     """
 
     def __init__(self, master_key: Optional[str] = None):
@@ -41,39 +38,31 @@ class SecureConfigLoader:
             master_key: Master key for decryption (defaults to HIVE_MASTER_KEY env var)
         """
         self.master_key = master_key or os.environ.get("HIVE_MASTER_KEY")
-        self._legacy_cipher = None
+        self._cipher = None
 
         if self.master_key:
             self._initialize_cipher()
 
-    def _derive_key(self, salt: bytes) -> bytes:
-        """Derive encryption key from master key and salt"""
-        kdf = PBKDF2(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-        )
-        return base64.urlsafe_b64encode(kdf.derive(self.master_key.encode()))
-
     def _initialize_cipher(self) -> None:
-        """Initialize cipher capabilities and legacy support"""
-        if not self.master_key:
-            raise ValueError("Master key required for encryption operations")
-
-        # Initialize legacy cipher for backward compatibility
+        """Initialize Fernet cipher from master key"""
         try:
-            legacy_salt = b"hive-platform-v3"
-            legacy_key = self._derive_key(legacy_salt)
-            self._legacy_cipher = Fernet(legacy_key)
-            logger.debug("Cipher capabilities initialized successfully")
+            # Use PBKDF2 to derive a key from the master key
+            kdf = PBKDF2(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=b"hive-platform-v3",  # Static salt for deterministic key derivation
+                iterations=100000,
+            )
+            key = base64.urlsafe_b64encode(kdf.derive(self.master_key.encode()))
+            self._cipher = Fernet(key)
+            logger.debug("Cipher initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize cipher: {e}")
             raise ValueError("Invalid master key provided")
 
     def encrypt_file(self, input_path: Path, output_path: Optional[Path] = None) -> Path:
         """
-        Encrypt a configuration file with random salt for enhanced security
+        Encrypt a configuration file
 
         Args:
             input_path: Path to plain text config file
@@ -81,13 +70,8 @@ class SecureConfigLoader:
 
         Returns:
             Path to encrypted file
-
-        Security Enhancement:
-            - Uses random salt per encryption to prevent rainbow table attacks
-            - Salt is stored with encrypted data for decryption
-            - Maintains backward compatibility with legacy files
         """
-        if not self.master_key:
+        if not self._cipher:
             raise ValueError("No master key provided for encryption")
 
         if not output_path:
@@ -98,27 +82,14 @@ class SecureConfigLoader:
             with open(input_path, "r") as f:
                 plain_text = f.read()
 
-            # Generate random salt for this encryption (32 bytes = 256 bits)
-            salt = secrets.token_bytes(32)
-
-            # Derive key with random salt
-            key = self._derive_key(salt)
-            cipher = Fernet(key)
-
             # Encrypt content
-            encrypted_data = cipher.encrypt(plain_text.encode())
-
-            # Create payload: version_flag + salt_length + salt + encrypted_data
-            # Version flag 'HIVE' indicates new format with random salt
-            version_flag = b'HIVE'
-            salt_length = len(salt).to_bytes(4, byteorder='big')
-            payload = version_flag + salt_length + salt + encrypted_data
+            encrypted_data = self._cipher.encrypt(plain_text.encode())
 
             # Write encrypted file
             with open(output_path, "wb") as f:
-                f.write(payload)
+                f.write(encrypted_data)
 
-            logger.info(f"Successfully encrypted {input_path} to {output_path} with random salt")
+            logger.info(f"Successfully encrypted {input_path} to {output_path}")
             return output_path
 
         except Exception as e:
@@ -127,55 +98,24 @@ class SecureConfigLoader:
 
     def decrypt_file(self, encrypted_path: Path) -> str:
         """
-        Decrypt a configuration file supporting both new and legacy formats
+        Decrypt a configuration file
 
         Args:
             encrypted_path: Path to encrypted config file
 
         Returns:
             Decrypted content as string
-
-        Compatibility:
-            - New format: Starts with 'HIVE' version flag, uses random salt
-            - Legacy format: Uses static salt for backward compatibility
         """
-        if not self.master_key:
+        if not self._cipher:
             raise ValueError("No master key provided for decryption")
 
         try:
             # Read encrypted data
             with open(encrypted_path, "rb") as f:
-                payload = f.read()
-
-            # Check if this is new format with version flag
-            if payload.startswith(b'HIVE'):
-                # New format with random salt
-                # Extract salt length (bytes 4-8)
-                salt_length = int.from_bytes(payload[4:8], byteorder='big')
-
-                # Extract salt (bytes 8 to 8+salt_length)
-                salt = payload[8:8+salt_length]
-
-                # Extract encrypted data (remaining bytes)
-                encrypted_data = payload[8+salt_length:]
-
-                # Derive key with extracted salt
-                key = self._derive_key(salt)
-                cipher = Fernet(key)
-
-                logger.debug(f"Decrypting {encrypted_path} using new format with random salt")
-            else:
-                # Legacy format with static salt
-                if not self._legacy_cipher:
-                    raise ValueError("Legacy cipher not initialized")
-
-                cipher = self._legacy_cipher
-                encrypted_data = payload
-
-                logger.debug(f"Decrypting {encrypted_path} using legacy format with static salt")
+                encrypted_data = f.read()
 
             # Decrypt content
-            plain_text = cipher.decrypt(encrypted_data).decode()
+            plain_text = self._cipher.decrypt(encrypted_data).decode()
 
             logger.debug(f"Successfully decrypted {encrypted_path}")
             return plain_text
@@ -198,7 +138,7 @@ class SecureConfigLoader:
 
         # Check if this is an encrypted file
         if config_path.suffix == ".encrypted" or ".encrypted" in str(config_path):
-            if not self.master_key:
+            if not self._cipher:
                 raise ValueError("Cannot load encrypted config without master key")
 
             # Decrypt and parse
@@ -258,7 +198,7 @@ class SecureConfigLoader:
         # Load configs in priority order
         for config_path, is_encrypted in config_files:
             if config_path.exists():
-                if is_encrypted and not self.master_key:
+                if is_encrypted and not self._cipher:
                     logger.debug(f"Skipping encrypted config {config_path} - no master key")
                     continue
 
@@ -275,7 +215,7 @@ class SecureConfigLoader:
 
 def encrypt_production_config(env_file: str = ".env.prod", output_file: str = None) -> None:
     """
-    Utility function to encrypt production configuration with enhanced security
+    Utility function to encrypt production configuration
 
     Args:
         env_file: Path to plain text env file
@@ -296,7 +236,6 @@ def encrypt_production_config(env_file: str = ".env.prod", output_file: str = No
     try:
         encrypted_path = loader.encrypt_file(input_path, output_path)
         print(f"Successfully encrypted {input_path} to {encrypted_path}")
-        print(f"Enhanced security: Random salt used to prevent rainbow table attacks")
         print(f"To decrypt, ensure HIVE_MASTER_KEY is set to: {master_key[:8]}...")
     except Exception as e:
         print(f"Encryption failed: {e}")
@@ -309,10 +248,11 @@ def generate_master_key() -> str:
     Returns:
         URL-safe base64 encoded key
     """
+    import secrets
+
     key = secrets.token_urlsafe(32)
     print(f"Generated master key: {key}")
     print(f"Set this as environment variable: export HIVE_MASTER_KEY='{key}'")
-    print(f"Store this key securely - it cannot be recovered if lost!")
     return key
 
 

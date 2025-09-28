@@ -41,7 +41,7 @@ class AsyncRetryError(Exception):
         super().__init__(f"Failed after {attempts} attempts: {original_error}")
 
 
-async def run_async_with_retry(func: Callable, config: Optional[AsyncRetryConfig] = None, *args, **kwargs) -> Any:
+async def async_retry_async(func: Callable, config: Optional[AsyncRetryConfig] = None, *args, **kwargs) -> Any:
     """
     Retry an async function with configurable strategy.
 
@@ -96,7 +96,7 @@ def create_retry_decorator(config: Optional[AsyncRetryConfig] = None):
 
     def decorator(func: Callable):
         async def wrapper_async(*args, **kwargs):
-            return await run_async_with_retry(func, config, *args, **kwargs)
+            return await async_retry_async(func, config, *args, **kwargs)
 
         return wrapper
 
