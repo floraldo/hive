@@ -53,7 +53,8 @@
       "Bash(pre-commit:*)",
       "Bash(ruff check:*)",
       "Bash(sed:*)",
-      "Bash(/dev/null)"
+      "Bash(/dev/null)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []
