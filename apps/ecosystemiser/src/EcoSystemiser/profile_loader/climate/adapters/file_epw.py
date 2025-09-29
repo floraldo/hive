@@ -43,15 +43,15 @@ except ImportError:
         HIGH = "high"
 
     @dataclass
-    class QCIssue:,
-        type: str,
-        message: str,
-        severity: QCSeverity,
-        affected_variables: List[str],
+    class QCIssue:
+        type: str
+        message: str
+        severity: QCSeverity
+        affected_variables: List[str]
         suggested_action: str
 
     @dataclass
-    class QCReport:,
+    class QCReport:
         passed_checks: List[str] = field(default_factory=list)
 
         def add_issue(self, issue: QCIssue) -> None:
@@ -67,14 +67,14 @@ except ImportError:
             temporal_resolution_limits: Dict[str, str],
             spatial_accuracy: str | None = None,
         ):
-            self.name = name,
-            self.description = description,
-            self.known_issues = known_issues,
-            self.recommended_variables = recommended_variables,
-            self.temporal_resolution_limits = temporal_resolution_limits,
+            self.name = name
+            self.description = description
+            self.known_issues = known_issues
+            self.recommended_variables = recommended_variables
+            self.temporal_resolution_limits = temporal_resolution_limits
             self.spatial_accuracy = spatial_accuracy
 
-        @abstractmethod,
+        @abstractmethod
         def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
             pass
 
@@ -196,7 +196,7 @@ class FileEPWAdapter(BaseAdapter):
     }
 
     # Weather condition codes mapping (Present Weather Codes)
-    WEATHER_CODES = {,
+    WEATHER_CODES = {
         0: "Clear",
         1: "Partly Cloudy",
         2: "Cloudy",
@@ -335,7 +335,7 @@ class FileEPWAdapter(BaseAdapter):
     def _read_epw_file(self, file_path: str) -> str:
         """Read EPW file from local path"""
 
-        if not os.path.exists(file_path):,
+        if not os.path.exists(file_path):
             raise FileNotFoundError(f"EPW file not found: {file_path}")
 
         with open(file_path, "r", encoding="latin-1") as f:
@@ -350,7 +350,7 @@ class FileEPWAdapter(BaseAdapter):
             response = await self.http_client.get(url)
             data = response.text
             return data
-        except Exception as e:,
+        except Exception as e:
             raise ValueError(f"Failed to download EPW file: {e}")
 
     def _parse_epw_data(self, epw_content: str) -> pd.DataFrame:
@@ -411,10 +411,10 @@ class FileEPWAdapter(BaseAdapter):
                     field="csv_data",
                     details={
                         "parser_error": str(e),
-                        "data_lines": len(data_lines)
+                        "data_lines": len(data_lines),
                         "first_line": data_lines[0][:100] if data_lines else None
                     },
-                ),
+                )
             except Exception as e:
                 raise DataParseError(
                     f"Unexpected error parsing EPW data: {str(e)}",
@@ -434,7 +434,7 @@ class FileEPWAdapter(BaseAdapter):
 
             # Handle day overflow (assuming standard calendar)
             # This is a simplified approach - more complex logic needed for proper calendar handling
-            days_in_month = {,
+            days_in_month = {
                 1: 31,
                 2: 28,
                 3: 31,
@@ -494,20 +494,20 @@ class FileEPWAdapter(BaseAdapter):
                     "All datetime values were invalid after parsing",
                     field="datetime_values",
                     details={"original_rows": len(data_lines)}
-                ),
+                )
 
             return df
 
         except DataParseError:
-            # Re-raise our custom errors,
-            raise,
+            # Re-raise our custom errors
+            raise
         except Exception as e:
             # Catch any other unexpected errors,
             raise DataParseError(
                 f"Failed to parse EPW file: {str(e)}",
                 field="file_parsing",
                 details={"error_type": type(e).__name__, "error": str(e)}
-            ),
+            )
 
     def _filter_by_period(self, df: pd.DataFrame, period: Dict) -> pd.DataFrame:
         """Filter DataFrame by period specification"""

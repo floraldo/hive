@@ -179,11 +179,11 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
             # Uniform selection if all fitness values are infinite
             probabilities = np.ones(len(evaluations)) / len(evaluations)
         selected_indices = np.random.choice(
-            len(evaluations)
+            len(evaluations),
             size=self.config.population_size,
             p=probabilities,
-            replace=True
-        ),
+            replace=True,
+        )
 
         return selected_indices
 
@@ -197,11 +197,11 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         # Convert ranks to selection probabilities
         probabilities = (len(evaluations) - ranks) / np.sum(np.arange(1, len(evaluations) + 1))
         selected_indices = np.random.choice(
-            len(evaluations)
+            len(evaluations),
             size=self.config.population_size,
             p=probabilities,
-            replace=True
-        ),
+            replace=True,
+        )
 
         return selected_indices
 
@@ -673,14 +673,14 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         current_avg_objectives = []
         for obj_idx in range(len(self.config.objectives)):
             obj_values = [
-                eval_result.get("objectives", [float("inf")])[obj_idx],
-                for eval_result in evaluations,
+                eval_result.get("objectives", [float("inf")])[obj_idx]
+                for eval_result in evaluations
                 if len(eval_result.get("objectives", [])) > obj_idx
-            ],
+            ]
             if obj_values:
                 current_avg_objectives.append(np.mean(obj_values))
             else:
-                current_avg_objectives.append(float("inf")),
+                current_avg_objectives.append(float("inf"))
 
         np.mean(current_avg_objectives)
 

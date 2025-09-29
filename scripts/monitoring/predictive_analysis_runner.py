@@ -37,14 +37,23 @@ class PredictiveAnalysisRunner:
     to analyze trends and generate proactive alerts.
     """
 
-    def __init__(self, alert_manager: PredictiveAlertManager):
+    def __init__(
+        self,
+        alert_manager: PredictiveAlertManager,
+        error_reporter=None,
+        health_monitor=None
+    ):
         """
         Initialize analysis runner.
 
         Args:
             alert_manager: Predictive alert manager instance
+            error_reporter: MonitoringErrorReporter instance (optional)
+            health_monitor: HealthMonitor instance (optional)
         """
         self.alert_manager = alert_manager
+        self._error_reporter = error_reporter
+        self._health_monitor = health_monitor
         self.run_stats = {
             "total_runs": 0,
             "total_alerts_generated": 0,
@@ -153,15 +162,44 @@ class PredictiveAnalysisRunner:
             List of error rate metric points
         """
         try:
-            # TODO: Integrate with MonitoringErrorReporter
-            # error_trends = await error_reporter.get_error_trends(
-            #     service_name=service_name,
-            #     hours=24
-            # )
+            # Import monitoring reporter
+            try:
+                from hive_errors.monitoring_error_reporter import MonitoringErrorReporter
+                # Get global instance if available
+                # In production, this would be injected via dependency injection
+                error_reporter = getattr(self, "_error_reporter", None)
+                if not error_reporter:
+                    logger.debug(f"No error reporter configured for {service_name}")
+                    return None
 
-            # For now, return None (no data)
-            logger.debug(f"Collecting error rates for {service_name}")
-            return None
+                # Get error rate history
+                error_data = error_reporter.get_error_rate_history(
+                    service_name=service_name,
+                    hours=24
+                )
+
+                if not error_data:
+                    logger.debug(f"No error data available for {service_name}")
+                    return None
+
+                # Convert to MetricPoint objects
+                metric_points = [
+                    MetricPoint(
+                        timestamp=point["timestamp"],
+                        value=point["value"],
+                        metadata=point["metadata"]
+                    )
+                    for point in error_data
+                ]
+
+                logger.info(
+                    f"Collected {len(metric_points)} error rate points for {service_name}"
+                )
+                return metric_points
+
+            except ImportError:
+                logger.warning("MonitoringErrorReporter not available")
+                return None
 
         except Exception as e:
             logger.warning(f"Failed to collect error rates for {service_name}: {e}")
@@ -180,15 +218,44 @@ class PredictiveAnalysisRunner:
             List of CPU metric points
         """
         try:
-            # TODO: Integrate with HealthMonitor
-            # cpu_metrics = await health_monitor.get_metric_history(
-            #     service_name=service_name,
-            #     metric_name="cpu_percent",
-            #     hours=24
-            # )
+            # Import health monitor
+            try:
+                from hive_ai.observability.health import ModelHealthChecker
+                # Get health monitor instance if available
+                health_monitor = getattr(self, "_health_monitor", None)
+                if not health_monitor:
+                    logger.debug(f"No health monitor configured for {service_name}")
+                    return None
 
-            logger.debug(f"Collecting CPU metrics for {service_name}")
-            return None
+                # Get CPU utilization history
+                cpu_data = health_monitor.get_metric_history(
+                    provider=service_name,
+                    metric_name="cpu_percent",
+                    hours=24
+                )
+
+                if not cpu_data:
+                    logger.debug(f"No CPU data available for {service_name}")
+                    return None
+
+                # Convert to MetricPoint objects
+                metric_points = [
+                    MetricPoint(
+                        timestamp=point["timestamp"],
+                        value=point["value"],
+                        metadata=point["metadata"]
+                    )
+                    for point in cpu_data
+                ]
+
+                logger.info(
+                    f"Collected {len(metric_points)} CPU metric points for {service_name}"
+                )
+                return metric_points
+
+            except ImportError:
+                logger.warning("ModelHealthChecker not available")
+                return None
 
         except Exception as e:
             logger.warning(f"Failed to collect CPU metrics for {service_name}: {e}")
@@ -207,15 +274,44 @@ class PredictiveAnalysisRunner:
             List of latency metric points
         """
         try:
-            # TODO: Integrate with performance monitoring
-            # latency_metrics = await perf_monitor.get_latency_history(
-            #     service_name=service_name,
-            #     percentile=95,
-            #     hours=24
-            # )
+            # Import health monitor for latency tracking
+            try:
+                from hive_ai.observability.health import ModelHealthChecker
+                # Get health monitor instance if available
+                health_monitor = getattr(self, "_health_monitor", None)
+                if not health_monitor:
+                    logger.debug(f"No health monitor configured for {service_name}")
+                    return None
 
-            logger.debug(f"Collecting latency metrics for {service_name}")
-            return None
+                # Get response time history (latency proxy)
+                latency_data = health_monitor.get_metric_history(
+                    provider=service_name,
+                    metric_name="response_time",
+                    hours=24
+                )
+
+                if not latency_data:
+                    logger.debug(f"No latency data available for {service_name}")
+                    return None
+
+                # Convert to MetricPoint objects
+                metric_points = [
+                    MetricPoint(
+                        timestamp=point["timestamp"],
+                        value=point["value"],
+                        metadata=point["metadata"]
+                    )
+                    for point in latency_data
+                ]
+
+                logger.info(
+                    f"Collected {len(metric_points)} latency metric points for {service_name}"
+                )
+                return metric_points
+
+            except ImportError:
+                logger.warning("ModelHealthChecker not available")
+                return None
 
         except Exception as e:
             logger.warning(f"Failed to collect latency metrics for {service_name}: {e}")

@@ -114,14 +114,14 @@ class ModelHealthChecker:
                 "expected_response_pattern": "OK",
                 "max_response_time_ms": 5000,
                 "min_success_rate": 0.9
-            }
+            },
             "openai": {
                 "timeout_seconds": 10,
                 "test_prompt": "Say 'OK' to confirm you're operational.",
                 "expected_response_pattern": "OK",
                 "max_response_time_ms": 8000,
                 "min_success_rate": 0.9
-            }
+            },
             "local": {
                 "timeout_seconds": 30,
                 "test_prompt": "Respond with 'OK' if functional.",
@@ -337,9 +337,9 @@ class ModelHealthChecker:
             # Validate response
             expected_pattern = config.get("expected_response_pattern")
             is_valid_response = (
-                response and,
-                hasattr(response, 'content') and,
-                response.content and,
+                response and
+                hasattr(response, 'content') and
+                response.content and
                 (not expected_pattern or expected_pattern.lower() in response.content.lower())
             )
 
@@ -403,17 +403,17 @@ class ModelHealthChecker:
     ) -> HealthStatus:
         """Determine overall provider status from check results."""
         # If either check is unhealthy, provider is unhealthy,
-        if (connectivity.status == HealthStatus.UNHEALTHY or,
+        if (connectivity.status == HealthStatus.UNHEALTHY or
             functionality.status == HealthStatus.UNHEALTHY):
             return HealthStatus.UNHEALTHY
 
         # If either check is degraded, provider is degraded,
-        if (connectivity.status == HealthStatus.DEGRADED or,
+        if (connectivity.status == HealthStatus.DEGRADED or
             functionality.status == HealthStatus.DEGRADED):
             return HealthStatus.DEGRADED
 
         # If either check is unknown, provider status is degraded,
-        if (connectivity.status == HealthStatus.UNKNOWN or,
+        if (connectivity.status == HealthStatus.UNKNOWN or
             functionality.status == HealthStatus.UNKNOWN):
             return HealthStatus.DEGRADED
 
@@ -483,7 +483,7 @@ class ModelHealthChecker:
             return 0.0
 
         healthy_checks = sum(
-            1 for check in checks,
+            1 for check in checks
             if check.status in [HealthStatus.HEALTHY, HealthStatus.DEGRADED]
         )
 
@@ -495,7 +495,7 @@ class ModelHealthChecker:
             return 0.0
 
         error_checks = sum(
-            1 for check in checks,
+            1 for check in checks
             if check.status == HealthStatus.UNHEALTHY
         )
 
@@ -600,7 +600,7 @@ class ModelHealthChecker:
 
         return {
             "overall_status": system_health.value,
-            "timestamp": now.isoformat()
+            "timestamp": now.isoformat(),
             "monitoring_active": self._monitoring_active,
             "providers": provider_summary,
             "models": model_summary,
@@ -610,11 +610,11 @@ class ModelHealthChecker:
                 "degraded_providers": sum(
                     1 for health in self._provider_health.values()
                     if health.status == HealthStatus.DEGRADED
-                )
+                ),
                 "unhealthy_providers": sum(
                     1 for health in self._provider_health.values()
                     if health.status == HealthStatus.UNHEALTHY
-                )
+                ),
                 "avg_availability": (
                     sum(health.availability_percentage for health in self._provider_health.values()) /
                     total_providers if total_providers > 0 else 0
@@ -661,6 +661,100 @@ class ModelHealthChecker:
                 })
 
         return alerts
+
+    def get_metric_history(
+        self,
+        provider: str,
+        metric_name: str,
+        hours: int = 24
+    ) -> List[Dict[str, Any]]:
+        """
+        Get historical health metrics for predictive analysis.
+
+        Returns health metrics as MetricPoint-compatible format for
+        integration with PredictiveAnalysisRunner.
+
+        Args:
+            provider: Provider name to get metrics for
+            metric_name: Metric type (response_time, availability, error_rate)
+            hours: Number of hours of history to return
+
+        Returns:
+            List of metric points with timestamp, value, and metadata
+        """
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+
+        # Get health check history for provider
+        if provider not in self._health_history:
+            logger.debug(f"No health history available for provider: {provider}")
+            return []
+
+        # Filter to recent history
+        recent_checks = [
+            check for check in self._health_history[provider]
+            if check.timestamp >= cutoff_time
+        ]
+
+        if not recent_checks:
+            logger.debug(f"No recent health checks for {provider} in last {hours} hours")
+            return []
+
+        # Extract requested metric from health checks
+        metric_points = []
+        for check in recent_checks:
+            value = None
+
+            if metric_name == "response_time":
+                value = check.response_time_ms
+            elif metric_name == "availability":
+                # Convert status to availability value (1.0 = healthy, 0.5 = degraded, 0.0 = unhealthy)
+                if check.status == HealthStatus.HEALTHY:
+                    value = 1.0
+                elif check.status == HealthStatus.DEGRADED:
+                    value = 0.5
+                elif check.status == HealthStatus.UNHEALTHY:
+                    value = 0.0
+                else:
+                    value = 0.0  # UNKNOWN treated as unavailable
+            elif metric_name == "error_rate":
+                # Binary: 1.0 if unhealthy, 0.0 otherwise
+                value = 1.0 if check.status == HealthStatus.UNHEALTHY else 0.0
+            elif metric_name == "cpu_percent" or metric_name == "memory_percent":
+                # Extract from details if available
+                value = check.details.get(metric_name)
+            else:
+                logger.warning(f"Unknown metric type: {metric_name}")
+                continue
+
+            if value is not None:
+                metric_points.append({
+                    "timestamp": check.timestamp,
+                    "value": float(value),
+                    "metadata": {
+                        "provider": provider,
+                        "metric_type": metric_name,
+                        "check_status": check.status.value,
+                        "unit": self._get_metric_unit(metric_name)
+                    }
+                })
+
+        logger.debug(
+            f"Retrieved {len(metric_points)} health metric points for "
+            f"provider={provider}, metric={metric_name}"
+        )
+
+        return metric_points
+
+    def _get_metric_unit(self, metric_name: str) -> str:
+        """Get appropriate unit for metric type."""
+        units = {
+            "response_time": "milliseconds",
+            "availability": "ratio",
+            "error_rate": "ratio",
+            "cpu_percent": "percentage",
+            "memory_percent": "percentage"
+        }
+        return units.get(metric_name, "unknown")
 
     async def close_async(self) -> None:
         """Close health checker and clean up resources."""

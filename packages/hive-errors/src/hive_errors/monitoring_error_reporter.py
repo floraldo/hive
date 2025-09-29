@@ -380,3 +380,63 @@ class MonitoringErrorReporter(BaseErrorReporter):
             )
 
         logger.info(f"Cleared {cleared_count} old error records")
+
+    def get_error_rate_history(
+        self, service_name: str | None = None, hours: int = 24
+    ) -> list[dict[str, Any]]:
+        """
+        Get error rate history for predictive analysis.
+
+        Returns error rates as MetricPoint-compatible format for
+        integration with PredictiveAnalysisRunner.
+
+        Args:
+            service_name: Filter by service/component name (None for all)
+            hours: Number of hours of history to return
+
+        Returns:
+            List of metric points with timestamp, value, and metadata
+        """
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+
+        # Get recent errors
+        recent_errors = [
+            error
+            for error in self._detailed_history
+            if datetime.fromisoformat(error["timestamp"]) >= cutoff_time
+        ]
+
+        # Filter by service if specified
+        if service_name:
+            recent_errors = [
+                error
+                for error in recent_errors
+                if error.get("component") == service_name
+            ]
+
+        # Group by hour and count
+        error_counts_by_hour: dict[datetime, int] = defaultdict(int)
+        for error in recent_errors:
+            timestamp = datetime.fromisoformat(error["timestamp"])
+            hour_key = timestamp.replace(minute=0, second=0, microsecond=0)
+            error_counts_by_hour[hour_key] += 1
+
+        # Convert to MetricPoint format
+        metric_points = []
+        for hour, count in sorted(error_counts_by_hour.items()):
+            metric_points.append({
+                "timestamp": hour,
+                "value": float(count),
+                "metadata": {
+                    "service": service_name or "all_services",
+                    "metric_type": "error_rate",
+                    "unit": "errors_per_hour",
+                }
+            })
+
+        logger.debug(
+            f"Retrieved {len(metric_points)} error rate metric points for "
+            f"{'service=' + service_name if service_name else 'all services'}"
+        )
+
+        return metric_points

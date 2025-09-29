@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections import deque, defaultdict
 from collections.abc import Callable
+from datetime import datetime, timedelta
 from enum import Enum
 from functools import wraps
 from typing import Any
@@ -41,10 +43,12 @@ class AsyncCircuitBreaker:
         failure_threshold: int = 5,
         recovery_timeout: int = 60,
         expected_exception: type = Exception,
+        name: str = "default"
     ):
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.expected_exception = expected_exception
+        self.name = name
 
         self.failure_count = 0
         self.last_failure_time = None
@@ -53,6 +57,10 @@ class AsyncCircuitBreaker:
         # Async-specific improvements
         self._lock = asyncio.Lock()
         self._half_open_task = None
+
+        # Failure history tracking for predictive analysis
+        self._failure_history = deque(maxlen=1000)
+        self._state_transitions = deque(maxlen=100)
 
     async def call_async(self, func: Callable, *args, **kwargs) -> Any:
         """Execute function through circuit breaker"""
@@ -83,13 +91,30 @@ class AsyncCircuitBreaker:
 
             return result
 
-        except self.expected_exception:
+        except self.expected_exception as e:
             async with self._lock:
                 self.failure_count += 1
                 self.last_failure_time = time.time()
 
+                # Record failure for predictive analysis
+                self._failure_history.append({
+                    "timestamp": datetime.utcnow(),
+                    "error_type": type(e).__name__,
+                    "state_before": self.state.value
+                })
+
                 if self.failure_count >= self.failure_threshold:
+                    old_state = self.state
                     self.state = CircuitState.OPEN
+
+                    # Record state transition
+                    self._state_transitions.append({
+                        "timestamp": datetime.utcnow(),
+                        "from_state": old_state.value,
+                        "to_state": CircuitState.OPEN.value,
+                        "failure_count": self.failure_count
+                    })
+
                     logger.warning(f"Circuit breaker OPENED after {self.failure_count} failures")
 
             raise
@@ -122,6 +147,104 @@ class AsyncCircuitBreaker:
             "last_failure_time": self.last_failure_time,
             "recovery_timeout": self.recovery_timeout,
         }
+
+    def get_failure_history(
+        self,
+        metric_type: str = "failure_rate",
+        hours: int = 24
+    ) -> list[dict[str, Any]]:
+        """
+        Get failure history for predictive analysis.
+
+        Returns failure metrics as MetricPoint-compatible format for
+        integration with PredictiveAnalysisRunner.
+
+        Args:
+            metric_type: Type of metric (failure_rate, state_changes)
+            hours: Number of hours of history to return
+
+        Returns:
+            List of metric points with timestamp, value, and metadata
+        """
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+
+        if metric_type == "failure_rate":
+            # Get recent failures
+            recent_failures = [
+                f for f in self._failure_history
+                if f["timestamp"] >= cutoff_time
+            ]
+
+            if not recent_failures:
+                logger.debug(f"No failure history available for {self.name}")
+                return []
+
+            # Group by hour and count
+            failure_counts_by_hour = defaultdict(int)
+            for failure in recent_failures:
+                hour_key = failure["timestamp"].replace(minute=0, second=0, microsecond=0)
+                failure_counts_by_hour[hour_key] += 1
+
+            # Convert to MetricPoint format
+            metric_points = []
+            for hour, count in sorted(failure_counts_by_hour.items()):
+                metric_points.append({
+                    "timestamp": hour,
+                    "value": float(count),
+                    "metadata": {
+                        "circuit_breaker": self.name,
+                        "metric_type": "failure_rate",
+                        "unit": "failures_per_hour"
+                    }
+                })
+
+            logger.debug(
+                f"Retrieved {len(metric_points)} failure rate points for "
+                f"circuit breaker {self.name}"
+            )
+
+            return metric_points
+
+        elif metric_type == "state_changes":
+            # Get recent state transitions
+            recent_transitions = [
+                t for t in self._state_transitions
+                if t["timestamp"] >= cutoff_time
+            ]
+
+            if not recent_transitions:
+                logger.debug(f"No state transitions for {self.name}")
+                return []
+
+            # Convert state transitions to metric points
+            metric_points = []
+            for transition in recent_transitions:
+                # Value: 1.0 for OPEN transitions (bad), 0.0 for CLOSED (good)
+                value = 1.0 if transition["to_state"] == CircuitState.OPEN.value else 0.0
+
+                metric_points.append({
+                    "timestamp": transition["timestamp"],
+                    "value": value,
+                    "metadata": {
+                        "circuit_breaker": self.name,
+                        "metric_type": "state_change",
+                        "from_state": transition["from_state"],
+                        "to_state": transition["to_state"],
+                        "failure_count": transition["failure_count"],
+                        "unit": "binary"
+                    }
+                })
+
+            logger.debug(
+                f"Retrieved {len(metric_points)} state transition points for "
+                f"circuit breaker {self.name}"
+            )
+
+            return metric_points
+
+        else:
+            logger.warning(f"Unknown metric type: {metric_type}")
+            return []
 
 
 class AsyncTimeoutManager:
