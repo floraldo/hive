@@ -209,7 +209,7 @@ class NASAPowerAdapter(BaseAdapter):
                 f"Unexpected error fetching NASA POWER data: {str(e)}",
                 details={"lat": lat, "lon": lon, "variables": variables},
             )
-            raise error
+            raise error from e
 
     def build_request_params(
         self, lat: float, lon: float, variables: list[str], period: dict[str, Any], resolution: str
@@ -355,7 +355,7 @@ class NASAPowerAdapter(BaseAdapter):
                 self.ADAPTER_NAME,
                 f"Failed to parse NASA POWER response: {str(e)}",
                 details={"variables": requested_vars},
-            )
+            ) from e
 
     def _convert_units(self, da: xr.DataArray, canonical_name: str, nasa_param: str) -> xr.DataArray:
         """Convert units from NASA POWER to canonical units if needed"""
