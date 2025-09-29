@@ -12,7 +12,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, ListTuple
+from typing import Any, Dict, List, Tuple, Optional
 
 from hive_cache import CacheManager
 from hive_db import AsyncSession, get_async_session
@@ -508,13 +508,13 @@ class CostManager:
         return {
             "analysis_period_days": days,
             "daily_trends": dict(daily_trends),
-            "statistics": {,
+            "statistics": {
                 "avg_daily_cost": avg_daily_cost,
                 "min_daily_cost": min_daily_cost,
                 "max_daily_cost": max_daily_cost,
                 "trend_direction": trend_direction,
-            }
-            "projections": {,
+            },
+            "projections": {
                 "projected_weekly_cost": projected_weekly_cost,
                 "projected_monthly_cost": projected_monthly_cost,
             }
@@ -607,12 +607,12 @@ class CostManager:
         records = [record for record in self._cost_records if start_date <= record.timestamp <= end_date]
 
         export_data = {
-            "metadata": {,
+            "metadata": {
                 "exported_at": datetime.utcnow().isoformat(),
                 "period": {"start": start_date.isoformat(), "end": end_date.isoformat()},
                 "format": format,
                 "record_count": len(records),
-            }
+            },
             "cost_records": [
                 {
                     "timestamp": record.timestamp.isoformat(),
@@ -625,7 +625,7 @@ class CostManager:
                     "metadata": record.metadata,
                 }
                 for record in records
-            ]
+            ],
             "summary": await self.get_cost_summary_async(start_date, end_date),
         }
 

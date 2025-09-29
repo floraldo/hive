@@ -578,10 +578,10 @@ def get_run(run_id: str) -> Optional[Dict[str, Any]]:
             # Structure the return to match what Queen expects
             # Queen looks for run_data.get("result", {}).get("status", "failed")
             run["result"] = {
-                "status": run.get("status", "failed")
+                "status": run.get("status", "failed"),
                 "data": result_data,
                 "error_message": run.get("error_message"),
-                "output_log": run.get("output_log")
+                "output_log": run.get("output_log"),
             }
             return run
 

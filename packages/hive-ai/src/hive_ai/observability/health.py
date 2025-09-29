@@ -111,21 +111,21 @@ class ModelHealthChecker:
     def _load_default_configs(self) -> dict[str, dict[str, Any]]:
         """Load default health check configurations for different providers."""
         return {
-            "anthropic": {,
+            "anthropic": {
                 "timeout_seconds": 10,
                 "test_prompt": "Hello, respond with 'OK' if you're working.",
                 "expected_response_pattern": "OK",
                 "max_response_time_ms": 5000,
                 "min_success_rate": 0.9,
             },
-            "openai": {,
+            "openai": {
                 "timeout_seconds": 10,
                 "test_prompt": "Say 'OK' to confirm you're operational.",
                 "expected_response_pattern": "OK",
                 "max_response_time_ms": 8000,
                 "min_success_rate": 0.9,
             },
-            "local": {,
+            "local": {
                 "timeout_seconds": 30,
                 "test_prompt": "Respond with 'OK' if functional.",
                 "expected_response_pattern": "OK",
@@ -510,7 +510,7 @@ class ModelHealthChecker:
         # Provider health summary
         provider_summary = {}
         for provider, health in self._provider_health.items():
-            provider_summary[provider] = {,
+            provider_summary[provider] = {
                 "status": health.status.value,
                 "availability": health.availability_percentage,
                 "last_check": health.last_check.isoformat(),
@@ -520,7 +520,7 @@ class ModelHealthChecker:
         # Model health summary
         model_summary = {}
         for model, health in self._model_health.items():
-            model_summary[model] = {,
+            model_summary[model] = {
                 "status": health.status.value,
                 "provider": health.provider,
                 "success_rate": health.success_rate,
@@ -546,7 +546,7 @@ class ModelHealthChecker:
             "monitoring_active": self._monitoring_active,
             "providers": provider_summary,
             "models": model_summary,
-            "statistics": {,
+            "statistics": {
                 "total_providers": total_providers,
                 "healthy_providers": healthy_providers,
                 "degraded_providers": sum(
@@ -670,7 +670,7 @@ class ModelHealthChecker:
                     {
                         "timestamp": check.timestamp,
                         "value": float(value),
-                        "metadata": {,
+                        "metadata": {
                             "provider": provider,
                             "metric_type": metric_name,
                             "check_status": check.status.value,

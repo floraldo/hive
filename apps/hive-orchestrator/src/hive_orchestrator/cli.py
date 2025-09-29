@@ -379,12 +379,12 @@ def list_escalated() -> None:
         table.add_column("Reason", width=30)
 
         for task in tasks:
-            # Calculate age,
+            # Calculate age
             created = datetime.fromisoformat(task["created_at"])
-            age = datetime.now() - created,
+            age = datetime.now() - created
             age_str = (
-                f"{age.days}d {age.seconds//3600}h",
-                if age.days > 0,
+                f"{age.days}d {age.seconds//3600}h"
+                if age.days > 0
                 else f"{age.seconds//3600}h {(age.seconds%3600)//60}m"
             )
 

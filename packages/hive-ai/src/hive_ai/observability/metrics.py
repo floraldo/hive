@@ -352,27 +352,27 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         # Calculate summary statistics
         summary = {
-            "overview": {,
+            "overview": {
                 "total_operations": len(self._recent_operations),
                 "operations_last_hour": len(recent_operations),
                 "operations_last_day": len(day_operations),
-                "active_operations": len(self._active_operations)
-            }
-            "performance": {,
+                "active_operations": len(self._active_operations),
+            },
+            "performance": {
                 "avg_latency_ms": self._calculate_avg_latency(recent_operations),
                 "success_rate": self._calculate_success_rate(recent_operations),
                 "total_tokens_hour": sum(
-                    op.tokens_used.total_tokens for op in recent_operations,
+                    op.tokens_used.total_tokens for op in recent_operations
                     if op.tokens_used
-                )
+                ),
                 "total_cost_hour": sum(op.cost for op in recent_operations)
-            }
-            "usage_patterns": {,
+            },
+            "usage_patterns": {
                 "top_models": self._get_top_models(day_operations),
                 "top_operations": self._get_top_operations(day_operations),
                 "provider_distribution": self._get_provider_distribution(day_operations)
-            }
-            "errors": {,
+            },
+            "errors": {
                 "error_rate": self._calculate_error_rate(recent_operations),
                 "top_errors": self._get_top_errors(recent_operations)
             }

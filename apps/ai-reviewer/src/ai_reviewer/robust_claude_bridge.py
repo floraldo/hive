@@ -75,20 +75,14 @@ class RobustClaudeBridge:
                 return str(path)
 
         # Try system PATH
+        result = subprocess.run(
+            ["where" if os.name == "nt" else "which", "claude"],
+            capture_output=True,
+            text=True
+        )
         claude_path = (
-            subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"],
-                capture_output=True,
-                text=True
-            )
-            .stdout.strip()
-            .split("\n")[0]
-            if subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"],
-                capture_output=True,
-                text=True
-            ).returncode,
-            == 0,
+            result.stdout.strip().split("\n")[0]
+            if result.returncode == 0
             else None
         )
 

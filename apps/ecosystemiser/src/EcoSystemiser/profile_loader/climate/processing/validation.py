@@ -1156,7 +1156,7 @@ def validate_complete(
 
     # Add dataset info to metadata,
     report.metadata = {
-        "dataset_info": {,
+        "dataset_info": {
             "variables": list(ds.data_vars.keys()),
             "time_range": (str(ds.time.min().values), str(ds.time.max().values)),
             "shape": dict(ds.sizes),  # Use sizes instead of dims to avoid deprecation warning,

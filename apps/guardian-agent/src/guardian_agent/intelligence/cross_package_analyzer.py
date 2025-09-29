@@ -941,3 +941,4 @@ and "hive_ai" not in current_hive_imports
 
         return total_hours
 
+

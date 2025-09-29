@@ -1142,3 +1142,4 @@ class ProphecyEngine:
 
         return "\n".join(summary_parts)
 
+

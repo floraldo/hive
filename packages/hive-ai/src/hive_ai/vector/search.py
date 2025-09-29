@@ -436,18 +436,18 @@ class SemanticSearch:
             embedding_stats = await self.embedding_manager.get_embedding_stats_async()
 
             return {
-                "collection": {,
+                "collection": {
                     "name": self.config.collection_name,
                     "document_count": vector_info.get("count", 0),
                     "dimension": self.config.dimension,
                     "provider": self.config.provider
-                }
-                "health": {,
-                    "vector_store": vector_health.get("healthy", False)
+                },
+                "health": {
+                    "vector_store": vector_health.get("healthy", False),
                     "embedding_manager": True  # Assume healthy if no errors
-                }
+                },
                 "embedding_stats": embedding_stats,
-                "configuration": {,
+                "configuration": {
                     "distance_metric": self.config.distance_metric,
                     "index_type": self.config.index_type,
                     "max_connections": self.config.max_connections

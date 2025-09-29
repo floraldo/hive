@@ -586,10 +586,10 @@ class AsyncQueen:
             while True:
                 # Execute all operations concurrently
                 await asyncio.gather(
-                    self.process_queued_tasks_async()
-                    self.monitor_workers_async()
+                    self.process_queued_tasks_async(),
+                    self.monitor_workers_async(),
                     self.recover_zombie_tasks_async(),
-                    return_exceptions=True
+                    return_exceptions=True,
                 )
 
                 # Status update

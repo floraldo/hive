@@ -880,36 +880,36 @@ async def get_processing_options_async(config: Dict[str, Any]) -> None:
                 "available_methods": ["smart", "linear", "pattern", "seasonal"],
                 "max_gap_hours": config.preprocessing.max_pattern_gap_hours
             },
-            "derivations": {,
+            "derivations": {
                 "basic_vars": config.preprocessing.derive_basic_vars,
                 "variables": ["dewpoint", "rel_humidity", "pressure"]
             }
         },
-        "postprocessing": {,
+        "postprocessing": {
             "building_metrics": {
-                "degree_days": {,
+                "degree_days": {
                     "enabled": config.postprocessing.calculate_degree_days,
                     "hdd_base": config.postprocessing.hdd_base_temp,
                     "cdd_base": config.postprocessing.cdd_base_temp
                 },
-                "comfort": {,
+                "comfort": {
                     "wet_bulb": config.postprocessing.calculate_wet_bulb,
                     "heat_index": config.postprocessing.calculate_heat_index
                 }
             },
-            "solar": {,
+            "solar": {
                 "clearness_index": config.postprocessing.calculate_clearness_index,
                 "solar_angles": config.postprocessing.calculate_solar_angles
             },
-            "statistics": {,
+            "statistics": {
                 "enabled": config.postprocessing.include_statistics,
                 "percentiles": config.postprocessing.stats_percentiles
             },
-            "extremes": {,
+            "extremes": {
                 "enabled": config.postprocessing.analyze_extremes,
                 "percentile": config.postprocessing.extreme_percentile
             },
-            "design_conditions": {,
+            "design_conditions": {
                 "enabled": config.postprocessing.calculate_design_conditions,
                 "percentiles": config.postprocessing.design_percentiles
             }

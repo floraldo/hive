@@ -258,9 +258,11 @@ class PromptRegistry:
                     continue
 
                 # Search in description
-                if (template.metadata and,
-                    template.metadata.description and,
-                    search_lower in template.metadata.description.lower()):
+                if (
+                    template.metadata
+                    and template.metadata.description
+                    and search_lower in template.metadata.description.lower()
+                ):
                     filtered_names.append(name)
                     continue
 
