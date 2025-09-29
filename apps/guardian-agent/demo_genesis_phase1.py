@@ -149,10 +149,7 @@ Small business owners and their staff members.
     print_subheader("Design Intelligence Analysis")
 
     # Simulate the data unification layer processing
-    from guardian_agent.intelligence.data_unification import (
-        DataUnificationLayer,
-        MetricsWarehouse,
-    )
+    from guardian_agent.intelligence.data_unification import DataUnificationLayer, MetricsWarehouse
 
     try:
         warehouse = MetricsWarehouse()
@@ -221,10 +218,7 @@ Small business owners and their staff members.
     print("the future consequences of architectural decisions...")
 
     try:
-        from guardian_agent.intelligence.oracle_service import (
-            OracleConfig,
-            OracleService,
-        )
+        from guardian_agent.intelligence.oracle_service import OracleConfig, OracleService
 
         print("\nInitializing Prophecy Engine...")
 

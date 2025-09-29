@@ -37,12 +37,7 @@ class PredictiveAnalysisRunner:
     to analyze trends and generate proactive alerts.
     """
 
-    def __init__(
-        self,
-        alert_manager: PredictiveAlertManager,
-        error_reporter=None,
-        health_monitor=None
-    ):
+    def __init__(self, alert_manager: PredictiveAlertManager, error_reporter=None, health_monitor=None):
         """
         Initialize analysis runner.
 
@@ -92,10 +87,7 @@ class PredictiveAnalysisRunner:
             self.run_stats["last_run_time"] = start_time.isoformat()
             self.run_stats["last_run_duration_seconds"] = duration
 
-            logger.info(
-                f"Analysis complete: {len(alerts_generated)} alerts generated "
-                f"in {duration:.2f}s"
-            )
+            logger.info(f"Analysis complete: {len(alerts_generated)} alerts generated in {duration:.2f}s")
 
             return {
                 "success": True,
@@ -107,15 +99,9 @@ class PredictiveAnalysisRunner:
 
         except Exception as e:
             logger.error(f"Analysis run failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-                "timestamp": start_time.isoformat(),
-            }
+            return {"success": False, "error": str(e), "timestamp": start_time.isoformat()}
 
-    async def _collect_metrics_async(
-        self,
-    ) -> dict[tuple[str, MetricType], list[MetricPoint]]:
+    async def _collect_metrics_async(self) -> dict[tuple[str, MetricType], list[MetricPoint]]:
         """
         Collect metrics from monitoring systems.
 
@@ -149,9 +135,7 @@ class PredictiveAnalysisRunner:
 
         return metrics
 
-    async def _get_service_error_rates_async(
-        self, service_name: str
-    ) -> list[MetricPoint] | None:
+    async def _get_service_error_rates_async(self, service_name: str) -> list[MetricPoint] | None:
         """
         Get error rate metrics for a service.
 
@@ -165,6 +149,7 @@ class PredictiveAnalysisRunner:
             # Import monitoring reporter
             try:
                 from hive_errors.monitoring_error_reporter import MonitoringErrorReporter
+
                 # Get global instance if available
                 # In production, this would be injected via dependency injection
                 error_reporter = getattr(self, "_error_reporter", None)
@@ -173,10 +158,7 @@ class PredictiveAnalysisRunner:
                     return None
 
                 # Get error rate history
-                error_data = error_reporter.get_error_rate_history(
-                    service_name=service_name,
-                    hours=24
-                )
+                error_data = error_reporter.get_error_rate_history(service_name=service_name, hours=24)
 
                 if not error_data:
                     logger.debug(f"No error data available for {service_name}")
@@ -184,17 +166,11 @@ class PredictiveAnalysisRunner:
 
                 # Convert to MetricPoint objects
                 metric_points = [
-                    MetricPoint(
-                        timestamp=point["timestamp"],
-                        value=point["value"],
-                        metadata=point["metadata"]
-                    )
+                    MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
                     for point in error_data
                 ]
 
-                logger.info(
-                    f"Collected {len(metric_points)} error rate points for {service_name}"
-                )
+                logger.info(f"Collected {len(metric_points)} error rate points for {service_name}")
                 return metric_points
 
             except ImportError:
@@ -205,9 +181,7 @@ class PredictiveAnalysisRunner:
             logger.warning(f"Failed to collect error rates for {service_name}: {e}")
             return None
 
-    async def _get_service_cpu_metrics_async(
-        self, service_name: str
-    ) -> list[MetricPoint] | None:
+    async def _get_service_cpu_metrics_async(self, service_name: str) -> list[MetricPoint] | None:
         """
         Get CPU utilization metrics for a service.
 
@@ -221,6 +195,7 @@ class PredictiveAnalysisRunner:
             # Import health monitor
             try:
                 from hive_ai.observability.health import ModelHealthChecker
+
                 # Get health monitor instance if available
                 health_monitor = getattr(self, "_health_monitor", None)
                 if not health_monitor:
@@ -228,11 +203,7 @@ class PredictiveAnalysisRunner:
                     return None
 
                 # Get CPU utilization history
-                cpu_data = health_monitor.get_metric_history(
-                    provider=service_name,
-                    metric_name="cpu_percent",
-                    hours=24
-                )
+                cpu_data = health_monitor.get_metric_history(provider=service_name, metric_name="cpu_percent", hours=24)
 
                 if not cpu_data:
                     logger.debug(f"No CPU data available for {service_name}")
@@ -240,17 +211,11 @@ class PredictiveAnalysisRunner:
 
                 # Convert to MetricPoint objects
                 metric_points = [
-                    MetricPoint(
-                        timestamp=point["timestamp"],
-                        value=point["value"],
-                        metadata=point["metadata"]
-                    )
+                    MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
                     for point in cpu_data
                 ]
 
-                logger.info(
-                    f"Collected {len(metric_points)} CPU metric points for {service_name}"
-                )
+                logger.info(f"Collected {len(metric_points)} CPU metric points for {service_name}")
                 return metric_points
 
             except ImportError:
@@ -261,9 +226,7 @@ class PredictiveAnalysisRunner:
             logger.warning(f"Failed to collect CPU metrics for {service_name}: {e}")
             return None
 
-    async def _get_service_latency_async(
-        self, service_name: str
-    ) -> list[MetricPoint] | None:
+    async def _get_service_latency_async(self, service_name: str) -> list[MetricPoint] | None:
         """
         Get latency metrics for a service.
 
@@ -277,6 +240,7 @@ class PredictiveAnalysisRunner:
             # Import health monitor for latency tracking
             try:
                 from hive_ai.observability.health import ModelHealthChecker
+
                 # Get health monitor instance if available
                 health_monitor = getattr(self, "_health_monitor", None)
                 if not health_monitor:
@@ -285,9 +249,7 @@ class PredictiveAnalysisRunner:
 
                 # Get response time history (latency proxy)
                 latency_data = health_monitor.get_metric_history(
-                    provider=service_name,
-                    metric_name="response_time",
-                    hours=24
+                    provider=service_name, metric_name="response_time", hours=24
                 )
 
                 if not latency_data:
@@ -296,17 +258,11 @@ class PredictiveAnalysisRunner:
 
                 # Convert to MetricPoint objects
                 metric_points = [
-                    MetricPoint(
-                        timestamp=point["timestamp"],
-                        value=point["value"],
-                        metadata=point["metadata"]
-                    )
+                    MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
                     for point in latency_data
                 ]
 
-                logger.info(
-                    f"Collected {len(metric_points)} latency metric points for {service_name}"
-                )
+                logger.info(f"Collected {len(metric_points)} latency metric points for {service_name}")
                 return metric_points
 
             except ImportError:
@@ -319,10 +275,7 @@ class PredictiveAnalysisRunner:
 
     def get_stats(self) -> dict:
         """Get runner statistics."""
-        return {
-            **self.run_stats,
-            "alert_manager_stats": self.alert_manager.get_stats(),
-        }
+        return {**self.run_stats, "alert_manager_stats": self.alert_manager.get_stats()}
 
 
 async def main():
@@ -335,20 +288,10 @@ async def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Predictive Failure Analysis")
-    parser.add_argument(
-        "--continuous",
-        action="store_true",
-        help="Run continuously with periodic analysis",
-    )
-    parser.add_argument(
-        "--interval", type=int, default=5, help="Analysis interval in minutes (default: 5)"
-    )
-    parser.add_argument(
-        "--config", type=Path, help="Path to alert configuration file (YAML/JSON)"
-    )
-    parser.add_argument(
-        "--output", type=Path, help="Output file for analysis results (JSON)"
-    )
+    parser.add_argument("--continuous", action="store_true", help="Run continuously with periodic analysis")
+    parser.add_argument("--interval", type=int, default=5, help="Analysis interval in minutes (default: 5)")
+    parser.add_argument("--config", type=Path, help="Path to alert configuration file (YAML/JSON)")
+    parser.add_argument("--output", type=Path, help="Output file for analysis results (JSON)")
 
     args = parser.parse_args()
 

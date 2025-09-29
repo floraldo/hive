@@ -8,11 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # Import the components we're testing
-from ai_planner.async_agent import (
-    AsyncAIPlanner,
-    AsyncClaudeService,
-    PlanningPriority,
-)
+from ai_planner.async_agent import AsyncAIPlanner, AsyncClaudeService, PlanningPriority
 
 
 @pytest.fixture

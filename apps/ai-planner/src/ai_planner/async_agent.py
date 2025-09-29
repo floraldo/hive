@@ -315,7 +315,7 @@ class AsyncClaudeService:
         possible_paths = [
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
-            Path("claude.cmd")
+            Path("claude.cmd"),
             Path("claude")
         ]
 
@@ -333,7 +333,7 @@ class AsyncClaudeService:
 
             stdout, stderr = await process.communicate()
 
-            if process.returncode == 0:,
+            if process.returncode == 0:
                 claude_path = stdout.decode('utf-8').strip().split('\n')[0]
                 if claude_path:
                     return claude_path
@@ -345,7 +345,7 @@ class AsyncClaudeService:
     def _create_planning_prompt(
         self,
         task_description: str,
-        context_data: Dict[str, Any]
+        context_data: Dict[str, Any],
         priority: int,
         requestor: str
     ) -> str:
@@ -366,12 +366,12 @@ class AsyncClaudeService:
                 "title": task.get("title"),
                 "description": task.get("description"),
                 "workflow_phase": task.get("workflow_phase"),
-                "required_skills": task.get("required_skills", [])
-                "estimated_duration": task.get("estimated_duration", 30)
-                "assignee": task.get("assignee", "auto")
-                "complexity": task.get("complexity", "medium")
-                "deliverables": task.get("deliverables", [])
-                "dependencies": task.get("dependencies", [])
+                "required_skills": task.get("required_skills", []),
+                "estimated_duration": task.get("estimated_duration", 30),
+                "assignee": task.get("assignee", "auto"),
+                "complexity": task.get("complexity", "medium"),
+                "deliverables": task.get("deliverables", []),
+                "dependencies": task.get("dependencies", []),
                 "priority": task.get("priority", 50)
             })
 

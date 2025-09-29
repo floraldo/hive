@@ -49,11 +49,7 @@ class TestClaudeIntegration:
 
         plan = bridge.generate_execution_plan(
             task_description="Create a user authentication system",
-            context_data={
-                "files_affected": 5,
-                "dependencies": ["jwt", "database"],
-                "tech_stack": ["python", "flask"],
-            },
+            context_data={"files_affected": 5, "dependencies": ["jwt", "database"], "tech_stack": ["python", "flask"]},
             priority=75,
             requestor="test_user",
         )
@@ -121,11 +117,7 @@ class TestClaudeIntegration:
                     "deliverables": ["requirements.md"],
                 }
             ],
-            "dependencies": {
-                "critical_path": ["task-001"],
-                "parallel_groups": [],
-                "blocking_dependencies": {},
-            },
+            "dependencies": {"critical_path": ["task-001"], "parallel_groups": [], "blocking_dependencies": {}},
             "workflow": {
                 "lifecycle_phases": ["analysis"],
                 "phase_transitions": {},
@@ -215,10 +207,7 @@ class TestClaudeIntegration:
 
         # Verify plan was saved to database
         cursor = agent.db_connection.cursor()
-        cursor.execute(
-            "SELECT COUNT(*) FROM execution_plans WHERE planning_task_id = ?",
-            (test_task["id"],),
-        )
+        cursor.execute("SELECT COUNT(*) FROM execution_plans WHERE planning_task_id = ?", (test_task["id"],))
         plan_count = cursor.fetchone()[0]
         assert plan_count == 1
 
@@ -260,24 +249,9 @@ class TestClaudeIntegration:
                 json.dumps(
                     {
                         "files_affected": 50,
-                        "dependencies": [
-                            "stripe",
-                            "redis",
-                            "postgres",
-                            "elasticsearch",
-                        ],
-                        "tech_stack": [
-                            "python",
-                            "react",
-                            "fastapi",
-                            "docker",
-                            "kubernetes",
-                        ],
-                        "constraints": [
-                            "PCI compliance",
-                            "GDPR compliance",
-                            "high availability",
-                        ],
+                        "dependencies": ["stripe", "redis", "postgres", "elasticsearch"],
+                        "tech_stack": ["python", "react", "fastapi", "docker", "kubernetes"],
+                        "constraints": ["PCI compliance", "GDPR compliance", "high availability"],
                     }
                 ),
                 "pending",
@@ -299,10 +273,7 @@ class TestClaudeIntegration:
         final_status = cursor.fetchone()[0]
         assert final_status == "planned"
 
-        cursor.execute(
-            "SELECT plan_data FROM execution_plans WHERE planning_task_id = ?",
-            (test_task_id,),
-        )
+        cursor.execute("SELECT plan_data FROM execution_plans WHERE planning_task_id = ?", (test_task_id,))
         plan_result = cursor.fetchone()
         assert plan_result is not None, (
             f"No execution plan found for task {test_task_id}. Check if plan was saved properly."

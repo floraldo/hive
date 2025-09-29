@@ -7,10 +7,7 @@ The isolated version (app_isolated.py) does not import from the ecosystemiser pa
 
 import streamlit as st
 
-st.set_page_config(
-    page_title="EcoSystemiser Dashboard - Redirect",
-    page_icon="🔄",
-)
+st.set_page_config(page_title="EcoSystemiser Dashboard - Redirect", page_icon="🔄")
 
 st.warning(
     """

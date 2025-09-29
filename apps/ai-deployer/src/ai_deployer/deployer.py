@@ -1,22 +1,14 @@
 """
 Deployment orchestrator that manages deployment strategies and execution
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
-from hive_deployment import (
-    connect_to_server,
-    deploy_application,
-    determine_deployment_paths,
-    rollback_deployment
-)
-from hive_errors import BaseError, RecoveryStrategy
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -25,9 +17,9 @@ logger = get_logger(__name__)
 class DeploymentStrategy(Enum):
     """Available deployment strategies"""
 
-    DIRECT = "direct",
-    BLUE_GREEN = "blue-green",
-    ROLLING = "rolling",
+    DIRECT = ("direct",)
+    BLUE_GREEN = ("blue-green",)
+    ROLLING = ("rolling",)
     CANARY = "canary"
 
 
@@ -40,9 +32,9 @@ class DeploymentResult:
     deployment_id: str | None = None
     error: str | None = None
     rollback_attempted: bool = False
-    metrics: Dict[str, Any] = None
+    metrics: dict[str, Any] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert result to dictionary"""
         return {
             "success": self.success,
@@ -50,7 +42,7 @@ class DeploymentResult:
             "deployment_id": self.deployment_id,
             "error": self.error,
             "rollback_attempted": self.rollback_attempted,
-            "metrics": self.metrics or {}
+            "metrics": self.metrics or {},
         }
 
 
@@ -60,7 +52,7 @@ class HealthStatus:
 
     healthy: bool
     message: str | None = None
-    checks: Dict[str, bool] = None
+    checks: dict[str, bool] = None
 
 
 class DeploymentOrchestrator:
@@ -68,7 +60,7 @@ class DeploymentOrchestrator:
     Orchestrates deployment operations using various strategies
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
         """
         Initialize deployment orchestrator
 
@@ -79,7 +71,7 @@ class DeploymentOrchestrator:
         self.strategies = self._initialize_strategies()
         self.default_strategy = DeploymentStrategy.DIRECT
 
-    def _initialize_strategies(self) -> Dict[DeploymentStrategy, Any]:
+    def _initialize_strategies(self) -> dict[DeploymentStrategy, Any]:
         """Initialize deployment strategies"""
         from .strategies.docker import DockerDeploymentStrategy
         from .strategies.kubernetes import KubernetesDeploymentStrategy
@@ -89,10 +81,10 @@ class DeploymentOrchestrator:
             DeploymentStrategy.DIRECT: SSHDeploymentStrategy(self.config),
             DeploymentStrategy.BLUE_GREEN: SSHDeploymentStrategy(self.config),
             DeploymentStrategy.ROLLING: DockerDeploymentStrategy(self.config),
-            DeploymentStrategy.CANARY: KubernetesDeploymentStrategy(self.config)
+            DeploymentStrategy.CANARY: KubernetesDeploymentStrategy(self.config),
         }
 
-    async def deploy_async(self, task: Dict[str, Any]) -> DeploymentResult:
+    async def deploy_async(self, task: dict[str, Any]) -> DeploymentResult:
         """
         Deploy application based on task configuration
 
@@ -138,10 +130,10 @@ class DeploymentOrchestrator:
                 deployment_id=deployment_id,
                 error=str(e),
                 rollback_attempted=True,
-                metrics={"rollback_success": rollback_success}
+                metrics={"rollback_success": rollback_success},
             )
 
-    def _select_strategy(self, task: Dict[str, Any]) -> DeploymentStrategy:
+    def _select_strategy(self, task: dict[str, Any]) -> DeploymentStrategy:
         """
         Select deployment strategy based on task configuration
 
@@ -159,7 +151,7 @@ class DeploymentOrchestrator:
             "direct": DeploymentStrategy.DIRECT,
             "blue-green": DeploymentStrategy.BLUE_GREEN,
             "rolling": DeploymentStrategy.ROLLING,
-            "canary": DeploymentStrategy.CANARY
+            "canary": DeploymentStrategy.CANARY,
         }
 
         strategy = strategy_map.get(strategy_name, self.default_strategy)
@@ -171,7 +163,7 @@ class DeploymentOrchestrator:
 
         return strategy
 
-    def _validate_strategy_compatibility(self, strategy: DeploymentStrategy, task: Dict[str, Any]) -> bool:
+    def _validate_strategy_compatibility(self, strategy: DeploymentStrategy, task: dict[str, Any]) -> bool:
         """
         Validate if strategy is compatible with deployment environment
 
@@ -200,7 +192,7 @@ class DeploymentOrchestrator:
         return True
 
     async def _execute_deployment_async(
-        self, strategy_impl: Any, task: Dict[str, Any], deployment_id: str
+        self, strategy_impl: Any, task: dict[str, Any], deployment_id: str
     ) -> DeploymentResult:
         """
         Execute deployment using selected strategy
@@ -229,10 +221,10 @@ class DeploymentOrchestrator:
             success=deploy_result["success"],
             strategy=strategy_impl.strategy,
             deployment_id=deployment_id,
-            metrics=deploy_result.get("metrics", {})
+            metrics=deploy_result.get("metrics", {}),
         )
 
-    async def _validate_deployment_async(self, task: Dict[str, Any], deployment_id: str) -> bool:
+    async def _validate_deployment_async(self, task: dict[str, Any], deployment_id: str) -> bool:
         """
         Validate deployment was successful
 
@@ -265,7 +257,7 @@ class DeploymentOrchestrator:
             logger.error(f"Deployment validation error: {e}", exc_info=True)
             return False
 
-    async def _attempt_rollback_async(self, task: Dict[str, Any], deployment_id: str) -> bool:
+    async def _attempt_rollback_async(self, task: dict[str, Any], deployment_id: str) -> bool:
         """
         Attempt to rollback failed deployment
 
@@ -302,7 +294,7 @@ class DeploymentOrchestrator:
             logger.error(f"Rollback error: {e}", exc_info=True)
             return False
 
-    async def check_health_async(self, task: Dict[str, Any]) -> HealthStatus:
+    async def check_health_async(self, task: dict[str, Any]) -> HealthStatus:
         """
         Check health of deployed application
 
@@ -332,31 +324,28 @@ class DeploymentOrchestrator:
             return HealthStatus(
                 healthy=overall_healthy,
                 message=("All health checks passed" if overall_healthy else "Some health checks failed"),
-                checks=health_checks
+                checks=health_checks,
             )
 
         except Exception as e:
             logger.error(f"Health check error: {e}", exc_info=True)
-            return HealthStatus(
-                healthy=False,
-                message=f"Health check error: {e}"
-            )
+            return HealthStatus(healthy=False, message=f"Health check error: {e}")
 
-    async def _check_endpoint_async(self, task: Dict[str, Any], endpoint: str) -> bool:
+    async def _check_endpoint_async(self, task: dict[str, Any], endpoint: str) -> bool:
         """Check if application endpoint is healthy"""
         # Implementation would make HTTP request to endpoint
         # For now, simulate check
         await asyncio.sleep(0.5)
         return True  # Placeholder
 
-    async def _check_dependency_async(self, dependency: Dict[str, Any]) -> bool:
+    async def _check_dependency_async(self, dependency: dict[str, Any]) -> bool:
         """Check if dependency is healthy"""
         # Implementation would check dependency health
         # For now, simulate check
         await asyncio.sleep(0.2)
         return True  # Placeholder
 
-    async def _run_smoke_tests_async(self, task: Dict[str, Any]) -> bool:
+    async def _run_smoke_tests_async(self, task: dict[str, Any]) -> bool:
         """Run smoke tests on deployed application"""
         # Implementation would run configured smoke tests
         # For now, simulate test run

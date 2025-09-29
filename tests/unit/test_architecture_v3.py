@@ -68,12 +68,7 @@ def test_service_layer_decoupling():
         pytest.skip("Services directory not found")
 
     # Services should not import each other directly
-    service_files = [
-        "simulation_service.py",
-        "study_service.py",
-        "job_service.py",
-        "reporting_service.py",
-    ]
+    service_files = ["simulation_service.py", "study_service.py", "job_service.py", "reporting_service.py"]
 
     for service_file in service_files:
         file_path = services_dir / service_file
@@ -126,11 +121,7 @@ def test_climate_validation_colocated():
             content = f.read()
 
         # These classes should NOT be in validation.py
-        forbidden_classes = [
-            "class NASAPowerQCProfile",
-            "class MeteostatQCProfile",
-            "class ERA5QCProfile",
-        ]
+        forbidden_classes = ["class NASAPowerQCProfile", "class MeteostatQCProfile", "class ERA5QCProfile"]
 
         for class_def in forbidden_classes:
             if class_def in content:
@@ -295,11 +286,7 @@ def test_job_facade_exists():
         content = f.read()
 
     # JobFacade should have key methods
-    required_methods = [
-        "def submit_job",
-        "def get_job_status",
-        "def get_job_result",
-    ]
+    required_methods = ["def submit_job", "def get_job_status", "def get_job_result"]
 
     violations = []
     for method in required_methods:

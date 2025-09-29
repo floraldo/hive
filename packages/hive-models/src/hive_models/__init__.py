@@ -6,14 +6,7 @@ ensuring consistent data structures and clean dependency management.
 """
 
 from .base import BaseModel, IdentifiableMixin, StatusMixin, TimestampMixin
-from .common import (
-    Environment,
-    ExecutionResult,
-    HealthStatus,
-    Priority,
-    ResourceMetrics,
-    Status,
-)
+from .common import Environment, ExecutionResult, HealthStatus, Priority, ResourceMetrics, Status
 
 # Import from domain-specific modules as they're created
 # from .deployment import DeploymentTask, DeploymentConfig, DeploymentStatus

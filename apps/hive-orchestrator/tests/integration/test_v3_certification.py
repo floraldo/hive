@@ -55,11 +55,7 @@ class V3CertificationTest:
 
         except Exception as e:
             duration = time.time() - start_time
-            self.test_results[test_name] = {
-                "status": "ERROR",
-                "duration": duration,
-                "message": str(e),
-            }
+            self.test_results[test_name] = {"status": "ERROR", "duration": duration, "message": str(e)}
             self.log(f"[ERROR] {test_name} ERROR: {e} ({duration:.2f}s)", "ERROR")
 
     def test_1_configuration_centralization(self) -> bool:
@@ -135,10 +131,7 @@ class V3CertificationTest:
         """Test Claude service with centralized configuration"""
         try:
             self.log("Testing Claude service integration...")
-            from hive_claude_bridge.claude_service import (
-                get_claude_service,
-                reset_claude_service,
-            )
+            from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
 
             from hive_config import get_config
 
@@ -244,10 +237,7 @@ class V3CertificationTest:
         """Test integration between all components"""
         try:
             # Test that all components can work together
-            from hive_claude_bridge.claude_service import (
-                get_claude_service,
-                reset_claude_service,
-            )
+            from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
 
             from hive_config import get_config
             from hive_db import get_pooled_connection

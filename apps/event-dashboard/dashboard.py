@@ -60,9 +60,7 @@ class EventDashboard:
         try:
             # Subscribe to all events using wildcard pattern
             subscription_id = self.event_bus.subscribe(
-                pattern="*",
-                callback=self._handle_event,
-                subscriber_name="event-dashboard",
+                pattern="*", callback=self._handle_event, subscriber_name="event-dashboard"
             )
             logger.info(f"Subscribed to all events: {subscription_id}")
             return subscription_id
@@ -92,11 +90,7 @@ class EventDashboard:
             # Update agent activity
             agent = event.source_agent
             if agent not in self.agent_activity:
-                self.agent_activity[agent] = {
-                    "last_seen": datetime.now(),
-                    "event_count": 0,
-                    "event_types": set(),
-                }
+                self.agent_activity[agent] = {"last_seen": datetime.now(), "event_count": 0, "event_types": set()}
 
             self.agent_activity[agent]["last_seen"] = datetime.now()
             self.agent_activity[agent]["event_count"] += 1
@@ -115,11 +109,7 @@ class EventDashboard:
 
                 self.workflow_states[correlation_id]["last_update"] = datetime.now()
                 self.workflow_states[correlation_id]["events"].append(
-                    {
-                        "timestamp": datetime.now(),
-                        "event_type": event.event_type,
-                        "source": event.source_agent,
-                    }
+                    {"timestamp": datetime.now(), "event_type": event.event_type, "source": event.source_agent}
                 )
 
             # Update system stats
@@ -232,11 +222,7 @@ class EventDashboard:
                 status = "🔴 Stalled"
 
             table.add_row(
-                wf_id[:18] + "..." if len(wf_id) > 20 else wf_id,
-                duration_str,
-                str(event_count),
-                last_activity,
-                status,
+                wf_id[:18] + "..." if len(wf_id) > 20 else wf_id, duration_str, str(event_count), last_activity, status
             )
 
         return table
@@ -270,11 +256,7 @@ class EventDashboard:
         # Create layout structure
         layout = Layout()
 
-        layout.split_column(
-            Layout(name="header", size=3),
-            Layout(name="main"),
-            Layout(name="footer", size=3),
-        )
+        layout.split_column(Layout(name="header", size=3), Layout(name="main"), Layout(name="footer", size=3))
 
         layout["main"].split_row(Layout(name="left"), Layout(name="right"))
 
@@ -284,10 +266,7 @@ class EventDashboard:
 
         # Populate layout
         layout["header"].update(
-            Panel(
-                "🚀 Hive V4.0 Event Dashboard - Real-time Agent Communication",
-                style="bold blue",
-            )
+            Panel("🚀 Hive V4.0 Event Dashboard - Real-time Agent Communication", style="bold blue")
         )
         layout["events"].update(self._create_recent_events_table())
         layout["stats"].update(self._create_system_stats_panel())

@@ -118,14 +118,7 @@ class ReviewResult:
         ]
 
         if self.all_violations:
-            lines.extend(
-                [
-                    "## Violations",
-                    "",
-                    f"Found {sum(self.violations_count.values())} violations:",
-                    "",
-                ]
-            )
+            lines.extend(["## Violations", "", f"Found {sum(self.violations_count.values())} violations:", ""])
 
             for severity in Severity:
                 count = self.violations_count.get(severity, 0)
@@ -154,14 +147,7 @@ class ReviewResult:
                 lines.append("")
 
         if self.all_suggestions:
-            lines.extend(
-                [
-                    "## Suggestions",
-                    "",
-                    f"Found {len(self.all_suggestions)} improvement suggestions:",
-                    "",
-                ]
-            )
+            lines.extend(["## Suggestions", "", f"Found {len(self.all_suggestions)} improvement suggestions:", ""])
 
             for suggestion in sorted(self.all_suggestions, key=lambda s: -s.confidence):
                 lines.extend(

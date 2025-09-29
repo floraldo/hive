@@ -50,9 +50,5 @@ class NotificationCostCalculator:
             resource_type=resource_type,
             units=1,  # One notification,
             cost_per_unit=cost_per_unit,
-            metadata={
-                "provider": provider,
-                "priority": priority,
-                "operation": operation,
-            },
+            metadata={"provider": provider, "priority": priority, "operation": operation},
         )

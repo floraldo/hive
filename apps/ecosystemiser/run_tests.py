@@ -39,20 +39,12 @@ def run_command(cmd: list[str], description: str) -> dict[str, Any]:
         if result.stdout:
             logger.info(f"Output: {result.stdout.strip()}")
 
-    return {
-        "success": result.returncode == 0,
-        "duration": duration,
-        "stdout": result.stdout,
-        "stderr": result.stderr,
-    }
+    return {"success": result.returncode == 0, "duration": duration, "stdout": result.stdout, "stderr": result.stderr}
 
 
 def run_unit_tests() -> dict[str, Any]:
     """Run unit tests with pytest."""
-    return run_command(
-        [sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short"],
-        "Unit Tests (pytest)",
-    )
+    return run_command([sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short"], "Unit Tests (pytest)")
 
 
 def run_integration_tests() -> dict[str, Any]:

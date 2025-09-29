@@ -25,11 +25,7 @@ logger = get_logger(__name__)
 # Configuration (using toolkit)
 # ============================================================================
 
-config = HiveAppConfig(
-    app_name="notification-service",
-    app_version="1.0.0",
-    environment="production",
-)
+config = HiveAppConfig(app_name="notification-service", app_version="1.0.0", environment="production")
 
 # Notification-specific cost limits
 config.cost_control.daily_limit = 50.0  # $50/day for notifications
@@ -131,10 +127,7 @@ class BulkNotificationRequest(BaseModel):
 
 
 @app.post("/api/notify", response_model=NotificationResponse)
-async def send_notification(
-    request: NotificationRequest,
-    background_tasks: BackgroundTasks,
-):
+async def send_notification(request: NotificationRequest, background_tasks: BackgroundTasks):
     """Send a single notification with cost control and rate limiting."""
     try:
         # Use toolkit's cost control
@@ -170,10 +163,7 @@ async def send_notification(
         notification_id = await cost_manager.with_cost_control(
             "send_notification",
             send_notification_operation,
-            parameters={
-                "provider": request.provider,
-                "priority": request.priority,
-            },
+            parameters={"provider": request.provider, "priority": request.priority},
         )
 
         return NotificationResponse(
@@ -190,10 +180,7 @@ async def send_notification(
 
 
 @app.post("/api/notify/bulk")
-async def send_bulk_notifications(
-    request: BulkNotificationRequest,
-    background_tasks: BackgroundTasks,
-):
+async def send_bulk_notifications(request: BulkNotificationRequest, background_tasks: BackgroundTasks):
     """Send multiple notifications in batches."""
     try:
         # Check total cost before processing
@@ -220,13 +207,7 @@ async def send_bulk_notifications(
                         }
                     )
                 except Exception as e:
-                    results.append(
-                        {
-                            "recipient": notification.recipient,
-                            "status": "failed",
-                            "error": str(e),
-                        }
-                    )
+                    results.append({"recipient": notification.recipient, "status": "failed", "error": str(e)})
             return results
 
         background_tasks.add_task(process_bulk)
@@ -299,10 +280,7 @@ def main():
     import uvicorn
 
     uvicorn_config = config.get_uvicorn_config()
-    uvicorn.run(
-        "notification_service.main:app",
-        **uvicorn_config,
-    )
+    uvicorn.run("notification_service.main:app", **uvicorn_config)
 
 
 if __name__ == "__main__":

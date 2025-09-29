@@ -3,13 +3,7 @@
 import time
 from pathlib import Path
 
-from guardian_agent.core.interfaces import (
-    AnalysisResult,
-    Severity,
-    Suggestion,
-    Violation,
-    ViolationType,
-)
+from guardian_agent.core.interfaces import AnalysisResult, Severity, Suggestion, Violation, ViolationType
 from hive_logging import get_logger
 from hive_tests.ast_validator import ASTValidator
 from hive_tests.autofix import GoldenRulesAutoFixer
@@ -77,9 +71,7 @@ class GoldenRulesAnalyzer:
                     message=val_violation.message,
                     file_path=file_path,
                     line_number=val_violation.line_number,
-                    metadata={
-                        "rule_name": val_violation.rule_name,
-                    },
+                    metadata={"rule_name": val_violation.rule_name},
                 )
 
                 # Check if autofix is available
@@ -95,10 +87,7 @@ class GoldenRulesAnalyzer:
 
         except Exception as e:
             logger.error("Golden Rules analysis failed for %s: %s", file_path, e)
-            return AnalysisResult(
-                analyzer_name=self.__class__.__name__,
-                error=str(e),
-            )
+            return AnalysisResult(analyzer_name=self.__class__.__name__, error=str(e))
 
         execution_time = (time.time() - start_time) * 1000
 

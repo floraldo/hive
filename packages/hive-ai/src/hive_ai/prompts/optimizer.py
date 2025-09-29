@@ -300,13 +300,7 @@ Context-aware prompt:""",
 
         elif strategy == OptimizationStrategy.CREATIVITY:
             # Creative words indicate better creativity
-            creative_indicators = [
-                "creative",
-                "innovative",
-                "explore",
-                "imagine",
-                "unique",
-            ]
+            creative_indicators = ["creative", "innovative", "explore", "imagine", "unique"]
             original_score = sum(1 for word in creative_indicators if word in original.lower())
             optimized_score = sum(1 for word in creative_indicators if word in optimized.lower())
             return min(1.0, (optimized_score - original_score + 5) / 10)
@@ -407,11 +401,7 @@ Context-aware prompt:""",
         success_rate = len(valid_responses) / len(responses) if responses else 0.0
 
         metrics.append(
-            PerformanceMetric(
-                name="success_rate",
-                value=success_rate,
-                description="Percentage of successful responses",
-            )
+            PerformanceMetric(name="success_rate", value=success_rate, description="Percentage of successful responses")
         )
 
         if valid_responses:
@@ -419,9 +409,7 @@ Context-aware prompt:""",
             avg_length = statistics.mean(len(r) for r in valid_responses)
             metrics.append(
                 PerformanceMetric(
-                    name="avg_response_length",
-                    value=avg_length,
-                    description="Average response length in characters",
+                    name="avg_response_length", value=avg_length, description="Average response length in characters"
                 )
             )
 
@@ -477,9 +465,7 @@ Context-aware prompt:""",
             return "TIE", confidence
 
     async def batch_optimize_async(
-        self,
-        prompts: list[str],
-        strategy: OptimizationStrategy = OptimizationStrategy.CLARITY,
+        self, prompts: list[str], strategy: OptimizationStrategy = OptimizationStrategy.CLARITY
     ) -> list[OptimizationResult]:
         """
         Optimize multiple prompts in batch.

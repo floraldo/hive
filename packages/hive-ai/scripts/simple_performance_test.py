@@ -69,11 +69,7 @@ def test_security_performance():
         rate_limiter.is_allowed(f"user_{i}")
     rate_duration = (time.perf_counter() - start) * 1000
 
-    results["rate_limiting"] = {
-        "total_ms": rate_duration,
-        "avg_ms": rate_duration / 100,
-        "operations": 100,
-    }
+    results["rate_limiting"] = {"total_ms": rate_duration, "avg_ms": rate_duration / 100, "operations": 100}
 
     return results
 
@@ -93,11 +89,7 @@ def test_config_performance():
         configs.append(config)
     creation_duration = (time.perf_counter() - start) * 1000
 
-    results["config_creation"] = {
-        "total_ms": creation_duration,
-        "avg_ms": creation_duration / 50,
-        "operations": 50,
-    }
+    results["config_creation"] = {"total_ms": creation_duration, "avg_ms": creation_duration / 50, "operations": 50}
 
     # Model config creation
     model_configs = []
@@ -156,11 +148,7 @@ def test_vector_performance():
         results["embedding_manager_creation"] = {"duration_ms": creation_duration}
 
         # Test embedding simulation
-        test_texts = [
-            "Short text",
-            "Medium length text with more content",
-            "Long text " * 50,
-        ]
+        test_texts = ["Short text", "Medium length text with more content", "Long text " * 50]
 
         embedding_times = []
         for text in test_texts:
@@ -190,10 +178,7 @@ def test_vector_performance():
             similarity = embedding_manager._calculate_cosine_similarity(vec1, vec2)
             similarity_duration = (time.perf_counter() - start) * 1000
 
-            results["similarity_calculation"] = {
-                "duration_ms": similarity_duration,
-                "result": similarity,
-            }
+            results["similarity_calculation"] = {"duration_ms": similarity_duration, "result": similarity}
         except Exception as e:
             results["similarity_calculation"] = {"error": str(e)}
 
@@ -253,11 +238,7 @@ def test_model_system_performance():
             available = registry.list_available_models()
         lookup_duration = (time.perf_counter() - start) * 1000
 
-        results["model_lookup"] = {
-            "total_ms": lookup_duration,
-            "avg_ms": lookup_duration / 100,
-            "operations": 100,
-        }
+        results["model_lookup"] = {"total_ms": lookup_duration, "avg_ms": lookup_duration / 100, "operations": 100}
 
     except Exception as e:
         results["model_system"] = {"error": str(e)}
@@ -288,10 +269,7 @@ def run_performance_tests():
             results = test_func()
             suite_duration = (time.perf_counter() - suite_start) * 1000
 
-            all_results[suite_name] = {
-                "suite_duration_ms": suite_duration,
-                "results": results,
-            }
+            all_results[suite_name] = {"suite_duration_ms": suite_duration, "results": results}
             logger.info(f"OK {suite_name} tests completed in {suite_duration:.2f}ms")
 
         except Exception as e:
@@ -367,11 +345,7 @@ def generate_summary(results: dict[str, Any], total_duration: float) -> dict[str
                     )
                 elif "duration_ms" in test_data:
                     operations.append(
-                        {
-                            "name": f"{suite_name}.{test_name}",
-                            "avg_ms": test_data["duration_ms"],
-                            "operations": 1,
-                        }
+                        {"name": f"{suite_name}.{test_name}", "avg_ms": test_data["duration_ms"], "operations": 1}
                     )
 
     # Sort operations by performance

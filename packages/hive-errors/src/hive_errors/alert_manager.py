@@ -15,13 +15,7 @@ from typing import Any, Optional
 
 from hive_logging import get_logger
 
-from .predictive_alerts import (
-    AlertSeverity,
-    DegradationAlert,
-    MetricPoint,
-    MetricType,
-    TrendAnalyzer,
-)
+from .predictive_alerts import AlertSeverity, DegradationAlert, MetricPoint, MetricType, TrendAnalyzer
 
 logger = get_logger(__name__)
 
@@ -57,11 +51,7 @@ class PredictiveAlertManager:
     analyze trends and generate proactive alerts.
     """
 
-    def __init__(
-        self,
-        configs: list[AlertConfig] | None = None,
-        routing_rules: list[AlertRoutingRule] | None = None,
-    ):
+    def __init__(self, configs: list[AlertConfig] | None = None, routing_rules: list[AlertRoutingRule] | None = None):
         """
         Initialize predictive alert manager.
 
@@ -127,13 +117,9 @@ class PredictiveAlertManager:
         """Add or update alert configuration."""
         key = (config.service_name, config.metric_type)
         self.configs[key] = config
-        logger.info(
-            f"Added alert config: {config.service_name}/{config.metric_type.value}"
-        )
+        logger.info(f"Added alert config: {config.service_name}/{config.metric_type.value}")
 
-    def get_config(
-        self, service_name: str, metric_type: MetricType
-    ) -> AlertConfig | None:
+    def get_config(self, service_name: str, metric_type: MetricType) -> AlertConfig | None:
         """Get alert configuration for service/metric."""
         return self.configs.get((service_name, metric_type))
 
@@ -159,12 +145,7 @@ class PredictiveAlertManager:
 
         # Enrich metrics with metadata
         for metric in metrics:
-            metric.metadata.update(
-                {
-                    "service": service_name,
-                    "metric_type": metric_type.value,
-                }
-            )
+            metric.metadata.update({"service": service_name, "metric_type": metric_type.value})
 
         # Detect degradation
         alert = self.trend_analyzer.detect_degradation(metrics, config.threshold)
@@ -231,9 +212,7 @@ class PredictiveAlertManager:
             logger.warning(f"No routing rule for severity: {alert.severity.value}")
             return
 
-        logger.info(
-            f"Routing alert {alert.alert_id} to channels: {routing_rule.channels}"
-        )
+        logger.info(f"Routing alert {alert.alert_id} to channels: {routing_rule.channels}")
 
         # Route to each configured channel
         tasks = []
@@ -265,8 +244,7 @@ class PredictiveAlertManager:
 
             # Issue content
             issue_title = (
-                f"🚨 Predictive Alert: {alert.service_name} "
-                f"{alert.metric_type.value} [{alert.severity.value.upper()}]"
+                f"🚨 Predictive Alert: {alert.service_name} {alert.metric_type.value} [{alert.severity.value.upper()}]"
             )
 
             issue_body = self._format_alert_for_github(alert)
@@ -279,9 +257,7 @@ class PredictiveAlertManager:
         except Exception as e:
             logger.error(f"Failed to send alert to GitHub: {e}")
 
-    async def _send_to_slack_async(
-        self, alert: DegradationAlert, channel: str
-    ) -> None:
+    async def _send_to_slack_async(self, alert: DegradationAlert, channel: str) -> None:
         """
         Send alert to Slack channel.
 
@@ -325,9 +301,7 @@ class PredictiveAlertManager:
     def _format_alert_for_github(self, alert: DegradationAlert) -> str:
         """Format alert as GitHub issue body."""
         time_to_breach_str = (
-            f"{alert.time_to_breach.total_seconds() / 3600:.1f} hours"
-            if alert.time_to_breach
-            else "N/A"
+            f"{alert.time_to_breach.total_seconds() / 3600:.1f} hours" if alert.time_to_breach else "N/A"
         )
 
         lines = [
@@ -380,9 +354,7 @@ class PredictiveAlertManager:
         emoji = severity_emoji.get(alert.severity, "⚠️")
 
         time_to_breach_str = (
-            f"{alert.time_to_breach.total_seconds() / 3600:.1f} hours"
-            if alert.time_to_breach
-            else "N/A"
+            f"{alert.time_to_breach.total_seconds() / 3600:.1f} hours" if alert.time_to_breach else "N/A"
         )
 
         lines = [
@@ -423,9 +395,7 @@ class PredictiveAlertManager:
             },
         }
 
-    async def resolve_alert_async(
-        self, alert_id: str, resolution_note: str = ""
-    ) -> bool:
+    async def resolve_alert_async(self, alert_id: str, resolution_note: str = "") -> bool:
         """
         Resolve an active alert.
 
@@ -490,11 +460,7 @@ class PredictiveAlertManager:
             Number of alerts cleared
         """
         cutoff = datetime.utcnow() - timedelta(hours=hours)
-        alerts_to_clear = [
-            alert_id
-            for alert_id, alert in self.active_alerts.items()
-            if alert.created_at < cutoff
-        ]
+        alerts_to_clear = [alert_id for alert_id, alert in self.active_alerts.items() if alert.created_at < cutoff]
 
         for alert_id in alerts_to_clear:
             self.active_alerts.pop(alert_id)

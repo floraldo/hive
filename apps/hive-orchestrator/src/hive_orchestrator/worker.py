@@ -18,13 +18,7 @@ from pathlib import Path
 from typing import Any
 
 # Hive utilities for path management
-from hive_config.paths import (
-    LOGS_DIR,
-    PROJECT_ROOT,
-    ensure_directory,
-    get_task_log_dir,
-    get_worker_workspace_dir,
-)
+from hive_config.paths import LOGS_DIR, PROJECT_ROOT, ensure_directory, get_task_log_dir, get_worker_workspace_dir
 
 # Hive logging system
 from hive_logging import get_logger, setup_logging
@@ -153,20 +147,12 @@ class WorkerCore:
                     self.log.warning("Could not clean non-git directory (file in use), continuing anyway")
 
         # Prune stale worktrees
-        subprocess.run(
-            ["git", "worktree", "prune"],
-            cwd=str(self.root),
-            capture_output=True,
-            text=True,
-        )
+        subprocess.run(["git", "worktree", "prune"], cwd=str(self.root), capture_output=True, text=True)
 
         # Does the branch already exist?
         branch_exists = (
             subprocess.run(
-                ["git", "rev-parse", "--verify", "--quiet", branch],
-                cwd=str(self.root),
-                capture_output=True,
-                text=True,
+                ["git", "rev-parse", "--verify", "--quiet", branch], cwd=str(self.root), capture_output=True, text=True
             ).returncode
             == 0
         )
@@ -186,15 +172,7 @@ class WorkerCore:
                 # Create new branch from HEAD
                 self.log.info(f"Creating worktree with new branch: {branch}")
                 subprocess.run(
-                    [
-                        "git",
-                        "worktree",
-                        "add",
-                        "-b",
-                        branch,
-                        str(workspace_path),
-                        "HEAD",
-                    ],
+                    ["git", "worktree", "add", "-b", branch, str(workspace_path), "HEAD"],
                     cwd=str(self.root),
                     capture_output=True,
                     text=True,
@@ -242,10 +220,7 @@ class WorkerCore:
         # Try which/where command
         try:
             result = subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"],
-                capture_output=True,
-                text=True,
-                check=True,
+                ["where" if os.name == "nt" else "which", "claude"], capture_output=True, text=True, check=True
             )
             claude_path = result.stdout.strip().split("\n")[0]
             if claude_path:
@@ -558,11 +533,7 @@ CRITICAL PATH CONSTRAINT:
     def run_claude(self, prompt: str) -> dict[str, Any]:
         """Execute Claude with workspace-aware path handling"""
         if not self.claude_cmd:
-            return {
-                "status": "blocked",
-                "notes": "Claude command not available",
-                "next_state": "blocked",
-            }
+            return {"status": "blocked", "notes": "Claude command not available", "next_state": "blocked"}
 
         # Build base command
         cmd = [
@@ -869,11 +840,7 @@ CRITICAL PATH CONSTRAINT:
 
         except Exception as e:
             self.log.error(f"[ERROR] Claude execution failed: {e}")
-            return {
-                "status": "failed",
-                "notes": f"Execution error: {str(e)}",
-                "next_state": "failed",
-            }
+            return {"status": "failed", "notes": f"Execution error: {str(e)}", "next_state": "failed"}
 
     def emit_result(self, result: dict[str, Any]) -> None:
         """Save execution result"""
@@ -939,11 +906,7 @@ CRITICAL PATH CONSTRAINT:
         """Run in one-shot mode (called by Queen)"""
         if not self.task_id:
             self.log.error("[ERROR] One-shot mode requires task_id")
-            return {
-                "status": "failed",
-                "notes": "Missing task_id",
-                "next_state": "failed",
-            }
+            return {"status": "failed", "notes": "Missing task_id", "next_state": "failed"}
 
         # Load task
         task = self.load_task(self.task_id)
@@ -959,11 +922,7 @@ CRITICAL PATH CONSTRAINT:
         """Run in async one-shot mode for 3-5x performance improvement"""
         if not self.task_id:
             self.log.error("[ERROR] Async one-shot mode requires task_id")
-            return {
-                "status": "failed",
-                "notes": "Missing task_id",
-                "next_state": "failed",
-            }
+            return {"status": "failed", "notes": "Missing task_id", "next_state": "failed"}
 
         # Initialize async worker if not already done
         if self._async_worker is None:
@@ -991,11 +950,7 @@ CRITICAL PATH CONSTRAINT:
             return result
         except Exception as e:
             self.log.error(f"[ERROR] Async task execution failed: {e}")
-            return {
-                "status": "failed",
-                "notes": f"Async execution error: {str(e)}",
-                "next_state": "failed",
-            }
+            return {"status": "failed", "notes": f"Async execution error: {str(e)}", "next_state": "failed"}
 
 
 def main() -> None:
@@ -1004,21 +959,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="WorkerCore - Streamlined Worker")
     parser.add_argument("worker_id", help="Worker ID (backend, frontend, infra)")
     parser.add_argument("--one-shot", action="store_true", help="One-shot mode for Queen")
-    parser.add_argument(
-        "--local",
-        action="store_true",
-        help="Local development mode - run task directly without Queen",
-    )
+    parser.add_argument("--local", action="store_true", help="Local development mode - run task directly without Queen")
     parser.add_argument("--task-id", help="Task ID (required for one-shot and local modes)")
     parser.add_argument("--run-id", help="Run ID for this execution (auto-generated in local mode)")
     parser.add_argument("--async", action="store_true", help="Enable async processing for 3-5x performance improvement")
     parser.add_argument("--workspace", help="Workspace directory")
-    parser.add_argument(
-        "--phase",
-        choices=["plan", "apply", "test"],
-        default="apply",
-        help="Execution phase",
-    )
+    parser.add_argument("--phase", choices=["plan", "apply", "test"], default="apply", help="Execution phase")
     parser.add_argument(
         "--mode",
         choices=["fresh", "repo"],

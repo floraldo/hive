@@ -98,9 +98,7 @@ class HiveScaffolder:
         """Generate pyproject.toml with proper dependencies."""
 
         # Base dependencies
-        dependencies = [
-            "hive-logging>=0.1.0",
-        ]
+        dependencies = ["hive-logging>=0.1.0"]
 
         # Add recommended packages
         for package in app_spec.recommended_packages:
@@ -217,7 +215,7 @@ class HiveScaffolder:
         '''
         ).strip()
 
-        config_path = target_path / "config" / "config.py",
+        config_path = (target_path / "config" / "config.py",)
         with open(config_path, "w") as f:
             f.write(config_content)
 
@@ -261,7 +259,7 @@ class HiveScaffolder:
         '''
         ).strip()
 
-        init_path = src_path / "__init__.py",
+        init_path = (src_path / "__init__.py",)
         with open(init_path, "w") as f:
             f.write(init_content)
 
@@ -277,7 +275,7 @@ class HiveScaffolder:
         else:
             main_content = self._generate_service_main(class_name, app_spec)
 
-        main_path = src_path / "main.py",
+        main_path = (src_path / "main.py",)
         with open(main_path, "w") as f:
             f.write(main_content)
 
@@ -859,7 +857,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        readme_path = target_path / "README.md",
+        readme_path = (target_path / "README.md",)
         with open(readme_path, "w") as f:
             f.write(readme_content)
 
@@ -994,7 +992,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        arch_path = docs_path / "ARCHITECTURE.md",
+        arch_path = (docs_path / "ARCHITECTURE.md",)
         with open(arch_path, "w") as f:
             f.write(arch_content)
 
@@ -1080,7 +1078,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        features_path = docs_path / "FEATURES.md",
+        features_path = (docs_path / "FEATURES.md",)
         with open(features_path, "w") as f:
             f.write(features_content)
 
@@ -1200,7 +1198,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        dockerfile_path = target_path / "Dockerfile",
+        dockerfile_path = (target_path / "Dockerfile",)
         with open(dockerfile_path, "w") as f:
             f.write(dockerfile_content)
 
@@ -1250,7 +1248,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        deployment_path = k8s_path / "deployment.yaml",
+        deployment_path = (k8s_path / "deployment.yaml",)
         with open(deployment_path, "w") as f:
             f.write(deployment_content)
 
@@ -1275,7 +1273,7 @@ class HiveScaffolder:
             """
             ).strip()
 
-            service_path = k8s_path / "service.yaml",
+            service_path = (k8s_path / "service.yaml",)
             with open(service_path, "w") as f:
                 f.write(service_content)
 
@@ -1303,7 +1301,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        build_path = scripts_path / "build.sh",
+        build_path = (scripts_path / "build.sh",)
         with open(build_path, "w") as f:
             f.write(build_script)
         build_path.chmod(0o755)  # Make executable
@@ -1332,7 +1330,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        deploy_path = scripts_path / "deploy.sh",
+        deploy_path = (scripts_path / "deploy.sh",)
         with open(deploy_path, "w") as f:
             f.write(deploy_script)
         deploy_path.chmod(0o755)  # Make executable

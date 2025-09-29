@@ -13,12 +13,7 @@ and find optimal configurations for a renewable energy system.
 from datetime import datetime
 from typing import Any
 
-from ecosystemiser.services.study_service import (
-    ParameterSweepSpec,
-    SimulationConfig,
-    StudyConfig,
-    StudyService,
-)
+from ecosystemiser.services.study_service import ParameterSweepSpec, SimulationConfig, StudyConfig, StudyService
 from ecosystemiser.services.study_service_enhanced import ParametricSweepEnhancement
 
 
@@ -65,12 +60,7 @@ def create_example_system_config() -> dict[str, Any]:
                     "price_export": 0.10,  # $/kWh
                 },
             },
-            {
-                "name": "load",
-                "type": "demand",
-                "subtype": "electrical",
-                "profile": "residential_typical",
-            },
+            {"name": "load", "type": "demand", "subtype": "electrical", "profile": "residential_typical"},
         ],
         "constraints": {"renewable_fraction_min": 0.5, "grid_independence_hours": 4},
     }
@@ -94,10 +84,7 @@ def run_battery_capacity_sweep() -> Any:
             "objective": "minimize_cost",
             "horizon_hours": 24 * 7,  # One week
         },
-        output_config={
-            "save_results": True,
-            "directory": "parametric_studies/battery_capacity",
-        },
+        output_config={"save_results": True, "directory": "parametric_studies/battery_capacity"},
     )
 
     # Create battery capacity sweep
@@ -106,9 +93,7 @@ def run_battery_capacity_sweep() -> Any:
     )
 
     battery_sweep = ParameterSweepSpec(
-        component_name="battery",
-        parameter_path="technical.capacity_nominal",
-        values=battery_values,
+        component_name="battery", parameter_path="technical.capacity_nominal", values=battery_values
     )
 
     # Configure study
@@ -174,15 +159,8 @@ def run_multi_parameter_sweep() -> Any:
             "year": 2023,
             "resolution": "1H",
         },
-        solver_config={
-            "solver_type": "milp",
-            "objective": "minimize_cost",
-            "horizon_hours": 24 * 7,
-        },
-        output_config={
-            "save_results": True,
-            "directory": "parametric_studies/multi_parameter",
-        },
+        solver_config={"solver_type": "milp", "objective": "minimize_cost", "horizon_hours": 24 * 7},
+        output_config={"save_results": True, "directory": "parametric_studies/multi_parameter"},
     )
 
     # Create parameter sweeps

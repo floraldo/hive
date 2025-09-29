@@ -122,12 +122,7 @@ class TestModelClient:
         mock_provider = Mock()
         mock_provider.generate_async = AsyncMock(
             return_value=ModelResponse(
-                content="Test response",
-                model="test-model",
-                tokens_used=50,
-                cost=0.0005,
-                latency_ms=1000,
-                metadata={},
+                content="Test response", model="test-model", tokens_used=50, cost=0.0005, latency_ms=1000, metadata={}
             )
         )
         registry.get_provider_for_model.return_value = mock_provider
@@ -243,19 +238,10 @@ class TestModelMetrics:
     @pytest.mark.asyncio
     async def test_record_model_usage_async(self, metrics):
         """Test recording model usage."""
-        tokens = TokenUsage(
-            prompt_tokens=25,
-            completion_tokens=25,
-            total_tokens=50,
-            estimated_cost=0.0005,
-        )
+        tokens = TokenUsage(prompt_tokens=25, completion_tokens=25, total_tokens=50, estimated_cost=0.0005)
 
         await metrics.record_model_usage_async(
-            model="test-model",
-            provider="test-provider",
-            tokens=tokens,
-            latency_ms=1000,
-            success=True,
+            model="test-model", provider="test-provider", tokens=tokens, latency_ms=1000, success=True
         )
 
         summary = metrics.get_metrics_summary()
@@ -307,11 +293,7 @@ class TestModelMetrics:
         for cost in costs:
             tokens = TokenUsage(10, 10, 20, cost)
             await metrics.record_model_usage_async(
-                model="test",
-                provider="test",
-                tokens=tokens,
-                latency_ms=1000,
-                success=True,
+                model="test", provider="test", tokens=tokens, latency_ms=1000, success=True
             )
             total_expected_cost += cost
 
@@ -482,18 +464,11 @@ class TestModelIntegration:
 
         for model, tokens, cost in operations:
             token_usage = TokenUsage(
-                prompt_tokens=tokens // 2,
-                completion_tokens=tokens // 2,
-                total_tokens=tokens,
-                estimated_cost=cost,
+                prompt_tokens=tokens // 2, completion_tokens=tokens // 2, total_tokens=tokens, estimated_cost=cost
             )
 
             await metrics.record_model_usage_async(
-                model=model,
-                provider="test",
-                tokens=token_usage,
-                latency_ms=1000,
-                success=True,
+                model=model, provider="test", tokens=token_usage, latency_ms=1000, success=True
             )
 
             total_expected_cost += cost

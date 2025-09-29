@@ -43,7 +43,7 @@ class AsyncCircuitBreaker:
         failure_threshold: int = 5,
         recovery_timeout: int = 60,
         expected_exception: type = Exception,
-        name: str = "default"
+        name: str = "default",
     ):
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
@@ -97,23 +97,23 @@ class AsyncCircuitBreaker:
                 self.last_failure_time = time.time()
 
                 # Record failure for predictive analysis
-                self._failure_history.append({
-                    "timestamp": datetime.utcnow(),
-                    "error_type": type(e).__name__,
-                    "state_before": self.state.value
-                })
+                self._failure_history.append(
+                    {"timestamp": datetime.utcnow(), "error_type": type(e).__name__, "state_before": self.state.value}
+                )
 
                 if self.failure_count >= self.failure_threshold:
                     old_state = self.state
                     self.state = CircuitState.OPEN
 
                     # Record state transition
-                    self._state_transitions.append({
-                        "timestamp": datetime.utcnow(),
-                        "from_state": old_state.value,
-                        "to_state": CircuitState.OPEN.value,
-                        "failure_count": self.failure_count
-                    })
+                    self._state_transitions.append(
+                        {
+                            "timestamp": datetime.utcnow(),
+                            "from_state": old_state.value,
+                            "to_state": CircuitState.OPEN.value,
+                            "failure_count": self.failure_count,
+                        }
+                    )
 
                     logger.warning(f"Circuit breaker OPENED after {self.failure_count} failures")
 
@@ -148,11 +148,7 @@ class AsyncCircuitBreaker:
             "recovery_timeout": self.recovery_timeout,
         }
 
-    def get_failure_history(
-        self,
-        metric_type: str = "failure_rate",
-        hours: int = 24
-    ) -> list[dict[str, Any]]:
+    def get_failure_history(self, metric_type: str = "failure_rate", hours: int = 24) -> list[dict[str, Any]]:
         """
         Get failure history for predictive analysis.
 
@@ -170,10 +166,7 @@ class AsyncCircuitBreaker:
 
         if metric_type == "failure_rate":
             # Get recent failures
-            recent_failures = [
-                f for f in self._failure_history
-                if f["timestamp"] >= cutoff_time
-            ]
+            recent_failures = [f for f in self._failure_history if f["timestamp"] >= cutoff_time]
 
             if not recent_failures:
                 logger.debug(f"No failure history available for {self.name}")
@@ -188,29 +181,25 @@ class AsyncCircuitBreaker:
             # Convert to MetricPoint format
             metric_points = []
             for hour, count in sorted(failure_counts_by_hour.items()):
-                metric_points.append({
-                    "timestamp": hour,
-                    "value": float(count),
-                    "metadata": {
-                        "circuit_breaker": self.name,
-                        "metric_type": "failure_rate",
-                        "unit": "failures_per_hour"
+                metric_points.append(
+                    {
+                        "timestamp": hour,
+                        "value": float(count),
+                        "metadata": {
+                            "circuit_breaker": self.name,
+                            "metric_type": "failure_rate",
+                            "unit": "failures_per_hour",
+                        },
                     }
-                })
+                )
 
-            logger.debug(
-                f"Retrieved {len(metric_points)} failure rate points for "
-                f"circuit breaker {self.name}"
-            )
+            logger.debug(f"Retrieved {len(metric_points)} failure rate points for circuit breaker {self.name}")
 
             return metric_points
 
         elif metric_type == "state_changes":
             # Get recent state transitions
-            recent_transitions = [
-                t for t in self._state_transitions
-                if t["timestamp"] >= cutoff_time
-            ]
+            recent_transitions = [t for t in self._state_transitions if t["timestamp"] >= cutoff_time]
 
             if not recent_transitions:
                 logger.debug(f"No state transitions for {self.name}")
@@ -222,23 +211,22 @@ class AsyncCircuitBreaker:
                 # Value: 1.0 for OPEN transitions (bad), 0.0 for CLOSED (good)
                 value = 1.0 if transition["to_state"] == CircuitState.OPEN.value else 0.0
 
-                metric_points.append({
-                    "timestamp": transition["timestamp"],
-                    "value": value,
-                    "metadata": {
-                        "circuit_breaker": self.name,
-                        "metric_type": "state_change",
-                        "from_state": transition["from_state"],
-                        "to_state": transition["to_state"],
-                        "failure_count": transition["failure_count"],
-                        "unit": "binary"
+                metric_points.append(
+                    {
+                        "timestamp": transition["timestamp"],
+                        "value": value,
+                        "metadata": {
+                            "circuit_breaker": self.name,
+                            "metric_type": "state_change",
+                            "from_state": transition["from_state"],
+                            "to_state": transition["to_state"],
+                            "failure_count": transition["failure_count"],
+                            "unit": "binary",
+                        },
                     }
-                })
+                )
 
-            logger.debug(
-                f"Retrieved {len(metric_points)} state transition points for "
-                f"circuit breaker {self.name}"
-            )
+            logger.debug(f"Retrieved {len(metric_points)} state transition points for circuit breaker {self.name}")
 
             return metric_points
 
@@ -261,11 +249,7 @@ class AsyncTimeoutManager:
         self._operation_stats = {}
 
     async def run_with_timeout_async(
-        self,
-        coro,
-        timeout: float | None = None,
-        operation_name: str | None = None,
-        fallback: Any | None = None,
+        self, coro, timeout: float | None = None, operation_name: str | None = None, fallback: Any | None = None
     ) -> Any:
         """
         Run coroutine with timeout and enhanced error context.
@@ -359,11 +343,7 @@ class AsyncTimeoutManager:
         }
 
 
-def async_circuit_breaker(
-    failure_threshold: int = 5,
-    recovery_timeout: int = 60,
-    expected_exception: type = Exception,
-):
+def async_circuit_breaker(failure_threshold: int = 5, recovery_timeout: int = 60, expected_exception: type = Exception):
     """
     Decorator to add circuit breaker protection to async functions.
 
@@ -400,9 +380,7 @@ def async_timeout(seconds: float, operation_name: str | None = None) -> None:
         async def wrapper_async(*args, **kwargs):
             op_name = operation_name or func.__name__
             return await timeout_manager.run_with_timeout_async(
-                func(*args, **kwargs),
-                timeout=seconds,
-                operation_name=op_name,
+                func(*args, **kwargs), timeout=seconds, operation_name=op_name
             )
 
         return wrapper_async
@@ -429,15 +407,9 @@ def async_resilient(
 
     def decorator(func) -> None:
         # Apply circuit breaker first, then timeout
-        circuit_protected = async_circuit_breaker(
-            circuit_failure_threshold,
-            circuit_recovery_timeout,
-        )(func)
+        circuit_protected = async_circuit_breaker(circuit_failure_threshold, circuit_recovery_timeout)(func)
 
-        timeout_protected = async_timeout(
-            timeout,
-            operation_name,
-        )(circuit_protected)
+        timeout_protected = async_timeout(timeout, operation_name)(circuit_protected)
 
         return timeout_protected
 

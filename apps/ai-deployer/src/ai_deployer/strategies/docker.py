@@ -61,17 +61,11 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
                 if not registry_valid:
                     errors.append("Docker registry access failed")
 
-            return {
-                "success": len(errors) == 0,
-                "errors": errors,
-            }
+            return {"success": len(errors) == 0, "errors": errors}
 
         except Exception as e:
             logger.error(f"Docker pre-deployment check error: {e}")
-            return {
-                "success": False,
-                "errors": [f"Pre-deployment check failed: {e}"],
-            }
+            return {"success": False, "errors": [f"Pre-deployment check failed: {e}"]}
 
     async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """
@@ -90,10 +84,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             # Build or pull Docker image
             image_result = await self._prepare_docker_image_async(task, deployment_id)
             if not image_result["success"]:
-                return {
-                    "success": False,
-                    "error": f"Image preparation failed: {image_result['error']}",
-                }
+                return {"success": False, "error": f"Image preparation failed: {image_result['error']}"}
 
             image_name = image_result["image_name"]
 
@@ -106,10 +97,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             # Run new container
             container_result = await self._run_container_async(task, image_name, deployment_id)
             if not container_result["success"]:
-                return {
-                    "success": False,
-                    "error": f"Container startup failed: {container_result['error']}",
-                }
+                return {"success": False, "error": f"Container startup failed: {container_result['error']}"}
 
             container_id = container_result["container_id"]
 
@@ -118,10 +106,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             if not health_check:
                 # Container failed health check - stop it
                 await self._stop_container_async(container_id)
-                return {
-                    "success": False,
-                    "error": "Container failed health check",
-                }
+                return {"success": False, "error": "Container failed health check"}
 
             # Update load balancer or proxy configuration
             lb_result = await self._update_load_balancer_async(task, container_id)
@@ -143,16 +128,10 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
         except Exception as e:
             logger.error(f"Docker deployment {deployment_id} error: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def rollback_async(
-        self,
-        task: dict[str, Any],
-        deployment_id: str,
-        previous_deployment: dict[str, Any],
+        self, task: dict[str, Any], deployment_id: str, previous_deployment: dict[str, Any]
     ) -> dict[str, Any]:
         """
         Rollback Docker deployment to previous version
@@ -174,10 +153,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             current_container = previous_info.get("container_id")
 
             if not previous_image:
-                return {
-                    "success": False,
-                    "error": "No previous image information for rollback",
-                }
+                return {"success": False, "error": "No previous image information for rollback"}
 
             # Stop current failed container
             if current_container:
@@ -187,10 +163,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             rollback_result = await self._run_container_async(task, previous_image, f"rollback-{deployment_id}")
 
             if not rollback_result["success"]:
-                return {
-                    "success": False,
-                    "error": f"Rollback container startup failed: {rollback_result['error']}",
-                }
+                return {"success": False, "error": f"Rollback container startup failed: {rollback_result['error']}"}
 
             rollback_container = rollback_result["container_id"]
 
@@ -199,10 +172,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
             if not health_check:
                 await self._stop_container_async(rollback_container)
-                return {
-                    "success": False,
-                    "error": "Rollback container failed health check",
-                }
+                return {"success": False, "error": "Rollback container failed health check"}
 
             # Update load balancer back to rollback container
             await self._update_load_balancer_async(task, rollback_container)
@@ -211,18 +181,12 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
             return {
                 "success": True,
-                "rollback_info": {
-                    "rolled_back_to_image": previous_image,
-                    "rollback_container_id": rollback_container,
-                },
+                "rollback_info": {"rolled_back_to_image": previous_image, "rollback_container_id": rollback_container},
             }
 
         except Exception as e:
             logger.error(f"Docker rollback error for {deployment_id}: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """
@@ -247,10 +211,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
     def get_required_task_fields(self) -> list[str]:
         """Get required fields for Docker deployment"""
-        return [
-            "docker_image",
-            "container_config",
-        ]
+        return ["docker_image", "container_config"]
 
     # Helper methods
 
@@ -300,10 +261,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
                 "image_size": 150 * 1024 * 1024,  # 150 MB placeholder
             }
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def _stop_existing_containers_async(self, task: dict[str, Any]) -> bool:
         """Stop existing containers for rolling deployment"""
@@ -323,16 +281,9 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
             container_id = f"container_{deployment_id}"
 
-            return {
-                "success": True,
-                "container_id": container_id,
-                "startup_time": 1.0,
-            }
+            return {"success": True, "container_id": container_id, "startup_time": 1.0}
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def _wait_for_container_health_async(self, container_id: str) -> bool:
         """Wait for container to become healthy"""

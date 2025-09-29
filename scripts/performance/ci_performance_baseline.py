@@ -109,7 +109,7 @@ def compare_against_baseline(current: dict[str, Any], baseline: dict[str, Any]) 
 
         if regression_pct > REGRESSION_THRESHOLD:
             regressions.append(
-                f"Response Time: {baseline_rt:.3f}s → {current_rt:.3f}s " f"({regression_pct*100:.1f}% SLOWER)"
+                f"Response Time: {baseline_rt:.3f}s → {current_rt:.3f}s ({regression_pct * 100:.1f}% SLOWER)"
             )
             passed = False
 
@@ -121,7 +121,7 @@ def compare_against_baseline(current: dict[str, Any], baseline: dict[str, Any]) 
 
         if regression_pct > REGRESSION_THRESHOLD:
             regressions.append(
-                f"Throughput: {baseline_tp:.2f} ops/s → {current_tp:.2f} ops/s " f"({regression_pct*100:.1f}% SLOWER)"
+                f"Throughput: {baseline_tp:.2f} ops/s → {current_tp:.2f} ops/s ({regression_pct * 100:.1f}% SLOWER)"
             )
             passed = False
 
@@ -130,7 +130,7 @@ def compare_against_baseline(current: dict[str, Any], baseline: dict[str, Any]) 
     current_err = current.get("error_rate", 0)
 
     if current_err > baseline_err * (1 + REGRESSION_THRESHOLD):
-        regressions.append(f"Error Rate: {baseline_err:.2%} → {current_err:.2%} " f"(INCREASED)")
+        regressions.append(f"Error Rate: {baseline_err:.2%} → {current_err:.2%} (INCREASED)")
         passed = False
 
     # Check overall score drop
@@ -139,9 +139,7 @@ def compare_against_baseline(current: dict[str, Any], baseline: dict[str, Any]) 
     score_drop = baseline_score - current_score
 
     if score_drop > 10:  # More than 10 point drop
-        regressions.append(
-            f"Overall Score: {baseline_score:.1f} → {current_score:.1f} " f"({score_drop:.1f} point DROP)"
-        )
+        regressions.append(f"Overall Score: {baseline_score:.1f} → {current_score:.1f} ({score_drop:.1f} point DROP)")
         passed = False
 
     # Check for new critical issues
@@ -149,7 +147,7 @@ def compare_against_baseline(current: dict[str, Any], baseline: dict[str, Any]) 
     baseline_critical = baseline.get("critical_issues_count", 0)
 
     if current_critical > baseline_critical:
-        regressions.append(f"Critical Issues: {baseline_critical} → {current_critical} " f"(NEW CRITICAL ISSUES)")
+        regressions.append(f"Critical Issues: {baseline_critical} → {current_critical} (NEW CRITICAL ISSUES)")
         passed = False
 
     return passed, regressions
@@ -217,7 +215,7 @@ async def main():
             print(f"   Error Rate: {baseline.get('error_rate', 0):.2%} → {current.get('error_rate', 0):.2%}")
             return 0
         else:
-            print(f"❌ FAILED - Performance regressions detected (threshold: {REGRESSION_THRESHOLD*100:.0f}%):")
+            print(f"❌ FAILED - Performance regressions detected (threshold: {REGRESSION_THRESHOLD * 100:.0f}%):")
             for regression in regressions:
                 print(f"   • {regression}")
             return 1

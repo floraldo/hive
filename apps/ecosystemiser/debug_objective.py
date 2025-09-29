@@ -12,11 +12,7 @@ logger = get_logger(__name__)
 eco_path = Path(__file__).parent / "src"
 
 from ecosystemiser.solver.milp_solver import MILPSolver
-from ecosystemiser.system_model.components.energy.grid import (
-    Grid,
-    GridParams,
-    GridTechnicalParams,
-)
+from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
 
@@ -29,10 +25,7 @@ def debug_objective() -> None:
     # Create grid
     grid_params = GridParams(
         technical=GridTechnicalParams(
-            capacity_nominal=50.0,
-            import_tariff=0.30,
-            feed_in_tariff=0.05,
-            fidelity_level=FidelityLevel.SIMPLE,
+            capacity_nominal=50.0, import_tariff=0.30, feed_in_tariff=0.05, fidelity_level=FidelityLevel.SIMPLE
         )
     )
     grid = Grid("Grid", grid_params, N)

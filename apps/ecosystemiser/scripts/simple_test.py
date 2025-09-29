@@ -32,10 +32,7 @@ from ecosystemiser.profile_loader.climate.adapters.capabilities import (
 )
 
 # Use proper absolute imports following Golden Rules
-from ecosystemiser.profile_loader.climate.data_models import (
-    CANONICAL_VARIABLES,
-    ClimateRequest,
-)
+from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES, ClimateRequest
 
 
 def test_direct_adapter() -> None:
@@ -71,10 +68,7 @@ def test_direct_adapter() -> None:
                     near_real_time_lag_hours=24,
                 ),
                 spatial_coverage=SpatialCoverage(
-                    global_coverage=True,
-                    regional_limitations=[],
-                    resolution_degrees=0.5,
-                    altitude_range_m=(-500, 9000),
+                    global_coverage=True, regional_limitations=[], resolution_degrees=0.5, altitude_range_m=(-500, 9000)
                 ),
                 data_frequency=DataFrequency(
                     available_resolutions=["1H", "D"],
@@ -83,23 +77,13 @@ def test_direct_adapter() -> None:
                 ),
                 supported_variables=list(CANONICAL_VARIABLES.keys()),
                 data_quality=QualityFeatures(
-                    has_quality_flags=False,
-                    has_uncertainty=False,
-                    has_validation=False,
-                    missing_data_threshold=0.1,
+                    has_quality_flags=False, has_uncertainty=False, has_validation=False, missing_data_threshold=0.1
                 ),
                 authentication=AuthType.NONE,
                 rate_limits=RateLimits(
-                    requests_per_minute=60,
-                    requests_per_day=10000,
-                    concurrent_requests=10,
-                    requires_throttling=False,
+                    requests_per_minute=60, requests_per_day=10000, concurrent_requests=10, requires_throttling=False
                 ),
-                performance={
-                    "typical_latency_ms": 100,
-                    "max_chunk_size_days": 365,
-                    "supports_caching": True,
-                },
+                performance={"typical_latency_ms": 100, "max_chunk_size_days": 365, "supports_caching": True},
             )
 
         async def fetch_async(self, lat, lon, variables, period, resolution="1H") -> None:

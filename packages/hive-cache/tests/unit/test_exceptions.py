@@ -31,11 +31,7 @@ class TestCacheExceptions:
     def test_cache_exception_hierarchy(self):
         """Test cache exception hierarchy is properly structured."""
         try:
-            from hive_cache.exceptions import (
-                CacheError,
-                CacheKeyError,
-                CacheTimeoutError,
-            )
+            from hive_cache.exceptions import CacheError, CacheKeyError, CacheTimeoutError
 
             # Test inheritance if classes exist
             if "CacheTimeoutError" in locals():

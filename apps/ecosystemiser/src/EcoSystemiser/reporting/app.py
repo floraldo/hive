@@ -66,18 +66,13 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
                 # Store results in session for report generation
                 session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-                app.config[f"results_{session_id}"] = {
-                    "raw": json_data,
-                    "analysis": analysis_results
-                },
+                app.config[f"results_{session_id}"] = ({"raw": json_data, "analysis": analysis_results},)
 
-                return jsonify(
-                    {
-                        "success": True,
-                        "session_id": session_id,
-                        "summary": analysis_results.get("summary", {})
-                    }
-                ),
+                return (
+                    jsonify(
+                        {"success": True, "session_id": session_id, "summary": analysis_results.get("summary", {})}
+                    ),
+                )
 
             except Exception as e:
                 logger.error(f"Error processing file: {e}")
@@ -95,13 +90,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         # Retrieve stored results
         session_key = f"results_{session_id}"
         if session_key not in app.config:
-            return (
-                render_template(
-                    "error.html",
-                    error="Session not found. Please upload results again."
-                ),
-                404
-            )
+            return (render_template("error.html", error="Session not found. Please upload results again."), 404)
         data = app.config[session_key]
         analysis_results = data["analysis"]
 
@@ -125,10 +114,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             # Try alternative naming patterns
             study_file = results_dir / f"{study_id}.json"
             if not study_file.exists():
-                return (
-                    render_template("error.html", error=f"Study results not found: {study_id}"),
-                    404
-                )
+                return (render_template("error.html", error=f"Study results not found: {study_id}"), 404)
 
         # Load study results,
         with open(study_file) as f:
@@ -139,7 +125,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             report_type="genetic_algorithm",
             title=f"Genetic Algorithm Optimization - {study_id}",
             include_plots=True,
-            output_format="html"
+            output_format="html",
         )
         report_result = app.reporting_service.generate_report(analysis_results=study_data, config=report_config)
 
@@ -157,10 +143,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             # Try alternative naming patterns
             study_file = results_dir / f"{study_id}.json"
             if not study_file.exists():
-                return (
-                    render_template("error.html", error=f"Study results not found: {study_id}"),
-                    404
-                )
+                return (render_template("error.html", error=f"Study results not found: {study_id}"), 404)
 
         # Load study results,
         with open(study_file) as f:
@@ -171,7 +154,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             report_type="monte_carlo",
             title=f"Monte Carlo Uncertainty Analysis - {study_id}",
             include_plots=True,
-            output_format="html"
+            output_format="html",
         )
         report_result = app.reporting_service.generate_report(analysis_results=study_data, config=report_config)
 
@@ -184,11 +167,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         results_dir = Path(app.config.get("RESULTS_DIR", "results"))
 
         # Try different file patterns
-        patterns = [
-            f"ga_optimization_{study_id}.json",
-            f"mc_uncertainty_{study_id}.json",
-            f"{study_id}.json"
-        ],
+        patterns = ([f"ga_optimization_{study_id}.json", f"mc_uncertainty_{study_id}.json", f"{study_id}.json"],)
 
         for pattern in patterns:
             study_file = results_dir / pattern
@@ -260,7 +239,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             report_type="standard",
             title=f"EcoSystemiser Analysis Report - {session_id}",
             include_plots=True,
-            output_format="html"
+            output_format="html",
         )
         report_result = app.reporting_service.generate_report(analysis_results=analysis_results, config=report_config)
         html = report_result.html_content
@@ -271,10 +250,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             tmp_path = tmp.name
 
         return send_file(
-            tmp_path,
-            as_attachment=True,
-            download_name=f"ecosystemiser_report_{session_id}.html",
-            mimetype="text/html"
+            tmp_path, as_attachment=True, download_name=f"ecosystemiser_report_{session_id}.html", mimetype="text/html"
         )
 
     @app.errorhandler(404)

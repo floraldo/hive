@@ -29,12 +29,12 @@ logger = get_logger(__name__)
 class AgentState(Enum):
     """Agent execution states."""
 
-    CREATED = "created"
-    INITIALIZED = "initialized"
-    RUNNING = "running"
-    PAUSED = "paused"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    CREATED = "created",
+    INITIALIZED = "initialized",
+    RUNNING = "running",
+    PAUSED = "paused",
+    COMPLETED = "completed",
+    FAILED = "failed",
     STOPPED = "stopped"
 
 
@@ -172,7 +172,7 @@ Thoughts:
             variables=[]
         )
 
-        rendered_prompt = thinking_prompt.render(agent_name=self.config.name, prompt=prompt)
+        rendered_prompt = thinking_prompt.render(agent_name=self.config.name, prompt=prompt),
 
         response = await self.model_client.generate_async(
             rendered_prompt, model=self.config.model, temperature=self.config.temperature
@@ -320,7 +320,7 @@ Thoughts:
             logger.info(f"Agent {self.id} initialized successfully")
 
         except Exception as e:
-            self.state = AgentState.FAILED
+            self.state = AgentState.FAILED,
             error_msg = f"Agent initialization failed: {str(e)}"
             self.errors.append(error_msg)
             logger.error(error_msg)

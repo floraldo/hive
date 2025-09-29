@@ -10,6 +10,7 @@ This script uses multiple targeted patterns to fix missing commas in:
 
 Specifically AVOIDS adding commas after opening braces/parens/brackets.
 """
+
 import re
 import sys
 from pathlib import Path
@@ -22,10 +23,10 @@ def fix_function_arguments(content: str) -> tuple[str, int]:
     # Pattern: arg=value\n    arg=value (keyword arguments)
     # Match: word= followed by value, newline, spaces, word=
     # Don't match if line ends with comma or opening brace/paren
-    pattern = r'(\w+\s*=\s*[^\n,\{\[\(]+)\n(\s+)(\w+\s*=)'
+    pattern = r"(\w+\s*=\s*[^\n,\{\[\(]+)\n(\s+)(\w+\s*=)"
 
     for _ in range(50):  # Multiple passes for nested cases
-        new_content = re.sub(pattern, r'\1,\n\2\3', content)
+        new_content = re.sub(pattern, r"\1,\n\2\3", content)
         if new_content == content:
             break
         content = new_content
@@ -40,10 +41,10 @@ def fix_dict_literals(content: str) -> tuple[str, int]:
 
     # Pattern: "key": value\n    "key": value
     # Match: quoted string, colon, value, newline, spaces, quoted string with colon
-    pattern = r'(\"[^\"]+\"\s*:\s*[^\n,]+)\n(\s+)(\"[^\"]+\"\s*:)'
+    pattern = r"(\"[^\"]+\"\s*:\s*[^\n,]+)\n(\s+)(\"[^\"]+\"\s*:)"
 
     for _ in range(30):
-        new_content = re.sub(pattern, r'\1,\n\2\3', content)
+        new_content = re.sub(pattern, r"\1,\n\2\3", content)
         if new_content == content:
             break
         content = new_content
@@ -57,10 +58,10 @@ def fix_task_id_patterns(content: str) -> tuple[str, int]:
     fixes = 0
 
     # Pattern: task["id"]\n    workflow_id=
-    pattern = r'(task\[\"[^\"]+\"\])\n(\s+)(\w+\s*=)'
+    pattern = r"(task\[\"[^\"]+\"\])\n(\s+)(\w+\s*=)"
 
     for _ in range(20):
-        new_content = re.sub(pattern, r'\1,\n\2\3', content)
+        new_content = re.sub(pattern, r"\1,\n\2\3", content)
         if new_content == content:
             break
         content = new_content
@@ -75,10 +76,10 @@ def fix_dict_in_function_calls(content: str) -> tuple[str, int]:
 
     # Pattern: "key": value\n    "key": value inside function calls
     # More conservative - only if indented significantly (payload dicts)
-    pattern = r'(\"[^\"]+\"\s*:\s*[^\n,]+)\n([ ]{16,})(\"[^\"]+\"\s*:)'
+    pattern = r"(\"[^\"]+\"\s*:\s*[^\n,]+)\n([ ]{16,})(\"[^\"]+\"\s*:)"
 
     for _ in range(20):
-        new_content = re.sub(pattern, r'\1,\n\2\3', content)
+        new_content = re.sub(pattern, r"\1,\n\2\3", content)
         if new_content == content:
             break
         content = new_content
@@ -92,10 +93,10 @@ def fix_enum_values(content: str) -> tuple[str, int]:
     fixes = 0
 
     # Pattern: NAME = "value"\n    NAME = "value"
-    pattern = r'([A-Z_]+\s*=\s*\"[^\"]+\")\n(\s+)([A-Z_]+\s*=)'
+    pattern = r"([A-Z_]+\s*=\s*\"[^\"]+\")\n(\s+)([A-Z_]+\s*=)"
 
     for _ in range(10):
-        new_content = re.sub(pattern, r'\1,\n\2\3', content)
+        new_content = re.sub(pattern, r"\1,\n\2\3", content)
         if new_content == content:
             break
         content = new_content
@@ -109,10 +110,10 @@ def fix_dict_with_list_values(content: str) -> tuple[str, int]:
     fixes = 0
 
     # Pattern: "key": [items]\n    "key": [items]
-    pattern = r'(\"[^\"]+\"\s*:\s*\[[^\]]+\])\n(\s+)(\"[^\"]+\"\s*:)'
+    pattern = r"(\"[^\"]+\"\s*:\s*\[[^\]]+\])\n(\s+)(\"[^\"]+\"\s*:)"
 
     for _ in range(20):
-        new_content = re.sub(pattern, r'\1,\n\2\3', content)
+        new_content = re.sub(pattern, r"\1,\n\2\3", content)
         if new_content == content:
             break
         content = new_content
@@ -126,11 +127,7 @@ def remove_bad_commas(content: str) -> tuple[str, int]:
     fixes = 0
 
     # Pattern: {, or [, or (, at end of line
-    patterns = [
-        (r'\{,\s*\n', '{\n'),
-        (r'\[,\s*\n', '[\n'),
-        (r'\(,\s*\n', '(\n'),
-    ]
+    patterns = [(r"\{,\s*\n", "{\n"), (r"\[,\s*\n", "[\n"), (r"\(,\s*\n", "(\n")]
 
     for pattern, replacement in patterns:
         new_content = re.sub(pattern, replacement, content)
@@ -149,7 +146,7 @@ def fix_file(filepath: Path) -> tuple[bool, int, str]:
         (success, total_fixes, error_message)
     """
     try:
-        content = filepath.read_text(encoding='utf-8')
+        content = filepath.read_text(encoding="utf-8")
         original_content = content
         total_fixes = 0
 
@@ -179,7 +176,7 @@ def fix_file(filepath: Path) -> tuple[bool, int, str]:
 
         # Only write if we made changes
         if content != original_content:
-            filepath.write_text(content, encoding='utf-8')
+            filepath.write_text(content, encoding="utf-8")
             return True, total_fixes, ""
 
         return True, 0, ""
@@ -227,5 +224,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

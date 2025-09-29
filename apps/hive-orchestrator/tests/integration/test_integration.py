@@ -121,14 +121,7 @@ class TestHiveOrchestratorIntegration:
         # Test task stats with database error
         with patch.object(dashboard, "get_connection", side_effect=Exception("DB Error")):
             stats = dashboard.get_task_stats()
-            expected_keys = [
-                "queued",
-                "assigned",
-                "in_progress",
-                "completed",
-                "failed",
-                "cancelled",
-            ]
+            expected_keys = ["queued", "assigned", "in_progress", "completed", "failed", "cancelled"]
             assert all(key in stats for key in expected_keys)
             assert all(stats[key] == 0 for key in expected_keys)
 
@@ -195,10 +188,7 @@ class TestHiveOrchestratorIntegration:
         """Test that errors are properly handled and propagated through the stack"""
 
         # Test CLI error handling
-        with patch(
-            "hive_core_db.database.get_connection",
-            side_effect=ImportError("Module not found"),
-        ):
+        with patch("hive_core_db.database.get_connection", side_effect=ImportError("Module not found")):
             result = self.runner.invoke(cli, ["status"])
             assert result.exit_code == 1
             assert "Database module not available" in result.output

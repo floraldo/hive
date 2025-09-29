@@ -74,9 +74,7 @@ class DegradationAlert:
             "current_value": self.current_value,
             "predicted_value": self.predicted_value,
             "threshold": self.threshold,
-            "time_to_breach_seconds": (
-                self.time_to_breach.total_seconds() if self.time_to_breach else None
-            ),
+            "time_to_breach_seconds": (self.time_to_breach.total_seconds() if self.time_to_breach else None),
             "confidence": self.confidence,
             "severity": self.severity.value,
             "recommended_actions": self.recommended_actions,
@@ -93,12 +91,7 @@ class TrendAnalyzer:
     detection to identify potential failures before they occur.
     """
 
-    def __init__(
-        self,
-        window_size: int = 50,
-        ema_alpha: float = 0.2,
-        degradation_threshold: int = 3,
-    ):
+    def __init__(self, window_size: int = 50, ema_alpha: float = 0.2, degradation_threshold: int = 3):
         """
         Initialize trend analyzer.
 
@@ -111,9 +104,7 @@ class TrendAnalyzer:
         self.ema_alpha = ema_alpha
         self.degradation_threshold = degradation_threshold
 
-    def calculate_ema(
-        self, data: list[float], alpha: float | None = None
-    ) -> list[float]:
+    def calculate_ema(self, data: list[float], alpha: float | None = None) -> list[float]:
         """
         Calculate exponential moving average.
 
@@ -135,9 +126,7 @@ class TrendAnalyzer:
 
         return ema
 
-    def detect_degradation(
-        self, metrics: list[MetricPoint], threshold: float
-    ) -> Optional[DegradationAlert]:
+    def detect_degradation(self, metrics: list[MetricPoint], threshold: float) -> Optional[DegradationAlert]:
         """
         Detect if metrics show degradation pattern.
 
@@ -152,9 +141,7 @@ class TrendAnalyzer:
             DegradationAlert if pattern detected, None otherwise
         """
         if len(metrics) < self.degradation_threshold + 1:
-            logger.debug(
-                f"Insufficient data points: {len(metrics)} < {self.degradation_threshold + 1}"
-            )
+            logger.debug(f"Insufficient data points: {len(metrics)} < {self.degradation_threshold + 1}")
             return None
 
         # Use recent window for analysis
@@ -170,12 +157,8 @@ class TrendAnalyzer:
             if ema[i + 1] > ema[i]:
                 increases += 1
                 if increases >= self.degradation_threshold:
-                    logger.info(
-                        f"Degradation detected: {increases} consecutive increases"
-                    )
-                    return self._create_degradation_alert(
-                        recent_metrics, ema, threshold
-                    )
+                    logger.info(f"Degradation detected: {increases} consecutive increases")
+                    return self._create_degradation_alert(recent_metrics, ema, threshold)
             else:
                 increases = 0  # Reset on decrease
 
@@ -198,18 +181,14 @@ class TrendAnalyzer:
         severity = self._determine_severity(time_to_breach, confidence)
 
         # Generate recommended actions
-        recommended_actions = self._generate_recommendations(
-            metrics, threshold, severity
-        )
+        recommended_actions = self._generate_recommendations(metrics, threshold, severity)
 
         alert_id = self._generate_alert_id(metrics[0].metadata.get("service", "unknown"))
 
         return DegradationAlert(
             alert_id=alert_id,
             service_name=metrics[0].metadata.get("service", "unknown"),
-            metric_type=MetricType(
-                metrics[0].metadata.get("metric_type", "error_rate")
-            ),
+            metric_type=MetricType(metrics[0].metadata.get("metric_type", "error_rate")),
             current_value=current_value,
             predicted_value=ema_current,
             threshold=threshold,
@@ -221,9 +200,7 @@ class TrendAnalyzer:
             metadata={"ema_value": ema_current, "trend_length": len(ema)},
         )
 
-    def predict_time_to_breach(
-        self, metrics: list[MetricPoint], threshold: float
-    ) -> timedelta | None:
+    def predict_time_to_breach(self, metrics: list[MetricPoint], threshold: float) -> timedelta | None:
         """
         Use linear regression to predict when threshold will be breached.
 
@@ -266,9 +243,7 @@ class TrendAnalyzer:
 
         return timedelta(seconds=seconds_to_breach)
 
-    def _linear_regression(
-        self, x: list[float], y: list[float]
-    ) -> tuple[float, float]:
+    def _linear_regression(self, x: list[float], y: list[float]) -> tuple[float, float]:
         """
         Calculate simple linear regression.
 
@@ -329,9 +304,7 @@ class TrendAnalyzer:
 
         return min(max(confidence, 0.0), 1.0)  # Clamp to [0, 1]
 
-    def _determine_severity(
-        self, time_to_breach: timedelta | None, confidence: float
-    ) -> AlertSeverity:
+    def _determine_severity(self, time_to_breach: timedelta | None, confidence: float) -> AlertSeverity:
         """
         Determine alert severity based on time to breach and confidence.
 
@@ -392,11 +365,7 @@ class TrendAnalyzer:
 
         elif metric_type in ["latency_p95", "latency_p99"]:
             recommendations.extend(
-                [
-                    "Review slow query logs",
-                    "Check connection pool utilization",
-                    "Consider enabling response caching",
-                ]
+                ["Review slow query logs", "Check connection pool utilization", "Consider enabling response caching"]
             )
             if severity in [AlertSeverity.CRITICAL, AlertSeverity.HIGH]:
                 recommendations.append("Activate load shedding for non-critical requests")
@@ -414,11 +383,7 @@ class TrendAnalyzer:
 
         elif metric_type == "connection_pool":
             recommendations.extend(
-                [
-                    "Increase connection pool size",
-                    "Review connection timeout settings",
-                    "Check for connection leaks",
-                ]
+                ["Increase connection pool size", "Review connection timeout settings", "Check for connection leaks"]
             )
 
         return recommendations
@@ -432,9 +397,7 @@ class TrendAnalyzer:
         hash_value = hashlib.md5(content.encode("utf-8")).hexdigest()[:12]
         return f"alert-{hash_value}"
 
-    def detect_anomaly(
-        self, metrics: list[MetricPoint], std_dev_threshold: float = 2.0
-    ) -> bool:
+    def detect_anomaly(self, metrics: list[MetricPoint], std_dev_threshold: float = 2.0) -> bool:
         """
         Detect statistical anomalies using standard deviation.
 

@@ -374,10 +374,7 @@ class PipelineMonitor:
                     severity=HealthStatus.WARNING,
                     stage=PipelineStage.PLANNING_QUEUE,
                     message=f"Queue backup: {total_pending} pending tasks",
-                    details={
-                        "pending_count": total_pending,
-                        "threshold": self.alert_thresholds["queue_backup_count"],
-                    },
+                    details={"pending_count": total_pending, "threshold": self.alert_thresholds["queue_backup_count"]},
                     timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"queue_backup_{int(time.time())}",
                 )
@@ -398,12 +395,7 @@ class PipelineMonitor:
 
         return overall_health, alerts
 
-    def generate_report(
-        self,
-        metrics: PipelineMetrics,
-        health: HealthStatus,
-        alerts: list[PipelineAlert],
-    ) -> str:
+    def generate_report(self, metrics: PipelineMetrics, health: HealthStatus, alerts: list[PipelineAlert]) -> str:
         """Generate human-readable pipeline status report"""
         report_lines = [
             "=" * 70,
@@ -490,10 +482,7 @@ class PipelineMonitor:
         return "\n".join(report_lines)
 
     def _generate_recommendations(
-        self,
-        metrics: PipelineMetrics,
-        health: HealthStatus,
-        alerts: list[PipelineAlert],
+        self, metrics: PipelineMetrics, health: HealthStatus, alerts: list[PipelineAlert]
     ) -> list[str]:
         """Generate actionable recommendations based on current state"""
         recommendations = []

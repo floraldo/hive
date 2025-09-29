@@ -7,18 +7,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # Import the components we're testing
-from hive_cache.cache_client import (
-    CircuitBreaker,
-    HiveCacheClient,
-    close_cache_client,
-    get_cache_client,
-)
+from hive_cache.cache_client import CircuitBreaker, HiveCacheClient, close_cache_client, get_cache_client
 from hive_cache.config import CacheConfig
-from hive_cache.exceptions import (
-    CacheCircuitBreakerError,
-    CacheConnectionError,
-    CacheTimeoutError,
-)
+from hive_cache.exceptions import CacheCircuitBreakerError, CacheConnectionError, CacheTimeoutError
 
 
 @pytest.fixture

@@ -22,13 +22,7 @@ class AIError(BaseError):
     model and provider context for better error tracking and debugging.
     """
 
-    def __init__(
-        self,
-        message: str,
-        model: str | None = None,
-        provider: str | None = None,
-        **kwargs,
-    ) -> None:
+    def __init__(self, message: str, model: str | None = None, provider: str | None = None, **kwargs) -> None:
         """Initialize AI error with model and provider context.
 
         Args:
@@ -76,13 +70,7 @@ class VectorError(BaseError):
     Covers vector storage, retrieval, and similarity search failures.
     """
 
-    def __init__(
-        self,
-        message: str,
-        collection: str | None = None,
-        operation: str | None = None,
-        **kwargs,
-    ) -> None:
+    def __init__(self, message: str, collection: str | None = None, operation: str | None = None, **kwargs) -> None:
         """Initialize vector error with operation context.
 
         Args:
@@ -103,11 +91,7 @@ class PromptError(BaseError):
     """
 
     def __init__(
-        self,
-        message: str,
-        template_name: str | None = None,
-        missing_variables: list | None = None,
-        **kwargs,
+        self, message: str, template_name: str | None = None, missing_variables: list | None = None, **kwargs
     ) -> None:
         """Initialize prompt error with template context.
 
@@ -128,14 +112,7 @@ class CostLimitError(BaseError):
     Prevents runaway AI costs by enforcing daily/monthly spending limits.
     """
 
-    def __init__(
-        self,
-        message: str,
-        current_cost: float,
-        limit: float,
-        period: str = "daily",
-        **kwargs,
-    ) -> None:
+    def __init__(self, message: str, current_cost: float, limit: float, period: str = "daily", **kwargs) -> None:
         """Initialize cost limit error with spending details.
 
         Args:
@@ -158,14 +135,7 @@ class ModelUnavailableError(BaseError):
     with suggestions for available alternatives.
     """
 
-    def __init__(
-        self,
-        message: str,
-        model: str,
-        provider: str,
-        available_models: list | None = None,
-        **kwargs,
-    ) -> None:
+    def __init__(self, message: str, model: str, provider: str, available_models: list | None = None, **kwargs) -> None:
         """Initialize model unavailable error with alternatives.
 
         Args:

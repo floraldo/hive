@@ -208,10 +208,7 @@ class LocationResolver:
 
         if match:
             try:
-                lat, lon = (
-                    float(match.group(1)),
-                    float(match.group(2)),
-                )
+                lat, lon = (float(match.group(1)), float(match.group(2)))
                 self._validate_coordinates(lat, lon)
                 return lat, lon
             except (ValueError, LocationError):
@@ -588,10 +585,7 @@ class ClimateService(BaseProfileService):
         raise AdapterError(
             "All available adapters failed to fetch data",
             adapter_name="factory",
-            details={
-                "available_adapters": available_adapters,
-                "preferred_adapters": preferred_adapters,
-            },
+            details={"available_adapters": available_adapters, "preferred_adapters": preferred_adapters},
             recovery_suggestion="Check adapter configuration and try again later",
         )
 

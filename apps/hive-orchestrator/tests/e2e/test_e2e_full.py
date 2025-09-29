@@ -45,13 +45,9 @@ class E2ETestRunner:
     def log(self, message: str, level: str = "INFO"):
         """Log with timestamp"""
         timestamp = datetime.now().strftime("%H:%M:%S")
-        symbol = {
-            "INFO": "[INFO]",
-            "SUCCESS": "[PASS]",
-            "ERROR": "[FAIL]",
-            "WARN": "[WARN]",
-            "TEST": "[TEST]",
-        }.get(level, "[INFO]")
+        symbol = {"INFO": "[INFO]", "SUCCESS": "[PASS]", "ERROR": "[FAIL]", "WARN": "[WARN]", "TEST": "[TEST]"}.get(
+            level, "[INFO]"
+        )
         logger.info(f"[{timestamp}] {symbol} {message}")
 
     def cleanup(self):
@@ -94,10 +90,7 @@ class E2ETestRunner:
 
         try:
             result = subprocess.run(
-                [sys.executable, "scripts/seed_test_tasks.py"],
-                cwd=project_root,
-                capture_output=True,
-                text=True,
+                [sys.executable, "scripts/seed_test_tasks.py"], cwd=project_root, capture_output=True, text=True
             )
 
             if result.returncode != 0:
@@ -125,7 +118,7 @@ class E2ETestRunner:
         self.log("=== PHASE 2: Starting Services ===", "TEST")
 
         services = [
-            ("queen", [sys.executable, "scripts/hive_queen.py"]),
+            ("queen", [sys.executable, "scripts/hive_queen.py"])
             # Note: AI reviewer needs anthropic module and API key
             # For testing, it will run but may not fully function without API key
             # ("reviewer", [sys.executable, "scripts/ai_reviewer_daemon.py", "--once"])
@@ -137,13 +130,7 @@ class E2ETestRunner:
                 log_file = LOGS_DIR / f"{name}.log"
 
                 with open(log_file, "w") as f:
-                    proc = subprocess.Popen(
-                        command,
-                        cwd=project_root,
-                        stdout=f,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                    )
+                    proc = subprocess.Popen(command, cwd=project_root, stdout=f, stderr=subprocess.STDOUT, text=True)
                     self.processes[name] = proc
                     self.log(f"{name} started (PID: {proc.pid})", "SUCCESS")
 
@@ -185,15 +172,8 @@ class E2ETestRunner:
                 last_status = status
 
             # Check if we've reached desired states
-            task1_done = states.get(self.task_ids.get("task1", ""), "") in [
-                "completed",
-                "test",
-                "approved",
-            ]
-            task2_done = states.get(self.task_ids.get("task2", ""), "") in [
-                "escalated",
-                "review_pending",
-            ]
+            task1_done = states.get(self.task_ids.get("task1", ""), "") in ["completed", "test", "approved"]
+            task2_done = states.get(self.task_ids.get("task2", ""), "") in ["escalated", "review_pending"]
             task3_done = states.get(self.task_ids.get("task3", ""), "") == "completed"
 
             if task1_done and task2_done and task3_done:
@@ -232,10 +212,7 @@ class E2ETestRunner:
 
             # Check each task
             for name, task_id in self.task_ids.items():
-                cursor.execute(
-                    "SELECT status, current_phase, assignee FROM tasks WHERE id = ?",
-                    (task_id,),
-                )
+                cursor.execute("SELECT status, current_phase, assignee FROM tasks WHERE id = ?", (task_id,))
                 row = cursor.fetchone()
 
                 if not row:

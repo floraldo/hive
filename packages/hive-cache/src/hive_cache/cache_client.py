@@ -32,18 +32,18 @@ logger = get_logger(__name__)
 
 class HiveCacheClient:
     """
-from __future__ import annotations
+    from __future__ import annotations
 
-    High-performance async Redis cache client with circuit breaker protection.
+        High-performance async Redis cache client with circuit breaker protection.
 
-    Features:
-    - Async Redis operations with connection pooling
-    - Circuit breaker for resilience
-    - Intelligent serialization (MessagePack, JSON, binary)
-    - Compression for large payloads
-    - TTL management with smart defaults
-    - Key namespacing and pattern operations
-    - Health monitoring and metrics
+        Features:
+        - Async Redis operations with connection pooling
+        - Circuit breaker for resilience
+        - Intelligent serialization (MessagePack, JSON, binary)
+        - Compression for large payloads
+        - TTL management with smart defaults
+        - Key namespacing and pattern operations
+        - Health monitoring and metrics
     """
 
     def __init__(self, config: CacheConfig) -> None:
@@ -51,14 +51,7 @@ from __future__ import annotations
         self._redis_pool = None
         self._redis_client = None
         self._circuit_breaker = None
-        self._metrics = {
-            "hits": 0,
-            "misses": 0,
-            "sets": 0,
-            "deletes": 0,
-            "errors": 0,
-            "circuit_breaker_opens": 0,
-        }
+        self._metrics = {"hits": 0, "misses": 0, "sets": 0, "deletes": 0, "errors": 0, "circuit_breaker_opens": 0}
         self._last_health_check = None
         self._health_status = {"healthy": True, "last_check": None, "errors": []}
 
@@ -72,7 +65,7 @@ from __future__ import annotations
                 ),
                 max_history=1000,
                 enable_system_metrics=True,
-                enable_async_metrics=True
+                enable_async_metrics=True,
             )
             if config.enable_performance_monitoring
             else None
@@ -80,8 +73,7 @@ from __future__ import annotations
 
         if config.circuit_breaker_enabled:
             self._circuit_breaker = AsyncCircuitBreaker(
-                failure_threshold=config.circuit_breaker_threshold,
-                recovery_timeout=config.circuit_breaker_timeout,
+                failure_threshold=config.circuit_breaker_threshold, recovery_timeout=config.circuit_breaker_timeout
             )
 
     async def initialize_async(self) -> None:
@@ -89,8 +81,7 @@ from __future__ import annotations
         try:
             # Parse Redis URL and create connection pool
             self._redis_pool = redis.ConnectionPool.from_url(
-                self.config.redis_url,
-                **self.config.get_redis_connection_kwargs()
+                self.config.redis_url, **self.config.get_redis_connection_kwargs()
             )
 
             # Create reusable Redis client
@@ -236,12 +227,7 @@ from __future__ import annotations
         return xxhash.xxh64(key.encode()).hexdigest()
 
     async def set_async(
-        self,
-        key: str,
-        value: Any,
-        ttl_async: int | None = None,
-        namespace: str = "default",
-        overwrite: bool = True,
+        self, key: str, value: Any, ttl_async: int | None = None, namespace: str = "default", overwrite: bool = True
     ) -> bool:
         """Set a value in cache with optional TTL.
 
@@ -328,13 +314,7 @@ from __future__ import annotations
             raise CacheError(f"Failed to get_async cache key: {e}", operation="get_async", key=key)
 
     async def get_or_set_async(
-        self,
-        key: str,
-        factory: Callable,
-        ttl_async: int | None = None,
-        namespace: str = "default",
-        *args,
-        **kwargs
+        self, key: str, factory: Callable, ttl_async: int | None = None, namespace: str = "default", *args, **kwargs
     ) -> Any:
         """Get value from cache or compute and set_async if missing.
 
@@ -644,7 +624,7 @@ from __future__ import annotations
                 "ping_result": ping_result,
                 "set_get_test": get_result == b"test_value",
                 "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
-                "errors": []
+                "errors": [],
             }
 
             self._last_health_check = time.time()
@@ -655,7 +635,7 @@ from __future__ import annotations
                 "healthy": False,
                 "last_check": datetime.utcnow().isoformat(),
                 "errors": [str(e)],
-                "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled"
+                "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
             }
             return self._health_status
 
@@ -673,7 +653,7 @@ from __future__ import annotations
             "hit_rate_percent": round(hit_rate, 2),
             "total_operations": total_operations,
             "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
-            "last_health_check": self._last_health_check
+            "last_health_check": self._last_health_check,
         }
 
     def reset_metrics(self) -> None:
@@ -706,7 +686,7 @@ from __future__ import annotations
                         sum(m.error_count for m in operation_metrics) / len(operation_metrics)
                         if operation_metrics
                         else 0.0
-                    )
+                    ),
                 }
 
         # Add system-level metrics

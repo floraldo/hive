@@ -132,12 +132,7 @@ class HiveTestSuite:
         try:
             # Spawn worker with timeout
             process = subprocess.Popen(
-                cmd,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                env=env,
+                cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
             )
 
             # Give it 3 seconds to initialize
@@ -224,11 +219,7 @@ class HiveTestSuite:
             config = get_config()
 
             # Check essential config values
-            required_keys = [
-                "worker_spawn_timeout",
-                "status_refresh_seconds",
-                "max_parallel_tasks",
-            ]
+            required_keys = ["worker_spawn_timeout", "status_refresh_seconds", "max_parallel_tasks"]
 
             for key in required_keys:
                 if config.get(key) is None:
@@ -255,10 +246,7 @@ class HiveTestSuite:
         try:
             # Test help command
             result = subprocess.run(
-                [sys.executable, str(queen_script), "--help"],
-                capture_output=True,
-                text=True,
-                timeout=5,
+                [sys.executable, str(queen_script), "--help"], capture_output=True, text=True, timeout=5
             )
 
             if result.returncode == 0 and "QueenLite" in result.stdout:

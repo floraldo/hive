@@ -20,11 +20,7 @@ class CodeEmbeddingGenerator:
     to create rich embeddings for code pattern matching.
     """
 
-    def __init__(
-        self,
-        model_name: str = "text-embedding-ada-002",
-        cache_embeddings: bool = True,
-    ) -> None:
+    def __init__(self, model_name: str = "text-embedding-ada-002", cache_embeddings: bool = True) -> None:
         """Initialize the embedding generator."""
         self.embedding_model = EmbeddingModel(model_name=model_name)
 
@@ -34,11 +30,7 @@ class CodeEmbeddingGenerator:
         logger.info("CodeEmbeddingGenerator initialized with model %s", model_name)
 
     async def generate_file_embeddings(
-        self,
-        file_path: Path,
-        content: str,
-        chunk_size: int = 50,
-        overlap: int = 10,
+        self, file_path: Path, content: str, chunk_size: int = 50, overlap: int = 10
     ) -> list[dict[str, Any]]:
         """
         Generate embeddings for a file using sliding window approach.
@@ -111,19 +103,12 @@ class CodeEmbeddingGenerator:
 
             embeddings.append(embedding_data)
 
-        logger.info(
-            "Generated %d embeddings for %s",
-            len(embeddings),
-            file_path,
-        )
+        logger.info("Generated %d embeddings for %s", len(embeddings), file_path)
 
         return embeddings
 
     async def generate_pattern_embedding(
-        self,
-        pattern: str,
-        pattern_type: str = "code",
-        metadata: dict[str, Any] | None = None,
+        self, pattern: str, pattern_type: str = "code", metadata: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """
         Generate embedding for a specific code pattern.
@@ -164,12 +149,7 @@ class CodeEmbeddingGenerator:
 
     def _extract_structure(self, tree: ast.AST) -> dict[str, Any]:
         """Extract structural information from AST."""
-        structure = {
-            "classes": [],
-            "functions": [],
-            "imports": [],
-            "global_vars": [],
-        }
+        structure = {"classes": [], "functions": [], "imports": [], "global_vars": []}
 
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
@@ -183,11 +163,7 @@ class CodeEmbeddingGenerator:
             elif isinstance(node, ast.FunctionDef):
                 # Only top-level functions
                 structure["functions"].append(
-                    {
-                        "name": node.name,
-                        "line": node.lineno,
-                        "is_async": isinstance(node, ast.AsyncFunctionDef),
-                    }
+                    {"name": node.name, "line": node.lineno, "is_async": isinstance(node, ast.AsyncFunctionDef)}
                 )
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
                 if isinstance(node, ast.Import):
@@ -199,12 +175,7 @@ class CodeEmbeddingGenerator:
         return structure
 
     def _build_context(
-        self,
-        chunk_content: str,
-        file_path: Path,
-        start_line: int,
-        end_line: int,
-        structure_info: dict[str, Any],
+        self, chunk_content: str, file_path: Path, start_line: int, end_line: int, structure_info: dict[str, Any]
     ) -> str:
         """Build enriched context for embedding generation."""
         # Include structural context
@@ -214,10 +185,7 @@ class CodeEmbeddingGenerator:
 
         relevant_classes = [c["name"] for c in structure_info.get("classes", []) if start_line <= c["line"] <= end_line]
 
-        context_parts = [
-            f"File: {file_path.name}",
-            f"Language: {self._get_language(file_path)}",
-        ]
+        context_parts = [f"File: {file_path.name}", f"Language: {self._get_language(file_path)}"]
 
         if relevant_functions:
             context_parts.append(f"Functions: {', '.join(relevant_functions)}")
@@ -229,16 +197,9 @@ class CodeEmbeddingGenerator:
 
         return "\n".join(context_parts)
 
-    def _build_pattern_context(
-        self,
-        pattern: str,
-        pattern_type: str,
-        metadata: dict[str, Any] | None,
-    ) -> str:
+    def _build_pattern_context(self, pattern: str, pattern_type: str, metadata: dict[str, Any] | None) -> str:
         """Build context for pattern embedding."""
-        context_parts = [
-            f"Pattern Type: {pattern_type}",
-        ]
+        context_parts = [f"Pattern Type: {pattern_type}"]
 
         if metadata:
             if "description" in metadata:

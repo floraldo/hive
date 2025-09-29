@@ -60,10 +60,7 @@ def test_3_claude_service():
     """Test Claude service"""
     logger.info("Testing Claude service...")
     try:
-        from hive_claude_bridge.claude_service import (
-            get_claude_service,
-            reset_claude_service,
-        )
+        from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
 
         reset_claude_service()
         service = get_claude_service()

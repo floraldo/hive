@@ -21,15 +21,8 @@ def sample_integration_task():
         "app_name": "test-web-app",
         "source_path": "/tmp/test-app",
         "deployment_strategy": "direct",
-        "ssh_config": {
-            "hostname": "test-deploy.example.com",
-            "username": "deploy",
-            "key_file": "/tmp/test-key.pem",
-        },
-        "environment": {
-            "platform": "linux",
-            "has_load_balancer": False,
-        },
+        "ssh_config": {"hostname": "test-deploy.example.com", "username": "deploy", "key_file": "/tmp/test-key.pem"},
+        "environment": {"platform": "linux", "has_load_balancer": False},
         "health_endpoint": "/health",
         "priority": 1,
         "metadata": {"environment": "test"},
@@ -50,10 +43,7 @@ class TestDeploymentIntegration:
         mock_ssh_strategy.strategy = DeploymentStrategy.DIRECT
         mock_ssh_strategy.pre_deployment_checks = AsyncMock(return_value={"success": True, "errors": []})
         mock_ssh_strategy.deploy = AsyncMock(
-            return_value={
-                "success": True,
-                "metrics": {"deployment_time": 30.5, "files_deployed": 42},
-            }
+            return_value={"success": True, "metrics": {"deployment_time": 30.5, "files_deployed": 42}}
         )
         mock_ssh_strategy.post_deployment_actions = AsyncMock()
 
@@ -199,9 +189,7 @@ class TestDeploymentIntegration:
 
             # Record deployment event
             event_result = adapter.record_deployment_event(
-                "test-task-001",
-                "deployment_completed",
-                {"duration": 30.5, "success": True},
+                "test-task-001", "deployment_completed", {"duration": 30.5, "success": True}
             )
             assert event_result is True
 
@@ -219,26 +207,17 @@ class TestDeploymentIntegration:
         assert strategy == DeploymentStrategy.DIRECT
 
         # Test blue-green strategy with compatible environment
-        task = {
-            "deployment_strategy": "blue-green",
-            "environment": {"has_load_balancer": True},
-        }
+        task = {"deployment_strategy": "blue-green", "environment": {"has_load_balancer": True}}
         strategy = orchestrator._select_strategy(task)
         assert strategy == DeploymentStrategy.BLUE_GREEN
 
         # Test blue-green strategy with incompatible environment (should fallback)
-        task = {
-            "deployment_strategy": "blue-green",
-            "environment": {"has_load_balancer": False},
-        }
+        task = {"deployment_strategy": "blue-green", "environment": {"has_load_balancer": False}}
         strategy = orchestrator._select_strategy(task)
         assert strategy == DeploymentStrategy.DIRECT
 
         # Test canary strategy with Kubernetes
-        task = {
-            "deployment_strategy": "canary",
-            "environment": {"platform": "kubernetes"},
-        }
+        task = {"deployment_strategy": "canary", "environment": {"platform": "kubernetes"}}
         strategy = orchestrator._select_strategy(task)
         assert strategy == DeploymentStrategy.CANARY
 
@@ -291,9 +270,7 @@ class TestDeploymentIntegration:
             mock_orchestrator = Mock()
             mock_orchestrator.deploy = AsyncMock(
                 return_value=DeploymentResult(
-                    success=True,
-                    strategy=DeploymentStrategy.DIRECT,
-                    deployment_id="event-test-123",
+                    success=True, strategy=DeploymentStrategy.DIRECT, deployment_id="event-test-123"
                 )
             )
             mock_orchestrator.check_health = AsyncMock(return_value=Mock(healthy=True))
@@ -350,11 +327,7 @@ class TestDeploymentIntegration:
         async def mock_deploy_async(task):
             task_id = task["id"]
             await asyncio.sleep(0.1)  # Simulate deployment time
-            return DeploymentResult(
-                success=True,
-                strategy=DeploymentStrategy.DIRECT,
-                deployment_id=f"deploy-{task_id}",
-            )
+            return DeploymentResult(success=True, strategy=DeploymentStrategy.DIRECT, deployment_id=f"deploy-{task_id}")
 
         mock_orchestrator.deploy = mock_deploy
         mock_orchestrator.check_health = AsyncMock(return_value=Mock(healthy=True))

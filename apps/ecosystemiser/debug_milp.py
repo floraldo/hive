@@ -5,16 +5,8 @@ from pathlib import Path
 
 eco_path = Path(__file__).parent / "src"
 
-from ecosystemiser.system_model.components.energy.battery import (
-    Battery,
-    BatteryParams,
-    BatteryTechnicalParams,
-)
-from ecosystemiser.system_model.components.energy.grid import (
-    Grid,
-    GridParams,
-    GridTechnicalParams,
-)
+from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
+from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
 

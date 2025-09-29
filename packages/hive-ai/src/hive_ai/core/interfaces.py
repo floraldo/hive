@@ -122,10 +122,7 @@ class VectorStoreInterface(ABC):
 
     @abstractmethod
     async def store_async(
-        self,
-        vectors: list[list[float]],
-        metadata: list[dict[str, Any]],
-        ids: list[str] | None = None,
+        self, vectors: list[list[float]], metadata: list[dict[str, Any]], ids: list[str] | None = None
     ) -> list[str]:
         """Store vectors with metadata.
 
@@ -141,10 +138,7 @@ class VectorStoreInterface(ABC):
 
     @abstractmethod
     async def search_async(
-        self,
-        query_vector: list[float],
-        top_k: int = 10,
-        filter_metadata: dict[str, Any] | None = None,
+        self, query_vector: list[float], top_k: int = 10, filter_metadata: dict[str, Any] | None = None
     ) -> list[dict[str, Any]]:
         """Search for similar vectors.
 

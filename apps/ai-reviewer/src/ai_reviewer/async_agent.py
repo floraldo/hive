@@ -109,23 +109,23 @@ class AsyncReviewEngine:
             "code_quality": {
                 "score": 85 if decision == ReviewDecision.APPROVE else 65,
                 "issues": []
-                if decision == ReviewDecision.APPROVE,
-                else ["Code structure could be improved", "Missing error handling in some areas"]
+                if decision == ReviewDecision.APPROVE
+                else ["Code structure could be improved", "Missing error handling in some areas"],
                 "strengths": ["Clear variable naming", "Good separation of concerns"]
-                if decision == ReviewDecision.APPROVE,
+                if decision == ReviewDecision.APPROVE
                 else []
-            }
+            },
             "test_coverage": {
                 "score": 80 if decision == ReviewDecision.APPROVE else 45,
                 "missing_tests": []
-                if decision == ReviewDecision.APPROVE,
+                if decision == ReviewDecision.APPROVE
                 else ["Edge case testing", "Error handling tests"]
-            }
+            },
             "security": {
                 "score": 90,
                 "vulnerabilities": [],
                 "recommendations": ["Use parameterized queries", "Validate input data"]
-            }
+            },
             "performance": {
                 "score": 75,
                 "bottlenecks": [],
@@ -134,7 +134,7 @@ class AsyncReviewEngine:
         }
 
         # Generate review summary
-        if decision == ReviewDecision.APPROVE:,
+        if decision == ReviewDecision.APPROVE:
             summary = f"Task {task_id} meets quality standards and is approved for completion."
             feedback = "Good implementation with clean code structure. Minor optimizations suggested."
         else:
@@ -226,7 +226,7 @@ class AsyncReviewEngine:
         for file_path in all_files[:10]:  # Limit to 10 files max
             try:
                 if Path(file_path).exists():
-                    with open(file_path, 'r', encoding='utf-8') as f:,
+                    with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
                         # Limit file content size
                         if len(content) > 5000:
@@ -291,7 +291,7 @@ class AsyncReviewEngine:
         possible_paths = [
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
-            Path("claude.cmd")
+            Path("claude.cmd"),
             Path("claude")
         ]
 
@@ -309,7 +309,7 @@ class AsyncReviewEngine:
 
             stdout, stderr = await process.communicate()
 
-            if process.returncode == 0:,
+            if process.returncode == 0:
                 claude_path = stdout.decode('utf-8').strip().split('\n')[0]
                 if claude_path:
                     return claude_path
@@ -646,10 +646,10 @@ class AsyncAIReviewer:
                 review_time = time.time() - start_time
 
                 # Update task based on review decision
-                if decision == ReviewDecision.APPROVE:,
+                if decision == ReviewDecision.APPROVE:
                     new_status = "review_approved"
                     self.metrics["approved"] += 1
-                elif decision == ReviewDecision.REJECT:,
+                elif decision == ReviewDecision.REJECT:
                     new_status = "review_rejected"
                     self.metrics["rejected"] += 1
                 else:  # REWORK

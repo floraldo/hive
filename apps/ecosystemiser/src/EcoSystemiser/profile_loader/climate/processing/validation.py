@@ -520,12 +520,12 @@ class MeteorologicalValidator:
                 severity = self._determine_bounds_severity(n_violations, total_points)
                 issue = create_bounds_issue(
                     variable=var_name,
-                    n_violations=int(n_violations)
+                    n_violations=int(n_violations),
                     total_points=int(total_points),
-                    bounds=(min_bound, max_bound)
+                    bounds=(min_bound, max_bound),
                     severity=severity,
                     suggested_action=f"Review {var_name} measurements for sensor issues or extreme weather events"
-                ),
+                )
                 report.add_issue(issue)
             else:
                 report.passed_checks.append(f"physical_bounds_{var_name}")
@@ -570,12 +570,12 @@ class MeteorologicalValidator:
             severity = QCSeverity.HIGH if percent > 5 else QCSeverity.MEDIUM
             issue = create_consistency_issue(
                 message=f"Dewpoint exceeds air temperature in {n_violations} points ({percent:.1f}%)",
-                affected_variables=["temp_air", "dewpoint"]
+                affected_variables=["temp_air", "dewpoint"],
                 severity=severity,
-                affected_count=int(n_violations)
+                affected_count=int(n_violations),
                 metadata={"tolerance_degC": tolerance, "percent_affected": percent},
                 suggested_action="Check sensor calibration and shielding"
-            ),
+            )
             report.add_issue(issue)
         else:
             report.passed_checks.append("temp_dewpoint_consistency")
@@ -612,12 +612,12 @@ class MeteorologicalValidator:
                 severity = QCSeverity.HIGH if percent > 10 else QCSeverity.MEDIUM
                 issue = create_consistency_issue(
                     message=f"Solar radiation components inconsistent in {n_violations} daylight points ({percent:.1f}%)",
-                    affected_variables=["ghi", "dni", "dhi"]
+                    affected_variables=["ghi", "dni", "dhi"],
                     severity=severity,
-                    affected_count=int(n_violations)
+                    affected_count=int(n_violations),
                     metadata={"tolerance_percent": rel_tolerance * 100},
                     suggested_action="Check solar sensor calibration and alignment"
-                ),
+                )
                 report.add_issue(issue)
             else:
                 report.passed_checks.append("solar_components_consistency")
@@ -643,12 +643,12 @@ class MeteorologicalValidator:
             severity = QCSeverity.LOW
             issue = create_consistency_issue(
                 message=f"Wind direction defined during very low wind speeds in {n_violations} points ({percent:.1f}%)",
-                affected_variables=["wind_speed", "wind_dir"]
+                affected_variables=["wind_speed", "wind_dir"],
                 severity=severity,
-                affected_count=int(n_violations)
+                affected_count=int(n_violations),
                 metadata={"threshold_ms": low_wind_threshold},
                 suggested_action="Consider filtering wind direction during calm conditions"
-            ),
+            )
             report.add_issue(issue)
         else:
             report.passed_checks.append("wind_consistency")
@@ -674,11 +674,11 @@ class MeteorologicalValidator:
             severity = QCSeverity.MEDIUM if percent > 50 else QCSeverity.LOW
             issue = create_consistency_issue(
                 message=f"Heavy precipitation with low humidity in {n_violations} points ({percent:.1f}% of heavy precip events)",
-                affected_variables=["rel_humidity", "precip"]
+                affected_variables=["rel_humidity", "precip"],
                 severity=severity,
-                affected_count=int(n_violations)
+                affected_count=int(n_violations),
                 suggested_action="Verify precipitation and humidity sensor calibration"
-            ),
+            )
             report.add_issue(issue)
         else:
             report.passed_checks.append("humidity_precipitation_consistency")
@@ -709,11 +709,11 @@ class MeteorologicalValidator:
                 severity = QCSeverity.MEDIUM if percent > 20 else QCSeverity.LOW
                 issue = create_consistency_issue(
                     message=f"High solar radiation despite high cloud cover in {n_violations} daylight points ({percent:.1f}%)",
-                    affected_variables=["cloud_cover", "ghi"]
+                    affected_variables=["cloud_cover", "ghi"],
                     severity=severity,
-                    affected_count=int(n_violations)
+                    affected_count=int(n_violations),
                     suggested_action="Verify cloud cover measurements and solar sensor obstruction"
-                ),
+                )
                 report.add_issue(issue)
             else:
                 report.passed_checks.append("cloud_solar_consistency")
@@ -809,7 +809,7 @@ class MeteorologicalValidator:
             severity = QCSeverity.HIGH if (n_gaps + n_missing) > len(time_values) * 0.1 else QCSeverity.MEDIUM
             issue = create_temporal_issue(
                 message=f"Time continuity issues: {full_message}",
-                affected_variables=list(ds.data_vars.keys())
+                affected_variables=list(ds.data_vars.keys()),
                 severity=severity,
                 metadata={
                     "n_gaps": int(n_gaps),
@@ -817,9 +817,9 @@ class MeteorologicalValidator:
                     "max_gap_hours": (max_gap.total_seconds() / 3600 if n_gaps > 0 else 0),
                     "expected_freq": (str(expected_freq) if expected_freq else str(expected_td)),
                     "freq_source": freq_source
-                }
+                },
                 suggested_action="Check data collection continuity and fill gaps if possible"
-            ),
+            )
             report.add_issue(issue)
         else:
             report.passed_checks.append("time_gaps")
@@ -828,13 +828,13 @@ class MeteorologicalValidator:
         """Check for unrealistic rates of change in variables"""
         # Define maximum realistic hourly changes
         max_hourly_changes = {
-            "temp_air": 10,  # degC/h (extreme weather fronts),
-            "dewpoint": 8,  # degC/h,
-            "rel_humidity": 30,  # %/h,
-            "wind_speed": 20,  # m/s/h (gusts),
-            "pressure": 10,  # hPa/h (extreme pressure changes),
+            "temp_air": 10,  # degC/h (extreme weather fronts)
+            "dewpoint": 8,  # degC/h
+            "rel_humidity": 30,  # %/h
+            "wind_speed": 20,  # m/s/h (gusts)
+            "pressure": 10,  # hPa/h (extreme pressure changes)
             "ghi": 800,  # W/m2/h (cloud shadows)
-        },
+        }
 
         for var_name, max_change in max_hourly_changes.items():
             if var_name not in ds:
@@ -855,16 +855,16 @@ class MeteorologicalValidator:
                 severity = QCSeverity.HIGH if percent > 5 else QCSeverity.MEDIUM
                 issue = create_temporal_issue(
                     message=f"Unrealistic rate of change in {var_name}: {n_violations} violations ({percent:.1f}%), max change: {max_observed_change:.2f}",
-                    affected_variables=[var_name]
+                    affected_variables=[var_name],
                     severity=severity,
-                    affected_count=int(n_violations)
+                    affected_count=int(n_violations),
                     metadata={
                         "max_allowed_change": max_change,
                         "max_observed_change": float(max_observed_change),
                         "percent_violations": percent
-                    }
+                    },
                     suggested_action=f"Review {var_name} measurements for sensor spikes or extreme weather events"
-                ),
+                )
                 report.add_issue(issue)
             else:
                 report.passed_checks.append(f"rate_of_change_{var_name}")
@@ -904,9 +904,9 @@ class MeteorologicalValidator:
                 severity=severity,
                 affected_variables=[var_name],
                 affected_count=int(missing_points),
-                metadata={"missing_percent": missing_percent}
+                metadata={"missing_percent": missing_percent},
                 suggested_action=suggested_action
-            ),
+            )
             report.add_issue(issue)
 
     def _check_constant_values(self, ds: xr.Dataset, report: QCReport) -> None:

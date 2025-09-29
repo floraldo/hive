@@ -41,15 +41,9 @@ class PatternStore:
         self.metadata = self._load_metadata()
 
         # Initialize Hive vector store for efficient search
-        self.vector_store = HiveVectorStore(
-            index_path=str(self.index_path / "hive_index"),
-            dimension=dimension,
-        )
+        self.vector_store = HiveVectorStore(index_path=str(self.index_path / "hive_index"), dimension=dimension)
 
-        logger.info(
-            "PatternStore initialized with %d patterns",
-            len(self.patterns),
-        )
+        logger.info("PatternStore initialized with %d patterns", len(self.patterns))
 
     async def add_pattern(
         self,
@@ -70,11 +64,7 @@ class PatternStore:
             metadata: Additional metadata
         """
         # Add to in-memory storage
-        self.patterns[pattern_id] = {
-            "content": pattern_content,
-            "type": pattern_type,
-            "metadata": metadata or {},
-        }
+        self.patterns[pattern_id] = {"content": pattern_content, "type": pattern_type, "metadata": metadata or {}}
 
         # Add embedding
         if self.embeddings is None:
@@ -91,12 +81,7 @@ class PatternStore:
 
         # Add to vector store
         await self.vector_store.add(
-            embedding=embedding,
-            metadata={
-                "pattern_id": pattern_id,
-                "type": pattern_type,
-                **(metadata or {}),
-            },
+            embedding=embedding, metadata={"pattern_id": pattern_id, "type": pattern_type, **(metadata or {})}
         )
 
         # Persist to disk
@@ -107,11 +92,7 @@ class PatternStore:
         logger.info("Added pattern %s of type %s", pattern_id, pattern_type)
 
     async def search_similar_patterns(
-        self,
-        query_embedding: np.ndarray,
-        k: int = 5,
-        pattern_type: str | None = None,
-        threshold: float = 0.8,
+        self, query_embedding: np.ndarray, k: int = 5, pattern_type: str | None = None, threshold: float = 0.8
     ) -> list[dict[str, Any]]:
         """
         Search for similar patterns.
@@ -154,11 +135,7 @@ class PatternStore:
 
         return enriched_results
 
-    async def find_anti_patterns(
-        self,
-        code_embedding: np.ndarray,
-        threshold: float = 0.75,
-    ) -> list[dict[str, Any]]:
+    async def find_anti_patterns(self, code_embedding: np.ndarray, threshold: float = 0.75) -> list[dict[str, Any]]:
         """
         Find anti-patterns in the code.
 
@@ -170,17 +147,10 @@ class PatternStore:
             List of detected anti-patterns
         """
         return await self.search_similar_patterns(
-            query_embedding=code_embedding,
-            k=10,
-            pattern_type="anti_pattern",
-            threshold=threshold,
+            query_embedding=code_embedding, k=10, pattern_type="anti_pattern", threshold=threshold
         )
 
-    async def find_best_practices(
-        self,
-        code_embedding: np.ndarray,
-        context: str | None = None,
-    ) -> list[dict[str, Any]]:
+    async def find_best_practices(self, code_embedding: np.ndarray, context: str | None = None) -> list[dict[str, Any]]:
         """
         Find relevant best practices for the code.
 
@@ -192,10 +162,7 @@ class PatternStore:
             List of relevant best practices
         """
         results = await self.search_similar_patterns(
-            query_embedding=code_embedding,
-            k=5,
-            pattern_type="best_practice",
-            threshold=0.7,
+            query_embedding=code_embedding, k=5, pattern_type="best_practice", threshold=0.7
         )
 
         # Filter by context if provided
@@ -204,11 +171,7 @@ class PatternStore:
 
         return results
 
-    async def get_fix_suggestions(
-        self,
-        violation_embedding: np.ndarray,
-        violation_type: str,
-    ) -> list[dict[str, Any]]:
+    async def get_fix_suggestions(self, violation_embedding: np.ndarray, violation_type: str) -> list[dict[str, Any]]:
         """
         Get fix suggestions for a violation.
 
@@ -221,10 +184,7 @@ class PatternStore:
         """
         # Search for similar violations with fixes
         results = await self.search_similar_patterns(
-            query_embedding=violation_embedding,
-            k=3,
-            pattern_type="fix",
-            threshold=0.8,
+            query_embedding=violation_embedding, k=3, pattern_type="fix", threshold=0.8
         )
 
         # Filter by violation type
@@ -270,10 +230,7 @@ cursor.execute(query)""",
 query = "SELECT * FROM users WHERE id = ?"
 cursor.execute(query, (user_id,))""",
                 "type": "fix",
-                "metadata": {
-                    "fixes_violation": "sql_injection",
-                    "categories": ["security", "database"],
-                },
+                "metadata": {"fixes_violation": "sql_injection", "categories": ["security", "database"]},
             },
             {
                 "id": "context_manager",

@@ -136,10 +136,7 @@ class InputValidator:
         is_valid = len(violations) == 0 or (self.security_level == SecurityLevel.BASIC and not injection_found)
 
         return ValidationResult(
-            is_valid=is_valid,
-            sanitized_input=sanitized,
-            violations=violations,
-            risk_level=risk_level,
+            is_valid=is_valid, sanitized_input=sanitized, violations=violations, risk_level=risk_level
         )
 
     def _sanitize_prompt(self, prompt: str) -> str:
@@ -179,21 +176,10 @@ class InputValidator:
         risk_level = "low"
 
         if not isinstance(metadata, dict):
-            return ValidationResult(
-                is_valid=False,
-                violations=["Metadata must be a dictionary"],
-                risk_level="high",
-            )
+            return ValidationResult(is_valid=False, violations=["Metadata must be a dictionary"], risk_level="high")
 
         # Check for dangerous keys
-        dangerous_keys = {
-            "__class__",
-            "__module__",
-            "__dict__",
-            "__globals__",
-            "exec",
-            "eval",
-        }
+        dangerous_keys = {"__class__", "__module__", "__dict__", "__globals__", "exec", "eval"}
         found_dangerous = dangerous_keys.intersection(metadata.keys())
         if found_dangerous:
             violations.append(f"Dangerous metadata keys detected: {found_dangerous}")

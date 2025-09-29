@@ -41,7 +41,7 @@ class AlertValidationTracker:
         """Load validation database from disk."""
         if self.validation_db_path.exists():
             try:
-                with open(self.validation_db_path, 'r') as f:
+                with open(self.validation_db_path, "r") as f:
                     return json.load(f)
             except Exception as e:
                 logger.error(f"Failed to load validation database: {e}")
@@ -62,17 +62,17 @@ class AlertValidationTracker:
                 "accuracy": 0.0,
                 "precision": 0.0,
                 "recall": 0.0,
-                "f1_score": 0.0
+                "f1_score": 0.0,
             },
             "created_at": datetime.utcnow().isoformat(),
-            "last_updated": datetime.utcnow().isoformat()
+            "last_updated": datetime.utcnow().isoformat(),
         }
 
     def _save_database(self) -> None:
         """Save validation database to disk."""
         try:
             self.data["last_updated"] = datetime.utcnow().isoformat()
-            with open(self.validation_db_path, 'w') as f:
+            with open(self.validation_db_path, "w") as f:
                 json.dump(self.data, f, indent=2, default=str)
             logger.info(f"Validation database saved to {self.validation_db_path}")
         except Exception as e:
@@ -86,7 +86,7 @@ class AlertValidationTracker:
         predicted_breach_time: str | None,
         confidence: float,
         severity: str,
-        metadata: dict | None = None
+        metadata: dict | None = None,
     ) -> None:
         """
         Record a new predictive alert.
@@ -112,7 +112,7 @@ class AlertValidationTracker:
             "status": "pending_validation",
             "outcome": None,
             "validated_at": None,
-            "validation_notes": None
+            "validation_notes": None,
         }
 
         self.data["alerts"].append(alert_entry)
@@ -132,7 +132,7 @@ class AlertValidationTracker:
         occurred_at: str,
         severity: str,
         description: str,
-        related_alert_id: str | None = None
+        related_alert_id: str | None = None,
     ) -> None:
         """
         Record an actual incident that occurred.
@@ -155,23 +155,17 @@ class AlertValidationTracker:
             "severity": severity,
             "description": description,
             "related_alert_id": related_alert_id,
-            "was_predicted": related_alert_id is not None
+            "was_predicted": related_alert_id is not None,
         }
 
         self.data["incidents"].append(incident_entry)
         self._save_database()
 
         logger.info(
-            f"Recorded incident {incident_id}: {service_name}/{metric_type} "
-            f"(predicted={related_alert_id is not None})"
+            f"Recorded incident {incident_id}: {service_name}/{metric_type} (predicted={related_alert_id is not None})"
         )
 
-    def validate_alert(
-        self,
-        alert_id: str,
-        outcome: str,
-        notes: str | None = None
-    ) -> None:
+    def validate_alert(self, alert_id: str, outcome: str, notes: str | None = None) -> None:
         """
         Validate an alert's accuracy.
 
@@ -181,9 +175,7 @@ class AlertValidationTracker:
             notes: Additional validation notes
         """
         if outcome not in ["true_positive", "false_positive"]:
-            raise ValueError(
-                f"Invalid outcome: {outcome}. Must be 'true_positive' or 'false_positive'"
-            )
+            raise ValueError(f"Invalid outcome: {outcome}. Must be 'true_positive' or 'false_positive'")
 
         # Find and update alert
         alert_found = False
@@ -233,10 +225,7 @@ class AlertValidationTracker:
 
         # F1 Score: 2 * (Precision * Recall) / (Precision + Recall)
         if (stats["precision"] + stats["recall"]) > 0:
-            stats["f1_score"] = (
-                2 * (stats["precision"] * stats["recall"]) /
-                (stats["precision"] + stats["recall"])
-            )
+            stats["f1_score"] = 2 * (stats["precision"] * stats["recall"]) / (stats["precision"] + stats["recall"])
         else:
             stats["f1_score"] = 0.0
 
@@ -271,10 +260,10 @@ class AlertValidationTracker:
             for alert in self.data["alerts"]:
                 alert_time = datetime.fromisoformat(alert["timestamp"])
                 if (
-                    alert["service_name"] == incident["service_name"] and
-                    alert["metric_type"] == incident["metric_type"] and
-                    alert_time <= incident_time and
-                    alert_time >= cutoff_time
+                    alert["service_name"] == incident["service_name"]
+                    and alert["metric_type"] == incident["metric_type"]
+                    and alert_time <= incident_time
+                    and alert_time >= cutoff_time
                 ):
                     had_prior_alert = True
                     break
@@ -303,28 +292,16 @@ class AlertValidationTracker:
 
         # Calculate false positive rate
         total_alerts = stats["total_alerts"]
-        fp_rate = (
-            (stats["false_positives"] / total_alerts * 100)
-            if total_alerts > 0 else 0.0
-        )
+        fp_rate = (stats["false_positives"] / total_alerts * 100) if total_alerts > 0 else 0.0
 
         # Get pending alerts
-        pending_alerts = [
-            a for a in self.data["alerts"]
-            if a["status"] == "pending_validation"
-        ]
+        pending_alerts = [a for a in self.data["alerts"] if a["status"] == "pending_validation"]
 
         # Get recent true positives
-        recent_tps = [
-            a for a in self.data["alerts"]
-            if a["outcome"] == "true_positive"
-        ][-10:]
+        recent_tps = [a for a in self.data["alerts"] if a["outcome"] == "true_positive"][-10:]
 
         # Get recent false positives
-        recent_fps = [
-            a for a in self.data["alerts"]
-            if a["outcome"] == "false_positive"
-        ][-10:]
+        recent_fps = [a for a in self.data["alerts"] if a["outcome"] == "false_positive"][-10:]
 
         report = {
             "generated_at": datetime.utcnow().isoformat(),
@@ -334,13 +311,13 @@ class AlertValidationTracker:
                 "false_positives": stats["false_positives"],
                 "false_negatives": stats["false_negatives"],
                 "false_positive_rate": fp_rate,
-                "pending_validation": len(pending_alerts)
+                "pending_validation": len(pending_alerts),
             },
             "metrics": {
                 "accuracy": stats["accuracy"],
                 "precision": stats["precision"],
                 "recall": stats["recall"],
-                "f1_score": stats["f1_score"]
+                "f1_score": stats["f1_score"],
             },
             "targets": {
                 "target_fp_rate": 10.0,
@@ -348,28 +325,24 @@ class AlertValidationTracker:
                 "meets_target": fp_rate <= 10.0,
                 "target_precision": 0.90,
                 "current_precision": stats["precision"],
-                "meets_precision_target": stats["precision"] >= 0.90
+                "meets_precision_target": stats["precision"] >= 0.90,
             },
             "pending_alerts": pending_alerts,
             "recent_true_positives": recent_tps,
             "recent_false_positives": recent_fps,
-            "recommendations": self._generate_recommendations(stats, fp_rate)
+            "recommendations": self._generate_recommendations(stats, fp_rate),
         }
 
         if output_path:
             output_file = Path(output_path)
             output_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(report, f, indent=2, default=str)
             logger.info(f"Validation report saved to {output_file}")
 
         return report
 
-    def _generate_recommendations(
-        self,
-        stats: dict,
-        fp_rate: float
-    ) -> list[str]:
+    def _generate_recommendations(self, stats: dict, fp_rate: float) -> list[str]:
         """Generate tuning recommendations based on current performance."""
         recommendations = []
 
@@ -394,14 +367,11 @@ class AlertValidationTracker:
 
         if stats["total_alerts"] < 10:
             recommendations.append(
-                "Insufficient data for reliable statistics. "
-                "Continue monitoring to accumulate more validation data."
+                "Insufficient data for reliable statistics. Continue monitoring to accumulate more validation data."
             )
 
         if not recommendations:
-            recommendations.append(
-                "System performance meets targets. Continue monitoring."
-            )
+            recommendations.append("System performance meets targets. Continue monitoring.")
 
         return recommendations
 
@@ -413,18 +383,15 @@ class AlertValidationTracker:
             output_path: Path to save tuning data
         """
         tuning_data = {
-            "validated_alerts": [
-                a for a in self.data["alerts"]
-                if a["status"] == "validated"
-            ],
+            "validated_alerts": [a for a in self.data["alerts"] if a["status"] == "validated"],
             "incidents": self.data["incidents"],
             "statistics": self.data["statistics"],
-            "exported_at": datetime.utcnow().isoformat()
+            "exported_at": datetime.utcnow().isoformat(),
         }
 
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(tuning_data, f, indent=2, default=str)
 
         logger.info(f"Tuning data exported to {output_file}")
@@ -435,32 +402,12 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Alert Validation Tracker")
+    parser.add_argument("--validate", action="store_true", help="Run validation analysis")
+    parser.add_argument("--report", action="store_true", help="Generate validation report")
+    parser.add_argument("--output", type=str, help="Output file for report", default="data/validation_report.json")
+    parser.add_argument("--detect-fn", action="store_true", help="Detect false negatives")
     parser.add_argument(
-        "--validate",
-        action="store_true",
-        help="Run validation analysis"
-    )
-    parser.add_argument(
-        "--report",
-        action="store_true",
-        help="Generate validation report"
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        help="Output file for report",
-        default="data/validation_report.json"
-    )
-    parser.add_argument(
-        "--detect-fn",
-        action="store_true",
-        help="Detect false negatives"
-    )
-    parser.add_argument(
-        "--lookback-hours",
-        type=int,
-        default=24,
-        help="Hours to look back for false negative detection"
+        "--lookback-hours", type=int, default=24, help="Hours to look back for false negative detection"
     )
 
     args = parser.parse_args()
@@ -509,7 +456,7 @@ def main():
         print(f"  Meets Precision Target: {report['targets']['meets_precision_target']}")
 
         print(f"\nRecommendations:")
-        for i, rec in enumerate(report['recommendations'], 1):
+        for i, rec in enumerate(report["recommendations"], 1):
             print(f"  {i}. {rec}")
 
         print("\n" + "=" * 80)

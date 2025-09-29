@@ -75,10 +75,7 @@ except ImportError:
     TextColumn = lambda x: None
     Table = MockTable
 
-from guardian_agent.intelligence.data_unification import (
-    MetricType,
-    UnifiedMetric,
-)
+from guardian_agent.intelligence.data_unification import MetricType, UnifiedMetric
 from guardian_agent.intelligence.oracle_service import OracleConfig, OracleService
 
 
@@ -206,11 +203,7 @@ async def demo_analytics_engine(oracle: OracleService):
     console.print("\n🔍 [bold blue]Phase 2: Analytics & Insight Engine[/bold blue]")
     console.print("Analyzing trends, detecting anomalies, and generating insights...")
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
+    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
         task = progress.add_task("Running analytics...", total=None)
 
         # Generate insights
@@ -246,11 +239,7 @@ async def demo_mission_control(oracle: OracleService):
     console.print("\n🎮 [bold blue]Phase 3: Mission Control Dashboard[/bold blue]")
     console.print("Generating single-pane-of-glass platform view...")
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
+    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
         task = progress.add_task("Loading dashboard data...", total=None)
 
         # Get platform health
@@ -306,11 +295,7 @@ async def demo_strategic_recommendations(oracle: OracleService):
     console.print("\n🎯 [bold blue]Phase 4: Strategic Recommendation Engine (Oracle)[/bold blue]")
     console.print("Generating strategic recommendations and GitHub issues...")
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
+    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
         task = progress.add_task("Analyzing platform for recommendations...", total=None)
 
         recommendations = await oracle.get_recommendations_async(include_predictive=True)

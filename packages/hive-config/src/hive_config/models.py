@@ -51,17 +51,10 @@ class AppConfig:
 
     def audit_report(self) -> dict[str, Any]:
         """Generate an audit report of configuration sources"""
-        report = {
-            "app_name": self.app_name,
-            "total_keys": len(self.config),
-            "by_source": {},
-        }
+        report = {"app_name": self.app_name, "total_keys": len(self.config), "by_source": {}}
 
         for source in ConfigSources:
             keys = self.get_keys_by_source(source)
-            report["by_source"][source.value] = {
-                "count": len(keys),
-                "keys": list(keys.keys()),
-            }
+            report["by_source"][source.value] = {"count": len(keys), "keys": list(keys.keys())}
 
         return report

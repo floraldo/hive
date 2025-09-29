@@ -10,11 +10,7 @@ from hive_logging import get_logger
 from ..config.app_config import HiveAppConfig
 from .health import add_health_endpoints
 from .metrics import add_metrics_endpoints
-from .middleware import (
-    add_error_handling_middleware,
-    add_logging_middleware,
-    add_performance_middleware,
-)
+from .middleware import add_error_handling_middleware, add_logging_middleware, add_performance_middleware
 
 logger = get_logger(__name__)
 
@@ -33,11 +29,7 @@ class HiveApp:
     """
 
     def __init__(
-        self,
-        title: str,
-        description: str,
-        version: str = "1.0.0",
-        config: HiveAppConfig | None = None,
+        self, title: str, description: str, version: str = "1.0.0", config: HiveAppConfig | None = None
     ) -> None:
         """Initialize Hive application."""
         self.config = config or HiveAppConfig()
@@ -171,12 +163,7 @@ def create_hive_app(
             config.monitoring.enable_metrics = False
 
         # Create the application
-        hive_app = HiveApp(
-            title=title,
-            description=description,
-            version=version,
-            config=config,
-        )
+        hive_app = HiveApp(title=title, description=description, version=version, config=config)
 
         app = hive_app.get_app()
 

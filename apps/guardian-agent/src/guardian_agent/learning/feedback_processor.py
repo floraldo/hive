@@ -26,11 +26,7 @@ class FeedbackProcessor:
     pattern recognition, and automatic prompt improvement.
     """
 
-    def __init__(
-        self,
-        config: GuardianConfig | None = None,
-        history: ReviewHistory | None = None,
-    ) -> None:
+    def __init__(self, config: GuardianConfig | None = None, history: ReviewHistory | None = None) -> None:
         """Initialize feedback processor."""
         self.config = config or GuardianConfig()
         self.history = history or ReviewHistory(self.config.learning.history_path)
@@ -47,11 +43,7 @@ class FeedbackProcessor:
         logger.info("FeedbackProcessor initialized")
 
     async def process_feedback(
-        self,
-        review_id: str,
-        violation_id: str | None,
-        feedback_type: str,
-        feedback_text: str | None,
+        self, review_id: str, violation_id: str | None, feedback_type: str, feedback_text: str | None
     ) -> dict[str, Any]:
         """
         Process individual feedback item.
@@ -82,10 +74,7 @@ class FeedbackProcessor:
             metrics.increment(f"feedback_{feedback_type}")
 
             # Immediate confidence adjustment
-            adjustment = await self._calculate_confidence_adjustment(
-                feedback_type,
-                violation_id,
-            )
+            adjustment = await self._calculate_confidence_adjustment(feedback_type, violation_id)
 
             # Apply adjustment to violation patterns
             if violation_id and adjustment != 0:
@@ -102,11 +91,7 @@ class FeedbackProcessor:
             metrics.increment("feedback_processing_errors")
             raise
 
-    async def _calculate_confidence_adjustment(
-        self,
-        feedback_type: str,
-        violation_id: str | None,
-    ) -> float:
+    async def _calculate_confidence_adjustment(self, feedback_type: str, violation_id: str | None) -> float:
         """Calculate confidence adjustment based on feedback."""
         adjustments = {
             "positive": 0.05,  # Increase confidence
@@ -158,11 +143,7 @@ class FeedbackProcessor:
 
             return 0.7  # Default accuracy
 
-    async def _update_pattern_confidence(
-        self,
-        violation_id: str,
-        adjustment: float,
-    ) -> None:
+    async def _update_pattern_confidence(self, violation_id: str, adjustment: float) -> None:
         """Update confidence for a violation pattern."""
         with SQLiteConnection(self.history.db_path) as conn:
             cursor = conn.cursor()
@@ -236,10 +217,7 @@ class FeedbackProcessor:
                     "pr_url": pr_url,
                 }
 
-            return {
-                "status": "no_improvements",
-                "feedback_processed": len(feedback_data),
-            }
+            return {"status": "no_improvements", "feedback_processed": len(feedback_data)}
 
         except Exception as e:
             logger.error(f"Learning cycle failed: {e}")
@@ -268,10 +246,7 @@ class FeedbackProcessor:
             columns = [desc[0] for desc in cursor.description]
             return [dict(zip(columns, row, strict=False)) for row in cursor.fetchall()]
 
-    async def _analyze_feedback_patterns(
-        self,
-        feedback_data: list[dict[str, Any]],
-    ) -> dict[str, Any]:
+    async def _analyze_feedback_patterns(self, feedback_data: list[dict[str, Any]]) -> dict[str, Any]:
         """Analyze feedback to identify patterns."""
         patterns = {
             "false_positive_rules": defaultdict(int),
@@ -319,10 +294,7 @@ class FeedbackProcessor:
 
         return patterns
 
-    async def _generate_improvements(
-        self,
-        patterns: dict[str, Any],
-    ) -> list[dict[str, Any]]:
+    async def _generate_improvements(self, patterns: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate improvement suggestions based on patterns."""
         improvements = []
 
@@ -369,10 +341,7 @@ class FeedbackProcessor:
 
         return improvements[:10]  # Limit to top 10 improvements
 
-    async def _extract_themes(
-        self,
-        complaints: list[str],
-    ) -> list[dict[str, Any]]:
+    async def _extract_themes(self, complaints: list[str]) -> list[dict[str, Any]]:
         """Use AI to extract common themes from complaints."""
         if not complaints:
             return []
@@ -401,10 +370,7 @@ class FeedbackProcessor:
             logger.error(f"Failed to extract themes: {e}")
             return []
 
-    async def _create_improvement_pr(
-        self,
-        improvements: list[dict[str, Any]],
-    ) -> str:
+    async def _create_improvement_pr(self, improvements: list[dict[str, Any]]) -> str:
         """Create a pull request with improvement suggestions."""
         # Generate improvement summary
         summary = self._generate_improvement_summary(improvements)
@@ -425,10 +391,7 @@ class FeedbackProcessor:
         # Return mock PR URL
         return f"https://github.com/hive/guardian-agent/pull/auto-{datetime.now().strftime('%Y%m%d%H%M')}"
 
-    def _generate_improvement_summary(
-        self,
-        improvements: list[dict[str, Any]],
-    ) -> str:
+    def _generate_improvement_summary(self, improvements: list[dict[str, Any]]) -> str:
         """Generate human-readable summary of improvements."""
         summary_lines = ["# Guardian Agent Automated Improvements\n"]
         summary_lines.append("Based on user feedback analysis:\n")
@@ -445,10 +408,7 @@ class FeedbackProcessor:
 
         return "\n".join(summary_lines)
 
-    async def _mark_feedback_processed(
-        self,
-        feedback_data: list[dict[str, Any]],
-    ) -> None:
+    async def _mark_feedback_processed(self, feedback_data: list[dict[str, Any]]) -> None:
         """Mark feedback as processed."""
         with SQLiteConnection(self.history.db_path) as conn:
             cursor = conn.cursor()

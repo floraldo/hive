@@ -6,10 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
-from ecosystemiser.discovery.algorithms.base import (
-    BaseOptimizationAlgorithm,
-    OptimizationConfig
-)
+from ecosystemiser.discovery.algorithms.base import BaseOptimizationAlgorithm, OptimizationConfig
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -71,7 +68,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         # Ensure bounds compliance
         population = self.validate_bounds(population)
 
-        logger.info(f"Initialized population of {len(population)} individuals"),
+        (logger.info(f"Initialized population of {len(population)} individuals"),)
         return population
 
     def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
@@ -94,7 +91,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                                 "fitness": float("inf"),
                                 "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
-                                "error": str(e)
+                                "error": str(e),
                             }
                         )
         else:
@@ -105,14 +102,16 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                     evaluations.append(result)
                 except Exception as e:
                     logger.warning(f"Evaluation failed: {e}")
-                    evaluations.append(
-                        {
-                            "fitness": float("inf"),
-                            "objectives": [float("inf")] * len(self.config.objectives),
-                            "valid": False,
-                            "error": str(e)
-                        }
-                    ),
+                    (
+                        evaluations.append(
+                            {
+                                "fitness": float("inf"),
+                                "objectives": [float("inf")] * len(self.config.objectives),
+                                "valid": False,
+                                "error": str(e),
+                            }
+                        ),
+                    )
 
         return evaluations
 
@@ -154,9 +153,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         for _ in range(self.config.population_size):
             # Select random individuals for tournament
             tournament_indices = np.random.choice(
-                population_size,
-                size=min(self.ga_config.tournament_size, population_size),
-                replace=False
+                population_size, size=min(self.ga_config.tournament_size, population_size), replace=False
             )
 
             # Find best in tournament (lowest fitness for minimization)
@@ -179,10 +176,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
             # Uniform selection if all fitness values are infinite
             probabilities = np.ones(len(evaluations)) / len(evaluations)
         selected_indices = np.random.choice(
-            len(evaluations),
-            size=self.config.population_size,
-            p=probabilities,
-            replace=True,
+            len(evaluations), size=self.config.population_size, p=probabilities, replace=True
         )
 
         return selected_indices
@@ -197,10 +191,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         # Convert ranks to selection probabilities
         probabilities = (len(evaluations) - ranks) / np.sum(np.arange(1, len(evaluations) + 1))
         selected_indices = np.random.choice(
-            len(evaluations),
-            size=self.config.population_size,
-            p=probabilities,
-            replace=True,
+            len(evaluations), size=self.config.population_size, p=probabilities, replace=True
         )
 
         return selected_indices
@@ -381,7 +372,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
             population[:, i] = lower + population[:, i] * (upper - lower)
         population = self.validate_bounds(population)
 
-        logger.info(f"Initialized NSGA-II population of {len(population)} individuals"),
+        (logger.info(f"Initialized NSGA-II population of {len(population)} individuals"),)
         return population
 
     def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
@@ -405,7 +396,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                             {
                                 "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
-                                "error": str(e)
+                                "error": str(e),
                             }
                         )
         else:
@@ -417,13 +408,15 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                     evaluations.append(result)
                 except Exception as e:
                     logger.warning(f"Evaluation failed: {e}")
-                    evaluations.append(
-                        {
-                            "objectives": [float("inf")] * len(self.config.objectives),
-                            "valid": False,
-                            "error": str(e)
-                        }
-                    ),
+                    (
+                        evaluations.append(
+                            {
+                                "objectives": [float("inf")] * len(self.config.objectives),
+                                "valid": False,
+                                "error": str(e),
+                            }
+                        ),
+                    )
 
         return evaluations
 

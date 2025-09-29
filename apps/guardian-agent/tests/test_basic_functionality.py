@@ -86,12 +86,7 @@ def test_config_loading():
 
 def test_review_result_markdown_generation():
     """Test ReviewResult markdown generation."""
-    from guardian_agent.core.interfaces import (
-        AnalysisResult,
-        ReviewResult,
-        Suggestion,
-        Violation,
-    )
+    from guardian_agent.core.interfaces import AnalysisResult, ReviewResult, Suggestion, Violation
 
     # Create a sample review result
     violation = Violation(
@@ -111,23 +106,14 @@ def test_review_result_markdown_generation():
         confidence=0.85,
     )
 
-    analysis_result = AnalysisResult(
-        analyzer_name="TestAnalyzer",
-        violations=[violation],
-        suggestions=[suggestion],
-    )
+    analysis_result = AnalysisResult(analyzer_name="TestAnalyzer", violations=[violation], suggestions=[suggestion])
 
     review_result = ReviewResult(
         file_path=Path("test.py"),
         analysis_results=[analysis_result],
         overall_score=75.0,
         summary="Code has some quality issues",
-        violations_count={
-            Severity.WARNING: 1,
-            Severity.ERROR: 0,
-            Severity.CRITICAL: 0,
-            Severity.INFO: 0,
-        },
+        violations_count={Severity.WARNING: 1, Severity.ERROR: 0, Severity.CRITICAL: 0, Severity.INFO: 0},
         suggestions_count=1,
         auto_fixable_count=0,
         ai_confidence=0.9,

@@ -14,7 +14,9 @@ from typing import Any, Optional
 class AdapterError(Exception):
     """Base error class for adapter-specific errors"""
 
-    def __init__(self, message: str, adapter_name: str | None = None, details: Optional[dict[str, Any]] = None, **kwargs):
+    def __init__(
+        self, message: str, adapter_name: str | None = None, details: Optional[dict[str, Any]] = None, **kwargs
+    ):
         super().__init__(message)
         self.message = message
         self.adapter_name = adapter_name
@@ -33,7 +35,8 @@ class DataFetchError(BaseError):
         adapter_name: str,
         message: str,
         details: Optional[dict[str, Any]] = None,
-        suggested_action: str | None = None, **kwargs,
+        suggested_action: str | None = None,
+        **kwargs,
     ):
         super().__init__(message, adapter_name, details, **kwargs)
         self.suggested_action = suggested_action
@@ -47,7 +50,8 @@ class DataParseError(BaseError):
         adapter_name: str,
         message: str,
         field: str | None = None,
-        details: Optional[dict[str, Any]] = None, **kwargs,
+        details: Optional[dict[str, Any]] = None,
+        **kwargs,
     ):
         super().__init__(message, adapter_name, details, **kwargs)
         self.field = field
@@ -61,7 +65,8 @@ class ValidationError(BaseError):
         message: str,
         field: str | None = None,
         value: Any | None = None,
-        recovery_suggestion: str | None = None, **kwargs,
+        recovery_suggestion: str | None = None,
+        **kwargs,
     ):
         super().__init__(message, **kwargs)
         self.field = field

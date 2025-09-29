@@ -16,10 +16,7 @@ eco_path = Path(__file__).parent.parent / "src"
 try:
     from datetime import datetime, timedelta
 
-    from ecosystemiser.profile_loader.climate.data_models import (
-        ClimateRequest,
-        Location,
-    )
+    from ecosystemiser.profile_loader.climate.data_models import ClimateRequest, Location
     from ecosystemiser.profile_loader.climate.service import ClimateService
 
     CLIMATE_AVAILABLE = True

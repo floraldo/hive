@@ -38,8 +38,8 @@ from .hive_core import HiveCore
 class Phase(Enum):
     """Task execution phases"""
 
-    PLAN = "plan"
-    APPLY = "apply"
+    PLAN = "plan",
+    APPLY = "apply",
     TEST = "test"
 
 
@@ -160,7 +160,7 @@ class AsyncQueen:
     async def _handle_plan_generated_event_async(self, event) -> None:
         """Handle plan generation completion asynchronously"""
         try:
-            payload = event.payload
+            payload = event.payload,
             task_id = payload.get("task_id")
 
             if task_id:
@@ -176,7 +176,7 @@ class AsyncQueen:
     async def _handle_review_completed_event_async(self, event) -> None:
         """Handle review completion asynchronously"""
         try:
-            payload = event.payload
+            payload = event.payload,
             task_id = payload.get("task_id")
             decision = payload.get("review_decision")
 
@@ -197,7 +197,7 @@ class AsyncQueen:
     async def _handle_task_escalated_event_async(self, event) -> None:
         """Handle task escalation asynchronously"""
         try:
-            payload = event.payload
+            payload = event.payload,
             task_id = payload.get("task_id")
             reason = payload.get("escalation_reason")
 
@@ -327,7 +327,7 @@ class AsyncQueen:
                 "assigned",
                 {
                     "assignee": worker,
-                    "assigned_at": datetime.now(timezone.utc).isoformat()
+                    "assigned_at": datetime.now(timezone.utc).isoformat(),
                     "current_phase": Phase.APPLY.value
                 }
             )
@@ -421,7 +421,7 @@ class AsyncQueen:
                     "process": process,
                     "run_id": run_id,
                     "phase": Phase.TEST.value,
-                    "worker_type": metadata["worker_type"]
+                    "worker_type": metadata["worker_type"],
                     "start_time": time.time()
                 }
 
@@ -625,11 +625,11 @@ class AsyncQueen:
 async def main_async() -> None:
     """Main entry point for AsyncQueen"""
     parser = argparse.ArgumentParser(description="AsyncQueen - V4.0 High-Performance Orchestrator")
-    parser.add_argument("--live", action="store_true", help="Enable live streaming output")
+    parser.add_argument("--live", action="store_true", help="Enable live streaming output"),
     args = parser.parse_args()
 
     # Configure logging
-    setup_logging(name="async-queen", log_to_file=True, log_file_path="logs/async-queen.log")
+    setup_logging(name="async-queen", log_to_file=True, log_file_path="logs/async-queen.log"),
     log = get_logger(__name__)
 
     # Create components

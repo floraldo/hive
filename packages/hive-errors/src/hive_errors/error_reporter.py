@@ -25,10 +25,7 @@ class BaseErrorReporter(ABC):
     """
 
     def report_error(
-        self,
-        error: Exception,
-        context: dict[str, Any] | None = None,
-        additional_info: dict[str, Any] | None = None,
+        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None
     ) -> str:
         """
         Report an error with context.
@@ -44,10 +41,7 @@ class BaseErrorReporter(ABC):
         pass
 
     def _build_error_record(
-        self,
-        error: Exception,
-        context: dict[str, Any] | None,
-        additional_info: dict[str, Any] | None,
+        self, error: Exception, context: dict[str, Any] | None, additional_info: dict[str, Any] | None
     ) -> dict[str, Any]:
         """Build structured error record"""
         record = {
@@ -67,14 +61,7 @@ class BaseErrorReporter(ABC):
                 }
             )
         else:
-            record.update(
-                {
-                    "component": "unknown",
-                    "operation": "unknown",
-                    "details": {},
-                    "recovery_suggestions": [],
-                }
-            )
+            record.update({"component": "unknown", "operation": "unknown", "details": {}, "recovery_suggestions": []})
 
         # Add context
         if context:

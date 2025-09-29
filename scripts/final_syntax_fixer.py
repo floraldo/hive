@@ -18,12 +18,7 @@ class ComprehensiveSyntaxFixer:
 
     def __init__(self):
         self.fixed_count = 0
-        self.patterns_fixed = {
-            "argparse": 0,
-            "dict_literal": 0,
-            "function_sig": 0,
-            "multiline_expr": 0,
-        }
+        self.patterns_fixed = {"argparse": 0, "dict_literal": 0, "function_sig": 0, "multiline_expr": 0}
 
     def fix_file(self, file_path: Path) -> bool:
         """Fix all syntax error patterns in a file."""
@@ -186,9 +181,9 @@ class ComprehensiveSyntaxFixer:
                         if next_line and not next_line.startswith((")", "]", "}")):
                             # Check if this looks like an expression that needs comma
                             if (
-                                re.search(r'\w+\s*$', stripped)  # ends with identifier
+                                re.search(r"\w+\s*$", stripped)  # ends with identifier
                                 or re.search(r'["\']$', stripped)  # ends with string
-                                or re.search(r'\d+\.?\d*$', stripped)  # ends with number
+                                or re.search(r"\d+\.?\d*$", stripped)  # ends with number
                                 or stripped.endswith((")", "]"))  # ends with closing bracket
                             ):
                                 line = stripped + ","

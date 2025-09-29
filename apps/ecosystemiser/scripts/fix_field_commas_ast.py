@@ -23,10 +23,10 @@ def fix_trailing_commas_simple(content: str) -> str:
 
     # Fix colon-comma patterns
     patterns = [
-        (r'\):\s*,', r'),'),  # ):, -> ),
-        (r'\]:\s*,', r'],'),  # ]:, -> ],
-        (r'\}:\s*,', r'},'),  # }:, -> },
-        (r'(class\s+\w+)\s*:\s*,', r'\1:'),  # class Foo:, -> class Foo:
+        (r"\):\s*,", r"),"),  # ):, -> ),
+        (r"\]:\s*,", r"],"),  # ]:, -> ],
+        (r"\}:\s*,", r"},"),  # }:, -> },
+        (r"(class\s+\w+)\s*:\s*,", r"\1:"),  # class Foo:, -> class Foo:
     ]
 
     for pattern, replacement in patterns:
@@ -41,35 +41,38 @@ def fix_field_definitions(content: str) -> str:
     Pattern: attribute: type = Field(...)\n    next_attribute
     Should be: attribute: type = Field(...),\n    next_attribute
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     fixed_lines = []
 
     for i, line in enumerate(lines):
         # Check if this line contains a Field() definition without trailing comma
-        if 'Field(' in line and not line.rstrip().endswith(','):
+        if "Field(" in line and not line.rstrip().endswith(","):
             # Check if next line exists and is another field definition
             if i + 1 < len(lines):
                 next_line = lines[i + 1].strip()
                 # If next line is another field or closing paren/brace, add comma
-                if (next_line and
-                    not next_line.startswith('#') and
-                    not next_line.startswith('"""') and
-                    (re.match(r'\w+:', next_line) or  # Another field
-                     next_line.startswith(')') or      # Closing paren
-                     next_line.startswith('}'))):      # Closing brace
-
+                if (
+                    next_line
+                    and not next_line.startswith("#")
+                    and not next_line.startswith('"""')
+                    and (
+                        re.match(r"\w+:", next_line)  # Another field
+                        or next_line.startswith(")")  # Closing paren
+                        or next_line.startswith("}")
+                    )
+                ):  # Closing brace
                     # Count parentheses to ensure Field() is closed
-                    open_parens = line.count('(')
-                    close_parens = line.count(')')
+                    open_parens = line.count("(")
+                    close_parens = line.count(")")
 
                     if open_parens == close_parens:
                         # Field is complete on this line, add comma
-                        fixed_lines.append(line.rstrip() + ',')
+                        fixed_lines.append(line.rstrip() + ",")
                         continue
 
         fixed_lines.append(line)
 
-    return '\n'.join(fixed_lines)
+    return "\n".join(fixed_lines)
 
 
 def fix_dict_literal_commas(content: str) -> str:
@@ -78,34 +81,35 @@ def fix_dict_literal_commas(content: str) -> str:
     Pattern: "key": value\n    "next_key"
     Should be: "key": value,\n    "next_key"
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     fixed_lines = []
 
     for i, line in enumerate(lines):
         # Check if line looks like a dict entry without trailing comma
-        if ((':' in line or '=' in line) and
-            not line.rstrip().endswith(',') and
-            not line.rstrip().endswith('{') and
-            not line.rstrip().endswith('(')):
-
+        if (
+            (":" in line or "=" in line)
+            and not line.rstrip().endswith(",")
+            and not line.rstrip().endswith("{")
+            and not line.rstrip().endswith("(")
+        ):
             # Check if next line exists
             if i + 1 < len(lines):
                 next_line = lines[i + 1].strip()
 
                 # If next line is another dict entry, add comma
-                if (next_line and
-                    not next_line.startswith('#') and
-                    not next_line.startswith('}') and
-                    not next_line.startswith(')') and
-                    ('"' in next_line or "'" in next_line or
-                     re.match(r'\w+\s*[=:]', next_line))):
-
-                    fixed_lines.append(line.rstrip() + ',')
+                if (
+                    next_line
+                    and not next_line.startswith("#")
+                    and not next_line.startswith("}")
+                    and not next_line.startswith(")")
+                    and ('"' in next_line or "'" in next_line or re.match(r"\w+\s*[=:]", next_line))
+                ):
+                    fixed_lines.append(line.rstrip() + ",")
                     continue
 
         fixed_lines.append(line)
 
-    return '\n'.join(fixed_lines)
+    return "\n".join(fixed_lines)
 
 
 def fix_class_attribute_commas(content: str) -> str:
@@ -114,7 +118,7 @@ def fix_class_attribute_commas(content: str) -> str:
     Pattern: attribute: type,\n    (in class body)
     Should be: attribute: type\n
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     fixed_lines = []
 
     in_class = False
@@ -122,30 +126,30 @@ def fix_class_attribute_commas(content: str) -> str:
 
     for i, line in enumerate(lines):
         # Track class definitions
-        if line.strip().startswith('class '):
+        if line.strip().startswith("class "):
             in_class = True
             indent_level = len(line) - len(line.lstrip())
 
         # Exit class when we hit same or lower indent
-        elif in_class and line.strip() and not line.startswith(' ' * (indent_level + 4)):
+        elif in_class and line.strip() and not line.startswith(" " * (indent_level + 4)):
             in_class = False
 
         # Fix class attributes with trailing commas
-        if in_class and ':' in line and line.rstrip().endswith(','):
+        if in_class and ":" in line and line.rstrip().endswith(","):
             # Check if this is a simple attribute (not a function or dict)
-            if not '(' in line and not '{' in line and not '=' in line:
+            if not "(" in line and not "{" in line and not "=" in line:
                 fixed_lines.append(line.rstrip()[:-1])  # Remove trailing comma
                 continue
 
         fixed_lines.append(line)
 
-    return '\n'.join(fixed_lines)
+    return "\n".join(fixed_lines)
 
 
 def fix_file(file_path: Path) -> Tuple[bool, List[str]]:
     """Fix a single file. Returns (modified, issues_fixed)."""
     try:
-        content = file_path.read_text(encoding='utf-8')
+        content = file_path.read_text(encoding="utf-8")
         original_content = content
         issues_fixed = []
 
@@ -171,7 +175,7 @@ def fix_file(file_path: Path) -> Tuple[bool, List[str]]:
 
         # Write back if modified
         if issues_fixed:
-            file_path.write_text(content, encoding='utf-8')
+            file_path.write_text(content, encoding="utf-8")
             return True, issues_fixed
 
         return False, []
@@ -182,7 +186,7 @@ def fix_file(file_path: Path) -> Tuple[bool, List[str]]:
 
 def main():
     """Main execution."""
-    src_dir = Path(__file__).parent.parent / 'src' / 'ecosystemiser'
+    src_dir = Path(__file__).parent.parent / "src" / "ecosystemiser"
 
     if not src_dir.exists():
         print(f"ERROR: Source directory not found: {src_dir}")
@@ -192,7 +196,7 @@ def main():
 
     fixed_files = []
 
-    for py_file in src_dir.rglob('*.py'):
+    for py_file in src_dir.rglob("*.py"):
         try:
             modified, issues = fix_file(py_file)
             if modified:
@@ -213,5 +217,5 @@ def main():
                 print(f"      {issue}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -73,10 +73,7 @@ def test_dashboard_module():
         from hive_orchestrator.dashboard import HiveDashboard
 
         # Test dashboard initialization
-        with patch(
-            "hive_orchestrator.dashboard.get_connection",
-            side_effect=Exception("Mock DB error"),
-        ):
+        with patch("hive_orchestrator.dashboard.get_connection", side_effect=Exception("Mock DB error")):
             dashboard = HiveDashboard()
             assert dashboard.refresh_rate == 2
             assert dashboard.console is not None
@@ -94,10 +91,7 @@ def test_error_handling():
         from hive_orchestrator.clean_hive import clean_database
 
         # Test that clean_database handles database errors gracefully
-        with patch(
-            "hive_orchestrator.clean_hive.get_connection",
-            side_effect=Exception("Database error"),
-        ):
+        with patch("hive_orchestrator.clean_hive.get_connection", side_effect=Exception("Database error")):
             # This should not raise an exception, but handle it gracefully
             try:
                 clean_database()  # Should handle the error internally

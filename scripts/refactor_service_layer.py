@@ -155,10 +155,7 @@ def process_data(self, data):
             print(f"  Created migration guide: {migration_path}")
 
     # CLI files that need refactoring
-    cli_files = [
-        "apps/ecosystemiser/src/EcoSystemiser/cli.py",
-        "apps/hive-orchestrator/src/hive_orchestrator/cli.py",
-    ]
+    cli_files = ["apps/ecosystemiser/src/EcoSystemiser/cli.py", "apps/hive-orchestrator/src/hive_orchestrator/cli.py"]
 
     print("\n2. Refactoring CLI Files")
     print("-" * 40)

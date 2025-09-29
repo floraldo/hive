@@ -13,12 +13,9 @@ import click
 
 def config_option(f: Callable) -> Callable:
     """Add standard config file option."""
-    return click.option(
-        "--config",
-        "-c",
-        type=click.Path(exists=True, path_type=Path),
-        help="Configuration file path",
-    )(f)
+    return click.option("--config", "-c", type=click.Path(exists=True, path_type=Path), help="Configuration file path")(
+        f
+    )
 
 
 def debug_option(f: Callable) -> Callable:

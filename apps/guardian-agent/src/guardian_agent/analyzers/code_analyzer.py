@@ -5,13 +5,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from guardian_agent.core.interfaces import (
-    AnalysisResult,
-    Severity,
-    Suggestion,
-    Violation,
-    ViolationType,
-)
+from guardian_agent.core.interfaces import AnalysisResult, Severity, Suggestion, Violation, ViolationType
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -78,10 +72,7 @@ class CodeAnalyzer:
             )
         except Exception as e:
             logger.error("Failed to analyze %s: %s", file_path, e)
-            return AnalysisResult(
-                analyzer_name=self.__class__.__name__,
-                error=str(e),
-            )
+            return AnalysisResult(analyzer_name=self.__class__.__name__, error=str(e))
 
         execution_time = (time.time() - start_time) * 1000
 

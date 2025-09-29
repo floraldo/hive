@@ -45,11 +45,7 @@ def check_memory_leaks(file_path: Path) -> list[str]:
                     issues.append(f"Potential memory leak (growing list) in {file_path}:{i + 1}")
 
     # Check for unclosed resources
-    patterns = [
-        (r"open\(", "close()"),
-        (r"connect\(", "close()"),
-        (r"Session\(", "close()"),
-    ]
+    patterns = [(r"open\(", "close()"), (r"connect\(", "close()"), (r"Session\(", "close()")]
 
     for open_pattern, close_pattern in patterns:
         if re.search(open_pattern, content) and close_pattern not in content and "with " not in content:

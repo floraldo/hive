@@ -65,10 +65,7 @@ class TestNetworkFailures:
 
             payload = {
                 "action": "opened",
-                "pull_request": {
-                    "number": 123,
-                    "head": {"sha": "abc123"},
-                },
+                "pull_request": {"number": 123, "head": {"sha": "abc123"}},
                 "repository": {"full_name": "test/repo"},
             }
 

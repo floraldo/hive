@@ -327,12 +327,7 @@ class HiveDashboard:
         table.add_column("Current Task", width=20)
         table.add_column("Last Heartbeat", width=15)
 
-        status_colors = {
-            "active": "green",
-            "idle": "yellow",
-            "offline": "red",
-            "error": "red bold",
-        }
+        status_colors = {"active": "green", "idle": "yellow", "offline": "red", "error": "red bold"}
 
         for worker in workers:
             status_color = status_colors.get(worker["status"], "white")

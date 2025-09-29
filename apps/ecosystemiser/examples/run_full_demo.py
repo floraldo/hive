@@ -58,18 +58,10 @@ class MicrogridDemoRunner:
             "problem": {
                 "name": "Berlin Residential Microgrid",
                 "description": "Cost-optimal microgrid with high renewable fraction",
-                "location": {
-                    "latitude": 52.52,
-                    "longitude": 13.405,
-                    "name": "Berlin, Germany",
-                },
+                "location": {"latitude": 52.52, "longitude": 13.405, "name": "Berlin, Germany"},
             },
             "objectives": [
-                {
-                    "name": "minimize_tco",
-                    "type": "minimize",
-                    "description": "Total cost of ownership over 20 years",
-                },
+                {"name": "minimize_tco", "type": "minimize", "description": "Total cost of ownership over 20 years"},
                 {
                     "name": "maximize_renewable_fraction",
                     "type": "maximize",
@@ -77,12 +69,7 @@ class MicrogridDemoRunner:
                 },
             ],
             "variables": [
-                {
-                    "name": "solar_capacity_kw",
-                    "min": 50.0,
-                    "max": 500.0,
-                    "description": "Solar PV capacity in kW",
-                },
+                {"name": "solar_capacity_kw", "min": 50.0, "max": 500.0, "description": "Solar PV capacity in kW"},
                 {
                     "name": "battery_capacity_kwh",
                     "min": 100.0,
@@ -103,11 +90,7 @@ class MicrogridDemoRunner:
                     "expression": "renewable_fraction >= 0.80",
                     "description": "Minimum 80% renewable energy",
                 },
-                {
-                    "name": "reliability",
-                    "expression": "unmet_load <= 0.01",
-                    "description": "Maximum 1% unmet load",
-                },
+                {"name": "reliability", "expression": "unmet_load <= 0.01", "description": "Maximum 1% unmet load"},
             ],
             "optimization": {
                 "algorithm": "nsga2",
@@ -140,7 +123,7 @@ class MicrogridDemoRunner:
         logger.info("\nOptimization Progress:")
         for gen in range(0, 101, 20):
             time.sleep(0.5)  # Simulate computation
-            logger.info(f"  Generation {gen:3d}/100 [{'█' * (gen//5):20s}] {gen}%")
+            logger.info(f"  Generation {gen:3d}/100 [{'█' * (gen // 5):20s}] {gen}%")
 
         # Run actual optimization (or simulate results for demo)
         study_id = f"ga_berlin_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -218,7 +201,7 @@ class MicrogridDemoRunner:
             logger.info(
                 f"{solution['id']:3d} | {solution['solar_capacity_kw']:6.0f} | ",
                 f"{solution['battery_capacity_kwh']:7.0f} | {solution['wind_turbines']:4d} | ",
-                f"{solution['tco_million_eur']:7.1f} | {solution['renewable_fraction']*100:8.1f}%"
+                f"{solution['tco_million_eur']:7.1f} | {solution['renewable_fraction'] * 100:8.1f}%",
             )
 
         # Select balanced solution (middle of Pareto front)
@@ -229,7 +212,7 @@ class MicrogridDemoRunner:
         logger.info(f"   Battery Storage: {best_design['battery_capacity_kwh']} kWh")
         logger.info(f"   Wind Turbines: {best_design['wind_turbines']} × 10kW")
         logger.info(f"   Total Cost: €{best_design['tco_million_eur']:.1f}M over 20 years")
-        logger.info(f"   Renewable Fraction: {best_design['renewable_fraction']*100:.1f}%")
+        logger.info(f"   Renewable Fraction: {best_design['renewable_fraction'] * 100:.1f}%")
 
         return best_design
 
@@ -254,7 +237,7 @@ class MicrogridDemoRunner:
         logger.info("\nMonte Carlo Simulation Progress:")
         for sample in range(0, 1001, 200):
             time.sleep(0.5)  # Simulate computation
-            logger.info(f"  Sample {sample:4d}/1000 [{'█' * (sample//50):20s}] {sample//10}%")
+            logger.info(f"  Sample {sample:4d}/1000 [{'█' * (sample // 50):20s}] {sample // 10}%")
 
         study_id = f"mc_berlin_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -281,16 +264,8 @@ class MicrogridDemoRunner:
                         "95%": {"lower": 1.95, "upper": 2.95},
                     },
                 },
-                "risk_metrics": {
-                    "var_95": 2.9,
-                    "cvar_95": 3.0,
-                    "prob_exceed_baseline": 0.42,
-                },
-                "sensitivity": {
-                    "electricity_price": 0.65,
-                    "solar_cost": 0.25,
-                    "demand_growth": 0.10,
-                },
+                "risk_metrics": {"var_95": 2.9, "cvar_95": 3.0, "prob_exceed_baseline": 0.42},
+                "sensitivity": {"electricity_price": 0.65, "solar_cost": 0.25, "demand_growth": 0.10},
             },
         }
 
@@ -302,7 +277,7 @@ class MicrogridDemoRunner:
         logger.info("\n✅ Uncertainty analysis completed!")
         logger.info(
             f"   TCO Range (95% CI): €{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['lower']:.1f}M - ",
-            f"€{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['upper']:.1f}M"
+            f"€{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['upper']:.1f}M",
         )
         logger.info(f"   Results saved to: {results_file}")
 
@@ -370,12 +345,7 @@ class MicrogridDemoRunner:
 
         return reports_generated
 
-    def print_summary(
-        self,
-        ga_results: dict[str, Any],
-        mc_results: dict[str, Any],
-        reports: list[Path],
-    ):
+    def print_summary(self, ga_results: dict[str, Any], mc_results: dict[str, Any], reports: list[Path]):
         """
         Print final summary and recommendations.
         """

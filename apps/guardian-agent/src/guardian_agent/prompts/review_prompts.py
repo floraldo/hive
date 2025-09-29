@@ -173,12 +173,7 @@ Format your response as JSON:
         lines = ["## Existing Issues", "", f"The following {len(all_violations)} issues were already detected:", ""]
 
         # Group by severity
-        by_severity = {
-            Severity.CRITICAL: [],
-            Severity.ERROR: [],
-            Severity.WARNING: [],
-            Severity.INFO: [],
-        }
+        by_severity = {Severity.CRITICAL: [], Severity.ERROR: [], Severity.WARNING: [], Severity.INFO: []}
 
         for violation in all_violations:
             by_severity[violation.severity].append(violation)

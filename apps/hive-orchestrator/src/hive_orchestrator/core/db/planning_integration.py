@@ -376,10 +376,7 @@ class PlanningIntegration:
         try:
             with self._get_connection() as conn:
                 # Check plan status
-                cursor = conn.execute(
-                    "SELECT status, plan_data FROM execution_plans WHERE id = ?",
-                    (plan_id,),
-                )
+                cursor = conn.execute("SELECT status, plan_data FROM execution_plans WHERE id = ?", (plan_id,))
                 row = cursor.fetchone()
                 if not row:
                     logger.error(f"Plan {plan_id} not found")

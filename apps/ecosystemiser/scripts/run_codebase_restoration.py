@@ -16,16 +16,13 @@ def run_script(script_name: str) -> bool:
         print(f"ERROR: Script not found: {script_path}")
         return False
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Running: {script_name}")
-    print('='*60)
+    print("=" * 60)
 
     try:
         result = subprocess.run(
-            [sys.executable, str(script_path)],
-            cwd=script_path.parent.parent,
-            capture_output=False,
-            text=True
+            [sys.executable, str(script_path)], cwd=script_path.parent.parent, capture_output=False, text=True
         )
         return result.returncode == 0
     except Exception as e:
@@ -35,21 +32,17 @@ def run_script(script_name: str) -> bool:
 
 def run_syntax_check() -> bool:
     """Run Python syntax check on all files."""
-    src_dir = Path(__file__).parent.parent / 'src' / 'ecosystemiser'
+    src_dir = Path(__file__).parent.parent / "src" / "ecosystemiser"
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("Running syntax validation...")
-    print('='*60)
+    print("=" * 60)
 
     errors = []
 
-    for py_file in src_dir.rglob('*.py'):
+    for py_file in src_dir.rglob("*.py"):
         try:
-            result = subprocess.run(
-                [sys.executable, '-m', 'py_compile', str(py_file)],
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run([sys.executable, "-m", "py_compile", str(py_file)], capture_output=True, text=True)
             if result.returncode != 0:
                 errors.append((py_file.relative_to(src_dir), result.stderr))
         except Exception as e:
@@ -70,17 +63,17 @@ def run_syntax_check() -> bool:
 
 def main():
     """Main execution."""
-    print("="*60)
+    print("=" * 60)
     print("ECOSYSTEMISER CODEBASE RESTORATION")
-    print("="*60)
+    print("=" * 60)
 
     # Step 1: Fix missing Optional imports
-    if not run_script('fix_missing_optional_imports.py'):
+    if not run_script("fix_missing_optional_imports.py"):
         print("\nERROR: Optional import fixer failed")
         return 1
 
     # Step 2: Fix comma issues
-    if not run_script('fix_field_commas_ast.py'):
+    if not run_script("fix_field_commas_ast.py"):
         print("\nERROR: Comma fixer failed")
         return 1
 
@@ -90,9 +83,9 @@ def main():
         print("Some files still have syntax errors")
         return 1
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("RESTORATION COMPLETE")
-    print("="*60)
+    print("=" * 60)
     print("\nNext steps:")
     print("  1. Run: ruff . --fix")
     print("  2. Run: black .")
@@ -102,5 +95,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

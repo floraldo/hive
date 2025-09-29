@@ -4,6 +4,7 @@ Unified client for AI model interactions across providers.
 Provides consistent interface for all AI operations with
 built-in resilience, cost tracking, and observability.
 """
+
 from __future__ import annotations
 
 import time
@@ -54,7 +55,7 @@ class ModelClient:
                 "Operation would exceed daily cost limit",
                 current_cost=daily_cost,
                 limit=self.config.daily_cost_limit,
-                period="daily"
+                period="daily",
             )
 
         if monthly_cost + estimated_cost > self.config.monthly_cost_limit:
@@ -62,7 +63,7 @@ class ModelClient:
                 "Operation would exceed monthly cost limit",
                 current_cost=monthly_cost,
                 limit=self.config.monthly_cost_limit,
-                period="monthly"
+                period="monthly",
             )
 
     def _estimate_cost(self, model_name: str, prompt: str) -> float:
@@ -79,7 +80,7 @@ class ModelClient:
         model: str | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """
         Generate completion from AI model.
@@ -108,7 +109,7 @@ class ModelClient:
                 f"Model '{model_name}' is not available",
                 model=model_name,
                 provider=model_config.provider,
-                available_models=self.registry.list_healthy_models()
+                available_models=self.registry.list_healthy_models(),
             )
 
         # Check cost limits
@@ -123,7 +124,7 @@ class ModelClient:
         generation_params = {
             "temperature": temperature or model_config.temperature,
             "max_tokens": max_tokens or model_config.max_tokens,
-            **kwargs
+            **kwargs,
         }
 
         start_time = time.time()
@@ -144,7 +145,7 @@ class ModelClient:
                 prompt_tokens=response.tokens_used // 2,  # Rough split,
                 completion_tokens=response.tokens_used // 2,
                 total_tokens=response.tokens_used,
-                estimated_cost=response.cost
+                estimated_cost=response.cost,
             )
 
             await self.metrics.record_model_usage_async(
@@ -152,12 +153,12 @@ class ModelClient:
                 provider=model_config.provider,
                 tokens=token_usage,
                 latency_ms=latency_ms,
-                success=True
+                success=True,
             )
 
             logger.info(
                 f"Model generation successful: {model_name} ",
-                f"({response.tokens_used} tokens, {latency_ms}ms, ${response.cost:.4f})"
+                f"({response.tokens_used} tokens, {latency_ms}ms, ${response.cost:.4f})",
             )
 
             return response
@@ -171,15 +172,15 @@ class ModelClient:
                 provider=model_config.provider,
                 tokens=TokenUsage(0, 0, 0, 0.0),
                 latency_ms=latency_ms,
-                success=False
+                success=False,
             )
 
-            logger.error(f"Model generation failed: {model_name} " f"({latency_ms}ms) - {str(e)}")
+            logger.error(f"Model generation failed: {model_name} ({latency_ms}ms) - {str(e)}")
 
             raise ModelError(
                 f"Generation failed for model '{model_name}': {str(e)}",
                 model=model_name,
-                provider=model_config.provider
+                provider=model_config.provider,
             ) from e
 
     async def generate_stream_async(
@@ -188,7 +189,7 @@ class ModelClient:
         model: str | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        **kwargs
+        **kwargs,
     ) -> AsyncIterable[str]:
         """
         Generate streaming completion from AI model.
@@ -217,7 +218,7 @@ class ModelClient:
                 f"Model '{model_name}' is not available",
                 model=model_name,
                 provider=model_config.provider,
-                available_models=self.registry.list_healthy_models()
+                available_models=self.registry.list_healthy_models(),
             )
 
         # Check cost limits
@@ -232,7 +233,7 @@ class ModelClient:
         generation_params = {
             "temperature": temperature or model_config.temperature,
             "max_tokens": max_tokens or model_config.max_tokens,
-            **kwargs
+            **kwargs,
         }
 
         start_time = time.time()
@@ -259,7 +260,7 @@ class ModelClient:
                 provider=model_config.provider,
                 tokens=TokenUsage(0, 0, 0, 0.0),
                 latency_ms=latency_ms,
-                success=False
+                success=False,
             )
 
             logger.error(f"Streaming generation failed: {model_name} - {str(e)}")
@@ -267,7 +268,7 @@ class ModelClient:
             raise ModelError(
                 f"Streaming generation failed for model '{model_name}': {str(e)}",
                 model=model_name,
-                provider=model_config.provider
+                provider=model_config.provider,
             ) from e
 
     async def list_models_async(self) -> dict[str, Any]:
@@ -284,7 +285,7 @@ class ModelClient:
                 "max_tokens": config.max_tokens,
                 "cost_per_token": config.cost_per_token,
                 "healthy": is_healthy,
-                "temperature": config.temperature
+                "temperature": config.temperature,
             }
 
         return models_info
@@ -302,5 +303,5 @@ class ModelClient:
             "healthy": registry_stats["health_percentage"] > 50,
             "provider_health": health_status,
             "registry_stats": registry_stats,
-            "circuit_breakers": {provider: cb.get_stats() for provider, cb in self._circuit_breakers.items()}
+            "circuit_breakers": {provider: cb.get_stats() for provider, cb in self._circuit_breakers.items()},
         }

@@ -418,16 +418,18 @@ class EnhancedValidator:
     """
 
     def __init__(self, project_root: Path) -> None:
-        self.project_root = project_root,
+        self.project_root = (project_root,)
         self.violations: list[Violation] = []
 
     def validate_all(self) -> tuple[bool, dict[str, list[str]]]:
-        """,
+        (
+            """,
         Run all Golden Rules validation in a single pass
 
         Returns:
             Tuple of (all_passed, violations_by_rule)
         """,
+        )
         self.violations = []
 
         # Traverse all Python files once,
@@ -451,7 +453,7 @@ class EnhancedValidator:
         # Group violations by rule,
         violations_by_rule = {}
         for violation in self.violations:
-            rule_name = violation.rule_name,
+            rule_name = (violation.rule_name,)
             if rule_name not in violations_by_rule:
                 violations_by_rule[rule_name] = []
             violations_by_rule[rule_name].append(
@@ -461,7 +463,7 @@ class EnhancedValidator:
         return len(self.violations) == 0, violations_by_rule
 
     def _get_python_files(self) -> list[Path]:
-        """Get all Python files to validate""",
+        ("""Get all Python files to validate""",)
         files = []
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if base_dir.exists():
@@ -477,7 +479,7 @@ class EnhancedValidator:
         return filtered_files
 
     def _create_file_context(self, file_path: Path) -> FileContext:
-        """Create context for a single file""",
+        ("""Create context for a single file""",)
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
@@ -494,7 +496,7 @@ class EnhancedValidator:
                 suppressions[i].add(rule_id)
 
         # Parse AST,
-        ast_tree = None,
+        ast_tree = (None,)
         try:
             ast_tree = ast.parse(content)
         except SyntaxError:
@@ -502,14 +504,14 @@ class EnhancedValidator:
 
         # Determine file characteristics,
         is_test_file = "test" in str(file_path).lower()
-        is_cli_file = "cli.py" in str(file_path) or "secure_config.py" in str(file_path) or "__main__" in content,
+        is_cli_file = ("cli.py" in str(file_path) or "secure_config.py" in str(file_path) or "__main__" in content,)
         is_init_file = file_path.name == "__init__.py"
 
         # Determine package/app context,
-        package_name = None,
+        package_name = (None,)
         app_name = None
 
-        parts = file_path.parts,
+        parts = (file_path.parts,)
         if "packages" in parts:
             pkg_idx = parts.index("packages")
             if pkg_idx + 1 < len(parts):
@@ -533,14 +535,14 @@ class EnhancedValidator:
         )
 
     def _validate_app_contracts(self) -> None:
-        """Golden Rule 1: App Contract Compliance""",
-        apps_dir = self.project_root / "apps",
+        ("""Golden Rule 1: App Contract Compliance""",)
+        apps_dir = (self.project_root / "apps",)
         if not apps_dir.exists():
             return
 
         for app_dir in apps_dir.iterdir():
             if app_dir.is_dir() and not app_dir.name.startswith("."):
-                contract_file = app_dir / "hive-app.toml",
+                contract_file = (app_dir / "hive-app.toml",)
                 if not contract_file.exists():
                     self.violations.append(
                         Violation(
@@ -553,14 +555,14 @@ class EnhancedValidator:
                     )
 
     def _validate_colocated_tests(self) -> None:
-        """Golden Rule 2: Co-located Tests Pattern""",
+        ("""Golden Rule 2: Co-located Tests Pattern""",)
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if not base_dir.exists():
                 continue
 
             for component_dir in base_dir.iterdir():
                 if component_dir.is_dir() and not component_dir.name.startswith("."):
-                    tests_dir = component_dir / "tests",
+                    tests_dir = (component_dir / "tests",)
                     if not tests_dir.exists():
                         self.violations.append(
                             Violation(
@@ -573,14 +575,14 @@ class EnhancedValidator:
                         )
 
     def _validate_documentation_hygiene(self) -> None:
-        """Golden Rule 22: Documentation Hygiene""",
+        ("""Golden Rule 22: Documentation Hygiene""",)
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if not base_dir.exists():
                 continue
 
             for component_dir in base_dir.iterdir():
                 if component_dir.is_dir() and not component_dir.name.startswith("."):
-                    readme_file = component_dir / "README.md",
+                    readme_file = (component_dir / "README.md",)
                     if not readme_file.exists() or readme_file.stat().st_size == 0:
                         self.violations.append(
                             Violation(
@@ -593,8 +595,8 @@ class EnhancedValidator:
                         )
 
     def _validate_models_purity(self) -> None:
-        """Golden Rule 21: hive-models Purity""",
-        models_dir = self.project_root / "packages" / "hive-models",
+        ("""Golden Rule 21: hive-models Purity""",)
+        models_dir = (self.project_root / "packages" / "hive-models",)
         if not models_dir.exists():
             return
 

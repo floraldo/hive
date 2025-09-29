@@ -805,7 +805,7 @@ if __name__ == "__main__":
         test_count = 5  # Number of test categories
         passed_count = sum(
             [
-                1 if all_passed else 0,  # This is simplified; in real implementation would track individual tests
+                1 if all_passed else 0  # This is simplified; in real implementation would track individual tests
             ]
         )
 

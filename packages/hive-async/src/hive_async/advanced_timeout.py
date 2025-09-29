@@ -74,11 +74,7 @@ class AdvancedTimeoutManager:
 
         # Metrics tracking
         self._operation_metrics: dict[str, TimeoutMetrics] = {}
-        self._global_stats = {
-            "total_operations": 0,
-            "total_timeouts": 0,
-            "timeout_rate": 0.0,
-        }
+        self._global_stats = {"total_operations": 0, "total_timeouts": 0, "timeout_rate": 0.0}
 
         # Adaptive timeout cache
         self._adaptive_timeouts: dict[str, float] = {}

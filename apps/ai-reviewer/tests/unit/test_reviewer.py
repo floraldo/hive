@@ -7,12 +7,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 import pytest
-from ai_reviewer.reviewer import (
-    QualityMetrics,
-    ReviewDecision,
-    ReviewEngine,
-    ReviewResult,
-)
+from ai_reviewer.reviewer import QualityMetrics, ReviewDecision, ReviewEngine, ReviewResult
 
 
 class TestQualityMetrics:
@@ -20,13 +15,7 @@ class TestQualityMetrics:
 
     def test_overall_score_calculation(self):
         """Test that overall score is calculated correctly"""
-        metrics = QualityMetrics(
-            code_quality=80,
-            test_coverage=90,
-            documentation=70,
-            security=85,
-            architecture=75,
-        )
+        metrics = QualityMetrics(code_quality=80, test_coverage=90, documentation=70, security=85, architecture=75)
 
         # Expected: 80*0.3 + 90*0.25 + 70*0.15 + 85*0.2 + 75*0.1
         # = 24 + 22.5 + 10.5 + 17 + 7.5 = 81.5
@@ -34,13 +23,7 @@ class TestQualityMetrics:
 
     def test_perfect_scores(self):
         """Test with perfect scores"""
-        metrics = QualityMetrics(
-            code_quality=100,
-            test_coverage=100,
-            documentation=100,
-            security=100,
-            architecture=100,
-        )
+        metrics = QualityMetrics(code_quality=100, test_coverage=100, documentation=100, security=100, architecture=100)
         assert metrics.overall_score == 100
 
     def test_zero_scores(self):
@@ -139,10 +122,7 @@ def very_long_function_that_does_too_many_things():
 
     def test_score_test_coverage(self, engine):
         """Test coverage scoring"""
-        code_with_tests = {
-            "main.py": "def func(): pass",
-            "test_main.py": "def test_func(): pass",
-        }
+        code_with_tests = {"main.py": "def func(): pass", "test_main.py": "def test_func(): pass"}
         score = engine._score_test_coverage(code_with_tests, {"passed": True, "coverage": 90})
         assert score > 80
 
@@ -227,59 +207,31 @@ def process():
     def test_make_decision(self, engine):
         """Test decision making logic"""
         # High score should approve
-        high_metrics = QualityMetrics(
-            code_quality=90,
-            test_coverage=85,
-            documentation=80,
-            security=95,
-            architecture=90,
-        )
+        high_metrics = QualityMetrics(code_quality=90, test_coverage=85, documentation=80, security=95, architecture=90)
         decision = engine._make_decision(high_metrics, [])
         assert decision == ReviewDecision.APPROVE
 
         # Medium score should suggest rework
         medium_metrics = QualityMetrics(
-            code_quality=70,
-            test_coverage=60,
-            documentation=50,
-            security=75,
-            architecture=70,
+            code_quality=70, test_coverage=60, documentation=50, security=75, architecture=70
         )
         decision = engine._make_decision(medium_metrics, [])
         assert decision == ReviewDecision.REWORK
 
         # Low score should reject
-        low_metrics = QualityMetrics(
-            code_quality=30,
-            test_coverage=20,
-            documentation=10,
-            security=40,
-            architecture=30,
-        )
+        low_metrics = QualityMetrics(code_quality=30, test_coverage=20, documentation=10, security=40, architecture=30)
         decision = engine._make_decision(low_metrics, [])
         assert decision == ReviewDecision.REJECT
 
         # Critical issues should always reject
-        good_metrics = QualityMetrics(
-            code_quality=90,
-            test_coverage=90,
-            documentation=90,
-            security=90,
-            architecture=90,
-        )
+        good_metrics = QualityMetrics(code_quality=90, test_coverage=90, documentation=90, security=90, architecture=90)
         critical_issues = ["Security vulnerability detected", "Test failures"]
         decision = engine._make_decision(good_metrics, critical_issues)
         assert decision == ReviewDecision.REJECT
 
     def test_generate_suggestions(self, engine):
         """Test suggestion generation"""
-        low_metrics = QualityMetrics(
-            code_quality=50,
-            test_coverage=40,
-            documentation=30,
-            security=60,
-            architecture=70,
-        )
+        low_metrics = QualityMetrics(code_quality=50, test_coverage=40, documentation=30, security=60, architecture=70)
         issues = ["TODO comments found", "print statements detected"]
 
         suggestions = engine._generate_suggestions({}, issues, low_metrics)
@@ -396,10 +348,7 @@ def do_stuff(x):
         }
 
         result = engine.review_task(
-            task_id="poor-001",
-            task_description="Process user input",
-            code_files=poor_code,
-            test_results=None,
+            task_id="poor-001", task_description="Process user input", code_files=poor_code, test_results=None
         )
 
         assert result.decision in [ReviewDecision.REJECT, ReviewDecision.ESCALATE]

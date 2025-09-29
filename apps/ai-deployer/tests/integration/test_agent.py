@@ -8,11 +8,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from ai_deployer.agent import DeploymentAgent
 from ai_deployer.database_adapter import DatabaseAdapter
-from ai_deployer.deployer import (
-    DeploymentOrchestrator,
-    DeploymentResult,
-    DeploymentStrategy,
-)
+from ai_deployer.deployer import DeploymentOrchestrator, DeploymentResult, DeploymentStrategy
 
 
 @pytest.fixture
@@ -59,11 +55,7 @@ def sample_task():
         "status": "deployment_pending",
         "app_name": "web-app",
         "source_path": "/tmp/app-source",
-        "ssh_config": {
-            "hostname": "deploy.example.com",
-            "username": "deploy",
-            "key_file": "/path/to/key",
-        },
+        "ssh_config": {"hostname": "deploy.example.com", "username": "deploy", "key_file": "/path/to/key"},
         "deployment_strategy": "direct",
         "priority": 1,
         "metadata": {"environment": "production"},
@@ -75,11 +67,7 @@ class TestDeploymentAgent:
 
     def test_agent_initialization(self, mock_orchestrator):
         """Test agent initialization"""
-        agent = DeploymentAgent(
-            orchestrator=mock_orchestrator,
-            polling_interval=60,
-            test_mode=True,
-        )
+        agent = DeploymentAgent(orchestrator=mock_orchestrator, polling_interval=60, test_mode=True)
 
         assert agent.orchestrator == mock_orchestrator
         assert agent.polling_interval == 5  # test_mode reduces interval
@@ -351,7 +339,4 @@ async def test_main_function_async():
             pass  # Expected for argument parsing
 
         # Verify agent was created with test mode
-        mock_agent_class.assert_called_with(
-            polling_interval=30,
-            test_mode=True,
-        )
+        mock_agent_class.assert_called_with(polling_interval=30, test_mode=True)

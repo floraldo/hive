@@ -51,10 +51,7 @@ def validate_python_environment() -> dict[str, any]:
 
     # Check for virtual environment
     in_venv = hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
-    results["virtual_environment"] = {
-        "active": in_venv,
-        "path": sys.prefix if in_venv else None,
-    }
+    results["virtual_environment"] = {"active": in_venv, "path": sys.prefix if in_venv else None}
 
     if not in_venv:
         results["recommendations"].append("Consider using a virtual environment for better dependency isolation")
@@ -72,19 +69,9 @@ def validate_project_structure() -> dict[str, any]:
     try:
         root = find_project_root()
     except RuntimeError as e:
-        return {
-            "valid": False,
-            "error": str(e),
-            "issues": ["Could not locate Hive project root"],
-        }
+        return {"valid": False, "error": str(e), "issues": ["Could not locate Hive project root"]}
 
-    results = {
-        "valid": True,
-        "project_root": str(root),
-        "issues": [],
-        "missing_directories": [],
-        "missing_files": [],
-    }
+    results = {"valid": True, "project_root": str(root), "issues": [], "missing_directories": [], "missing_files": []}
 
     # Check for required directories
     required_dirs = ["apps", "packages", "scripts", "tests", "hive", "hive/db"]
@@ -115,12 +102,7 @@ def validate_database_connectivity() -> dict[str, any]:
     Returns:
         Dictionary with database validation results
     """
-    results = {
-        "accessible": False,
-        "tables_exist": False,
-        "can_query": False,
-        "issues": [],
-    }
+    results = {"accessible": False, "tables_exist": False, "can_query": False, "issues": []}
 
     try:
         import hive_core_db
@@ -166,12 +148,7 @@ def validate_worker_requirements() -> dict[str, any]:
     Returns:
         Dictionary with worker requirements validation
     """
-    results = {
-        "python_executable": False,
-        "modules_importable": False,
-        "environment_ready": False,
-        "issues": [],
-    }
+    results = {"python_executable": False, "modules_importable": False, "environment_ready": False, "issues": []}
 
     # Check Python executable
     if sys.executable and Path(sys.executable).exists():

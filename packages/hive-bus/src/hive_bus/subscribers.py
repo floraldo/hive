@@ -30,12 +30,7 @@ class BaseSubscriber:
     callback: Callable[[BaseEvent], None]
     subscriber_name: str = "anonymous"
 
-    def __init__(
-        self,
-        pattern: str,
-        callback: Callable[[BaseEvent], None],
-        subscriber_name: str = "anonymous",
-    ):
+    def __init__(self, pattern: str, callback: Callable[[BaseEvent], None], subscriber_name: str = "anonymous"):
         self.subscription_id = str(uuid.uuid4())
         self.pattern = pattern
         self.callback = callback

@@ -187,7 +187,7 @@ class PoolOptimizer:
                     pool_name=pool_name,
                     severity="critical" if peak_utilization > 0.95 else "warning",
                     category="sizing",
-                    issue=f"Pool frequently near capacity ({peak_utilization*100:.1f}% peak utilization)",
+                    issue=f"Pool frequently near capacity ({peak_utilization * 100:.1f}% peak utilization)",
                     recommendation="Increase max_size to handle peak load with headroom",
                     current_value=current_max,
                     recommended_value=int(peak_in_use * 1.5),  # 50% headroom
@@ -202,7 +202,7 @@ class PoolOptimizer:
                     pool_name=pool_name,
                     severity="info",
                     category="efficiency",
-                    issue=f"Pool underutilized ({avg_utilization*100:.1f}% average utilization)",
+                    issue=f"Pool underutilized ({avg_utilization * 100:.1f}% average utilization)",
                     recommendation="Reduce max_size to conserve resources",
                     current_value=current_max,
                     recommended_value=max(int(peak_in_use * 1.3), current_min),  # 30% headroom
@@ -275,9 +275,9 @@ class PoolOptimizer:
                         pool_name=pool_name,
                         severity="warning",
                         category="efficiency",
-                        issue=f"High connection churn ({reuse_rate*100:.1f}% reuse rate)",
+                        issue=f"High connection churn ({reuse_rate * 100:.1f}% reuse rate)",
                         recommendation="Increase min_size and/or max_idle_time",
-                        current_value=f"{reuse_rate*100:.1f}% reuse",
+                        current_value=f"{reuse_rate * 100:.1f}% reuse",
                         recommended_value=">90% reuse",
                         expected_improvement="Reduced overhead from connection creation",
                     )
@@ -293,7 +293,7 @@ class PoolOptimizer:
                         pool_name=pool_name,
                         severity="critical" if error_rate > 0.05 else "warning",
                         category="performance",
-                        issue=f"High error rate ({error_rate*100:.1f}%)",
+                        issue=f"High error rate ({error_rate * 100:.1f}%)",
                         recommendation="Investigate connection errors, may need timeout adjustments",
                         current_value=f"{metrics[-1].errors} errors",
                         recommended_value="<0.5% error rate",

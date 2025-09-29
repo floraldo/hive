@@ -1071,10 +1071,7 @@ class CrossAppCommunicationTests:
         payload = json.loads(row[0]) if row and row[0] else {}
 
         # Simulate EcoSystemiser adding its data
-        payload["ecosystemiser_data"] = {
-            "read_by": "ecosystemiser",
-            "timestamp": datetime.now(UTC).isoformat(),
-        }
+        payload["ecosystemiser_data"] = {"read_by": "ecosystemiser", "timestamp": datetime.now(UTC).isoformat()}
 
         conn.execute(
             """

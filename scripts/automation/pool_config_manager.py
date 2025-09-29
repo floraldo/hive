@@ -72,11 +72,7 @@ class PoolConfigManager:
     - Enable atomic updates with rollback
     """
 
-    def __init__(
-        self,
-        config_dir: str = "config/pools",
-        history_dir: str = "data/config_history"
-    ):
+    def __init__(self, config_dir: str = "config/pools", history_dir: str = "data/config_history"):
         self.config_dir = Path(config_dir)
         self.history_dir = Path(history_dir)
 
@@ -90,49 +86,34 @@ class PoolConfigManager:
     def _load_schema(self) -> dict[str, Any]:
         """Load configuration validation schema."""
         return {
-            "min_size": {
-                "type": "int",
-                "min": 1,
-                "max": 100,
-                "description": "Minimum pool size"
-            },
+            "min_size": {"type": "int", "min": 1, "max": 100, "description": "Minimum pool size"},
             "max_size": {
                 "type": "int",
                 "min": 1,
                 "max": 1000,
                 "description": "Maximum pool size",
-                "validation": lambda val, config: val >= config.get("min_size", 0)
+                "validation": lambda val, config: val >= config.get("min_size", 0),
             },
-            "max_overflow": {
-                "type": "int",
-                "min": 0,
-                "max": 500,
-                "description": "Maximum overflow connections"
-            },
+            "max_overflow": {"type": "int", "min": 0, "max": 500, "description": "Maximum overflow connections"},
             "pool_timeout": {
                 "type": "float",
                 "min": 0.1,
                 "max": 300.0,
-                "description": "Timeout for getting connection from pool (seconds)"
+                "description": "Timeout for getting connection from pool (seconds)",
             },
             "pool_recycle": {
                 "type": "int",
                 "min": 60,
                 "max": 86400,
-                "description": "Connection recycle time (seconds)"
+                "description": "Connection recycle time (seconds)",
             },
             "connect_timeout": {
                 "type": "int",
                 "min": 1,
                 "max": 300,
-                "description": "Database connection timeout (seconds)"
+                "description": "Database connection timeout (seconds)",
             },
-            "query_timeout": {
-                "type": "int",
-                "min": 1,
-                "max": 3600,
-                "description": "Query execution timeout (seconds)"
-            }
+            "query_timeout": {"type": "int", "min": 1, "max": 3600, "description": "Query execution timeout (seconds)"},
         }
 
     def get_config(self, service_name: str) -> PoolConfig | None:
@@ -152,7 +133,7 @@ class PoolConfigManager:
             return None
 
         try:
-            with open(config_file, 'r') as f:
+            with open(config_file, "r") as f:
                 data = json.load(f)
 
             config = PoolConfig(
@@ -169,7 +150,7 @@ class PoolConfigManager:
                 service_name=data.get("service_name", service_name),
                 last_updated=data.get("last_updated", ""),
                 updated_by=data.get("updated_by", "unknown"),
-                version=data.get("version", 1)
+                version=data.get("version", 1),
             )
 
             logger.info(f"Loaded config for {service_name} (version {config.version})")
@@ -211,34 +192,23 @@ class PoolConfigManager:
 
             # Range validation
             if "min" in rules and value < rules["min"]:
-                errors.append(
-                    f"{field_name} = {value} is below minimum {rules['min']}"
-                )
+                errors.append(f"{field_name} = {value} is below minimum {rules['min']}")
 
             if "max" in rules and value > rules["max"]:
-                errors.append(
-                    f"{field_name} = {value} exceeds maximum {rules['max']}"
-                )
+                errors.append(f"{field_name} = {value} exceeds maximum {rules['max']}")
 
             # Custom validation
             if "validation" in rules:
                 try:
                     if not rules["validation"](value, config):
-                        errors.append(
-                            f"{field_name} failed custom validation"
-                        )
+                        errors.append(f"{field_name} failed custom validation")
                 except Exception as e:
-                    errors.append(
-                        f"{field_name} validation error: {str(e)}"
-                    )
+                    errors.append(f"{field_name} validation error: {str(e)}")
 
         # Cross-field validation
         if "min_size" in config and "max_size" in config:
             if config["min_size"] > config["max_size"]:
-                errors.append(
-                    f"min_size ({config['min_size']}) cannot exceed "
-                    f"max_size ({config['max_size']})"
-                )
+                errors.append(f"min_size ({config['min_size']}) cannot exceed max_size ({config['max_size']})")
 
         is_valid = len(errors) == 0
 
@@ -251,12 +221,7 @@ class PoolConfigManager:
 
         return is_valid, errors
 
-    def save_to_history(
-        self,
-        service_name: str,
-        config: dict[str, Any],
-        change_reason: str = ""
-    ) -> Path:
+    def save_to_history(self, service_name: str, config: dict[str, Any], change_reason: str = "") -> Path:
         """
         Save configuration to history.
 
@@ -276,11 +241,11 @@ class PoolConfigManager:
             "timestamp": datetime.now().isoformat(),
             "config": config,
             "change_reason": change_reason,
-            "updated_by": config.get("updated_by", "unknown")
+            "updated_by": config.get("updated_by", "unknown"),
         }
 
         try:
-            with open(history_file, 'w') as f:
+            with open(history_file, "w") as f:
                 json.dump(history_entry, f, indent=2)
 
             logger.info(f"Saved config history for {service_name} to {history_file}")
@@ -291,11 +256,7 @@ class PoolConfigManager:
             raise
 
     def update_config(
-        self,
-        service_name: str,
-        new_config: dict[str, Any],
-        change_reason: str = "",
-        skip_validation: bool = False
+        self, service_name: str, new_config: dict[str, Any], change_reason: str = "", skip_validation: bool = False
     ) -> bool:
         """
         Update configuration with validation and history tracking.
@@ -324,11 +285,7 @@ class PoolConfigManager:
         current_config = self.get_config(service_name)
         if current_config:
             # Save current config to history
-            self.save_to_history(
-                service_name,
-                current_config.__dict__,
-                change_reason=f"Before update: {change_reason}"
-            )
+            self.save_to_history(service_name, current_config.__dict__, change_reason=f"Before update: {change_reason}")
 
         # Update version
         new_version = (current_config.version + 1) if current_config else 1
@@ -340,7 +297,7 @@ class PoolConfigManager:
         config_file = self.config_dir / f"{service_name}.json"
 
         try:
-            with open(config_file, 'w') as f:
+            with open(config_file, "w") as f:
                 json.dump(new_config, f, indent=2)
 
             logger.info(
@@ -349,11 +306,7 @@ class PoolConfigManager:
             )
 
             # Save to history
-            self.save_to_history(
-                service_name,
-                new_config,
-                change_reason=change_reason
-            )
+            self.save_to_history(service_name, new_config, change_reason=change_reason)
 
             return True
 
@@ -362,10 +315,7 @@ class PoolConfigManager:
             return False
 
     def diff_configs(
-        self,
-        service_name: str,
-        old_config: dict[str, Any],
-        new_config: dict[str, Any]
+        self, service_name: str, old_config: dict[str, Any], new_config: dict[str, Any]
     ) -> dict[str, tuple[Any, Any]]:
         """
         Generate diff between two configurations.
@@ -392,11 +342,7 @@ class PoolConfigManager:
         logger.info(f"Config diff for {service_name}: {len(changes)} changes")
         return changes
 
-    def rollback_config(
-        self,
-        service_name: str,
-        version: int | None = None
-    ) -> bool:
+    def rollback_config(self, service_name: str, version: int | None = None) -> bool:
         """
         Rollback configuration to previous version.
 
@@ -410,10 +356,7 @@ class PoolConfigManager:
         logger.info(f"Rolling back config for {service_name}")
 
         # Get history files
-        history_files = sorted(
-            self.history_dir.glob(f"{service_name}_*.json"),
-            reverse=True
-        )
+        history_files = sorted(self.history_dir.glob(f"{service_name}_*.json"), reverse=True)
 
         if not history_files:
             logger.error(f"No history found for {service_name}")
@@ -431,7 +374,7 @@ class PoolConfigManager:
             # Find specific version
             for history_file in history_files:
                 try:
-                    with open(history_file, 'r') as f:
+                    with open(history_file, "r") as f:
                         data = json.load(f)
                     if data["config"].get("version") == version:
                         target_file = history_file
@@ -440,14 +383,12 @@ class PoolConfigManager:
                     continue
 
         if not target_file:
-            logger.error(
-                f"Target version {version} not found for {service_name}"
-            )
+            logger.error(f"Target version {version} not found for {service_name}")
             return False
 
         # Load target config
         try:
-            with open(target_file, 'r') as f:
+            with open(target_file, "r") as f:
                 history_entry = json.load(f)
 
             target_config = history_entry["config"]
@@ -457,18 +398,14 @@ class PoolConfigManager:
                 service_name,
                 target_config,
                 change_reason=f"Rollback to version {target_config.get('version', 'unknown')}",
-                skip_validation=False
+                skip_validation=False,
             )
 
         except Exception as e:
             logger.error(f"Failed to rollback config for {service_name}: {e}")
             return False
 
-    def get_config_history(
-        self,
-        service_name: str,
-        limit: int = 10
-    ) -> list[dict[str, Any]]:
+    def get_config_history(self, service_name: str, limit: int = 10) -> list[dict[str, Any]]:
         """
         Get configuration history for a service.
 
@@ -479,15 +416,12 @@ class PoolConfigManager:
         Returns:
             List of history entries (newest first)
         """
-        history_files = sorted(
-            self.history_dir.glob(f"{service_name}_*.json"),
-            reverse=True
-        )[:limit]
+        history_files = sorted(self.history_dir.glob(f"{service_name}_*.json"), reverse=True)[:limit]
 
         history = []
         for history_file in history_files:
             try:
-                with open(history_file, 'r') as f:
+                with open(history_file, "r") as f:
                     history.append(json.load(f))
             except Exception as e:
                 logger.warning(f"Failed to load history file {history_file}: {e}")
@@ -530,12 +464,17 @@ class PoolConfigManager:
             output_path = Path(output_file)
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(output_path, 'w') as f:
-                json.dump({
-                    "exported_at": datetime.now().isoformat(),
-                    "total_services": len(all_configs),
-                    "configs": all_configs
-                }, f, indent=2, default=str)
+            with open(output_path, "w") as f:
+                json.dump(
+                    {
+                        "exported_at": datetime.now().isoformat(),
+                        "total_services": len(all_configs),
+                        "configs": all_configs,
+                    },
+                    f,
+                    indent=2,
+                    default=str,
+                )
 
             logger.info(f"Exported {len(all_configs)} configs to {output_file}")
             return True
@@ -585,11 +524,7 @@ def main():
     elif args.diff:
         history = manager.get_config_history(args.diff, limit=2)
         if len(history) >= 2:
-            changes = manager.diff_configs(
-                args.diff,
-                history[1]["config"],
-                history[0]["config"]
-            )
+            changes = manager.diff_configs(args.diff, history[1]["config"], history[0]["config"])
             print(f"\nConfiguration Changes for {args.diff}:")
             for field, (old_val, new_val) in changes.items():
                 print(f"  {field}: {old_val} → {new_val}")
@@ -601,7 +536,7 @@ def main():
 
     elif args.validate:
         try:
-            with open(args.validate, 'r') as f:
+            with open(args.validate, "r") as f:
                 config = json.load(f)
             is_valid, errors = manager.validate_config(config)
             if is_valid:

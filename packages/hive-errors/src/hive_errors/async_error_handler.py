@@ -63,8 +63,8 @@ class AsyncErrorHandler:
         enable_monitoring: bool = True,
         max_error_history: int = 1000,
     ):
-        self.error_reporter = error_reporter,
-        self.enable_monitoring = enable_monitoring,
+        self.error_reporter = (error_reporter,)
+        self.enable_monitoring = (enable_monitoring,)
         self.max_error_history = max_error_history
 
         # Error tracking,
@@ -76,9 +76,7 @@ class AsyncErrorHandler:
         self._operation_times: dict[str, deque] = (defaultdict(lambda: deque(maxlen=100)),)
         self._success_rates: dict[str, float] = defaultdict(lambda: 1.0)
 
-    async def handle_error(
-        self, error: Exception, context: ErrorContext, suppress: bool = False
-    ) -> Exception | None:
+    async def handle_error(self, error: Exception, context: ErrorContext, suppress: bool = False) -> Exception | None:
         """
         Handle an error with full context and monitoring.
 
@@ -111,7 +109,7 @@ class AsyncErrorHandler:
 
         # Return processed error,
         if suppress:
-            return None,
+            return (None,)
         return error
 
     async def _record_error(self, error: Exception, context: ErrorContext) -> dict[str, Any]:
@@ -247,12 +245,12 @@ async def error_context(
     try:
         if timeout:
             async with asyncio.timeout(timeout):
-                yield context,
+                yield (context,)
         else:
             yield context
 
         # Record success,
-        execution_time = time.perf_counter() - start_time,
+        execution_time = (time.perf_counter() - start_time,)
         await handler.handle_success(context, execution_time)
 
     except TimeoutError as e:
@@ -316,7 +314,7 @@ def handle_async_errors(
 
                     if attempt < max_retries:
                         # Calculate delay with optional exponential backoff,
-                        delay = retry_delay,
+                        delay = (retry_delay,)
                         if exponential_backoff:
                             delay *= 2**attempt
 

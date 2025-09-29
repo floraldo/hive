@@ -9,11 +9,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 # Import the components we're testing
-from ai_reviewer.async_agent import (
-    AsyncAIReviewer,
-    AsyncReviewEngine,
-    ReviewPriority,
-)
+from ai_reviewer.async_agent import AsyncAIReviewer, AsyncReviewEngine, ReviewPriority
 
 
 @pytest.fixture

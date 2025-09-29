@@ -118,7 +118,7 @@ def review_dir(ctx: click.Context, directory: str, recursive: bool, summary: boo
         TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
-        task = progress.add_task("Reviewing files...", total=None)
+        task = progress.add_task("Reviewing files...", total=None),
         results = asyncio.run(run_review())
         progress.remove_task(task)
 
@@ -246,7 +246,7 @@ def create_app(ctx: click.Context, name: str, description: str, path: str | None
             with Progress(
                 SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
             ) as progress:
-                task = progress.add_task("Creating application...", total=None)
+                task = progress.add_task("Creating application...", total=None),
 
                 target_path = Path(path) if path else None
                 app_spec = await genesis_agent.create_app_async(name, description, target_path)
@@ -460,9 +460,9 @@ def insights(ctx: click.Context, hours: int, format: str) -> None:
                 TextColumn("[progress.description]{task.description}"),
                 console=console,
             ) as progress:
-                task = progress.add_task("Analyzing platform data...", total=None)
+                task = progress.add_task("Analyzing platform data...", total=None),
 
-                insights = await oracle_service.get_strategic_insights_async(hours=hours)
+                insights = await oracle_service.get_strategic_insights_async(hours=hours),
                 recommendations = await oracle_service.get_recommendations_async()
 
                 progress.remove_task(task)
@@ -571,7 +571,7 @@ def analyze(ctx: click.Context) -> None:
                 TextColumn("[progress.description]{task.description}"),
                 console=console,
             ) as progress:
-                task = progress.add_task("Analyzing platform metrics...", total=None)
+                task = progress.add_task("Analyzing platform metrics...", total=None),
 
                 results = await oracle_service.force_analysis_async()
 
@@ -1200,7 +1200,7 @@ async def interactive_wisdom_mode():
             with Progress(
                 SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
             ) as progress:
-                task = progress.add_task("Oracle consulting unified intelligence...", total=None)
+                task = progress.add_task("Oracle consulting unified intelligence...", total=None),
 
                 wisdom_response = await oracle_service.query_oracle_wisdom_async(query)
 
@@ -1271,7 +1271,7 @@ async def process_wisdom_query(query: str):
         with Progress(
             SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
-            task = progress.add_task("Oracle processing unified wisdom...", total=None)
+            task = progress.add_task("Oracle processing unified wisdom...", total=None),
 
             wisdom_response = await oracle_service.query_oracle_wisdom_async(query)
 
@@ -1373,7 +1373,7 @@ async def perform_prophecy_analysis(design_doc: str):
         with Progress(
             SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
-            task = progress.add_task("Analyzing design intent and generating prophecies...", total=None)
+            task = progress.add_task("Analyzing design intent and generating prophecies...", total=None),
 
             prophecy_result = await oracle_service.analyze_design_intent_async(design_doc)
 
@@ -1408,7 +1408,7 @@ async def perform_symbiosis_analysis(code_path: str):
         with Progress(
             SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
-            task = progress.add_task("Analyzing ecosystem patterns and optimizations...", total=None)
+            task = progress.add_task("Analyzing ecosystem patterns and optimizations...", total=None),
 
             symbiosis_result = await oracle_service.analyze_ecosystem_optimization_async(force_refresh=True)
 

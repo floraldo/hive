@@ -67,17 +67,11 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
                 if not image_access:
                     errors.append("Docker image not accessible from cluster")
 
-            return {
-                "success": len(errors) == 0,
-                "errors": errors,
-            }
+            return {"success": len(errors) == 0, "errors": errors}
 
         except Exception as e:
             logger.error(f"Kubernetes pre-deployment check error: {e}")
-            return {
-                "success": False,
-                "errors": [f"Pre-deployment check failed: {e}"],
-            }
+            return {"success": False, "errors": [f"Pre-deployment check failed: {e}"]}
 
     async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """
@@ -99,18 +93,12 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             # Apply Kubernetes manifests
             manifest_result = await self._apply_manifests_async(task, deployment_id)
             if not manifest_result["success"]:
-                return {
-                    "success": False,
-                    "error": f"Manifest application failed: {manifest_result['error']}",
-                }
+                return {"success": False, "error": f"Manifest application failed: {manifest_result['error']}"}
 
             # Wait for deployment to be ready
             deployment_ready = await self._wait_for_deployment_ready_async(namespace, app_name)
             if not deployment_ready:
-                return {
-                    "success": False,
-                    "error": "Deployment did not become ready within timeout",
-                }
+                return {"success": False, "error": "Deployment did not become ready within timeout"}
 
             # Run canary deployment if configured
             if self.strategy == DeploymentStrategy.CANARY:
@@ -118,10 +106,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
                 if not canary_result["success"]:
                     # Canary failed - rollback
                     await self._cleanup_failed_deployment_async(namespace, app_name)
-                    return {
-                        "success": False,
-                        "error": f"Canary deployment failed: {canary_result['error']}",
-                    }
+                    return {"success": False, "error": f"Canary deployment failed: {canary_result['error']}"}
 
             # Update ingress/service configuration
             ingress_result = await self._update_ingress_async(task, deployment_id)
@@ -129,10 +114,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             # Wait for health checks to pass
             health_check = await self._wait_for_health_checks_async(namespace, app_name)
             if not health_check:
-                return {
-                    "success": False,
-                    "error": "Health checks failed after deployment",
-                }
+                return {"success": False, "error": "Health checks failed after deployment"}
 
             logger.info(f"Kubernetes deployment {deployment_id} completed successfully")
 
@@ -152,16 +134,10 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
 
         except Exception as e:
             logger.error(f"Kubernetes deployment {deployment_id} error: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def rollback_async(
-        self,
-        task: dict[str, Any],
-        deployment_id: str,
-        previous_deployment: dict[str, Any],
+        self, task: dict[str, Any], deployment_id: str, previous_deployment: dict[str, Any]
     ) -> dict[str, Any]:
         """
         Rollback Kubernetes deployment to previous version
@@ -185,10 +161,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             previous_manifests = previous_info.get("manifests_applied", [])
 
             if not previous_manifests:
-                return {
-                    "success": False,
-                    "error": "No previous deployment manifests found for rollback",
-                }
+                return {"success": False, "error": "No previous deployment manifests found for rollback"}
 
             # Rollback using kubectl rollout undo
             rollback_result = await self._rollback_deployment_async(namespace, app_name)
@@ -197,18 +170,12 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
                 # Try manual rollback by applying previous manifests
                 manual_rollback = await self._apply_previous_manifests_async(previous_manifests)
                 if not manual_rollback:
-                    return {
-                        "success": False,
-                        "error": "Both automatic and manual rollback failed",
-                    }
+                    return {"success": False, "error": "Both automatic and manual rollback failed"}
 
             # Wait for rollback to complete
             rollback_ready = await self._wait_for_deployment_ready_async(namespace, app_name)
             if not rollback_ready:
-                return {
-                    "success": False,
-                    "error": "Rollback deployment did not become ready",
-                }
+                return {"success": False, "error": "Rollback deployment did not become ready"}
 
             # Verify rollback health
             health_check = await self._wait_for_health_checks_async(namespace, app_name)
@@ -227,10 +194,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
 
         except Exception as e:
             logger.error(f"Kubernetes rollback error for {deployment_id}: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """
@@ -262,10 +226,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
 
     def get_required_task_fields(self) -> list[str]:
         """Get required fields for Kubernetes deployment"""
-        return [
-            "k8s_manifests",
-            "app_name",
-        ]
+        return ["k8s_manifests", "app_name"]
 
     # Helper methods
 
@@ -322,10 +283,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
                 "duration": 2.0,
             }
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def _wait_for_deployment_ready_async(self, namespace: str, app_name: str) -> bool:
         """Wait for deployment to be ready"""
@@ -349,33 +307,18 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             canary_healthy = await self._monitor_canary_metrics_async(deployment_id)
 
             if not canary_healthy:
-                return {
-                    "success": False,
-                    "error": "Canary metrics indicate failure",
-                }
+                return {"success": False, "error": "Canary metrics indicate failure"}
 
             # Gradually increase traffic to canary
             traffic_result = await self._gradually_increase_traffic_async(deployment_id)
 
             if not traffic_result:
-                return {
-                    "success": False,
-                    "error": "Traffic migration to canary failed",
-                }
+                return {"success": False, "error": "Traffic migration to canary failed"}
 
-            return {
-                "success": True,
-                "canary_info": {
-                    "traffic_migrated": True,
-                    "metrics_healthy": canary_healthy,
-                },
-            }
+            return {"success": True, "canary_info": {"traffic_migrated": True, "metrics_healthy": canary_healthy}}
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def _deploy_canary_version_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """Deploy canary version with limited replicas"""

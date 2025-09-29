@@ -13,11 +13,7 @@ Extends generic error handling toolkit with Hive-specific error management:
 """
 
 
-from .hive_error_reporter import (
-    HiveErrorReporter,
-    get_hive_error_reporter,
-    report_hive_error,
-)
+from .hive_error_reporter import HiveErrorReporter, get_hive_error_reporter, report_hive_error
 from .hive_exceptions import (
     ClaudeError,
     ClaudeRateLimitError,

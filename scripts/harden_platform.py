@@ -196,9 +196,7 @@ class HardenPlatform:
         """Move Python files from root to appropriate directories"""
         print("Moving root Python files...")
 
-        root_python_files = [
-            ("init_db_simple.py", "scripts/init_db_simple.py"),
-        ]
+        root_python_files = [("init_db_simple.py", "scripts/init_db_simple.py")]
 
         for src_file, dest_file in root_python_files:
             src_path = PROJECT_ROOT / src_file
@@ -216,9 +214,7 @@ class HardenPlatform:
         """Remove old/deprecated directories"""
         print("Cleaning up old directories...")
 
-        dirs_to_remove = [
-            "apps/ecosystemiser/src/EcoSystemiser/profile_loader/climate/processing/validation_old",
-        ]
+        dirs_to_remove = ["apps/ecosystemiser/src/EcoSystemiser/profile_loader/climate/processing/validation_old"]
 
         for dir_path in dirs_to_remove:
             full_path = PROJECT_ROOT / dir_path

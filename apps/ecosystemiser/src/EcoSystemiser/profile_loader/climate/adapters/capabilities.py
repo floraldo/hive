@@ -124,7 +124,7 @@ class AdapterCapabilities:
         start_date: datetime,
         end_date: datetime,
         frequency: str,
-        location: Tuple[float, float]
+        location: Tuple[float, float],
     ) -> Tuple[bool, List[str]]:
         """
         Check if this adapter can fulfill a request.
@@ -147,14 +147,16 @@ class AdapterCapabilities:
             reasons.append(f"Data ends at {self.temporal.end_date}")
 
         # Check frequency support
-        freq_map = {
-            "15T": DataFrequency.SUBHOURLY,
-            "1H": DataFrequency.HOURLY,
-            "3H": DataFrequency.THREEHOURLY,
-            "1D": DataFrequency.DAILY,
-            "1M": DataFrequency.MONTHLY,
-            "1Y": DataFrequency.YEARLY,
-        },
+        freq_map = (
+            {
+                "15T": DataFrequency.SUBHOURLY,
+                "1H": DataFrequency.HOURLY,
+                "3H": DataFrequency.THREEHOURLY,
+                "1D": DataFrequency.DAILY,
+                "1M": DataFrequency.MONTHLY,
+                "1Y": DataFrequency.YEARLY,
+            },
+        )
 
         if frequency in freq_map:
             if freq_map[frequency] not in self.supported_frequencies:
@@ -170,47 +172,42 @@ class AdapterCapabilities:
 
     def get_capability_summary(self) -> Dict:
         """Get a summary of capabilities for UI display"""
-        return {
-            "name": self.name,
-            "description": self.description,
-            "coverage": {
-                "temporal": f"{self.temporal.start_date or 'varies'} to {self.temporal.end_date or 'present'}",
-                "spatial": ("Global" if self.spatial.global_coverage else f"Regional: {self.spatial.regions}"),
-                "resolution": (f"{self.spatial.resolution_km}km" if self.spatial.resolution_km else "varies")
+        return (
+            {
+                "name": self.name,
+                "description": self.description,
+                "coverage": {
+                    "temporal": f"{self.temporal.start_date or 'varies'} to {self.temporal.end_date or 'present'}",
+                    "spatial": ("Global" if self.spatial.global_coverage else f"Regional: {self.spatial.regions}"),
+                    "resolution": (f"{self.spatial.resolution_km}km" if self.spatial.resolution_km else "varies"),
+                },
+                "variables": {
+                    "total": len(self.supported_variables),
+                    "primary": self.primary_variables[:5],  # Top 5,
+                    "categories": self._categorize_variables(),
+                },
+                "frequencies": [f.value for f in self.supported_frequencies],
+                "features": self.special_features,
+                "limitations": self._get_limitations(),
+                "auth_required": self.auth_type != AuthType.NONE,
             },
-            "variables": {
-                "total": len(self.supported_variables),
-                "primary": self.primary_variables[:5],  # Top 5,
-                "categories": self._categorize_variables()
-            },
-            "frequencies": [f.value for f in self.supported_frequencies],
-            "features": self.special_features,
-            "limitations": self._get_limitations(),
-            "auth_required": self.auth_type != AuthType.NONE
-        },
+        )
 
     def _categorize_variables(self) -> Dict[str, int]:
         """Categorize variables by type"""
-        categories = {
-            "temperature": 0,
-            "solar": 0,
-            "wind": 0,
-            "moisture": 0,
-            "pressure": 0,
-            "other": 0
-        },
+        categories = ({"temperature": 0, "solar": 0, "wind": 0, "moisture": 0, "pressure": 0, "other": 0},)
 
         for var in self.supported_variables:
             if "temp" in var:
-                categories["temperature"] += 1,
+                categories["temperature"] += (1,)
             elif var in ["ghi", "dni", "dhi", "solar_zenith"]:
-                categories["solar"] += 1,
+                categories["solar"] += (1,)
             elif "wind" in var:
-                categories["wind"] += 1,
+                categories["wind"] += (1,)
             elif var in ["rel_humidity", "precip", "snow"]:
-                categories["moisture"] += 1,
+                categories["moisture"] += (1,)
             elif "pressure" in var:
-                categories["pressure"] += 1,
+                categories["pressure"] += (1,)
             else:
                 categories["other"] += 1
 
@@ -249,13 +246,7 @@ def compare_capabilities(adapters: List[AdapterCapabilities], variables: List[st
 
     for adapter in adapters:
         score = 0
-        details = {
-            "can_fulfill": False,
-            "coverage_score": 0,
-            "variable_score": 0,
-            "quality_score": 0,
-            "reasons": []
-        }
+        details = {"can_fulfill": False, "coverage_score": 0, "variable_score": 0, "quality_score": 0, "reasons": []}
 
         # Check variable support
         supported = set(variables) & set(adapter.supported_variables)

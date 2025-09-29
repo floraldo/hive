@@ -112,11 +112,7 @@ class EnhancedAsyncPool:
 
     def get_metrics(self) -> dict[str, int]:
         """Get pool metrics"""
-        return {
-            **self._metrics,
-            "pool_size": len(self._pool),
-            "in_use": len(self._in_use),
-        }
+        return {**self._metrics, "pool_size": len(self._pool), "in_use": len(self._in_use)}
 
     async def cleanup_async(self) -> None:
         """Cleanup all connections on shutdown"""

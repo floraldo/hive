@@ -138,11 +138,7 @@ def clean_git_branches(preserve=False) -> None:
                 logger.info(f"  Found {len(branches)} agent branches to clean")
                 for branch in branches:
                     try:
-                        subprocess.run(
-                            ["git", "branch", "-D", branch],
-                            capture_output=True,
-                            check=True,
-                        )
+                        subprocess.run(["git", "branch", "-D", branch], capture_output=True, check=True)
                         logger.info(f"  [OK] Deleted branch: {branch}")
                     except subprocess.CalledProcessError:
                         logger.warning(f"  [WARN] Could not delete branch: {branch}")
@@ -186,12 +182,7 @@ def kill_processes() -> None:
                         result.stdout = ""
                 else:
                     # Unix/Linux approach
-                    result = subprocess.run(
-                        ["pgrep", "-f", process_name],
-                        capture_output=True,
-                        text=True,
-                        timeout=10,
-                    )
+                    result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True, timeout=10)
                 if result.returncode == 0 and result.stdout.strip():
                     logger.info(f"  Found running {process_name} processes")
                     # Kill processes (cross-platform)
@@ -204,11 +195,7 @@ def kill_processes() -> None:
                         )
                     else:
                         # Unix/Linux approach
-                        kill_result = subprocess.run(
-                            ["pkill", "-f", process_name],
-                            capture_output=True,
-                            timeout=10,
-                        )
+                        kill_result = subprocess.run(["pkill", "-f", process_name], capture_output=True, timeout=10)
                     if kill_result.returncode == 0:
                         logger.info(f"  [OK] Killed {process_name} processes")
                         killed_any = True
@@ -239,10 +226,7 @@ def clean_results_and_logs() -> None:
             ("hive/results", "Clearing results"),
             ("hive/operator/hints", "Clearing hints"),
             ("hive/logs", "Clearing logs"),
-            (
-                "apps/ecosystemiser/ecosystemiser_results",
-                "Clearing EcoSystemiser results",
-            ),
+            ("apps/ecosystemiser/ecosystemiser_results", "Clearing EcoSystemiser results"),
         ]
 
         for directory, description in directories_to_clean:
@@ -286,15 +270,9 @@ def main() -> None:
         # Parse arguments
         parser = argparse.ArgumentParser(description="Clean Hive workspace and database for fresh start")
         parser.add_argument(
-            "--keep-branches",
-            action="store_true",
-            help="Preserve git branches (don't delete agent/* branches)",
+            "--keep-branches", action="store_true", help="Preserve git branches (don't delete agent/* branches)"
         )
-        parser.add_argument(
-            "--db-only",
-            action="store_true",
-            help="Only clean database, skip files and processes",
-        )
+        parser.add_argument("--db-only", action="store_true", help="Only clean database, skip files and processes")
         args = parser.parse_args()
 
         logger.info("Hive Cleanup Script v2.0 - Database Edition")

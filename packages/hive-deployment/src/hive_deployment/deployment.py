@@ -25,7 +25,7 @@ def get_deployment_config() -> dict[str, str]:
         "nginx_conf_d_dir": os.environ.get("NGINX_CONF_D_DIR", "/etc/nginx/conf.d"),
         "systemd_service_dir": os.environ.get("SYSTEMD_SERVICE_DIR", "/etc/systemd/system"),
         "server_user": os.environ.get("SERVER_USER", "deploy"),
-        "nginx_user_group": os.environ.get("NGINX_USER_GROUP", "www-data")
+        "nginx_user_group": os.environ.get("NGINX_USER_GROUP", "www-data"),
     }
 
 
@@ -79,7 +79,7 @@ def determine_deployment_paths(app_name: str, deployment_config: dict[str, str] 
         "req_path": f"{remote_app_dir}/requirements.txt",
         "env_file_path": f"{remote_app_dir}/instance/.env",
         "systemd_service_path": f"{deployment_config['systemd_service_dir']}/{app_name}.service",
-        "nginx_conf_path": f"{deployment_config['nginx_conf_d_dir']}/{app_name}.conf"
+        "nginx_conf_path": f"{deployment_config['nginx_conf_d_dir']}/{app_name}.conf",
     }
     return paths
 
@@ -172,10 +172,7 @@ def deploy_update_env_file(ssh: SSHClient, env_file_path: str, port: int, config
 
     # Add new FLASK_RUN_PORT line
     exit_code, _, stderr = run_remote_command(
-        ssh,
-        f"echo 'FLASK_RUN_PORT={port}' >> {env_file_path}",
-        config=config,
-        check=False
+        ssh, f"echo 'FLASK_RUN_PORT={port}' >> {env_file_path}", config=config, check=False
     )
     if exit_code != 0:
         log.error(f"Failed to add FLASK_RUN_PORT to .env file: {stderr}")
@@ -186,10 +183,7 @@ def deploy_update_env_file(ssh: SSHClient, env_file_path: str, port: int, config
 
 
 def deploy_set_permissions(
-    ssh: SSHClient,
-    remote_app_dir: str,
-    config: dict[str, Any],
-    deployment_config: dict[str, str] | None = None
+    ssh: SSHClient, remote_app_dir: str, config: dict[str, Any], deployment_config: dict[str, str] | None = None
 ) -> bool:
     """
     Sets the appropriate permissions for the application files.
@@ -209,52 +203,30 @@ def deploy_set_permissions(
     server_user = depl_config["server_user"]
     nginx_user_group = depl_config["nginx_user_group"]
     exit_code, _, stderr = run_remote_command(
-        ssh,
-        f"chown -R {server_user}:{nginx_user_group} '{remote_app_dir}'",
-        config=config,
-        sudo=True,
-        check=False
+        ssh, f"chown -R {server_user}:{nginx_user_group} '{remote_app_dir}'", config=config, sudo=True, check=False
     )
     if exit_code != 0:
-        log.error(f"Failed to set ownership: {stderr}"),
+        (log.error(f"Failed to set ownership: {stderr}"),)
         return False
 
     # Set permissions,
     exit_code, _, stderr = run_remote_command(
-        ssh,
-        f"chmod -R u=rwx,g=rwx,o=rx '{remote_app_dir}'",
-        config=config,
-        sudo=True,
-        check=False
+        ssh, f"chmod -R u=rwx,g=rwx,o=rx '{remote_app_dir}'", config=config, sudo=True, check=False
     )
     if exit_code != 0:
-        log.error(f"Failed to set base permissions (775): {stderr}"),
+        (log.error(f"Failed to set base permissions (775): {stderr}"),)
         return False
 
     # Ensure instance/static directories exist,
     run_remote_command(
-        ssh,
-        f"mkdir -p '{remote_app_dir}/instance' '{remote_app_dir}/static'",
-        config=config,
-        sudo=True,
-        check=False
+        ssh, f"mkdir -p '{remote_app_dir}/instance' '{remote_app_dir}/static'", config=config, sudo=True, check=False
     )
 
     # Set group ID bit and write permissions,
     run_remote_command(
-        ssh,
-        f"chmod g+s '{remote_app_dir}/instance' '{remote_app_dir}/static'",
-        config=config,
-        sudo=True,
-        check=False
+        ssh, f"chmod g+s '{remote_app_dir}/instance' '{remote_app_dir}/static'", config=config, sudo=True, check=False
     )
-    run_remote_command(
-        ssh,
-        f"chmod g+w '{remote_app_dir}/instance'",
-        config=config,
-        sudo=True,
-        check=False
-    )
+    run_remote_command(ssh, f"chmod g+w '{remote_app_dir}/instance'", config=config, sudo=True, check=False)
 
     log.info("Permissions set successfully.")
     return True
@@ -271,7 +243,7 @@ def deploy_systemd_service(
     workers: int = 3,
     restart_sec: int = 5,
     custom_exec_start: str = None,
-    deployment_config: dict[str, str] | None = None
+    deployment_config: dict[str, str] | None = None,
 ) -> bool:
     """
     Creates and enables a systemd service for the application.
@@ -295,7 +267,7 @@ def deploy_systemd_service(
 
     # Use the custom ExecStart or create the default Gunicorn one,
     if custom_exec_start:
-        exec_start = custom_exec_start,
+        exec_start = (custom_exec_start,)
     else:
         exec_start = f"{venv_path}/bin/gunicorn --workers {workers} --bind 127.0.0.1:{port} wsgi:application"
 
@@ -330,14 +302,10 @@ WantedBy=multi-user.target"""
 
     # Move the service file to the proper location,
     exit_code, _, stderr = run_remote_command(
-        ssh,
-        f"mv -f {temp_service_path} {systemd_service_path}",
-        config=config,
-        sudo=True,
-        check=False
+        ssh, f"mv -f {temp_service_path} {systemd_service_path}", config=config, sudo=True, check=False
     )
     if exit_code != 0:
-        log.error(f"Failed to move systemd service file to {systemd_service_path}: {stderr}"),
+        (log.error(f"Failed to move systemd service file to {systemd_service_path}: {stderr}"),)
         return False
 
     # Set permissions,
@@ -351,7 +319,7 @@ WantedBy=multi-user.target"""
         config=config,
         sudo=False,
         check=False,
-        log_output=True
+        log_output=True,
     )
 
     # Reload systemd daemon,
@@ -365,37 +333,19 @@ WantedBy=multi-user.target"""
 
     # Enable and restart the service,
     log.info(f"Enabling and restarting {app_name}.service...")
-    run_remote_command(
-        ssh,
-        f"systemctl enable {app_name}.service",
-        config=config,
-        sudo=True,
-        check=False
-    )
+    run_remote_command(ssh, f"systemctl enable {app_name}.service", config=config, sudo=True, check=False)
 
     exit_code, _, stderr = run_remote_command(
-        ssh,
-        f"systemctl restart {app_name}.service",
-        config=config,
-        sudo=True,
-        check=False
+        ssh, f"systemctl restart {app_name}.service", config=config, sudo=True, check=False
     )
     if exit_code != 0:
-        log.error(f"Failed to start/restart {app_name}.service: {stderr}"),
+        (log.error(f"Failed to start/restart {app_name}.service: {stderr}"),)
         # Show service status and logs for debugging,
         run_remote_command(
-            ssh,
-            f"systemctl status {app_name}.service --no-pager -l",
-            config=config,
-            sudo=True,
-            check=False
+            ssh, f"systemctl status {app_name}.service --no-pager -l", config=config, sudo=True, check=False
         )
         run_remote_command(
-            ssh,
-            f"journalctl -u {app_name}.service --no-pager -n 50",
-            config=config,
-            sudo=True,
-            check=False
+            ssh, f"journalctl -u {app_name}.service --no-pager -n 50", config=config, sudo=True, check=False
         )
         return False
 
@@ -405,19 +355,14 @@ WantedBy=multi-user.target"""
 
     # Check service status with retry logic,
     log.info(f"Checking status of {app_name}.service...")
-    max_retries = 10,
-    retry_delay = 2,
+    max_retries = (10,)
+    retry_delay = (2,)
     service_active = False
 
     for attempt in range(max_retries):
         log.info(f"Attempt {attempt + 1}/{max_retries} to check service status...")
         exit_code, stdout, stderr = run_remote_command(
-            ssh,
-            f"systemctl is-active {app_name}.service",
-            config=config,
-            sudo=True,
-            check=False,
-            log_output=False
+            ssh, f"systemctl is-active {app_name}.service", config=config, sudo=True, check=False, log_output=False
         )
 
         if exit_code == 0:
@@ -436,18 +381,10 @@ WantedBy=multi-user.target"""
     if not service_active:
         log.error(f"{app_name}.service did not become active after {max_retries} attempts.")
         run_remote_command(
-            ssh,
-            f"systemctl status {app_name}.service --no-pager -l",
-            config=config,
-            sudo=True,
-            check=False
+            ssh, f"systemctl status {app_name}.service --no-pager -l", config=config, sudo=True, check=False
         )
         run_remote_command(
-            ssh,
-            f"journalctl -u {app_name}.service --no-pager -n 50",
-            config=config,
-            sudo=True,
-            check=False
+            ssh, f"journalctl -u {app_name}.service --no-pager -n 50", config=config, sudo=True, check=False
         )
         return False
 
@@ -455,13 +392,7 @@ WantedBy=multi-user.target"""
     return True
 
 
-def deploy_nginx_config(
-    ssh: SSHClient,
-    app_name: str,
-    nginx_conf_path: str,
-    port: int,
-    config: dict[str, Any]
-) -> bool:
+def deploy_nginx_config(ssh: SSHClient, app_name: str, nginx_conf_path: str, port: int, config: dict[str, Any]) -> bool:
     """
     Creates an Nginx configuration snippet for the application.
 
@@ -505,14 +436,10 @@ location /{app_name}/ {{
 
     # Move the Nginx configuration to the proper location,
     exit_code, _, stderr = run_remote_command(
-        ssh,
-        f"mv -f {temp_nginx_path} {nginx_conf_path}",
-        config=config,
-        sudo=True,
-        check=False
+        ssh, f"mv -f {temp_nginx_path} {nginx_conf_path}", config=config, sudo=True, check=False
     )
     if exit_code != 0:
-        log.error(f"Failed to move Nginx configuration to {nginx_conf_path}: {stderr}"),
+        (log.error(f"Failed to move Nginx configuration to {nginx_conf_path}: {stderr}"),)
         return False
 
     # Set permissions,
@@ -522,14 +449,14 @@ location /{app_name}/ {{
     log.info("Testing Nginx configuration...")
     exit_code, _, stderr = run_remote_command(ssh, "nginx -t", config=config, sudo=True, check=False)
     if exit_code != 0:
-        log.error(f"Nginx configuration test failed: {stderr}"),
+        (log.error(f"Nginx configuration test failed: {stderr}"),)
         return False
 
     # Reload Nginx,
     log.info("Reloading Nginx...")
     exit_code, _, stderr = run_remote_command(ssh, "systemctl reload nginx", config=config, sudo=True, check=False)
     if exit_code != 0:
-        log.error(f"Failed to reload Nginx: {stderr}"),
+        (log.error(f"Failed to reload Nginx: {stderr}"),)
         return False
 
     # Wait for nginx to stabilize,
@@ -546,7 +473,7 @@ def verify_deployment(
     config: dict[str, Any] = None,
     timeout: int = 20,
     wait_time: int = 5,
-    expected_content: str = None
+    expected_content: str = None,
 ) -> bool:
     """
     Verifies that the application is running correctly after deployment.
@@ -575,8 +502,8 @@ def verify_deployment(
     log.info(f"Verifying deployment for {app_name}...")
 
     # URLs to check,
-    app_url = f"{base_url}/{app_name}/",
-    health_url = f"{base_url}/{app_name}/health",
+    app_url = (f"{base_url}/{app_name}/",)
+    health_url = (f"{base_url}/{app_name}/health",)
     status_url = f"{base_url}/{app_name}/status"
 
     # Wait for service to start,
@@ -590,18 +517,18 @@ def verify_deployment(
 
     # Check root URL,
     try:
-        log.info(f"Verifying Root URL: {app_url}"),
+        (log.info(f"Verifying Root URL: {app_url}"),)
         response = requests.get(app_url, timeout=timeout, allow_redirects=True, verify=True, headers=headers)
-        log.info(f"Status Code: {response.status_code}"),
+        (log.info(f"Status Code: {response.status_code}"),)
         response.raise_for_status()
         log.info("Root URL check PASSED.")
     except Exception as e:
-        log.error(f"Root Verification FAILED: {e}"),
+        (log.error(f"Root Verification FAILED: {e}"),)
         verification_passed = False
 
     # Check health URL if it exists,
     try:
-        log.info(f"Verifying Health URL: {health_url}"),
+        (log.info(f"Verifying Health URL: {health_url}"),)
         response = requests.get(health_url, timeout=timeout, verify=True, headers=headers)
         if response.status_code == 200:
             log.info("Health URL check PASSED.")
@@ -623,7 +550,7 @@ def execute_deployment_steps(
     app_specific_function=None,
     base_url: str | None = None,
     start_port: int = 5001,
-    max_ports: int = 50
+    max_ports: int = 50,
 ) -> bool:
     """
     Executes all deployment steps for an application, handling errors and logging.
@@ -649,8 +576,8 @@ def execute_deployment_steps(
             log.error("base_url not provided and BASE_URL environment variable not set")
             return False
 
-    ssh = None,
-    assigned_port = None,
+    ssh = (None,)
+    assigned_port = (None,)
     success = False
 
     try:
@@ -692,7 +619,7 @@ def execute_deployment_steps(
             paths["venv_path"],
             paths["systemd_service_path"],
             assigned_port,
-            config
+            config,
         ):
             raise Exception("Failed to deploy systemd service.")
 
@@ -706,7 +633,7 @@ def execute_deployment_steps(
                 if not app_specific_function(ssh, paths, assigned_port, config):
                     log.warning("App-specific deployment steps failed. Deployment may be incomplete.")
             except Exception as app_err:
-                log.warning(f"Error in app-specific deployment steps: {app_err}"),
+                (log.warning(f"Error in app-specific deployment steps: {app_err}"),)
                 log.warning("Continuing with deployment process despite app-specific errors.")
 
         # 11. Verify Deployment
@@ -718,16 +645,16 @@ def execute_deployment_steps(
 
         # Deployment Completed Summary
         log.info(f"--- Deployment Completed Successfully for {app_name} ---")
-        log.info(f"App URL: {base_url}/{app_name}/"),
-        log.info(f"Service: {app_name}.service"),
+        (log.info(f"App URL: {base_url}/{app_name}/"),)
+        (log.info(f"Service: {app_name}.service"),)
         log.info(f"Nginx Conf: {paths['nginx_conf_path']}")
 
         success = True
 
     except ConnectionError as e:
-        log.error(f"Deployment FAILED - Connection Error: {e}"),
+        (log.error(f"Deployment FAILED - Connection Error: {e}"),)
     except Exception as e:
-        log.error(f"Deployment FAILED: {e}", exc_info=True),
+        (log.error(f"Deployment FAILED: {e}", exc_info=True),)
     finally:
         if ssh:
             log.info("Closing SSH connection.")
@@ -741,13 +668,7 @@ def execute_deployment_steps(
     return success
 
 
-def deploy_application(
-    ssh: SSHClient,
-    app_name: str,
-    local_app_path: Path,
-    config: dict[str, Any],
-    **kwargs
-) -> bool:
+def deploy_application(ssh: SSHClient, app_name: str, local_app_path: Path, config: dict[str, Any], **kwargs) -> bool:
     """
     High-level function to deploy an application.
 
@@ -765,10 +686,7 @@ def deploy_application(
 
 
 def rollback_deployment(
-    ssh: SSHClient,
-    app_name: str,
-    config: dict[str, Any],
-    deployment_config: dict[str, str] | None = None
+    ssh: SSHClient, app_name: str, config: dict[str, Any], deployment_config: dict[str, str] | None = None
 ) -> bool:
     """
     Rollback a failed deployment by stopping services and optionally removing files.
@@ -785,33 +703,33 @@ def rollback_deployment(
 
     try:
         # Stop the systemd service,
-        service_name = f"{app_name}.service",
-        cmd = f"sudo systemctl stop {service_name}",
+        service_name = (f"{app_name}.service",)
+        cmd = (f"sudo systemctl stop {service_name}",)
         run_remote_command(ssh, cmd, f"Stop {service_name}")
 
         # Disable the service,
-        cmd = f"sudo systemctl disable {service_name}",
+        cmd = (f"sudo systemctl disable {service_name}",)
         run_remote_command(ssh, cmd, f"Disable {service_name}")
 
         # Remove nginx config,
         depl_config = deployment_config or get_deployment_config()
-        nginx_conf = f"{depl_config['nginx_conf_d_dir']}/{app_name}.conf",
-        cmd = f"sudo rm -f {nginx_conf}",
+        nginx_conf = (f"{depl_config['nginx_conf_d_dir']}/{app_name}.conf",)
+        cmd = (f"sudo rm -f {nginx_conf}",)
         run_remote_command(ssh, cmd, "Remove nginx config")
 
         # Reload nginx,
-        cmd = "sudo nginx -t && sudo systemctl reload nginx",
+        cmd = ("sudo nginx -t && sudo systemctl reload nginx",)
         run_remote_command(ssh, cmd, "Reload nginx")
 
         # Optionally remove application directory,
         if config.get("rollback_remove_files", False):
-            remote_app_dir = f"{depl_config['base_remote_apps_dir']}/{app_name}",
-            cmd = f"sudo rm -rf {remote_app_dir}",
+            remote_app_dir = (f"{depl_config['base_remote_apps_dir']}/{app_name}",)
+            cmd = (f"sudo rm -rf {remote_app_dir}",)
             run_remote_command(ssh, cmd, "Remove application directory")
 
         log.info(f"Rollback completed for {app_name}")
         return True
 
     except Exception as e:
-        log.error(f"Rollback failed for {app_name}: {e}"),
+        (log.error(f"Rollback failed for {app_name}: {e}"),)
         return False

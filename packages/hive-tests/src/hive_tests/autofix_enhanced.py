@@ -26,6 +26,7 @@ from .autofix import GoldenRulesAutoFixer, AutofixResult
 @dataclass
 class EnhancedAutofixResult(AutofixResult):
     """Extended result with enhancement metadata."""
+
     enhancement_type: str = ""
     confidence_score: float = 1.0
 
@@ -59,13 +60,15 @@ class TypeHintAnalyzer(ast.NodeVisitor):
             # Infer type from docstring or body
             inferred_type = self._infer_return_type(node)
 
-            self.functions_needing_hints.append({
-                "name": node.name,
-                "line": node.lineno,
-                "inferred_type": inferred_type,
-                "has_docstring": ast.get_docstring(node) is not None,
-                "in_class": self.current_class
-            })
+            self.functions_needing_hints.append(
+                {
+                    "name": node.name,
+                    "line": node.lineno,
+                    "inferred_type": inferred_type,
+                    "has_docstring": ast.get_docstring(node) is not None,
+                    "in_class": self.current_class,
+                }
+            )
 
         self.generic_visit(node)
 
@@ -77,14 +80,16 @@ class TypeHintAnalyzer(ast.NodeVisitor):
         if node.returns is None:
             inferred_type = self._infer_return_type(node)
 
-            self.functions_needing_hints.append({
-                "name": node.name,
-                "line": node.lineno,
-                "inferred_type": inferred_type,
-                "has_docstring": ast.get_docstring(node) is not None,
-                "in_class": self.current_class,
-                "is_async": True
-            })
+            self.functions_needing_hints.append(
+                {
+                    "name": node.name,
+                    "line": node.lineno,
+                    "inferred_type": inferred_type,
+                    "has_docstring": ast.get_docstring(node) is not None,
+                    "in_class": self.current_class,
+                    "is_async": True,
+                }
+            )
 
         self.generic_visit(node)
 
@@ -99,11 +104,7 @@ class TypeHintAnalyzer(ast.NodeVisitor):
         docstring = ast.get_docstring(node)
         if docstring:
             # Look for "Returns:" section
-            returns_match = re.search(
-                r"Returns?:\s*\n\s*([^\n]+)",
-                docstring,
-                re.IGNORECASE
-            )
+            returns_match = re.search(r"Returns?:\s*\n\s*([^\n]+)", docstring, re.IGNORECASE)
             if returns_match:
                 return_desc = returns_match.group(1).strip()
 
@@ -166,9 +167,7 @@ class DocstringGenerator:
     """
 
     @staticmethod
-    def generate_function_docstring(
-        func_node: ast.FunctionDef | ast.AsyncFunctionDef
-    ) -> str:
+    def generate_function_docstring(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
         """
         Generate docstring for a function.
 
@@ -213,9 +212,7 @@ class DocstringGenerator:
         return "\n".join(lines)
 
     @staticmethod
-    def _is_void_function(
-        func_node: ast.FunctionDef | ast.AsyncFunctionDef
-    ) -> bool:
+    def _is_void_function(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
         """Check if function has no return value."""
         # Check if returns None
         if func_node.returns:
@@ -247,11 +244,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
     """
 
     def __init__(
-        self,
-        project_root: Path,
-        dry_run: bool = True,
-        create_backups: bool = True,
-        min_confidence: float = 0.95
+        self, project_root: Path, dry_run: bool = True, create_backups: bool = True, min_confidence: float = 0.95
     ) -> None:
         super().__init__(project_root, dry_run, create_backups)
         self.min_confidence = min_confidence
@@ -334,7 +327,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                     backup_created=self.create_backups and not self.dry_run,
                     success=True,
                     enhancement_type="type_hints",
-                    confidence_score=0.85
+                    confidence_score=0.85,
                 )
 
             return None
@@ -353,7 +346,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 success=False,
                 error_message=str(e),
                 enhancement_type="type_hints",
-                confidence_score=0.0
+                confidence_score=0.0,
             )
 
     def fix_docstrings(self, file_path: Path) -> EnhancedAutofixResult | None:
@@ -407,18 +400,13 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 # Add proper indentation
                 func_line = lines[func_line_idx]
                 indent = len(func_line) - len(func_line.lstrip())
-                indented_lines = [
-                    " " * (indent + 4) + line if line else ""
-                    for line in docstring.split("\n")
-                ]
+                indented_lines = [" " * (indent + 4) + line if line else "" for line in docstring.split("\n")]
 
                 # Insert docstring
                 for i, doc_line in enumerate(reversed(indented_lines)):
                     lines.insert(insert_idx, doc_line)
 
-                changes_made.append(
-                    f"Generated docstring for {func_node.name} at line {func_node.lineno}"
-                )
+                changes_made.append(f"Generated docstring for {func_node.name} at line {func_node.lineno}")
 
             # Apply changes
             if changes_made and not self.dry_run:
@@ -436,7 +424,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                     backup_created=self.create_backups and not self.dry_run,
                     success=True,
                     enhancement_type="docstrings",
-                    confidence_score=0.90
+                    confidence_score=0.90,
                 )
 
             return None
@@ -455,7 +443,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 success=False,
                 error_message=str(e),
                 enhancement_type="docstrings",
-                confidence_score=0.0
+                confidence_score=0.0,
             )
 
     def organize_imports(self, file_path: Path) -> EnhancedAutofixResult | None:
@@ -498,7 +486,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 return None
 
             # Extract imports
-            import_lines = lines[import_start:import_end + 1]
+            import_lines = lines[import_start : import_end + 1]
 
             # Categorize imports
             stdlib_imports = []
@@ -507,9 +495,23 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
             local_imports = []
 
             stdlib_modules = {
-                "os", "sys", "re", "json", "datetime", "time", "asyncio",
-                "pathlib", "typing", "dataclasses", "abc", "collections",
-                "functools", "itertools", "math", "random", "subprocess"
+                "os",
+                "sys",
+                "re",
+                "json",
+                "datetime",
+                "time",
+                "asyncio",
+                "pathlib",
+                "typing",
+                "dataclasses",
+                "abc",
+                "collections",
+                "functools",
+                "itertools",
+                "math",
+                "random",
+                "subprocess",
             }
 
             for import_line in import_lines:
@@ -520,8 +522,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 # Determine category
                 if stripped.startswith("from ."):
                     local_imports.append(stripped)
-                elif any(f"from {mod}" in stripped or f"import {mod}" in stripped
-                         for mod in stdlib_modules):
+                elif any(f"from {mod}" in stripped or f"import {mod}" in stripped for mod in stdlib_modules):
                     stdlib_imports.append(stripped)
                 elif "from hive_" in stripped or "import hive_" in stripped:
                     hive_imports.append(stripped)
@@ -561,11 +562,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 return None
 
             # Replace import block
-            new_lines = (
-                lines[:import_start] +
-                organized_imports +
-                lines[import_end + 1:]
-            )
+            new_lines = lines[:import_start] + organized_imports + lines[import_end + 1 :]
 
             # Apply changes
             if not self.dry_run:
@@ -578,13 +575,11 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 rule_id="enhancement-imports",
                 rule_name="Import Organization",
                 fixes_applied=1,
-                changes_made=[
-                    f"Organized {len(import_lines)} imports into standard groups"
-                ],
+                changes_made=[f"Organized {len(import_lines)} imports into standard groups"],
                 backup_created=self.create_backups and not self.dry_run,
                 success=True,
                 enhancement_type="imports",
-                confidence_score=0.98
+                confidence_score=0.98,
             )
 
         except SyntaxError:
@@ -601,14 +596,11 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 success=False,
                 error_message=str(e),
                 enhancement_type="imports",
-                confidence_score=0.0
+                confidence_score=0.0,
             )
 
     def fix_all_enhancements(
-        self,
-        enable_type_hints: bool = True,
-        enable_docstrings: bool = True,
-        enable_import_org: bool = True
+        self, enable_type_hints: bool = True, enable_docstrings: bool = True, enable_import_org: bool = True
     ) -> list[EnhancedAutofixResult]:
         """
         Apply all enhancement fixes across project.
@@ -659,7 +651,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                         success=False,
                         error_message=str(e),
                         enhancement_type="error",
-                        confidence_score=0.0
+                        confidence_score=0.0,
                     )
                 )
 
@@ -670,53 +662,20 @@ def main():
     """CLI entry point for enhanced auto-fixer."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Enhanced Golden Rules Auto-Fixer - PROJECT VANGUARD Phase 3.1"
-    )
-    parser.add_argument(
-        "--project-root",
-        type=Path,
-        default=Path.cwd(),
-        help="Project root directory"
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Preview changes without applying"
-    )
-    parser.add_argument(
-        "--no-backups",
-        action="store_true",
-        help="Skip creating backup files"
-    )
-    parser.add_argument(
-        "--type-hints",
-        action="store_true",
-        help="Add missing type hints"
-    )
-    parser.add_argument(
-        "--docstrings",
-        action="store_true",
-        help="Generate missing docstrings"
-    )
-    parser.add_argument(
-        "--imports",
-        action="store_true",
-        help="Organize imports"
-    )
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Apply all enhancements"
-    )
+    parser = argparse.ArgumentParser(description="Enhanced Golden Rules Auto-Fixer - PROJECT VANGUARD Phase 3.1")
+    parser.add_argument("--project-root", type=Path, default=Path.cwd(), help="Project root directory")
+    parser.add_argument("--dry-run", action="store_true", help="Preview changes without applying")
+    parser.add_argument("--no-backups", action="store_true", help="Skip creating backup files")
+    parser.add_argument("--type-hints", action="store_true", help="Add missing type hints")
+    parser.add_argument("--docstrings", action="store_true", help="Generate missing docstrings")
+    parser.add_argument("--imports", action="store_true", help="Organize imports")
+    parser.add_argument("--all", action="store_true", help="Apply all enhancements")
 
     args = parser.parse_args()
 
     # Create fixer
     fixer = EnhancedGoldenRulesAutoFixer(
-        project_root=args.project_root,
-        dry_run=args.dry_run,
-        create_backups=not args.no_backups
+        project_root=args.project_root, dry_run=args.dry_run, create_backups=not args.no_backups
     )
 
     # Determine what to enable
@@ -741,9 +700,7 @@ def main():
 
     # Run enhancements
     results = fixer.fix_all_enhancements(
-        enable_type_hints=enable_hints,
-        enable_docstrings=enable_docs,
-        enable_import_org=enable_imports
+        enable_type_hints=enable_hints, enable_docstrings=enable_docs, enable_import_org=enable_imports
     )
 
     # Report results

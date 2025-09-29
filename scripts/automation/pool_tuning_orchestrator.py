@@ -34,6 +34,7 @@ logger = get_logger(__name__)
 @dataclass
 class TuningRecommendation:
     """Represents a pool tuning recommendation."""
+
     service_name: str
     current_config: dict[str, Any]
     recommended_config: dict[str, Any]
@@ -48,6 +49,7 @@ class TuningRecommendation:
 @dataclass
 class TuningExecution:
     """Represents a tuning execution attempt."""
+
     execution_id: str
     service_name: str
     old_config: dict[str, Any]
@@ -81,7 +83,7 @@ class PoolTuningOrchestrator:
         execution_history_file: str = "data/pool_tuning_history.json",
         config_backup_dir: str = "data/config_backups",
         monitoring_window_minutes: int = 15,
-        error_spike_threshold: float = 0.20
+        error_spike_threshold: float = 0.20,
     ):
         self.recommendations_file = Path(recommendations_file)
         self.execution_history_file = Path(execution_history_file)
@@ -99,7 +101,7 @@ class PoolTuningOrchestrator:
         """Load execution history from disk."""
         if self.execution_history_file.exists():
             try:
-                with open(self.execution_history_file, 'r') as f:
+                with open(self.execution_history_file, "r") as f:
                     return json.load(f)
             except Exception as e:
                 logger.error(f"Failed to load execution history: {e}")
@@ -109,7 +111,7 @@ class PoolTuningOrchestrator:
     def _save_execution_history(self) -> None:
         """Save execution history to disk."""
         try:
-            with open(self.execution_history_file, 'w') as f:
+            with open(self.execution_history_file, "w") as f:
                 json.dump(self.execution_history, f, indent=2, default=str)
             logger.info(f"Execution history saved to {self.execution_history_file}")
         except Exception as e:
@@ -123,28 +125,28 @@ class PoolTuningOrchestrator:
             List of tuning recommendations
         """
         if not self.recommendations_file.exists():
-            logger.warning(
-                f"Recommendations file not found: {self.recommendations_file}"
-            )
+            logger.warning(f"Recommendations file not found: {self.recommendations_file}")
             return []
 
         try:
-            with open(self.recommendations_file, 'r') as f:
+            with open(self.recommendations_file, "r") as f:
                 data = json.load(f)
 
             recommendations = []
             for rec_data in data.get("recommendations", []):
-                recommendations.append(TuningRecommendation(
-                    service_name=rec_data["service_name"],
-                    current_config=rec_data["current_config"],
-                    recommended_config=rec_data["recommended_config"],
-                    expected_improvement=rec_data["expected_improvement"],
-                    priority=rec_data.get("priority", "medium"),
-                    confidence=rec_data.get("confidence", 0.7),
-                    rationale=rec_data.get("rationale", ""),
-                    estimated_impact=rec_data.get("estimated_impact", {}),
-                    risk_level=rec_data.get("risk_level", "medium")
-                ))
+                recommendations.append(
+                    TuningRecommendation(
+                        service_name=rec_data["service_name"],
+                        current_config=rec_data["current_config"],
+                        recommended_config=rec_data["recommended_config"],
+                        expected_improvement=rec_data["expected_improvement"],
+                        priority=rec_data.get("priority", "medium"),
+                        confidence=rec_data.get("confidence", 0.7),
+                        rationale=rec_data.get("rationale", ""),
+                        estimated_impact=rec_data.get("estimated_impact", {}),
+                        risk_level=rec_data.get("risk_level", "medium"),
+                    )
+                )
 
             logger.info(f"Loaded {len(recommendations)} tuning recommendations")
             return recommendations
@@ -153,10 +155,7 @@ class PoolTuningOrchestrator:
             logger.error(f"Failed to load recommendations: {e}")
             return []
 
-    def prioritize_recommendations(
-        self,
-        recommendations: list[TuningRecommendation]
-    ) -> list[TuningRecommendation]:
+    def prioritize_recommendations(self, recommendations: list[TuningRecommendation]) -> list[TuningRecommendation]:
         """
         Prioritize recommendations by impact and safety.
 
@@ -176,17 +175,9 @@ class PoolTuningOrchestrator:
         risk_map = {"low": 3, "medium": 2, "high": 1}
 
         def priority_score(rec: TuningRecommendation) -> tuple:
-            return (
-                priority_map.get(rec.priority, 0),
-                risk_map.get(rec.risk_level, 0),
-                rec.confidence
-            )
+            return (priority_map.get(rec.priority, 0), risk_map.get(rec.risk_level, 0), rec.confidence)
 
-        sorted_recs = sorted(
-            recommendations,
-            key=priority_score,
-            reverse=True
-        )
+        sorted_recs = sorted(recommendations, key=priority_score, reverse=True)
 
         logger.info(
             f"Prioritized {len(sorted_recs)} recommendations "
@@ -220,11 +211,7 @@ class PoolTuningOrchestrator:
 
         return False
 
-    async def backup_current_config_async(
-        self,
-        service_name: str,
-        config: dict[str, Any]
-    ) -> Path:
+    async def backup_current_config_async(self, service_name: str, config: dict[str, Any]) -> Path:
         """
         Backup current configuration before changes.
 
@@ -239,12 +226,12 @@ class PoolTuningOrchestrator:
         backup_file = self.config_backup_dir / f"{service_name}_{timestamp}.json"
 
         try:
-            with open(backup_file, 'w') as f:
-                json.dump({
-                    "service_name": service_name,
-                    "timestamp": datetime.now().isoformat(),
-                    "config": config
-                }, f, indent=2)
+            with open(backup_file, "w") as f:
+                json.dump(
+                    {"service_name": service_name, "timestamp": datetime.now().isoformat(), "config": config},
+                    f,
+                    indent=2,
+                )
 
             logger.info(f"Backed up config for {service_name} to {backup_file}")
             return backup_file
@@ -253,11 +240,7 @@ class PoolTuningOrchestrator:
             logger.error(f"Failed to backup config for {service_name}: {e}")
             raise
 
-    async def apply_configuration_async(
-        self,
-        service_name: str,
-        new_config: dict[str, Any]
-    ) -> bool:
+    async def apply_configuration_async(self, service_name: str, new_config: dict[str, Any]) -> bool:
         """
         Apply new configuration to service.
 
@@ -272,9 +255,7 @@ class PoolTuningOrchestrator:
             True if successful
         """
         try:
-            logger.info(
-                f"Applying new configuration to {service_name}: {new_config}"
-            )
+            logger.info(f"Applying new configuration to {service_name}: {new_config}")
 
             # TODO: Integrate with actual configuration system
             # from hive_db import update_pool_config
@@ -284,7 +265,7 @@ class PoolTuningOrchestrator:
             config_file = Path(f"config/pools/{service_name}.json")
             config_file.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(config_file, 'w') as f:
+            with open(config_file, "w") as f:
                 json.dump(new_config, f, indent=2)
 
             logger.info(f"Configuration applied to {service_name}")
@@ -294,11 +275,7 @@ class PoolTuningOrchestrator:
             logger.error(f"Failed to apply configuration to {service_name}: {e}")
             return False
 
-    async def monitor_metrics_async(
-        self,
-        service_name: str,
-        duration_minutes: int = 15
-    ) -> dict[str, Any]:
+    async def monitor_metrics_async(self, service_name: str, duration_minutes: int = 15) -> dict[str, Any]:
         """
         Monitor service metrics after configuration change.
 
@@ -315,9 +292,7 @@ class PoolTuningOrchestrator:
         Returns:
             Metrics collected during monitoring period
         """
-        logger.info(
-            f"Monitoring {service_name} for {duration_minutes} minutes..."
-        )
+        logger.info(f"Monitoring {service_name} for {duration_minutes} minutes...")
 
         # TODO: Integrate with actual monitoring system
         # from hive_errors import MonitoringErrorReporter
@@ -335,17 +310,13 @@ class PoolTuningOrchestrator:
             "avg_latency_ms": 45.5,
             "p95_latency_ms": 89.2,
             "cpu_utilization": 0.65,
-            "memory_utilization": 0.72
+            "memory_utilization": 0.72,
         }
 
         logger.info(f"Monitoring complete for {service_name}: {metrics}")
         return metrics
 
-    def should_rollback(
-        self,
-        metrics_before: dict[str, Any],
-        metrics_after: dict[str, Any]
-    ) -> tuple[bool, str | None]:
+    def should_rollback(self, metrics_before: dict[str, Any], metrics_after: dict[str, Any]) -> tuple[bool, str | None]:
         """
         Determine if rollback is needed based on metrics.
 
@@ -369,8 +340,7 @@ class PoolTuningOrchestrator:
             error_increase = (error_after - error_before) / error_before
             if error_increase > self.error_spike_threshold:
                 return True, (
-                    f"Error rate increased by {error_increase:.1%} "
-                    f"(threshold: {self.error_spike_threshold:.1%})"
+                    f"Error rate increased by {error_increase:.1%} (threshold: {self.error_spike_threshold:.1%})"
                 )
 
         # Connection failures check
@@ -380,10 +350,7 @@ class PoolTuningOrchestrator:
         if failures_before > 0:
             failure_increase = (failures_after - failures_before) / failures_before
             if failure_increase > 0.50:
-                return True, (
-                    f"Connection failures increased by {failure_increase:.1%} "
-                    "(threshold: 50%)"
-                )
+                return True, (f"Connection failures increased by {failure_increase:.1%} (threshold: 50%)")
 
         # Latency check
         latency_before = metrics_before.get("avg_latency_ms", 0.0)
@@ -392,18 +359,11 @@ class PoolTuningOrchestrator:
         if latency_before > 0:
             latency_increase = (latency_after - latency_before) / latency_before
             if latency_increase > 0.30:
-                return True, (
-                    f"Latency increased by {latency_increase:.1%} "
-                    "(threshold: 30%)"
-                )
+                return True, (f"Latency increased by {latency_increase:.1%} (threshold: 30%)")
 
         return False, None
 
-    async def rollback_configuration_async(
-        self,
-        service_name: str,
-        backup_config: dict[str, Any]
-    ) -> bool:
+    async def rollback_configuration_async(self, service_name: str, backup_config: dict[str, Any]) -> bool:
         """
         Rollback to previous configuration.
 
@@ -417,10 +377,7 @@ class PoolTuningOrchestrator:
         logger.warning(f"Rolling back configuration for {service_name}")
 
         try:
-            success = await self.apply_configuration_async(
-                service_name,
-                backup_config
-            )
+            success = await self.apply_configuration_async(service_name, backup_config)
 
             if success:
                 logger.info(f"Rollback successful for {service_name}")
@@ -434,9 +391,7 @@ class PoolTuningOrchestrator:
             return False
 
     async def execute_tuning_async(
-        self,
-        recommendation: TuningRecommendation,
-        dry_run: bool = False
+        self, recommendation: TuningRecommendation, dry_run: bool = False
     ) -> TuningExecution:
         """
         Execute a tuning recommendation.
@@ -465,34 +420,24 @@ class PoolTuningOrchestrator:
             old_config=recommendation.current_config,
             new_config=recommendation.recommended_config,
             started_at=datetime.now().isoformat(),
-            status="in_progress"
+            status="in_progress",
         )
 
         try:
-            logger.info(
-                f"Executing tuning for {recommendation.service_name} "
-                f"(dry_run={dry_run})"
-            )
+            logger.info(f"Executing tuning for {recommendation.service_name} (dry_run={dry_run})")
 
             # Step 1: Backup current config
             if not dry_run:
-                await self.backup_current_config_async(
-                    recommendation.service_name,
-                    recommendation.current_config
-                )
+                await self.backup_current_config_async(recommendation.service_name, recommendation.current_config)
 
             # Step 2: Get baseline metrics
             logger.info("Collecting baseline metrics...")
-            execution.metrics_before = await self.monitor_metrics_async(
-                recommendation.service_name,
-                duration_minutes=5
-            )
+            execution.metrics_before = await self.monitor_metrics_async(recommendation.service_name, duration_minutes=5)
 
             # Step 3: Apply new configuration
             if not dry_run:
                 success = await self.apply_configuration_async(
-                    recommendation.service_name,
-                    recommendation.recommended_config
+                    recommendation.service_name, recommendation.recommended_config
                 )
 
                 if not success:
@@ -503,15 +448,11 @@ class PoolTuningOrchestrator:
             # Step 4: Monitor after change
             logger.info(f"Monitoring for {self.monitoring_window_minutes} minutes...")
             execution.metrics_after = await self.monitor_metrics_async(
-                recommendation.service_name,
-                duration_minutes=self.monitoring_window_minutes
+                recommendation.service_name, duration_minutes=self.monitoring_window_minutes
             )
 
             # Step 5: Check if rollback needed
-            should_rollback, rollback_reason = self.should_rollback(
-                execution.metrics_before,
-                execution.metrics_after
-            )
+            should_rollback, rollback_reason = self.should_rollback(execution.metrics_before, execution.metrics_after)
 
             if should_rollback:
                 logger.warning(f"Rollback needed: {rollback_reason}")
@@ -520,8 +461,7 @@ class PoolTuningOrchestrator:
 
                 if not dry_run:
                     rollback_success = await self.rollback_configuration_async(
-                        recommendation.service_name,
-                        recommendation.current_config
+                        recommendation.service_name, recommendation.current_config
                     )
 
                     if rollback_success:
@@ -560,11 +500,7 @@ class PoolTuningOrchestrator:
             config_file = f"config/pools/{recommendation.service_name}.json"
 
             # Git add
-            subprocess.run(
-                ["git", "add", config_file],
-                check=True,
-                capture_output=True
-            )
+            subprocess.run(["git", "add", config_file], check=True, capture_output=True)
 
             # Git commit with detailed message
             commit_message = (
@@ -576,16 +512,9 @@ class PoolTuningOrchestrator:
                 f"Configuration versioned for rollback capability"
             )
 
-            subprocess.run(
-                ["git", "commit", "-m", commit_message],
-                check=True,
-                capture_output=True
-            )
+            subprocess.run(["git", "commit", "-m", commit_message], check=True, capture_output=True)
 
-            logger.info(
-                f"Committed configuration change for {recommendation.service_name} "
-                "to git"
-            )
+            logger.info(f"Committed configuration change for {recommendation.service_name} to git")
 
         except subprocess.CalledProcessError as e:
             logger.error(f"Git commit failed: {e}")
@@ -593,10 +522,7 @@ class PoolTuningOrchestrator:
             logger.error(f"Failed to commit to git: {e}")
 
     async def run_orchestration_async(
-        self,
-        service_filter: str | None = None,
-        dry_run: bool = False,
-        skip_maintenance_check: bool = False
+        self, service_filter: str | None = None, dry_run: bool = False, skip_maintenance_check: bool = False
     ) -> list[TuningExecution]:
         """
         Run complete orchestration workflow.
@@ -613,9 +539,7 @@ class PoolTuningOrchestrator:
 
         # Check maintenance window
         if not skip_maintenance_check and not self.is_maintenance_window():
-            logger.warning(
-                "Not in maintenance window. Use --skip-maintenance-check to override"
-            )
+            logger.warning("Not in maintenance window. Use --skip-maintenance-check to override")
             return []
 
         # Load and prioritize recommendations
@@ -626,10 +550,7 @@ class PoolTuningOrchestrator:
 
         # Filter by service if specified
         if service_filter:
-            recommendations = [
-                r for r in recommendations
-                if r.service_name == service_filter
-            ]
+            recommendations = [r for r in recommendations if r.service_name == service_filter]
 
         prioritized = self.prioritize_recommendations(recommendations)
 
@@ -647,9 +568,7 @@ class PoolTuningOrchestrator:
 
             logger.info(f"Execution status: {execution.status}")
 
-        logger.info(
-            f"\nOrchestration complete: {len(executions)} tunings executed"
-        )
+        logger.info(f"\nOrchestration complete: {len(executions)} tunings executed")
 
         return executions
 
@@ -659,36 +578,12 @@ async def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Pool Tuning Orchestrator")
-    parser.add_argument(
-        "--analyze",
-        action="store_true",
-        help="Analyze and prioritize recommendations"
-    )
-    parser.add_argument(
-        "--apply",
-        action="store_true",
-        help="Apply tuning recommendations"
-    )
-    parser.add_argument(
-        "--service",
-        type=str,
-        help="Filter to specific service"
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Simulate without actual changes"
-    )
-    parser.add_argument(
-        "--skip-maintenance-check",
-        action="store_true",
-        help="Skip maintenance window validation"
-    )
-    parser.add_argument(
-        "--rollback",
-        action="store_true",
-        help="Rollback to previous configuration"
-    )
+    parser.add_argument("--analyze", action="store_true", help="Analyze and prioritize recommendations")
+    parser.add_argument("--apply", action="store_true", help="Apply tuning recommendations")
+    parser.add_argument("--service", type=str, help="Filter to specific service")
+    parser.add_argument("--dry-run", action="store_true", help="Simulate without actual changes")
+    parser.add_argument("--skip-maintenance-check", action="store_true", help="Skip maintenance window validation")
+    parser.add_argument("--rollback", action="store_true", help="Rollback to previous configuration")
 
     args = parser.parse_args()
 
@@ -712,9 +607,7 @@ async def main():
     elif args.apply:
         logger.info("Applying tuning recommendations...")
         executions = await orchestrator.run_orchestration_async(
-            service_filter=args.service,
-            dry_run=args.dry_run,
-            skip_maintenance_check=args.skip_maintenance_check
+            service_filter=args.service, dry_run=args.dry_run, skip_maintenance_check=args.skip_maintenance_check
         )
 
         print("\n" + "=" * 80)
@@ -722,11 +615,7 @@ async def main():
         print("=" * 80)
 
         for execution in executions:
-            status_symbol = {
-                "completed": "✓",
-                "rolled_back": "↺",
-                "failed": "✗"
-            }.get(execution.status, "?")
+            status_symbol = {"completed": "✓", "rolled_back": "↺", "failed": "✗"}.get(execution.status, "?")
 
             print(f"\n{status_symbol} {execution.service_name}: {execution.status}")
             if execution.rollback_reason:

@@ -336,10 +336,7 @@ class BaseOptimizationAlgorithm(ABC):
                     iterations=self.current_generation,
                     evaluations=self.current_evaluations,
                     execution_time=time.time() - start_time,
-                    metadata={
-                        "pareto_front_size": len(pareto_solutions),
-                        "final_population_size": len(population),
-                    },
+                    metadata={"pareto_front_size": len(pareto_solutions), "final_population_size": len(population)},
                 ),
             )
 

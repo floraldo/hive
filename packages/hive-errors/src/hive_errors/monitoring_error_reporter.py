@@ -64,10 +64,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         self._error_impact: dict[str, list[float]] = defaultdict(list)  # Response time impact
 
     def report_error(
-        self,
-        error: Exception,
-        context: dict[str, Any] | None = None,
-        additional_info: dict[str, Any] | None = None,
+        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None
     ) -> str:
         """Report an error with enhanced monitoring."""
         # Build error record
@@ -90,10 +87,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         return error_id
 
     async def report_error_async(
-        self,
-        error: Exception,
-        context: dict[str, Any] | None = None,
-        additional_info: dict[str, Any] | None = None,
+        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None
     ) -> str:
         """Async version of error reporting."""
         error_id = self.report_error(error, context, additional_info)
@@ -381,9 +375,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         logger.info(f"Cleared {cleared_count} old error records")
 
-    def get_error_rate_history(
-        self, service_name: str | None = None, hours: int = 24
-    ) -> list[dict[str, Any]]:
+    def get_error_rate_history(self, service_name: str | None = None, hours: int = 24) -> list[dict[str, Any]]:
         """
         Get error rate history for predictive analysis.
 
@@ -401,18 +393,12 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         # Get recent errors
         recent_errors = [
-            error
-            for error in self._detailed_history
-            if datetime.fromisoformat(error["timestamp"]) >= cutoff_time
+            error for error in self._detailed_history if datetime.fromisoformat(error["timestamp"]) >= cutoff_time
         ]
 
         # Filter by service if specified
         if service_name:
-            recent_errors = [
-                error
-                for error in recent_errors
-                if error.get("component") == service_name
-            ]
+            recent_errors = [error for error in recent_errors if error.get("component") == service_name]
 
         # Group by hour and count
         error_counts_by_hour: dict[datetime, int] = defaultdict(int)
@@ -424,15 +410,17 @@ class MonitoringErrorReporter(BaseErrorReporter):
         # Convert to MetricPoint format
         metric_points = []
         for hour, count in sorted(error_counts_by_hour.items()):
-            metric_points.append({
-                "timestamp": hour,
-                "value": float(count),
-                "metadata": {
-                    "service": service_name or "all_services",
-                    "metric_type": "error_rate",
-                    "unit": "errors_per_hour",
+            metric_points.append(
+                {
+                    "timestamp": hour,
+                    "value": float(count),
+                    "metadata": {
+                        "service": service_name or "all_services",
+                        "metric_type": "error_rate",
+                        "unit": "errors_per_hour",
+                    },
                 }
-            })
+            )
 
         logger.debug(
             f"Retrieved {len(metric_points)} error rate metric points for "

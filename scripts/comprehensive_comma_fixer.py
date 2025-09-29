@@ -3,10 +3,12 @@
 Comprehensive Comma Fixer - Systematic cleanup of missing commas
 Handles all patterns identified in the codebase
 """
+
 import re
 import sys
 from pathlib import Path
 from typing import List, Tuple
+
 
 def fix_function_call_commas(content: str) -> Tuple[str, int]:
     """Fix missing commas in function call arguments"""
@@ -20,13 +22,14 @@ def fix_function_call_commas(content: str) -> Tuple[str, int]:
         nonlocal count
         # Don't add comma if the line before ends with an opening delimiter
         prev_char = match.group(1)
-        if prev_char in '([{':
+        if prev_char in "([{":
             return match.group(0)
         count += 1
-        return f'{match.group(1)},\n{match.group(2)}{match.group(3)}'
+        return f"{match.group(1)},\n{match.group(2)}{match.group(3)}"
 
     fixed = re.sub(pattern, replace_func, content)
     return fixed, count
+
 
 def fix_dict_literal_commas(content: str) -> Tuple[str, int]:
     """Fix missing commas in dictionary literals"""
@@ -39,62 +42,66 @@ def fix_dict_literal_commas(content: str) -> Tuple[str, int]:
         nonlocal count
         # Check if value already ends with comma
         value = match.group(1).rstrip()
-        if value.endswith(','):
+        if value.endswith(","):
             return match.group(0)
         count += 1
-        return f'{value},\n{match.group(2)}{match.group(3)}'
+        return f"{value},\n{match.group(2)}{match.group(3)}"
 
     fixed = re.sub(pattern, replace_func, content)
     return fixed, count
+
 
 def fix_boolean_condition_commas(content: str) -> Tuple[str, int]:
     """Fix trailing commas in boolean conditions before 'and'/'or'"""
     count = 0
 
     # Pattern: expression, followed by newline and 'and' or 'or'
-    pattern = r'([^,\n]+),\n(\s+)(and|or)\s+'
+    pattern = r"([^,\n]+),\n(\s+)(and|or)\s+"
 
     def replace_func(match):
         nonlocal count
         expr = match.group(1).strip()
         # Only fix if this looks like a boolean condition
-        if any(op in expr for op in ['==', '!=', '>', '<', 'in', 'is', '(']):
+        if any(op in expr for op in ["==", "!=", ">", "<", "in", "is", "("]):
             count += 1
-            return f'{expr}\n{match.group(2)}{match.group(3)} '
+            return f"{expr}\n{match.group(2)}{match.group(3)} "
         return match.group(0)
 
     fixed = re.sub(pattern, replace_func, content)
     return fixed, count
+
 
 def fix_list_comprehension_commas(content: str) -> Tuple[str, int]:
     """Fix commas in list comprehensions before 'for'/'if'"""
     count = 0
 
     # Pattern: expression, followed by newline and 'for' or 'if' (list comp)
-    pattern = r'(\[|\{)\n(\s+)([^\n,]+),\n(\s+)(for|if)\s+'
+    pattern = r"(\[|\{)\n(\s+)([^\n,]+),\n(\s+)(for|if)\s+"
 
     def replace_func(match):
         nonlocal count
         count += 1
-        return f'{match.group(1)}\n{match.group(2)}{match.group(3)}\n{match.group(4)}{match.group(5)} '
+        return f"{match.group(1)}\n{match.group(2)}{match.group(3)}\n{match.group(4)}{match.group(5)} "
 
     fixed = re.sub(pattern, replace_func, content)
     return fixed, count
+
 
 def fix_multiline_expression_commas(content: str) -> Tuple[str, int]:
     """Fix missing commas in multiline expressions"""
     count = 0
 
     # Pattern: closing bracket/paren/brace followed by identifier= on next line
-    pattern = r'(\)|\]|\})\n(\s+)([a-zA-Z_][a-zA-Z0-9_]*=)'
+    pattern = r"(\)|\]|\})\n(\s+)([a-zA-Z_][a-zA-Z0-9_]*=)"
 
     def replace_func(match):
         nonlocal count
         count += 1
-        return f'{match.group(1)},\n{match.group(2)}{match.group(3)}'
+        return f"{match.group(1)},\n{match.group(2)}{match.group(3)}"
 
     fixed = re.sub(pattern, replace_func, content)
     return fixed, count
+
 
 def fix_positional_arg_commas(content: str) -> Tuple[str, int]:
     """Fix missing commas after positional arguments in function calls"""
@@ -106,15 +113,16 @@ def fix_positional_arg_commas(content: str) -> Tuple[str, int]:
     def replace_func(match):
         nonlocal count
         count += 1
-        return f'{match.group(1)},\n{match.group(2)}{match.group(3)}'
+        return f"{match.group(1)},\n{match.group(2)}{match.group(3)}"
 
     fixed = re.sub(pattern, replace_func, content)
     return fixed, count
 
+
 def fix_file(file_path: Path) -> Tuple[bool, dict]:
     """Fix a single file and return success status and stats"""
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             original = f.read()
 
         content = original
@@ -122,26 +130,26 @@ def fix_file(file_path: Path) -> Tuple[bool, dict]:
 
         # Apply all fixes in sequence
         content, count = fix_positional_arg_commas(content)
-        stats['positional_args'] = count
+        stats["positional_args"] = count
 
         content, count = fix_function_call_commas(content)
-        stats['function_calls'] = count
+        stats["function_calls"] = count
 
         content, count = fix_dict_literal_commas(content)
-        stats['dict_literals'] = count
+        stats["dict_literals"] = count
 
         content, count = fix_boolean_condition_commas(content)
-        stats['boolean_conditions'] = count
+        stats["boolean_conditions"] = count
 
         content, count = fix_list_comprehension_commas(content)
-        stats['list_comprehensions'] = count
+        stats["list_comprehensions"] = count
 
         content, count = fix_multiline_expression_commas(content)
-        stats['multiline_expressions'] = count
+        stats["multiline_expressions"] = count
 
         # Only write if changes were made
         if content != original:
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return True, stats
 
@@ -151,17 +159,18 @@ def fix_file(file_path: Path) -> Tuple[bool, dict]:
         print(f"Error processing {file_path}: {e}")
         return False, {}
 
+
 def get_files_to_fix() -> List[Path]:
     """Get list of Python files that need fixing from files_to_fix.txt"""
     base_path = Path(__file__).parent.parent
-    file_list_path = base_path / 'scripts' / 'files_to_fix.txt'
+    file_list_path = base_path / "scripts" / "files_to_fix.txt"
 
     files = []
     try:
-        with open(file_list_path, 'r') as f:
+        with open(file_list_path, "r") as f:
             for line in f:
                 file_path = base_path / line.strip()
-                if file_path.exists() and file_path.suffix == '.py':
+                if file_path.exists() and file_path.suffix == ".py":
                     files.append(file_path)
 
         return sorted(files)
@@ -169,6 +178,7 @@ def get_files_to_fix() -> List[Path]:
     except Exception as e:
         print(f"Error reading file list: {e}")
         return []
+
 
 def main():
     print("=" * 80)
@@ -187,12 +197,12 @@ def main():
 
     # Fix each file
     total_stats = {
-        'positional_args': 0,
-        'function_calls': 0,
-        'dict_literals': 0,
-        'boolean_conditions': 0,
-        'list_comprehensions': 0,
-        'multiline_expressions': 0
+        "positional_args": 0,
+        "function_calls": 0,
+        "dict_literals": 0,
+        "boolean_conditions": 0,
+        "list_comprehensions": 0,
+        "multiline_expressions": 0,
     }
 
     files_fixed = 0
@@ -220,5 +230,6 @@ def main():
 
     return 0 if files_fixed > 0 else 1
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

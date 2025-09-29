@@ -6,11 +6,7 @@ import asyncio
 from pathlib import Path
 from typing import Any
 
-from hive_deployment import (
-    connect_to_server,
-    deploy_application,
-    determine_deployment_paths,
-)
+from hive_deployment import connect_to_server, deploy_application, determine_deployment_paths
 from hive_logging import get_logger
 
 from ..deployer import DeploymentStrategy
@@ -65,17 +61,11 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             if not remote_checks:
                 errors.append("Remote permission checks failed")
 
-            return {
-                "success": len(errors) == 0,
-                "errors": errors,
-            }
+            return {"success": len(errors) == 0, "errors": errors}
 
         except Exception as e:
             logger.error(f"Pre-deployment check error: {e}")
-            return {
-                "success": False,
-                "errors": [f"Pre-deployment check failed: {e}"],
-            }
+            return {"success": False, "errors": [f"Pre-deployment check failed: {e}"]}
 
     async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """
@@ -99,10 +89,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             # Connect to server
             ssh_client = await self._connect_to_server_async(ssh_config)
             if not ssh_client:
-                return {
-                    "success": False,
-                    "error": "Failed to establish SSH connection",
-                }
+                return {"success": False, "error": "Failed to establish SSH connection"}
 
             try:
                 # Determine deployment paths
@@ -115,10 +102,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                 deploy_result = await self._deploy_application_async(ssh_client, source_path, deployment_paths, task)
 
                 if not deploy_result["success"]:
-                    return {
-                        "success": False,
-                        "error": deploy_result.get("error", "Deployment failed"),
-                    }
+                    return {"success": False, "error": deploy_result.get("error", "Deployment failed")}
 
                 # Start/restart services
                 service_result = await self._manage_services_async(ssh_client, app_name, "start")
@@ -128,10 +112,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                     return {
                         "success": False,
                         "error": "Application deployed but failed to start services",
-                        "deployment_info": {
-                            "backup": backup_info,
-                            "paths": deployment_paths,
-                        },
+                        "deployment_info": {"backup": backup_info, "paths": deployment_paths},
                     }
 
                 logger.info(f"SSH deployment {deployment_id} completed successfully")
@@ -142,11 +123,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                         "deployment_time": deploy_result.get("duration", 0),
                         "files_deployed": deploy_result.get("files_count", 0),
                     },
-                    "deployment_info": {
-                        "backup": backup_info,
-                        "paths": deployment_paths,
-                        "app_name": app_name,
-                    },
+                    "deployment_info": {"backup": backup_info, "paths": deployment_paths, "app_name": app_name},
                 }
 
             finally:
@@ -155,16 +132,10 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
         except Exception as e:
             logger.error(f"SSH deployment {deployment_id} error: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def rollback_async(
-        self,
-        task: dict[str, Any],
-        deployment_id: str,
-        previous_deployment: dict[str, Any],
+        self, task: dict[str, Any], deployment_id: str, previous_deployment: dict[str, Any]
     ) -> dict[str, Any]:
         """
         Rollback SSH deployment to previous version
@@ -186,29 +157,20 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             # Connect to server
             ssh_client = await self._connect_to_server_async(ssh_config)
             if not ssh_client:
-                return {
-                    "success": False,
-                    "error": "Failed to establish SSH connection for rollback",
-                }
+                return {"success": False, "error": "Failed to establish SSH connection for rollback"}
 
             try:
                 # Get backup information
                 backup_info = previous_deployment.get("backup", {})
                 if not backup_info:
                     logger.warning("No backup information found for rollback")
-                    return {
-                        "success": False,
-                        "error": "No backup available for rollback",
-                    }
+                    return {"success": False, "error": "No backup available for rollback"}
 
                 # Restore from backup
                 restore_result = await self._restore_from_backup_async(ssh_client, backup_info)
 
                 if not restore_result:
-                    return {
-                        "success": False,
-                        "error": "Failed to restore from backup",
-                    }
+                    return {"success": False, "error": "Failed to restore from backup"}
 
                 # Restart services with previous configuration
                 service_result = await self._manage_services_async(ssh_client, app_name, "restart")
@@ -217,10 +179,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
                 return {
                     "success": True,
-                    "rollback_info": {
-                        "restored_from": backup_info,
-                        "services_restarted": service_result,
-                    },
+                    "rollback_info": {"restored_from": backup_info, "services_restarted": service_result},
                 }
 
             finally:
@@ -228,10 +187,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
         except Exception as e:
             logger.error(f"Rollback error for {deployment_id}: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
     async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """
@@ -258,11 +214,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
     def get_required_task_fields(self) -> list[str]:
         """Get required fields for SSH deployment"""
-        return [
-            "ssh_config",
-            "app_name",
-            "source_path",
-        ]
+        return ["ssh_config", "app_name", "source_path"]
 
     # Helper methods
 
@@ -300,11 +252,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         return await loop.run_in_executor(None, connect_to_server, ssh_config)
 
     async def _deploy_application_async(
-        self,
-        ssh_client,
-        source_path: str,
-        deployment_paths: dict[str, str],
-        task: dict[str, Any],
+        self, ssh_client, source_path: str, deployment_paths: dict[str, str], task: dict[str, Any]
     ) -> dict[str, Any]:
         """Deploy application files"""
         loop = asyncio.get_event_loop()

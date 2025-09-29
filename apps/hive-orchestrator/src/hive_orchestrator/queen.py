@@ -20,14 +20,8 @@ from hive_logging import get_logger, setup_logging
 from hive_orchestrator.core import db as hive_core_db
 
 # Hive event bus for explicit communication - use orchestrator's core layer
-from hive_orchestrator.core.bus import (
-    TaskEventType,
-    create_task_event,
-    get_event_bus,
-)
-from hive_orchestrator.core.db import (
-    ASYNC_AVAILABLE,
-)
+from hive_orchestrator.core.bus import TaskEventType, create_task_event, get_event_bus
+from hive_orchestrator.core.db import ASYNC_AVAILABLE
 
 from .config import HiveConfig, create_orchestrator_config
 
@@ -64,12 +58,7 @@ class QueenLite:
     # INITIALIZATION & CONFIGURATION MANAGEMENT
     # ================================================================================
 
-    def __init__(
-        self,
-        hive_core: HiveCore,
-        config: HiveConfig | None = None,
-        live_output: bool = False,
-    ):
+    def __init__(self, hive_core: HiveCore, config: HiveConfig | None = None, live_output: bool = False):
         """
         Initialize QueenLite orchestrator
 
@@ -120,19 +109,11 @@ class QueenLite:
             hive_core_db.register_worker(
                 worker_id="queen-orchestrator",
                 role="orchestrator",
-                capabilities=[
-                    "task_orchestration",
-                    "workflow_management",
-                    "worker_coordination",
-                ],
+                capabilities=["task_orchestration", "workflow_management", "worker_coordination"],
                 metadata={
                     "version": "2.0.0",
                     "type": "QueenLite",
-                    "features": [
-                        "stateful_workflows",
-                        "parallel_execution",
-                        "app_tasks",
-                    ],
+                    "features": ["stateful_workflows", "parallel_execution", "app_tasks"],
                 },
             )
             self.log.info("Queen registered as worker: queen-orchestrator")
@@ -146,11 +127,7 @@ class QueenLite:
 
         try:
             # Import validation functions (we already have hive-config path setup)
-            from hive_config import (
-                ValidationError,
-                format_validation_report,
-                run_comprehensive_validation,
-            )
+            from hive_config import ValidationError, format_validation_report, run_comprehensive_validation
 
             # Run validation
             validation_passed, results = run_comprehensive_validation()
@@ -265,24 +242,16 @@ class QueenLite:
         try:
             # Subscribe to AI Planner events to trigger task scheduling
             self.event_bus.subscribe(
-                "workflow.plan_generated",
-                self._handle_plan_generated_event,
-                "queen-plan-listener",
+                "workflow.plan_generated", self._handle_plan_generated_event, "queen-plan-listener"
             )
 
             # Subscribe to AI Reviewer events to advance approved tasks
             self.event_bus.subscribe(
-                "task.review_completed",
-                self._handle_review_completed_event,
-                "queen-review-listener",
+                "task.review_completed", self._handle_review_completed_event, "queen-review-listener"
             )
 
             # Subscribe to task failure events for escalation handling
-            self.event_bus.subscribe(
-                "task.escalated",
-                self._handle_task_escalated_event,
-                "queen-escalation-listener",
-            )
+            self.event_bus.subscribe("task.escalated", self._handle_task_escalated_event, "queen-escalation-listener")
 
             self.log.info("Cross-agent event subscriptions established for choreographed workflow")
 
@@ -305,12 +274,7 @@ class QueenLite:
                 if task and task.get("status") == "planned":
                     self.log.info(f"Auto-triggering execution for planned task {task_id}")
                     hive_core_db.update_task_status(
-                        task_id,
-                        "queued",
-                        {
-                            "auto_triggered": True,
-                            "triggered_by": "plan_completion_event",
-                        },
+                        task_id, "queued", {"auto_triggered": True, "triggered_by": "plan_completion_event"}
                     )
 
         except Exception as e:
@@ -340,10 +304,7 @@ class QueenLite:
                     hive_core_db.update_task_status(
                         task_id,
                         "queued",
-                        {
-                            "current_phase": "rework",
-                            "review_feedback": payload.get("review_summary", ""),
-                        },
+                        {"current_phase": "rework", "review_feedback": payload.get("review_summary", "")},
                     )
 
         except Exception as e:

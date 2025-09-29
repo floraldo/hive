@@ -202,11 +202,7 @@ class HiveAppConfig:
         return config
 
     @classmethod
-    def from_environment(
-        cls,
-        prefix: str = "HIVE_",
-        config_file: str | None = None,
-    ) -> "HiveAppConfig":
+    def from_environment(cls, prefix: str = "HIVE_", config_file: str | None = None) -> "HiveAppConfig":
         """
         Load configuration from environment variables.
 

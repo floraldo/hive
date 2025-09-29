@@ -26,12 +26,7 @@ from hive_logging import get_logger
 
 # Import QC classes
 try:
-    from ecosystemiser.profile_loader.climate.processing.validation import (
-        QCIssue,
-        QCProfile,
-        QCReport,
-        QCSeverity,
-    )
+    from ecosystemiser.profile_loader.climate.processing.validation import QCIssue, QCProfile, QCReport, QCSeverity
 except ImportError:
     # Fallback: Define minimal QC classes for testing
     from abc import ABC, abstractmethod
@@ -77,6 +72,7 @@ except ImportError:
         @abstractmethod
         def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
             pass
+
 
 logger = get_logger(__name__)
 
@@ -206,34 +202,32 @@ class FileEPWAdapter(BaseAdapter):
         6: "Rain",
         7: "Snow or Ice Pellets",
         8: "Shower",
-        9: "Thunderstorm"
+        9: "Thunderstorm",
     }
 
     # EPW missing value indicators
-    MISSING_VALUES = {
-        "temp_air": 99.9,
-        "dewpoint": 99.9,
-        "rel_humidity": 999,
-        "pressure": 999999,
-        "ghi": 9999,
-        "dni": 9999,
-        "dhi": 9999,
-        "wind_speed": 999,
-        "wind_dir": 999,
-        "cloud_cover": 99,
-        "visibility": 9999,
-        "snow_depth": 999,
-        "precip": 999,
-        "albedo": 999
-    },
+    MISSING_VALUES = (
+        {
+            "temp_air": 99.9,
+            "dewpoint": 99.9,
+            "rel_humidity": 999,
+            "pressure": 999999,
+            "ghi": 9999,
+            "dni": 9999,
+            "dhi": 9999,
+            "wind_speed": 999,
+            "wind_dir": 999,
+            "cloud_cover": 99,
+            "visibility": 9999,
+            "snow_depth": 999,
+            "precip": 999,
+            "albedo": 999,
+        },
+    )
 
     def __init__(self) -> None:
         """Initialize EPW file adapter"""
-        from ecosystemiser.profile_loader.climate.adapters.base import (
-            CacheConfig,
-            HTTPConfig,
-            RateLimitConfig,
-        )
+        from ecosystemiser.profile_loader.climate.adapters.base import CacheConfig, HTTPConfig, RateLimitConfig
 
         # Configure minimal settings (file-based, no HTTP rate limits needed)
         rate_config = RateLimitConfig(requests_per_minute=60, burst_size=10)  # For URL downloads
@@ -244,25 +238,17 @@ class FileEPWAdapter(BaseAdapter):
             disk_ttl=86400,  # 24 hours,
         )
 
-        super().__init__(
-            name=self.ADAPTER_NAME,
-            rate_limit_config=rate_config,
-            cache_config=cache_config,
-        )
+        super().__init__(name=self.ADAPTER_NAME, rate_limit_config=rate_config, cache_config=cache_config)
 
     async def _fetch_raw_async(
-        self,
-        location: Tuple[float, float],
-        variables: List[str],
-        period: Dict,
-        **kwargs,
+        self, location: Tuple[float, float], variables: List[str], period: Dict, **kwargs
     ) -> Any | None:
         """Fetch raw data from EPW file"""
         lat, lon = location
 
         # Get file path from period or kwargs,
         if "file" in period:
-            file_path = period["file"],
+            file_path = (period["file"],)
             epw_data = self._read_epw_file(file_path)
         elif "url" in period:
             url = period["url"]
@@ -280,24 +266,17 @@ class FileEPWAdapter(BaseAdapter):
         return df
 
     async def _transform_data_async(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str],
+        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
     ) -> xr.Dataset:
         """Transform EPW DataFrame to xarray Dataset"""
-        lat, lon = location,
+        lat, lon = (location,)
         df = raw_data
 
         # Convert to xarray Dataset,
         ds = self._dataframe_to_xarray(df, variables, lat, lon)
 
         # Add metadata,
-        ds.attrs.update(
-            {
-                "source": "EPW",
-                "adapter_version": self.ADAPTER_VERSION,
-                "latitude": lat,
-                "longitude": lon,
-            },
-        )
+        ds.attrs.update({"source": "EPW", "adapter_version": self.ADAPTER_VERSION, "latitude": lat, "longitude": lon})
 
         return ds
 
@@ -319,12 +298,7 @@ class FileEPWAdapter(BaseAdapter):
         """
 
         # Use base class fetch method,
-        ds = await super().fetch_async(
-            location=(lat, lon),
-            variables=variables,
-            period=period,
-            resolution=resolution,
-        )
+        ds = await super().fetch_async(location=(lat, lon), variables=variables, period=period, resolution=resolution)
 
         # Resample if needed,
         if resolution != "1H":
@@ -364,7 +338,7 @@ class FileEPWAdapter(BaseAdapter):
                 raise DataParseError(
                     "EPW file too short - missing header or data rows",
                     field="file_content",
-                    details={"line_count": len(lines), "minimum_required": 9}
+                    details={"line_count": len(lines), "minimum_required": 9},
                 )
 
             # Skip header lines (8 lines in standard EPW)
@@ -386,7 +360,7 @@ class FileEPWAdapter(BaseAdapter):
                 if len(parts) >= 8:
                     try:
                         site_lat = float(parts[6])
-                        site_lon = float(parts[7]),
+                        site_lon = (float(parts[7]),)
                         logger.info(f"EPW file location: {site_lat}, {site_lon}")
                     except Exception as e:
                         pass
@@ -398,7 +372,7 @@ class FileEPWAdapter(BaseAdapter):
                 raise DataParseError(
                     "No data lines found after header",
                     field="data_content",
-                    details={"header_lines": data_start, "total_lines": len(lines)}
+                    details={"header_lines": data_start, "total_lines": len(lines)},
                 )
 
             # Parse CSV data with error handling
@@ -412,14 +386,14 @@ class FileEPWAdapter(BaseAdapter):
                     details={
                         "parser_error": str(e),
                         "data_lines": len(data_lines),
-                        "first_line": data_lines[0][:100] if data_lines else None
+                        "first_line": data_lines[0][:100] if data_lines else None,
                     },
                 )
             except Exception as e:
                 raise DataParseError(
                     f"Unexpected error parsing EPW data: {str(e)}",
                     field="data_parsing",
-                    details={"error_type": type(e).__name__, "error": str(e)}
+                    details={"error_type": type(e).__name__, "error": str(e)},
                 )
 
             # Create datetime index
@@ -434,24 +408,11 @@ class FileEPWAdapter(BaseAdapter):
 
             # Handle day overflow (assuming standard calendar)
             # This is a simplified approach - more complex logic needed for proper calendar handling
-            days_in_month = {
-                1: 31,
-                2: 28,
-                3: 31,
-                4: 30,
-                5: 31,
-                6: 30,
-                7: 31,
-                8: 31,
-                9: 30,
-                10: 31,
-                11: 30,
-                12: 31
-            },
+            days_in_month = ({1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31},)
 
             for idx in df_time.index[hour_24_mask]:
-                year = df_time.loc[idx, "Year"],
-                month = df_time.loc[idx, "Month"],
+                year = (df_time.loc[idx, "Year"],)
+                month = (df_time.loc[idx, "Month"],)
                 day = df_time.loc[idx, "Day"]
 
                 # Handle leap year for February,
@@ -468,16 +429,14 @@ class FileEPWAdapter(BaseAdapter):
                         df_time.loc[idx, "Year"] += 1
 
             try:
-                df["datetime"] = pd.to_datetime(
-                    df_time.astype(str).agg("-".join, axis=1),
-                    format="%Y-%m-%d-%H",
-                    errors="coerce",
-                ),
+                df["datetime"] = (
+                    pd.to_datetime(df_time.astype(str).agg("-".join, axis=1), format="%Y-%m-%d-%H", errors="coerce"),
+                )
             except Exception as e:
                 raise DataParseError(
                     f"Failed to create datetime index: {str(e)}",
                     field="datetime_creation",
-                    details={"error": str(e), "sample_dates": df_time.head().to_dict()}
+                    details={"error": str(e), "sample_dates": df_time.head().to_dict()},
                 )
 
             # Handle minute field (usually 0 or 60),
@@ -493,7 +452,7 @@ class FileEPWAdapter(BaseAdapter):
                 raise DataParseError(
                     "All datetime values were invalid after parsing",
                     field="datetime_values",
-                    details={"original_rows": len(data_lines)}
+                    details={"original_rows": len(data_lines)},
                 )
 
             return df
@@ -506,7 +465,7 @@ class FileEPWAdapter(BaseAdapter):
             raise DataParseError(
                 f"Failed to parse EPW file: {str(e)}",
                 field="file_parsing",
-                details={"error_type": type(e).__name__, "error": str(e)}
+                details={"error_type": type(e).__name__, "error": str(e)},
             )
 
     def _filter_by_period(self, df: pd.DataFrame, period: Dict) -> pd.DataFrame:
@@ -556,9 +515,7 @@ class FileEPWAdapter(BaseAdapter):
 
                     # Create DataArray,
                     ds[canonical_name] = xr.DataArray(
-                        data,
-                        coords={"time": df.index},
-                        attrs=self._get_variable_attrs(canonical_name),
+                        data, coords={"time": df.index}, attrs=self._get_variable_attrs(canonical_name)
                     )
                 else:
                     logger.warning(f"Variable {canonical_name} not found in EPW file")
@@ -569,22 +526,24 @@ class FileEPWAdapter(BaseAdapter):
         """Clean missing value indicators in EPW data"""
 
         # EPW missing value indicators
-        missing_values = {
-            "temp_air": 99.9,
-            "dewpoint": 99.9,
-            "rel_humidity": 999,
-            "pressure": 999999,
-            "ghi": 9999,
-            "dni": 9999,
-            "dhi": 9999,
-            "wind_dir": 999,
-            "wind_speed": 999,
-            "cloud_cover": 99,
-            "visibility": 9999
-        },
+        missing_values = (
+            {
+                "temp_air": 99.9,
+                "dewpoint": 99.9,
+                "rel_humidity": 999,
+                "pressure": 999999,
+                "ghi": 9999,
+                "dni": 9999,
+                "dhi": 9999,
+                "wind_dir": 999,
+                "wind_speed": 999,
+                "cloud_cover": 99,
+                "visibility": 9999,
+            },
+        )
 
         if canonical_name in missing_values:
-            missing_val = missing_values[canonical_name],
+            missing_val = (missing_values[canonical_name],)
             data = np.where(data == missing_val, np.nan, data)
 
         return data
@@ -592,11 +551,13 @@ class FileEPWAdapter(BaseAdapter):
     def _convert_units(self, data: np.ndarray, canonical_name: str) -> np.ndarray:
         """Convert EPW units to canonical units"""
 
-        conversions = {
-            "cloud_cover": lambda x: x * 10,  # tenths to percentage,
-            "albedo": lambda x: x / 100,  # hundredths to fraction,
-            "snow": lambda x: x * 10,  # cm to mm
-        },
+        conversions = (
+            {
+                "cloud_cover": lambda x: x * 10,  # tenths to percentage,
+                "albedo": lambda x: x / 100,  # hundredths to fraction,
+                "snow": lambda x: x * 10,  # cm to mm
+            },
+        )
 
         if canonical_name in conversions:
             data = conversions[canonical_name](data)
@@ -629,27 +590,28 @@ class FileEPWAdapter(BaseAdapter):
     def _get_variable_attrs(self, canonical_name: str) -> Dict:
         """Get variable attributes including units"""
 
-        units_map = {
-            "temp_air": "degC",
-            "dewpoint": "degC",
-            "rel_humidity": "%",
-            "pressure": "Pa",
-            "ghi": "W/m2",  # EPW hourly energy represents average power,
-            "dni": "W/m2",
-            "dhi": "W/m2",
-            "wind_dir": "degrees",
-            "wind_speed": "m/s",
-            "cloud_cover": "%",
-            "precip": "mm/h",  # EPW: accumulated liquid precip depth over preceding hour,
-            "snow": "mm",
-            "visibility": "km",
-            "albedo": "fraction"
-        },
+        units_map = (
+            {
+                "temp_air": "degC",
+                "dewpoint": "degC",
+                "rel_humidity": "%",
+                "pressure": "Pa",
+                "ghi": "W/m2",  # EPW hourly energy represents average power,
+                "dni": "W/m2",
+                "dhi": "W/m2",
+                "wind_dir": "degrees",
+                "wind_speed": "m/s",
+                "cloud_cover": "%",
+                "precip": "mm/h",  # EPW: accumulated liquid precip depth over preceding hour,
+                "snow": "mm",
+                "visibility": "km",
+                "albedo": "fraction",
+            },
+        )
 
-        return {
-            "units": units_map.get(canonical_name, "unknown"),
-            "long_name": canonical_name.replace("_", " ").title()
-        },
+        return (
+            {"units": units_map.get(canonical_name, "unknown"), "long_name": canonical_name.replace("_", " ").title()},
+        )
 
     def get_capabilities(self) -> AdapterCapabilities:
         """Return EPW file adapter capabilities"""
@@ -688,7 +650,7 @@ class FileEPWAdapter(BaseAdapter):
                 DataFrequency.HOURLY,  # Native,
                 DataFrequency.THREEHOURLY,
                 DataFrequency.DAILY,
-                DataFrequency.MONTHLY
+                DataFrequency.MONTHLY,
             ],
             native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.FILE,  # Local file or URL,
@@ -714,7 +676,7 @@ class FileEPWAdapter(BaseAdapter):
                 "Includes solar angles and illuminance",
                 "Quality flags for each data point",
             ],
-            data_products=["TMY", "AMY", "Design Days", "Climate Zones"]
+            data_products=["TMY", "AMY", "Design Days", "Climate Zones"],
         )
 
 
@@ -728,24 +690,28 @@ class EPWQCProfile:
     def __init__(self) -> None:
         self.name = "EPW"
         self.description = "EnergyPlus Weather file format - processed for building simulation"
-        self.known_issues = [
-            "May be based on older TMY data",
-            "Processing for building simulation may alter original measurements",
-            "Limited temporal coverage (typical meteorological year)",
-            "Variable quality depending on data source and processing"
-        ],
-        self.recommended_variables = [
-            "temp_air",
-            "dewpoint",
-            "rel_humidity",
-            "wind_speed",
-            "wind_dir",
-            "ghi",
-            "dni",
-            "dhi",
-            "pressure",
-            "cloud_cover"
-        ],
+        self.known_issues = (
+            [
+                "May be based on older TMY data",
+                "Processing for building simulation may alter original measurements",
+                "Limited temporal coverage (typical meteorological year)",
+                "Variable quality depending on data source and processing",
+            ],
+        )
+        self.recommended_variables = (
+            [
+                "temp_air",
+                "dewpoint",
+                "rel_humidity",
+                "wind_speed",
+                "wind_dir",
+                "ghi",
+                "dni",
+                "dhi",
+                "pressure",
+                "cloud_cover",
+            ],
+        )
         self.temporal_resolution_limits = {"all": "hourly"}
         self.spatial_accuracy = "Point data, location-dependent"
 
@@ -764,12 +730,16 @@ class EPWQCProfile:
 
                 if small_changes > 0.7:  # 70% of changes < 0.1degC
                     report.warnings.append(
-                        f"Temperature profile appears over-processed (small_changes={small_changes:.2f}) - typical of some EPW files",
+                        f"Temperature profile appears over-processed (small_changes={small_changes:.2f}) - typical of some EPW files"
                     )
 
         # Check for temporal coverage (EPW should be full year),
         if len(ds.time) < 8000:  # Less than ~11 months of hourly data,
-            report.warnings.append(f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)"),
+            (
+                report.warnings.append(
+                    f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)"
+                ),
+            )
 
     def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
         """Get source-specific adjusted bounds"""
@@ -780,30 +750,32 @@ class EPWQCProfile(QCProfile):
     """QC profile for EPW (EnergyPlus Weather) files"""
 
     def __init__(self) -> None:
-        super().__init__(
-            name="EPW",
-            description="EnergyPlus Weather file format - processed for building simulation",
-            known_issues=[
-                "May be based on older TMY data",
-                "Processing for building simulation may alter original measurements",
-                "Limited temporal coverage (typical meteorological year)",
-                "Variable quality depending on data source and processing"
-            ],
-            recommended_variables=[
-                "temp_air",
-                "dewpoint",
-                "rel_humidity",
-                "wind_speed",
-                "wind_dir",
-                "ghi",
-                "dni",
-                "dhi",
-                "pressure",
-                "cloud_cover"
-            ],
-            temporal_resolution_limits={"all": "hourly"},
-            spatial_accuracy="Point data, location-dependent",
-        ),
+        (
+            super().__init__(
+                name="EPW",
+                description="EnergyPlus Weather file format - processed for building simulation",
+                known_issues=[
+                    "May be based on older TMY data",
+                    "Processing for building simulation may alter original measurements",
+                    "Limited temporal coverage (typical meteorological year)",
+                    "Variable quality depending on data source and processing",
+                ],
+                recommended_variables=[
+                    "temp_air",
+                    "dewpoint",
+                    "rel_humidity",
+                    "wind_speed",
+                    "wind_dir",
+                    "ghi",
+                    "dni",
+                    "dhi",
+                    "pressure",
+                    "cloud_cover",
+                ],
+                temporal_resolution_limits={"all": "hourly"},
+                spatial_accuracy="Point data, location-dependent",
+            ),
+        )
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """EPW specific validation"""

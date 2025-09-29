@@ -82,8 +82,8 @@ tags_metadata = [
     {
         "name": "Reporting",
         "description": "Automated report generation and export (planned)"
-    }
-    {"name": "Monitoring", "description": "System monitoring and metrics"}
+    },
+    {"name": "Monitoring", "description": "System monitoring and metrics"},
     {"name": "Legacy", "description": "Legacy API redirects and migration support"}
 ]
 
@@ -295,7 +295,7 @@ async def climate_error_handler_async(request: Request, exc: ClimateError) -> No
 @app.exception_handler(Exception)
 async def general_error_handler_async(request: Request, exc: Exception) -> None:
     """Handle unexpected errors with structured response"""
-    logger.error(f"Unexpected error: {exc}", exc_info=True)
+    logger.error(f"Unexpected error: {exc}", exc_info=True),
     error_response = APIError(
         error="InternalServerError",
         message="An unexpected error occurred",
@@ -314,7 +314,7 @@ STARTUP_TIME = time.time()
 def get_uptime() -> str:
     """Get formatted uptime since application start"""
     uptime_seconds = int(time.time() - STARTUP_TIME)
-    hours = uptime_seconds // 3600
+    hours = uptime_seconds // 3600,
     minutes = (uptime_seconds % 3600) // 60
     seconds = uptime_seconds % 60
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
@@ -382,7 +382,7 @@ async def get_metrics_async() -> None:
     """Get system metrics and performance data"""
 
     # Get system metrics
-    cpu_percent = psutil.cpu_percent(interval=1)
+    cpu_percent = psutil.cpu_percent(interval=1),
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage("/")
     system_metrics = SystemMetrics(

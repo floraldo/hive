@@ -9,46 +9,46 @@ from pathlib import Path
 def fix_dict_key_issues(content: str) -> tuple[str, list[str]]:
     """Fix dictionary key syntax errors."""
     issues = []
-    lines = content.split('\n')
+    lines = content.split("\n")
     fixed_lines = []
 
     for i, line in enumerate(lines):
         # Pattern: "key": value"next_key" -> "key": value, "next_key"
         if re.search(r'"\s*["\']', line):
             # Check if this looks like missing comma in dict
-            if ':' in line and i + 1 < len(lines):
+            if ":" in line and i + 1 < len(lines):
                 next_line = lines[i + 1].strip()
                 if next_line and (next_line.startswith('"') or next_line.startswith("'")):
-                    if not line.rstrip().endswith((',', '{', '(')):
-                        line = line.rstrip() + ','
-                        if 'Fixed missing comma in dictionary' not in issues:
+                    if not line.rstrip().endswith((",", "{", "(")):
+                        line = line.rstrip() + ","
+                        if "Fixed missing comma in dictionary" not in issues:
                             issues.append("Fixed missing comma in dictionary")
 
         # Pattern: hasattr(obj"attr") -> hasattr(obj, "attr")
         line = re.sub(r'hasattr\((\w+)"', r'hasattr(\1, "', line)
-        if 'hasattr' in line and ', "' in line:
-            if 'Fixed hasattr missing comma' not in issues:
+        if "hasattr" in line and ', "' in line:
+            if "Fixed hasattr missing comma" not in issues:
                 issues.append("Fixed hasattr missing comma")
 
         # Pattern: getattr(obj"attr" -> getattr(obj, "attr"
         line = re.sub(r'getattr\((\w+)"', r'getattr(\1, "', line)
-        if 'getattr' in line and ', "' in line:
-            if 'Fixed getattr missing comma' not in issues:
+        if "getattr" in line and ', "' in line:
+            if "Fixed getattr missing comma" not in issues:
                 issues.append("Fixed getattr missing comma")
 
         fixed_lines.append(line)
 
-    return '\n'.join(fixed_lines), issues
+    return "\n".join(fixed_lines), issues
 
 
 def process_file(file_path: Path) -> tuple[bool, list[str]]:
     """Process a single file."""
     try:
-        content = file_path.read_text(encoding='utf-8')
+        content = file_path.read_text(encoding="utf-8")
         fixed_content, issues = fix_dict_key_issues(content)
 
         if fixed_content != content:
-            file_path.write_text(fixed_content, encoding='utf-8')
+            file_path.write_text(fixed_content, encoding="utf-8")
             return True, issues
 
         return False, []
@@ -59,11 +59,7 @@ def process_file(file_path: Path) -> tuple[bool, list[str]]:
 def validate_syntax(file_path: Path) -> tuple[bool, str]:
     """Validate Python syntax of a file."""
     try:
-        result = subprocess.run(
-            [sys.executable, '-m', 'py_compile', str(file_path)],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run([sys.executable, "-m", "py_compile", str(file_path)], capture_output=True, text=True)
         if result.returncode == 0:
             return True, ""
         return False, result.stderr
@@ -73,7 +69,7 @@ def validate_syntax(file_path: Path) -> tuple[bool, str]:
 
 def main():
     """Main execution."""
-    src_dir = Path(__file__).parent.parent / 'src' / 'ecosystemiser'
+    src_dir = Path(__file__).parent.parent / "src" / "ecosystemiser"
 
     if not src_dir.exists():
         print(f"ERROR: Source directory not found: {src_dir}")
@@ -83,7 +79,7 @@ def main():
 
     # First pass: Fix known patterns
     fixed_files = []
-    for py_file in src_dir.rglob('*.py'):
+    for py_file in src_dir.rglob("*.py"):
         modified, issues = process_file(py_file)
         if modified:
             fixed_files.append((py_file.relative_to(src_dir), issues))
@@ -96,7 +92,7 @@ def main():
     # Second pass: Validate all files
     print("\nValidating syntax...")
     errors = []
-    for py_file in src_dir.rglob('*.py'):
+    for py_file in src_dir.rglob("*.py"):
         valid, error = validate_syntax(py_file)
         if not valid:
             errors.append((py_file.relative_to(src_dir), error))
@@ -106,9 +102,9 @@ def main():
         for file, error in errors[:10]:
             print(f"  - {file}")
             # Extract just the error line
-            error_lines = error.split('\n')
+            error_lines = error.split("\n")
             for line in error_lines:
-                if 'SyntaxError' in line or 'line' in line:
+                if "SyntaxError" in line or "line" in line:
                     print(f"    {line}")
         if len(errors) > 10:
             print(f"  ... and {len(errors) - 10} more")
@@ -118,5 +114,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

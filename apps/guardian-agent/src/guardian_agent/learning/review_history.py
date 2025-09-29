@@ -186,11 +186,7 @@ class ReviewHistory:
         return review_id
 
     async def store_feedback(
-        self,
-        review_id: int,
-        feedback_type: str,
-        feedback_text: str,
-        violation_id: int | None = None,
+        self, review_id: int, feedback_type: str, feedback_text: str, violation_id: int | None = None
     ) -> None:
         """
         Store feedback on a review.
@@ -218,11 +214,7 @@ class ReviewHistory:
 
         logger.info("Stored %s feedback for review %d", feedback_type, review_id)
 
-    async def get_similar_reviews(
-        self,
-        file_path: Path,
-        limit: int = 5,
-    ) -> list[dict[str, Any]]:
+    async def get_similar_reviews(self, file_path: Path, limit: int = 5) -> list[dict[str, Any]]:
         """
         Get similar past reviews for learning.
 
@@ -267,12 +259,7 @@ class ReviewHistory:
 
             return reviews
 
-    async def learn_team_preference(
-        self,
-        preference_key: str,
-        preference_value: str,
-        example: str,
-    ) -> None:
+    async def learn_team_preference(self, preference_key: str, preference_value: str, example: str) -> None:
         """
         Learn a team preference from feedback.
 
@@ -369,11 +356,7 @@ class ReviewHistory:
 
             return preferences
 
-    async def get_violation_accuracy(
-        self,
-        violation_type: str,
-        time_window_days: int = 30,
-    ) -> dict[str, float]:
+    async def get_violation_accuracy(self, violation_type: str, time_window_days: int = 30) -> dict[str, float]:
         """
         Get accuracy metrics for a violation type.
 
@@ -410,12 +393,7 @@ class ReviewHistory:
                 "confirmation_rate": confirmed / total if total > 0 else 0,
             }
 
-    async def update_violation_status(
-        self,
-        violation_id: int,
-        was_fixed: bool,
-        fix_confirmed: bool,
-    ) -> None:
+    async def update_violation_status(self, violation_id: int, was_fixed: bool, fix_confirmed: bool) -> None:
         """
         Update violation status based on feedback.
 

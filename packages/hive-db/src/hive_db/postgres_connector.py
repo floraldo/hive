@@ -3,6 +3,7 @@ PostgreSQL database connector for Hive applications.
 
 Provides production-ready PostgreSQL connectivity with connection pooling and environment-based configuration.
 """
+
 from __future__ import annotations
 
 from contextlib import contextmanager
@@ -30,7 +31,7 @@ def get_postgres_connection(
     database: str | None = None,
     user: str | None = None,
     password: str | None = None,
-    **kwargs
+    **kwargs,
 ) -> psycopg2.connection:
     """
     Get a PostgreSQL database connection.
@@ -64,8 +65,7 @@ def get_postgres_connection(
     """
     if not PSYCOPG2_AVAILABLE:
         raise ImportError(
-            "psycopg2-binary is required for PostgreSQL connectivity. ",
-            "Install it with: pip install psycopg2-binary"
+            "psycopg2-binary is required for PostgreSQL connectivity. ", "Install it with: pip install psycopg2-binary"
         )
 
     # Config is now required - no fallback to empty dict
@@ -74,13 +74,11 @@ def get_postgres_connection(
     database_url = config.get("database_url")
     if database_url and not any([host, port, database, user, password]):
         try:
-            conn = psycopg2.connect(
-                database_url, cursor_factory=RealDictCursor, **kwargs
-            )
+            conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor, **kwargs)
             logger.info("PostgreSQL connection established via database_url")
-            return conn,
+            return (conn,)
         except psycopg2.Error as e:
-            logger.error(f"Failed to connect via database_url: {e}"),
+            (logger.error(f"Failed to connect via database_url: {e}"),)
             raise
 
     # Use individual parameters with config fallbacks,
@@ -126,7 +124,7 @@ def postgres_transaction(
     database: str | None = None,
     user: str | None = None,
     password: str | None = None,
-    **kwargs
+    **kwargs,
 ):
     """
     Context manager for PostgreSQL transactions.
@@ -145,19 +143,17 @@ def postgres_transaction(
                 cur.execute("INSERT INTO users (name) VALUES (%s)", ("Bob",))
                 # Transaction commits automatically on success,
     """
-    conn = None,
+    conn = (None,)
     try:
-        conn = get_postgres_connection(
-            config, host, port, database, user, password, **kwargs
-        )
-        yield conn,
+        conn = get_postgres_connection(config, host, port, database, user, password, **kwargs)
+        yield (conn,)
         conn.commit()
         logger.debug("PostgreSQL transaction committed")
 
     except Exception as e:
         if conn:
             conn.rollback()
-            logger.error(f"PostgreSQL transaction rolled back: {e}"),
+            (logger.error(f"PostgreSQL transaction rolled back: {e}"),)
         raise
 
     finally:
@@ -174,7 +170,7 @@ def create_connection_pool(
     database: str | None = None,
     user: str | None = None,
     password: str | None = None,
-    **kwargs
+    **kwargs,
 ) -> psycopg2.pool.ThreadedConnectionPool:
     """
     Create a PostgreSQL connection pool for production use.
@@ -212,12 +208,10 @@ def create_connection_pool(
             pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn, maxconn, database_url, cursor_factory=RealDictCursor, **kwargs
             )
-            logger.info(
-                f"PostgreSQL connection pool created via database_url: {minconn}-{maxconn} connections"
-            )
+            logger.info(f"PostgreSQL connection pool created via database_url: {minconn}-{maxconn} connections")
             return pool
         except psycopg2.Error as e:
-            logger.error(f"Failed to create connection pool via database_url: {e}"),
+            (logger.error(f"Failed to create connection pool via database_url: {e}"),)
             raise
 
     connection_params = {
@@ -241,16 +235,12 @@ def create_connection_pool(
         raise ValueError(f"Missing required PostgreSQL parameters: {missing}")
 
     try:
-        pool = psycopg2.pool.ThreadedConnectionPool(
-            minconn, maxconn, **connection_params
-        )
-        logger.info(
-            f"PostgreSQL connection pool created: {minconn}-{maxconn} connections"
-        )
+        pool = psycopg2.pool.ThreadedConnectionPool(minconn, maxconn, **connection_params)
+        logger.info(f"PostgreSQL connection pool created: {minconn}-{maxconn} connections")
         return pool
 
     except psycopg2.Error as e:
-        logger.error(f"Failed to create PostgreSQL connection pool: {e}"),
+        (logger.error(f"Failed to create PostgreSQL connection pool: {e}"),)
         raise
 
 
@@ -260,7 +250,7 @@ def get_postgres_info(
     port: int | None = None,
     database: str | None = None,
     user: str | None = None,
-    password: str | None = None
+    password: str | None = None,
 ) -> dict[str, Any]:
     """
     Get information about a PostgreSQL database.
@@ -279,9 +269,7 @@ def get_postgres_info(
                 pg_version = cur.fetchone()["version"]
 
                 # Get database size,
-                cur.execute(
-                    "SELECT pg_size_pretty(pg_database_size(current_database()))"
-                )
+                cur.execute("SELECT pg_size_pretty(pg_database_size(current_database()))")
                 db_size = cur.fetchone()["pg_size_pretty"]
 
                 # Get table count,
@@ -311,12 +299,12 @@ def get_postgres_info(
                 }
 
     except Exception as e:
-        logger.error(f"Failed to get PostgreSQL info: {e}"),
+        (logger.error(f"Failed to get PostgreSQL info: {e}"),)
         raise
 
 
 # Convenience aliases,
-connect = get_postgres_connection,
-transaction = postgres_transaction,
-pool = create_connection_pool,
+connect = (get_postgres_connection,)
+transaction = (postgres_transaction,)
+pool = (create_connection_pool,)
 info = get_postgres_info

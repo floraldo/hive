@@ -65,7 +65,7 @@ class RobustClaudeBridge:
         possible_paths = [
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
-            Path("claude.cmd")
+            Path("claude.cmd"),
             Path("claude")
         ]
 

@@ -181,10 +181,7 @@ def demonstrate_claude_planning() -> None:
         agent.update_task_status(task["id"], "planned")
 
         # Verify persistence
-        cursor.execute(
-            "SELECT COUNT(*) FROM execution_plans WHERE planning_task_id = ?",
-            (task["id"],),
-        )
+        cursor.execute("SELECT COUNT(*) FROM execution_plans WHERE planning_task_id = ?", (task["id"],))
         plan_count = cursor.fetchone()[0]
 
         cursor.execute("SELECT COUNT(*) FROM tasks WHERE task_type = 'planned_subtask'")

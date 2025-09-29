@@ -279,11 +279,7 @@ class RateLimiter:
 
             return status
 
-    async def wait_for_capacity(
-        self,
-        operation: str,
-        max_wait_seconds: float = 60.0,
-    ) -> bool:
+    async def wait_for_capacity(self, operation: str, max_wait_seconds: float = 60.0) -> bool:
         """
         Wait for rate limit capacity to become available.
 

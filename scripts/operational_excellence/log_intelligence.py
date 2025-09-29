@@ -464,11 +464,7 @@ class LogIntelligenceAnalyzer:
             report_lines.extend(["## 🔒 Security Alerts", ""])
 
             for alert in results["security_alerts"][:10]:
-                report_lines.extend(
-                    [
-                        f"- **{alert['alert_type']}** ({alert['source']}): {alert['message']}",
-                    ]
-                )
+                report_lines.extend([f"- **{alert['alert_type']}** ({alert['source']}): {alert['message']}"])
             report_lines.append("")
 
         # Top Errors

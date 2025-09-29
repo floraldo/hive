@@ -12,26 +12,14 @@ eco_path = Path(__file__).parent.parent / "src"
 
 from ecosystemiser.solver.base import SolverConfig
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
-from ecosystemiser.system_model.components.energy.battery import (
-    Battery,
-    BatteryParams,
-    BatteryTechnicalParams,
-)
-from ecosystemiser.system_model.components.energy.grid import (
-    Grid,
-    GridParams,
-    GridTechnicalParams,
-)
+from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
+from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
 from ecosystemiser.system_model.components.energy.power_demand import (
     PowerDemand,
     PowerDemandParams,
     PowerDemandTechnicalParams,
 )
-from ecosystemiser.system_model.components.energy.solar_pv import (
-    SolarPV,
-    SolarPVParams,
-    SolarPVTechnicalParams,
-)
+from ecosystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
 
@@ -80,10 +68,7 @@ def create_simple_golden_system(N=24):
     logger.info("Creating grid component...")
     grid_params = GridParams(
         technical=GridTechnicalParams(
-            capacity_nominal=100.0,
-            import_tariff=0.25,
-            export_tariff=0.10,
-            fidelity_level=FidelityLevel.SIMPLE,
+            capacity_nominal=100.0, import_tariff=0.25, export_tariff=0.10, fidelity_level=FidelityLevel.SIMPLE
         )
     )
     grid = Grid("Grid", grid_params, N)
@@ -104,9 +89,7 @@ def create_simple_golden_system(N=24):
     logger.info("Creating solar PV component...")
     solar_params = SolarPVParams(
         technical=SolarPVTechnicalParams(
-            capacity_nominal=50.0,
-            efficiency_nominal=1.0,
-            fidelity_level=FidelityLevel.SIMPLE,
+            capacity_nominal=50.0, efficiency_nominal=1.0, fidelity_level=FidelityLevel.SIMPLE
         )
     )
     solar = SolarPV("SolarPV", solar_params, N)
@@ -115,10 +98,7 @@ def create_simple_golden_system(N=24):
     logger.info("Creating power demand component...")
     demand_params = PowerDemandParams(
         technical=PowerDemandTechnicalParams(
-            capacity_nominal=12.5,
-            peak_demand=12.5,
-            load_profile_type="variable",
-            fidelity_level=FidelityLevel.SIMPLE,
+            capacity_nominal=12.5, peak_demand=12.5, load_profile_type="variable", fidelity_level=FidelityLevel.SIMPLE
         )
     )
     demand = PowerDemand("PowerDemand", demand_params, N)

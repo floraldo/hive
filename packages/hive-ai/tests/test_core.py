@@ -9,14 +9,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from hive_ai.core.config import AIConfig, ModelConfig, PromptConfig, VectorConfig
-from hive_ai.core.exceptions import (
-    AIError,
-    CostLimitError,
-    ModelError,
-    ModelUnavailableError,
-    PromptError,
-    VectorError,
-)
+from hive_ai.core.exceptions import AIError, CostLimitError, ModelError, ModelUnavailableError, PromptError, VectorError
 from hive_ai.core.interfaces import ModelResponse, ModelType, TokenUsage
 
 
@@ -86,12 +79,7 @@ class TestAIConfig:
             return
 
         with pytest.raises(ValueError, match="Temperature must be between"):
-            ModelConfig(
-                name="test",
-                provider="test",
-                model_type="completion",
-                temperature=temperature,
-            )
+            ModelConfig(name="test", provider="test", model_type="completion", temperature=temperature)
 
     @given(st.text())
     def test_model_config_invalid_provider(self, provider):
@@ -155,12 +143,7 @@ class TestExceptions:
 
     def test_model_error_attributes(self):
         """Test ModelError specific attributes."""
-        error = ModelError(
-            "Test error",
-            model="test-model",
-            provider="test-provider",
-            request_id="req-123",
-        )
+        error = ModelError("Test error", model="test-model", provider="test-provider", request_id="req-123")
 
         assert error.model == "test-model"
         assert error.provider == "test-provider"
@@ -177,11 +160,7 @@ class TestExceptions:
     def test_prompt_error_attributes(self):
         """Test PromptError specific attributes."""
         missing_vars = ["var1", "var2"]
-        error = PromptError(
-            "Missing variables",
-            template_name="test-template",
-            missing_variables=missing_vars,
-        )
+        error = PromptError("Missing variables", template_name="test-template", missing_variables=missing_vars)
 
         assert error.template_name == "test-template"
         assert error.missing_variables == missing_vars
@@ -218,22 +197,14 @@ class TestInterfaces:
 
     def test_token_usage_creation(self):
         """Test TokenUsage data class."""
-        usage = TokenUsage(
-            prompt_tokens=50,
-            completion_tokens=50,
-            total_tokens=100,
-            estimated_cost=0.01,
-        )
+        usage = TokenUsage(prompt_tokens=50, completion_tokens=50, total_tokens=100, estimated_cost=0.01)
 
         assert usage.prompt_tokens == 50
         assert usage.completion_tokens == 50
         assert usage.total_tokens == 100
         assert usage.estimated_cost == 0.01
 
-    @given(
-        st.integers(min_value=0, max_value=10000),
-        st.integers(min_value=0, max_value=10000),
-    )
+    @given(st.integers(min_value=0, max_value=10000), st.integers(min_value=0, max_value=10000))
     def test_token_usage_property(self, prompt_tokens, completion_tokens):
         """Property-based test for token usage consistency."""
         total_tokens = prompt_tokens + completion_tokens
@@ -259,12 +230,7 @@ class TestInterfaces:
     def test_model_response_property(self, content, model, tokens, cost):
         """Property-based test for ModelResponse invariants."""
         response = ModelResponse(
-            content=content,
-            model=model,
-            tokens_used=tokens,
-            cost=cost,
-            latency_ms=1000,
-            metadata={},
+            content=content, model=model, tokens_used=tokens, cost=cost, latency_ms=1000, metadata={}
         )
 
         assert response.tokens_used >= 0
@@ -316,10 +282,7 @@ class TestConfigIntegration:
         assert config.prompts.template_directory == "custom_prompts/"
         assert config.daily_cost_limit == 50.0
 
-    @given(
-        st.floats(min_value=1.0, max_value=1000.0),
-        st.floats(min_value=100.0, max_value=10000.0),
-    )
+    @given(st.floats(min_value=1.0, max_value=1000.0), st.floats(min_value=100.0, max_value=10000.0))
     def test_cost_limit_configuration_property(self, daily_limit, monthly_limit):
         """Property-based test for cost limit configuration."""
         # Ensure monthly is higher than daily
@@ -343,13 +306,7 @@ def sample_ai_config():
 @pytest.fixture
 def sample_model_config():
     """Fixture providing a sample model configuration for tests."""
-    return ModelConfig(
-        name="test-model",
-        provider="test",
-        model_type="completion",
-        temperature=0.7,
-        max_tokens=4096,
-    )
+    return ModelConfig(name="test-model", provider="test", model_type="completion", temperature=0.7, max_tokens=4096)
 
 
 # Performance-oriented property-based tests

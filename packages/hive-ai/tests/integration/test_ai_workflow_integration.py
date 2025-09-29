@@ -75,17 +75,12 @@ class TestAIWorkflowIntegration:
             async def _execute_main_logic_async(self, input_data=None):
                 # Use the prompt template
                 rendered = self.prompt_template.render(
-                    data=input_data.get("data", "test data"),
-                    focus=input_data.get("focus", "patterns"),
+                    data=input_data.get("data", "test data"), focus=input_data.get("focus", "patterns")
                 )
                 return f"Analysis based on: {rendered}"
 
         # Test integration
-        agent_config = AgentConfig(
-            name="analysis_agent",
-            description="Agent for data analysis",
-            model="test-model",
-        )
+        agent_config = AgentConfig(name="analysis_agent", description="Agent for data analysis", model="test-model")
 
         mock_client = Mock()
         agent = TestAnalysisAgent(agent_config, mock_client)
@@ -100,8 +95,7 @@ class TestAIWorkflowIntegration:
     async def test_workflow_orchestration_integration(self, ai_config):
         """Test integration of workflow orchestration with multiple agents."""
         workflow_config = WorkflowConfig(
-            name="data_processing_workflow",
-            description="Complete data processing workflow",
+            name="data_processing_workflow", description="Complete data processing workflow"
         )
 
         mock_client = Mock()

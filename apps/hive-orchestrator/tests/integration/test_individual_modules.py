@@ -123,12 +123,7 @@ def test_path_safety_logic():
         from pathlib import Path
 
         # Test path traversal prevention logic
-        dangerous_paths = [
-            "../../etc/passwd",
-            "../../../windows/system32",
-            "normal_file.txt",
-            "sub/dir/file.txt",
-        ]
+        dangerous_paths = ["../../etc/passwd", "../../../windows/system32", "normal_file.txt", "sub/dir/file.txt"]
 
         for path_str in dangerous_paths:
             test_path = Path(path_str)

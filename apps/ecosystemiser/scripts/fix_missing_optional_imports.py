@@ -12,7 +12,7 @@ from typing import Set
 
 def has_optional_usage(content: str) -> bool:
     """Check if file uses Optional[...] syntax."""
-    return bool(re.search(r'Optional\[', content))
+    return bool(re.search(r"Optional\[", content))
 
 
 def has_optional_import(content: str) -> bool:
@@ -21,44 +21,44 @@ def has_optional_import(content: str) -> bool:
         tree = ast.parse(content)
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom):
-                if node.module == 'typing':
+                if node.module == "typing":
                     for alias in node.names:
-                        if alias.name == 'Optional':
+                        if alias.name == "Optional":
                             return True
     except SyntaxError:
         # File has syntax errors, check with simple string search
-        return 'from typing import' in content and 'Optional' in content.split('from typing import')[1].split('\n')[0]
+        return "from typing import" in content and "Optional" in content.split("from typing import")[1].split("\n")[0]
     return False
 
 
 def add_optional_to_import(content: str) -> str:
     """Add Optional to existing typing import."""
-    lines = content.split('\n')
+    lines = content.split("\n")
     modified = False
 
     for i, line in enumerate(lines):
         # Find typing import line
-        if 'from typing import' in line and 'Optional' not in line:
+        if "from typing import" in line and "Optional" not in line:
             # Parse existing imports
-            import_part = line.split('from typing import')[1]
+            import_part = line.split("from typing import")[1]
 
             # Handle different import styles
-            if '(' in import_part:
+            if "(" in import_part:
                 # Multi-line import: from typing import (
                 # Find closing paren
                 closing_line = i
                 for j in range(i, len(lines)):
-                    if ')' in lines[j]:
+                    if ")" in lines[j]:
                         closing_line = j
                         break
 
                 # Add Optional before closing paren
-                lines[closing_line] = lines[closing_line].replace(')', ', Optional)')
+                lines[closing_line] = lines[closing_line].replace(")", ", Optional)")
                 modified = True
                 break
             else:
                 # Single line import
-                lines[i] = line.rstrip() + ', Optional'
+                lines[i] = line.rstrip() + ", Optional"
                 modified = True
                 break
 
@@ -66,13 +66,13 @@ def add_optional_to_import(content: str) -> str:
         # No typing import found, add it after other imports
         import_section_end = 0
         for i, line in enumerate(lines):
-            if line.startswith('import ') or line.startswith('from '):
+            if line.startswith("import ") or line.startswith("from "):
                 import_section_end = i + 1
-            elif import_section_end > 0 and line.strip() == '':
+            elif import_section_end > 0 and line.strip() == "":
                 break
 
         if import_section_end > 0:
-            lines.insert(import_section_end, 'from typing import Optional')
+            lines.insert(import_section_end, "from typing import Optional")
         else:
             # Add at top of file after docstring
             insert_pos = 0
@@ -82,14 +82,14 @@ def add_optional_to_import(content: str) -> str:
                     if '"""' in lines[i] or "'''" in lines[i]:
                         insert_pos = i + 1
                         break
-            lines.insert(insert_pos, 'from typing import Optional')
+            lines.insert(insert_pos, "from typing import Optional")
 
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def fix_file(file_path: Path) -> bool:
     """Fix a single file. Returns True if modified."""
-    content = file_path.read_text(encoding='utf-8')
+    content = file_path.read_text(encoding="utf-8")
 
     if not has_optional_usage(content):
         return False
@@ -101,7 +101,7 @@ def fix_file(file_path: Path) -> bool:
     fixed_content = add_optional_to_import(content)
 
     if fixed_content != content:
-        file_path.write_text(fixed_content, encoding='utf-8')
+        file_path.write_text(fixed_content, encoding="utf-8")
         return True
 
     return False
@@ -109,7 +109,7 @@ def fix_file(file_path: Path) -> bool:
 
 def main():
     """Main execution."""
-    src_dir = Path(__file__).parent.parent / 'src' / 'ecosystemiser'
+    src_dir = Path(__file__).parent.parent / "src" / "ecosystemiser"
 
     if not src_dir.exists():
         print(f"ERROR: Source directory not found: {src_dir}")
@@ -119,7 +119,7 @@ def main():
 
     fixed_files = []
 
-    for py_file in src_dir.rglob('*.py'):
+    for py_file in src_dir.rglob("*.py"):
         try:
             if fix_file(py_file):
                 fixed_files.append(py_file.relative_to(src_dir))
@@ -135,5 +135,5 @@ def main():
             print(f"  - {f}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

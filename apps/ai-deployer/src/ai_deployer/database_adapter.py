@@ -166,9 +166,7 @@ class DatabaseAdapter:
                         status, estimated_duration,
                     FROM tasks
                     WHERE id = ?
-                """(
-                        task_id,
-                    )
+                """(task_id)
                 )
 
                 row = cursor.fetchone()
@@ -229,12 +227,7 @@ class DatabaseAdapter:
                     INSERT INTO deployment_events
                     (task_id, event_type, details, timestamp)
                     VALUES (?, ?, ?, ?)
-                """(
-                        task_id,
-                        event_type,
-                        json.dumps(details),
-                        datetime.now().isoformat(),
-                    )
+                """(task_id, event_type, json.dumps(details), datetime.now().isoformat())
                 )
 
                 conn.commit()
@@ -265,9 +258,7 @@ class DatabaseAdapter:
                     FROM deployment_events,
                     WHERE task_id = ?,
                     ORDER BY timestamp DESC,
-                """(
-                        task_id,
-                    )
+                """(task_id)
                 )
 
                 rows = cursor.fetchall()
@@ -275,11 +266,7 @@ class DatabaseAdapter:
                 events = []
                 for row in rows:
                     events.append(
-                        {
-                            "event_type": row[0],
-                            "details": self._parse_json_field(row[1]),
-                            "timestamp": row[2],
-                        }
+                        {"event_type": row[0], "details": self._parse_json_field(row[1]), "timestamp": row[2]}
                     )
 
                 return events

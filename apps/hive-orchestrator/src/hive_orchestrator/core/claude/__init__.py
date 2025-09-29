@@ -8,13 +8,7 @@ Provides a single, robust interface for all Claude API interactions
 """
 
 from .bridge import BaseClaludeBridge, ClaudeBridgeConfig
-from .claude_service import (
-    ClaudeMetrics,
-    ClaudeService,
-    RateLimitConfig,
-    get_claude_service,
-    reset_claude_service,
-)
+from .claude_service import ClaudeMetrics, ClaudeService, RateLimitConfig, get_claude_service, reset_claude_service
 from .exceptions import (
     ClaudeBridgeError,
     ClaudeError,

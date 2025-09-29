@@ -5,8 +5,8 @@ AI Planner Agent - Intelligent Task Planning and Workflow Generation
 Core autonomous agent that monitors the planning_queue and generates
 executable plans for complex tasks submitted to the Hive system.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import asyncio
 import json
@@ -14,10 +14,9 @@ import signal
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -29,7 +28,7 @@ try:
         get_async_connection,
         get_connection,
         get_tasks_by_status_async,
-        update_task_status_async
+        update_task_status_async,
     )
 
     ASYNC_AVAILABLE = True
@@ -47,13 +46,8 @@ class ClaudeService:
         self.mock_mode = getattr(config, "mock_mode", True)
 
     def generate_execution_plan(
-        self,
-        task_description: str,
-        context_data: Dict[str, Any],
-        priority: int,
-        requestor: str,
-        use_cache: bool = True
-    ) -> Dict[str, Any]:
+        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str, use_cache: bool = True
+    ) -> dict[str, Any]:
         """Generate an execution plan for a task.
 
         Args:
@@ -81,14 +75,10 @@ class ClaudeService:
                     "workflow_phase": "analysis",
                     "required_skills": ["analysis"],
                     "deliverables": ["requirements_doc"],
-                    "dependencies": []
+                    "dependencies": [],
                 }
             ],
-            "metrics": {
-                "total_estimated_duration": 30,
-                "complexity_breakdown": {"medium": 1},
-                "confidence_score": 0.8,
-            }
+            "metrics": {"total_estimated_duration": 30, "complexity_breakdown": {"medium": 1}, "confidence_score": 0.8},
         }
 
 
@@ -104,8 +94,7 @@ class ClaudeBridgeConfig:
 
 
 def get_claude_service(
-    config: Optional[Dict[str, Any]] = None,
-    rate_config: Optional[Dict[str, Any]] = None
+    config: Optional[dict[str, Any]] = None, rate_config: Optional[dict[str, Any]] = None
 ) -> ClaudeService:
     """Get a Claude service instance with optional configuration.
 
@@ -122,17 +111,13 @@ def get_claude_service(
 # Import recovery strategies from core module (follows "inherit -> extend" pattern)
 # Import error classes from our core module following the "inherit -> extend" pattern,
 from ai_planner.core.errors import (
-    ClaudeServiceError,
     DatabaseConnectionError,
     ExponentialBackoffStrategy,
     PlanGenerationError,
     PlannerError,
-    PlanValidationError,
     TaskProcessingError,
-    TaskQueueError,
-    TaskValidationError,
     get_error_reporter,
-    with_recovery
+    with_recovery,
 )
 
 # Initialize error reporter following the pattern,
@@ -143,10 +128,9 @@ try:
     # Import the orchestrator's Hive-specific database layer (extends hive-db-utils)
     from hive_orchestrator.core.db import get_connection, get_pooled_connection
 
-    DATABASE_AVAILABLE = True,
+    DATABASE_AVAILABLE = (True,)
 except ImportError:
     # Fallback to generic database utilities if orchestrator not available,
-    from hive_config import get_config
 
     DATABASE_AVAILABLE = False
 
@@ -193,7 +177,7 @@ class AIPlanner:
             self.event_bus = None
 
         # Initialize Claude service for intelligent planning
-        config = ClaudeBridgeConfig(mock_mode=mock_mode),
+        config = (ClaudeBridgeConfig(mock_mode=mock_mode),)
         rate_config = RateLimitConfig(max_calls_per_minute=20, max_calls_per_hour=500)
         self.claude_service = get_claude_service(config=config, rate_config=rate_config)
 
@@ -209,7 +193,7 @@ class AIPlanner:
         task_id: str,
         workflow_id: str = None,
         correlation_id: str = None,
-        **additional_payload
+        **additional_payload,
     ) -> str:
         """Publish workflow events for explicit agent communication
 
@@ -235,7 +219,7 @@ class AIPlanner:
                 workflow_id=workflow_id,
                 task_id=task_id,
                 source_agent="ai-planner",
-                **additional_payload
+                **additional_payload,
             )
 
             event_id = self.event_bus.publish(event, correlation_id=correlation_id)
@@ -267,12 +251,12 @@ class AIPlanner:
             error = DatabaseConnectionError(
                 message="Failed to establish database connection",
                 original_error=e,
-                retry_count=self.db_retry_strategy.max_retries
+                retry_count=self.db_retry_strategy.max_retries,
             )
             self.error_reporter.report_error(error)
             return False
 
-    def get_next_task(self) -> Optional[Dict[str, Any]]:
+    def get_next_task(self) -> Optional[dict[str, Any]]:
         """
         Fetch the next high-priority task from planning_queue
 
@@ -309,7 +293,7 @@ class AIPlanner:
                 SET status = 'assigned', assigned_at = ?, assigned_agent = ?,
                 WHERE id = ?,
             """,
-                (datetime.now(timezone.utc).isoformat(), self.agent_id, task_id)
+                (datetime.now(UTC).isoformat(), self.agent_id, task_id),
             )
 
             self.db_connection.commit()
@@ -322,20 +306,20 @@ class AIPlanner:
                 "requestor": result[3],
                 "context_data": json.loads(result[4]) if result[4] else {},
                 "complexity_estimate": result[5],
-                "created_at": result[6]
+                "created_at": result[6],
             }
 
         except Exception as e:
             error = TaskProcessingError(
-                message=f"Error fetching next task from planning queue",
+                message="Error fetching next task from planning queue",
                 task_id=None,
                 phase="task_retrieval",
-                original_error=e
+                original_error=e,
             )
             self.error_reporter.report_error(error)
             return None
 
-    def analyze_task_complexity(self, task_description: str, context_data: Dict) -> str:
+    def analyze_task_complexity(self, task_description: str, context_data: dict) -> str:
         """
         Analyze task complexity for initial estimation
 
@@ -363,7 +347,7 @@ class AIPlanner:
             "performance",
             "scalability",
             "database",
-            "api"
+            "api",
         ]
 
         # Simple task indicators
@@ -385,7 +369,7 @@ class AIPlanner:
         else:
             return "medium"
 
-    def generate_execution_plan(self, task: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def generate_execution_plan(self, task: dict[str, Any]) -> Optional[dict[str, Any]]:
         """
         Generate a structured execution plan using Claude AI
 
@@ -404,15 +388,15 @@ class AIPlanner:
                 context_data=task["context_data"],
                 priority=task["priority"],
                 requestor=task["requestor"],
-                use_cache=True  # Enable caching for similar planning requests
+                use_cache=True,  # Enable caching for similar planning requests
             )
 
             if not claude_response:
                 error = PlanGenerationError(
-                    message=f"Claude bridge returned empty response",
+                    message="Claude bridge returned empty response",
                     task_id=task["id"],
                     task_description=task["task_description"],
-                    original_error=None
+                    original_error=None,
                 )
                 self.error_reporter.report_error(error)
 
@@ -423,7 +407,7 @@ class AIPlanner:
                     workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id"),
                     failure_reason="Claude bridge returned empty response",
-                    error_type="EmptyClaudeResponse"
+                    error_type="EmptyClaudeResponse",
                 )
 
                 return None
@@ -432,14 +416,14 @@ class AIPlanner:
             enhanced_plan = {
                 **claude_response,
                 "task_id": task["id"],
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
                 "status": "generated",
                 "metadata": {
                     "generator": "ai-planner-v2-claude",
                     "agent_id": self.agent_id,
                     "generation_method": "claude-powered",
-                    "claude_confidence": claude_response.get("metrics", {}).get("confidence_score", 0.0)
-                }
+                    "claude_confidence": claude_response.get("metrics", {}).get("confidence_score", 0.0),
+                },
             }
 
             logger.info(f"Claude plan generated: {enhanced_plan['plan_name']}")
@@ -456,7 +440,7 @@ class AIPlanner:
                 plan_name=enhanced_plan.get("plan_name"),
                 subtask_count=len(enhanced_plan.get("sub_tasks", [])),
                 estimated_duration=enhanced_plan.get("metrics", {}).get("total_estimated_duration", 0),
-                confidence_score=enhanced_plan.get("metadata", {}).get("claude_confidence", 0.0)
+                confidence_score=enhanced_plan.get("metadata", {}).get("claude_confidence", 0.0),
             )
 
             return enhanced_plan
@@ -466,7 +450,7 @@ class AIPlanner:
                 message="Failed to generate execution plan",
                 task_id=task["id"],
                 task_description=task["task_description"],
-                original_error=e
+                original_error=e,
             )
             self.error_reporter.report_error(error)
 
@@ -477,7 +461,7 @@ class AIPlanner:
                 workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id"),
                 failure_reason=str(e),
-                error_type=type(e).__name__
+                error_type=type(e).__name__,
             )
 
             return None
@@ -487,16 +471,16 @@ class AIPlanner:
         duration_map = {"simple": 15, "medium": 60, "complex": 180}
         return duration_map.get(complexity, 60)
 
-    def _estimate_resources(self, complexity: str) -> List[str]:
+    def _estimate_resources(self, complexity: str) -> list[str]:
         """Estimate required resources based on complexity"""
         resource_map = {
             "simple": ["basic-compute"],
             "medium": ["standard-compute", "database-access"],
-            "complex": ["high-compute", "database-access", "external-apis", "storage"]
+            "complex": ["high-compute", "database-access", "external-apis", "storage"],
         }
         return resource_map.get(complexity, ["standard-compute"])
 
-    def _generate_plan_steps(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _generate_plan_steps(self, task: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Generate basic plan steps using rule-based approach
 
@@ -520,7 +504,7 @@ class AIPlanner:
                 "description": "Analyze requirements and gather context",
                 "type": "analysis",
                 "estimated_duration": 5,
-                "dependencies": []
+                "dependencies": [],
             }
         )
         step_id += 1
@@ -534,7 +518,7 @@ class AIPlanner:
                     "description": "Design API interfaces and data structures",
                     "type": "design",
                     "estimated_duration": 20,
-                    "dependencies": [1]
+                    "dependencies": [1],
                 }
             )
             step_id += 1
@@ -547,7 +531,7 @@ class AIPlanner:
                     "description": "Create user interface components",
                     "type": "implementation",
                     "estimated_duration": 30,
-                    "dependencies": [1]
+                    "dependencies": [1],
                 }
             )
             step_id += 1
@@ -560,7 +544,7 @@ class AIPlanner:
                     "description": "Implement data persistence and retrieval",
                     "type": "implementation",
                     "estimated_duration": 25,
-                    "dependencies": [1]
+                    "dependencies": [1],
                 }
             )
             step_id += 1
@@ -573,13 +557,13 @@ class AIPlanner:
                 "description": "Test implementation and validate requirements",
                 "type": "validation",
                 "estimated_duration": 15,
-                "dependencies": list(range(2, step_id))
+                "dependencies": list(range(2, step_id)),
             }
         )
 
         return steps
 
-    def save_execution_plan(self, plan: Dict[str, Any]) -> bool:
+    def save_execution_plan(self, plan: dict[str, Any]) -> bool:
         """
         Save the generated execution plan and create sub-tasks
 
@@ -609,11 +593,15 @@ class AIPlanner:
                     plan["plan_id"],
                     plan["task_id"],
                     json.dumps(plan),
-                    "complex" if plan.get("metrics", {}).get("complexity_breakdown", {}).get("complex", 0) > 0 else "medium",
+                    (
+                        "complex"
+                        if plan.get("metrics", {}).get("complexity_breakdown", {}).get("complex", 0) > 0
+                        else "medium"
+                    ),
                     plan.get("metrics", {}).get("total_estimated_duration", 60),
                     plan["status"],
-                    plan["created_at"]
-                )
+                    plan["created_at"],
+                ),
             )
 
             # Create individual sub-tasks in the main tasks table
@@ -634,16 +622,16 @@ class AIPlanner:
                                 "workflow_phase": sub_task["workflow_phase"],
                                 "required_skills": sub_task["required_skills"],
                                 "deliverables": sub_task["deliverables"],
-                                "dependencies": sub_task["dependencies"]
-                            }
+                                "dependencies": sub_task["dependencies"],
+                            },
                         )
                         logger.debug(f"Created sub-task: {task_id} for {sub_task['title']}")
                     except Exception as sub_task_error:
                         error = TaskProcessingError(
-                            message=f"Failed to create sub-task",
+                            message="Failed to create sub-task",
                             task_id=sub_task["id"],
                             phase="sub_task_creation",
-                            original_error=sub_task_error
+                            original_error=sub_task_error,
                         )
                         self.error_reporter.report_error(error, severity="WARNING")
                         # Continue with other sub-tasks rather than failing the entire operation
@@ -662,14 +650,12 @@ class AIPlanner:
                     logger.debug(f"Rollback failed: {rollback_error}")
 
             error = DatabaseConnectionError(
-                message="Failed to save execution plan to database",
-                original_error=e,
-                retry_count=0
+                message="Failed to save execution plan to database", original_error=e, retry_count=0
             )
             self.error_reporter.report_error(error)
             return False
 
-    def update_task_status(self, task_id: str, status: str, completion_data: Dict | None = None) -> bool:
+    def update_task_status(self, task_id: str, status: str, completion_data: dict | None = None) -> bool:
         """
         Update task status in planning_queue
 
@@ -694,7 +680,7 @@ class AIPlanner:
                     SET status = ?, completed_at = ?,
                     WHERE id = ?,
                 """,
-                    (status, datetime.now(timezone.utc).isoformat(), task_id)
+                    (status, datetime.now(UTC).isoformat(), task_id),
                 )
             else:
                 cursor.execute(
@@ -703,7 +689,7 @@ class AIPlanner:
                     SET status = ?
                     WHERE id = ?,
                 """,
-                    (status, task_id)
+                    (status, task_id),
                 )
 
             self.db_connection.commit()
@@ -712,14 +698,12 @@ class AIPlanner:
 
         except Exception as e:
             error = DatabaseConnectionError(
-                message=f"Failed to update task status to {status}",
-                original_error=e,
-                retry_count=0
+                message=f"Failed to update task status to {status}", original_error=e, retry_count=0
             )
             self.error_reporter.report_error(error)
             return False
 
-    def process_task(self, task: Dict[str, Any]) -> bool:
+    def process_task(self, task: dict[str, Any]) -> bool:
         """
         Process a single task through the planning pipeline
 
@@ -739,7 +723,7 @@ class AIPlanner:
                 workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id"),
                 phase="planning",
-                task_description=task["task_description"][:100]
+                task_description=task["task_description"][:100],
             )
 
             # Generate execution plan
@@ -766,7 +750,7 @@ class AIPlanner:
                 correlation_id=task.get("correlation_id"),
                 phase="planning",
                 plan_id=plan["plan_id"],
-                plan_name=plan.get("plan_name", "Unknown Plan")
+                plan_name=plan.get("plan_name", "Unknown Plan"),
             )
 
             logger.info(f"Successfully planned task: {task['id']} with plan: {plan['plan_id']}")
@@ -777,7 +761,7 @@ class AIPlanner:
                 message="Unexpected error during task processing",
                 task_id=task["id"],
                 phase="processing",
-                original_error=e
+                original_error=e,
             )
             self.error_reporter.report_error(error)
             self.update_task_status(task["id"], "failed")
@@ -790,7 +774,7 @@ class AIPlanner:
                 correlation_id=task.get("correlation_id"),
                 phase="planning",
                 failure_reason=str(e),
-                error_type=type(e).__name__
+                error_type=type(e).__name__,
             )
 
             return False
@@ -854,7 +838,7 @@ class AIPlanner:
             task_id: str,
             workflow_id: str = None,
             correlation_id: str = None,
-            **additional_payload
+            **additional_payload,
         ) -> str:
             """Async version of workflow event publishing."""
             if not self.event_bus:
@@ -869,7 +853,7 @@ class AIPlanner:
                     workflow_id=workflow_id,
                     task_id=task_id,
                     source_agent="ai-planner",
-                    **additional_payload
+                    **additional_payload,
                 )
 
                 event_id = await publish_event_async(event, correlation_id=correlation_id)
@@ -880,7 +864,7 @@ class AIPlanner:
                 logger.warning(f"Failed to publish async workflow event {event_type} for task {task_id}: {e}")
                 return ""
 
-        async def get_next_task_async(self) -> Optional[Dict[str, Any]]:
+        async def get_next_task_async(self) -> Optional[dict[str, Any]]:
             """
             Async version of get_next_task for non-blocking database operations.
 
@@ -910,9 +894,9 @@ class AIPlanner:
                             "requestor",
                             "context_data",
                             "complexity_estimate",
-                            "created_at"
+                            "created_at",
                         ]
-                        task = dict(zip(columns, result))
+                        task = dict(zip(columns, result, strict=False))
 
                         # Parse JSON context_data if present
                         if task["context_data"]:
@@ -934,7 +918,7 @@ class AIPlanner:
                 return None
 
         async def update_task_status_async(
-            self, task_id: str, status: str, completion_data: Dict | None = None
+            self, task_id: str, status: str, completion_data: dict | None = None
         ) -> bool:
             """
             Async version of update_task_status.
@@ -956,7 +940,7 @@ class AIPlanner:
                             SET status = ?, completed_at = ?,
                             WHERE id = ?,
                         """,
-                            (status, datetime.now(timezone.utc).isoformat(), task_id)
+                            (status, datetime.now(UTC).isoformat(), task_id),
                         )
                     else:
                         await conn.execute(
@@ -965,7 +949,7 @@ class AIPlanner:
                             SET status = ?
                             WHERE id = ?,
                         """,
-                            (status, task_id)
+                            (status, task_id),
                         )
 
                     await conn.commit()
@@ -976,7 +960,7 @@ class AIPlanner:
                 logger.error(f"Error updating async task status to {status}: {e}")
                 return False
 
-        async def process_task_async(self, task: Dict[str, Any]) -> bool:
+        async def process_task_async(self, task: dict[str, Any]) -> bool:
             """
             Async version of process_task for non-blocking task processing.
 
@@ -996,7 +980,7 @@ class AIPlanner:
                     workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id"),
                     phase="planning",
-                    task_description=task["task_description"][:100]
+                    task_description=task["task_description"][:100],
                 )
 
                 # Generate execution plan (this can remain sync as it's CPU-bound)
@@ -1024,7 +1008,7 @@ class AIPlanner:
                     correlation_id=task.get("correlation_id"),
                     phase="planning",
                     plan_id=plan["plan_id"],
-                    plan_name=plan.get("plan_name", "Unknown Plan")
+                    plan_name=plan.get("plan_name", "Unknown Plan"),
                 )
 
                 logger.info(f"Successfully planned async task: {task['id']} with plan: {plan['plan_id']}")
@@ -1042,7 +1026,7 @@ class AIPlanner:
                     correlation_id=task.get("correlation_id"),
                     phase="planning",
                     failure_reason=str(e),
-                    error_type=type(e).__name__
+                    error_type=type(e).__name__,
                 )
 
                 return False
@@ -1092,19 +1076,15 @@ class AIPlanner:
 class WorkflowEventType(Enum):
     """Types of workflow events"""
 
-    PHASE_STARTED = "phase_started",
-    PHASE_COMPLETED = "phase_completed",
-    PLAN_GENERATED = "plan_generated",
+    PHASE_STARTED = ("phase_started",)
+    PHASE_COMPLETED = ("phase_completed",)
+    PLAN_GENERATED = ("plan_generated",)
     BLOCKED = "blocked"
 
 
 def create_workflow_event(
-    event_type: WorkflowEventType,
-    workflow_id: str,
-    task_id: str,
-    source_agent: str,
-    **kwargs
-) -> Dict[str, Any]:
+    event_type: WorkflowEventType, workflow_id: str, task_id: str, source_agent: str, **kwargs
+) -> dict[str, Any]:
     """Create a workflow event.
 
     Args:
@@ -1122,15 +1102,14 @@ def create_workflow_event(
         "workflow_id": workflow_id,
         "task_id": task_id,
         "source_agent": source_agent,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-        **kwargs,
+        "timestamp": datetime.now(UTC).isoformat() ** kwargs,
     }
 
 
 class MockEventBus:
     """Mock event bus for development"""
 
-    def publish(self, event: Dict[str, Any], correlation_id: str | None = None) -> str:
+    def publish(self, event: dict[str, Any], correlation_id: str | None = None) -> str:
         """Publish an event to the mock event bus.
 
         Args:
@@ -1158,7 +1137,7 @@ def get_event_bus() -> MockEventBus:
 ASYNC_EVENTS_AVAILABLE = False
 
 
-async def publish_event_async(event: Dict[str, Any], correlation_id: str | None = None) -> str:
+async def publish_event_async(event: dict[str, Any], correlation_id: str | None = None) -> str:
     """Mock async event publishing.
 
     Args:
@@ -1182,11 +1161,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="AI Planner Agent - Intelligent Task Planning")
     parser.add_argument("--mock", action="store_true", help="Run in mock mode for testing")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-    parser.add_argument(
-        "--async-mode",
-        action="store_true",
-        help="Run in async mode for better performance"
-    )
+    (parser.add_argument("--async-mode", action="store_true", help="Run in async mode for better performance"),)
     args = parser.parse_args()
 
     if args.debug:

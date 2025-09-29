@@ -22,10 +22,7 @@ class GitHubWebhookHandler:
     """
 
     def __init__(
-        self,
-        config: GuardianConfig | None = None,
-        github_token: str | None = None,
-        webhook_secret: str | None = None,
+        self, config: GuardianConfig | None = None, github_token: str | None = None, webhook_secret: str | None = None
     ) -> None:
         """Initialize the webhook handler."""
         self.config = config or GuardianConfig()
@@ -37,11 +34,7 @@ class GitHubWebhookHandler:
 
         logger.info("GitHubWebhookHandler initialized")
 
-    async def handle_webhook(
-        self,
-        payload: dict[str, Any],
-        headers: dict[str, str],
-    ) -> dict[str, Any]:
+    async def handle_webhook(self, payload: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
         """
         Handle incoming GitHub webhook.
 
@@ -86,38 +79,20 @@ class GitHubWebhookHandler:
         head_branch = pr.get("head", {}).get("ref")
         head_sha = pr.get("head", {}).get("sha")
 
-        logger.info(
-            "Processing PR #%d in %s (%s -> %s)",
-            pr_number,
-            repo_full_name,
-            head_branch,
-            base_branch,
-        )
+        logger.info("Processing PR #%d in %s (%s -> %s)", pr_number, repo_full_name, head_branch, base_branch)
 
         # Get changed files
-        changed_files = await self._get_changed_files(
-            repo_full_name,
-            pr_number,
-        )
+        changed_files = await self._get_changed_files(repo_full_name, pr_number)
 
         # Review each file
         review_results = []
         for file_info in changed_files:
             if self._should_review_file(file_info["filename"]):
-                result = await self._review_pr_file(
-                    repo_full_name,
-                    pr_number,
-                    file_info,
-                )
+                result = await self._review_pr_file(repo_full_name, pr_number, file_info)
                 review_results.append(result)
 
         # Post review comment
-        await self._post_review_comment(
-            repo_full_name,
-            pr_number,
-            head_sha,
-            review_results,
-        )
+        await self._post_review_comment(repo_full_name, pr_number, head_sha, review_results)
 
         return {"message": f"Reviewed {len(review_results)} files"}, 200
 
@@ -152,11 +127,7 @@ class GitHubWebhookHandler:
 
         return {"message": "Comment processed"}, 200
 
-    def _verify_signature(
-        self,
-        payload: dict[str, Any],
-        headers: dict[str, str],
-    ) -> bool:
+    def _verify_signature(self, payload: dict[str, Any], headers: dict[str, str]) -> bool:
         """Verify webhook signature."""
         signature = headers.get("X-Hub-Signature-256", "")
         if not signature:
@@ -164,20 +135,12 @@ class GitHubWebhookHandler:
 
         expected = (
             "sha256=",
-            +hmac.new(
-                self.webhook_secret.encode(),
-                json.dumps(payload).encode(),
-                "sha256",
-            ).hexdigest(),
+            +hmac.new(self.webhook_secret.encode(), json.dumps(payload).encode(), "sha256").hexdigest(),
         )
 
         return hmac.compare_digest(expected, signature)
 
-    async def _get_changed_files(
-        self,
-        repo: str,
-        pr_number: int,
-    ) -> list[dict[str, Any]]:
+    async def _get_changed_files(self, repo: str, pr_number: int) -> list[dict[str, Any]]:
         """Get list of changed files in PR."""
         # In real implementation, would use GitHub API
         # For now, return mock data
@@ -206,12 +169,7 @@ class GitHubWebhookHandler:
 
         return False
 
-    async def _review_pr_file(
-        self,
-        repo: str,
-        pr_number: int,
-        file_info: dict[str, Any],
-    ) -> dict[str, Any]:
+    async def _review_pr_file(self, repo: str, pr_number: int, file_info: dict[str, Any]) -> dict[str, Any]:
         """Review a single file in the PR."""
         filename = file_info["filename"]
 
@@ -223,22 +181,14 @@ class GitHubWebhookHandler:
         result = await self.review_engine.review_file(file_path)
 
         # Format for PR comment
-        return {
-            "path": filename,
-            "review": result,
-            "line_comments": self._generate_line_comments(result, file_info),
-        }
+        return {"path": filename, "review": result, "line_comments": self._generate_line_comments(result, file_info)}
 
     async def _get_file_content(self, repo: str, filename: str) -> str:
         """Get file content from GitHub."""
         # In real implementation, would use GitHub API
         return "# Mock file content\ndef example():\n    pass"
 
-    def _generate_line_comments(
-        self,
-        review_result,
-        file_info: dict[str, Any],
-    ) -> list[dict[str, Any]]:
+    def _generate_line_comments(self, review_result, file_info: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate line-specific comments from review."""
         comments = []
 
@@ -265,11 +215,7 @@ class GitHubWebhookHandler:
         return comments
 
     async def _post_review_comment(
-        self,
-        repo: str,
-        pr_number: int,
-        commit_sha: str,
-        review_results: list[dict[str, Any]],
+        self, repo: str, pr_number: int, commit_sha: str, review_results: list[dict[str, Any]]
     ) -> None:
         """Post review comment to PR."""
         # Format overall review
@@ -281,18 +227,11 @@ class GitHubWebhookHandler:
             comments.extend(result.get("line_comments", []))
 
         # Would use GitHub API to post review
-        logger.info(
-            "Would post review to PR #%d with %d comments",
-            pr_number,
-            len(comments),
-        )
+        logger.info("Would post review to PR #%d with %d comments", pr_number, len(comments))
 
     def _format_review_body(self, review_results: list[dict[str, Any]]) -> str:
         """Format the main review comment body."""
-        lines = [
-            "## 🤖 Guardian Agent Review",
-            "",
-        ]
+        lines = ["## 🤖 Guardian Agent Review", ""]
 
         # Overall summary
         total_violations = sum(sum(r["review"].violations_count.values()) for r in review_results)
@@ -317,12 +256,7 @@ class GitHubWebhookHandler:
             lines.append("")
 
         # Footer
-        lines.extend(
-            [
-                "---",
-                "*Generated by Guardian Agent | [Documentation](https://github.com/hive/guardian-agent)*",
-            ]
-        )
+        lines.extend(["---", "*Generated by Guardian Agent | [Documentation](https://github.com/hive/guardian-agent)*"])
 
         return "\n".join(lines)
 
@@ -332,25 +266,13 @@ class GitHubWebhookHandler:
 
         # Look for feedback patterns
         if "correct" in body.lower() or "agree" in body.lower():
-            return {
-                "type": "positive",
-                "comment_id": comment.get("id"),
-                "body": body,
-            }
+            return {"type": "positive", "comment_id": comment.get("id"), "body": body}
         elif "incorrect" in body.lower() or "disagree" in body.lower():
-            return {
-                "type": "negative",
-                "comment_id": comment.get("id"),
-                "body": body,
-            }
+            return {"type": "negative", "comment_id": comment.get("id"), "body": body}
 
         return None
 
     async def _process_feedback(self, feedback: dict[str, Any]) -> None:
         """Process feedback for learning system."""
         # Would integrate with learning system
-        logger.info(
-            "Processing %s feedback: %s",
-            feedback["type"],
-            feedback["comment_id"],
-        )
+        logger.info("Processing %s feedback: %s", feedback["type"], feedback["comment_id"])

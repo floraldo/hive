@@ -45,10 +45,7 @@ class EnvironmentVerifier:
 
     def check_hive_packages(self) -> bool:
         """Verify Hive packages are accessible."""
-        hive_packages = [
-            ("hive_config", "Configuration service"),
-            ("hive_logging", "Logging service"),
-        ]
+        hive_packages = [("hive_config", "Configuration service"), ("hive_logging", "Logging service")]
 
         all_good = True
         for package, description in hive_packages:
@@ -63,13 +60,7 @@ class EnvironmentVerifier:
 
     def check_no_sys_path_hacks(self) -> bool:
         """Verify no sys.path manipulations remain."""
-        cmd = [
-            "grep",
-            "-r",
-            "sys.path.insert\\|sys.path.append",
-            "--include=*.py",
-            str(self.ecosystemiser_dir),
-        ]
+        cmd = ["grep", "-r", "sys.path.insert\\|sys.path.append", "--include=*.py", str(self.ecosystemiser_dir)]
 
         try:
             result = subprocess.run(cmd, capture_output=True, text=True)
@@ -91,10 +82,7 @@ class EnvironmentVerifier:
     def check_logging_integration(self) -> bool:
         """Verify logging is using Hive adapter."""
         try:
-            from ecosystemiser.hive_logging_adapter import (
-                USING_HIVE_LOGGING,
-                get_logger,
-            )
+            from ecosystemiser.hive_logging_adapter import USING_HIVE_LOGGING, get_logger
 
             get_logger(__name__)
 
@@ -135,13 +123,7 @@ class EnvironmentVerifier:
             self.results.append("[OK] Configuration service accessible")
 
             # Check for direct os.getenv usage
-            cmd = [
-                "grep",
-                "-r",
-                "os.getenv\\|os.environ",
-                "--include=*.py",
-                str(self.ecosystemiser_dir / "src"),
-            ]
+            cmd = ["grep", "-r", "os.getenv\\|os.environ", "--include=*.py", str(self.ecosystemiser_dir / "src")]
 
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.stdout:

@@ -9,10 +9,4 @@ from .analyzer import SemanticAnalyzer
 from .genesis_agent import AppSpec, GenesisAgent, GenesisConfig
 from .scaffolder import HiveScaffolder
 
-__all__ = [
-    "GenesisAgent",
-    "AppSpec",
-    "GenesisConfig",
-    "HiveScaffolder",
-    "SemanticAnalyzer",
-]
+__all__ = ["GenesisAgent", "AppSpec", "GenesisConfig", "HiveScaffolder", "SemanticAnalyzer"]

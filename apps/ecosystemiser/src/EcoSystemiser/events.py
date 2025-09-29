@@ -20,18 +20,9 @@ class EcoSystemiserEvent(BaseEvent):
     """Base class for all EcoSystemiser events"""
 
     def __init__(
-        self,
-        event_type: str,
-        component: str,
-        data: dict[str, Any] | None = None,
-        correlation_id: str | None = None,
+        self, event_type: str, component: str, data: dict[str, Any] | None = None, correlation_id: str | None = None
     ):
-        super().__init__(
-            event_type=event_type,
-            source="ecosystemiser",
-            data=data or {},
-            correlation_id=correlation_id,
-        )
+        super().__init__(event_type=event_type, source="ecosystemiser", data=data or {}, correlation_id=correlation_id)
         self.component = component
 
 
@@ -39,11 +30,7 @@ class ClimateDataFetchedEvent(EcoSystemiserEvent):
     """Event fired when climate data is successfully fetched"""
 
     def __init__(
-        self,
-        location: tuple[float, float],
-        variables: list[str],
-        source: str,
-        correlation_id: str | None = None,
+        self, location: tuple[float, float], variables: list[str], source: str, correlation_id: str | None = None
     ):
         super().__init__(
             event_type="climate_data_fetched",
@@ -61,13 +48,7 @@ class ClimateDataFetchedEvent(EcoSystemiserEvent):
 class SolverExecutionStartedEvent(EcoSystemiserEvent):
     """Event fired when solver execution begins"""
 
-    def __init__(
-        self,
-        solver_type: str,
-        system_id: str,
-        config: dict[str, Any],
-        correlation_id: str | None = None,
-    ):
+    def __init__(self, solver_type: str, system_id: str, config: dict[str, Any], correlation_id: str | None = None):
         super().__init__(
             event_type="solver_execution_started",
             component="solver",
@@ -85,12 +66,7 @@ class SolverExecutionCompletedEvent(EcoSystemiserEvent):
     """Event fired when solver execution completes"""
 
     def __init__(
-        self,
-        solver_type: str,
-        system_id: str,
-        status: str,
-        execution_time: float,
-        correlation_id: str | None = None,
+        self, solver_type: str, system_id: str, status: str, execution_time: float, correlation_id: str | None = None
     ):
         super().__init__(
             event_type="solver_execution_completed",

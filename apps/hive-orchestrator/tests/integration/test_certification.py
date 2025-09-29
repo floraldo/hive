@@ -109,10 +109,7 @@ class CertificationTestConductor:
 
                 cmd_args = shlex.split(command)
                 proc = subprocess.Popen(
-                    cmd_args,
-                    stdout=stdout_file,
-                    stderr=stderr_file,
-                    preexec_fn=os.setsid if os.name != "nt" else None,
+                    cmd_args, stdout=stdout_file, stderr=stderr_file, preexec_fn=os.setsid if os.name != "nt" else None
                 )
                 self.processes[name] = proc
                 self.log(f"{name} started with PID {proc.pid}", "SUCCESS")
@@ -174,13 +171,7 @@ class CertificationTestConductor:
         self.log("=== TEST CASE 1: Happy Path ===", "TEST")
 
         # Task 1 should flow: queued -> in_progress -> apply -> review_pending -> test -> completed
-        expected_states = [
-            "in_progress",
-            "apply",
-            "review_pending",
-            "test",
-            "completed",
-        ]
+        expected_states = ["in_progress", "apply", "review_pending", "test", "completed"]
 
         for state in expected_states:
             self.log(f"Waiting for Task 1 to reach {state}...", "INFO")

@@ -32,8 +32,7 @@ try:
 
         # Test plan generation
         plan = bridge.generate_execution_plan(
-            task_description="Build a simple web API",
-            context_data={"files_affected": 3},
+            task_description="Build a simple web API", context_data={"files_affected": 3}
         )
 
         assert plan is not None
@@ -69,10 +68,7 @@ try:
         # Cleanup
         if agent.db_connection:
             cursor = agent.db_connection.cursor()
-            cursor.execute(
-                "DELETE FROM execution_plans WHERE planning_task_id = ?",
-                (test_task["id"],),
-            )
+            cursor.execute("DELETE FROM execution_plans WHERE planning_task_id = ?", (test_task["id"],))
             cursor.execute("DELETE FROM tasks WHERE task_type = 'planned_subtask'")
             agent.db_connection.commit()
             agent.db_connection.close()

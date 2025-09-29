@@ -51,13 +51,7 @@ class LogOrganizer:
         log_files = []
 
         # Define patterns to exclude from scanning
-        exclude_patterns = [
-            r"\.git/",
-            r"__pycache__/",
-            r"\.pyc$",
-            r"node_modules/",
-            r"\.env",
-        ]
+        exclude_patterns = [r"\.git/", r"__pycache__/", r"\.pyc$", r"node_modules/", r"\.env"]
 
         logger.info("Scanning for log files...")
 

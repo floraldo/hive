@@ -33,12 +33,7 @@ def test_milp_solver_produces_valid_flows():
             "system_id": "test_milp_validation",
             "timesteps": 168,  # 7 days,
             "components": [
-                {
-                    "name": "GRID",
-                    "component_id": "grid_standard",
-                    "type": "transmission",
-                    "medium": "electricity",
-                },
+                {"name": "GRID", "component_id": "grid_standard", "type": "transmission", "medium": "electricity"},
                 {
                     "name": "SOLAR_PV",
                     "component_id": "solar_pv_residential",
@@ -162,12 +157,7 @@ def test_milp_vs_rule_based_comparison():
         "system_id": "solver_comparison",
         "timesteps": 24,  # 1 day for quick comparison,
         "components": [
-            {
-                "name": "GRID",
-                "component_id": "grid_standard",
-                "type": "transmission",
-                "medium": "electricity",
-            },
+            {"name": "GRID", "component_id": "grid_standard", "type": "transmission", "medium": "electricity"},
             {
                 "name": "SOLAR_PV",
                 "component_id": "solar_pv_small",

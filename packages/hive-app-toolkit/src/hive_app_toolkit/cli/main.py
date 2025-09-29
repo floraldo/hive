@@ -93,11 +93,7 @@ def init(
         "enable_database": enable_database,
         "enable_cache": enable_cache,
         "enable_auth": enable_auth,
-        "cost_limits": {
-            "daily": daily_limit,
-            "monthly": monthly_limit,
-            "per_operation": per_op_limit,
-        },
+        "cost_limits": {"daily": daily_limit, "monthly": monthly_limit, "per_operation": per_op_limit},
         "dry_run": dry_run,
     }
 

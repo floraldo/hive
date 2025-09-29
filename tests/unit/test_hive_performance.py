@@ -14,10 +14,7 @@ from hive_performance.metrics_collector import (
     operation_tracker,
     track_performance,
 )
-from hive_performance.system_monitor import (
-    SystemMetrics,
-    SystemMonitor,
-)
+from hive_performance.system_monitor import SystemMetrics, SystemMonitor
 
 
 @pytest.fixture

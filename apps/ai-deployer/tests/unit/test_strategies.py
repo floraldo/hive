@@ -18,11 +18,7 @@ def ssh_task():
         "id": "ssh-task-001",
         "app_name": "web-app",
         "source_path": "/tmp/app-source",
-        "ssh_config": {
-            "hostname": "deploy.example.com",
-            "username": "deploy",
-            "key_file": "/path/to/key.pem",
-        },
+        "ssh_config": {"hostname": "deploy.example.com", "username": "deploy", "key_file": "/path/to/key.pem"},
         "deployment_strategy": "direct",
     }
 
@@ -33,15 +29,8 @@ def docker_task():
     return {
         "id": "docker-task-001",
         "app_name": "web-app",
-        "docker_image": {
-            "name": "web-app",
-            "tag": "latest",
-            "build_context": "/tmp/app",
-        },
-        "container_config": {
-            "ports": {"80": "8080"},
-            "environment": {"ENV": "production"},
-        },
+        "docker_image": {"name": "web-app", "tag": "latest", "build_context": "/tmp/app"},
+        "container_config": {"ports": {"80": "8080"}, "environment": {"ENV": "production"}},
     }
 
 
@@ -52,15 +41,8 @@ def k8s_task():
         "id": "k8s-task-001",
         "app_name": "web-app",
         "k8s_namespace": "production",
-        "k8s_manifests": {
-            "deployment": "deployment.yaml",
-            "service": "service.yaml",
-            "ingress": "ingress.yaml",
-        },
-        "docker_image": {
-            "name": "web-app",
-            "tag": "v1.0.0",
-        },
+        "k8s_manifests": {"deployment": "deployment.yaml", "service": "service.yaml", "ingress": "ingress.yaml"},
+        "docker_image": {"name": "web-app", "tag": "v1.0.0"},
     }
 
 
@@ -152,11 +134,7 @@ class TestSSHDeploymentStrategy:
         with (
             patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client),
             patch.object(strategy, "_create_backup", return_value={"backup_id": "backup-123"}),
-            patch.object(
-                strategy,
-                "_deploy_application",
-                return_value={"success": True, "files_count": 25},
-            ),
+            patch.object(strategy, "_deploy_application", return_value={"success": True, "files_count": 25}),
             patch.object(strategy, "_manage_services", return_value=True),
             patch(
                 "ai_deployer.strategies.ssh.determine_deployment_paths",
@@ -289,16 +267,10 @@ class TestDockerDeploymentStrategy:
 
         with (
             patch.object(
-                strategy,
-                "_prepare_docker_image",
-                return_value={"success": True, "image_name": "web-app:deploy-123"},
+                strategy, "_prepare_docker_image", return_value={"success": True, "image_name": "web-app:deploy-123"}
             ),
             patch.object(strategy, "_stop_existing_containers", return_value=True),
-            patch.object(
-                strategy,
-                "_run_container",
-                return_value={"success": True, "container_id": "container-123"},
-            ),
+            patch.object(strategy, "_run_container", return_value={"success": True, "container_id": "container-123"}),
             patch.object(strategy, "_wait_for_container_health", return_value=True),
             patch.object(strategy, "_update_load_balancer", return_value=True),
         ):
@@ -314,9 +286,7 @@ class TestDockerDeploymentStrategy:
         strategy = DockerDeploymentStrategy({})
 
         with patch.object(
-            strategy,
-            "_prepare_docker_image",
-            return_value={"success": False, "error": "Image build failed"},
+            strategy, "_prepare_docker_image", return_value={"success": False, "error": "Image build failed"}
         ):
             result = await strategy.deploy(docker_task, "deploy-123")
 
@@ -330,16 +300,10 @@ class TestDockerDeploymentStrategy:
 
         with (
             patch.object(
-                strategy,
-                "_prepare_docker_image",
-                return_value={"success": True, "image_name": "web-app:deploy-123"},
+                strategy, "_prepare_docker_image", return_value={"success": True, "image_name": "web-app:deploy-123"}
             ),
             patch.object(strategy, "_stop_existing_containers", return_value=True),
-            patch.object(
-                strategy,
-                "_run_container",
-                return_value={"success": True, "container_id": "container-123"},
-            ),
+            patch.object(strategy, "_run_container", return_value={"success": True, "container_id": "container-123"}),
             patch.object(strategy, "_wait_for_container_health", return_value=False),
             patch.object(strategy, "_stop_container", return_value=True),
         ):
@@ -353,19 +317,12 @@ class TestDockerDeploymentStrategy:
         """Test successful Docker rollback"""
         strategy = DockerDeploymentStrategy({})
 
-        previous_deployment = {
-            "deployment_info": {
-                "image_name": "web-app:previous",
-                "container_id": "old-container",
-            }
-        }
+        previous_deployment = {"deployment_info": {"image_name": "web-app:previous", "container_id": "old-container"}}
 
         with (
             patch.object(strategy, "_stop_container", return_value=True),
             patch.object(
-                strategy,
-                "_run_container",
-                return_value={"success": True, "container_id": "rollback-container"},
+                strategy, "_run_container", return_value={"success": True, "container_id": "rollback-container"}
             ),
             patch.object(strategy, "_wait_for_container_health", return_value=True),
             patch.object(strategy, "_update_load_balancer", return_value=True),
@@ -448,11 +405,7 @@ class TestKubernetesDeploymentStrategy:
         strategy = KubernetesDeploymentStrategy({})
 
         with (
-            patch.object(
-                strategy,
-                "_apply_manifests",
-                return_value={"success": True, "pods_count": 3},
-            ),
+            patch.object(strategy, "_apply_manifests", return_value={"success": True, "pods_count": 3}),
             patch.object(strategy, "_wait_for_deployment_ready", return_value=True),
             patch.object(strategy, "_execute_canary_deployment", return_value={"success": True}),
             patch.object(strategy, "_update_ingress", return_value=True),
@@ -470,11 +423,7 @@ class TestKubernetesDeploymentStrategy:
         """Test Kubernetes deployment with manifest application failure"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(
-            strategy,
-            "_apply_manifests",
-            return_value={"success": False, "error": "Invalid manifest"},
-        ):
+        with patch.object(strategy, "_apply_manifests", return_value={"success": False, "error": "Invalid manifest"}):
             result = await strategy.deploy(k8s_task, "deploy-123")
 
             assert result["success"] is False

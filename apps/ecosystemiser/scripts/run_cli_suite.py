@@ -209,9 +209,7 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
     logger.error(f"\n{TColors.BOLD}--- Running Expected Failure Tests ---{TColors.ENDC}")
     for test in failure_tests:
         success, elapsed = run_command(
-            test["name"],
-            test["command"],
-            expected_to_fail=test.get("expected_to_fail", False),
+            test["name"], test["command"], expected_to_fail=test.get("expected_to_fail", False)
         )
         results.append(success)
         timings.append(elapsed)

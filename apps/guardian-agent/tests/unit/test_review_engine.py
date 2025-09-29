@@ -6,13 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from guardian_agent.core.config import GuardianConfig
-from guardian_agent.core.interfaces import (
-    AnalysisResult,
-    ReviewResult,
-    Severity,
-    Violation,
-    ViolationType,
-)
+from guardian_agent.core.interfaces import AnalysisResult, ReviewResult, Severity, Violation, ViolationType
 from guardian_agent.review.engine import ReviewEngine
 
 from hive_ai import ModelClient, VectorStore
@@ -45,10 +39,7 @@ class TestReviewEngine:
         """Create mock VectorStore."""
         mock = MagicMock(spec=VectorStore)
         mock.search = AsyncMock(
-            return_value=[
-                {"text": "similar_code", "score": 0.95},
-                {"text": "pattern_match", "score": 0.88},
-            ]
+            return_value=[{"text": "similar_code", "score": 0.95}, {"text": "pattern_match", "score": 0.88}]
         )
         return mock
 
@@ -79,10 +70,7 @@ class TestReviewEngine:
         """Test file review with cache hit."""
         # Setup cache hit
         cached_result = ReviewResult(
-            file_path=Path("test.py"),
-            analysis_results=[],
-            overall_score=95.0,
-            summary="Cached review",
+            file_path=Path("test.py"), analysis_results=[], overall_score=95.0, summary="Cached review"
         )
         mock_cache.get = AsyncMock(return_value=cached_result)
 
@@ -108,9 +96,7 @@ class TestReviewEngine:
                 for analyzer in engine.analyzers:
                     analyzer.analyze = AsyncMock(
                         return_value=AnalysisResult(
-                            analyzer_name=analyzer.__class__.__name__,
-                            violations=[],
-                            suggestions=[],
+                            analyzer_name=analyzer.__class__.__name__, violations=[], suggestions=[]
                         )
                     )
 
@@ -130,12 +116,7 @@ class TestReviewEngine:
             engine = ReviewEngine(config)
             engine.review_file = AsyncMock(
                 side_effect=[
-                    ReviewResult(
-                        file_path=f,
-                        analysis_results=[],
-                        overall_score=90.0,
-                        summary=f"Review for {f}",
-                    )
+                    ReviewResult(file_path=f, analysis_results=[], overall_score=90.0, summary=f"Review for {f}")
                     for f in files
                 ]
             )

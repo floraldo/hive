@@ -203,10 +203,7 @@ class SerializationBenchmark:
         """Run all serialization benchmarks."""
         print("Starting serialization performance benchmark...")
 
-        benchmarks = {
-            "serialization": self.benchmark_serializers,
-            "cache_simulation": self.benchmark_cache_simulation,
-        }
+        benchmarks = {"serialization": self.benchmark_serializers, "cache_simulation": self.benchmark_cache_simulation}
 
         results = {}
 

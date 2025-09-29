@@ -31,11 +31,7 @@ app = create_hive_app(
     cost_calculator=GuardianCostCalculator(),
     daily_cost_limit=100.0,
     monthly_cost_limit=2000.0,
-    rate_limits={
-        "per_minute": 20,
-        "per_hour": 100,
-        "concurrent": 5,
-    },
+    rate_limits={"per_minute": 20, "per_hour": 100, "concurrent": 5},
     enable_cors=True,
     enable_metrics=True,
 )
@@ -162,9 +158,7 @@ async def get_review_status(review_id: str):
 
 @app.post("/webhooks/github")
 async def github_webhook(
-    request: Request,
-    background_tasks: BackgroundTasks,
-    x_hub_signature_256: str | None = Header(None),
+    request: Request, background_tasks: BackgroundTasks, x_hub_signature_256: str | None = Header(None)
 ):
     """Handle GitHub webhook events."""
     try:
@@ -174,16 +168,9 @@ async def github_webhook(
         # Verify signature if configured
         if config.github_webhook_secret and x_hub_signature_256:
             body = await request.body()
-            expected_sig = hmac.new(
-                config.github_webhook_secret.encode(),
-                body,
-                "sha256",
-            ).hexdigest()
+            expected_sig = hmac.new(config.github_webhook_secret.encode(), body, "sha256").hexdigest()
 
-            if not hmac.compare_digest(
-                f"sha256={expected_sig}",
-                x_hub_signature_256,
-            ):
+            if not hmac.compare_digest(f"sha256={expected_sig}", x_hub_signature_256):
                 raise HTTPException(status_code=401, detail="Invalid signature")
 
         # Check event type

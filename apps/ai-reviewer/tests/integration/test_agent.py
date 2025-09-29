@@ -8,12 +8,7 @@ from unittest.mock import MagicMock, Mock
 import pytest
 from ai_reviewer.agent import ReviewAgent
 from ai_reviewer.database_adapter import DatabaseAdapter
-from ai_reviewer.reviewer import (
-    QualityMetrics,
-    ReviewDecision,
-    ReviewEngine,
-    ReviewResult,
-)
+from ai_reviewer.reviewer import QualityMetrics, ReviewDecision, ReviewEngine, ReviewResult
 
 from hive_db import Task, TaskStatus
 
@@ -30,13 +25,7 @@ def mock_review_engine():
     engine = Mock(spec=ReviewEngine)
 
     # Create a default review result
-    metrics = QualityMetrics(
-        code_quality=80,
-        test_coverage=75,
-        documentation=70,
-        security=85,
-        architecture=80,
-    )
+    metrics = QualityMetrics(code_quality=80, test_coverage=75, documentation=70, security=85, architecture=80)
 
     engine.review_task.return_value = ReviewResult(
         task_id="test-123",
@@ -86,12 +75,7 @@ class TestReviewAgent:
 
     def test_test_mode(self, mock_db, mock_review_engine):
         """Test that test mode uses shorter intervals"""
-        agent = ReviewAgent(
-            db=mock_db,
-            review_engine=mock_review_engine,
-            polling_interval=30,
-            test_mode=True,
-        )
+        agent = ReviewAgent(db=mock_db, review_engine=mock_review_engine, polling_interval=30, test_mode=True)
 
         assert agent.polling_interval == 5  # Should be reduced in test mode
 
@@ -155,13 +139,7 @@ class TestReviewAgent:
     async def test_review_task_reject_async(self, agent, mock_adapter, mock_review_engine):
         """Test reviewing a task that gets rejected"""
         # Override the review result to reject
-        metrics = QualityMetrics(
-            code_quality=40,
-            test_coverage=30,
-            documentation=20,
-            security=50,
-            architecture=40,
-        )
+        metrics = QualityMetrics(code_quality=40, test_coverage=30, documentation=20, security=50, architecture=40)
 
         mock_review_engine.review_task.return_value = ReviewResult(
             task_id="reject-001",

@@ -145,7 +145,7 @@ def validate_single_config_source(project_root: Path) -> tuple[bool, list[str]]:
         violations.append(
             "CRITICAL: Duplicate configuration source detected - ",
             "packages/hive-db/src/hive_db/config.py should not exist. ",
-            "Use hive-config package exclusively."
+            "Use hive-config package exclusively.",
         )
 
     # Check for setup.py files
@@ -368,22 +368,14 @@ def validate_dependency_direction(project_root: Path) -> tuple[bool, list[str]]:
                                 if import_lines:
                                     # Check if it's importing from core/ service layer (allowed)
                                     # Look for patterns like "from hive_orchestrator.core" or "from app.core"
-                                    core_import_patterns = [
-                                        f"from {app_module}.core",
-                                        f"import {app_module}.core",
-                                    ]
+                                    core_import_patterns = [f"from {app_module}.core", f"import {app_module}.core"]
 
                                     is_core_import = any(
                                         core_pattern in content for core_pattern in core_import_patterns
                                     )
 
                                     # Also check for client/api patterns (allowed)
-                                    client_patterns = [
-                                        ".client",
-                                        ".Client",
-                                        ".api",
-                                        ".API",
-                                    ]
+                                    client_patterns = [".client", ".Client", ".api", ".API"]
                                     is_client = any(cp in content for cp in client_patterns)
 
                                     if not is_core_import and not is_client:
@@ -777,7 +769,7 @@ def validate_no_hardcoded_env_values(project_root: Path) -> tuple[bool, list[str
                         violations.append(
                             f"Hardcoded environment value ({description}): ",
                             f"{py_file.relative_to(project_root)}:{line_num} ",
-                            f"- Found: {match.group()}"
+                            f"- Found: {match.group()}",
                         )
 
             except Exception:
@@ -991,11 +983,7 @@ def validate_inherit_extend_pattern(project_root: Path) -> tuple[bool, list[str]
                             continue
 
             # Check for incorrect naming (error.py instead of errors.py)
-            incorrect_names = {
-                "error.py": "errors.py",
-                "messaging.py": "bus.py",
-                "database.py": "db.py",
-            }
+            incorrect_names = {"error.py": "errors.py", "messaging.py": "bus.py", "database.py": "db.py"}
 
             for incorrect, correct in incorrect_names.items():
                 if (core_dir / incorrect).exists():
@@ -1053,9 +1041,7 @@ def validate_package_naming_consistency(project_root: Path) -> tuple[bool, list[
     return len(violations) == 0, violations
 
 
-def validate_development_tools_consistency(
-    project_root: Path,
-) -> tuple[bool, list[str]]:
+def validate_development_tools_consistency(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 13: Development Tools Consistency
 
@@ -1323,11 +1309,7 @@ def validate_no_global_state_access(project_root: Path) -> tuple[bool, list[str]
                             violations.append(f"Direct os.getenv() call outside config module: {rel_path}:{line_num}")
 
                 # Check for global load_config() and get_config() calls
-                forbidden_global_calls = [
-                    "load_config()",
-                    "get_config()",
-                    "reset_config()",
-                ]
+                forbidden_global_calls = ["load_config()", "get_config()", "reset_config()"]
 
                 for call in forbidden_global_calls:
                     if call in content:
@@ -1385,11 +1367,7 @@ def validate_no_global_state_access(project_root: Path) -> tuple[bool, list[str]
                             violations.append(f"DI fallback anti-pattern 'config=None' found: {rel_path}:{line_num}")
 
                         # Detect other common fallback patterns
-                        fallback_patterns = [
-                            "settings=None",
-                            "configuration=None",
-                            "options=None",
-                        ]
+                        fallback_patterns = ["settings=None", "configuration=None", "options=None"]
                         for pattern in fallback_patterns:
                             if line_stripped.startswith("def __init__(") and pattern in line_stripped:
                                 violations.append(f"DI fallback anti-pattern '{pattern}' found: {rel_path}:{line_num}")
@@ -1469,7 +1447,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
     if not existing_dirs:
         violations.append(
             f"Package '{package_name}' uses comprehensive testing but lacks property_based/ ",
-            "or integration/ test directories"
+            "or integration/ test directories",
         )
 
     # Check for property-based testing quality
@@ -1588,7 +1566,7 @@ def validate_test_coverage_mapping(project_root: Path) -> tuple[bool, list[str]]
             if not test_file_found:
                 violations.append(
                     f"Missing test file for {package_name}:{src_file} - ",
-                    f"expected {test_file_name} in tests/unit/ or tests/"
+                    f"expected {test_file_name} in tests/unit/ or tests/",
                 )
 
     # Also check apps for core modules (optional but recommended)
@@ -1620,7 +1598,7 @@ def validate_test_coverage_mapping(project_root: Path) -> tuple[bool, list[str]]
                     if not test_exists:
                         violations.append(
                             f"Missing test for core module {app_dir.name}:core/{rel_path} - ",
-                            "core business logic should have unit tests"
+                            "core business logic should have unit tests",
                         )
 
     return len(violations) == 0, violations
@@ -1679,12 +1657,12 @@ def validate_test_file_quality(project_root: Path) -> tuple[bool, list[str]]:
             # Test file should have either test functions or test classes
             if not has_test_functions and not has_test_classes:
                 violations.append(
-                    f"Test file {test_file.relative_to(project_root)} " f"contains no test functions or test classes"
+                    f"Test file {test_file.relative_to(project_root)} contains no test functions or test classes"
                 )
 
             # Check for imports (test files should import something)
             if "import " not in content and "from " not in content:
-                violations.append(f"Test file {test_file.relative_to(project_root)} " f"contains no import statements")
+                violations.append(f"Test file {test_file.relative_to(project_root)} contains no import statements")
 
         except Exception as e:
             violations.append(f"Failed to analyze test file {test_file.relative_to(project_root)}: {e}")
@@ -1884,18 +1862,9 @@ def run_all_golden_rules(project_root: Path) -> tuple[bool, dict]:
         ("Golden Rule 10: Service Layer Discipline", validate_service_layer_discipline),
         ("Golden Rule 11: Inherit to Extend Pattern", validate_inherit_extend_pattern),
         ("Golden Rule 12: Communication Patterns", validate_communication_patterns),
-        (
-            "Golden Rule 13: Package Naming Consistency",
-            validate_package_naming_consistency,
-        ),
-        (
-            "Golden Rule 14: Development Tools Consistency",
-            validate_development_tools_consistency,
-        ),
-        (
-            "Golden Rule 15: Async Pattern Consistency",
-            validate_async_pattern_consistency,
-        ),
+        ("Golden Rule 13: Package Naming Consistency", validate_package_naming_consistency),
+        ("Golden Rule 14: Development Tools Consistency", validate_development_tools_consistency),
+        ("Golden Rule 15: Async Pattern Consistency", validate_async_pattern_consistency),
         ("Golden Rule 16: CLI Pattern Consistency", validate_cli_pattern_consistency),
         ("Golden Rule 17: No Global State Access", validate_no_global_state_access),
         ("Golden Rule 18: Test-to-Source File Mapping", validate_test_coverage_mapping),
@@ -1911,10 +1880,7 @@ def run_all_golden_rules(project_root: Path) -> tuple[bool, dict]:
             if not passed:
                 all_passed = False
         except Exception as e:
-            results[rule_name] = {
-                "passed": False,
-                "violations": [f"Validation error: {e}"],
-            }
+            results[rule_name] = {"passed": False, "violations": [f"Validation error: {e}"]}
             all_passed = False
 
     return all_passed, results

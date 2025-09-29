@@ -752,10 +752,7 @@ class UncertaintyAnalyzer:
         # Create uncertainty variables for uniform distributions
         uncertainties = {}
         for param_name, (min_val, max_val) in parameter_ranges.items():
-            uncertainties[param_name] = {
-                "distribution": "uniform",
-                "parameters": {"a": min_val, "b": max_val},
-            }
+            uncertainties[param_name] = {"distribution": "uniform", "parameters": {"a": min_val, "b": max_val}}
 
         # Update configuration,
         self.config.uncertainty_variables = uncertainties

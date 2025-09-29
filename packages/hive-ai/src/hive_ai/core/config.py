@@ -94,8 +94,7 @@ class AIConfig(BaseConfig):
 
     # Vector database configuration
     vector: VectorConfig = Field(
-        default_factory=lambda: VectorConfig(provider="chroma"),
-        description="Vector database configuration",
+        default_factory=lambda: VectorConfig(provider="chroma"), description="Vector database configuration"
     )
 
     # Prompt configuration
@@ -130,11 +129,7 @@ class AIConfig(BaseConfig):
                     cost_per_token=0.000015,
                 ),
                 "gpt-4": ModelConfig(
-                    name="gpt-4",
-                    provider="openai",
-                    model_type="chat",
-                    max_tokens=4096,
-                    cost_per_token=0.00003,
+                    name="gpt-4", provider="openai", model_type="chat", max_tokens=4096, cost_per_token=0.00003
                 ),
                 "text-embedding-ada-002": ModelConfig(
                     name="text-embedding-ada-002",

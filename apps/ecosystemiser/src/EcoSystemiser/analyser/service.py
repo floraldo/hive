@@ -37,9 +37,9 @@ class AnalyserService:
 
     def _register_default_strategies(self) -> None:
         """Register the default analysis strategies."""
-        self.register_strategy("technical_kpi", TechnicalKPIAnalysis()),
-        self.register_strategy("economic", EconomicAnalysis()),
-        self.register_strategy("sensitivity", SensitivityAnalysis()),
+        (self.register_strategy("technical_kpi", TechnicalKPIAnalysis()),)
+        (self.register_strategy("economic", EconomicAnalysis()),)
+        (self.register_strategy("sensitivity", SensitivityAnalysis()),)
 
     def register_strategy(self, name: str, strategy: BaseAnalysis) -> None:
         """Register a new analysis strategy.
@@ -75,7 +75,7 @@ class AnalyserService:
             ValueError: If requested strategy doesn't exist,
         """
         # Generate analysis ID and start time,
-        analysis_id = f"analysis_{uuid.uuid4().hex[:8]}",
+        analysis_id = (f"analysis_{uuid.uuid4().hex[:8]}",)
         start_time = datetime.now()
 
         # Load simulation results,
@@ -89,30 +89,32 @@ class AnalyserService:
             event_type=EcoSystemiserEventType.ANALYSIS_STARTED,
             analysis_id=analysis_id,
             source_results_path=results_path,
-            strategies_executed=strategies_to_run
+            strategies_executed=strategies_to_run,
         )
 
         try:
             # Execute analysis strategies,
-            analysis_results = {
-                "metadata": {
-                    "analysis_id": analysis_id,
-                    "results_path": str(results_path),
-                    "strategies_executed": strategies_to_run,
-                    "analysis_timestamp": pd.Timestamp.now().isoformat(),
+            analysis_results = (
+                {
+                    "metadata": {
+                        "analysis_id": analysis_id,
+                        "results_path": str(results_path),
+                        "strategies_executed": strategies_to_run,
+                        "analysis_timestamp": pd.Timestamp.now().isoformat(),
+                    },
+                    "analyses": {},
                 },
-                "analyses": {},
-            },
+            )
 
             for strategy_name in strategies_to_run:
-                logger.info(f"Executing strategy: {strategy_name}"),
+                (logger.info(f"Executing strategy: {strategy_name}"),)
                 try:
                     strategy = self.strategies[strategy_name]
                     strategy_results = strategy.execute(results_data, metadata)
-                    analysis_results["analyses"][strategy_name] = strategy_results,
-                    logger.info(f"Successfully executed strategy: {strategy_name}"),
+                    analysis_results["analyses"][strategy_name] = (strategy_results,)
+                    (logger.info(f"Successfully executed strategy: {strategy_name}"),)
                 except Exception as e:
-                    logger.error(f"Error executing strategy {strategy_name}: {e}"),
+                    (logger.error(f"Error executing strategy {strategy_name}: {e}"),)
                     analysis_results["analyses"][strategy_name] = {"error": str(e), "status": "failed"}
 
             # Add summary,
@@ -128,7 +130,7 @@ class AnalyserService:
                 analysis_id=analysis_id,
                 source_results_path=results_path,
                 strategies_executed=strategies_to_run,
-                duration_seconds=execution_time
+                duration_seconds=execution_time,
             )
 
             return analysis_results
@@ -142,10 +144,10 @@ class AnalyserService:
                 analysis_id=analysis_id,
                 source_results_path=results_path,
                 strategies_executed=strategies_to_run,
-                duration_seconds=execution_time
+                duration_seconds=execution_time,
             )
 
-            logger.error(f"Analysis {analysis_id} failed: {e}"),
+            (logger.error(f"Analysis {analysis_id} failed: {e}"),)
             raise
 
     def analyse_parametric_study(
@@ -219,7 +221,7 @@ class AnalyserService:
         for strategy_name in requested:
             if strategy_name not in self.strategies:
                 available = ", ".join(self.strategies.keys())
-                raise ValueError(f"Unknown strategy: {strategy_name}. " f"Available strategies: {available}")
+                raise ValueError(f"Unknown strategy: {strategy_name}. Available strategies: {available}")
 
         return requested
 
@@ -242,12 +244,12 @@ class AnalyserService:
 
                 # Extract key metrics based on strategy type,
                 if strategy_name == "technical_kpi":
-                    for key in ["grid_self_sufficiency" "renewable_fraction" "system_efficiency" "battery_cycles"]:
+                    for key in ["grid_self_sufficiencyrenewable_fractionsystem_efficiencybattery_cycles"]:
                         if key in results:
                             summary["key_metrics"][key] = results[key]
 
                 elif strategy_name == "economic":
-                    for key in ["lcoe" "npv" "payback_period_years" "total_cost_ownership"]:
+                    for key in ["lcoenpvpayback_period_yearstotal_cost_ownership"]:
                         if key in results:
                             summary["key_metrics"][key] = results[key]
 
@@ -281,7 +283,7 @@ class AnalyserService:
                 source_results_path=metadata.get("results_path", ""),
                 strategies_executed=metadata.get("strategies_executed", []),
                 analysis_results_path=output_path,
-                duration_seconds=metadata.get("execution_time_seconds")
+                duration_seconds=metadata.get("execution_time_seconds"),
             )
 
     def _publish_analysis_event(
@@ -291,7 +293,7 @@ class AnalyserService:
         source_results_path: str,
         strategies_executed: list[str],
         analysis_results_path: str | None = None,
-        duration_seconds: float | None = None
+        duration_seconds: float | None = None,
     ):
         """Helper method to publish analysis events.
 
@@ -312,7 +314,7 @@ class AnalyserService:
                 source_results_path=source_results_path,
                 analysis_results_path=analysis_results_path,
                 strategies_executed=strategies_executed,
-                duration_seconds=duration_seconds
+                duration_seconds=duration_seconds,
             )
 
             # Publish event using sync publisher,

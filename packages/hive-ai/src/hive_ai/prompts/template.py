@@ -4,6 +4,7 @@ Prompt template management with variable substitution and validation.
 Provides type-safe prompt templating with variable validation
 formatting, and integration with the AI model system.
 """
+
 from __future__ import annotations
 
 
@@ -64,13 +65,13 @@ class PromptTemplate(PromptTemplateInterface):
         metadata: PromptMetadata | None = None,
         variable_prefix: str = "{{",
         variable_suffix: str = "}}",
-        enable_caching: bool = True
+        enable_caching: bool = True,
     ):
-        self.template = template,
-        self.variables = {var.name: var for var in (variables or [])},
-        self.metadata = metadata,
-        self.variable_prefix = variable_prefix,
-        self.variable_suffix = variable_suffix,
+        self.template = (template,)
+        self.variables = ({var.name: var for var in (variables or [])},)
+        self.metadata = (metadata,)
+        self.variable_prefix = (variable_prefix,)
+        self.variable_suffix = (variable_suffix,)
         self.enable_caching = enable_caching
 
         # Initialize cache manager for render results,
@@ -107,7 +108,7 @@ class PromptTemplate(PromptTemplateInterface):
             if open_count != close_count:
                 raise PromptError(
                     f"Unbalanced template delimiters: {open_count} opening, {close_count} closing",
-                    template_name=self.metadata.name if self.metadata else "unknown"
+                    template_name=self.metadata.name if self.metadata else "unknown",
                 )
 
             # Test rendering with dummy values
@@ -119,7 +120,7 @@ class PromptTemplate(PromptTemplateInterface):
         except Exception as e:
             raise PromptError(
                 f"Template validation failed: {str(e)}",
-                template_name=self.metadata.name if self.metadata else "unknown"
+                template_name=self.metadata.name if self.metadata else "unknown",
             ) from e
 
     def _get_dummy_value(self, var_type: str) -> Any:
@@ -130,7 +131,7 @@ class PromptTemplate(PromptTemplateInterface):
             "float": 3.14,
             "bool": True,
             "list": ["item1", "item2"],
-            "dict": {"key": "value"}
+            "dict": {"key": "value"},
         }
         return type_map.get(var_type, "default_value")
 
@@ -169,7 +170,7 @@ class PromptTemplate(PromptTemplateInterface):
             raise PromptError(
                 f"Template rendering failed: missing required variables",
                 template_name=self.metadata.name if self.metadata else "unknown",
-                missing_variables=missing
+                missing_variables=missing,
             )
 
         try:
@@ -249,7 +250,7 @@ class PromptTemplate(PromptTemplateInterface):
             "bool": lambda v: isinstance(v, bool),
             "list": lambda v: isinstance(v, list),
             "dict": lambda v: isinstance(v, dict),
-            "any": lambda v: True
+            "any": lambda v: True,
         }
 
         validator = type_validators.get(expected_type.lower())
@@ -291,7 +292,7 @@ class PromptTemplate(PromptTemplateInterface):
                 description=self.metadata.description,
                 author=self.metadata.author,
                 version=self.metadata.version,
-                tags=self.metadata.tags.copy()
+                tags=self.metadata.tags.copy(),
             )
 
         return PromptTemplate(
@@ -299,7 +300,7 @@ class PromptTemplate(PromptTemplateInterface):
             variables=list(self.variables.values()),
             metadata=new_metadata,
             variable_prefix=self.variable_prefix,
-            variable_suffix=self.variable_suffix
+            variable_suffix=self.variable_suffix,
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -312,19 +313,23 @@ class PromptTemplate(PromptTemplateInterface):
                     "type": var.type,
                     "required": var.required,
                     "default": var.default,
-                    "description": var.description
+                    "description": var.description,
                 }
                 for var in self.variables.values()
             ],
-            "metadata": ({
-                "name": self.metadata.name,
-                "description": self.metadata.description,
-                "author": self.metadata.author,
-                "version": self.metadata.version,
-                "tags": self.metadata.tags
-            } if self.metadata else None),
+            "metadata": (
+                {
+                    "name": self.metadata.name,
+                    "description": self.metadata.description,
+                    "author": self.metadata.author,
+                    "version": self.metadata.version,
+                    "tags": self.metadata.tags,
+                }
+                if self.metadata
+                else None
+            ),
             "variable_prefix": self.variable_prefix,
-            "variable_suffix": self.variable_suffix
+            "variable_suffix": self.variable_suffix,
         }
 
     @classmethod
@@ -336,7 +341,7 @@ class PromptTemplate(PromptTemplateInterface):
                 type=var_data["type"],
                 required=var_data.get("required", True),
                 default=var_data.get("default"),
-                description=var_data.get("description", "")
+                description=var_data.get("description", ""),
             )
             for var_data in data.get("variables", [])
         ]
@@ -350,7 +355,7 @@ class PromptTemplate(PromptTemplateInterface):
             variables=variables,
             metadata=metadata,
             variable_prefix=data.get("variable_prefix", "{{"),
-            variable_suffix=data.get("variable_suffix", "}}")
+            variable_suffix=data.get("variable_suffix", "}}"),
         )
 
 
@@ -380,11 +385,13 @@ class PromptChain:
             # Log chain structure
             logger.debug(
                 f"Chain step {i + 1}: {current_template.metadata.name if current_template.metadata else 'unnamed'} ",
-                f"-> {next_template.metadata.name if next_template.metadata else 'unnamed'}"
+                f"-> {next_template.metadata.name if next_template.metadata else 'unnamed'}",
             )
 
     async def execute_async(
-        self, initial_variables: Dict[str, Any], model_client: Any = None  # ModelClient type - avoid circular import
+        self,
+        initial_variables: Dict[str, Any],
+        model_client: Any = None,  # ModelClient type - avoid circular import
     ) -> List[str]:
         """
         Execute the prompt chain with model generation.

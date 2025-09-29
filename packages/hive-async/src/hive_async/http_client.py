@@ -196,7 +196,7 @@ class ResilientHttpClient:
                     self._request_stats["retries"] += 1
                     backoff_seconds = 2**attempt  # Exponential backoff
                     logger.warning(
-                        f"{method} {url} failed (attempt {attempt + 1}), " f"retrying in {backoff_seconds}s: {e}"
+                        f"{method} {url} failed (attempt {attempt + 1}), retrying in {backoff_seconds}s: {e}"
                     )
                     import time
 
@@ -331,7 +331,7 @@ class AsyncResilientHttpClient:
                 if attempt < self.max_retries:
                     backoff_seconds = 2**attempt
                     logger.warning(
-                        f"{method} {url} failed (attempt {attempt + 1}), " f"retrying in {backoff_seconds}s: {e}"
+                        f"{method} {url} failed (attempt {attempt + 1}), retrying in {backoff_seconds}s: {e}"
                     )
                     await asyncio.sleep(backoff_seconds)
                 else:

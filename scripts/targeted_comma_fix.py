@@ -103,12 +103,7 @@ def main():
     # Get files with syntax errors from ruff
     import subprocess
 
-    result = subprocess.run(
-        ["python", "-m", "ruff", "check", "."],
-        capture_output=True,
-        text=True,
-        cwd=project_root,
-    )
+    result = subprocess.run(["python", "-m", "ruff", "check", "."], capture_output=True, text=True, cwd=project_root)
 
     # Parse files with errors
     error_files = set()

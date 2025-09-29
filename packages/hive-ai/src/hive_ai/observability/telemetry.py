@@ -4,6 +4,7 @@ Advanced telemetry and observability for AI operations.
 Provides comprehensive monitoring, tracing, and analytics for
 AI model usage, performance, and behavior patterns.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -94,7 +95,7 @@ class TelemetryEvent:
             "cpu_percent": self.cpu_percent,
             "network_latency_ms": self.network_latency_ms,
             "security_risk_level": self.security_risk_level,
-            "validation_result": self.validation_result
+            "validation_result": self.validation_result,
         }
 
 
@@ -149,7 +150,7 @@ class TelemetryBuffer:
             events = [e for e in events if e.event_type == event_type]
 
         # Sort by timestamp and return most recent
-        events.sort(key=lambda e: e.timestamp, reverse=True),
+        (events.sort(key=lambda e: e.timestamp, reverse=True),)
         return events[:count]
 
     async def get_buffer_stats_async(self) -> dict[str, Any]:
@@ -182,7 +183,7 @@ class TelemetryBuffer:
                 "buffer_utilization": event_count / self.max_size,
                 "event_types": type_counts,
                 "time_range_hours": time_range_hours,
-                "events_per_hour": event_count / max(time_range_hours, 0.1)
+                "events_per_hour": event_count / max(time_range_hours, 0.1),
             }
 
 
@@ -194,7 +195,7 @@ class TelemetryCollector:
         level: TelemetryLevel = TelemetryLevel.BASIC,
         buffer_size: int = 10000,
         export_interval_seconds: int = 300,
-        export_path: Path | None = None
+        export_path: Path | None = None,
     ):
         """Initialize telemetry collector.
 
@@ -204,16 +205,16 @@ class TelemetryCollector:
             export_interval_seconds: How often to export events.,
             export_path: Path for exporting telemetry data.,
         """
-        self.level = level,
+        self.level = (level,)
         self.buffer = TelemetryBuffer(buffer_size)
-        self.export_interval = export_interval_seconds,
+        self.export_interval = (export_interval_seconds,)
         self.export_path = export_path or Path("telemetry_export")
 
         # Event handlers,
         self.event_handlers: list[Callable[[TelemetryEvent], None]] = []
 
         # Background export task,
-        self.export_task: asyncio.Task | None = None,
+        self.export_task: asyncio.Task | None = (None,)
         self.running = False
 
         # Performance tracking,
@@ -226,7 +227,7 @@ class TelemetryCollector:
             logger.info("Telemetry collection disabled")
             return
 
-        self.running = True,
+        self.running = (True,)
         self.collection_start_time = datetime.utcnow()
 
         # Start background export task,
@@ -242,7 +243,7 @@ class TelemetryCollector:
         if self.export_task:
             self.export_task.cancel()
             try:
-                await self.export_task,
+                (await self.export_task,)
             except asyncio.CancelledError:
                 pass
 
@@ -276,7 +277,7 @@ class TelemetryCollector:
         model_name: str,
         provider: str,
         prompt_length: int,
-        metadata: Optional[dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None,
     ) -> str:
         """Record model request event.
 
@@ -300,7 +301,7 @@ class TelemetryCollector:
             operation="model_request",
             model_name=model_name,
             provider=provider,
-            metadata={"prompt_length": prompt_length, **(metadata or {})}
+            metadata={"prompt_length": prompt_length, **(metadata or {})},
         )
 
         await self.record_event_async(event)
@@ -317,7 +318,7 @@ class TelemetryCollector:
         estimated_cost: float,
         success: bool = True,
         error_message: str | None = None,
-        metadata: Optional[dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None,
     ) -> None:
         """Record model response event.
 
@@ -346,7 +347,7 @@ class TelemetryCollector:
             provider=provider,
             tokens_used=tokens_used,
             estimated_cost=estimated_cost,
-            metadata={"request_id": request_id, **(metadata or {})}
+            metadata={"request_id": request_id, **(metadata or {})},
         )
 
         await self.record_event_async(event)
@@ -358,7 +359,7 @@ class TelemetryCollector:
         duration_ms: float,
         memory_usage_mb: float | None = None,
         cpu_percent: float | None = None,
-        metadata: Optional[dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None,
     ) -> None:
         """Record performance metric event.
 
@@ -379,7 +380,7 @@ class TelemetryCollector:
             duration_ms=duration_ms,
             memory_usage_mb=memory_usage_mb,
             cpu_percent=cpu_percent,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         await self.record_event_async(event)
@@ -390,7 +391,7 @@ class TelemetryCollector:
         operation: str,
         risk_level: str,
         validation_result: str,
-        metadata: Optional[dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None,
     ) -> None:
         """Record security event.
 
@@ -409,7 +410,7 @@ class TelemetryCollector:
             operation=operation,
             security_risk_level=risk_level,
             validation_result=validation_result,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         await self.record_event_async(event)
@@ -441,7 +442,7 @@ class TelemetryCollector:
             "model_usage": self._analyze_model_usage(window_events),
             "error_rates": self._analyze_errors(window_events),
             "cost_analysis": self._analyze_costs(window_events),
-            "security_summary": self._analyze_security(window_events)
+            "security_summary": self._analyze_security(window_events),
         }
 
         return analytics
@@ -476,7 +477,7 @@ class TelemetryCollector:
             "p95_duration_ms": durations[int(n * 0.95)] if n > 0 else 0,
             "p99_duration_ms": durations[int(n * 0.99)] if n > 0 else 0,
             "min_duration_ms": min(durations),
-            "max_duration_ms": max(durations)
+            "max_duration_ms": max(durations),
         }
 
     def _analyze_model_usage(self, events: list[TelemetryEvent]) -> dict[str, Any]:
@@ -503,7 +504,7 @@ class TelemetryCollector:
             "total_tokens": total_tokens,
             "model_distribution": model_counts,
             "provider_distribution": provider_counts,
-            "avg_tokens_per_request": total_tokens / len(model_events) if model_events else 0
+            "avg_tokens_per_request": total_tokens / len(model_events) if model_events else 0,
         }
 
     def _analyze_errors(self, events: list[TelemetryEvent]) -> dict[str, Any]:
@@ -526,7 +527,7 @@ class TelemetryCollector:
             "error_rate": (len(error_events) / total_events) * 100,
             "total_errors": len(error_events),
             "error_by_component": error_components,
-            "error_by_operation": error_operations
+            "error_by_operation": error_operations,
         }
 
     def _analyze_costs(self, events: list[TelemetryEvent]) -> dict[str, Any]:
@@ -546,7 +547,7 @@ class TelemetryCollector:
         return {
             "total_cost": total_cost,
             "cost_by_model": cost_by_model,
-            "avg_cost_per_request": total_cost / len(cost_events)
+            "avg_cost_per_request": total_cost / len(cost_events),
         }
 
     def _analyze_security(self, events: list[TelemetryEvent]) -> dict[str, Any]:
@@ -580,7 +581,7 @@ class TelemetryCollector:
             "export_timestamp": datetime.utcnow().isoformat(),
             "collection_level": self.level.value,
             "events_count": len(events),
-            "events": [event.to_dict() for event in events]
+            "events": [event.to_dict() for event in events],
         }
 
         # Ensure export directory exists
@@ -634,7 +635,7 @@ class TelemetryCollector:
             "events_per_hour": self.events_collected / max(uptime.total_seconds() / 3600, 0.1),
             "buffer_stats": buffer_stats,
             "export_interval_seconds": self.export_interval,
-            "export_path": str(self.export_path)
+            "export_path": str(self.export_path),
         }
 
 

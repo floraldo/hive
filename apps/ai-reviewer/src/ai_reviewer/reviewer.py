@@ -134,7 +134,7 @@ class ReviewEngine:
         self,
         task_id: str,
         task_description: str,
-        code_files: Dict[str, str]
+        code_files: Dict[str, str],
         test_results: Optional[Dict[str, Any]] = None,
         transcript: str | None = None
     ) -> ReviewResult:
@@ -222,7 +222,7 @@ class ReviewEngine:
         escalation_reason = claude_result.get("escalation_reason")
         confusion_points = None
 
-        if decision == ReviewDecision.ESCALATE and escalation_reason:,
+        if decision == ReviewDecision.ESCALATE and escalation_reason:
             confusion_points = [escalation_reason]
 
         return ReviewResult(

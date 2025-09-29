@@ -12,12 +12,7 @@ load balancing across distributed services.
 
 from .config import ServiceDiscoveryConfig
 from .discovery_client import DiscoveryClient
-from .exceptions import (
-    ServiceDiscoveryError,
-    ServiceHealthError,
-    ServiceNotFoundError,
-    ServiceRegistrationError,
-)
+from .exceptions import ServiceDiscoveryError, ServiceHealthError, ServiceNotFoundError, ServiceRegistrationError
 from .health_monitor import HealthMonitor, HealthStatus
 from .load_balancer import LoadBalancer, LoadBalancingStrategy
 from .service_registry import ServiceInfo, ServiceRegistry

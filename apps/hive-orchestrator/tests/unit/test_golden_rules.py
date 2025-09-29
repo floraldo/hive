@@ -18,9 +18,7 @@ logger = get_logger(__name__)
 import pytest
 
 # Import the validators from hive-testing-utils
-from hive_tests.architectural_validators import (
-    validate_single_config_source,
-)
+from hive_tests.architectural_validators import validate_single_config_source
 
 
 class TestLocalGoldenRules:
@@ -101,10 +99,7 @@ class TestLocalGoldenRules:
                     content = f.read()
 
                 for other_app in other_apps:
-                    import_patterns = [
-                        f"from {other_app.replace('-', '_')}",
-                        f"import {other_app.replace('-', '_')}",
-                    ]
+                    import_patterns = [f"from {other_app.replace('-', '_')}", f"import {other_app.replace('-', '_')}"]
 
                     for pattern in import_patterns:
                         if pattern in content:

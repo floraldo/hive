@@ -11,9 +11,7 @@ worker management, and execution tracking. It is NOT for general application use
 Extends the generic hive_db package with Hive Orchestrator-specific functionality.
 """
 
-from hive_db import (
-    sqlite_transaction,
-)
+from hive_db import sqlite_transaction
 
 # Create alias for backward compatibility
 transaction = sqlite_transaction

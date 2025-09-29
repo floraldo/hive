@@ -236,11 +236,7 @@ class TestDatabaseAdapter:
         conn, cursor = mock_connection
 
         event_rows = [
-            (
-                "deployment_started",
-                '{"deployment_id": "deploy-123"}',
-                "2024-01-15T10:00:00",
-            ),
+            ("deployment_started", '{"deployment_id": "deploy-123"}', "2024-01-15T10:00:00"),
             ("deployment_completed", '{"duration": 45.2}', "2024-01-15T10:05:00"),
         ]
 
@@ -277,11 +273,7 @@ class TestDatabaseAdapter:
 
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             # Mock status counts query
-            cursor.fetchall.return_value = [
-                ("deployed", 15),
-                ("deployment_failed", 2),
-                ("deploying", 1),
-            ]
+            cursor.fetchall.return_value = [("deployed", 15), ("deployment_failed", 2), ("deploying", 1)]
 
             # Mock recent deployments query
             cursor.fetchone.return_value = [8]

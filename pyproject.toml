@@ -39,12 +39,13 @@ ignore = [
     "B008",    # do not perform function calls in argument defaults
     "C901",    # too complex
     "COM812",  # missing trailing comma (handled by formatter)
+    "COM819",  # prohibited trailing comma (we WANT trailing commas!)
 ]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-skip-magic-trailing-comma = false
+skip-magic-trailing-comma = true  # ALLOW trailing commas - fixes syntax errors!
 line-ending = "auto"
 
 [tool.ruff.lint.isort]

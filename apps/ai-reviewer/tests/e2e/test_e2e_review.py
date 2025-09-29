@@ -78,13 +78,7 @@ async def distributed_compute_async(tasks: List[Dict[str, Any]]) -> List[Any]:
         "task_type": "test",
         "priority": 1,
         "status": "review_pending",
-        "payload": json.dumps(
-            {
-                "message": f"Test task for {task_type} code",
-                "code": code,
-                "files": {"main.py": code},
-            }
-        ),
+        "payload": json.dumps({"message": f"Test task for {task_type} code", "code": code, "files": {"main.py": code}}),
         "assigned_worker": "backend",
         "workspace_type": "repo",
         "created_at": datetime.now(UTC).isoformat(),
@@ -192,9 +186,7 @@ def test_review_engine():
 
     logger.info("Testing review of good code...")
     result = engine.review_task(
-        task_id="test-engine-good",
-        task_description="Fibonacci implementation",
-        code_files=good_code,
+        task_id="test-engine-good", task_description="Fibonacci implementation", code_files=good_code
     )
 
     logger.info(f"  Decision: {result.decision}")
@@ -205,11 +197,7 @@ def test_review_engine():
     bad_code = {"vulnerable.py": "exec(user_input)  # DANGEROUS!"}
 
     logger.info("\nTesting review of bad code...")
-    result = engine.review_task(
-        task_id="test-engine-bad",
-        task_description="User input processor",
-        code_files=bad_code,
-    )
+    result = engine.review_task(task_id="test-engine-bad", task_description="User input processor", code_files=bad_code)
 
     logger.info(f"  Decision: {result.decision}")
     logger.info(f"  Score: {result.metrics.overall_score}")
@@ -253,21 +241,14 @@ def test_full_autonomous_loop():
 
         # Perform review
         result = engine.review_task(
-            task_id=task_id,
-            task_description=task.get("description", "Test task"),
-            code_files=code_files,
+            task_id=task_id, task_description=task.get("description", "Test task"), code_files=code_files
         )
 
         logger.info(f"  Review completed: {result.decision.value}")
         logger.info(f"  Score: {result.metrics.overall_score}")
 
         # Update task status
-        status_map = {
-            "approve": "approved",
-            "reject": "rejected",
-            "rework": "rework_needed",
-            "escalate": "escalated",
-        }
+        status_map = {"approve": "approved", "reject": "rejected", "rework": "rework_needed", "escalate": "escalated"}
 
         new_status = status_map.get(result.decision.value, "escalated")
         success = adapter.update_task_status(task_id, new_status, result.to_dict())

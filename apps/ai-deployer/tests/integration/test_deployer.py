@@ -5,11 +5,7 @@ Tests for the deployment orchestrator
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from ai_deployer.deployer import (
-    DeploymentOrchestrator,
-    DeploymentStrategy,
-    HealthStatus,
-)
+from ai_deployer.deployer import DeploymentOrchestrator, DeploymentStrategy, HealthStatus
 
 
 @pytest.fixture
@@ -143,10 +139,7 @@ class TestDeploymentOrchestrator:
 
         # Configure pre-checks to fail
         strategy = mock_strategies[DeploymentStrategy.DIRECT]
-        strategy.pre_deployment_checks.return_value = {
-            "success": False,
-            "errors": ["SSH connection failed"],
-        }
+        strategy.pre_deployment_checks.return_value = {"success": False, "errors": ["SSH connection failed"]}
 
         result = await orchestrator.deploy(sample_task)
 

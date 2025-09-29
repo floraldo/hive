@@ -62,12 +62,7 @@ class ModelMetrics(MetricsCollectorInterface):
         self._hourly_stats: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     async def record_model_usage_async(
-        self,
-        model: str,
-        provider: str,
-        tokens: TokenUsage,
-        latency_ms: int,
-        success: bool,
+        self, model: str, provider: str, tokens: TokenUsage, latency_ms: int, success: bool
     ) -> None:
         """Record individual model usage event."""
         timestamp = datetime.utcnow()

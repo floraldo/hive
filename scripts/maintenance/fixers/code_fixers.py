@@ -40,10 +40,7 @@ def fix_type_hints(files: list[Path], dry_run: bool = False) -> int:
             content = file_path.read_text(encoding="utf-8")
 
             # Simple type hint fixes
-            patterns = [
-                (r"def (\w+)\(self\):", r"def \1(self) -> None:"),
-                (r"def (\w+)\(\):", r"def \1() -> None:"),
-            ]
+            patterns = [(r"def (\w+)\(self\):", r"def \1(self) -> None:"), (r"def (\w+)\(\):", r"def \1() -> None:")]
 
             modified = False
             for pattern, replacement in patterns:
@@ -113,9 +110,7 @@ def fix_global_state(files: list[Path], dry_run: bool = False) -> int:
             content = file_path.read_text(encoding="utf-8")
 
             # Fix config=None patterns
-            patterns = [
-                (r"def (\w+)\([^)]*config=None[^)]*\):", r"def \1(\2config: Optional[Config]\3):"),
-            ]
+            patterns = [(r"def (\w+)\([^)]*config=None[^)]*\):", r"def \1(\2config: Optional[Config]\3):")]
 
             modified = False
             for pattern, replacement in patterns:

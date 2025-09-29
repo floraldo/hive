@@ -237,12 +237,7 @@ def database_transaction(conn: sqlite3.Connection, isolation_level: str | None =
         cursor.close()
 
 
-def insert_or_update(
-    conn: sqlite3.Connection,
-    table: str,
-    data: dict[str, Any],
-    conflict_columns: List[str],
-) -> str:
+def insert_or_update(conn: sqlite3.Connection, table: str, data: dict[str, Any], conflict_columns: List[str]) -> str:
     """
     Insert or update a record using UPSERT (INSERT ... ON CONFLICT).
 
@@ -298,12 +293,7 @@ def insert_or_update(
         raise
 
 
-def batch_insert(
-    conn: sqlite3.Connection,
-    table: str,
-    data: List[dict[str, Any]],
-    chunk_size: int = 1000,
-):
+def batch_insert(conn: sqlite3.Connection, table: str, data: List[dict[str, Any]], chunk_size: int = 1000):
     """
     Insert multiple records in batches for better performance.
 

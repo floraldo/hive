@@ -260,11 +260,7 @@ class ClaudeAPICache:
             # Add caching metadata
             cached_response = {
                 **response,
-                "_cache_metadata": {
-                    "cached_at": time.time(),
-                    "ttl": ttl,
-                    "cache_key": cache_key,
-                },
+                "_cache_metadata": {"cached_at": time.time(), "ttl": ttl, "cache_key": cache_key},
             }
 
             # Cache the response

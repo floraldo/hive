@@ -92,12 +92,7 @@ async def benchmark_async_performance():
 
     # Create 50 tasks in batch
     batch_tasks = [
-        {
-            "title": f"Test task {i}",
-            "description": f"Benchmark task {i}",
-            "priority": i % 3,
-        }
-        for i in range(50)
+        {"title": f"Test task {i}", "description": f"Benchmark task {i}", "priority": i % 3} for i in range(50)
     ]
     await db_ops.batch_create_tasks_async(batch_tasks)
 
@@ -121,10 +116,7 @@ def main():
     """Main entry point with options"""
     parser = argparse.ArgumentParser(description="Async Hive V4.0 Launcher")
     parser.add_argument(
-        "--mode",
-        choices=["orchestrator", "benchmark", "both"],
-        default="orchestrator",
-        help="Execution mode",
+        "--mode", choices=["orchestrator", "benchmark", "both"], default="orchestrator", help="Execution mode"
     )
     parser.add_argument("--live", action="store_true", help="Enable live output")
 
