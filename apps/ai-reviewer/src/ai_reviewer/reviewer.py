@@ -205,10 +205,10 @@ class ReviewEngine:
         # Extract metrics from validated response,
         claude_metrics = claude_result.get("metrics", {})
         metrics = QualityMetrics(
-            code_quality=claude_metrics.get("code_quality", 50)
-            test_coverage=claude_metrics.get("testing", 50)
-            documentation=claude_metrics.get("documentation", 50)
-            security=claude_metrics.get("security", 50)
+            code_quality=claude_metrics.get("code_quality", 50),
+            test_coverage=claude_metrics.get("testing", 50),
+            documentation=claude_metrics.get("documentation", 50),
+            security=claude_metrics.get("security", 50),
             architecture=claude_metrics.get("architecture", 50)
         )
 

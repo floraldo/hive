@@ -912,13 +912,13 @@ class MeteorologicalValidator:
     def _check_constant_values(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check for suspiciously constant values (stuck sensors)"""
         min_variation_thresholds = {
-            "temp_air": 0.1,  # degC,
-            "dewpoint": 0.1,  # degC,
-            "rel_humidity": 1.0,  # %,
-            "wind_speed": 0.1,  # m/s,
-            "pressure": 0.1,  # hPa,
+            "temp_air": 0.1,  # degC
+            "dewpoint": 0.1,  # degC
+            "rel_humidity": 1.0,  # %
+            "wind_speed": 0.1,  # m/s
+            "pressure": 0.1,  # hPa
             "ghi": 1.0,  # W/m2
-        },
+        }
 
         for var_name, min_variation in min_variation_thresholds.items():
             if var_name not in ds:
@@ -942,9 +942,9 @@ class MeteorologicalValidator:
                     metadata={
                         "std_deviation": float(std_dev),
                         "threshold": min_variation,
-                    }
+                    },
                     suggested_action=f"Check {var_name} sensor for malfunction or calibration issues"
-                ),
+                )
                 report.add_issue(issue)
             else:
                 report.passed_checks.append(f"variation_{var_name}")
@@ -1012,7 +1012,7 @@ class MeteorologicalValidator:
                             type="statistical_outliers",
                             message=f"High number of statistical outliers in {var_name}: {outlier_percent:.1f}%",
                             severity=QCSeverity.MEDIUM,
-                            affected_variables=[var_name]
+                            affected_variables=[var_name],
                             metadata={"outlier_percent": outlier_percent},
                             suggested_action="Review data for measurement errors or extreme events"
                         )
@@ -1031,9 +1031,9 @@ class MeteorologicalValidator:
                         type="temporal",
                         message=f"Irregular time steps detected: {irregular_steps} out of {len(time_deltas)}",
                         severity=QCSeverity.LOW,
-                        affected_variables=[]
+                        affected_variables=[],
                         suggested_action="Consider resampling to regular time intervals"
-                    ),
+                    )
                     report.add_issue(issue)
 
         report.passed_checks.append("statistical_validation")
@@ -1121,10 +1121,10 @@ class MeteorologicalValidator:
                         type="validation_error",
                         message=f"Validation failed: {str(e)}",
                         severity=QCSeverity.CRITICAL,
-                        affected_variables=[]
+                        affected_variables=[],
                         suggested_action="Check dataset format and processing pipeline"
                     )
-                ),
+                )
                 reports[identifier] = error_report
 
         logger.info(f"Batch validation complete: {len(reports)} reports generated"),
@@ -1228,7 +1228,7 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
                 type="data_completeness",
                 message=f"Variable '{var_name}' contains only NaN values",
                 severity=QCSeverity.HIGH,
-                affected_variables=[var_name]
+                affected_variables=[var_name],
                 suggested_action="Check data source or processing pipeline"
             )
             report.add_issue(issue)
@@ -1269,9 +1269,9 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
                 type="source_limitation",
                 message=f"Missing recommended variables for {source}: {list(missing_recommended)}",
                 severity=QCSeverity.LOW,
-                affected_variables=list(missing_recommended)
+                affected_variables=list(missing_recommended),
                 suggested_action="Consider requesting additional variables from source"
-            ),
+            )
             report.add_issue(issue)
 
         # Add source-specific information to report,
@@ -1287,7 +1287,7 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
             type="configuration",
             message=f"No validation profile available for source '{source}'",
             severity=QCSeverity.LOW,
-            affected_variables=[]
+            affected_variables=[],
             suggested_action="Add validation profile for this data source"
         )
         report.add_issue(issue)
