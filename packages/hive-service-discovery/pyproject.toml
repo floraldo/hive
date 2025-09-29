@@ -11,7 +11,7 @@ readme = "README.md"
 packages = [{include = "hive_service_discovery", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 aioredis = "^2.0.1"
 consul = "^1.1.0"
 pydantic = "^2.5.0"

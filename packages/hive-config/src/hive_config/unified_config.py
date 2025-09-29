@@ -8,10 +8,11 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
+
+from pydantic import BaseModel, Field, ValidationError
 
 from hive_logging import get_logger
-from pydantic import BaseModel, Field, ValidationError
 
 logger = get_logger(__name__)
 
@@ -45,7 +46,7 @@ class OrchestrationConfig(BaseModel):
     poll_interval: int = Field(default=5, ge=1)
     worker_timeout: int = Field(default=600, ge=1)
     max_parallel_workers: int = Field(default=4, ge=1)
-    phase_timeouts: Dict[str, int] = Field(
+    phase_timeouts: dict[str, int] = Field(
         default_factory=lambda: {
             "analysis": 300,
             "design": 600,
@@ -119,7 +120,7 @@ class HiveConfig(BaseModel):
     config_file_path: Path | None = None
 
     @classmethod
-    def from_file(cls, config_path: Path) -> "HiveConfig":
+    def from_file(cls, config_path: Path) -> HiveConfig:
         """
         Load configuration from a JSON file
 
@@ -134,7 +135,7 @@ class HiveConfig(BaseModel):
             return cls()
 
         try:
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 config_data = json.load(f)
 
             config = cls(**config_data)
@@ -147,7 +148,7 @@ class HiveConfig(BaseModel):
             return cls()
 
     @classmethod
-    def from_environment(cls) -> "HiveConfig":
+    def from_environment(cls) -> HiveConfig:
         """
         Load configuration from environment variables
 
@@ -217,7 +218,7 @@ class HiveConfig(BaseModel):
 
         logger.info(f"Configuration saved to {config_path}")
 
-    def get_component_config(self, component: str) -> Dict[str, Any]:
+    def get_component_config(self, component: str) -> dict[str, Any]:
         """
         Get configuration for a specific component
 
@@ -257,7 +258,7 @@ class HiveConfig(BaseModel):
 
         return component_mappings.get(component, {})
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """
         Validate the configuration
 
@@ -306,7 +307,7 @@ def create_config_from_sources(config_path: Path | None = None, use_environment:
     else:
         # Look for default config locations
         default_paths = [
-            Path("hive_config.json")
+            Path("hive_config.json"),
             Path("config/hive_config.json"),
             Path.home() / ".hive" / "config.json",
         ]

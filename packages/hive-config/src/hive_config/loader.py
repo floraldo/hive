@@ -161,7 +161,7 @@ def audit_app_config(app_name: str) -> dict:
 
         # Add security analysis
         sensitive_keys = [
-            key,
+            key
             for key in config.config.keys()
             if any(term in key.upper() for term in ["PASSWORD", "SECRET", "TOKEN", "API_KEY", "PRIVATE"])
         ]
