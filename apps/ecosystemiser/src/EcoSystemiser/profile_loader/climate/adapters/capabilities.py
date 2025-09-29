@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import Enum
-from typing import Dict, ListTuple
+from typing import Dict, List, Tuple
 
 
 class DataFrequency(Enum):
@@ -179,7 +179,7 @@ class AdapterCapabilities:
                 "resolution": (f"{self.spatial.resolution_km}km" if self.spatial.resolution_km else "varies")
             },
             "variables": {
-                "total": len(self.supported_variables)
+                "total": len(self.supported_variables),
                 "primary": self.primary_variables[:5],  # Top 5,
                 "categories": self._categorize_variables()
             },

@@ -23,7 +23,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, ListTuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd

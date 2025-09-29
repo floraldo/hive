@@ -1,0 +1,237 @@
+name: Automated Pool Tuning
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC (maintenance window)
+    - cron: '0 2 * * *'
+
+  workflow_dispatch:
+    inputs:
+      service_filter:
+        description: 'Filter to specific service (optional)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run mode (no actual changes)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  analyze-recommendations:
+    runs-on: ubuntu-latest
+    outputs:
+      has_recommendations: ${{ steps.check.outputs.has_recommendations }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/hive-logging
+          pip install -e packages/hive-errors
+          pip install -e packages/hive-async
+          pip install -e packages/hive-db
+
+      - name: Check for recommendations
+        id: check
+        run: |
+          if [ -f "data/pool_optimization_recommendations.json" ]; then
+            RECOMMENDATION_COUNT=$(python -c "import json; data=json.load(open('data/pool_optimization_recommendations.json')); print(len(data.get('recommendations', [])))")
+            echo "Found $RECOMMENDATION_COUNT recommendations"
+            if [ "$RECOMMENDATION_COUNT" -gt 0 ]; then
+              echo "has_recommendations=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_recommendations=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No recommendations file found"
+            echo "has_recommendations=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Analyze and prioritize
+        if: steps.check.outputs.has_recommendations == 'true'
+        run: |
+          python scripts/automation/pool_tuning_orchestrator.py --analyze
+
+  apply-tuning:
+    needs: analyze-recommendations
+    if: needs.analyze-recommendations.outputs.has_recommendations == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/hive-logging
+          pip install -e packages/hive-errors
+          pip install -e packages/hive-async
+          pip install -e packages/hive-db
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Apply tuning recommendations
+        id: apply
+        run: |
+          DRY_RUN_FLAG=""
+          SERVICE_FLAG=""
+
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
+            echo "Running in DRY RUN mode"
+          fi
+
+          if [ -n "${{ github.event.inputs.service_filter }}" ]; then
+            SERVICE_FLAG="--service ${{ github.event.inputs.service_filter }}"
+            echo "Filtering to service: ${{ github.event.inputs.service_filter }}"
+          fi
+
+          python scripts/automation/pool_tuning_orchestrator.py \
+            --apply \
+            $DRY_RUN_FLAG \
+            $SERVICE_FLAG \
+            --skip-maintenance-check
+
+      - name: Upload execution report
+        uses: actions/upload-artifact@v3
+        with:
+          name: pool-tuning-report
+          path: data/pool_tuning_history.json
+          retention-days: 90
+
+      - name: Create GitHub issue for failures
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '⚠️ Automated Pool Tuning Failed';
+            const body = `
+            ## Automated Pool Tuning Failure
+
+            **Workflow Run**: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            **Triggered**: ${new Date().toISOString()}
+            **Branch**: ${context.ref}
+
+            ### Details
+            The automated pool tuning workflow encountered errors during execution.
+            Please review the workflow logs and execution history.
+
+            ### Action Required
+            1. Review workflow logs for error details
+            2. Check pool_tuning_history.json for execution records
+            3. Validate pool configurations
+            4. Consider manual intervention if needed
+
+            ### Related Files
+            - \`data/pool_tuning_history.json\`
+            - \`config/pools/*.json\`
+            - \`scripts/automation/pool_tuning_orchestrator.py\`
+
+            ---
+            🤖 Automated by PROJECT VANGUARD Phase 2.2
+            `;
+
+            // Check if issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'automated-tuning,failure'
+            });
+
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['automated-tuning', 'failure', 'infrastructure']
+              });
+            } else {
+              // Update existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: `### New Failure\n${body}`
+              });
+            }
+
+  report-results:
+    needs: apply-tuning
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download execution report
+        uses: actions/download-artifact@v3
+        with:
+          name: pool-tuning-report
+          path: ./reports
+
+      - name: Generate summary report
+        run: |
+          if [ -f "./reports/pool_tuning_history.json" ]; then
+            echo "## Pool Tuning Execution Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Extract execution statistics
+            TOTAL_EXECUTIONS=$(python -c "import json; data=json.load(open('./reports/pool_tuning_history.json')); print(len(data))" || echo "0")
+            echo "**Total Executions**: $TOTAL_EXECUTIONS" >> $GITHUB_STEP_SUMMARY
+
+            # Count by status
+            COMPLETED=$(python -c "import json; data=json.load(open('./reports/pool_tuning_history.json')); print(len([e for e in data if e.get('status') == 'completed']))" || echo "0")
+            ROLLED_BACK=$(python -c "import json; data=json.load(open('./reports/pool_tuning_history.json')); print(len([e for e in data if e.get('status') == 'rolled_back']))" || echo "0")
+            FAILED=$(python -c "import json; data=json.load(open('./reports/pool_tuning_history.json')); print(len([e for e in data if e.get('status') == 'failed']))" || echo "0")
+
+            echo "- ✅ Completed: $COMPLETED" >> $GITHUB_STEP_SUMMARY
+            echo "- ↺ Rolled Back: $ROLLED_BACK" >> $GITHUB_STEP_SUMMARY
+            echo "- ❌ Failed: $FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "🤖 Automated by PROJECT VANGUARD Phase 2.2" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No execution report available" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check success rate
+        run: |
+          if [ -f "./reports/pool_tuning_history.json" ]; then
+            SUCCESS_RATE=$(python -c "
+            import json
+            data = json.load(open('./reports/pool_tuning_history.json'))
+            if len(data) > 0:
+                completed = len([e for e in data if e.get('status') == 'completed'])
+                print(f'{completed / len(data) * 100:.1f}')
+            else:
+                print('100.0')
+            " || echo "0.0")
+
+            echo "Success rate: ${SUCCESS_RATE}%"
+
+            # Alert if success rate below 80%
+            if (( $(echo "$SUCCESS_RATE < 80" | bc -l) )); then
+              echo "⚠️ Warning: Success rate below 80%"
+              exit 1
+            fi
+          fi

@@ -382,10 +382,10 @@ class PlannerErrorReporter(BaseErrorReporter):
     def get_error_summary(self) -> Dict[str, Any]:
         """Get summary of all reported errors"""
         return {
-            "total_errors": self.error_counts.get("total", 0)
-            "task_errors": len(self.task_errors)
-            "plan_errors": len(self.plan_errors)
-            "claude_errors": len(self.claude_errors)
+            "total_errors": self.error_counts.get("total", 0),
+            "task_errors": len(self.task_errors),
+            "plan_errors": len(self.plan_errors),
+            "claude_errors": len(self.claude_errors),
             "latest_errors": self.error_history[-10:]
         }
 
@@ -445,7 +445,7 @@ def with_recovery(strategy: RecoveryStrategy, operation: Callable[[], Any]) -> A
         try:
             return operation()
         except Exception as e:
-            last_error = e
+            last_error = e,
             recovery_result = strategy.attempt_recovery(e)
             if recovery_result == RecoveryStatus.FAILED:
                 break

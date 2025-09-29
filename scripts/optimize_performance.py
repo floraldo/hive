@@ -406,12 +406,35 @@ def optimize_async_patterns():
         content = full_path.read_text(encoding="utf-8")
         original_content = content
 
-        # Replace time.sleep with asyncio.sleep
-        content = re.sub(r"time\.sleep\(([^)]+)\)", r"await asyncio.sleep(\1)", content)
+        # Smart conversion: Only convert time.sleep to await asyncio.sleep in async functions
+        lines = content.split('\n')
+        new_lines = []
+        in_async_function = False
+        indent_level = 0
 
-        # Add async to functions that use await
-        content = re.sub(
-            r"def (\w+)\(([^)]*)\):\s*\n([^}]+)await",
+        for i, line in enumerate(lines):
+            # Detect async function start
+            if re.match(r'^\s*async\s+def\s+\w+', line):
+                in_async_function = True
+                indent_level = len(line) - len(line.lstrip())
+
+            # Detect function end (dedent back to function level or beyond)
+            elif in_async_function:
+                current_indent = len(line) - len(line.lstrip()) if line.strip() else indent_level + 4
+                if current_indent <= indent_level and line.strip() and not line.strip().startswith('#'):
+                    in_async_function = False
+
+            # Only convert time.sleep in async functions
+            if in_async_function and 'time.sleep(' in line:
+                line = re.sub(r'time\.sleep\(([^)]+)\)', r'await asyncio.sleep(\1)', line)
+
+            new_lines.append(line)
+
+        content = '\n'.join(new_lines)
+
+        # Add async to functions that use await (DISABLED - causes false positives)
+        # content = re.sub(
+        #     r"def (\w+)\(([^)]*)\):\s*\n([^}]+)await",
             r"async def \1_async(\2):\n\3await",
             content,
             flags=re.MULTILINE | re.DOTALL,

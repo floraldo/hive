@@ -144,7 +144,7 @@ class SimulationConfigError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Check simulation configuration file",
                 "Verify parameter ranges and types",
                 "Ensure all required parameters are present",
@@ -159,7 +159,7 @@ class SimulationExecutionError(BaseError):
 
     def __init__(self, message: str, **kwargs) -> None:
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Check simulation input data",
                 "Verify component connections",
                 "Review solver configuration",
@@ -193,7 +193,7 @@ class ProfileLoadError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Verify data source availability",
                 "Check network connection for API sources",
                 "Validate file paths for local sources",
@@ -218,7 +218,7 @@ class ProfileValidationError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Check data format and structure",
                 "Verify time series continuity",
                 "Validate data ranges and units",
@@ -255,7 +255,7 @@ class OptimizationInfeasibleError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Relax constraint boundaries",
                 "Check for conflicting constraints",
                 "Verify component capacities",
@@ -279,7 +279,7 @@ class SolverConvergenceError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Increase maximum iterations",
                 "Adjust convergence tolerance",
                 "Improve initial solution guess",
@@ -333,7 +333,7 @@ class ComponentConnectionError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Verify component compatibility",
                 "Check connection types match",
                 "Ensure components are properly initialized",
@@ -399,7 +399,7 @@ class DatabaseConnectionError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Check database file exists",
                 "Verify file permissions",
                 "Ensure database is not locked",
@@ -420,7 +420,7 @@ class DatabaseTransactionError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Retry transaction",
                 "Check for database locks",
                 "Verify data integrity",
@@ -455,7 +455,7 @@ class EventPublishError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
+            "recovery_suggestions", [
                 "Check event bus connectivity",
                 "Verify event format",
                 "Ensure event handlers are registered",

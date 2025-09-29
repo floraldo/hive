@@ -3,7 +3,7 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, ListTuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import yaml

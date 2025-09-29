@@ -214,7 +214,7 @@ class RobustClaudeBridge:
         objective_context = "",
         if objective_analysis and not objective_analysis.get("error"):
             metrics = objective_analysis.get("metrics", {})
-            objective_context = f"\nObjective Metrics: {json.dumps(metrics, indent=2)}"
+            objective_context = f"\nObjective Metrics: {json.dumps(metrics, indent=2)}",
 
         prompt = f"""You are an automated code review agent. Your response MUST be valid JSON and nothing else.
 
@@ -229,8 +229,8 @@ CRITICAL: Respond with ONLY a JSON object matching this exact structure:
 {{
   "decision": "approve" or "reject" or "rework" or "escalate",
   "summary": "One sentence summary of your review",
-  "issues": ["List of specific issues found", "Or empty list if none"]
-  "suggestions": ["List of improvement suggestions", "Or empty list if none"]
+  "issues": ["List of specific issues found", "Or empty list if none"],
+  "suggestions": ["List of improvement suggestions", "Or empty list if none"],
   "quality_score": 75,
   "metrics": {{
     "code_quality": 80,
@@ -369,7 +369,7 @@ Respond with ONLY the JSON object, no other text."""
             issues=[reason]
             suggestions=["Manual review required"]
             quality_score=0,
-            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0)
+            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
             confidence=0.0
         )
 

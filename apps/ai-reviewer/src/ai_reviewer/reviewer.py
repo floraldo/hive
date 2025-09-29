@@ -33,9 +33,9 @@ from .inspector_bridge import InspectorBridge
 class ReviewDecision(Enum):
     """Possible review decisions"""
 
-    APPROVE = "approve"
-    REJECT = "reject"
-    REWORK = "rework"
+    APPROVE = "approve",
+    REJECT = "reject",
+    REWORK = "rework",
     ESCALATE = "escalate"
 
 
@@ -82,7 +82,7 @@ class ReviewResult:
         result = {
             "task_id": self.task_id,
             "decision": self.decision.value,
-            "metrics": self.metrics.model_dump()
+            "metrics": self.metrics.model_dump(),
             "overall_score": self.metrics.overall_score,
             "summary": self.summary,
             "issues": self.issues,
@@ -111,7 +111,7 @@ class ReviewEngine:
             mock_mode: If True, use mock responses for testing
         """
         # Initialize Claude service with rate limiting
-        config = ClaudeBridgeConfig(mock_mode=mock_mode)
+        config = ClaudeBridgeConfig(mock_mode=mock_mode),
         rate_config = RateLimitConfig(
             max_calls_per_minute=15,  # Reviews are more intensive,
             max_calls_per_hour=300
@@ -183,8 +183,8 @@ class ReviewEngine:
             claude_result = {
                 "decision": "escalate",
                 "summary": f"Review failed: {str(e)}",
-                "issues": ["Review process encountered an error"]
-                "suggestions": ["Manual review required"]
+                "issues": ["Review process encountered an error"],
+                "suggestions": ["Manual review required"],
                 "confidence": 0.0,
                 "escalation_reason": f"Claude review failed: {str(e)}",
             }
@@ -199,7 +199,7 @@ class ReviewEngine:
                 field="decision",
                 value=decision_str
             )
-            self.error_reporter.report_error(error, severity="WARNING")
+            self.error_reporter.report_error(error, severity="WARNING"),
             decision = ReviewDecision.ESCALATE
 
         # Extract metrics from validated response,
@@ -222,7 +222,7 @@ class ReviewEngine:
         escalation_reason = claude_result.get("escalation_reason")
         confusion_points = None
 
-        if decision == ReviewDecision.ESCALATE and escalation_reason:
+        if decision == ReviewDecision.ESCALATE and escalation_reason:,
             confusion_points = [escalation_reason]
 
         return ReviewResult(

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from io import StringIO
-from typing import Any, Dict, ListTuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -664,7 +664,7 @@ class FileEPWAdapter(BaseAdapter):
                 forecast_days=0,
                 real_time=False,
                 delay_hours=None,
-            )
+            ),
             spatial=SpatialCoverage(
                 global_coverage=False,  # Only specific locations,
                 regions=None,  # File-specific,
@@ -672,7 +672,7 @@ class FileEPWAdapter(BaseAdapter):
                 station_based=True,
                 grid_based=False,
                 custom_locations=False,  # Fixed to file location,
-            )
+            ),
             supported_variables=list(self.VARIABLE_MAPPING.keys()),
             primary_variables=[
                 "temp_air",
@@ -682,14 +682,14 @@ class FileEPWAdapter(BaseAdapter):
                 "dhi",
                 "wind_speed",
                 "wind_dir",  # Building simulation essentials
-            ]
+            ],
             derived_variables=[],
             supported_frequencies=[
                 DataFrequency.HOURLY,  # Native,
                 DataFrequency.THREEHOURLY,
                 DataFrequency.DAILY,
                 DataFrequency.MONTHLY
-            ]
+            ],
             native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.FILE,  # Local file or URL,
             requires_subscription=False,
@@ -700,7 +700,7 @@ class FileEPWAdapter(BaseAdapter):
                 uncertainty_estimates=False,
                 ensemble_members=False,
                 bias_correction=False,
-            )
+            ),
             max_request_days=None,  # Depends on file,
             max_variables_per_request=35,  # All EPW variables,
             batch_requests_supported=False,
@@ -713,7 +713,7 @@ class FileEPWAdapter(BaseAdapter):
                 "Direct file import or URL download",
                 "Includes solar angles and illuminance",
                 "Quality flags for each data point",
-            ]
+            ],
             data_products=["TMY", "AMY", "Design Days", "Climate Zones"]
         )
 
@@ -788,7 +788,7 @@ class EPWQCProfile(QCProfile):
                 "Processing for building simulation may alter original measurements",
                 "Limited temporal coverage (typical meteorological year)",
                 "Variable quality depending on data source and processing"
-            ]
+            ],
             recommended_variables=[
                 "temp_air",
                 "dewpoint",
@@ -823,9 +823,9 @@ class EPWQCProfile(QCProfile):
                         type="processing_artifact",
                         message="Temperature profile appears over-processed (typical of some EPW files)",
                         severity=QCSeverity.LOW,
-                        affected_variables=["temp_air"]
+                        affected_variables=["temp_air"],
                         suggested_action="Consider using original meteorological data if available",
-                    ),
+                    )
                     report.add_issue(issue)
 
         # Check for complete variable set (EPW should be comprehensive)

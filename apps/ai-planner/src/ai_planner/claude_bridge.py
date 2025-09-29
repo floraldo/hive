@@ -141,7 +141,7 @@ class RobustClaudePlannerBridge:
         possible_paths = [
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
-            Path("claude.cmd")
+            Path("claude.cmd"),
             Path("claude")
         ]
 
@@ -225,12 +225,12 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
             "complexity": "simple|medium|complex",
             "dependencies": ["task-000"],
             "workflow_phase": "analysis|design|implementation|testing|validation",
-            "required_skills": ["python", "api-design", "testing"]
+            "required_skills": ["python", "api-design", "testing"],
             "deliverables": ["api_endpoints.py", "unit_tests.py", "integration_tests.py"]
         }}
     ]
     "dependencies": {{
-        "critical_path": ["task-001", "task-002", "task-003"]
+        "critical_path": ["task-001", "task-002", "task-003"],
         "parallel_groups": [["task-004", "task-005"], ["task-006", "task-007"]]
         "blocking_dependencies": {{
             "task-002": ["task-001"],
@@ -238,7 +238,7 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
         }}
     }}
     "workflow": {{
-        "lifecycle_phases": ["analysis", "design", "implementation", "testing", "validation"]
+        "lifecycle_phases": ["analysis", "design", "implementation", "testing", "validation"],
         "phase_transitions": {{
             "analysis": "design",
             "design": "implementation",
@@ -246,9 +246,9 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
             "testing": "validation",
         }}
         "validation_gates": {{
-            "design": ["architecture_review", "stakeholder_approval"]
-            "implementation": ["code_review", "unit_tests_pass"]
-            "testing": ["integration_tests_pass", "performance_benchmarks"]
+            "design": ["architecture_review", "stakeholder_approval"],
+            "implementation": ["code_review", "unit_tests_pass"],
+            "testing": ["integration_tests_pass", "performance_benchmarks"],
             "validation": ["user_acceptance", "deployment_ready"]
         }}
         "rollback_strategy": "checkpoint-based rollback with automated reversion",
@@ -256,8 +256,8 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
     "metrics": {{
         "total_estimated_duration": 240,
         "critical_path_duration": 180,
-        "complexity_breakdown": {{"simple": 3, "medium": 4, "complex": 2}}
-        "skill_requirements": {{"python": 5, "frontend": 3, "database": 2}}
+        "complexity_breakdown": {{"simple": 3, "medium": 4, "complex": 2}},
+        "skill_requirements": {{"python": 5, "frontend": 3, "database": 2}},
         "confidence_score": 0.85,
         "risk_factors": ["external_api_dependency", "complex_data_migration"]
     }}
@@ -265,7 +265,7 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
         "Start with architecture review to validate approach",
         "Implement robust error handling early",
         "Set up comprehensive monitoring"
-    ]
+    ],
     "considerations": [
         "Performance impact on existing systems",
         "Security implications of new endpoints",

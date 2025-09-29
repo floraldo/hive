@@ -193,7 +193,7 @@ class AIPlanner:
             self.event_bus = None
 
         # Initialize Claude service for intelligent planning
-        config = ClaudeBridgeConfig(mock_mode=mock_mode)
+        config = ClaudeBridgeConfig(mock_mode=mock_mode),
         rate_config = RateLimitConfig(max_calls_per_minute=20, max_calls_per_hour=500)
         self.claude_service = get_claude_service(config=config, rate_config=rate_config)
 
@@ -419,7 +419,7 @@ class AIPlanner:
                 # Publish plan generation failure event,
                 self._publish_workflow_event(
                     WorkflowEventType.BLOCKED,
-                    task["id"]
+                    task["id"],
                     workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id"),
                     failure_reason="Claude bridge returned empty response",
@@ -431,8 +431,8 @@ class AIPlanner:
             # Enhance the Claude response with additional metadata,
             enhanced_plan = {
                 **claude_response,
-                "task_id": task["id"]
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "task_id": task["id"],
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "status": "generated",
                 "metadata": {
                     "generator": "ai-planner-v2-claude",
@@ -450,7 +450,7 @@ class AIPlanner:
             # Publish plan generation success event,
             self._publish_workflow_event(
                 WorkflowEventType.PLAN_GENERATED,
-                task["id"]
+                task["id"],
                 workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id"),
                 plan_name=enhanced_plan.get("plan_name"),
@@ -473,7 +473,7 @@ class AIPlanner:
             # Publish plan generation failure event,
             self._publish_workflow_event(
                 WorkflowEventType.BLOCKED,
-                task["id"]
+                task["id"],
                 workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id"),
                 failure_reason=str(e),
@@ -490,8 +490,8 @@ class AIPlanner:
     def _estimate_resources(self, complexity: str) -> List[str]:
         """Estimate required resources based on complexity"""
         resource_map = {
-            "simple": ["basic-compute"]
-            "medium": ["standard-compute", "database-access"]
+            "simple": ["basic-compute"],
+            "medium": ["standard-compute", "database-access"],
             "complex": ["high-compute", "database-access", "external-apis", "storage"]
         }
         return resource_map.get(complexity, ["standard-compute"])
@@ -606,14 +606,12 @@ class AIPlanner:
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
                 (
-                    plan["plan_id"]
-                    plan["task_id"]
-                    json.dumps(plan)
-                    plan.get("metrics", {}).get("complexity_breakdown", {}).get("complex", 0) > 0,
-                    and "complex",
-                    or "medium",
-                    plan.get("metrics", {}).get("total_estimated_duration", 60)
-                    plan["status"]
+                    plan["plan_id"],
+                    plan["task_id"],
+                    json.dumps(plan),
+                    "complex" if plan.get("metrics", {}).get("complexity_breakdown", {}).get("complex", 0) > 0 else "medium",
+                    plan.get("metrics", {}).get("total_estimated_duration", 60),
+                    plan["status"],
                     plan["created_at"]
                 )
             )
@@ -628,14 +626,14 @@ class AIPlanner:
                             task_type="planned_subtask",
                             description=sub_task["description"],
                             payload={
-                                "parent_plan_id": plan["plan_id"]
-                                "subtask_id": sub_task["id"]
-                                "assignee": sub_task["assignee"]
-                                "complexity": sub_task["complexity"]
-                                "estimated_duration": sub_task["estimated_duration"]
-                                "workflow_phase": sub_task["workflow_phase"]
-                                "required_skills": sub_task["required_skills"]
-                                "deliverables": sub_task["deliverables"]
+                                "parent_plan_id": plan["plan_id"],
+                                "subtask_id": sub_task["id"],
+                                "assignee": sub_task["assignee"],
+                                "complexity": sub_task["complexity"],
+                                "estimated_duration": sub_task["estimated_duration"],
+                                "workflow_phase": sub_task["workflow_phase"],
+                                "required_skills": sub_task["required_skills"],
+                                "deliverables": sub_task["deliverables"],
                                 "dependencies": sub_task["dependencies"]
                             }
                         )
@@ -737,7 +735,7 @@ class AIPlanner:
             # Publish planning started event
             self._publish_workflow_event(
                 WorkflowEventType.PHASE_STARTED,
-                task["id"]
+                task["id"],
                 workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id"),
                 phase="planning",
@@ -763,7 +761,7 @@ class AIPlanner:
             # Publish planning completion event
             self._publish_workflow_event(
                 WorkflowEventType.PHASE_COMPLETED,
-                task["id"]
+                task["id"],
                 workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id"),
                 phase="planning",
@@ -787,7 +785,7 @@ class AIPlanner:
             # Publish planning failure event,
             self._publish_workflow_event(
                 WorkflowEventType.BLOCKED,
-                task["id"]
+                task["id"],
                 workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id"),
                 phase="planning",
@@ -826,7 +824,7 @@ class AIPlanner:
                         logger.warning(f"Task {task['id']} processing failed")
                 else:
                     # No tasks available, wait before next poll
-                    await asyncio.sleep(self.poll_interval)
+                    time.sleep(self.poll_interval)
 
             except KeyboardInterrupt:
                 logger.info("Received keyboard interrupt, shutting down...")
@@ -834,7 +832,7 @@ class AIPlanner:
             except Exception as e:
                 error = PlannerError(message="Unexpected error in main processing loop", original_error=e)
                 self.error_reporter.report_error(error)
-                await asyncio.sleep(self.poll_interval)
+                time.sleep(self.poll_interval)
 
         # Cleanup
         if self.db_connection:
@@ -994,7 +992,7 @@ class AIPlanner:
                 # Publish planning started event asynchronously
                 await self._publish_workflow_event_async(
                     WorkflowEventType.PHASE_STARTED,
-                    task["id"]
+                    task["id"],
                     workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id"),
                     phase="planning",
@@ -1021,7 +1019,7 @@ class AIPlanner:
                 # Publish planning completion event asynchronously
                 await self._publish_workflow_event_async(
                     WorkflowEventType.PHASE_COMPLETED,
-                    task["id"]
+                    task["id"],
                     workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id"),
                     phase="planning",
@@ -1039,7 +1037,7 @@ class AIPlanner:
                 # Publish planning failure event asynchronously
                 await self._publish_workflow_event_async(
                     WorkflowEventType.BLOCKED,
-                    task["id"]
+                    task["id"],
                     workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id"),
                     phase="planning",
@@ -1094,9 +1092,9 @@ class AIPlanner:
 class WorkflowEventType(Enum):
     """Types of workflow events"""
 
-    PHASE_STARTED = "phase_started"
-    PHASE_COMPLETED = "phase_completed"
-    PLAN_GENERATED = "plan_generated"
+    PHASE_STARTED = "phase_started",
+    PHASE_COMPLETED = "phase_completed",
+    PLAN_GENERATED = "plan_generated",
     BLOCKED = "blocked"
 
 
@@ -1214,5 +1212,5 @@ def main() -> int:
         return 1
 
 
-if __name__ == "__main__":,
+if __name__ == "__main__":
     sys.exit(main())

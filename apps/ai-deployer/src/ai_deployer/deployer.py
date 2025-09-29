@@ -25,9 +25,9 @@ logger = get_logger(__name__)
 class DeploymentStrategy(Enum):
     """Available deployment strategies"""
 
-    DIRECT = "direct"
-    BLUE_GREEN = "blue-green"
-    ROLLING = "rolling"
+    DIRECT = "direct",
+    BLUE_GREEN = "blue-green",
+    ROLLING = "rolling",
     CANARY = "canary"
 
 
@@ -86,9 +86,9 @@ class DeploymentOrchestrator:
         from .strategies.ssh import SSHDeploymentStrategy
 
         return {
-            DeploymentStrategy.DIRECT: SSHDeploymentStrategy(self.config)
-            DeploymentStrategy.BLUE_GREEN: SSHDeploymentStrategy(self.config)
-            DeploymentStrategy.ROLLING: DockerDeploymentStrategy(self.config)
+            DeploymentStrategy.DIRECT: SSHDeploymentStrategy(self.config),
+            DeploymentStrategy.BLUE_GREEN: SSHDeploymentStrategy(self.config),
+            DeploymentStrategy.ROLLING: DockerDeploymentStrategy(self.config),
             DeploymentStrategy.CANARY: KubernetesDeploymentStrategy(self.config)
         }
 
@@ -136,7 +136,7 @@ class DeploymentOrchestrator:
                 success=False,
                 strategy=strategy,
                 deployment_id=deployment_id,
-                error=str(e)
+                error=str(e),
                 rollback_attempted=True,
                 metrics={"rollback_success": rollback_success}
             )
@@ -226,7 +226,7 @@ class DeploymentOrchestrator:
             await strategy_impl.post_deployment_actions(task, deployment_id)
 
         return DeploymentResult(
-            success=deploy_result["success"]
+            success=deploy_result["success"],
             strategy=strategy_impl.strategy,
             deployment_id=deployment_id,
             metrics=deploy_result.get("metrics", {})
@@ -331,7 +331,7 @@ class DeploymentOrchestrator:
 
             return HealthStatus(
                 healthy=overall_healthy,
-                message=("All health checks passed" if overall_healthy else "Some health checks failed")
+                message=("All health checks passed" if overall_healthy else "Some health checks failed"),
                 checks=health_checks
             )
 

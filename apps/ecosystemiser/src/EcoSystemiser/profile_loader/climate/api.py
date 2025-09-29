@@ -19,7 +19,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 from io import BytesIO
-from typing import Any, AsyncIterator, Dict, ListTuple
+from typing import Any, AsyncIterator, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd

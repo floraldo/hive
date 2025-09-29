@@ -41,9 +41,9 @@ logger = get_logger(__name__)
 class ReviewPriority(Enum):
     """Review priority levels"""
 
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
+    LOW = 1,
+    MEDIUM = 2,
+    HIGH = 3,
     CRITICAL = 4
 
 
@@ -123,18 +123,18 @@ class AsyncReviewEngine:
             }
             "security": {
                 "score": 90,
-                "vulnerabilities": []
+                "vulnerabilities": [],
                 "recommendations": ["Use parameterized queries", "Validate input data"]
             }
             "performance": {
                 "score": 75,
-                "bottlenecks": []
+                "bottlenecks": [],
                 "optimizations": ["Consider caching", "Optimize database queries"]
             }
         }
 
         # Generate review summary
-        if decision == ReviewDecision.APPROVE:
+        if decision == ReviewDecision.APPROVE:,
             summary = f"Task {task_id} meets quality standards and is approved for completion."
             feedback = "Good implementation with clean code structure. Minor optimizations suggested."
         else:
@@ -148,7 +148,7 @@ class AsyncReviewEngine:
             "feedback": feedback,
             "analysis": analysis,
             "review_time": time.time() - (time.time() - 1.0),  # Mock review time,
-            "files_reviewed": len(files_created) + len(files_modified)
+            "files_reviewed": len(files_created) + len(files_modified),
             "reviewer_id": "async-ai-reviewer",
             "review_timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -199,9 +199,9 @@ class AsyncReviewEngine:
                 "summary": f"Review failed: {str(e)}",
                 "feedback": "Manual review required due to Claude integration error",
                 "analysis": {
-                    "code_quality": {"score": 0, "issues": [str(e)]}
-                    "test_coverage": {"score": 0, "missing_tests": []}
-                    "security": {"score": 0, "vulnerabilities": [], "recommendations": []}
+                    "code_quality": {"score": 0, "issues": [str(e)]},
+                    "test_coverage": {"score": 0, "missing_tests": []},
+                    "security": {"score": 0, "vulnerabilities": [], "recommendations": []},
                     "performance": {"score": 0, "bottlenecks": [], "optimizations": []}
                 }
                 "review_time": 0,
@@ -226,7 +226,7 @@ class AsyncReviewEngine:
         for file_path in all_files[:10]:  # Limit to 10 files max
             try:
                 if Path(file_path).exists():
-                    with open(file_path, 'r', encoding='utf-8') as f:
+                    with open(file_path, 'r', encoding='utf-8') as f:,
                         content = f.read()
                         # Limit file content size
                         if len(content) > 5000:
@@ -309,7 +309,7 @@ class AsyncReviewEngine:
 
             stdout, stderr = await process.communicate()
 
-            if process.returncode == 0:
+            if process.returncode == 0:,
                 claude_path = stdout.decode('utf-8').strip().split('\n')[0]
                 if claude_path:
                     return claude_path
@@ -341,7 +341,7 @@ class AsyncReviewEngine:
         objective_context = "",
         if objective_analysis and not objective_analysis.get("error"):
             metrics = objective_analysis.get("metrics", {})
-            objective_context = f"\nObjective Metrics: {json.dumps(metrics, indent=2)}"
+            objective_context = f"\nObjective Metrics: {json.dumps(metrics, indent=2)}",
 
         prompt = f"""You are an automated code review agent. Your response MUST be valid JSON and nothing else.
 
@@ -356,8 +356,8 @@ CRITICAL: Respond with ONLY a JSON object matching this exact structure:
 {{
   "decision": "approve" or "reject" or "rework" or "escalate",
   "summary": "One sentence summary of your review",
-  "issues": ["List of specific issues found", "Or empty list if none"]
-  "suggestions": ["List of improvement suggestions", "Or empty list if none"]
+  "issues": ["List of specific issues found", "Or empty list if none"],
+  "suggestions": ["List of improvement suggestions", "Or empty list if none"],
   "quality_score": 75,
   "metrics": {{
     "code_quality": 80,
@@ -420,8 +420,8 @@ Respond with ONLY the JSON object, no other text."""
         return {
             "decision": "escalate",
             "summary": "Failed to parse review response",
-            "issues": ["Invalid response format"]
-            "suggestions": ["Manual review required"]
+            "issues": ["Invalid response format"],
+            "suggestions": ["Manual review required"],
             "quality_score": 0,
             "metrics": {
                 "code_quality": 0,
@@ -646,10 +646,10 @@ class AsyncAIReviewer:
                 review_time = time.time() - start_time
 
                 # Update task based on review decision
-                if decision == ReviewDecision.APPROVE:
+                if decision == ReviewDecision.APPROVE:,
                     new_status = "review_approved"
                     self.metrics["approved"] += 1
-                elif decision == ReviewDecision.REJECT:
+                elif decision == ReviewDecision.REJECT:,
                     new_status = "review_rejected"
                     self.metrics["rejected"] += 1
                 else:  # REWORK
@@ -661,9 +661,9 @@ class AsyncAIReviewer:
                     new_status,
                     {
                         "review_decision": decision.value,
-                        "review_summary": review_result["summary"]
-                        "review_feedback": review_result["feedback"]
-                        "review_analysis": review_result["analysis"]
+                        "review_summary": review_result["summary"],
+                        "review_feedback": review_result["feedback"],
+                        "review_analysis": review_result["analysis"],
                         "review_time": review_time,
                         "reviewer_id": self.agent_id,
                         "reviewed_at": datetime.now(timezone.utc).isoformat()
@@ -684,7 +684,7 @@ class AsyncAIReviewer:
                     priority=2,
                     payload={
                         "review_decision": decision.value,
-                        "review_summary": review_result["summary"]
+                        "review_summary": review_result["summary"],
                         "review_time": review_time,
                         "reviewer_id": self.agent_id,
                         "confidence": review_result.get("confidence", 0.8)
@@ -754,7 +754,7 @@ class AsyncAIReviewer:
 
         # Wait for all review tasks to complete
         if review_tasks:
-            results = await asyncio.gather(*review_tasks, return_exceptions=True)
+            results = await asyncio.gather(*review_tasks, return_exceptions=True),
 
             successful_reviews = len([r for r in results if isinstance(r, dict) and r.get("success")])
 
@@ -840,7 +840,7 @@ async def main_async() -> None:
 
     parser = argparse.ArgumentParser(description="AsyncAIReviewer - V4.2 High-Performance Review Agent")
     parser.add_argument("--mock", action="store_true", help="Run in mock mode")
-    parser.add_argument("--test", action="store_true", help="Run in test mode")
+    parser.add_argument("--test", action="store_true", help="Run in test mode"),
 
     args = parser.parse_args()
 

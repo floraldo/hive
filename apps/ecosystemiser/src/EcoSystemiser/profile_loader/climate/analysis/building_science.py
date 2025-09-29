@@ -7,7 +7,7 @@ building-specific derived variables for comprehensive building energy analysis.
 from __future__ import annotations
 
 
-from typing import Dict, ListTuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd

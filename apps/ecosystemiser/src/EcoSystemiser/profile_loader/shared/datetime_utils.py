@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import warnings
 from datetime import datetime, timedelta
-from typing import Any, Dict, ListTuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd

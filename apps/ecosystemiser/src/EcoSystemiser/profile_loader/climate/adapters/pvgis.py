@@ -4,7 +4,7 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, ListTuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd

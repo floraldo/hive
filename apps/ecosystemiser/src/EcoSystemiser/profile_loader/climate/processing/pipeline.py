@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, ListTuple
+from typing import Any, Callable, Dict, List, Tuple
 
 import xarray as xr
 from ecosystemiser.settings import get_settings
