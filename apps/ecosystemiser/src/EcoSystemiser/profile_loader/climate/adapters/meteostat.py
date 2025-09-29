@@ -1,7 +1,9 @@
 """Meteostat API adapter for climate data"""
 
-from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Tuple
+from __future__ import annotations
+
+from datetime import datetime, timedelta
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -14,20 +16,11 @@ from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     QualityFeatures,
     RateLimits,
     SpatialCoverage,
-    TemporalCoverage
+    TemporalCoverage,
 )
-from ecosystemiser.profile_loader.climate.adapters.errors import (
-    DataFetchError,
-    DataParseError,
-    ValidationError
-)
-from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
-from ecosystemiser.profile_loader.climate.processing.validation import (
-    QCIssue,
-    QCProfile,
-    QCReport,
-    QCSeverity
-)
+from ecosystemiser.profile_loader.climate.adapters.errors import DataFetchError, ValidationError
+from ecosystemiser.profile_loader.climate.processing.validation import QCIssue, QCProfile, QCReport, QCSeverity
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -35,7 +28,7 @@ logger = get_logger(__name__)
 
 class MeteostatAdapter(BaseAdapter):
     """Adapter for Meteostat climate data API"""
-from __future__ import annotations
+
     ADAPTER_NAME = "meteostat"
     ADAPTER_VERSION = "0.1.0"
 
@@ -73,65 +66,55 @@ from __future__ import annotations
 
     # Weather condition code mappings (COCO parameter values 1-27)
     WEATHER_CONDITIONS = {
-        1: {"name": "Clear", "cloud_cover": 0, "visibility": "good"}
-        2: {"name": "Fair", "cloud_cover": 25, "visibility": "good"}
-        3: {"name": "Cloudy", "cloud_cover": 75, "visibility": "moderate"}
-        4: {"name": "Overcast", "cloud_cover": 100, "visibility": "moderate"}
-        5: {"name": "Fog", "cloud_cover": 100, "visibility": "poor"}
-        6: {"name": "Freezing Fog", "cloud_cover": 100, "visibility": "poor"}
-        7: {"name": "Light Rain", "cloud_cover": 100, "visibility": "moderate"}
-        8: {"name": "Rain", "cloud_cover": 100, "visibility": "poor"}
-        9: {"name": "Heavy Rain", "cloud_cover": 100, "visibility": "poor"}
-        10: {"name": "Freezing Rain", "cloud_cover": 100, "visibility": "poor"}
-        11: {"name": "Heavy Freezing Rain", "cloud_cover": 100, "visibility": "poor"}
-        12: {"name": "Sleet", "cloud_cover": 100, "visibility": "poor"}
-        13: {"name": "Heavy Sleet", "cloud_cover": 100, "visibility": "poor"}
-        14: {"name": "Light Snowfall", "cloud_cover": 100, "visibility": "moderate"}
-        15: {"name": "Snowfall", "cloud_cover": 100, "visibility": "poor"}
-        16: {"name": "Heavy Snowfall", "cloud_cover": 100, "visibility": "poor"}
-        17: {"name": "Rain Shower", "cloud_cover": 100, "visibility": "moderate"}
-        18: {"name": "Heavy Rain Shower", "cloud_cover": 100, "visibility": "poor"}
-        19: {"name": "Sleet Shower", "cloud_cover": 100, "visibility": "poor"}
-        20: {"name": "Heavy Sleet Shower", "cloud_cover": 100, "visibility": "poor"}
-        21: {"name": "Snow Shower", "cloud_cover": 100, "visibility": "moderate"}
-        22: {"name": "Heavy Snow Shower", "cloud_cover": 100, "visibility": "poor"}
-        23: {"name": "Lightning", "cloud_cover": 100, "visibility": "poor"}
-        24: {"name": "Hail", "cloud_cover": 100, "visibility": "poor"}
-        25: {"name": "Thunderstorm", "cloud_cover": 100, "visibility": "poor"}
-        26: {
-            "name": "Heavy Thunderstorm",
-            "cloud_cover": 100,
-            "visibility": "very_poor"
-        }
-        27: {"name": "Storm", "cloud_cover": 100, "visibility": "very_poor"}
-    },
+        1: {"name": "Clear", "cloud_cover": 0, "visibility": "good"},
+        2: {"name": "Fair", "cloud_cover": 25, "visibility": "good"},
+        3: {"name": "Cloudy", "cloud_cover": 75, "visibility": "moderate"},
+        4: {"name": "Overcast", "cloud_cover": 100, "visibility": "moderate"},
+        5: {"name": "Fog", "cloud_cover": 100, "visibility": "poor"},
+        6: {"name": "Freezing Fog", "cloud_cover": 100, "visibility": "poor"},
+        7: {"name": "Light Rain", "cloud_cover": 100, "visibility": "moderate"},
+        8: {"name": "Rain", "cloud_cover": 100, "visibility": "poor"},
+        9: {"name": "Heavy Rain", "cloud_cover": 100, "visibility": "poor"},
+        10: {"name": "Freezing Rain", "cloud_cover": 100, "visibility": "poor"},
+        11: {"name": "Heavy Freezing Rain", "cloud_cover": 100, "visibility": "poor"},
+        12: {"name": "Sleet", "cloud_cover": 100, "visibility": "poor"},
+        13: {"name": "Heavy Sleet", "cloud_cover": 100, "visibility": "poor"},
+        14: {"name": "Light Snowfall", "cloud_cover": 100, "visibility": "moderate"},
+        15: {"name": "Snowfall", "cloud_cover": 100, "visibility": "poor"},
+        16: {"name": "Heavy Snowfall", "cloud_cover": 100, "visibility": "poor"},
+        17: {"name": "Rain Shower", "cloud_cover": 100, "visibility": "moderate"},
+        18: {"name": "Heavy Rain Shower", "cloud_cover": 100, "visibility": "poor"},
+        19: {"name": "Sleet Shower", "cloud_cover": 100, "visibility": "poor"},
+        20: {"name": "Heavy Sleet Shower", "cloud_cover": 100, "visibility": "poor"},
+        21: {"name": "Snow Shower", "cloud_cover": 100, "visibility": "moderate"},
+        22: {"name": "Heavy Snow Shower", "cloud_cover": 100, "visibility": "poor"},
+        23: {"name": "Lightning", "cloud_cover": 100, "visibility": "poor"},
+        24: {"name": "Hail", "cloud_cover": 100, "visibility": "poor"},
+        25: {"name": "Thunderstorm", "cloud_cover": 100, "visibility": "poor"},
+        26: {"name": "Heavy Thunderstorm", "cloud_cover": 100, "visibility": "very_poor"},
+        27: {"name": "Storm", "cloud_cover": 100, "visibility": "very_poor"},
+    }
 
     def __init__(self) -> None:
         """Initialize Meteostat adapter"""
-        from ecosystemiser.profile_loader.climate.adapters.base import (
-            CacheConfig,
-            HTTPConfig,
-            RateLimitConfig
-        )
+        from ecosystemiser.profile_loader.climate.adapters.base import CacheConfig, RateLimitConfig
 
         # Configure rate limiting (Meteostat has limits)
         rate_config = RateLimitConfig(
             requests_per_minute=60,  # Conservative for free tier,
             requests_per_hour=500,
-            burst_size=10
+            burst_size=10,
         )
 
         # Configure caching,
-        cache_config = CacheConfig(
-            memory_ttl=1800,  # 30 minutes,
-            disk_ttl=86400,  # 24 hours (station data changes slowly)
-        ),
-
-        super().__init__(
-            name=self.ADAPTER_NAME,
-            rate_limit_config=rate_config,
-            cache_config=cache_config
+        cache_config = (
+            CacheConfig(
+                memory_ttl=1800,  # 30 minutes,
+                disk_ttl=86400,  # 24 hours (station data changes slowly)
+            ),
         )
+
+        super().__init__(name=self.ADAPTER_NAME, rate_limit_config=rate_config, cache_config=cache_config)
         self._meteostat_available = self._check_meteostat()
 
     def _check_meteostat(self) -> bool:
@@ -145,17 +128,12 @@ from __future__ import annotations
             return False
 
     async def _fetch_raw_async(
-        self,
-        location: Tuple[float, float],
-        variables: List[str],
-        period: Dict,
-        **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs
     ) -> Any | None:
         """Fetch raw data from Meteostat"""
         if not self._meteostat_available:
             raise DataFetchError(
-                "Meteostat library not installed. Install with: pip install meteostat",
-                adapter_name="meteostat"
+                "Meteostat library not installed. Install with: pip install meteostat", adapter_name="meteostat"
             )
 
         lat, lon = location
@@ -194,13 +172,13 @@ from __future__ import annotations
         df = weather_data.fetch_async()
 
         if df.empty:
-            self.logger.warning(f"No data returned from Meteostat for location {lat:.3f},{lon:.3f}"),
+            (self.logger.warning(f"No data returned from Meteostat for location {lat:.3f},{lon:.3f}"),)
             return None
 
         return df
 
     async def _transform_data_async(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str]
     ) -> xr.Dataset:
         """Transform Meteostat DataFrame to xarray Dataset"""
         lat, lon = location
@@ -226,18 +204,13 @@ from __future__ import annotations
 
         # Add metadata,
         ds.attrs.update(
-            {
-                "source": "Meteostat",
-                "adapter_version": self.ADAPTER_VERSION,
-                "latitude": lat,
-                "longitude": lon,
-            }
+            {"source": "Meteostat", "adapter_version": self.ADAPTER_VERSION, "latitude": lat, "longitude": lon}
         )
 
-        self.logger.info(f"Successfully processed {len(ds.time)} time steps with {len(ds.data_vars)} variables"),
+        (self.logger.info(f"Successfully processed {len(ds.time)} time steps with {len(ds.data_vars)} variables"),)
         return ds
 
-    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict) -> None:
+    def _validate_request(self, lat: float, lon: float, variables: list[str], period: dict) -> None:
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValidationError(f"Invalid latitude: {lat}", field="lat", value=lat)
@@ -247,29 +220,22 @@ from __future__ import annotations
             raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
     async def fetch_async(
-        self,
-        *
-        lat: float,
-        lon: float,
-        variables: List[str],
-        period: Dict,
-        resolution: str = "1H"
+        self, *lat: float, lon: float, variables: list[str], period: dict, resolution: str = "1H"
     ) -> xr.Dataset:
         """Fetch climate data from Meteostat API"""
 
         if not self._meteostat_available:
             raise DataFetchError(
-                "Meteostat library not installed. Install with: pip install meteostat",
-                adapter_name="meteostat"
+                "Meteostat library not installed. Install with: pip install meteostat", adapter_name="meteostat"
             )
 
         try:
             # Separate regular and special variables
             regular_vars = [v for v in variables if v in self.VARIABLE_MAPPING]
             special_vars = [v for v in variables if v in self.SPECIAL_VARIABLES]
-            unavailable_vars = [
-                v for v in variables if v not in self.VARIABLE_MAPPING and v not in self.SPECIAL_VARIABLES
-            ],
+            unavailable_vars = (
+                [v for v in variables if v not in self.VARIABLE_MAPPING and v not in self.SPECIAL_VARIABLES],
+            )
 
             if unavailable_vars:
                 logger.warning(f"Variables not available in Meteostat: {unavailable_vars}")
@@ -280,21 +246,17 @@ from __future__ import annotations
                 )
 
             # Use base class fetch method,
-            return await super().fetch_async(
-                location=(lat, lon),
-                variables=variables,
-                period=period,
-                resolution=resolution
-            ),
+            return (
+                await super().fetch_async(
+                    location=(lat, lon), variables=variables, period=period, resolution=resolution
+                ),
+            )
 
         except Exception as e:
-            self.logger.error(f"Error fetching Meteostat data: {e}"),
-            raise DataFetchError(
-                f"Failed to fetch data from Meteostat: {str(e)}",
-                adapter_name="meteostat"
-            ) from e,
+            self.logger.error(f"Error fetching Meteostat data: {e}")
+            raise DataFetchError(f"Failed to fetch data from Meteostat: {str(e)}", adapter_name="meteostat") from e
 
-    def _parse_period(self, period: Dict) -> tuple:
+    def _parse_period(self, period: dict) -> tuple:
         """Parse period dict to start and end dates"""
         if "year" in period:
             year = period["year"]
@@ -317,7 +279,7 @@ from __future__ import annotations
 
         return start_date, end_date
 
-    def _dataframe_to_xarray(self, df: pd.DataFrame, variables: List[str], lat: float, lon: float) -> xr.Dataset:
+    def _dataframe_to_xarray(self, df: pd.DataFrame, variables: list[str], lat: float, lon: float) -> xr.Dataset:
         """Convert Meteostat DataFrame to xarray Dataset"""
 
         # Create Dataset with time coordinate
@@ -341,62 +303,66 @@ from __future__ import annotations
                     data = self._convert_units(data, canonical_name, meteo_name)
 
                     # Create DataArray
-                    da = xr.DataArray(
-                        data,
-                        coords={"time": df.index},
-                        name=canonical_name,
-                        attrs=self._get_variable_attrs(canonical_name)
-                    ),
+                    da = (
+                        xr.DataArray(
+                            data,
+                            coords={"time": df.index},
+                            name=canonical_name,
+                            attrs=self._get_variable_attrs(canonical_name),
+                        ),
+                    )
 
                     ds[canonical_name] = da
                 else:
                     logger.warning(f"Variable {meteo_name} not in Meteostat response")
                     # Add NaN array,
                     ds[canonical_name] = xr.DataArray(
-                        np.full(len(df), np.nan)
+                        np.full(len(df), np.nan),
                         coords={"time": df.index},
-                        attrs=self._get_variable_attrs(canonical_name)
-                    ),
+                        attrs=self._get_variable_attrs(canonical_name),
+                    )
 
         return ds
 
     def _convert_units(self, data: np.ndarray, canonical_name: str, meteo_name: str) -> np.ndarray:
         """Convert Meteostat units to canonical units"""
 
-        conversions = {
-            # Meteostat provides mm (total precipitation for the period)
-            # For hourly data, this is effectively mm/h,
-            "prcp": lambda x: x,  # Already in appropriate units (mm/h for hourly)
-            # Meteostat pressure in hPa, we want Pa,
-            "pres": lambda x: x * 100,
-            # Meteostat wind speed in km/h, we want m/s,
-            "wspd": lambda x: x * 0.277778,
-            # Meteostat wind gust in km/h, we want m/s,
-            "wpgt": lambda x: x * 0.277778,
-            # Snow depth from m to mm (canonical unit),
-            "snow": lambda x: x * 1000,
-            # Cloud cover from oktas (0-8) to percentage (0-100),
-            "coco": lambda x: x * 12.5,
-            # Wind direction already in degrees - no conversion needed,
-            "wdir": lambda x: x,
-            # Temperature fields already in degC - no conversion needed,
-            "temp": lambda x: x,
-            "tavg": lambda x: x,
-            "tmin": lambda x: x,
-            "tmax": lambda x: x,
-            "dwpt": lambda x: x,
-            # Humidity already in % - no conversion needed,
-            "rhum": lambda x: x,
-            # Sunshine duration already in minutes - no conversion needed,
-            "tsun": lambda x: x
-        },
+        conversions = (
+            {
+                # Meteostat provides mm (total precipitation for the period)
+                # For hourly data, this is effectively mm/h,
+                "prcp": lambda x: x,  # Already in appropriate units (mm/h for hourly)
+                # Meteostat pressure in hPa, we want Pa,
+                "pres": lambda x: x * 100,
+                # Meteostat wind speed in km/h, we want m/s,
+                "wspd": lambda x: x * 0.277778,
+                # Meteostat wind gust in km/h, we want m/s,
+                "wpgt": lambda x: x * 0.277778,
+                # Snow depth from m to mm (canonical unit),
+                "snow": lambda x: x * 1000,
+                # Cloud cover from oktas (0-8) to percentage (0-100),
+                "coco": lambda x: x * 12.5,
+                # Wind direction already in degrees - no conversion needed,
+                "wdir": lambda x: x,
+                # Temperature fields already in degC - no conversion needed,
+                "temp": lambda x: x,
+                "tavg": lambda x: x,
+                "tmin": lambda x: x,
+                "tmax": lambda x: x,
+                "dwpt": lambda x: x,
+                # Humidity already in % - no conversion needed,
+                "rhum": lambda x: x,
+                # Sunshine duration already in minutes - no conversion needed,
+                "tsun": lambda x: x,
+            },
+        )
 
         if meteo_name in conversions:
             return conversions[meteo_name](data)
 
         return data
 
-    def _process_special_variables(self, ds: xr.Dataset, df: pd.DataFrame, special_vars: List[str]) -> xr.Dataset:
+    def _process_special_variables(self, ds: xr.Dataset, df: pd.DataFrame, special_vars: list[str]) -> xr.Dataset:
         """Process special variables that need custom handling"""
 
         for var in special_vars:
@@ -416,21 +382,12 @@ from __future__ import annotations
                     else:
                         cloud_data[i] = np.nan
 
-                ds[var] = xr.DataArray(
-                    cloud_data,
-                    coords={"time": ds.time},
-                    attrs=self._get_variable_attrs(var)
-                ),
+                ds[var] = (xr.DataArray(cloud_data, coords={"time": ds.time}, attrs=self._get_variable_attrs(var)),)
                 logger.info("Derived cloud cover from weather condition codes")
 
             elif var == "visibility" and "coco" in df.columns:
                 # Derive visibility from weather condition codes
-                visibility_map = {
-                    "very_poor": 0.5,
-                    "poor": 2.0,
-                    "moderate": 10.0,
-                    "good": 20.0
-                }
+                visibility_map = {"very_poor": 0.5, "poor": 2.0, "moderate": 10.0, "good": 20.0}
                 visibility_data = np.zeros(len(df))
                 for i, code in enumerate(df["coco"].values):
                     if pd.notna(code):
@@ -446,21 +403,15 @@ from __future__ import annotations
                     else:
                         visibility_data[i] = np.nan
 
-                ds[var] = xr.DataArray(
-                    visibility_data,
-                    coords={"time": ds.time},
-                    attrs=self._get_variable_attrs(var)
-                ),
+                ds[var] = (
+                    xr.DataArray(visibility_data, coords={"time": ds.time}, attrs=self._get_variable_attrs(var)),
+                )
                 logger.info("Derived visibility from weather condition codes")
 
             elif var == "ghi" and "tsun" in df.columns:
                 # Convert sunshine duration to GHI using Ångström-Prescott model
                 ghi_data = self._sunshine_to_ghi(df["tsun"].values, ds.time.values, ds.attrs.get("latitude", 0))
-                ds[var] = xr.DataArray(
-                    ghi_data,
-                    coords={"time": ds.time},
-                    attrs=self._get_variable_attrs(var)
-                ),
+                ds[var] = (xr.DataArray(ghi_data, coords={"time": ds.time}, attrs=self._get_variable_attrs(var)),)
                 logger.info("Converted sunshine duration to GHI using Ångström-Prescott model")
 
         return ds
@@ -531,7 +482,7 @@ from __future__ import annotations
         and solar geometry calculations.,
         """
         import math
-        from datetime import datetime
+
         ghi_estimates = np.zeros_like(sunshine_minutes, dtype=float)
 
         # Ångström-Prescott coefficients (region-specific values),
@@ -629,26 +580,27 @@ from __future__ import annotations
 
         return ds
 
-    def _get_variable_attrs(self, canonical_name: str) -> Dict:
+    def _get_variable_attrs(self, canonical_name: str) -> dict:
         """Get variable attributes including units"""
 
-        units_map = {
-            "temp_air": "degC",
-            "dewpoint": "degC",
-            "rel_humidity": "%",
-            "precip": "mm/h",  # Total precipitation for the time period,
-            "snow": "mm",
-            "wind_dir": "degrees",
-            "wind_speed": "m/s",
-            "pressure": "Pa",
-            "cloud_cover": "%",
-            "ghi": "W/m2"
-        },
+        units_map = (
+            {
+                "temp_air": "degC",
+                "dewpoint": "degC",
+                "rel_humidity": "%",
+                "precip": "mm/h",  # Total precipitation for the time period,
+                "snow": "mm",
+                "wind_dir": "degrees",
+                "wind_speed": "m/s",
+                "pressure": "Pa",
+                "cloud_cover": "%",
+                "ghi": "W/m2",
+            },
+        )
 
-        return {
-            "units": units_map.get(canonical_name, "unknown"),
-            "long_name": canonical_name.replace("_", " ").title()
-        },
+        return (
+            {"units": units_map.get(canonical_name, "unknown"), "long_name": canonical_name.replace("_", " ").title()},
+        )
 
     def get_capabilities(self) -> AdapterCapabilities:
         """Return Meteostat adapter capabilities"""
@@ -663,7 +615,7 @@ from __future__ import annotations
                 forecast_days=0,
                 real_time=True,
                 delay_hours=1,  # Near real-time
-            )
+            ),
             spatial=SpatialCoverage(
                 global_coverage=True,
                 regions=None,
@@ -671,38 +623,31 @@ from __future__ import annotations
                 station_based=True,
                 grid_based=False,
                 custom_locations=True,  # Finds nearest station
-            )
+            ),
             supported_variables=list(self.VARIABLE_MAPPING.keys()) + list(self.SPECIAL_VARIABLES.keys()),
             primary_variables=[
                 "temp_air",
                 "precip",
-                "wind_speed",  # Best for basic met vars,
+                "wind_speed",  # Best for basic met vars
                 "pressure",
-                "rel_humidity"
-            ]
+                "rel_humidity",
+            ],
             derived_variables=[],
-            supported_frequencies=[
-                DataFrequency.HOURLY,
-                DataFrequency.DAILY,
-                DataFrequency.MONTHLY
-            ]
+            supported_frequencies=[DataFrequency.HOURLY, DataFrequency.DAILY, DataFrequency.MONTHLY],
             native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.NONE,  # Uses RapidAPI internally but handled by library,
             requires_subscription=False,  # Free tier available,
             free_tier_limits=RateLimits(
-                requests_per_month=500,
-                requests_per_day=None,
-                requests_per_hour=None,
-                data_points_per_request=None
-            )
+                requests_per_month=500, requests_per_day=None, requests_per_hour=None, data_points_per_request=None
+            ),
             quality=QualityFeatures(
                 gap_filling=True,  # Statistical gap filling,
                 quality_flags=True,  # QC flags available,
                 uncertainty_estimates=False,
                 ensemble_members=False,
-                bias_correction=False
-            )
-            max_request_days=None,  # No hard limit,
+                bias_correction=False,
+            ),
+            max_request_days=None,  # No hard limit
             max_variables_per_request=None,
             batch_requests_supported=False,
             async_requests_required=False,
@@ -713,9 +658,9 @@ from __future__ import annotations
                 "Historical data from 1900s for some stations",
                 "Near real-time updates",
                 "Automatic station selection by proximity",
-            ]
-            data_products=["Hourly", "Daily", "Monthly", "Normals"]
-        ),
+            ],
+            data_products=["Hourly", "Daily", "Monthly", "Normals"],
+        )
 
 
 class MeteostatQCProfile(QCProfile):
@@ -729,17 +674,11 @@ class MeteostatQCProfile(QCProfile):
                 "Data gaps common due to station maintenance",
                 "Quality varies by region and station density",
                 "Some stations may have exposure or instrumentation issues",
-                "Interpolation used between stations can introduce artifacts"
-            ]
-            recommended_variables=[
-                "temp_air",
-                "rel_humidity",
-                "precip",
-                "wind_speed",
-                "pressure"
-            ]
+                "Interpolation used between stations can introduce artifacts",
+            ],
+            recommended_variables=["temp_air", "rel_humidity", "precip", "wind_speed", "pressure"],
             temporal_resolution_limits={"all": "hourly"},
-            spatial_accuracy="Point measurements, station-dependent"
+            spatial_accuracy="Point measurements, station-dependent",
         )
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
@@ -755,15 +694,15 @@ class MeteostatQCProfile(QCProfile):
                     type="data_gaps",
                     message=f"Long data gaps detected in {var_name} (max: {gap_length} consecutive NaN values)",
                     severity=QCSeverity.MEDIUM if gap_length < 72 else QCSeverity.HIGH,
-                    affected_variables=[var_name]
+                    affected_variables=[var_name],
                     metadata={"max_gap_hours": int(gap_length)},
-                    suggested_action="Check station maintenance schedules and consider gap filling"
-                ),
+                    suggested_action="Check station maintenance schedules and consider gap filling",
+                )
                 report.add_issue(issue)
 
         # Check for station-specific issues (simplified),
         if "wind_speed" in ds:
-            wind_data = ds["wind_speed"].values,
+            wind_data = (ds["wind_speed"].values,)
             # Check for suspiciously low wind variability (sheltered station)
             wind_std = np.nanstd(wind_data)
             if wind_std < 0.5:  # Very low wind variability,
@@ -772,9 +711,9 @@ class MeteostatQCProfile(QCProfile):
                     message=f"Very low wind speed variability (std={wind_std:.2f}) suggests sheltered station",
                     severity=QCSeverity.LOW,
                     affected_variables=["wind_speed"],
-                    metadata={"wind_std": float(wind_std)}
-                    suggested_action="Consider station exposure conditions in analysis"
-                ),
+                    metadata={"wind_std": float(wind_std)},
+                    suggested_action="Consider station exposure conditions in analysis",
+                )
                 report.add_issue(issue)
 
         report.passed_checks.append("meteostat_specific_validation")
@@ -795,6 +734,6 @@ class MeteostatQCProfile(QCProfile):
 
         return max_gap
 
-    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
+    def get_adjusted_bounds(self, base_bounds: dict[str, tuple[float, float]]) -> dict[str, tuple[float, float]]:
         """Get source-specific adjusted bounds"""
         return base_bounds
