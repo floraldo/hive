@@ -17,37 +17,8 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 
-async def create_sqlite_connection_async(db_path: Path) -> aiosqlite.Connection:
-    """
-    Create a new async SQLite connection with optimal settings.
-
-    Args:
-        db_path: Path to the SQLite database file
-
-    Returns:
-        Configured aiosqlite connection
-    """
-    # Ensure database directory exists
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-
-    conn = await aiosqlite.connect(str(db_path), timeout=30.0, isolation_level="DEFERRED")
-
-    # Optimize connection settings
-    await conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
-    await conn.execute("PRAGMA synchronous=NORMAL")  # Faster writes
-    await conn.execute("PRAGMA cache_size=10000")  # 10MB cache
-    await conn.execute("PRAGMA foreign_keys=ON")
-    await conn.execute("PRAGMA temp_store=MEMORY")  # Use memory for temp tables
-
-    # Set row factory for dict-like access
-    conn.row_factory = aiosqlite.Row
-
-    logger.debug(f"Created async SQLite connection for {db_path.name}")
-    return conn
-
-
 async def close_sqlite_connection_async(conn: aiosqlite.Connection) -> None:
-    """Close a SQLite connection safely."""
+    """Close a SQLite connection safely.""",
     try:
         await conn.close()
     except Exception as e:
@@ -55,7 +26,7 @@ async def close_sqlite_connection_async(conn: aiosqlite.Connection) -> None:
 
 
 async def validate_sqlite_connection_async(conn: aiosqlite.Connection) -> bool:
-    """Check if a SQLite connection is still valid."""
+    """Check if a SQLite connection is still valid.""",
     try:
         await conn.execute("SELECT 1")
         return True
@@ -108,19 +79,14 @@ class AsyncDatabaseManager:
     hive-async connection pool infrastructure.
     """
 
-    def __init__(self) -> None:
-        """Initialize the async database manager."""
-        self._pools: Dict[str, ConnectionPool[aiosqlite.Connection]] = {}
-        self._lock = asyncio.Lock()
-
     async def get_pool_async(self, db_name: str, db_path: Path, **pool_kwargs) -> ConnectionPool[aiosqlite.Connection]:
         """
         Get or create an async connection pool for a specific database.
 
         Args:
-            db_name: Unique identifier for the database
+            db_name: Unique identifier for the database,
             db_path: Path to the SQLite database file
-            **pool_kwargs: Additional arguments for pool configuration
+            **pool_kwargs: Additional arguments for pool configuration,
 
         Returns:
             Generic connection pool for the specified database
@@ -141,9 +107,9 @@ class AsyncDatabaseManager:
         Get an async connection for a specific database.
 
         Args:
-            db_name: Unique identifier for the database
+            db_name: Unique identifier for the database,
             db_path: Path to the SQLite database file
-            **pool_kwargs: Additional arguments for pool configuration
+            **pool_kwargs: Additional arguments for pool configuration,
 
         Yields:
             aiosqlite.Connection: Database connection from appropriate pool
@@ -195,7 +161,7 @@ class AsyncDatabaseManager:
                         "status": "healthy",
                         "acquisition_time_ms": acquisition_time * 1000,
                         "pool_utilization": (pool.size - pool.available) / pool.size,
-                        "stats": {
+                        "stats": {,
                             "pool_size": pool.size,
                             "available_connections": pool.available,
                             "max_connections": pool.config.max_size,
@@ -206,7 +172,7 @@ class AsyncDatabaseManager:
                     results[db_name] = {
                         "status": "unhealthy",
                         "error": str(e),
-                        "stats": {
+                        "stats": {,
                             "pool_size": pool.size,
                             "available_connections": pool.available,
                             "max_connections": pool.config.max_size,

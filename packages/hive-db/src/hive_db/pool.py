@@ -32,10 +32,10 @@ class ConnectionPool:
     """
 
     def __init__(
-        self
-        db_path: Path
+        self,
+        db_path: Path,
         min_connections: int = 2
-        max_connections: int = 10
+        max_connections: int = 10,
         connection_timeout: float = 30.0
     ):
         """
@@ -67,7 +67,7 @@ class ConnectionPool:
                 self._pool.put(conn)
 
     def _create_connection(self) -> sqlite3.Connection | None:
-        """Create a new database connection with optimal settings."""
+        """Create a new database connection with optimal settings.""",
         try:
             # Ensure database directory exists
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -98,7 +98,7 @@ class ConnectionPool:
             return None
 
     def _validate_connection(self, conn: sqlite3.Connection) -> bool:
-        """Check if a connection is still valid."""
+        """Check if a connection is still valid.""",
         try:
             conn.execute("SELECT 1")
             return True
@@ -116,7 +116,7 @@ class ConnectionPool:
         """
         conn = None
         try:
-            # Try to get from pool
+            # Try to get from pool,
             try:
                 conn = self._pool.get(timeout=self.connection_timeout)
 
@@ -175,9 +175,9 @@ class ConnectionPool:
     def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics."""
         return {
-            "db_path": str(self.db_path)
+            "db_path": str(self.db_path),
             "pool_size": self._pool.qsize()
-            "connections_created": self._connections_created
+            "connections_created": self._connections_created,
             "max_connections": self.max_connections
             "min_connections": self.min_connections
         }
@@ -191,19 +191,14 @@ class DatabaseManager:
     while maintaining connection pooling and proper resource management.
     """
 
-    def __init__(self) -> None:
-        """Initialize the database manager."""
-        self._pools: Dict[str, ConnectionPool] = {}
-        self._lock = threading.RLock()
-
     def get_pool(self, db_name: str, db_path: Path, **pool_kwargs) -> ConnectionPool:
         """
         Get or create a connection pool for a specific database.
 
         Args:
-            db_name: Unique identifier for the database
+            db_name: Unique identifier for the database,
             db_path: Path to the SQLite database file
-            **pool_kwargs: Additional arguments for ConnectionPool
+            **pool_kwargs: Additional arguments for ConnectionPool,
 
         Returns:
             ConnectionPool for the specified database
@@ -222,9 +217,9 @@ class DatabaseManager:
         Get a connection for a specific database.
 
         Args:
-            db_name: Unique identifier for the database
+            db_name: Unique identifier for the database,
             db_path: Path to the SQLite database file
-            **pool_kwargs: Additional arguments for ConnectionPool
+            **pool_kwargs: Additional arguments for ConnectionPool,
 
         Yields:
             sqlite3.Connection: Database connection from appropriate pool

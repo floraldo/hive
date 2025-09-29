@@ -35,29 +35,6 @@ class RecoveryStrategy(ABC):
     for any system's specific recovery needs.
     """
 
-    def __init__(self, strategy_name: str, max_attempts: int = 3) -> None:
-        self.strategy_name = strategy_name
-        self.max_attempts = max_attempts
-        self.attempt_count = 0
-
-    @abstractmethod
-    def attempt_recovery(self, error: Exception, context: dict | None = None) -> RecoveryStatus:
-        """
-        Attempt recovery from an error.
-
-        Args:
-            error: The exception that occurred
-            context: Additional context for recovery
-
-        Returns:
-            Recovery status
-        """
-        pass
-
-    def can_attempt_recovery(self) -> bool:
-        """Check if recovery can be attempted"""
-        return self.attempt_count < self.max_attempts
-
     def reset(self) -> None:
         """Reset recovery attempt counter"""
         self.attempt_count = 0
@@ -65,11 +42,6 @@ class RecoveryStrategy(ABC):
 
 class RetryStrategy(RecoveryStrategy):
     """Generic retry recovery strategy"""
-
-    def __init__(self, operation: Callable, max_attempts: int = 3, delay_seconds: float = 1.0) -> None:
-        super().__init__("retry", max_attempts)
-        self.operation = operation
-        self.delay_seconds = delay_seconds
 
     def attempt_recovery(self, error: Exception, context: dict | None = None) -> RecoveryStatus:
         """Attempt recovery by retrying the operation"""

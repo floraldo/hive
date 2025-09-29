@@ -1,0 +1,380 @@
+[
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\database",
+    "reason": "Create new directory structure: database/"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\maintenance",
+    "reason": "Create new directory structure: maintenance/"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\maintenance\\fixers",
+    "reason": "Create new directory structure: maintenance/fixers/"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\security",
+    "reason": "Create new directory structure: security/"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\setup",
+    "reason": "Create new directory structure: setup/"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\testing",
+    "reason": "Create new directory structure: testing/"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\archive",
+    "reason": "Create new directory structure: archive/"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\v3_final_cert.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\v3_final_cert.py",
+    "reason": "Archive deprecated script: v3_final_cert.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\step_by_step_cert.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\step_by_step_cert.py",
+    "reason": "Archive deprecated script: step_by_step_cert.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\async_worker.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\async_worker.py",
+    "reason": "Archive deprecated script: async_worker.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\worker_async_patch.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\worker_async_patch.py",
+    "reason": "Archive deprecated script: worker_async_patch.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\queen_async_enhancement.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\queen_async_enhancement.py",
+    "reason": "Archive deprecated script: queen_async_enhancement.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\simulate_planner_success.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\simulate_planner_success.py",
+    "reason": "Archive deprecated script: simulate_planner_success.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\hive_complete_review.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\hive_complete_review.py",
+    "reason": "Archive deprecated script: hive_complete_review.py"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\maintenance\\repository_hygiene.py",
+    "reason": "Create consolidated script for cleanup_scripts"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\comprehensive_code_cleanup.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\comprehensive_code_cleanup.py",
+    "reason": "Archive after consolidation: comprehensive_code_cleanup.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\hive_clean.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\hive_clean.py",
+    "reason": "Archive after consolidation: hive_clean.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\cleanup\\comprehensive_cleanup.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\comprehensive_cleanup.py",
+    "reason": "Archive after consolidation: comprehensive_cleanup.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\operational_excellence\\comprehensive_cleanup.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\comprehensive_cleanup.py",
+    "reason": "Archive after consolidation: comprehensive_cleanup.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\operational_excellence\\targeted_cleanup.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\targeted_cleanup.py",
+    "reason": "Archive after consolidation: targeted_cleanup.py"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\testing\\run_tests.py",
+    "reason": "Create consolidated script for testing_scripts"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\run_comprehensive_integration_tests.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\run_comprehensive_integration_tests.py",
+    "reason": "Archive after consolidation: run_comprehensive_integration_tests.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\run_integration_tests.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\run_integration_tests.py",
+    "reason": "Archive after consolidation: run_integration_tests.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\simulate_planner_success.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\simulate_planner_success.py",
+    "reason": "Archive after consolidation: simulate_planner_success.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\standardize_tests.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\standardize_tests.py",
+    "reason": "Archive after consolidation: standardize_tests.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\step_by_step_cert.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\step_by_step_cert.py",
+    "reason": "Archive after consolidation: step_by_step_cert.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\v3_final_cert.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\v3_final_cert.py",
+    "reason": "Archive after consolidation: v3_final_cert.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\validate_golden_rules.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\validate_golden_rules.py",
+    "reason": "Archive after consolidation: validate_golden_rules.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\validate_integration_tests.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\validate_integration_tests.py",
+    "reason": "Archive after consolidation: validate_integration_tests.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\worker_async_patch.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\worker_async_patch.py",
+    "reason": "Archive after consolidation: worker_async_patch.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\seed\\seed_master_plan_task.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\seed_master_plan_task.py",
+    "reason": "Archive after consolidation: seed_master_plan_task.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\utils\\monitor_certification.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\monitor_certification.py",
+    "reason": "Archive after consolidation: monitor_certification.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\utils\\monitor_master_plan.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\monitor_master_plan.py",
+    "reason": "Archive after consolidation: monitor_master_plan.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\quick-test.sh",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\quick-test.sh",
+    "reason": "Archive after consolidation: quick-test.sh"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\security\\run_audit.py",
+    "reason": "Create consolidated script for security_scripts"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\audit_dependencies.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\audit_dependencies.py",
+    "reason": "Archive after consolidation: audit_dependencies.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\security_check.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\security_check.py",
+    "reason": "Archive after consolidation: security_check.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\operational_excellence\\security_audit.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\security_audit.py",
+    "reason": "Archive after consolidation: security_audit.py"
+  },
+  {
+    "operation": "create",
+    "source_path": "",
+    "target_path": "C:\\git\\hive\\scripts\\maintenance\\fixers\\code_fixers.py",
+    "reason": "Create consolidated script for fixer_scripts"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\add_type_hints.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\add_type_hints.py",
+    "reason": "Archive after consolidation: add_type_hints.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\fix_all_golden_violations.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\fix_all_golden_violations.py",
+    "reason": "Archive after consolidation: fix_all_golden_violations.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\fix_ecosystemiser_logging.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\fix_ecosystemiser_logging.py",
+    "reason": "Archive after consolidation: fix_ecosystemiser_logging.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\fix_global_state.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\fix_global_state.py",
+    "reason": "Archive after consolidation: fix_global_state.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\fix_golden_violations.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\fix_golden_violations.py",
+    "reason": "Archive after consolidation: fix_golden_violations.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\fix_type_hints.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\fix_type_hints.py",
+    "reason": "Archive after consolidation: fix_type_hints.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\modernize_type_hints.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\modernize_type_hints.py",
+    "reason": "Archive after consolidation: modernize_type_hints.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\fixes\\fix_all_syntax_errors.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\fix_all_syntax_errors.py",
+    "reason": "Archive after consolidation: fix_all_syntax_errors.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\fixes\\fix_syspath_violations.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\fix_syspath_violations.py",
+    "reason": "Archive after consolidation: fix_syspath_violations.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "scripts\\fixes\\smart_final_fixer.py",
+    "target_path": "C:\\git\\hive\\scripts\\archive\\smart_final_fixer.py",
+    "reason": "Archive after consolidation: smart_final_fixer.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\analysis\\async_resource_patterns.py",
+    "target_path": "C:\\git\\hive\\scripts\\analysis\\async_resource_patterns.py",
+    "reason": "Reorganize into new structure: async_resource_patterns.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\daemons\\ai_planner_daemon.py",
+    "target_path": "C:\\git\\hive\\scripts\\daemons\\ai_planner_daemon.py",
+    "reason": "Reorganize into new structure: ai_planner_daemon.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\daemons\\ai_reviewer_daemon.py",
+    "target_path": "C:\\git\\hive\\scripts\\daemons\\ai_reviewer_daemon.py",
+    "reason": "Reorganize into new structure: ai_reviewer_daemon.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\log_management.py",
+    "target_path": "C:\\git\\hive\\scripts\\maintenance\\log_management.py",
+    "reason": "Reorganize into new structure: log_management.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\initial_setup.sh",
+    "target_path": "C:\\git\\hive\\scripts\\setup\\initial_setup.sh",
+    "reason": "Reorganize into new structure: initial_setup.sh"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\setup_pre_commit.sh",
+    "target_path": "C:\\git\\hive\\scripts\\setup\\setup_pre_commit.sh",
+    "reason": "Reorganize into new structure: setup_pre_commit.sh"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\setup_pre_commit.bat",
+    "target_path": "C:\\git\\hive\\scripts\\setup\\setup_pre_commit.bat",
+    "reason": "Reorganize into new structure: setup_pre_commit.bat"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\setup_github_secrets.sh",
+    "target_path": "C:\\git\\hive\\scripts\\setup\\setup_github_secrets.sh",
+    "reason": "Reorganize into new structure: setup_github_secrets.sh"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\health-check.sh",
+    "target_path": "C:\\git\\hive\\scripts\\testing\\health-check.sh",
+    "reason": "Reorganize into new structure: health-check.sh"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\quick-test.sh",
+    "target_path": "C:\\git\\hive\\scripts\\testing\\quick-test.sh",
+    "reason": "Reorganize into new structure: quick-test.sh"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\dev-session.sh",
+    "target_path": "C:\\git\\hive\\scripts\\testing\\dev-session.sh",
+    "reason": "Reorganize into new structure: dev-session.sh"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\hive_queen.py",
+    "target_path": "C:\\git\\hive\\scripts\\utils\\hive_queen.py",
+    "reason": "Reorganize into new structure: hive_queen.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\hive_dashboard.py",
+    "target_path": "C:\\git\\hive\\scripts\\utils\\hive_dashboard.py",
+    "reason": "Reorganize into new structure: hive_dashboard.py"
+  },
+  {
+    "operation": "move",
+    "source_path": "C:\\git\\hive\\scripts\\start_async_hive.py",
+    "target_path": "C:\\git\\hive\\scripts\\utils\\start_async_hive.py",
+    "reason": "Reorganize into new structure: start_async_hive.py"
+  }
+]

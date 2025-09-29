@@ -117,17 +117,6 @@ class AsyncErrorHandler:
             return None
         return error
 
-    async def handle_success(self, context: ErrorContext, execution_time: float) -> None:
-        """Record successful operation for health monitoring."""
-        # Update component health
-        await self._update_component_health(context.component, success=True)
-
-        # Record operation timing
-        self._operation_times[context.operation_name].append(execution_time)
-
-        # Update success rates
-        await self._update_success_rates(context.operation_name, success=True)
-
     async def _record_error(self, error: Exception, context: ErrorContext) -> Dict[str, Any]:
         """Record error details for analysis."""
         error_record = {
@@ -154,44 +143,6 @@ class AsyncErrorHandler:
 
         self._error_history.append(error_record)
         return error_record
-
-    async def _update_error_stats(self, error: Exception, context: ErrorContext) -> None:
-        """Update error statistics."""
-        self._error_stats.total_errors += 1
-        self._error_stats.errors_by_type[error.__class__.__name__] += 1
-        self._error_stats.errors_by_component[context.component] += 1
-        self._error_stats.last_error_time = datetime.utcnow()
-
-        # Calculate error rate per minute
-        recent_errors = [
-            e for e in self._error_history
-            if (datetime.utcnow() - e["timestamp"]).total_seconds() <= 60
-        ]
-        self._error_stats.error_rate_per_minute = len(recent_errors)
-
-    async def _update_component_health(self, component: str, success: bool) -> None:
-        """Update component health score (exponential moving average)."""
-        current_health = self._component_health[component]
-        alpha = 0.1  # Smoothing factor
-
-        if success:
-            new_health = current_health + alpha * (1.0 - current_health)
-        else:
-            new_health = current_health + alpha * (0.0 - current_health)
-
-        self._component_health[component] = max(0.0, min(1.0, new_health))
-
-    async def _update_success_rates(self, operation: str, success: bool) -> None:
-        """Update operation success rates."""
-        current_rate = self._success_rates[operation]
-        alpha = 0.1
-
-        if success:
-            new_rate = current_rate + alpha * (1.0 - current_rate)
-        else:
-            new_rate = current_rate + alpha * (0.0 - current_rate)
-
-        self._success_rates[operation] = max(0.0, min(1.0, new_rate))
 
     async def _report_error_async(
         self,
@@ -247,10 +198,6 @@ class AsyncErrorHandler:
             "last_error_time": self._error_stats.last_error_time.isoformat() if self._error_stats.last_error_time else None,
         }
 
-    def get_component_health(self, component: str) -> float:
-        """Get health score for a specific component (0.0-1.0)."""
-        return self._component_health[component]
-
     def get_operation_stats(self, operation: str) -> Dict[str, Any]:
         """Get statistics for a specific operation."""
         times = list(self._operation_times[operation])
@@ -261,15 +208,6 @@ class AsyncErrorHandler:
             "min_execution_time": min(times) if times else 0.0,
             "max_execution_time": max(times) if times else 0.0,
         }
-
-    def get_recent_errors(self, component: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get recent errors, optionally filtered by component."""
-        errors = list(self._error_history)
-
-        if component:
-            errors = [e for e in errors if e.get("component") == component]
-
-        return errors[-limit:]
 
     async def predict_failure_risk(self, component: str, operation: str) -> Dict[str, Any]:
         """Predict failure risk based on recent patterns."""
@@ -300,33 +238,6 @@ class AsyncErrorHandler:
             "recommendations": self._get_risk_recommendations(risk_score, component, operation),
         }
 
-    def _get_risk_recommendations(self, risk_score: float, component: str, operation: str) -> List[str]:
-        """Generate risk mitigation recommendations."""
-        recommendations = []
-
-        if risk_score > 0.7:
-            recommendations.extend([
-                "Consider implementing circuit breaker for this component",
-                "Increase monitoring and alerting",
-                "Review error patterns and implement preventive measures",
-            ])
-        elif risk_score > 0.4:
-            recommendations.extend([
-                "Monitor component health closely",
-                "Consider adding retry mechanisms",
-                "Review recent error logs for patterns",
-            ])
-
-        # Component-specific recommendations
-        component_health = self.get_component_health(component)
-        if component_health < 0.8:
-            recommendations.append(f"Component {component} showing degraded health - investigate root cause")
-
-        return recommendations
-
-
-# Context manager for automatic error handling
-@asynccontextmanager
 async def error_context(
     handler: AsyncErrorHandler,
     operation_name: str,
@@ -390,12 +301,6 @@ def handle_async_errors(
 ):
     """Decorator for automatic async error handling with retry logic."""
 
-    def decorator(func: Callable) -> Callable:
-        nonlocal operation_name
-        if operation_name is None:
-            operation_name = f"{func.__module__}.{func.__name__}"
-
-        @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             last_error = None
 

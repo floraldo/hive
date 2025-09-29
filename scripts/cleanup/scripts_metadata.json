@@ -1,0 +1,1365 @@
+{
+  "scripts\\add_type_hints.py": {
+    "path": "scripts\\add_type_hints.py",
+    "name": "add_type_hints.py",
+    "purpose": "Add missing type hints and docstrings to functions",
+    "dependencies": [
+      "pathlib",
+      "typing",
+      "ast",
+      "os"
+    ],
+    "execution_type": "python",
+    "size_lines": 149,
+    "last_modified": "2025-09-29T00:10:11.327323",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\async_worker.py": {
+    "path": "scripts\\async_worker.py",
+    "name": "async_worker.py",
+    "purpose": "Async Worker Implementation for Phase 4.1 Performance Improvement",
+    "dependencies": [
+      "os",
+      "sys",
+      "time",
+      "json",
+      "pathlib",
+      "typing",
+      "asyncio",
+      "subprocess",
+      "datetime",
+      "hive_logging",
+      "hive_orchestrator",
+      "hive_utils",
+      "aiofiles"
+    ],
+    "execution_type": "python",
+    "size_lines": 613,
+    "last_modified": "2025-09-29T00:01:43.306595",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\audit_dependencies.py": {
+    "path": "scripts\\audit_dependencies.py",
+    "name": "audit_dependencies.py",
+    "purpose": "Audit dependencies across all pyproject.toml files",
+    "dependencies": [
+      "re",
+      "ast",
+      "toml",
+      "pathlib",
+      "typing"
+    ],
+    "execution_type": "python",
+    "size_lines": 204,
+    "last_modified": "2025-09-29T00:01:41.261650",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\comprehensive_code_cleanup.py": {
+    "path": "scripts\\comprehensive_code_cleanup.py",
+    "name": "comprehensive_code_cleanup.py",
+    "purpose": "Comprehensive Code Cleanup Tool for Hive Platform V4.5",
+    "dependencies": [
+      "dataclasses",
+      "re",
+      "ast",
+      "collections",
+      "pathlib",
+      "typing",
+      "hive_logging",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 425,
+    "last_modified": "2025-09-29T04:15:46.020586",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 10,
+    "is_executable": true
+  },
+  "scripts\\enhance_async_resources.py": {
+    "path": "scripts\\enhance_async_resources.py",
+    "name": "enhance_async_resources.py",
+    "purpose": "Enhance Async Resource Management for Hive Platform V4.4",
+    "dependencies": [
+      "dataclasses",
+      "re",
+      "ast",
+      "os",
+      "weakref",
+      "pathlib",
+      "typing",
+      "hive_logging",
+      "asyncio",
+      "datetime",
+      "contextlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 470,
+    "last_modified": "2025-09-29T03:52:26.043743",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\fix_all_golden_violations.py": {
+    "path": "scripts\\fix_all_golden_violations.py",
+    "name": "fix_all_golden_violations.py",
+    "purpose": "Fix all golden rule violations in the codebase.",
+    "dependencies": [
+      "pathlib",
+      "typing",
+      "re",
+      "ast"
+    ],
+    "execution_type": "python",
+    "size_lines": 179,
+    "last_modified": "2025-09-29T00:01:42.169611",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\fix_ecosystemiser_logging.py": {
+    "path": "scripts\\fix_ecosystemiser_logging.py",
+    "name": "fix_ecosystemiser_logging.py",
+    "purpose": "Fix logging imports in EcoSystemiser app.",
+    "dependencies": [
+      "pathlib",
+      "re"
+    ],
+    "execution_type": "python",
+    "size_lines": 107,
+    "last_modified": "2025-09-29T00:01:42.869390",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\fix_global_state.py": {
+    "path": "scripts\\fix_global_state.py",
+    "name": "fix_global_state.py",
+    "purpose": "Fix global state access violations for Rule 16 compliance.",
+    "dependencies": [
+      "pathlib",
+      "typing",
+      "re"
+    ],
+    "execution_type": "python",
+    "size_lines": 138,
+    "last_modified": "2025-09-29T04:22:27.702958",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\fix_golden_violations.py": {
+    "path": "scripts\\fix_golden_violations.py",
+    "name": "fix_golden_violations.py",
+    "purpose": "Fix all golden rule violations in the Hive codebase.",
+    "dependencies": [
+      "pathlib",
+      "re"
+    ],
+    "execution_type": "python",
+    "size_lines": 156,
+    "last_modified": "2025-09-29T00:01:41.756336",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\fix_type_hints.py": {
+    "path": "scripts\\fix_type_hints.py",
+    "name": "fix_type_hints.py",
+    "purpose": "Fix missing type hints for Rule 7 compliance.",
+    "dependencies": [
+      "sys",
+      "pathlib",
+      "ast",
+      "typing"
+    ],
+    "execution_type": "python",
+    "size_lines": 84,
+    "last_modified": "2025-09-29T04:19:31.558301",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\harden_platform.py": {
+    "path": "scripts\\harden_platform.py",
+    "name": "harden_platform.py",
+    "purpose": "Hive Platform Hardening Script",
+    "dependencies": [
+      "re",
+      "ast",
+      "os",
+      "collections",
+      "json",
+      "pathlib",
+      "typing",
+      "shutil"
+    ],
+    "execution_type": "python",
+    "size_lines": 578,
+    "last_modified": "2025-09-29T00:08:50.289433",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\hive_clean.py": {
+    "path": "scripts\\hive_clean.py",
+    "name": "hive_clean.py",
+    "purpose": "Clean the hive database.",
+    "dependencies": [
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 18,
+    "last_modified": "2025-09-29T00:01:41.321310",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\hive_complete_review.py": {
+    "path": "scripts\\hive_complete_review.py",
+    "name": "hive_complete_review.py",
+    "purpose": "Complete an escalated review.",
+    "dependencies": [
+      "sys",
+      "hive_core_db",
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 32,
+    "last_modified": "2025-09-29T00:01:41.594682",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\hive_dashboard.py": {
+    "path": "scripts\\hive_dashboard.py",
+    "name": "hive_dashboard.py",
+    "purpose": "Launch the Hive Dashboard.",
+    "dependencies": [
+      "sys",
+      "pathlib",
+      "hive_orchestrator"
+    ],
+    "execution_type": "python",
+    "size_lines": 13,
+    "last_modified": "2025-09-29T00:01:41.459452",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\hive_queen.py": {
+    "path": "scripts\\hive_queen.py",
+    "name": "hive_queen.py",
+    "purpose": "Launch the Hive Queen daemon.",
+    "dependencies": [
+      "sys",
+      "hive_orchestrator",
+      "pathlib",
+      "os"
+    ],
+    "execution_type": "python",
+    "size_lines": 14,
+    "last_modified": "2025-09-29T00:01:41.656214",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\init_db_simple.py": {
+    "path": "scripts\\init_db_simple.py",
+    "name": "init_db_simple.py",
+    "purpose": "Simple database initialization script",
+    "dependencies": [
+      "sqlite3",
+      "sys",
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 81,
+    "last_modified": "2025-09-29T00:01:35.310393",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": false
+  },
+  "scripts\\log_management.py": {
+    "path": "scripts\\log_management.py",
+    "name": "log_management.py",
+    "purpose": "Log Management Utility for Hive Platform V4.4",
+    "dependencies": [
+      "dataclasses",
+      "re",
+      "os",
+      "pathlib",
+      "typing",
+      "hive_logging",
+      "datetime",
+      "shutil"
+    ],
+    "execution_type": "python",
+    "size_lines": 352,
+    "last_modified": "2025-09-29T03:12:17.031833",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\modernize_type_hints.py": {
+    "path": "scripts\\modernize_type_hints.py",
+    "name": "modernize_type_hints.py",
+    "purpose": "Modernize Type Hints for Hive Platform V4.4",
+    "dependencies": [
+      "re",
+      "os",
+      "pathlib",
+      "typing",
+      "hive_logging",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 239,
+    "last_modified": "2025-09-29T03:43:41.296579",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\optimize_database.py": {
+    "path": "scripts\\optimize_database.py",
+    "name": "optimize_database.py",
+    "purpose": "Database optimization script for Hive platform",
+    "dependencies": [
+      "hive_config",
+      "sqlite3",
+      "time",
+      "pathlib",
+      "typing",
+      "hive_logging"
+    ],
+    "execution_type": "python",
+    "size_lines": 330,
+    "last_modified": "2025-09-29T04:05:50.714530",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\optimize_lambdas.py": {
+    "path": "scripts\\optimize_lambdas.py",
+    "name": "optimize_lambdas.py",
+    "purpose": "Optimize Lambda Function Usage for Hive Platform V4.4",
+    "dependencies": [
+      "dataclasses",
+      "re",
+      "ast",
+      "os",
+      "pathlib",
+      "typing",
+      "hive_logging",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 310,
+    "last_modified": "2025-09-29T03:50:05.873286",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\optimize_performance.py": {
+    "path": "scripts\\optimize_performance.py",
+    "name": "optimize_performance.py",
+    "purpose": "Performance optimization script for Hive platform",
+    "dependencies": [
+      "dataclasses",
+      "re",
+      "os",
+      "functools",
+      "time",
+      "pathlib",
+      "typing",
+      "asyncio",
+      "hive_logging",
+      "contextlib",
+      "enum"
+    ],
+    "execution_type": "python",
+    "size_lines": 517,
+    "last_modified": "2025-09-29T00:13:12.934463",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\queen_async_enhancement.py": {
+    "path": "scripts\\queen_async_enhancement.py",
+    "name": "queen_async_enhancement.py",
+    "purpose": "Queen Async Enhancement for Phase 4.1 Performance Improvement",
+    "dependencies": [
+      "sys",
+      "hive_logging",
+      "typing",
+      "pathlib",
+      "hive_orchestrator"
+    ],
+    "execution_type": "python",
+    "size_lines": 237,
+    "last_modified": "2025-09-29T00:01:43.342532",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\refactor_service_layer.py": {
+    "path": "scripts\\refactor_service_layer.py",
+    "name": "refactor_service_layer.py",
+    "purpose": "Refactor service layer files to move business logic to implementation layer",
+    "dependencies": [
+      "re",
+      "os",
+      "hive_cli",
+      "hive_logging",
+      "pathlib",
+      "typing"
+    ],
+    "execution_type": "python",
+    "size_lines": 193,
+    "last_modified": "2025-09-29T00:11:04.682680",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\run_comprehensive_integration_tests.py": {
+    "path": "scripts\\run_comprehensive_integration_tests.py",
+    "name": "run_comprehensive_integration_tests.py",
+    "purpose": "Comprehensive Integration Test Runner for Hive Platform",
+    "dependencies": [
+      "dataclasses",
+      "os",
+      "sqlite3",
+      "sys",
+      "tempfile",
+      "time",
+      "json",
+      "pathlib",
+      "typing",
+      "asyncio",
+      "subprocess",
+      "argparse"
+    ],
+    "execution_type": "python",
+    "size_lines": 810,
+    "last_modified": "2025-09-29T00:01:44.351645",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\run_integration_tests.py": {
+    "path": "scripts\\run_integration_tests.py",
+    "name": "run_integration_tests.py",
+    "purpose": "Hive Platform Integration Test Runner",
+    "dependencies": [
+      "dataclasses",
+      "os",
+      "sys",
+      "time",
+      "json",
+      "pathlib",
+      "typing",
+      "subprocess",
+      "argparse",
+      "test_comprehensive_integration"
+    ],
+    "execution_type": "python",
+    "size_lines": 546,
+    "last_modified": "2025-09-29T00:01:46.166674",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\security_check.py": {
+    "path": "scripts\\security_check.py",
+    "name": "security_check.py",
+    "purpose": "Security-focused Golden Rules validation for CI/CD",
+    "dependencies": [
+      "sys",
+      "hive_tests",
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 50,
+    "last_modified": "2025-09-29T02:56:49.593816",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\simulate_planner_success.py": {
+    "path": "scripts\\simulate_planner_success.py",
+    "name": "simulate_planner_success.py",
+    "purpose": "Simulate a successful AI Planner operation for testing the autonomous loop.",
+    "dependencies": [
+      "sys",
+      "uuid",
+      "json",
+      "pathlib",
+      "hive_core_db",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 203,
+    "last_modified": "2025-09-29T00:01:44.675172",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\standardize_tests.py": {
+    "path": "scripts\\standardize_tests.py",
+    "name": "standardize_tests.py",
+    "purpose": "Standardize test directory structure across all packages and apps",
+    "dependencies": [
+      "shutil",
+      "typing",
+      "pathlib",
+      "os"
+    ],
+    "execution_type": "python",
+    "size_lines": 250,
+    "last_modified": "2025-09-29T00:01:44.103328",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\standardize_tools.py": {
+    "path": "scripts\\standardize_tools.py",
+    "name": "standardize_tools.py",
+    "purpose": "Standardize tool versions across all Hive packages and apps.",
+    "dependencies": [
+      "pathlib",
+      "hive_logging",
+      "toml"
+    ],
+    "execution_type": "python",
+    "size_lines": 153,
+    "last_modified": "2025-09-29T00:01:44.167777",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\start_async_hive.py": {
+    "path": "scripts\\start_async_hive.py",
+    "name": "start_async_hive.py",
+    "purpose": "Async Hive Startup Script - V4.0 Phase 2",
+    "dependencies": [
+      "sys",
+      "hive_logging",
+      "pathlib",
+      "asyncio",
+      "argparse",
+      "hive_orchestrator"
+    ],
+    "execution_type": "python",
+    "size_lines": 142,
+    "last_modified": "2025-09-29T00:08:36.203178",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\step_by_step_cert.py": {
+    "path": "scripts\\step_by_step_cert.py",
+    "name": "step_by_step_cert.py",
+    "purpose": "Add the package paths",
+    "dependencies": [
+      "sys",
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 64,
+    "last_modified": "2025-09-29T00:01:44.107411",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\update_import_paths.py": {
+    "path": "scripts\\update_import_paths.py",
+    "name": "update_import_paths.py",
+    "purpose": "Script to replace sys.path.insert() patterns with centralized path management.",
+    "dependencies": [
+      "hive_config",
+      "re",
+      "sys",
+      "pathlib",
+      "typing"
+    ],
+    "execution_type": "python",
+    "size_lines": 190,
+    "last_modified": "2025-09-29T00:01:44.721903",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\v3_final_cert.py": {
+    "path": "scripts\\v3_final_cert.py",
+    "name": "v3_final_cert.py",
+    "purpose": "V3.0 Platform Final Certification Test",
+    "dependencies": [
+      "sys",
+      "pathlib",
+      "datetime",
+      "time"
+    ],
+    "execution_type": "python",
+    "size_lines": 323,
+    "last_modified": "2025-09-29T00:01:45.113787",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\validate_golden_rules.py": {
+    "path": "scripts\\validate_golden_rules.py",
+    "name": "validate_golden_rules.py",
+    "purpose": "Validate all Golden Rules for the Hive platform.",
+    "dependencies": [
+      "sys",
+      "hive_tests",
+      "pathlib",
+      "os"
+    ],
+    "execution_type": "python",
+    "size_lines": 67,
+    "last_modified": "2025-09-29T00:01:44.571472",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\validate_integration_tests.py": {
+    "path": "scripts\\validate_integration_tests.py",
+    "name": "validate_integration_tests.py",
+    "purpose": "Integration Test Validation Script",
+    "dependencies": [
+      "ast",
+      "concurrent",
+      "tempfile",
+      "sys",
+      "sqlite3",
+      "time",
+      "pathlib",
+      "typing",
+      "asyncio",
+      "subprocess",
+      "importlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 416,
+    "last_modified": "2025-09-29T00:01:45.420982",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\worker_async_patch.py": {
+    "path": "scripts\\worker_async_patch.py",
+    "name": "worker_async_patch.py",
+    "purpose": "Async Worker Patch for Phase 4.1 Integration",
+    "dependencies": [
+      "sys",
+      "typing",
+      "asyncio",
+      "argparse",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 227,
+    "last_modified": "2025-09-29T00:01:45.400905",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\analysis\\async_resource_patterns.py": {
+    "path": "scripts\\analysis\\async_resource_patterns.py",
+    "name": "async_resource_patterns.py",
+    "purpose": "Async Resource Management Best Practices for Hive Platform",
+    "dependencies": [
+      "typing",
+      "asyncio",
+      "weakref",
+      "contextlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 165,
+    "last_modified": "2025-09-29T03:52:58.260756",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\cleanup\\comprehensive_cleanup.py": {
+    "path": "scripts\\cleanup\\comprehensive_cleanup.py",
+    "name": "comprehensive_cleanup.py",
+    "purpose": "Comprehensive Hive Codebase Cleanup Script",
+    "dependencies": [
+      "re",
+      "os",
+      "pathlib",
+      "typing",
+      "shutil"
+    ],
+    "execution_type": "python",
+    "size_lines": 208,
+    "last_modified": "2025-09-29T04:29:08.482858",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\cleanup\\scripts_consolidator.py": {
+    "path": "scripts\\cleanup\\scripts_consolidator.py",
+    "name": "scripts_consolidator.py",
+    "purpose": "Scripts Directory Refactoring Tool - Phase 2: Consolidation and Deprecation",
+    "dependencies": [
+      "dataclasses",
+      "json",
+      "pathlib",
+      "typing",
+      "datetime",
+      "shutil"
+    ],
+    "execution_type": "python",
+    "size_lines": 512,
+    "last_modified": "2025-09-29T04:39:57.255306",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\cleanup\\scripts_refactor_plan.py": {
+    "path": "scripts\\cleanup\\scripts_refactor_plan.py",
+    "name": "scripts_refactor_plan.py",
+    "purpose": "Scripts Directory Refactoring Tool - Phase 1: Analysis and Planning",
+    "dependencies": [
+      "dataclasses",
+      "re",
+      "ast",
+      "json",
+      "pathlib",
+      "typing",
+      "subprocess",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 399,
+    "last_modified": "2025-09-29T04:41:30.033556",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 10,
+    "is_executable": true
+  },
+  "scripts\\daemons\\ai_planner_daemon.py": {
+    "path": "scripts\\daemons\\ai_planner_daemon.py",
+    "name": "ai_planner_daemon.py",
+    "purpose": "Launch the AI Planner daemon.",
+    "dependencies": [
+      "ai_planner",
+      "hive_config",
+      "os",
+      "sys",
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 23,
+    "last_modified": "2025-09-29T00:01:40.539336",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\daemons\\ai_reviewer_daemon.py": {
+    "path": "scripts\\daemons\\ai_reviewer_daemon.py",
+    "name": "ai_reviewer_daemon.py",
+    "purpose": "Launch the AI Reviewer daemon.",
+    "dependencies": [
+      "ai_reviewer",
+      "sys",
+      "pathlib",
+      "os"
+    ],
+    "execution_type": "python",
+    "size_lines": 14,
+    "last_modified": "2025-09-29T00:01:40.685456",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\debug\\debug_import.py": {
+    "path": "scripts\\debug\\debug_import.py",
+    "name": "debug_import.py",
+    "purpose": "Add the package paths",
+    "dependencies": [
+      "sys",
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 27,
+    "last_modified": "2025-09-29T00:01:41.010532",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\debug\\debug_path_matching.py": {
+    "path": "scripts\\debug\\debug_path_matching.py",
+    "name": "debug_path_matching.py",
+    "purpose": "Debug path matching for archive files",
+    "dependencies": [
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 27,
+    "last_modified": "2025-09-29T02:56:38.931743",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\debug\\inspect_run.py": {
+    "path": "scripts\\debug\\inspect_run.py",
+    "name": "inspect_run.py",
+    "purpose": "Run Inspection Tool - Objective Code Analysis for Intelligent Review",
+    "dependencies": [
+      "sys",
+      "json",
+      "pathlib",
+      "typing",
+      "hive_core_db",
+      "argparse",
+      "subprocess",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 300,
+    "last_modified": "2025-09-29T00:01:43.939606",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 6,
+    "is_executable": true
+  },
+  "scripts\\fixes\\fix_all_syntax_errors.py": {
+    "path": "scripts\\fixes\\fix_all_syntax_errors.py",
+    "name": "fix_all_syntax_errors.py",
+    "purpose": "Fix all obvious syntax errors from bulk automation",
+    "dependencies": [
+      "pathlib",
+      "re"
+    ],
+    "execution_type": "python",
+    "size_lines": 116,
+    "last_modified": "2025-09-29T03:51:45.287190",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\fixes\\fix_syspath_violations.py": {
+    "path": "scripts\\fixes\\fix_syspath_violations.py",
+    "name": "fix_syspath_violations.py",
+    "purpose": "Fix sys.path manipulation violations in EcoSystemiser",
+    "dependencies": [
+      "pathlib",
+      "typing",
+      "re"
+    ],
+    "execution_type": "python",
+    "size_lines": 117,
+    "last_modified": "2025-09-29T04:31:04.555468",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\fixes\\smart_final_fixer.py": {
+    "path": "scripts\\fixes\\smart_final_fixer.py",
+    "name": "smart_final_fixer.py",
+    "purpose": "Smart Final Fixer - Intelligently fix remaining Golden Rule violations",
+    "dependencies": [
+      "re",
+      "ast",
+      "sys",
+      "pathlib",
+      "typing"
+    ],
+    "execution_type": "python",
+    "size_lines": 198,
+    "last_modified": "2025-09-29T02:56:51.396877",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\automated_hygiene.py": {
+    "path": "scripts\\operational_excellence\\automated_hygiene.py",
+    "name": "automated_hygiene.py",
+    "purpose": "Automated Repository Hygiene Scanner",
+    "dependencies": [
+      "re",
+      "os",
+      "sys",
+      "requests",
+      "urllib",
+      "json",
+      "pathlib",
+      "typing",
+      "subprocess",
+      "argparse",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 506,
+    "last_modified": "2025-09-29T00:17:55.401329",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 37,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\ci_performance_analyzer.py": {
+    "path": "scripts\\operational_excellence\\ci_performance_analyzer.py",
+    "name": "ci_performance_analyzer.py",
+    "purpose": "CI/CD Performance & Cost Analyzer",
+    "dependencies": [
+      "re",
+      "os",
+      "sys",
+      "requests",
+      "json",
+      "pathlib",
+      "typing",
+      "argparse",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 554,
+    "last_modified": "2025-09-29T00:19:09.284340",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\comprehensive_cleanup.py": {
+    "path": "scripts\\operational_excellence\\comprehensive_cleanup.py",
+    "name": "comprehensive_cleanup.py",
+    "purpose": "Comprehensive Repository Cleanup Tool",
+    "dependencies": [
+      "re",
+      "os",
+      "sys",
+      "pathlib",
+      "typing",
+      "datetime",
+      "shutil"
+    ],
+    "execution_type": "python",
+    "size_lines": 607,
+    "last_modified": "2025-09-29T00:16:19.716501",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\documentation_analyzer.py": {
+    "path": "scripts\\operational_excellence\\documentation_analyzer.py",
+    "name": "documentation_analyzer.py",
+    "purpose": "Documentation Analyzer - Operational Excellence Tool",
+    "dependencies": [
+      "re",
+      "requests",
+      "sys",
+      "urllib",
+      "time",
+      "pathlib",
+      "typing"
+    ],
+    "execution_type": "python",
+    "size_lines": 341,
+    "last_modified": "2025-09-29T00:01:43.261064",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 35,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\git_branch_analyzer.py": {
+    "path": "scripts\\operational_excellence\\git_branch_analyzer.py",
+    "name": "git_branch_analyzer.py",
+    "purpose": "Git Branch Analyzer - Operational Excellence Tool",
+    "dependencies": [
+      "sys",
+      "pathlib",
+      "typing",
+      "subprocess",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 274,
+    "last_modified": "2025-09-29T00:02:52.675698",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\log_intelligence.py": {
+    "path": "scripts\\operational_excellence\\log_intelligence.py",
+    "name": "log_intelligence.py",
+    "purpose": "Centralized Log Intelligence System",
+    "dependencies": [
+      "re",
+      "os",
+      "sys",
+      "collections",
+      "json",
+      "pathlib",
+      "typing",
+      "argparse",
+      "datetime",
+      "gzip"
+    ],
+    "execution_type": "python",
+    "size_lines": 616,
+    "last_modified": "2025-09-29T00:44:40.263821",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\production_monitor.py": {
+    "path": "scripts\\operational_excellence\\production_monitor.py",
+    "name": "production_monitor.py",
+    "purpose": "Production Shield Monitor",
+    "dependencies": [
+      "os",
+      "sys",
+      "requests",
+      "pydantic",
+      "time",
+      "json",
+      "pathlib",
+      "typing",
+      "argparse",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 489,
+    "last_modified": "2025-09-29T00:54:43.565952",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\security_audit.py": {
+    "path": "scripts\\operational_excellence\\security_audit.py",
+    "name": "security_audit.py",
+    "purpose": "Post-Deployment Security & Configuration Audit",
+    "dependencies": [
+      "re",
+      "os",
+      "sys",
+      "urllib",
+      "json",
+      "ssl",
+      "pathlib",
+      "socket",
+      "argparse",
+      "subprocess",
+      "datetime",
+      "typing",
+      "stat"
+    ],
+    "execution_type": "python",
+    "size_lines": 744,
+    "last_modified": "2025-09-29T00:44:40.334118",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\operational_excellence\\targeted_cleanup.py": {
+    "path": "scripts\\operational_excellence\\targeted_cleanup.py",
+    "name": "targeted_cleanup.py",
+    "purpose": "Targeted Repository Cleanup Tool",
+    "dependencies": [
+      "os",
+      "sys",
+      "pathlib",
+      "typing",
+      "datetime",
+      "shutil"
+    ],
+    "execution_type": "python",
+    "size_lines": 357,
+    "last_modified": "2025-09-29T00:13:40.303770",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\seed\\seed_database.py": {
+    "path": "scripts\\seed\\seed_database.py",
+    "name": "seed_database.py",
+    "purpose": "Database Seeding Script for Hive",
+    "dependencies": [
+      "os",
+      "sys",
+      "hive_core_db",
+      "hive_logging",
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 226,
+    "last_modified": "2025-09-29T00:01:43.621172",
+    "has_main": true,
+    "has_argparse": true,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\seed\\seed_master_plan_task.py": {
+    "path": "scripts\\seed\\seed_master_plan_task.py",
+    "name": "seed_master_plan_task.py",
+    "purpose": "Master Plan Task Seeder - Grand Integration Test",
+    "dependencies": [
+      "logging",
+      "sys",
+      "uuid",
+      "json",
+      "pathlib",
+      "hive_core_db",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 295,
+    "last_modified": "2025-09-29T00:01:43.953698",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 1,
+    "is_executable": true
+  },
+  "scripts\\utils\\monitor_certification.py": {
+    "path": "scripts\\utils\\monitor_certification.py",
+    "name": "monitor_certification.py",
+    "purpose": "V2.0 Certification Test Monitor",
+    "dependencies": [
+      "sqlite3",
+      "sys",
+      "time",
+      "pathlib",
+      "typing",
+      "datetime",
+      "hive_utils"
+    ],
+    "execution_type": "python",
+    "size_lines": 214,
+    "last_modified": "2025-09-29T00:01:44.936328",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\utils\\monitor_master_plan.py": {
+    "path": "scripts\\utils\\monitor_master_plan.py",
+    "name": "monitor_master_plan.py",
+    "purpose": "Master Plan Monitor - Grand Integration Test",
+    "dependencies": [
+      "logging",
+      "sqlite3",
+      "sys",
+      "time",
+      "json",
+      "pathlib",
+      "typing",
+      "hive_core_db",
+      "datetime"
+    ],
+    "execution_type": "python",
+    "size_lines": 648,
+    "last_modified": "2025-09-29T00:01:48.264171",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\utils\\optimize_database_indexes.py": {
+    "path": "scripts\\utils\\optimize_database_indexes.py",
+    "name": "optimize_database_indexes.py",
+    "purpose": "Database Index Optimization Script",
+    "dependencies": [
+      "sqlite3",
+      "sys",
+      "hive_core_db",
+      "pathlib"
+    ],
+    "execution_type": "python",
+    "size_lines": 176,
+    "last_modified": "2025-09-29T00:01:44.734794",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\validation\\check_current_violations.py": {
+    "path": "scripts\\validation\\check_current_violations.py",
+    "name": "check_current_violations.py",
+    "purpose": "Check current violations for commit readiness",
+    "dependencies": [
+      "sys",
+      "pathlib",
+      "hive_tests",
+      "collections"
+    ],
+    "execution_type": "python",
+    "size_lines": 108,
+    "last_modified": "2025-09-29T02:57:03.971195",
+    "has_main": true,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\dev-session.sh": {
+    "path": "scripts\\dev-session.sh",
+    "name": "dev-session.sh",
+    "purpose": "Start a development session in Docker container",
+    "dependencies": [
+      "docker"
+    ],
+    "execution_type": "shell",
+    "size_lines": 72,
+    "last_modified": "2025-09-20T12:22:53.448006",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\health-check.sh": {
+    "path": "scripts\\health-check.sh",
+    "name": "health-check.sh",
+    "purpose": "Run the full system health check locally (mimics GitHub Actions workflow)",
+    "dependencies": [
+      "poetry",
+      "docker",
+      "python"
+    ],
+    "execution_type": "shell",
+    "size_lines": 137,
+    "last_modified": "2025-09-20T12:23:49.899180",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\initial_setup.sh": {
+    "path": "scripts\\initial_setup.sh",
+    "name": "initial_setup.sh",
+    "purpose": "Check prerequisites",
+    "dependencies": [
+      "pip",
+      "git",
+      "python"
+    ],
+    "execution_type": "shell",
+    "size_lines": 131,
+    "last_modified": "2025-09-09T12:03:10.020970",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\quick-test.sh": {
+    "path": "scripts\\quick-test.sh",
+    "name": "quick-test.sh",
+    "purpose": "Run tests for a specific component in the Docker container",
+    "dependencies": [
+      "poetry",
+      "docker"
+    ],
+    "execution_type": "shell",
+    "size_lines": 37,
+    "last_modified": "2025-09-20T12:23:16.401064",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\setup_github_secrets.sh": {
+    "path": "scripts\\setup_github_secrets.sh",
+    "name": "setup_github_secrets.sh",
+    "purpose": "Check if gh is authenticated",
+    "dependencies": [],
+    "execution_type": "shell",
+    "size_lines": 77,
+    "last_modified": "2025-09-09T12:14:00.232969",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\setup_pre_commit.sh": {
+    "path": "scripts\\setup_pre_commit.sh",
+    "name": "setup_pre_commit.sh",
+    "purpose": "Setup script for installing pre-commit hooks in the Hive platform",
+    "dependencies": [
+      "pip",
+      "git"
+    ],
+    "execution_type": "shell",
+    "size_lines": 46,
+    "last_modified": "2025-09-28T23:25:56.843420",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": true
+  },
+  "scripts\\setup_pre_commit.bat": {
+    "path": "scripts\\setup_pre_commit.bat",
+    "name": "setup_pre_commit.bat",
+    "purpose": "No clear purpose found",
+    "dependencies": [
+      "pip",
+      "git",
+      "python"
+    ],
+    "execution_type": "batch",
+    "size_lines": 46,
+    "last_modified": "2025-09-28T23:26:22.222575",
+    "has_main": false,
+    "has_argparse": false,
+    "todo_count": 0,
+    "is_executable": false
+  }
+}

@@ -1,0 +1,123 @@
+[
+  {
+    "group_name": "cleanup_scripts",
+    "target_path": "maintenance/repository_hygiene.py",
+    "source_scripts": [
+      "scripts\\comprehensive_code_cleanup.py",
+      "scripts\\hive_clean.py",
+      "scripts\\cleanup\\comprehensive_cleanup.py",
+      "scripts\\operational_excellence\\comprehensive_cleanup.py",
+      "scripts\\operational_excellence\\targeted_cleanup.py"
+    ],
+    "consolidation_method": "merge",
+    "new_features": [
+      "File organization and cleanup",
+      "Backup file removal",
+      "Documentation consolidation",
+      "Database cleanup (from hive_clean.py)",
+      "Targeted cleanup modes"
+    ]
+  },
+  {
+    "group_name": "testing_scripts",
+    "target_path": "testing/run_tests.py",
+    "source_scripts": [
+      "scripts\\run_comprehensive_integration_tests.py",
+      "scripts\\run_integration_tests.py",
+      "scripts\\simulate_planner_success.py",
+      "scripts\\standardize_tests.py",
+      "scripts\\step_by_step_cert.py",
+      "scripts\\v3_final_cert.py",
+      "scripts\\validate_golden_rules.py",
+      "scripts\\validate_integration_tests.py",
+      "scripts\\worker_async_patch.py",
+      "scripts\\seed\\seed_master_plan_task.py",
+      "scripts\\utils\\monitor_certification.py",
+      "scripts\\utils\\monitor_master_plan.py",
+      "scripts\\quick-test.sh"
+    ],
+    "consolidation_method": "merge",
+    "new_features": [
+      "Comprehensive test execution",
+      "Quick validation mode",
+      "Performance benchmarking",
+      "CI/CD integration"
+    ]
+  },
+  {
+    "group_name": "security_scripts",
+    "target_path": "security/run_audit.py",
+    "source_scripts": [
+      "scripts\\audit_dependencies.py",
+      "scripts\\security_check.py",
+      "scripts\\operational_excellence\\security_audit.py"
+    ],
+    "consolidation_method": "merge",
+    "new_features": [
+      "Comprehensive security scanning",
+      "Quick security checks",
+      "Vulnerability reporting",
+      "Compliance validation"
+    ]
+  },
+  {
+    "group_name": "database_scripts",
+    "target_path": "database/setup.py",
+    "source_scripts": [
+      "scripts\\hive_clean.py",
+      "scripts\\init_db_simple.py",
+      "scripts\\optimize_database.py",
+      "scripts\\optimize_lambdas.py",
+      "scripts\\optimize_performance.py",
+      "scripts\\seed\\seed_database.py",
+      "scripts\\seed\\seed_master_plan_task.py",
+      "scripts\\utils\\optimize_database_indexes.py",
+      "scripts\\initial_setup.sh"
+    ],
+    "consolidation_method": "split_merge",
+    "new_features": [
+      "Database initialization and seeding",
+      "Index optimization",
+      "Performance tuning",
+      "Migration support"
+    ]
+  },
+  {
+    "group_name": "fixer_scripts",
+    "target_path": "maintenance/fixers/code_fixers.py",
+    "source_scripts": [
+      "scripts\\add_type_hints.py",
+      "scripts\\fix_all_golden_violations.py",
+      "scripts\\fix_ecosystemiser_logging.py",
+      "scripts\\fix_global_state.py",
+      "scripts\\fix_golden_violations.py",
+      "scripts\\fix_type_hints.py",
+      "scripts\\modernize_type_hints.py",
+      "scripts\\fixes\\fix_all_syntax_errors.py",
+      "scripts\\fixes\\fix_syspath_violations.py",
+      "scripts\\fixes\\smart_final_fixer.py"
+    ],
+    "consolidation_method": "merge",
+    "new_features": [
+      "Type hint fixes",
+      "Global state fixes",
+      "Logging standardization",
+      "Async pattern fixes",
+      "Golden rules compliance"
+    ]
+  },
+  {
+    "group_name": "async_refactor_scripts",
+    "target_path": "archive/",
+    "source_scripts": [
+      "scripts\\async_worker.py",
+      "scripts\\enhance_async_resources.py",
+      "scripts\\queen_async_enhancement.py",
+      "scripts\\worker_async_patch.py"
+    ],
+    "consolidation_method": "archive",
+    "new_features": [
+      "One-time refactoring completed"
+    ]
+  }
+]

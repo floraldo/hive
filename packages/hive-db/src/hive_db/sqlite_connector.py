@@ -36,7 +36,7 @@ def get_sqlite_connection(
 
     Config Structure:
         {
-            'db_path': '/path/to/database.sqlite'
+            'db_path': '/path/to/database.sqlite',
             'timeout': 30.0
             'check_same_thread': False
         }

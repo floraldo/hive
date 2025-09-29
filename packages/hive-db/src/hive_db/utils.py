@@ -22,7 +22,7 @@ def create_table_if_not_exists(conn: sqlite3.Connection, table_name: str, schema
     Create a table if it doesn't exist.
 
     Args:
-        conn: Database connection
+        conn: Database connection,
         table_name: Name of the table to create
         schema: SQL schema definition for the table
     """
@@ -46,7 +46,7 @@ def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
     Check if a table exists in the database.
 
     Args:
-        conn: Database connection
+        conn: Database connection,
         table_name: Name of the table to check
 
     Returns:
@@ -68,7 +68,7 @@ def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[Dict[str
     Get the schema information for a table.
 
     Args:
-        conn: Database connection
+        conn: Database connection,
         table_name: Name of the table
 
     Returns:
@@ -104,7 +104,7 @@ def execute_script(conn: sqlite3.Connection, script_path: Path) -> None:
     Execute a SQL script file.
 
     Args:
-        conn: Database connection
+        conn: Database connection,
         script_path: Path to the SQL script file
     """
     try:
@@ -124,7 +124,7 @@ def backup_database(source_db: Path, backup_path: Path) -> None:
     Create a backup of a SQLite database.
 
     Args:
-        source_db: Path to the source database
+        source_db: Path to the source database,
         backup_path: Path where backup should be created
     """
     try:
@@ -160,7 +160,7 @@ def get_database_info(conn: sqlite3.Connection) -> Dict[str, Any]:
     Get information about the database.
 
     Args:
-        conn: Database connection
+        conn: Database connection,
 
     Returns:
         Dictionary containing database information
@@ -211,7 +211,7 @@ def database_transaction(conn: sqlite3.Connection, isolation_level: str | None =
     Context manager for database transactions with automatic rollback on error.
 
     Args:
-        conn: Database connection
+        conn: Database connection,
         isolation_level: Transaction isolation level (DEFERRED, IMMEDIATE, EXCLUSIVE)
 
     Example:
@@ -356,7 +356,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
     Apply database migrations from a directory.
 
     Args:
-        conn: Database connection
+        conn: Database connection,
         migrations_dir: Directory containing migration files
         target_version: Target migration version (applies all if None)
     """
@@ -405,7 +405,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
 
 # Async versions of utility functions
 async def table_exists_async(conn, table_name: str) -> bool:
-    """Async version of table_exists."""
+    """Async version of table_exists.""",
     try:
         cursor = await conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
@@ -419,7 +419,7 @@ async def table_exists_async(conn, table_name: str) -> bool:
 
 
 async def get_database_info_async(conn) -> Dict[str, Any]:
-    """Async version of get_database_info."""
+    """Async version of get_database_info.""",
     try:
         info = {}
 

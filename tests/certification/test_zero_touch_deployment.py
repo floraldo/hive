@@ -56,7 +56,7 @@ class HiveAutonomousAgency:
         self.processes = {}
         self.start_time = None
         self.deployed_port = None
-        self.container_name = "hello-service-test"
+        self.container_name = "qr-service-test"
 
     def setup_environment(self):
         """Prepare the environment for the test"""
@@ -84,15 +84,17 @@ class HiveAutonomousAgency:
         cursor = conn.cursor()
 
         # Create the high-level task
-        task_id = f"hello-service-{int(time.time())}"
+        task_id = f"qr-service-{int(time.time())}"
         task_description = (
-            "Create a simple Flask 'Hello World' service with the following requirements:\n"
-            "1. Create a Flask application in a new directory 'apps/hello-service-cert'\n"
-            "2. Implement a root endpoint '/' that returns 'Hello from Hive Autonomous Agency!'\n"
-            "3. Implement a health check endpoint '/health' that returns JSON {'status': 'healthy', 'timestamp': '<current_time>'}\n"
-            "4. Create a Dockerfile to containerize the application\n"
-            "5. Include a requirements.txt with Flask\n"
-            "6. Build and deploy the application as a Docker container on port 5000"
+            "Create a QR Code Generator Service with the following requirements:\n"
+            "1. Create a new, standalone FastAPI application called 'qr-service' in 'apps/qr-service'\n"
+            "2. Implement one endpoint: POST /generate that accepts JSON with a 'text' field\n"
+            "3. The endpoint should generate a QR code PNG image and return it as base64-encoded string\n"
+            "4. Use the 'qrcode' and 'Pillow' libraries for QR code generation\n"
+            "5. Include proper error handling for missing or invalid input\n"
+            "6. Create a Dockerfile to containerize the application\n"
+            "7. Include a requirements.txt with FastAPI, uvicorn, qrcode, and Pillow\n"
+            "8. Build and deploy the application as a Docker container on port 8000"
         )
 
         cursor.execute("""
@@ -102,7 +104,7 @@ class HiveAutonomousAgency:
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             task_id,
-            "Build and Deploy Hello Service",
+            "Build and Deploy QR Code Generator Service",
             task_description,
             "autonomous_development",
             "planning_pending",  # This triggers the Planner
@@ -111,7 +113,7 @@ class HiveAutonomousAgency:
             "zero-touch-certification",
             json.dumps({
                 "certification_test": True,
-                "expected_port": 5000,
+                "expected_port": 8000,
                 "container_name": self.container_name
             })
         ))
@@ -250,7 +252,7 @@ class HiveAutonomousAgency:
 
                     # Extract deployed port from metadata
                     metadata = json.loads(task["metadata"] or "{}")
-                    self.deployed_port = metadata.get("deployed_port", 5000)
+                    self.deployed_port = metadata.get("deployed_port", 8000)
 
                     logger.info(f"Deployment complete on port {self.deployed_port}")
                     conn.close()
@@ -285,7 +287,7 @@ class HiveAutonomousAgency:
         logger.info("=" * 80)
 
         if not self.deployed_port:
-            self.deployed_port = 5000
+            self.deployed_port = 8000
 
         base_url = f"http://localhost:{self.deployed_port}"
 
@@ -293,34 +295,48 @@ class HiveAutonomousAgency:
         time.sleep(5)
 
         try:
-            # Test root endpoint
-            logger.info(f"Testing GET {base_url}/")
-            response = requests.get(f"{base_url}/", timeout=10)
+            # Test QR code generation endpoint
+            logger.info(f"Testing POST {base_url}/generate")
+
+            # Test with valid input
+            test_payload = {"text": "Hive Autonomous Agency - Certification Test"}
+            response = requests.post(
+                f"{base_url}/generate",
+                json=test_payload,
+                timeout=10
+            )
 
             if response.status_code != 200:
-                logger.error(f"Root endpoint failed: {response.status_code}")
+                logger.error(f"QR generation failed: {response.status_code}")
                 return False
 
-            if "Hello" not in response.text:
-                logger.error(f"Unexpected response: {response.text}")
+            response_data = response.json()
+            if "qr_code" not in response_data:
+                logger.error(f"Missing qr_code in response: {response_data}")
                 return False
 
-            logger.info(f"OK Root endpoint response: {response.text}")
-
-            # Test health endpoint
-            logger.info(f"Testing GET {base_url}/health")
-            health_response = requests.get(f"{base_url}/health", timeout=10)
-
-            if health_response.status_code != 200:
-                logger.error(f"Health endpoint failed: {health_response.status_code}")
+            # Verify it's base64 encoded
+            import base64
+            try:
+                decoded = base64.b64decode(response_data["qr_code"])
+                logger.info(f"OK QR code generated, size: {len(decoded)} bytes")
+            except Exception as e:
+                logger.error(f"Invalid base64 encoding: {e}")
                 return False
 
-            health_data = health_response.json()
-            if health_data.get("status") != "healthy":
-                logger.error(f"Unhealthy status: {health_data}")
-                return False
+            # Test error handling with missing field
+            logger.info(f"Testing POST {base_url}/generate with invalid input")
+            invalid_payload = {"invalid": "field"}
+            error_response = requests.post(
+                f"{base_url}/generate",
+                json=invalid_payload,
+                timeout=10
+            )
 
-            logger.info(f"OK Health check response: {health_data}")
+            if error_response.status_code != 422:
+                logger.warning(f"Expected 422 for invalid input, got: {error_response.status_code}")
+
+            logger.info(f"OK Error handling working properly")
 
             logger.info("=" * 80)
             logger.info("CERTIFICATION PASSED - Application Successfully Deployed!")

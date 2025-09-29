@@ -20,7 +20,7 @@ from .async_error_handler import (
     ErrorContext,
     ErrorStats,
     create_error_context,
-    error_context_async,
+    error_context,
     handle_async_errors,
 )
 from .base_exceptions import (
@@ -61,7 +61,7 @@ __all__ = [
     "AsyncErrorHandler",
     "ErrorContext",
     "ErrorStats",
-    "error_context_async",
+    "error_context",
     "handle_async_errors",
     "create_error_context",
 ]

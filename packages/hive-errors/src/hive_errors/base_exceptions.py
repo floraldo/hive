@@ -11,7 +11,7 @@ These are pure, business-logic-free exception patterns that can be used
 to build robust error handling for any system.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 class BaseError(Exception):
@@ -27,13 +27,13 @@ class BaseError(Exception):
     """
 
     def __init__(
-        self
-        message: str
-        component: str = "unknown"
-        operation: str | None = None
-        details: Optional[Dict[str, Any]] = None
-        recovery_suggestions: Optional[List[str]] = None
-        original_error: Exception | None = None
+        self,
+        message: str,
+        component: str = "unknown",
+        operation: str | None = None,
+        details: Optional[Dict[str, Any]] = None,
+        recovery_suggestions: Optional[List[str]] = None,
+        original_error: Exception | None = None,
     ):
         super().__init__(message)
         self.message = message
@@ -46,12 +46,12 @@ class BaseError(Exception):
     def to_dict(self) -> Dict[str, Any]:
         """Convert error to dictionary for serialization"""
         return {
-            "error_type": self.__class__.__name__
-            "message": self.message
-            "component": self.component
-            "operation": self.operation
-            "details": self.details
-            "recovery_suggestions": self.recovery_suggestions
+            "error_type": self.__class__.__name__,
+            "message": self.message,
+            "component": self.component,
+            "operation": self.operation,
+            "details": self.details,
+            "recovery_suggestions": self.recovery_suggestions,
             "original_error": str(self.original_error) if self.original_error else None
         }
 
@@ -95,12 +95,12 @@ class CircuitBreakerOpenError(BaseError):
     """
 
     def __init__(
-        self
-        message: str = "Circuit breaker is open - operation blocked"
-        component: str = "circuit_breaker"
-        operation: str | None = None
-        failure_count: int | None = None
-        recovery_time: float | None = None
+        self,
+        message: str = "Circuit breaker is open - operation blocked",
+        component: str = "circuit_breaker",
+        operation: str | None = None,
+        failure_count: int | None = None,
+        recovery_time: float | None = None,
         **kwargs
     ):
         super().__init__(message, component, operation, **kwargs)
@@ -112,7 +112,7 @@ class CircuitBreakerOpenError(BaseError):
         result = super().to_dict()
         result.update(
             {
-                "failure_count": self.failure_count
+                "failure_count": self.failure_count,
                 "recovery_time": self.recovery_time
             }
         )
@@ -128,12 +128,12 @@ class AsyncTimeoutError(BaseError):
     """
 
     def __init__(
-        self
-        message: str = "Async operation timed out"
-        component: str = "async_timeout"
-        operation: str | None = None
-        timeout_duration: float | None = None
-        elapsed_time: float | None = None
+        self,
+        message: str = "Async operation timed out",
+        component: str = "async_timeout",
+        operation: str | None = None,
+        timeout_duration: float | None = None,
+        elapsed_time: float | None = None,
         **kwargs
     ):
         super().__init__(message, component, operation, **kwargs)
@@ -145,7 +145,7 @@ class AsyncTimeoutError(BaseError):
         result = super().to_dict()
         result.update(
             {
-                "timeout_duration": self.timeout_duration
+                "timeout_duration": self.timeout_duration,
                 "elapsed_time": self.elapsed_time
             }
         )
@@ -161,13 +161,13 @@ class RetryExhaustedError(BaseError):
     """
 
     def __init__(
-        self
-        message: str = "All retry attempts exhausted"
-        component: str = "retry_mechanism"
-        operation: str | None = None
-        max_attempts: int | None = None
-        attempt_count: int | None = None
-        last_error: Exception | None = None
+        self,
+        message: str = "All retry attempts exhausted",
+        component: str = "retry_mechanism",
+        operation: str | None = None,
+        max_attempts: int | None = None,
+        attempt_count: int | None = None,
+        last_error: Exception | None = None,
         **kwargs
     ):
         super().__init__(message, component, operation, original_error=last_error, **kwargs)
@@ -180,8 +180,8 @@ class RetryExhaustedError(BaseError):
         result = super().to_dict()
         result.update(
             {
-                "max_attempts": self.max_attempts
-                "attempt_count": self.attempt_count
+                "max_attempts": self.max_attempts,
+                "attempt_count": self.attempt_count,
                 "last_error": str(self.last_error) if self.last_error else None
             }
         )
@@ -197,12 +197,12 @@ class PoolExhaustedError(BaseError):
     """
 
     def __init__(
-        self
-        message: str = "Resource pool exhausted"
-        component: str = "connection_pool"
-        operation: str | None = None
-        pool_size: int | None = None
-        active_connections: int | None = None
+        self,
+        message: str = "Resource pool exhausted",
+        component: str = "connection_pool",
+        operation: str | None = None,
+        pool_size: int | None = None,
+        active_connections: int | None = None,
         **kwargs
     ):
         super().__init__(message, component, operation, **kwargs)
@@ -214,7 +214,7 @@ class PoolExhaustedError(BaseError):
         result = super().to_dict()
         result.update(
             {
-                "pool_size": self.pool_size
+                "pool_size": self.pool_size,
                 "active_connections": self.active_connections
             }
         )
