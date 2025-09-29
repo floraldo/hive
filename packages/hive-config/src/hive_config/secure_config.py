@@ -16,7 +16,6 @@ from typing import Any, Dict, Optional
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -33,7 +32,7 @@ class SecureConfigLoader:
     - Backward compatibility with legacy static salt files
     """
 
-    def __init__(self, master_key: Optional[str] = None):
+    def __init__(self, master_key: Optional[str] = None) -> None:
         """
         Initialize secure config loader
 
@@ -110,8 +109,8 @@ class SecureConfigLoader:
 
             # Create payload: version_flag + salt_length + salt + encrypted_data
             # Version flag 'HIVE' indicates new format with random salt
-            version_flag = b'HIVE'
-            salt_length = len(salt).to_bytes(4, byteorder='big')
+            version_flag = b"HIVE"
+            salt_length = len(salt).to_bytes(4, byteorder="big")
             payload = version_flag + salt_length + salt + encrypted_data
 
             # Write encrypted file
@@ -148,16 +147,16 @@ class SecureConfigLoader:
                 payload = f.read()
 
             # Check if this is new format with version flag
-            if payload.startswith(b'HIVE'):
+            if payload.startswith(b"HIVE"):
                 # New format with random salt
                 # Extract salt length (bytes 4-8)
-                salt_length = int.from_bytes(payload[4:8], byteorder='big')
+                salt_length = int.from_bytes(payload[4:8], byteorder="big")
 
                 # Extract salt (bytes 8 to 8+salt_length)
-                salt = payload[8:8+salt_length]
+                salt = payload[8 : 8 + salt_length]
 
                 # Extract encrypted data (remaining bytes)
-                encrypted_data = payload[8+salt_length:]
+                encrypted_data = payload[8 + salt_length :]
 
                 # Derive key with extracted salt
                 key = self._derive_key(salt)
@@ -284,8 +283,8 @@ def encrypt_production_config(env_file: str = ".env.prod", output_file: str = No
     # Ensure master key is set
     master_key = os.environ.get("HIVE_MASTER_KEY")
     if not master_key:
-        print("ERROR: HIVE_MASTER_KEY environment variable not set")
-        print("Generate a key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'")
+        logger.info("ERROR: HIVE_MASTER_KEY environment variable not set")
+        logger.info("Generate a key with: python -c 'import secrets; logger.info(secrets.token_urlsafe(32))'")
         return
 
     loader = SecureConfigLoader(master_key)
@@ -295,11 +294,11 @@ def encrypt_production_config(env_file: str = ".env.prod", output_file: str = No
 
     try:
         encrypted_path = loader.encrypt_file(input_path, output_path)
-        print(f"Successfully encrypted {input_path} to {encrypted_path}")
-        print(f"Enhanced security: Random salt used to prevent rainbow table attacks")
-        print(f"To decrypt, ensure HIVE_MASTER_KEY is set to: {master_key[:8]}...")
+        logger.info(f"Successfully encrypted {input_path} to {encrypted_path}")
+        logger.info(f"Enhanced security: Random salt used to prevent rainbow table attacks")
+        logger.info(f"To decrypt, ensure HIVE_MASTER_KEY is set to: {master_key[:8]}...")
     except Exception as e:
-        print(f"Encryption failed: {e}")
+        logger.info(f"Encryption failed: {e}")
 
 
 def generate_master_key() -> str:
@@ -310,9 +309,9 @@ def generate_master_key() -> str:
         URL-safe base64 encoded key
     """
     key = secrets.token_urlsafe(32)
-    print(f"Generated master key: {key}")
-    print(f"Set this as environment variable: export HIVE_MASTER_KEY='{key}'")
-    print(f"Store this key securely - it cannot be recovered if lost!")
+    logger.info(f"Generated master key: {key}")
+    logger.info(f"Set this as environment variable: export HIVE_MASTER_KEY='{key}'")
+    logger.info(f"Store this key securely - it cannot be recovered if lost!")
     return key
 
 
@@ -320,10 +319,10 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage:")
-        print("  python secure_config.py generate-key")
-        print("  python secure_config.py encrypt <env-file> [output-file]")
-        print("  python secure_config.py decrypt <encrypted-file>")
+        logger.info("Usage:")
+        logger.info("  python secure_config.py generate-key")
+        logger.info("  python secure_config.py encrypt <env-file> [output-file]")
+        logger.info("  python secure_config.py decrypt <encrypted-file>")
         sys.exit(1)
 
     command = sys.argv[1]
@@ -332,23 +331,23 @@ if __name__ == "__main__":
         generate_master_key()
     elif command == "encrypt":
         if len(sys.argv) < 3:
-            print("Usage: python secure_config.py encrypt <env-file> [output-file]")
+            logger.info("Usage: python secure_config.py encrypt <env-file> [output-file]")
             sys.exit(1)
         env_file = sys.argv[2]
         output_file = sys.argv[3] if len(sys.argv) > 3 else None
         encrypt_production_config(env_file, output_file)
     elif command == "decrypt":
         if len(sys.argv) < 3:
-            print("Usage: python secure_config.py decrypt <encrypted-file>")
+            logger.info("Usage: python secure_config.py decrypt <encrypted-file>")
             sys.exit(1)
         encrypted_file = sys.argv[2]
         loader = SecureConfigLoader()
         try:
             content = loader.decrypt_file(Path(encrypted_file))
-            print(content)
+            logger.info(content)
         except Exception as e:
-            print(f"Decryption failed: {e}")
+            logger.info(f"Decryption failed: {e}")
             sys.exit(1)
     else:
-        print(f"Unknown command: {command}")
+        logger.info(f"Unknown command: {command}")
         sys.exit(1)

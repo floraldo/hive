@@ -1,3 +1,9 @@
+from hive_errors import BaseError
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
+
 """
 Exception hierarchy for Claude Bridge operations
 """
@@ -9,48 +15,48 @@ class ClaudeError(Exception):
     pass
 
 
-class ClaudeNotFoundError(ClaudeError):
+class ClaudeNotFoundError(BaseError):
     """Raised when Claude CLI is not found on the system"""
 
     pass
 
 
-class ClaudeTimeoutError(ClaudeError):
+class ClaudeTimeoutError(BaseError):
     """Raised when Claude CLI execution times out"""
 
     pass
 
 
-class ClaudeResponseError(ClaudeError):
+class ClaudeResponseError(BaseError):
     """Raised when Claude returns an unexpected response"""
 
     pass
 
 
-class ClaudeValidationError(ClaudeError):
+class ClaudeValidationError(BaseError):
     """Raised when Claude response fails validation"""
 
     pass
 
 
-class ClaudeRateLimitError(ClaudeError):
+class ClaudeRateLimitError(BaseError):
     """Raised when rate limit is exceeded"""
 
     pass
 
 
-class ClaudeServiceError(ClaudeError):
+class ClaudeServiceError(BaseError):
     """General Claude service error"""
 
-    def __init__(self, message: str, operation: str, original_error: Exception = None):
+    def __init__(self, message: str, operation: str, original_error: Exception = None) -> None:
         super().__init__(message)
         self.operation = operation
         self.original_error = original_error
 
 
-class ClaudeBridgeError(ClaudeError):
+class ClaudeBridgeError(BaseError):
     """Base exception for bridge-specific errors"""
 
-    def __init__(self, message: str, original_error: Exception = None):
+    def __init__(self, message: str, original_error: Exception = None) -> None:
         super().__init__(message)
         self.original_error = original_error

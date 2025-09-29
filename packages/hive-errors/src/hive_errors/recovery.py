@@ -1,3 +1,9 @@
+import asyncio
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Generic recovery strategy patterns.
 
@@ -27,7 +33,7 @@ class RecoveryStrategy(ABC):
     for any system's specific recovery needs.
     """
 
-    def __init__(self, strategy_name: str, max_attempts: int = 3):
+    def __init__(self, strategy_name: str, max_attempts: int = 3) -> None:
         self.strategy_name = strategy_name
         self.max_attempts = max_attempts
         self.attempt_count = 0
@@ -50,7 +56,7 @@ class RecoveryStrategy(ABC):
         """Check if recovery can be attempted"""
         return self.attempt_count < self.max_attempts
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset recovery attempt counter"""
         self.attempt_count = 0
 
@@ -58,7 +64,7 @@ class RecoveryStrategy(ABC):
 class RetryStrategy(RecoveryStrategy):
     """Generic retry recovery strategy"""
 
-    def __init__(self, operation: Callable, max_attempts: int = 3, delay_seconds: float = 1.0):
+    def __init__(self, operation: Callable, max_attempts: int = 3, delay_seconds: float = 1.0) -> None:
         super().__init__("retry", max_attempts)
         self.operation = operation
         self.delay_seconds = delay_seconds
@@ -75,7 +81,7 @@ class RetryStrategy(RecoveryStrategy):
         try:
             # Wait before retry
             if self.delay_seconds > 0:
-                time.sleep(self.delay_seconds)
+                await asyncio.sleep(self.delay_seconds)
 
             # Retry the operation
             self.operation()

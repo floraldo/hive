@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 #!/usr/bin/env python3
 """
 Enhanced Database Functions for AI Planner Integration

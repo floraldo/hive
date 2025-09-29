@@ -29,13 +29,13 @@ class ConstraintHandler:
     methods to evaluate constraint violations and apply penalties.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize constraint handler."""
         self.constraints: List[Constraint] = []
         self.penalty_method = "static"  # static, adaptive, barrier
         self.penalty_factor = 1000.0
 
-    def add_constraint(self, constraint: Constraint):
+    def add_constraint(self, constraint: Constraint) -> None:
         """Add a constraint to the handler.
 
         Args:
@@ -68,7 +68,9 @@ class ConstraintHandler:
         )
         self.add_constraint(constraint)
 
-    def add_inequality_constraint(self, name: str, function: Callable[[np.ndarray], float], weight: float = 1.0):
+    def add_inequality_constraint(
+        self, name: str, function: Callable[[np.ndarray], float], weight: float = 1.0
+    ) -> None:
         """Add an inequality constraint.
 
         Args:

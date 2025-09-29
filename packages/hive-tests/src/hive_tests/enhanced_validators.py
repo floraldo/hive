@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Enhanced architectural validators for the Hive platform"""
 
 import ast
@@ -9,7 +13,7 @@ from typing import List, Set, Tuple
 class CircularImportValidator:
     """Detect circular imports in the codebase"""
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
         self.import_graph = {}
         self.visited = set()
@@ -30,7 +34,7 @@ class CircularImportValidator:
 
         return violations
 
-    def _build_import_graph(self):
+    def _build_import_graph(self) -> None:
         """Build graph of module dependencies"""
         for py_file in self.project_root.rglob("*.py"):
             if "test" in str(py_file) or "__pycache__" in str(py_file):
@@ -87,7 +91,7 @@ class CircularImportValidator:
 class AsyncPatternValidator:
     """Validate proper async/await patterns"""
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
 
     def validate(self) -> List[str]:
@@ -116,16 +120,12 @@ class AsyncPatternValidator:
                     for child in ast.walk(node):
                         if isinstance(child, ast.Call):
                             if self._is_blocking_call(child):
-                                violations.append(
-                                    f"Blocking call in async function: {file_path}:{child.lineno}"
-                                )
+                                violations.append(f"Blocking call in async function: {file_path}:{child.lineno}")
 
                 # Check for missing await
                 if isinstance(node, ast.Call):
                     if self._is_async_call_without_await(node):
-                        violations.append(
-                            f"Async call without await: {file_path}:{node.lineno}"
-                        )
+                        violations.append(f"Async call without await: {file_path}:{node.lineno}")
 
         except:
             pass
@@ -136,7 +136,7 @@ class AsyncPatternValidator:
         """Check if a call is potentially blocking"""
         blocking_patterns = ["time.sleep", "requests.", "urllib."]
 
-        call_str = ast.unparse(node.func) if hasattr(ast, 'unparse') else ""
+        call_str = ast.unparse(node.func) if hasattr(ast, "unparse") else ""
         return any(pattern in call_str for pattern in blocking_patterns)
 
     def _is_async_call_without_await(self, node: ast.Call) -> bool:
@@ -148,7 +148,7 @@ class AsyncPatternValidator:
 class ErrorHandlingValidator:
     """Validate proper error handling patterns"""
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
 
     def validate(self) -> List[str]:
@@ -175,16 +175,12 @@ class ErrorHandlingValidator:
                 # Check for bare except
                 if isinstance(node, ast.ExceptHandler):
                     if node.type is None:
-                        violations.append(
-                            f"Bare except clause: {file_path}:{node.lineno}"
-                        )
+                        violations.append(f"Bare except clause: {file_path}:{node.lineno}")
 
                 # Check for exception swallowing
                 if isinstance(node, ast.ExceptHandler):
                     if not node.body or (len(node.body) == 1 and isinstance(node.body[0], ast.Pass)):
-                        violations.append(
-                            f"Exception swallowing: {file_path}:{node.lineno}"
-                        )
+                        violations.append(f"Exception swallowing: {file_path}:{node.lineno}")
 
         except:
             pass
@@ -192,7 +188,7 @@ class ErrorHandlingValidator:
         return violations
 
 
-def run_enhanced_validation():
+def run_enhanced_validation() -> None:
     """Run all enhanced validators"""
     project_root = Path(__file__).parent.parent.parent.parent
 
@@ -205,13 +201,13 @@ def run_enhanced_validation():
     all_violations = []
 
     for name, validator in validators:
-        print(f"\nRunning {name} Validator...")
+        logger.info(f"\nRunning {name} Validator...")
         violations = validator.validate()
         if violations:
-            print(f"  Found {len(violations)} violations")
+            logger.info(f"  Found {len(violations)} violations")
             all_violations.extend(violations)
         else:
-            print("  No violations found")
+            logger.info("  No violations found")
 
     return all_violations
 
@@ -219,15 +215,15 @@ def run_enhanced_validation():
 if __name__ == "__main__":
     violations = run_enhanced_validation()
     if violations:
-        print("\n" + "=" * 60)
-        print("Enhanced Validation Failed")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("Enhanced Validation Failed")
+        logger.info("=" * 60)
         for violation in violations[:50]:  # Limit output
-            print(f"  • {violation}")
+            logger.info(f"  • {violation}")
         if len(violations) > 50:
-            print(f"  ... and {len(violations) - 50} more")
+            logger.info(f"  ... and {len(violations) - 50} more")
         exit(1)
     else:
-        print("\n" + "=" * 60)
-        print("All Enhanced Validations Passed!")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("All Enhanced Validations Passed!")
+        logger.info("=" * 60)

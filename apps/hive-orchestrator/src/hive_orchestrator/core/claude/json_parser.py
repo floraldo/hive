@@ -80,7 +80,7 @@ class JsonExtractor:
     Main JSON extraction utility with multiple strategies
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.extractors = {
             JsonExtractionStrategy.PURE_JSON: PureJsonExtractor(),
             JsonExtractionStrategy.MARKDOWN_BLOCKS: MarkdownBlockExtractor(),

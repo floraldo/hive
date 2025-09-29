@@ -10,8 +10,9 @@ import time
 from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Optional
+
+from hive_errors import AsyncTimeoutError, CircuitBreakerOpenError
 from hive_logging import get_logger
-from hive_errors import CircuitBreakerOpenError, AsyncTimeoutError
 
 logger = get_logger(__name__)
 
@@ -95,7 +96,7 @@ class AsyncCircuitBreaker:
             return True
         return time.time() - self.last_failure_time > self.recovery_timeout
 
-    async def reset_async(self):
+    async def reset_async(self) -> None:
         """Manually reset circuit breaker"""
         async with self._lock:
             self.state = CircuitState.CLOSED
@@ -127,7 +128,7 @@ class AsyncTimeoutManager:
     and operation tracking.
     """
 
-    def __init__(self, default_timeout: float = 30.0):
+    def __init__(self, default_timeout: float = 30.0) -> None:
         self.default_timeout = default_timeout
         self._active_tasks = set()
         self._operation_stats = {}
@@ -188,7 +189,7 @@ class AsyncTimeoutManager:
             if 'task' in locals():
                 self._active_tasks.discard(task)
 
-    def _update_stats(self, operation_name: str, elapsed: float, success: bool):
+    def _update_stats(self, operation_name: str, elapsed: float, success: bool) -> None:
         """Update operation statistics"""
         if operation_name not in self._operation_stats:
             self._operation_stats[operation_name] = {
@@ -213,7 +214,7 @@ class AsyncTimeoutManager:
         stats['avg_time'] = stats['total_time'] / stats['total_calls']
         stats['success_rate'] = stats['successful_calls'] / stats['total_calls']
 
-    async def cancel_all_tasks_async(self):
+    async def cancel_all_tasks_async(self) -> None:
         """Cancel all active tasks"""
         if self._active_tasks:
             logger.info(f"Cancelling {len(self._active_tasks)} active tasks")
@@ -254,7 +255,7 @@ def async_circuit_breaker(
     return decorator
 
 
-def async_timeout(seconds: float, operation_name: Optional[str] = None):
+def async_timeout(seconds: float, operation_name: Optional[str] = None) -> None:
     """
     Decorator to add timeout protection to async functions.
 
@@ -293,7 +294,7 @@ def async_resilient(
         circuit_recovery_timeout: Circuit recovery time
         operation_name: Operation name for monitoring
     """
-    def decorator(func):
+    def decorator(func) -> None:
         # Apply circuit breaker first, then timeout
         circuit_protected = async_circuit_breaker(
             circuit_failure_threshold,

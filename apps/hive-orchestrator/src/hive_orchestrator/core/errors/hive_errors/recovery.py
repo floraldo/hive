@@ -1,3 +1,5 @@
+import asyncio
+
 """
 Error Recovery Strategies
 Provides automated recovery mechanisms for common error scenarios
@@ -97,7 +99,7 @@ class RetryStrategy(RecoveryStrategy):
             attempts = attempt + 1
             logger.info(f"Retry attempt {attempts}/{self.max_retries} after {self.delay}s delay")
 
-            time.sleep(self.delay)
+            await asyncio.sleep(self.delay)
 
             try:
                 result = operation(*args, **kwargs)
@@ -166,7 +168,7 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
                 delay *= 0.5 + random.random()
 
             logger.info(f"Backoff attempt {attempts}/{self.max_retries} after {delay:.2f}s")
-            time.sleep(delay)
+            await asyncio.sleep(delay)
 
             try:
                 result = operation(*args, **kwargs)
@@ -237,7 +239,7 @@ class FallbackStrategy(RecoveryStrategy):
 class CompositeStrategy(RecoveryStrategy):
     """Combine multiple recovery strategies"""
 
-    def __init__(self, strategies: List[RecoveryStrategy]):
+    def __init__(self, strategies: List[RecoveryStrategy]) -> None:
         """
         Initialize composite strategy
 

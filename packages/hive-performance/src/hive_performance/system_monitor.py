@@ -2,11 +2,12 @@
 
 import asyncio
 import time
-import psutil
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Callable
-from datetime import datetime, timedelta
 from collections import deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional
+
+import psutil
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -91,7 +92,7 @@ class SystemMonitor:
         collection_interval: float = 1.0,
         max_history: int = 3600,  # 1 hour at 1-second intervals
         enable_alerts: bool = True,
-        alert_thresholds: Optional[Dict[str, float]] = None
+        alert_thresholds: Optional[Dict[str, float]] = None,
     ):
         self.collection_interval = collection_interval
         self.max_history = max_history
@@ -126,16 +127,16 @@ class SystemMonitor:
         self._prev_network_io: Optional[Any] = None
         self._prev_timestamp: Optional[float] = None
 
-    async def start_monitoring(self) -> None:
+    async def start_monitoring_async(self) -> None:
         """Start real-time system monitoring."""
         if self._monitoring:
             return
 
         self._monitoring = True
-        self._monitor_task = asyncio.create_task(self._monitoring_loop())
+        self._monitor_task = asyncio.create_task(self._monitoring_loop_async())
         logger.info(f"Started system monitoring with {self.collection_interval}s interval")
 
-    async def stop_monitoring(self) -> None:
+    async def stop_monitoring_async(self) -> None:
         """Stop system monitoring."""
         self._monitoring = False
         if self._monitor_task:
@@ -146,15 +147,15 @@ class SystemMonitor:
                 pass
         logger.info("Stopped system monitoring")
 
-    async def _monitoring_loop(self) -> None:
+    async def _monitoring_loop_async(self) -> None:
         """Main monitoring loop."""
         while self._monitoring:
             try:
-                metrics = await self._collect_system_metrics()
+                metrics = await self._collect_system_metrics_async()
                 self._metrics_history.append(metrics)
 
                 if self.enable_alerts:
-                    await self._check_alerts(metrics)
+                    await self._check_alerts_async(metrics)
 
                 await asyncio.sleep(self.collection_interval)
 
@@ -162,7 +163,7 @@ class SystemMonitor:
                 logger.error(f"Error in system monitoring loop: {e}")
                 await asyncio.sleep(self.collection_interval)
 
-    async def _collect_system_metrics(self) -> SystemMetrics:
+    async def _collect_system_metrics_async(self) -> SystemMetrics:
         """Collect comprehensive system metrics."""
         current_time = time.time()
 
@@ -172,7 +173,7 @@ class SystemMonitor:
         cpu_freq = psutil.cpu_freq().current if psutil.cpu_freq() else 0.0
 
         try:
-            load_avg = list(psutil.getloadavg()) if hasattr(psutil, 'getloadavg') else []
+            load_avg = list(psutil.getloadavg()) if hasattr(psutil, "getloadavg") else []
         except AttributeError:
             load_avg = []
 
@@ -181,7 +182,7 @@ class SystemMonitor:
         swap = psutil.swap_memory()
 
         # Disk metrics
-        disk_usage = psutil.disk_usage('/')
+        disk_usage = psutil.disk_usage("/")
         disk_io = psutil.disk_io_counters()
 
         # Calculate disk rates
@@ -231,7 +232,6 @@ class SystemMonitor:
             cpu_count=cpu_count,
             cpu_freq=cpu_freq,
             load_average=load_avg,
-
             # Memory
             memory_total=memory.total,
             memory_available=memory.available,
@@ -240,7 +240,6 @@ class SystemMonitor:
             swap_total=swap.total,
             swap_used=swap.used,
             swap_percent=swap.percent,
-
             # Disk
             disk_total=disk_usage.total,
             disk_used=disk_usage.used,
@@ -250,7 +249,6 @@ class SystemMonitor:
             disk_write_bytes=disk_io.write_bytes,
             disk_read_count=disk_io.read_count,
             disk_write_count=disk_io.write_count,
-
             # Network
             network_bytes_sent=network_io.bytes_sent,
             network_bytes_recv=network_io.bytes_recv,
@@ -258,27 +256,23 @@ class SystemMonitor:
             network_packets_recv=network_io.packets_recv,
             network_errors_in=network_io.errin,
             network_errors_out=network_io.errout,
-
             # Process
             process_count=process_count,
-            thread_count=sum(p.num_threads() for p in psutil.process_iter(['num_threads']) if p.info['num_threads']),
-
+            thread_count=sum(p.num_threads() for p in psutil.process_iter(["num_threads"]) if p.info["num_threads"]),
             # Python process
             python_memory_rss=python_memory.rss,
             python_memory_vms=python_memory.vms,
             python_cpu_percent=python_cpu,
             python_threads=python_threads,
             python_open_files=python_open_files,
-
             # Async
             active_tasks=active_tasks,
             pending_tasks=pending_tasks,
             running_loops=running_loops,
-
             # Metadata
             timestamp=datetime.utcnow(),
             hostname=str(self._hostname),
-            platform=self._platform
+            platform=self._platform,
         )
 
         # Update previous values
@@ -288,7 +282,7 @@ class SystemMonitor:
 
         return metrics
 
-    async def _check_alerts(self, metrics: SystemMetrics) -> None:
+    async def _check_alerts_async(self, metrics: SystemMetrics) -> None:
         """Check metrics against alert thresholds."""
         alerts = []
 
@@ -305,9 +299,9 @@ class SystemMonitor:
             alerts.append(f"High swap usage: {metrics.swap_percent:.1f}%")
 
         if alerts:
-            await self._trigger_alerts(alerts, metrics)
+            await self._trigger_alerts_async(alerts, metrics)
 
-    async def _trigger_alerts(self, alerts: List[str], metrics: SystemMetrics) -> None:
+    async def _trigger_alerts_async(self, alerts: List[str], metrics: SystemMetrics) -> None:
         """Trigger alert callbacks."""
         for callback in self._alert_callbacks:
             try:
@@ -328,9 +322,7 @@ class SystemMonitor:
         return self._metrics_history[-1] if self._metrics_history else None
 
     def get_metrics_history(
-        self,
-        time_window: Optional[timedelta] = None,
-        max_points: Optional[int] = None
+        self, time_window: Optional[timedelta] = None, max_points: Optional[int] = None
     ) -> List[SystemMetrics]:
         """Get historical metrics data."""
         metrics_list = list(self._metrics_history)
@@ -366,7 +358,7 @@ class SystemMonitor:
             python_memory_rss=int(sum(m.python_memory_rss for m in metrics_list) / count),
             timestamp=datetime.utcnow(),
             hostname=metrics_list[0].hostname,
-            platform=metrics_list[0].platform
+            platform=metrics_list[0].platform,
         )
 
     def get_peak_metrics(self, time_window: timedelta) -> Optional[SystemMetrics]:
@@ -391,7 +383,7 @@ class SystemMonitor:
             active_tasks=peak_tasks,
             timestamp=peak_metric.timestamp,
             hostname=peak_metric.hostname,
-            platform=peak_metric.platform
+            platform=peak_metric.platform,
         )
 
     def analyze_trends(self, time_window: timedelta) -> Dict[str, float]:
@@ -463,30 +455,32 @@ class SystemMonitor:
 
         if format == "json":
             import json
-            return json.dumps([
-                {
-                    "timestamp": m.timestamp.isoformat(),
-                    "cpu_percent": m.cpu_percent,
-                    "memory_percent": m.memory_percent,
-                    "disk_percent": m.disk_percent,
-                    "active_tasks": m.active_tasks,
-                    "python_memory_mb": m.python_memory_rss // (1024 * 1024),
-                } for m in metrics_list
-            ], indent=2)
+
+            return json.dumps(
+                [
+                    {
+                        "timestamp": m.timestamp.isoformat(),
+                        "cpu_percent": m.cpu_percent,
+                        "memory_percent": m.memory_percent,
+                        "disk_percent": m.disk_percent,
+                        "active_tasks": m.active_tasks,
+                        "python_memory_mb": m.python_memory_rss // (1024 * 1024),
+                    }
+                    for m in metrics_list
+                ],
+                indent=2,
+            )
         elif format == "csv":
             import csv
             import io
+
             output = io.StringIO()
             writer = csv.writer(output)
             writer.writerow(["timestamp", "cpu_percent", "memory_percent", "disk_percent", "active_tasks"])
             for m in metrics_list:
-                writer.writerow([
-                    m.timestamp.isoformat(),
-                    m.cpu_percent,
-                    m.memory_percent,
-                    m.disk_percent,
-                    m.active_tasks
-                ])
+                writer.writerow(
+                    [m.timestamp.isoformat(), m.cpu_percent, m.memory_percent, m.disk_percent, m.active_tasks]
+                )
             return output.getvalue()
         else:
             raise ValueError(f"Unsupported export format: {format}")

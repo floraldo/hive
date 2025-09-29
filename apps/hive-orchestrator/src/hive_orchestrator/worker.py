@@ -256,7 +256,7 @@ class WorkerCore:
         logger.warning("[WARN] Claude command not found - running in simulation mode")
         return None
 
-    def _verify_workspace_isolation(self):
+    def _verify_workspace_isolation(self) -> None:
         """Pre-flight invariant checks to ensure workspace isolation."""
         if not self.config.get("debug_mode", False):
             return
@@ -713,7 +713,7 @@ CRITICAL PATH CONSTRAINT:
                 # Give process a moment to fail if it's going to fail immediately
                 import time
 
-                await asyncio.sleep(0.5)
+                time.sleep(0.5)
                 initial_poll = process.poll()
                 if initial_poll is not None:
                     self.log.error(f"[ERROR] Process died immediately with exit code: {initial_poll}")
@@ -748,7 +748,7 @@ CRITICAL PATH CONSTRAINT:
                             # No more output but process still running, wait a bit
                             import time
 
-                            await asyncio.sleep(0.1)
+                            time.sleep(0.1)
                             continue
 
                         output_lines.append(line.rstrip())
@@ -787,7 +787,7 @@ CRITICAL PATH CONSTRAINT:
                             exit_code = poll_result
                             self.log.info(f"[DEBUG] Process exited with code: {exit_code}")
                             break
-                        await asyncio.sleep(0.5)  # Check every 500ms
+                        time.sleep(0.5)  # Check every 500ms
 
                 # Process should have already exited in the loop above
                 if exit_code is None:
@@ -877,7 +877,7 @@ CRITICAL PATH CONSTRAINT:
                 "next_state": "failed",
             }
 
-    def emit_result(self, result: Dict[str, Any]):
+    def emit_result(self, result: Dict[str, Any]) -> None:
         """Save execution result"""
         if not self.task_id or not self.run_id:
             logger.error("[ERROR] Cannot emit result - missing task_id or run_id")
@@ -937,7 +937,7 @@ CRITICAL PATH CONSTRAINT:
 
         return result
 
-    def run_one_shot(self):
+    def run_one_shot(self) -> None:
         """Run in one-shot mode (called by Queen)"""
         if not self.task_id:
             logger.error("[ERROR] One-shot mode requires task_id")
@@ -957,7 +957,7 @@ CRITICAL PATH CONSTRAINT:
         # Execute task
         return self.execute_task(task)
 
-    async def run_one_shot_async(self):
+    async def run_one_shot_async(self) -> None:
         """Run in async one-shot mode for 3-5x performance improvement"""
         if not self.task_id:
             logger.error("[ERROR] Async one-shot mode requires task_id")
@@ -1000,7 +1000,7 @@ CRITICAL PATH CONSTRAINT:
             }
 
 
-def main():
+def main() -> None:
     """Main CLI entry point"""
 
     parser = argparse.ArgumentParser(description="WorkerCore - Streamlined Worker")

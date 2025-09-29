@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Reporting Module - Flask web application for dynamic report generation.
 
 This module provides a web-based interface for generating and viewing

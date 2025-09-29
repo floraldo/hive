@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 class RuleBasedEngine(BaseSolver):
     """Simple rule-based control solver - just a traffic cop, NO component logic."""
 
-    def __init__(self, system, config=None):
+    def __init__(self, system, config=None) -> None:
         super().__init__(system, config)
 
         # Priority mapping for different flow types
@@ -28,7 +28,7 @@ class RuleBasedEngine(BaseSolver):
             ("transmission", "storage"): 7,
         }
 
-    def prepare_system(self):
+    def prepare_system(self) -> None:
         """Initialize all flows and storage arrays as numpy arrays."""
         logger.info("Preparing system for rule-based solving")
 
@@ -76,7 +76,7 @@ class RuleBasedEngine(BaseSolver):
         self.result = result
         return result
 
-    def _solve_timestep(self, t: int):
+    def _solve_timestep(self, t: int) -> None:
         """Solve a single timestep using priority dispatch with finalization."""
         # Get system state from components
         state = self._get_system_state(t)
@@ -175,7 +175,7 @@ class RuleBasedEngine(BaseSolver):
         """Get priority for a flow between component types."""
         return self.priorities.get((from_type, to_type), 99)
 
-    def _finalize_storage_levels(self, t: int):
+    def _finalize_storage_levels(self, t: int) -> None:
         """
         Ask storage components to update their state after all flows are decided.
 
@@ -206,7 +206,7 @@ class RuleBasedEngine(BaseSolver):
                 # The solver is just a messenger!
                 comp.rule_based_update_state(t, total_charge, total_discharge)
 
-    def extract_results(self):
+    def extract_results(self) -> None:
         """Results are already in numpy arrays, nothing to extract."""
         pass
 

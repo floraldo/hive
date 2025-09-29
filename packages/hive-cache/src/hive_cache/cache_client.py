@@ -7,11 +7,14 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Union
 
-import aioredis
 import msgpack
+import orjson
+import redis.asyncio as redis
 import xxhash
 from async_timeout import timeout as async_timeout
+from hive_async.resilience import AsyncCircuitBreaker
 from hive_logging import get_logger
+from hive_performance.metrics_collector import MetricsCollector
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -32,41 +35,6 @@ from .exceptions import (
 logger = get_logger(__name__)
 
 
-class CircuitBreaker:
-    """Circuit breaker for cache operations."""
-
-    def __init__(self, threshold: int = 5, timeout: float = 60.0, recovery_timeout: float = 30.0):
-        self.threshold = threshold
-        self.timeout = timeout
-        self.recovery_timeout = recovery_timeout
-        self.failure_count = 0
-        self.last_failure_time = None
-        self.state = "closed"  # closed, open, half-open
-
-    def is_open(self) -> bool:
-        """Check if circuit breaker is open."""
-        if self.state == "open":
-            if time.time() - self.last_failure_time > self.recovery_timeout:
-                self.state = "half-open"
-                return False
-            return True
-        return False
-
-    def record_success(self):
-        """Record successful operation."""
-        self.failure_count = 0
-        self.state = "closed"
-
-    def record_failure(self):
-        """Record failed operation."""
-        self.failure_count += 1
-        self.last_failure_time = time.time()
-
-        if self.failure_count >= self.threshold:
-            self.state = "open"
-            logger.warning(f"Circuit breaker opened after {self.failure_count} failures")
-
-
 class HiveCacheClient:
     """
     High-performance async Redis cache client with circuit breaker protection.
@@ -81,9 +49,10 @@ class HiveCacheClient:
     - Health monitoring and metrics
     """
 
-    def __init__(self, config: CacheConfig):
+    def __init__(self, config: CacheConfig) -> None:
         self.config = config
         self._redis_pool = None
+        self._redis_client = None
         self._circuit_breaker = None
         self._metrics = {
             "hits": 0,
@@ -96,45 +65,100 @@ class HiveCacheClient:
         self._last_health_check = None
         self._health_status = {"healthy": True, "last_check": None, "errors": []}
 
+        # Performance monitoring
+        self._performance_monitor = (
+            MetricsCollector(
+                collection_interval=self.config.performance_monitor_interval
+                if hasattr(self.config, "performance_monitor_interval")
+                else 5.0,
+                max_history=1000,
+                enable_system_metrics=True,
+                enable_async_metrics=True,
+            )
+            if config.enable_performance_monitoring
+            else None
+        )
+
         if config.circuit_breaker_enabled:
-            self._circuit_breaker = CircuitBreaker(
-                threshold=config.circuit_breaker_threshold,
-                timeout=config.circuit_breaker_timeout,
-                recovery_timeout=config.circuit_breaker_recovery_timeout,
+            self._circuit_breaker = AsyncCircuitBreaker(
+                failure_threshold=config.circuit_breaker_threshold,
+                recovery_timeout=config.circuit_breaker_timeout,
             )
 
-    async def initialize(self) -> None:
-        """Initialize Redis connection pool."""
+    async def initialize_async(self) -> None:
+        """Initialize Redis connection pool and client."""
         try:
             # Parse Redis URL and create connection pool
-            self._redis_pool = aioredis.ConnectionPool.from_url(
+            self._redis_pool = redis.ConnectionPool.from_url(
                 self.config.redis_url,
                 **self.config.get_redis_connection_kwargs(),
             )
 
+            # Create reusable Redis client
+            self._redis_client = redis.Redis(connection_pool=self._redis_pool)
+
             # Test connection
-            async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                await redis.ping()
+            await self._redis_client.ping()
+
+            # Start performance monitoring if enabled
+            if self._performance_monitor:
+                await self._performance_monitor.start_collection_async()
+                logger.info("Performance monitoring started for cache operations")
 
             logger.info("Hive Cache client initialized successfully")
 
         except Exception as e:
-            logger.error(f"Failed to initialize cache client: {e}")
+            logger.error(f"Failed to initialize_async cache client: {e}")
             raise CacheConnectionError(f"Failed to connect to Redis: {e}")
 
-    async def close(self) -> None:
-        """Close Redis connection pool."""
+    async def close_async(self) -> None:
+        """Close Redis connection pool and client."""
+        # Stop performance monitoring if enabled
+        if self._performance_monitor:
+            await self._performance_monitor.stop_collection_async()
+            logger.info("Performance monitoring stopped")
+
+        if self._redis_client:
+            await self._redis_client.close()
         if self._redis_pool:
             await self._redis_pool.disconnect()
-            logger.info("Hive Cache client closed")
+        logger.info("Hive Cache client closed")
+
+    async def _track_performance_async(self, operation_name: str, operation_func, *args, **kwargs):
+        """Track performance metrics for cache operations."""
+        if not self._performance_monitor:
+            return await operation_func(*args, **kwargs)
+
+        # Start tracking
+        start_id = await self._performance_monitor.start_operation_tracking_async(
+            operation_name=operation_name,
+            tags={"cache_operation": operation_name, "namespace": kwargs.get("namespace", "default")},
+        )
+
+        try:
+            result = await operation_func(*args, **kwargs)
+            # Calculate bytes processed for cache operations
+            bytes_processed = 0
+            if hasattr(result, "__len__") and result is not None:
+                bytes_processed = len(str(result).encode("utf-8"))
+            elif isinstance(result, (bytes, bytearray)):
+                bytes_processed = len(result)
+
+            await self._performance_monitor.end_operation_tracking_async(
+                start_id, success=True, bytes_processed=bytes_processed
+            )
+            return result
+        except Exception as e:
+            await self._performance_monitor.end_operation_tracking_async(start_id, success=False)
+            raise
 
     def _check_circuit_breaker(self) -> None:
         """Check circuit breaker state."""
-        if self._circuit_breaker and self._circuit_breaker.is_open():
+        if self._circuit_breaker and self._circuit_breaker.is_open:
             self._metrics["circuit_breaker_opens"] += 1
             raise CacheCircuitBreakerError("Circuit breaker is open")
 
-    async def _execute_with_circuit_breaker(self, operation: Callable, *args, **kwargs) -> Any:
+    async def _execute_with_circuit_breaker_async(self, operation: Callable, *args, **kwargs) -> Any:
         """Execute operation with circuit breaker protection."""
         self._check_circuit_breaker()
 
@@ -142,20 +166,17 @@ class HiveCacheClient:
             async with async_timeout(self.config.response_timeout):
                 result = await operation(*args, **kwargs)
 
-            if self._circuit_breaker:
-                self._circuit_breaker.record_success()
+            # Circuit breaker success is handled automatically by AsyncCircuitBreaker
 
             return result
 
         except asyncio.TimeoutError:
-            if self._circuit_breaker:
-                self._circuit_breaker.record_failure()
+            # Circuit breaker failure is handled automatically by AsyncCircuitBreaker
             self._metrics["errors"] += 1
             raise CacheTimeoutError("Cache operation timed out")
 
         except Exception as e:
-            if self._circuit_breaker:
-                self._circuit_breaker.record_failure()
+            # Circuit breaker failure is handled automatically by AsyncCircuitBreaker
             self._metrics["errors"] += 1
             raise CacheConnectionError(f"Cache operation failed: {e}")
 
@@ -164,17 +185,16 @@ class HiveCacheClient:
         try:
             if self.config.serialization_format == "msgpack":
                 serialized = msgpack.packb(value, use_bin_type=True)
+            elif self.config.serialization_format == "orjson":
+                serialized = orjson.dumps(value, default=str)
             elif self.config.serialization_format == "json":
                 serialized = json.dumps(value, default=str).encode("utf-8")
             else:
-                import pickle
-                serialized = pickle.dumps(value)
+                # Default to orjson for best performance
+                serialized = orjson.dumps(value, default=str)
 
             # Apply compression if enabled and value is large enough
-            if (
-                self.config.compression_enabled
-                and len(serialized) > self.config.compression_threshold
-            ):
+            if self.config.compression_enabled and len(serialized) > self.config.compression_threshold:
                 compressed = gzip.compress(serialized, compresslevel=self.config.compression_level)
                 # Add compression marker
                 return b"GZIP:" + compressed
@@ -193,11 +213,13 @@ class HiveCacheClient:
 
             if self.config.serialization_format == "msgpack":
                 return msgpack.unpackb(data, raw=False)
+            elif self.config.serialization_format == "orjson":
+                return orjson.loads(data)
             elif self.config.serialization_format == "json":
                 return json.loads(data.decode("utf-8"))
             else:
-                import pickle
-                return pickle.loads(data)
+                # Default to orjson for best performance
+                return orjson.loads(data)
 
         except Exception as e:
             # Try JSON fallback if enabled
@@ -214,11 +236,11 @@ class HiveCacheClient:
         """Generate consistent hash for cache key."""
         return xxhash.xxh64(key.encode()).hexdigest()
 
-    async def set(
+    async def set_async(
         self,
         key: str,
         value: Any,
-        ttl: Optional[int] = None,
+        ttl_async: Optional[int] = None,
         namespace: str = "default",
         overwrite: bool = True,
     ) -> bool:
@@ -227,46 +249,48 @@ class HiveCacheClient:
         Args:
             key: Cache key
             value: Value to cache
-            ttl: Time to live in seconds (uses default if None)
+            ttl_async: Time to live in seconds (uses default if None)
             namespace: Cache namespace
             overwrite: Whether to overwrite existing key
 
         Returns:
-            True if value was set successfully
+            True if value was set_async successfully
         """
-        try:
+
+        async def _set_implementation():
             # Generate namespaced key
             cache_key = self.config.get_namespaced_key(namespace, key)
 
             # Use namespace-specific TTL if not provided
-            if ttl is None:
-                ttl = self.config.get_ttl_for_namespace(namespace)
+            if ttl_async is None:
+                ttl_async = self.config.get_ttl_for_namespace(namespace)
 
             # Clamp TTL to configured limits
-            ttl = max(self.config.min_ttl, min(ttl, self.config.max_ttl))
+            ttl_async = max(self.config.min_ttl, min(ttl_async, self.config.max_ttl))
 
             # Serialize value
             serialized_value = self._serialize_value(value)
 
             # Execute Redis operation
-            async def _set_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    if overwrite:
-                        return await redis.setex(cache_key, ttl, serialized_value)
-                    else:
-                        return await redis.set(cache_key, serialized_value, ex=ttl, nx=True)
+            async def _set_operation_async():
+                if overwrite:
+                    return await self._redis_client.setex(cache_key, ttl_async, serialized_value)
+                else:
+                    return await self._redis_client.set(cache_key, serialized_value, ex=ttl_async, nx=True)
 
-            result = await self._execute_with_circuit_breaker(_set_operation)
+            result = await self._execute_with_circuit_breaker_async(_set_operation_async)
             self._metrics["sets"] += 1
 
             return bool(result)
 
+        try:
+            return await self._track_performance_async("cache_set", _set_implementation, namespace=namespace)
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to set cache key: {e}", operation="set", key=key)
+            raise CacheError(f"Failed to set_async cache key: {e}", operation="set_async", key=key)
 
-    async def get(self, key: str, namespace: str = "default", default: Any = None) -> Any:
+    async def get_async(self, key: str, namespace: str = "default", default: Any = None) -> Any:
         """Get a value from cache.
 
         Args:
@@ -277,16 +301,16 @@ class HiveCacheClient:
         Returns:
             Cached value or default
         """
-        try:
+
+        async def _get_implementation():
             # Generate namespaced key
             cache_key = self.config.get_namespaced_key(namespace, key)
 
             # Execute Redis operation
-            async def _get_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    return await redis.get(cache_key)
+            async def _get_operation_async():
+                return await self._redis_client.get(cache_key)
 
-            result = await self._execute_with_circuit_breaker(_get_operation)
+            result = await self._execute_with_circuit_breaker_async(_get_operation_async)
 
             if result is None:
                 self._metrics["misses"] += 1
@@ -297,26 +321,28 @@ class HiveCacheClient:
             self._metrics["hits"] += 1
             return value
 
+        try:
+            return await self._track_performance_async("cache_get", _get_implementation, namespace=namespace)
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to get cache key: {e}", operation="get", key=key)
+            raise CacheError(f"Failed to get_async cache key: {e}", operation="get_async", key=key)
 
-    async def get_or_set(
+    async def get_or_set_async(
         self,
         key: str,
         factory: Callable,
-        ttl: Optional[int] = None,
+        ttl_async: Optional[int] = None,
         namespace: str = "default",
         *args,
         **kwargs,
     ) -> Any:
-        """Get value from cache or compute and set if missing.
+        """Get value from cache or compute and set_async if missing.
 
         Args:
             key: Cache key
             factory: Function to compute value if missing
-            ttl: Time to live in seconds
+            ttl_async: Time to live in seconds
             namespace: Cache namespace
             *args: Arguments for factory function
             **kwargs: Keyword arguments for factory function
@@ -324,8 +350,8 @@ class HiveCacheClient:
         Returns:
             Cached or computed value
         """
-        # Try to get from cache first
-        value = await self.get(key, namespace)
+        # Try to get_async from cache first
+        value = await self.get_async(key, namespace)
 
         if value is not None:
             return value
@@ -337,11 +363,11 @@ class HiveCacheClient:
             computed_value = factory(*args, **kwargs)
 
         # Set in cache
-        await self.set(key, computed_value, ttl, namespace)
+        await self.set_async(key, computed_value, ttl_async, namespace)
 
         return computed_value
 
-    async def delete(self, key: str, namespace: str = "default") -> bool:
+    async def delete_async(self, key: str, namespace: str = "default") -> bool:
         """Delete a key from cache.
 
         Args:
@@ -356,11 +382,10 @@ class HiveCacheClient:
             cache_key = self.config.get_namespaced_key(namespace, key)
 
             # Execute Redis operation
-            async def _delete_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    return await redis.delete(cache_key)
+            async def _delete_operation_async():
+                return await self._redis_client.delete(cache_key)
 
-            result = await self._execute_with_circuit_breaker(_delete_operation)
+            result = await self._execute_with_circuit_breaker_async(_delete_operation_async)
             self._metrics["deletes"] += 1
 
             return bool(result)
@@ -368,9 +393,9 @@ class HiveCacheClient:
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to delete cache key: {e}", operation="delete", key=key)
+            raise CacheError(f"Failed to delete_async cache key: {e}", operation="delete_async", key=key)
 
-    async def delete_pattern(self, pattern: str, namespace: str = "default") -> int:
+    async def delete_pattern_async(self, pattern: str, namespace: str = "default") -> int:
         """Delete all keys matching a pattern.
 
         Args:
@@ -385,14 +410,13 @@ class HiveCacheClient:
             cache_pattern = self.config.get_namespaced_key(namespace, pattern)
 
             # Execute Redis operation
-            async def _delete_pattern_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    keys = await redis.keys(cache_pattern)
-                    if keys:
-                        return await redis.delete(*keys)
-                    return 0
+            async def _delete_pattern_operation_async():
+                keys = await self._redis_client.keys(cache_pattern)
+                if keys:
+                    return await self._redis_client.delete(*keys)
+                return 0
 
-            result = await self._execute_with_circuit_breaker(_delete_pattern_operation)
+            result = await self._execute_with_circuit_breaker_async(_delete_pattern_operation_async)
             self._metrics["deletes"] += result
 
             return result
@@ -400,36 +424,35 @@ class HiveCacheClient:
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to delete pattern: {e}", operation="delete_pattern", key=pattern)
+            raise CacheError(f"Failed to delete_async pattern: {e}", operation="delete_pattern_async", key=pattern)
 
-    async def exists(self, key: str, namespace: str = "default") -> bool:
-        """Check if a key exists in cache.
+    async def exists_async(self, key: str, namespace: str = "default") -> bool:
+        """Check if a key exists_async in cache.
 
         Args:
             key: Cache key
             namespace: Cache namespace
 
         Returns:
-            True if key exists
+            True if key exists_async
         """
         try:
             # Generate namespaced key
             cache_key = self.config.get_namespaced_key(namespace, key)
 
             # Execute Redis operation
-            async def _exists_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    return await redis.exists(cache_key)
+            async def _exists_operation_async():
+                return await self._redis_client.exists(cache_key)
 
-            result = await self._execute_with_circuit_breaker(_exists_operation)
+            result = await self._execute_with_circuit_breaker_async(_exists_operation_async)
             return bool(result)
 
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to check key existence: {e}", operation="exists", key=key)
+            raise CacheError(f"Failed to check key existence: {e}", operation="exists_async", key=key)
 
-    async def ttl(self, key: str, namespace: str = "default") -> int:
+    async def ttl_async(self, key: str, namespace: str = "default") -> int:
         """Get time to live for a key.
 
         Args:
@@ -444,23 +467,22 @@ class HiveCacheClient:
             cache_key = self.config.get_namespaced_key(namespace, key)
 
             # Execute Redis operation
-            async def _ttl_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    return await redis.ttl(cache_key)
+            async def _ttl_operation_async():
+                return await self._redis_client.ttl(cache_key)
 
-            return await self._execute_with_circuit_breaker(_ttl_operation)
+            return await self._execute_with_circuit_breaker_async(_ttl_operation_async)
 
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to get TTL: {e}", operation="ttl", key=key)
+            raise CacheError(f"Failed to get_async TTL: {e}", operation="ttl_async", key=key)
 
-    async def extend_ttl(self, key: str, ttl: int, namespace: str = "default") -> bool:
+    async def extend_ttl_async(self, key: str, ttl_async: int, namespace: str = "default") -> bool:
         """Extend TTL for an existing key.
 
         Args:
             key: Cache key
-            ttl: New TTL in seconds
+            ttl_async: New TTL in seconds
             namespace: Cache namespace
 
         Returns:
@@ -471,19 +493,18 @@ class HiveCacheClient:
             cache_key = self.config.get_namespaced_key(namespace, key)
 
             # Execute Redis operation
-            async def _expire_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    return await redis.expire(cache_key, ttl)
+            async def _expire_operation_async():
+                return await self._redis_client.expire(cache_key, ttl_async)
 
-            result = await self._execute_with_circuit_breaker(_expire_operation)
+            result = await self._execute_with_circuit_breaker_async(_expire_operation_async)
             return bool(result)
 
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to extend TTL: {e}", operation="extend_ttl", key=key)
+            raise CacheError(f"Failed to extend TTL: {e}", operation="extend_ttl_async", key=key)
 
-    async def scan_keys(
+    async def scan_keys_async(
         self, pattern: str = "*", namespace: str = "default", count: int = 10
     ) -> AsyncGenerator[str, None]:
         """Scan keys matching a pattern.
@@ -501,16 +522,15 @@ class HiveCacheClient:
             cache_pattern = self.config.get_namespaced_key(namespace, pattern)
             namespace_prefix = self.config.get_namespaced_key(namespace, "")
 
-            async def _scan_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    async for key in redis.scan_iter(match=cache_pattern, count=count):
-                        # Remove namespace prefix
-                        if key.startswith(namespace_prefix):
-                            yield key[len(namespace_prefix) :]
-                        else:
-                            yield key
+            async def _scan_operation_async() -> None:
+                async for key in self._redis_client.scan_iter(match=cache_pattern, count=count):
+                    # Remove namespace prefix
+                    if key.startswith(namespace_prefix):
+                        yield key[len(namespace_prefix) :]
+                    else:
+                        yield key
 
-            async for key in self._execute_with_circuit_breaker(_scan_operation):
+            async for key in self._execute_with_circuit_breaker_async(_scan_operation_async):
                 yield key
 
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
@@ -518,7 +538,7 @@ class HiveCacheClient:
         except Exception as e:
             raise CacheError(f"Failed to scan keys: {e}", operation="scan", key=pattern)
 
-    async def mget(self, keys: List[str], namespace: str = "default") -> Dict[str, Any]:
+    async def mget_async(self, keys: List[str], namespace: str = "default") -> Dict[str, Any]:
         """Get multiple values from cache.
 
         Args:
@@ -533,11 +553,10 @@ class HiveCacheClient:
             cache_keys = [self.config.get_namespaced_key(namespace, key) for key in keys]
 
             # Execute Redis operation
-            async def _mget_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    return await redis.mget(cache_keys)
+            async def _mget_operation_async():
+                return await self._redis_client.mget(cache_keys)
 
-            results = await self._execute_with_circuit_breaker(_mget_operation)
+            results = await self._execute_with_circuit_breaker_async(_mget_operation_async)
 
             # Build result dictionary
             result_dict = {}
@@ -557,39 +576,38 @@ class HiveCacheClient:
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to get multiple keys: {e}", operation="mget")
+            raise CacheError(f"Failed to get_async multiple keys: {e}", operation="mget_async")
 
-    async def mset(
-        self, mapping: Dict[str, Any], ttl: Optional[int] = None, namespace: str = "default"
+    async def mset_async(
+        self, mapping: Dict[str, Any], ttl_async: Optional[int] = None, namespace: str = "default"
     ) -> bool:
         """Set multiple values in cache.
 
         Args:
             mapping: Dictionary of key-value pairs
-            ttl: Time to live in seconds
+            ttl_async: Time to live in seconds
             namespace: Cache namespace
 
         Returns:
-            True if all values were set
+            True if all values were set_async
         """
         try:
             # Use namespace-specific TTL if not provided
-            if ttl is None:
-                ttl = self.config.get_ttl_for_namespace(namespace)
+            if ttl_async is None:
+                ttl_async = self.config.get_ttl_for_namespace(namespace)
 
             # Execute Redis operation
-            async def _mset_operation():
-                async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                    pipe = redis.pipeline()
+            async def _mset_operation_async():
+                pipe = self._redis_client.pipeline()
 
-                    for key, value in mapping.items():
-                        cache_key = self.config.get_namespaced_key(namespace, key)
-                        serialized_value = self._serialize_value(value)
-                        pipe.setex(cache_key, ttl, serialized_value)
+                for key, value in mapping.items():
+                    cache_key = self.config.get_namespaced_key(namespace, key)
+                    serialized_value = self._serialize_value(value)
+                    pipe.setex(cache_key, ttl_async, serialized_value)
 
-                    return await pipe.execute()
+                return await pipe.execute()
 
-            results = await self._execute_with_circuit_breaker(_mset_operation)
+            results = await self._execute_with_circuit_breaker_async(_mset_operation_async)
             self._metrics["sets"] += len(mapping)
 
             return all(results)
@@ -597,9 +615,9 @@ class HiveCacheClient:
         except (CacheCircuitBreakerError, CacheTimeoutError, CacheConnectionError):
             raise
         except Exception as e:
-            raise CacheError(f"Failed to set multiple keys: {e}", operation="mset")
+            raise CacheError(f"Failed to set_async multiple keys: {e}", operation="mset_async")
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check_async(self) -> Dict[str, Any]:
         """Perform health check on cache.
 
         Returns:
@@ -609,15 +627,14 @@ class HiveCacheClient:
             start_time = time.time()
 
             # Test basic operations
-            async with aioredis.Redis(connection_pool=self._redis_pool) as redis:
-                # Test ping
-                ping_result = await redis.ping()
+            # Test ping
+            ping_result = await self._redis_client.ping()
 
-                # Test set/get
-                test_key = f"health_check_{int(time.time())}"
-                await redis.setex(test_key, 30, "test_value")
-                get_result = await redis.get(test_key)
-                await redis.delete(test_key)
+            # Test set/get operations
+            test_key = f"health_check_{int(time.time())}"
+            await self._redis_client.setex(test_key, 30, "test_value")
+            get_result = await self._redis_client.get(test_key)
+            await self._redis_client.delete(test_key)
 
             response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
@@ -627,7 +644,7 @@ class HiveCacheClient:
                 "response_time_ms": round(response_time, 2),
                 "ping_result": ping_result,
                 "set_get_test": get_result == b"test_value",
-                "circuit_breaker_state": self._circuit_breaker.state if self._circuit_breaker else "disabled",
+                "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
                 "errors": [],
             }
 
@@ -639,7 +656,7 @@ class HiveCacheClient:
                 "healthy": False,
                 "last_check": datetime.utcnow().isoformat(),
                 "errors": [str(e)],
-                "circuit_breaker_state": self._circuit_breaker.state if self._circuit_breaker else "disabled",
+                "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
             }
             return self._health_status
 
@@ -656,7 +673,7 @@ class HiveCacheClient:
             **self._metrics,
             "hit_rate_percent": round(hit_rate, 2),
             "total_operations": total_operations,
-            "circuit_breaker_state": self._circuit_breaker.state if self._circuit_breaker else "disabled",
+            "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
             "last_health_check": self._last_health_check,
         }
 
@@ -664,12 +681,46 @@ class HiveCacheClient:
         """Reset all metrics counters."""
         self._metrics = {key: 0 for key in self._metrics}
 
+    def get_performance_metrics(self) -> Optional[Dict[str, Any]]:
+        """Get detailed performance metrics from the performance monitor.
+
+        Returns:
+            Performance metrics dictionary or None if monitoring is disabled
+        """
+        if not self._performance_monitor:
+            return None
+
+        metrics = {}
+
+        # Get metrics for each cache operation
+        for operation_name in ["cache_get", "cache_set", "cache_delete"]:
+            operation_metrics = self._performance_monitor.get_metrics(operation_name)
+            if operation_metrics:
+                metrics[operation_name] = {
+                    "total_operations": len(operation_metrics),
+                    "avg_execution_time": sum(m.execution_time for m in operation_metrics) / len(operation_metrics),
+                    "avg_memory_usage": sum(m.memory_usage for m in operation_metrics) / len(operation_metrics),
+                    "avg_operations_per_second": sum(m.operations_per_second for m in operation_metrics)
+                    / len(operation_metrics),
+                    "total_bytes_processed": sum(m.bytes_processed for m in operation_metrics),
+                    "error_rate": sum(m.error_count for m in operation_metrics) / len(operation_metrics)
+                    if operation_metrics
+                    else 0.0,
+                }
+
+        # Add system-level metrics
+        system_metrics = self._performance_monitor.get_system_metrics()
+        if system_metrics:
+            metrics["system"] = system_metrics
+
+        return metrics
+
 
 # Global cache client instance
 _global_cache_client: Optional[HiveCacheClient] = None
 
 
-async def get_cache_client(config: Optional[CacheConfig] = None) -> HiveCacheClient:
+async def get_cache_client_async(config: Optional[CacheConfig] = None) -> HiveCacheClient:
     """Get or create global cache client instance.
 
     Args:
@@ -685,15 +736,15 @@ async def get_cache_client(config: Optional[CacheConfig] = None) -> HiveCacheCli
             config = CacheConfig.from_env()
 
         _global_cache_client = HiveCacheClient(config)
-        await _global_cache_client.initialize()
+        await _global_cache_client.initialize_async()
 
     return _global_cache_client
 
 
-async def close_cache_client() -> None:
+async def close_cache_client_async() -> None:
     """Close global cache client."""
     global _global_cache_client
 
     if _global_cache_client:
-        await _global_cache_client.close()
+        await _global_cache_client.close_async()
         _global_cache_client = None

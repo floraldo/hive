@@ -36,7 +36,7 @@ class SolverResult(BaseModel):
 class BaseSolver(ABC):
     """Abstract base class for all system solvers."""
 
-    def __init__(self, system, config: Optional[SolverConfig] = None):
+    def __init__(self, system, config: Optional[SolverConfig] = None) -> None:
         """Initialize solver with system and configuration.
 
         Args:
@@ -57,7 +57,7 @@ class BaseSolver(ABC):
         pass
 
     @abstractmethod
-    def prepare_system(self):
+    def prepare_system(self) -> None:
         """Prepare the system for solving.
 
         This method should handle any solver-specific initialization,
@@ -66,7 +66,7 @@ class BaseSolver(ABC):
         pass
 
     @abstractmethod
-    def extract_results(self):
+    def extract_results(self) -> None:
         """Extract results from solved system.
 
         This method should convert solver-specific results into

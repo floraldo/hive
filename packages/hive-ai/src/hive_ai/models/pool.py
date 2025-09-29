@@ -7,18 +7,17 @@ load balancing, and automatic scaling based on demand.
 
 import asyncio
 import time
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
 from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
-from hive_logging import get_logger
 from hive_async import AsyncConnectionManager, PoolConfig
 from hive_errors import PoolExhaustedError
+from hive_logging import get_logger
 
 from ..core.config import AIConfig, ModelConfig
 from ..core.interfaces import ModelProviderInterface, ModelResponse
 from .registry import ModelRegistry
-
 
 logger = get_logger(__name__)
 
@@ -26,6 +25,7 @@ logger = get_logger(__name__)
 @dataclass
 class PoolStats:
     """Statistics for connection pool."""
+
     total_connections: int
     active_connections: int
     idle_connections: int
@@ -43,7 +43,7 @@ class ModelPool:
     automatic scaling, and performance optimization.
     """
 
-    def __init__(self, config: AIConfig):
+    def __init__(self, config: AIConfig) -> None:
         self.config = config
         self.registry = ModelRegistry(config)
 
@@ -69,10 +69,7 @@ class ModelPool:
     def _create_pool(self, provider: str) -> None:
         """Create connection pool for specific provider."""
         # Get models for this provider to determine pool size
-        provider_models = [
-            model for model in self.config.models.values()
-            if model.provider == provider
-        ]
+        provider_models = [model for model in self.config.models.values() if model.provider == provider]
 
         if not provider_models:
             logger.warning(f"No models configured for provider: {provider}")
@@ -88,30 +85,23 @@ class ModelPool:
             max_size=pool_size,
             timeout=30.0,
             max_idle_time=300.0,  # 5 minutes
-            health_check_interval=60.0  # 1 minute
+            health_check_interval=60.0,  # 1 minute
         )
 
         self._pool_configs[provider] = pool_config
 
         # Create async connection manager
         self._pools[provider] = AsyncConnectionManager(
-            pool_config,
-            connection_factory=lambda: self._create_provider_connection(provider)
+            pool_config, connection_factory=lambda: self._create_provider_connection_async(provider)
         )
 
         logger.info(f"Created connection pool for {provider}: {pool_size} max connections")
 
-    async def _create_provider_connection(self, provider: str) -> ModelProviderInterface:
+    async def _create_provider_connection_async(self, provider: str) -> ModelProviderInterface:
         """Factory function to create provider connections."""
         return self.registry.get_provider(provider)
 
-    async def execute_request_async(
-        self,
-        model_name: str,
-        operation: str,
-        *args,
-        **kwargs
-    ) -> Any:
+    async def execute_request_async(self, model_name: str, operation: str, *args, **kwargs) -> Any:
         """
         Execute request using pooled connection.
 
@@ -160,7 +150,7 @@ class ModelPool:
                     component="hive-ai",
                     operation="model_request",
                     pool_size=pool_stats.total_connections,
-                    active_connections=pool_stats.active_connections
+                    active_connections=pool_stats.active_connections,
                 ) from e
 
             raise
@@ -198,17 +188,10 @@ class ModelPool:
         total_requests = self._request_counts[provider]
         response_times = self._response_times[provider]
 
-        avg_response_time = (
-            sum(response_times) / len(response_times)
-            if response_times else 0.0
-        )
+        avg_response_time = sum(response_times) / len(response_times) if response_times else 0.0
 
         # Calculate efficiency: active/total ratio when under load
-        efficiency = (
-            pool_info["active"] / pool_info["total"]
-            if pool_info["total"] > 0 and total_requests > 10
-            else 1.0
-        )
+        efficiency = pool_info["active"] / pool_info["total"] if pool_info["total"] > 0 and total_requests > 10 else 1.0
 
         return PoolStats(
             total_connections=pool_info["total"],
@@ -217,7 +200,7 @@ class ModelPool:
             total_requests=total_requests,
             successful_requests=total_requests,  # Approximation
             avg_response_time_ms=avg_response_time,
-            pool_efficiency=efficiency
+            pool_efficiency=efficiency,
         )
 
     async def scale_pool_async(self, provider: str, target_size: int) -> bool:
@@ -266,33 +249,23 @@ class ModelPool:
 
                 # Health criteria
                 healthy = (
-                    stats.total_connections > 0 and
-                    stats.pool_efficiency > 0.1 and  # At least 10% efficiency
-                    stats.avg_response_time_ms < 10000  # Under 10 seconds
+                    stats.total_connections > 0
+                    and stats.pool_efficiency > 0.1
+                    and stats.avg_response_time_ms < 10000  # At least 10% efficiency  # Under 10 seconds
                 )
 
                 health_status[provider] = {
                     "healthy": healthy,
                     "stats": stats,
-                    "pool_config": self._pool_configs.get(provider)
+                    "pool_config": self._pool_configs.get(provider),
                 }
 
             except Exception as e:
-                health_status[provider] = {
-                    "healthy": False,
-                    "error": str(e)
-                }
+                health_status[provider] = {"healthy": False, "error": str(e)}
 
-        overall_healthy = all(
-            status.get("healthy", False)
-            for status in health_status.values()
-        )
+        overall_healthy = all(status.get("healthy", False) for status in health_status.values())
 
-        return {
-            "overall_healthy": overall_healthy,
-            "providers": health_status,
-            "total_pools": len(self._pools)
-        }
+        return {"overall_healthy": overall_healthy, "providers": health_status, "total_pools": len(self._pools)}
 
     async def optimize_pools_async(self) -> Dict[str, Any]:
         """Optimize pool sizes based on usage patterns."""
@@ -318,24 +291,15 @@ class ModelPool:
                             "action": "resized",
                             "old_size": current_config.max_size,
                             "new_size": recommended_size,
-                            "reason": f"efficiency: {stats.pool_efficiency:.2f}"
+                            "reason": f"efficiency: {stats.pool_efficiency:.2f}",
                         }
                     else:
-                        optimization_results[provider] = {
-                            "action": "no_change",
-                            "reason": "optimal_size"
-                        }
+                        optimization_results[provider] = {"action": "no_change", "reason": "optimal_size"}
                 else:
-                    optimization_results[provider] = {
-                        "action": "insufficient_data",
-                        "requests": stats.total_requests
-                    }
+                    optimization_results[provider] = {"action": "insufficient_data", "requests": stats.total_requests}
 
             except Exception as e:
-                optimization_results[provider] = {
-                    "action": "error",
-                    "error": str(e)
-                }
+                optimization_results[provider] = {"action": "error", "error": str(e)}
 
         return optimization_results
 

@@ -19,16 +19,16 @@ class AsyncResourceManager:
     async def __aenter__(self):
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self.cleanup_all_async()
 
-    def register_resource(self, name: str, resource: Any, cleanup_callback: Optional[Any] = None):
+    def register_resource(self, name: str, resource: Any, cleanup_callback: Optional[Any] = None) -> None:
         """Register a resource for automatic cleanup."""
         self.resources[name] = resource
         if cleanup_callback:
             self._cleanup_callbacks[name] = cleanup_callback
 
-    async def cleanup_resource_async(self, name: str):
+    async def cleanup_resource_async(self, name: str) -> None:
         """Clean up a specific resource."""
         if name in self.resources:
             resource = self.resources.pop(name)
@@ -48,7 +48,7 @@ class AsyncResourceManager:
             except Exception as e:
                 logger.warning(f"Error cleaning up resource {name}: {e}")
 
-    async def cleanup_all_async(self):
+    async def cleanup_all_async(self) -> None:
         """Clean up all registered resources."""
         for name in list(self.resources.keys()):
             await self.cleanup_resource_async(name)
@@ -70,13 +70,13 @@ class AsyncResourceManager:
         self.resources[name] = resource
         return resource
 
-    def add_cleanup_async(self, cleanup_callback):
+    def add_cleanup_async(self, cleanup_callback) -> None:
         """Add a cleanup callback."""
         self._cleanup_callbacks[f"callback_{len(self._cleanup_callbacks)}"] = cleanup_callback
 
 
 @asynccontextmanager
-async def async_context_async(*resources: AsyncContextManager):
+async def async_context_async(*resources: AsyncContextManager) -> None:
     """Context manager for handling multiple async resources."""
     entered_resources = []
     try:
@@ -97,10 +97,10 @@ async def async_context_async(*resources: AsyncContextManager):
                 logger.warning(f"Error in async context cleanup: {e}")
 
 
-def async_context(context_name: str):
+def async_context(context_name: str) -> None:
     """Decorator for async context management."""
     def decorator(func):
-        async def wrapper(*args, **kwargs):
+        async def wrapper_async(*args, **kwargs):
             async with AsyncResourceManager() as manager:
                 logger.debug(f"Entering async context: {context_name}")
                 try:
@@ -110,5 +110,5 @@ def async_context(context_name: str):
                 except Exception as e:
                     logger.error(f"Error in async context {context_name}: {e}")
                     raise
-        return wrapper
+        return wrapper_async
     return decorator

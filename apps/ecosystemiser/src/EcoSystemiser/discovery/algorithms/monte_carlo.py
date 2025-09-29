@@ -40,7 +40,7 @@ class MonteCarloConfig(OptimizationConfig):
     save_all_samples: bool = False
     sample_storage_path: Optional[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.confidence_levels is None:
             self.confidence_levels = [0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
         if self.uncertainty_variables is None:
@@ -65,7 +65,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
     for robust design and risk analysis.
     """
 
-    def __init__(self, config: MonteCarloConfig):
+    def __init__(self, config: MonteCarloConfig) -> None:
         """Initialize Monte Carlo engine.
 
         Args:
@@ -289,7 +289,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         return evaluations
 
-    def _save_samples_and_results(self, samples: np.ndarray, results: List[Dict[str, Any]]):
+    def _save_samples_and_results(self, samples: np.ndarray, results: List[Dict[str, Any]]) -> None:
         """Save samples and results to file."""
         storage_path = Path(self.mc_config.sample_storage_path)
         storage_path.mkdir(parents=True, exist_ok=True)
@@ -702,7 +702,7 @@ class UncertaintyAnalyzer:
     in energy system design and optimization.
     """
 
-    def __init__(self, config: MonteCarloConfig):
+    def __init__(self, config: MonteCarloConfig) -> None:
         """Initialize uncertainty analyzer.
 
         Args:

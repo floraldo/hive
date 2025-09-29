@@ -89,10 +89,10 @@ class ReviewerError(BaseError):
 # ===============================================================================
 
 
-class CodeAnalysisError(ReviewerError):
+class CodeAnalysisError(BaseError):
     """Base class for code analysis errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(
             message=message,
             component=kwargs.get("component", "code_analyzer"),
@@ -100,10 +100,10 @@ class CodeAnalysisError(ReviewerError):
         )
 
 
-class FileAccessError(CodeAnalysisError):
+class FileAccessError(BaseError):
     """Error accessing or reading files for review"""
 
-    def __init__(self, message: str, file_path: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, file_path: Optional[str] = None, **kwargs) -> None:
         kwargs["file_path"] = file_path
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions",
@@ -118,10 +118,10 @@ class FileAccessError(CodeAnalysisError):
         super().__init__(message=message, operation="file_access", **kwargs)
 
 
-class SyntaxAnalysisError(CodeAnalysisError):
+class SyntaxAnalysisError(BaseError):
     """Error parsing or analyzing code syntax"""
 
-    def __init__(self, message: str, syntax_errors: Optional[List[str]] = None, **kwargs):
+    def __init__(self, message: str, syntax_errors: Optional[List[str]] = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if syntax_errors:
             details["syntax_errors"] = syntax_errors
@@ -145,10 +145,10 @@ class SyntaxAnalysisError(CodeAnalysisError):
 # ===============================================================================
 
 
-class ReviewGenerationError(ReviewerError):
+class ReviewGenerationError(BaseError):
     """Base class for review generation errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(
             message=message,
             component=kwargs.get("component", "review_generator"),
@@ -156,7 +156,7 @@ class ReviewGenerationError(ReviewerError):
         )
 
 
-class ClaudeServiceError(ReviewGenerationError):
+class ClaudeServiceError(BaseError):
     """Error with Claude AI service during review generation"""
 
     def __init__(
@@ -204,7 +204,7 @@ class ClaudeServiceError(ReviewGenerationError):
         super().__init__(message=message, operation="claude_service", **kwargs)
 
 
-class ReviewValidationError(ReviewGenerationError):
+class ReviewValidationError(BaseError):
     """Error validating generated review"""
 
     def __init__(
@@ -239,7 +239,7 @@ class ReviewValidationError(ReviewGenerationError):
 # ===============================================================================
 
 
-class DatabaseConnectionError(ReviewerError):
+class DatabaseConnectionError(BaseError):
     """Error connecting to AI Reviewer database"""
 
     def __init__(
@@ -283,7 +283,7 @@ class ReviewerErrorReporter(BaseErrorReporter):
     and AI Reviewer-specific reporting patterns.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the AI Reviewer error reporter"""
         super().__init__()
         self.analysis_errors: List[CodeAnalysisError] = []

@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive Event Bus - Orchestration Communication System.
 

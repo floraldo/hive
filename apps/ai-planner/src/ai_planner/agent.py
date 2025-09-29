@@ -41,7 +41,7 @@ except ImportError:
 # Claude bridge functionality has been moved to individual apps
 # For now, create mock classes until proper implementation
 class ClaudeService:
-    def __init__(self, config=None, rate_config=None):
+    def __init__(self, config=None, rate_config=None) -> None:
         self.mock_mode = getattr(config, "mock_mode", True)
 
     def generate_execution_plan(
@@ -91,13 +91,13 @@ class ClaudeService:
 
 
 class RateLimitConfig:
-    def __init__(self, max_calls_per_minute=20, max_calls_per_hour=500):
+    def __init__(self, max_calls_per_minute=20, max_calls_per_hour=500) -> None:
         self.max_calls_per_minute = max_calls_per_minute
         self.max_calls_per_hour = max_calls_per_hour
 
 
 class ClaudeBridgeConfig:
-    def __init__(self, mock_mode=True):
+    def __init__(self, mock_mode=True) -> None:
         self.mock_mode = mock_mode
 
 
@@ -167,7 +167,7 @@ class AIPlanner:
     hive-orchestrator and other system components.
     """
 
-    def __init__(self, mock_mode: bool = False):
+    def __init__(self, mock_mode: bool = False) -> None:
         self.running = True
         self.agent_id = f"ai-planner-{uuid.uuid4().hex[:8]}"
         self.db_connection = None
@@ -244,7 +244,7 @@ class AIPlanner:
             logger.warning(f"Failed to publish workflow event {event_type} for task {task_id}: {e}")
             return ""
 
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum, frame) -> None:
         """Handle shutdown signals gracefully"""
         logger.info(f"Received signal {signum}, initiating graceful shutdown...")
         self.running = False
@@ -824,7 +824,7 @@ class AIPlanner:
                         logger.warning(f"Task {task['id']} processing failed")
                 else:
                     # No tasks available, wait before next poll
-                    time.sleep(self.poll_interval)
+                    await asyncio.sleep(self.poll_interval)
 
             except KeyboardInterrupt:
                 logger.info("Received keyboard interrupt, shutting down...")
@@ -832,7 +832,7 @@ class AIPlanner:
             except Exception as e:
                 error = PlannerError(message="Unexpected error in main processing loop", original_error=e)
                 self.error_reporter.report_error(error)
-                time.sleep(self.poll_interval)
+                await asyncio.sleep(self.poll_interval)
 
         # Cleanup
         if self.db_connection:
@@ -1047,7 +1047,7 @@ class AIPlanner:
 
                 return False
 
-        async def run_async(self):
+        async def run_async(self) -> int:
             """Async version of main agent execution loop for 3-5x performance improvement."""
             logger.info("AI Planner Agent starting in async mode...")
 

@@ -1,0 +1,178 @@
+# Golden Residential Microgrid - 7-Day Stress Test
+system_id: golden_residential_microgrid_7day
+timesteps: 168  # 7 days * 24 hours
+description: "Extended 7-day simulation for stress testing and long-duration validation"
+
+# Profile data source
+profiles:
+  source: "data/profiles/golden_7day_weather.csv"
+  description: "7-day weather-integrated electrical and thermal profiles"
+
+# Component instances (same as 24h version)
+components:
+  # === ELECTRICAL DOMAIN ===
+
+  # Grid connection
+  - name: GRID
+    component_id: grid_standard
+    params:
+      technical:
+        capacity_nominal: 100.0  # 100 kW grid capacity
+        import_tariff: 0.25      # €0.25/kWh import
+        export_tariff: 0.10      # €0.10/kWh export
+        fidelity_level: "SIMPLE"
+
+  # Solar PV system
+  - name: SOLAR_PV
+    component_id: solar_pv_residential
+    params:
+      technical:
+        capacity_nominal: 50.0   # 50 kW peak capacity
+        efficiency_nominal: 1.0  # Direct profile scaling
+        fidelity_level: "SIMPLE"
+
+  # Battery storage
+  - name: BATTERY
+    component_id: battery_residential
+    params:
+      technical:
+        capacity_nominal: 10.0   # 10 kWh storage
+        max_charge_rate: 5.0     # 5 kW charge rate
+        max_discharge_rate: 5.0  # 5 kW discharge rate
+        efficiency_roundtrip: 0.95  # 95% roundtrip efficiency
+        initial_soc_pct: 0.5     # Start 50% charged
+        fidelity_level: "SIMPLE"
+
+  # Power demand
+  - name: POWER_DEMAND
+    component_id: power_demand_residential
+    params:
+      technical:
+        capacity_nominal: 12.5   # 12.5 kW peak demand
+        peak_demand: 12.5
+        load_profile_type: "variable"
+        fidelity_level: "SIMPLE"
+
+  # === THERMAL DOMAIN ===
+
+  # Heat pump
+  - name: HEAT_PUMP
+    component_id: heat_pump_residential
+    params:
+      technical:
+        capacity_nominal: 15.0   # 15 kW thermal output
+        electrical_capacity: 6.0 # 6 kW electrical input
+        cop_nominal: 2.5         # Nominal COP
+        min_cop: 2.0             # Minimum COP
+        max_cop: 4.0             # Maximum COP
+        fidelity_level: "SIMPLE"
+
+  # Heat buffer
+  - name: HEAT_BUFFER
+    component_id: heat_buffer_residential
+    params:
+      technical:
+        capacity_nominal: 20.0   # 20 kWh thermal storage
+        max_charge_rate: 15.0    # 15 kW thermal input
+        max_discharge_rate: 15.0 # 15 kW thermal output
+        thermal_efficiency: 0.95 # 95% thermal efficiency
+        initial_soc_pct: 0.5     # Start 50% charged
+        fidelity_level: "SIMPLE"
+
+  # Heat demand
+  - name: HEAT_DEMAND
+    component_id: heat_demand_residential
+    params:
+      technical:
+        capacity_nominal: 15.0   # 15 kW peak thermal demand
+        peak_demand: 15.0
+        load_profile_type: "variable"
+        fidelity_level: "SIMPLE"
+
+# System connections (same as 24h version)
+connections:
+  # === ELECTRICAL DOMAIN CONNECTIONS ===
+  - from: GRID
+    to: POWER_DEMAND
+    type: electricity
+
+  - from: GRID
+    to: BATTERY
+    type: electricity
+
+  - from: BATTERY
+    to: GRID
+    type: electricity
+
+  - from: GRID
+    to: HEAT_PUMP
+    type: electricity
+
+  - from: SOLAR_PV
+    to: POWER_DEMAND
+    type: electricity
+
+  - from: SOLAR_PV
+    to: BATTERY
+    type: electricity
+
+  - from: SOLAR_PV
+    to: GRID
+    type: electricity
+
+  - from: SOLAR_PV
+    to: HEAT_PUMP
+    type: electricity
+
+  - from: BATTERY
+    to: POWER_DEMAND
+    type: electricity
+
+  - from: BATTERY
+    to: HEAT_PUMP
+    type: electricity
+
+  # === THERMAL DOMAIN CONNECTIONS ===
+  - from: HEAT_PUMP
+    to: HEAT_DEMAND
+    type: thermal
+
+  - from: HEAT_PUMP
+    to: HEAT_BUFFER
+    type: thermal
+
+  - from: HEAT_BUFFER
+    to: HEAT_DEMAND
+    type: thermal
+
+# Solver configuration
+solver:
+  default: "rule_based"
+  options:
+    rule_based:
+      priority_electrical: 1
+      priority_thermal: 2
+    milp:
+      objective: "min_cost"
+      solver: "CLARABEL"
+      time_limit: 600  # Extended time limit for larger problem
+
+# Validation criteria for long-duration simulation
+validation:
+  energy_balance:
+    electrical_tolerance: 1e-5  # Slightly relaxed for numerical stability
+    thermal_tolerance: 1e-5
+
+  physics_checks:
+    battery_soc_bounds: [0.0, 1.0]
+    heat_buffer_soc_bounds: [0.0, 1.0]
+    flow_non_negative: true
+
+  performance_targets:
+    solve_time_seconds: 30.0     # Extended time limit
+    memory_usage_mb: 500.0       # Higher memory allowance
+
+  long_duration_checks:
+    no_energy_drift: true        # Energy should not drift over time
+    storage_cycling: true        # Storage should cycle appropriately
+    numerical_stability: true    # No accumulating errors

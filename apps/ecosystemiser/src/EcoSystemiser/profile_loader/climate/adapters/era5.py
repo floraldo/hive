@@ -23,10 +23,10 @@ from ecosystemiser.profile_loader.climate.adapters.errors import (
     ValidationError,
 )
 from ecosystemiser.profile_loader.climate.processing.validation import (
-    QCReport,
     QCIssue,
-    QCSeverity,
     QCProfile,
+    QCReport,
+    QCSeverity,
 )
 from hive_logging import get_logger
 
@@ -138,7 +138,7 @@ class ERA5Adapter(BaseAdapter):
         "wind_speed_max": "10m_wind_speed",  # Max wind speed from hourly
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize ERA5 adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
@@ -274,7 +274,9 @@ class ERA5Adapter(BaseAdapter):
                 except OSError:
                     pass  # Ignore cleanup errors
 
-    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
+    async def _transform_data_async(
+        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+    ) -> xr.Dataset:
         """Transform raw ERA5 data to xarray Dataset"""
         lat, lon = location
         ds = raw_data
@@ -295,7 +297,7 @@ class ERA5Adapter(BaseAdapter):
 
         return ds
 
-    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict):
+    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict) -> None:
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValidationError(f"Invalid latitude: {lat}", field="lat", value=lat)
@@ -883,7 +885,7 @@ class ERA5Adapter(BaseAdapter):
 class ERA5QCProfile(QCProfile):
     """QC profile for ERA5 reanalysis data - co-located with adapter for better cohesion."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="ERA5",
             description="ECMWF's fifth-generation atmospheric reanalysis",

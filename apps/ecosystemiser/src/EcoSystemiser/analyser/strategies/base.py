@@ -19,7 +19,7 @@ class BaseAnalysis(ABC):
     interface.
     """
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str = None) -> None:
         """Initialize base analysis strategy.
 
         Args:

@@ -35,13 +35,13 @@ class AsyncRetryConfig:
 class AsyncRetryError(Exception):
     """Raised when all retry attempts are exhausted."""
 
-    def __init__(self, original_error: Exception, attempts: int):
+    def __init__(self, original_error: Exception, attempts: int) -> None:
         self.original_error = original_error
         self.attempts = attempts
         super().__init__(f"Failed after {attempts} attempts: {original_error}")
 
 
-async def run_async_with_retry(func: Callable, config: Optional[AsyncRetryConfig] = None, *args, **kwargs) -> Any:
+async def run_async_with_retry_async(func: Callable, config: Optional[AsyncRetryConfig] = None, *args, **kwargs) -> Any:
     """
     Retry an async function with configurable strategy.
 
@@ -83,7 +83,7 @@ async def run_async_with_retry(func: Callable, config: Optional[AsyncRetryConfig
         raise
 
 
-def create_retry_decorator(config: Optional[AsyncRetryConfig] = None):
+def create_retry_decorator(config: Optional[AsyncRetryConfig] = None) -> None:
     """
     Create a decorator for automatic retry of async functions.
 
@@ -96,7 +96,7 @@ def create_retry_decorator(config: Optional[AsyncRetryConfig] = None):
 
     def decorator(func: Callable):
         async def wrapper_async(*args, **kwargs):
-            return await run_async_with_retry(func, config, *args, **kwargs)
+            return await run_async_with_retry_async(func, config, *args, **kwargs)
 
         return wrapper
 

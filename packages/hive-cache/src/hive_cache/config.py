@@ -1,8 +1,13 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Configuration management for Hive Cache."""
 
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field, validator
 import os
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, Field, validator
 
 
 class CacheConfig(BaseModel):
@@ -38,13 +43,15 @@ class CacheConfig(BaseModel):
     compression_level: int = Field(default=6, description="Compression level (1-9)")
 
     # Serialization settings
-    serialization_format: str = Field(default="msgpack", description="Default serialization format")
+    serialization_format: str = Field(default="orjson", description="Default serialization format")
     enable_json_fallback: bool = Field(default=True, description="Enable JSON fallback for serialization")
 
     # Monitoring settings
     health_check_enabled: bool = Field(default=True, description="Enable health checks")
     health_check_interval: float = Field(default=30.0, description="Health check interval in seconds")
     metrics_enabled: bool = Field(default=True, description="Enable metrics collection")
+    enable_performance_monitoring: bool = Field(default=True, description="Enable detailed performance monitoring")
+    performance_monitor_interval: float = Field(default=5.0, description="Performance monitoring collection interval")
 
     # Key management
     key_prefix: str = Field(default="hive:", description="Global key prefix")
@@ -93,7 +100,7 @@ class CacheConfig(BaseModel):
     @validator("serialization_format")
     def validate_serialization_format(cls, v):
         """Validate serialization format."""
-        valid_formats = ["msgpack", "json", "pickle"]
+        valid_formats = ["msgpack", "orjson", "json"]  # Removed pickle for security
         if v not in valid_formats:
             raise ValueError(f"Serialization format must be one of: {valid_formats}")
         return v
@@ -117,7 +124,12 @@ class CacheConfig(BaseModel):
         for env_var, config_field in env_mapping.items():
             if env_value := os.getenv(env_var):
                 # Convert to appropriate type
-                if config_field in ["max_connections", "default_ttl", "circuit_breaker_threshold", "compression_threshold"]:
+                if config_field in [
+                    "max_connections",
+                    "default_ttl",
+                    "circuit_breaker_threshold",
+                    "compression_threshold",
+                ]:
                     env_config[config_field] = int(env_value)
                 elif config_field in ["health_check_interval"]:
                     env_config[config_field] = float(env_value)
@@ -152,6 +164,7 @@ class CacheConfig(BaseModel):
         if len(full_key) > self.max_key_length:
             # Generate hash for long keys
             import hashlib
+
             key_hash = hashlib.sha256(full_key.encode()).hexdigest()[:16]
             full_key = f"{self.key_prefix}{namespace}{self.key_separator}hash{self.key_separator}{key_hash}"
 

@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Factory for creating solver instances."""
 
 from typing import Dict, Optional, Type
@@ -41,7 +45,7 @@ class SolverFactory:
         return solver_class(system, config)
 
     @classmethod
-    def register_solver(cls, name: str, solver_class: Type[BaseSolver]):
+    def register_solver(cls, name: str, solver_class: Type[BaseSolver]) -> None:
         """Register a new solver type.
 
         Args:

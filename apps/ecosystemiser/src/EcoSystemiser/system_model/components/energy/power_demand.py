@@ -137,7 +137,7 @@ class PowerDemandOptimizationSimple(BaseDemandOptimization):
     - No flexibility or power factor consideration
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -221,7 +221,7 @@ class PowerDemand(Component):
 
     PARAMS_MODEL = PowerDemandParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize power demand attributes and strategy objects."""
         self.type = "consumption"
         self.medium = "electricity"
@@ -306,7 +306,7 @@ class PowerDemand(Component):
 
         return demand_output
 
-    def add_optimization_vars(self, N: int):
+    def add_optimization_vars(self, N: int) -> None:
         """Create CVXPY optimization variables."""
         # For demand, input is fixed by profile (unless flexible)
         self.P_in = cp.Variable(N, name=f"{self.name}_P_in", nonneg=True)

@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive Cache - High-performance Redis-based caching for Hive platform.
 
@@ -9,17 +13,17 @@ This package provides intelligent caching solutions optimized for:
 """
 
 from .cache_client import HiveCacheClient, get_cache_client
-from .config import CacheConfig
 from .claude_cache import ClaudeAPICache
-from .performance_cache import PerformanceCache
-from .health import CacheHealthMonitor
+from .config import CacheConfig
 from .exceptions import (
-    CacheError,
-    CacheConnectionError,
-    CacheTimeoutError,
     CacheCircuitBreakerError,
+    CacheConnectionError,
+    CacheError,
     CacheSerializationError,
+    CacheTimeoutError,
 )
+from .health import CacheHealthMonitor
+from .performance_cache import PerformanceCache
 
 __version__ = "1.0.0"
 __all__ = [

@@ -3,11 +3,12 @@
 import asyncio
 import time
 import traceback
+import weakref
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Set, Tuple, Callable
 from datetime import datetime, timedelta
-import weakref
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -99,7 +100,7 @@ class AsyncProfiler:
         max_task_history: int = 10000,
         enable_stack_traces: bool = False,
         enable_memory_tracking: bool = True,
-        sample_rate: float = 1.0  # 0.0-1.0, for performance
+        sample_rate: float = 1.0,  # 0.0-1.0, for performance
     ):
         self.max_task_history = max_task_history
         self.enable_stack_traces = enable_stack_traces
@@ -125,7 +126,7 @@ class AsyncProfiler:
         self._original_task_factory: Optional[Callable] = None
         self._hooked_loop: Optional[asyncio.AbstractEventLoop] = None
 
-    async def start_profiling(self) -> None:
+    async def start_profiling_async(self) -> None:
         """Start async profiling."""
         if self._profiling:
             return
@@ -140,11 +141,11 @@ class AsyncProfiler:
         loop.set_task_factory(self._task_factory)
 
         # Start monitoring task
-        self._monitor_task = asyncio.create_task(self._monitoring_loop())
+        self._monitor_task = asyncio.create_task(self._monitoring_loop_async())
 
         logger.info("Started async profiling")
 
-    async def stop_profiling(self) -> None:
+    async def stop_profiling_async(self) -> None:
         """Stop async profiling."""
         if not self._profiling:
             return
@@ -170,6 +171,7 @@ class AsyncProfiler:
         # Sample based on sample_rate
         if self.sample_rate < 1.0:
             import random
+
             if random.random() > self.sample_rate:
                 return asyncio.Task(coro, loop=loop)
 
@@ -184,8 +186,8 @@ class AsyncProfiler:
         self._task_counter += 1
 
         # Extract coroutine name
-        coro_name = getattr(task.get_coro(), '__name__', 'unknown')
-        task_name = getattr(task, 'get_name', lambda: f"Task-{self._task_counter}")()
+        coro_name = getattr(task.get_coro(), "__name__", "unknown")
+        task_name = getattr(task, "get_name", lambda: f"Task-{self._task_counter}")()
 
         # Create profile
         profile = TaskProfile(
@@ -193,12 +195,12 @@ class AsyncProfiler:
             task_name=task_name,
             coro_name=coro_name,
             created_at=datetime.utcnow(),
-            state="pending"
+            state="pending",
         )
 
         # Capture stack trace if enabled
         if self.enable_stack_traces:
-            profile.stack_trace = ''.join(traceback.format_stack())
+            profile.stack_trace = "".join(traceback.format_stack())
 
         self._task_profiles[task_id] = profile
         self._active_tasks.add(task_id)
@@ -242,11 +244,11 @@ class AsyncProfiler:
         self._task_profiles.pop(task_id, None)
         self._active_tasks.discard(task_id)
 
-    async def _monitoring_loop(self) -> None:
+    async def _monitoring_loop_async(self) -> None:
         """Monitor active tasks."""
         while self._profiling:
             try:
-                await self._update_active_tasks()
+                await self._update_active_tasks_async()
                 self._sample_concurrency()
                 await asyncio.sleep(0.1)  # 100ms sampling
 
@@ -254,7 +256,7 @@ class AsyncProfiler:
                 logger.error(f"Error in profiling monitor: {e}")
                 await asyncio.sleep(1.0)
 
-    async def _update_active_tasks(self) -> None:
+    async def _update_active_tasks_async(self) -> None:
         """Update status of active tasks."""
         current_time = datetime.utcnow()
 
@@ -277,9 +279,7 @@ class AsyncProfiler:
         return [profile for profile in self._task_profiles.values()]
 
     def get_completed_tasks(
-        self,
-        limit: Optional[int] = None,
-        time_window: Optional[timedelta] = None
+        self, limit: Optional[int] = None, time_window: Optional[timedelta] = None
     ) -> List[TaskProfile]:
         """Get completed task profiles."""
         profiles = list(self._completed_profiles)
@@ -301,10 +301,7 @@ class AsyncProfiler:
         active_tasks = self.get_active_tasks()
 
         if not completed_tasks and not active_tasks:
-            return ProfileReport(
-                profile_start=self._profile_start or datetime.utcnow(),
-                profile_end=datetime.utcnow()
-            )
+            return ProfileReport(profile_start=self._profile_start or datetime.utcnow(), profile_end=datetime.utcnow())
 
         # Basic statistics
         total_tasks = len(completed_tasks) + len(active_tasks)
@@ -329,7 +326,9 @@ class AsyncProfiler:
             throughput = 0.0
 
         # Concurrency level
-        avg_concurrency = sum(self._concurrency_samples) / len(self._concurrency_samples) if self._concurrency_samples else 0.0
+        avg_concurrency = (
+            sum(self._concurrency_samples) / len(self._concurrency_samples) if self._concurrency_samples else 0.0
+        )
 
         # Identify problematic tasks
         slowest_tasks = sorted(completed_tasks, key=lambda t: t.execution_time, reverse=True)[:10]
@@ -368,13 +367,11 @@ class AsyncProfiler:
             recommendations=recommendations,
             profile_start=self._profile_start or datetime.utcnow(),
             profile_end=profile_end,
-            profile_duration=profile_duration
+            profile_duration=profile_duration,
         )
 
     def _analyze_bottlenecks(
-        self,
-        completed_tasks: List[TaskProfile],
-        active_tasks: List[TaskProfile]
+        self, completed_tasks: List[TaskProfile], active_tasks: List[TaskProfile]
     ) -> Tuple[List[str], List[str]]:
         """Analyze performance bottlenecks and generate recommendations."""
         bottlenecks = []
@@ -422,21 +419,25 @@ class AsyncProfiler:
 
         if format == "json":
             import json
-            return json.dumps({
-                "summary": {
-                    "total_tasks": report.total_tasks,
-                    "completed_tasks": report.completed_tasks,
-                    "failed_tasks": report.failed_tasks,
-                    "active_tasks": report.active_tasks,
-                    "throughput": report.throughput,
-                    "avg_execution_time": report.avg_execution_time,
-                    "concurrency_level": report.concurrency_level,
+
+            return json.dumps(
+                {
+                    "summary": {
+                        "total_tasks": report.total_tasks,
+                        "completed_tasks": report.completed_tasks,
+                        "failed_tasks": report.failed_tasks,
+                        "active_tasks": report.active_tasks,
+                        "throughput": report.throughput,
+                        "avg_execution_time": report.avg_execution_time,
+                        "concurrency_level": report.concurrency_level,
+                    },
+                    "bottlenecks": report.bottlenecks,
+                    "recommendations": report.recommendations,
+                    "task_types": report.task_types,
+                    "profile_duration": report.profile_duration,
                 },
-                "bottlenecks": report.bottlenecks,
-                "recommendations": report.recommendations,
-                "task_types": report.task_types,
-                "profile_duration": report.profile_duration,
-            }, indent=2)
+                indent=2,
+            )
 
         elif format == "text":
             lines = [
@@ -451,10 +452,12 @@ class AsyncProfiler:
                 "=== Bottlenecks ===",
             ]
             lines.extend(f"- {bottleneck}" for bottleneck in report.bottlenecks)
-            lines.extend([
-                "",
-                "=== Recommendations ===",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "=== Recommendations ===",
+                ]
+            )
             lines.extend(f"- {rec}" for rec in report.recommendations)
 
             return "\n".join(lines)
@@ -482,12 +485,12 @@ class profile_async_block:
     async def __aenter__(self) -> ProfileReport:
         self._original_profiling = self.profiler._profiling
         if not self._original_profiling:
-            await self.profiler.start_profiling()
+            await self.profiler.start_profiling_async()
         return await self.__aexit__(None, None, None)
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         if not self._original_profiling:
-            await self.profiler.stop_profiling()
+            await self.profiler.stop_profiling_async()
         return self.profiler.analyze_performance()
 
 
@@ -496,17 +499,18 @@ def profile_async(profiler: AsyncProfiler) -> Callable:
     """Decorator for profiling async functions."""
 
     def decorator(func: Callable) -> Callable:
-        async def wrapper(*args, **kwargs):
+        async def wrapper_async(*args, **kwargs):
             was_profiling = profiler._profiling
             if not was_profiling:
-                await profiler.start_profiling()
+                await profiler.start_profiling_async()
 
             try:
                 result = await func(*args, **kwargs)
                 return result
             finally:
                 if not was_profiling:
-                    await profiler.stop_profiling()
+                    await profiler.stop_profiling_async()
 
-        return wrapper
+        return wrapper_async
+
     return decorator

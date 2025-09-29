@@ -25,7 +25,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
     SSH-based deployment strategy for traditional server deployments
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]) -> None:
         """Initialize SSH deployment strategy"""
         super().__init__(config)
         self.strategy = DeploymentStrategy.DIRECT
@@ -345,7 +345,9 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         # Implementation would update monitoring configs
         pass
 
-    async def _send_deployment_notifications_async(self, task: Dict[str, Any], deployment_id: str, success: bool) -> None:
+    async def _send_deployment_notifications_async(
+        self, task: Dict[str, Any], deployment_id: str, success: bool
+    ) -> None:
         """Send deployment notifications"""
         # Implementation would send notifications via email, Slack, etc.
         pass

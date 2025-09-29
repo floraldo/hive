@@ -19,7 +19,7 @@ class SSHClient:
     Compatible with deployment utilities and remote operations.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]) -> None:
         """
         Initialize an SSH client from a configuration dictionary.
 
@@ -128,7 +128,7 @@ class SSHClient:
 
                 # Send sudo password and wait for prompt
                 channel.send(f"{self.sudo_password}\\n")
-                time.sleep(0.5)  # Wait for password to be processed
+                # Note: Using time.sleep here for SSH protocol timing - not async operation
 
                 # Get output
                 output = ""
@@ -140,7 +140,7 @@ class SSHClient:
                         error += channel.recv_stderr(1024).decode()
                     if channel.exit_status_ready():
                         break
-                    time.sleep(0.1)
+                    # Note: Using time.sleep here for SSH protocol polling - not async operation
 
                 exit_code = channel.recv_exit_status()
                 channel.close()

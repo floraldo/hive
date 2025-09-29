@@ -196,7 +196,7 @@ class HeatPumpOptimizationSimple(BaseConversionOptimization):
     - Capacity constraints
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -292,7 +292,7 @@ class HeatPump(Component):
 
     PARAMS_MODEL = HeatPumpParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize heat pump attributes and strategy objects."""
         self.type = "generation"
         self.medium = "heat"
@@ -377,7 +377,7 @@ class HeatPump(Component):
         """
         return self.physics.rule_based_conversion_dispatch(t, requested_output, from_medium, to_medium)
 
-    def add_optimization_vars(self, N: int):
+    def add_optimization_vars(self, N: int) -> None:
         """Create CVXPY optimization variables."""
         self.P_heatsource = cp.Variable(N, name=f"{self.name}_P_heatsource", nonneg=True)
         self.P_loss = cp.Variable(N, name=f"{self.name}_P_loss", nonneg=True)

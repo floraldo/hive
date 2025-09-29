@@ -1,3 +1,9 @@
+from hive_errors import BaseError
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
+
 """
 Event Bus specific exceptions
 
@@ -10,7 +16,7 @@ from typing import Any, Dict, Optional
 from hive_errors import HiveError
 
 
-class EventBusError(HiveError):
+class EventBusError(BaseError):
     """Base exception for event bus operations"""
 
     def __init__(
@@ -28,7 +34,7 @@ class EventBusError(HiveError):
         self.source_agent = source_agent
 
 
-class EventPublishError(EventBusError):
+class EventPublishError(BaseError):
     """Exception raised when event publishing fails"""
 
     def __init__(
@@ -48,7 +54,7 @@ class EventPublishError(EventBusError):
         )
 
 
-class EventSubscribeError(EventBusError):
+class EventSubscribeError(BaseError):
     """Exception raised when event subscription fails"""
 
     def __init__(
@@ -67,7 +73,7 @@ class EventSubscribeError(EventBusError):
         self.subscriber_name = subscriber_name
 
 
-class EventProcessingError(EventBusError):
+class EventProcessingError(BaseError):
     """Exception raised when event processing fails"""
 
     def __init__(
@@ -88,7 +94,7 @@ class EventProcessingError(EventBusError):
         self.subscriber_name = subscriber_name
 
 
-class EventStorageError(EventBusError):
+class EventStorageError(BaseError):
     """Exception raised when event storage operations fail"""
 
     def __init__(
@@ -105,10 +111,10 @@ class EventStorageError(EventBusError):
         self.operation = operation
 
 
-class EventNotFoundError(EventBusError):
+class EventNotFoundError(BaseError):
     """Exception raised when requested event is not found"""
 
-    def __init__(self, event_id: str, message: Optional[str] = None):
+    def __init__(self, event_id: str, message: Optional[str] = None) -> None:
         if not message:
             message = f"Event with ID {event_id} not found"
 

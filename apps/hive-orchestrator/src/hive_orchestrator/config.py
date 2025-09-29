@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Configuration module for Hive Orchestrator.
 Centralizes configuration with environment variable support.
@@ -33,7 +37,7 @@ class HiveConfig:
         "verbose_logging": False,
     }
 
-    def __init__(self, env_vars: Optional[Dict[str, str]] = None):
+    def __init__(self, env_vars: Optional[Dict[str, str]] = None) -> None:
         """Initialize configuration with defaults and optional environment overrides
 
         Args:
@@ -44,7 +48,7 @@ class HiveConfig:
         if env_vars:
             self._load_environment_overrides(env_vars)
 
-    def _load_environment_overrides(self, env_vars: Dict[str, str]):
+    def _load_environment_overrides(self, env_vars: Dict[str, str]) -> None:
         """Load configuration from provided environment variables
 
         Args:
@@ -85,7 +89,7 @@ class HiveConfig:
         """Get configuration value"""
         return self.config.get(key, default)
 
-    def set(self, key: str, value: Any):
+    def set(self, key: str, value: Any) -> None:
         """Set configuration value"""
         self.config[key] = value
 

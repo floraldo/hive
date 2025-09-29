@@ -49,7 +49,7 @@ except Exception as e:
 class EcoSystemiserAdapter:
     """Adapter for EcoSystemiser tasks within Hive"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the adapter with proper config service"""
         self.logger = get_logger(__name__)
 
@@ -351,7 +351,7 @@ class EcoSystemiserAdapter:
         }
 
 
-def main():
+def main() -> None:
     """Main entry point for the adapter"""
     parser = argparse.ArgumentParser(description="EcoSystemiser Hive Adapter")
     parser.add_argument("--task", required=True, help="Task name to execute")

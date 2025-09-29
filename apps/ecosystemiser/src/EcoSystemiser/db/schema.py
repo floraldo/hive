@@ -15,7 +15,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 
-def ensure_database_schema(db_path: Optional[Path] = None):
+def ensure_database_schema(db_path: Optional[Path] = None) -> None:
     """
     Ensure all EcoSystemiser database tables exist.
 
@@ -33,7 +33,7 @@ def ensure_database_schema(db_path: Optional[Path] = None):
         logger.info("EcoSystemiser database schema initialized")
 
 
-def _create_simulation_tables(conn: sqlite3.Connection):
+def _create_simulation_tables(conn: sqlite3.Connection) -> None:
     """Create tables for simulation data."""
 
     # Main simulations table
@@ -85,7 +85,7 @@ def _create_simulation_tables(conn: sqlite3.Connection):
     )
 
 
-def _create_study_tables(conn: sqlite3.Connection):
+def _create_study_tables(conn: sqlite3.Connection) -> None:
     """Create tables for multi-simulation studies."""
 
     # Studies table
@@ -138,7 +138,7 @@ def _create_study_tables(conn: sqlite3.Connection):
     )
 
 
-def _create_analysis_tables(conn: sqlite3.Connection):
+def _create_analysis_tables(conn: sqlite3.Connection) -> None:
     """Create tables for analysis results."""
 
     # Analysis runs table
@@ -191,7 +191,7 @@ def _create_analysis_tables(conn: sqlite3.Connection):
     )
 
 
-def _create_optimization_tables(conn: sqlite3.Connection):
+def _create_optimization_tables(conn: sqlite3.Connection) -> None:
     """Create tables for optimization runs."""
 
     # Optimization runs table
@@ -246,7 +246,7 @@ def _create_optimization_tables(conn: sqlite3.Connection):
     )
 
 
-def _create_component_tables(conn: sqlite3.Connection):
+def _create_component_tables(conn: sqlite3.Connection) -> None:
     """Create tables for component specifications."""
 
     # Component types table
@@ -300,7 +300,7 @@ def _create_component_tables(conn: sqlite3.Connection):
     )
 
 
-def _create_event_tables(conn: sqlite3.Connection):
+def _create_event_tables(conn: sqlite3.Connection) -> None:
     """Create tables for EcoSystemiser events."""
 
     # Events table
@@ -356,7 +356,7 @@ def _create_event_tables(conn: sqlite3.Connection):
     )
 
 
-def drop_all_tables(db_path: Optional[Path] = None):
+def drop_all_tables(db_path: Optional[Path] = None) -> None:
     """
     Drop all EcoSystemiser database tables.
 

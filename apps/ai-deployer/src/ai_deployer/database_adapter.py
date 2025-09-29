@@ -26,7 +26,7 @@ class DatabaseAdapter:
     Adapter for database operations specific to deployment agent
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize database adapter"""
         self.db = get_database()
 

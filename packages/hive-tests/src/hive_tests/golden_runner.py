@@ -92,7 +92,7 @@ def list_apps():
     return apps
 
 
-def main():
+def main() -> None:
     """Main entry point for the golden test runner."""
     parser = argparse.ArgumentParser(
         description="Run Hive golden rule architectural tests",

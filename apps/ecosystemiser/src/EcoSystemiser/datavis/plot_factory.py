@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 class PlotFactory:
     """Factory for creating various plot types from simulation data."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize plot factory with default styling."""
         self.default_layout = {
             "template": "plotly_white",
@@ -381,7 +381,7 @@ class PlotFactory:
 
         return fig.to_dict()
 
-    def export_plots_to_html(self, plots: List[Dict], output_path: str):
+    def export_plots_to_html(self, plots: List[Dict], output_path: str) -> None:
         """Export multiple plots to a single HTML file.
 
         Args:

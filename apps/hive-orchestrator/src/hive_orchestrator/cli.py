@@ -13,10 +13,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from hive_cli import create_cli, add_command, run_cli
+from hive_cli import add_command, create_cli, run_cli
 from hive_cli.decorators import command, option
-from hive_cli.output import success, error, info, warning
-
+from hive_cli.output import error, info, success, warning
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -26,7 +25,7 @@ from .worker import main as worker_main
 
 
 @create_cli()
-def cli():
+def cli() -> None:
     """Hive Orchestrator - Manage Queen and Workers."""
     pass
 
@@ -34,7 +33,7 @@ def cli():
 @cli.command()
 @option("--config", "-c", type=click.Path(exists=True), help="Path to configuration file")
 @option("--debug", is_flag=True, help="Enable debug logging")
-def start_queen(config: Optional[str], debug: bool):
+def start_queen(config: Optional[str], debug: bool) -> None:
     """Start the Queen orchestrator."""
     try:
         args = []
@@ -77,7 +76,7 @@ def start_queen(config: Optional[str], debug: bool):
 )
 @option("--name", "-n", help="Worker name")
 @option("--debug", is_flag=True, help="Enable debug logging")
-def start_worker(mode: str, name: Optional[str], debug: bool):
+def start_worker(mode: str, name: Optional[str], debug: bool) -> None:
     """Start a Worker agent."""
     try:
         args = ["--mode", mode]
@@ -110,7 +109,7 @@ def start_worker(mode: str, name: Optional[str], debug: bool):
 
 
 @cli.command()
-def status():
+def status() -> None:
     """Show orchestrator status."""
     try:
         # Import here to avoid circular dependencies
@@ -169,7 +168,7 @@ def status():
 
 @cli.command()
 @click.argument("task_id")
-def review_escalated(task_id: str):
+def review_escalated(task_id: str) -> None:
     """Review an escalated task requiring human decision."""
     try:
         from hive_db import get_connection
@@ -334,7 +333,7 @@ def review_escalated(task_id: str):
 
 
 @cli.command()
-def list_escalated():
+def list_escalated() -> None:
     """List all tasks requiring human review."""
     try:
         import json
@@ -440,7 +439,7 @@ def list_escalated():
 @click.argument("task_description")
 @option("--role", "-r", help="Target worker role")
 @option("--priority", "-p", type=int, default=1, help="Task priority")
-def queue_task(task_description: str, role: Optional[str], priority: int):
+def queue_task(task_description: str, role: Optional[str], priority: int) -> None:
     """Queue a new task for processing."""
     try:
         # Validate inputs

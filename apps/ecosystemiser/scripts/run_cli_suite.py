@@ -115,7 +115,7 @@ def verify_output_file(filepath: Path, test_name: str) -> bool:
     return True
 
 
-def main():
+def main() -> None:
     """Main function to run the test suite."""
 
     logger.info(f"{TColors.BOLD}========================================{TColors.ENDC}")

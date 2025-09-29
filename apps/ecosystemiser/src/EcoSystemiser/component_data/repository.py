@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 class ComponentRepository:
     """Repository for component data definitions."""
 
-    def __init__(self, data_source: str = "database", base_path: Optional[Path] = None):
+    def __init__(self, data_source: str = "database", base_path: Optional[Path] = None) -> None:
         """Initialize component repository.
 
         Args:
@@ -63,7 +63,7 @@ class ComponentRepository:
             return []
         return loader.list_components(category)
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear the component cache."""
         self._cache.clear()
         logger.debug("Component cache cleared")
@@ -72,7 +72,7 @@ class ComponentRepository:
 class FileLoader:
     """Load component data from YAML files."""
 
-    def __init__(self, base_path: Optional[Path] = None):
+    def __init__(self, base_path: Optional[Path] = None) -> None:
         """Initialize file loader.
 
         Args:
@@ -144,7 +144,7 @@ class FileLoader:
 class SQLiteLoader:
     """Load component data from SQLite database using Hive native connectors."""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: Optional[str] = None) -> None:
         """Initialize SQLite loader.
 
         Args:
@@ -155,7 +155,7 @@ class SQLiteLoader:
         self.db_path = str(db_path)
         self._ensure_tables()
 
-    def _ensure_tables(self):
+    def _ensure_tables(self) -> None:
         """Create component tables if they don't exist."""
         try:
             with ecosystemiser_transaction() as conn:

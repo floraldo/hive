@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Core review logic for analyzing code quality, tests, and documentation
 """
@@ -98,7 +102,7 @@ class ReviewEngine:
     AI-powered code review engine using Claude CLI
     """
 
-    def __init__(self, mock_mode: bool = False):
+    def __init__(self, mock_mode: bool = False) -> None:
         """Initialize review engine
 
         Args:

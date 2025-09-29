@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Economic parameters for system components."""
 
 from typing import Optional

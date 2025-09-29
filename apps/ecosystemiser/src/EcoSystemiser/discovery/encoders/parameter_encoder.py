@@ -57,7 +57,7 @@ class ParameterEncoder:
     optimization algorithms.
     """
 
-    def __init__(self, encoding_spec: EncodingSpec):
+    def __init__(self, encoding_spec: EncodingSpec) -> None:
         """Initialize parameter encoder.
 
         Args:
@@ -156,7 +156,7 @@ class ParameterEncoder:
         except (ValueError, TypeError):
             raise ValueError(f"Parameter {param_spec.name} is not numeric: {value}")
 
-    def _set_parameter_value(self, config: Dict[str, Any], param_spec: ParameterSpec, value: float):
+    def _set_parameter_value(self, config: Dict[str, Any], param_spec: ParameterSpec, value: float) -> None:
         """Set parameter value in configuration.
 
         Args:

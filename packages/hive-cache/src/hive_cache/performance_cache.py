@@ -1,11 +1,12 @@
 """Performance-focused caching for expensive computations and I/O operations."""
 
 import asyncio
+import hashlib
 import inspect
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 from hive_logging import get_logger
-import hashlib
 
 from .cache_client import HiveCacheClient, get_cache_client
 from .config import CacheConfig
@@ -27,7 +28,7 @@ class PerformanceCache:
     - Cache warming strategies
     """
 
-    def __init__(self, cache_client: HiveCacheClient, config: CacheConfig):
+    def __init__(self, cache_client: HiveCacheClient, config: CacheConfig) -> None:
         self.cache_client = cache_client
         self.config = config
         self.namespace = config.performance_cache_namespace
@@ -43,7 +44,7 @@ class PerformanceCache:
         }
 
     @classmethod
-    async def create(cls, config: Optional[CacheConfig] = None) -> "PerformanceCache":
+    async def create_async(cls, config: Optional[CacheConfig] = None) -> "PerformanceCache":
         """Create performance cache instance.
 
         Args:
@@ -130,7 +131,7 @@ class PerformanceCache:
             min(calculated_ttl, self.config.max_ttl)
         )
 
-    async def cached_computation(
+    async def cached_computation_async(
         self,
         key: str,
         computation: Callable,
@@ -213,7 +214,7 @@ class PerformanceCache:
             logger.error(f"Computation failed for key {key}: {e}")
             raise
 
-    async def memoize_function(
+    async def memoize_function_async(
         self,
         func: Callable,
         args: Tuple[Any, ...] = (),
@@ -236,8 +237,8 @@ class PerformanceCache:
         # Generate cache key
         cache_key = self._generate_function_key(func, args, kwargs, key_prefix)
 
-        # Use cached_computation
-        return await self.cached_computation(cache_key, func, args, kwargs, ttl)
+        # Use cached_computation_async
+        return await self.cached_computation_async(cache_key, func, args, kwargs, ttl)
 
     def cached(
         self,
@@ -288,21 +289,21 @@ class PerformanceCache:
             else:
                 def sync_wrapper(*args, **kwargs):
                     # Convert to async and run
-                    async def _async_exec():
-                        return await self.memoize_function(func, args, kwargs, ttl, key_prefix)
+                    async def _async_exec_async():
+                        return await self.memoize_function_async(func, args, kwargs, ttl, key_prefix)
 
                     try:
                         loop = asyncio.get_event_loop()
-                        return loop.run_until_complete(_async_exec())
+                        return loop.run_until_complete(_async_exec_async())
                     except RuntimeError:
-                        # No event loop, create one
-                        return asyncio.run(_async_exec())
+                        # No event loop, create_async one
+                        return asyncio.run(_async_exec_async())
 
                 return sync_wrapper
 
         return decorator
 
-    async def batch_cache_operations(
+    async def batch_cache_operations_async(
         self,
         operations: List[Dict[str, Any]],
         max_concurrent: int = 10,
@@ -323,9 +324,9 @@ class PerformanceCache:
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def _execute_operation(op: Dict[str, Any]) -> Any:
+        async def _execute_operation_async(op: Dict[str, Any]) -> Any:
             async with semaphore:
-                return await self.cached_computation(
+                return await self.cached_computation_async(
                     key=op["key"],
                     computation=op["computation"],
                     args=op.get("args", ()),
@@ -334,7 +335,7 @@ class PerformanceCache:
                 )
 
         # Execute all operations concurrently
-        tasks = [_execute_operation(op) for op in operations]
+        tasks = [_execute_operation_async(op) for op in operations]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Convert exceptions back to None or re-raise
@@ -348,7 +349,7 @@ class PerformanceCache:
 
         return final_results
 
-    async def warm_cache_from_functions(
+    async def warm_cache_from_functions_async(
         self,
         function_configs: List[Dict[str, Any]],
         max_concurrent: int = 5,
@@ -365,7 +366,7 @@ class PerformanceCache:
         semaphore = asyncio.Semaphore(max_concurrent)
         results = {}
 
-        async def _warm_function(config: Dict[str, Any]) -> Tuple[str, bool]:
+        async def _warm_function_async(config: Dict[str, Any]) -> Tuple[str, bool]:
             async with semaphore:
                 try:
                     func = config["function"]
@@ -381,7 +382,7 @@ class PerformanceCache:
                         return cache_key, True
 
                     # Execute and cache
-                    await self.memoize_function(func, args, kwargs, key_prefix=key_prefix)
+                    await self.memoize_function_async(func, args, kwargs, key_prefix=key_prefix)
                     return cache_key, True
 
                 except Exception as e:
@@ -389,7 +390,7 @@ class PerformanceCache:
                     return config.get("key", "unknown"), False
 
         # Execute warming operations
-        tasks = [_warm_function(config) for config in function_configs]
+        tasks = [_warm_function_async(config) for config in function_configs]
         warming_results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Process results
@@ -402,7 +403,7 @@ class PerformanceCache:
 
         return results
 
-    async def invalidate_function_cache(
+    async def invalidate_function_cache_async(
         self,
         func: Callable,
         args: Tuple[Any, ...] = None,
@@ -431,7 +432,7 @@ class PerformanceCache:
             cache_key = self._generate_function_key(func, args, kwargs or {}, key_prefix)
             return await self.cache_client.delete(cache_key, self.namespace)
 
-    async def get_performance_stats(self) -> Dict[str, Any]:
+    async def get_performance_stats_async(self) -> Dict[str, Any]:
         """Get performance cache statistics.
 
         Returns:
@@ -450,7 +451,7 @@ class PerformanceCache:
             "cache_client_metrics": self.cache_client.get_metrics(),
         }
 
-    async def cleanup_by_age(self, max_age_seconds: int) -> int:
+    async def cleanup_by_age_async(self, max_age_seconds: int) -> int:
         """Clean up cache entries older than specified age.
 
         Args:

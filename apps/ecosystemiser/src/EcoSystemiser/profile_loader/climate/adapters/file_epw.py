@@ -54,7 +54,7 @@ except ImportError:
     class QCReport:
         passed_checks: List[str] = field(default_factory=list)
 
-        def add_issue(self, issue: QCIssue):
+        def add_issue(self, issue: QCIssue) -> None:
             pass
 
     class QCProfile(ABC):
@@ -228,7 +228,7 @@ class FileEPWAdapter(BaseAdapter):
         "albedo": 999,
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize EPW file adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
@@ -280,7 +280,9 @@ class FileEPWAdapter(BaseAdapter):
 
         return df
 
-    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
+    async def _transform_data_async(
+        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+    ) -> xr.Dataset:
         """Transform EPW DataFrame to xarray Dataset"""
         lat, lon = location
         df = raw_data
@@ -724,7 +726,7 @@ EPWAdapter = FileEPWAdapter
 class EPWQCProfile:
     """QC profile for EPW (EnergyPlus Weather) files - co-located with adapter for better cohesion."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = "EPW"
         self.description = "EnergyPlus Weather file format - processed for building simulation"
         self.known_issues = [
@@ -778,7 +780,7 @@ class EPWQCProfile:
 class EPWQCProfile(QCProfile):
     """QC profile for EPW (EnergyPlus Weather) files"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="EPW",
             description="EnergyPlus Weather file format - processed for building simulation",

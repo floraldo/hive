@@ -84,7 +84,7 @@ class ClaudePlanningResponse(BaseModel):
 class RobustClaudePlannerBridge:
     """Production-ready Claude CLI integration for intelligent planning"""
 
-    def __init__(self, mock_mode: bool = False):
+    def __init__(self, mock_mode: bool = False) -> None:
         """Initialize the robust planning bridge
 
         Args:
@@ -454,7 +454,6 @@ Generate the execution plan now:"""
                 capture_output=True,
                 text=True,
                 timeout=120,  # 2 minute timeout for complex planning
-                shell=True if os.name == "nt" else False,
             )
 
             if result.returncode != 0:

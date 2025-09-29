@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Analysis strategies for the Analyser module."""
 
 from .base import BaseAnalysis

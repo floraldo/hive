@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class EnvironmentVerifier:
     """Verifies EcoSystemiser environment and Hive integration."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.ecosystemiser_dir = Path(__file__).parent.parent
         self.results = []
         self.warnings = []
@@ -310,7 +310,7 @@ class EnvironmentVerifier:
             return False
 
 
-def main():
+def main() -> None:
     """Main execution."""
     verifier = EnvironmentVerifier()
     success = verifier.run_verification()

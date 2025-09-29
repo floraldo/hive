@@ -4,13 +4,14 @@ import asyncio
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
 from hive_logging import get_logger
 
-from .metrics_collector import MetricsCollector, PerformanceMetrics
-from .system_monitor import SystemMonitor, SystemMetrics
 from .async_profiler import AsyncProfiler, ProfileReport
+from .metrics_collector import MetricsCollector, PerformanceMetrics
+from .system_monitor import SystemMetrics, SystemMonitor
 
 logger = get_logger(__name__)
 
@@ -78,10 +79,7 @@ class PerformanceAnalyzer:
     """
 
     def __init__(
-        self,
-        metrics_collector: MetricsCollector,
-        system_monitor: SystemMonitor,
-        async_profiler: AsyncProfiler
+        self, metrics_collector: MetricsCollector, system_monitor: SystemMonitor, async_profiler: AsyncProfiler
     ):
         self.metrics_collector = metrics_collector
         self.system_monitor = system_monitor
@@ -89,17 +87,17 @@ class PerformanceAnalyzer:
 
         # Analysis thresholds
         self.thresholds = {
-            "response_time_warning": 1.0,      # seconds
-            "response_time_critical": 5.0,     # seconds
-            "error_rate_warning": 0.01,        # 1%
-            "error_rate_critical": 0.05,       # 5%
-            "cpu_warning": 70.0,               # percent
-            "cpu_critical": 90.0,              # percent
-            "memory_warning": 80.0,            # percent
-            "memory_critical": 95.0,           # percent
-            "disk_warning": 85.0,              # percent
-            "disk_critical": 95.0,             # percent
-            "throughput_drop_warning": 0.20,   # 20% decrease
+            "response_time_warning": 1.0,  # seconds
+            "response_time_critical": 5.0,  # seconds
+            "error_rate_warning": 0.01,  # 1%
+            "error_rate_critical": 0.05,  # 5%
+            "cpu_warning": 70.0,  # percent
+            "cpu_critical": 90.0,  # percent
+            "memory_warning": 80.0,  # percent
+            "memory_critical": 95.0,  # percent
+            "disk_warning": 85.0,  # percent
+            "disk_critical": 95.0,  # percent
+            "throughput_drop_warning": 0.20,  # 20% decrease
             "throughput_drop_critical": 0.50,  # 50% decrease
         }
 
@@ -113,26 +111,24 @@ class PerformanceAnalyzer:
         }
 
     async def analyze_performance(
-        self,
-        analysis_period: timedelta = timedelta(hours=1),
-        include_predictions: bool = True
+        self, analysis_period: timedelta = timedelta(hours=1), include_predictions: bool = True
     ) -> AnalysisReport:
         """Perform comprehensive performance analysis."""
         logger.info(f"Starting performance analysis for {analysis_period}")
 
         # Collect data from all sources
-        metrics_data = await self._collect_metrics_data(analysis_period)
-        system_data = await self._collect_system_data(analysis_period)
-        async_data = await self._collect_async_data(analysis_period)
+        metrics_data = await self._collect_metrics_data_async(analysis_period)
+        system_data = await self._collect_system_data_async(analysis_period)
+        async_data = await self._collect_async_data_async(analysis_period)
 
         # Generate insights
-        insights = await self._generate_insights(metrics_data, system_data, async_data)
+        insights = await self._generate_insights_async(metrics_data, system_data, async_data)
 
         # Calculate performance scores
-        scores = await self._calculate_performance_scores(metrics_data, system_data, async_data)
+        scores = await self._calculate_performance_scores_async(metrics_data, system_data, async_data)
 
         # Analyze trends
-        trends = await self._analyze_trends(analysis_period) if include_predictions else {}
+        trends = await self._analyze_trends_async(analysis_period) if include_predictions else {}
 
         # Create comprehensive report
         report = AnalysisReport(
@@ -150,13 +146,13 @@ class PerformanceAnalyzer:
             operation_analysis=metrics_data,
             performance_trends=trends,
             analysis_period=analysis_period,
-            data_points=metrics_data.get("data_points", 0)
+            data_points=metrics_data.get("data_points", 0),
         )
 
         logger.info(f"Analysis complete: Grade {report.performance_grade}, Score {report.overall_score:.1f}")
         return report
 
-    async def _collect_metrics_data(self, period: timedelta) -> Dict[str, Any]:
+    async def _collect_metrics_data_async(self, period: timedelta) -> Dict[str, Any]:
         """Collect and analyze metrics data."""
         all_metrics = self.metrics_collector.get_metrics(time_window=period)
 
@@ -190,7 +186,7 @@ class PerformanceAnalyzer:
             "operation_types": len(set(m.operation_name for m in all_metrics)),
         }
 
-    async def _collect_system_data(self, period: timedelta) -> Dict[str, Any]:
+    async def _collect_system_data_async(self, period: timedelta) -> Dict[str, Any]:
         """Collect and analyze system data."""
         system_history = self.system_monitor.get_metrics_history(period)
         current_metrics = self.system_monitor.get_current_metrics()
@@ -217,7 +213,7 @@ class PerformanceAnalyzer:
             "python_memory_mb": current_metrics.python_memory_rss // (1024 * 1024) if current_metrics else 0,
         }
 
-    async def _collect_async_data(self, period: timedelta) -> Dict[str, Any]:
+    async def _collect_async_data_async(self, period: timedelta) -> Dict[str, Any]:
         """Collect and analyze async profiling data."""
         if not self.async_profiler._profiling:
             return {}
@@ -233,16 +229,15 @@ class PerformanceAnalyzer:
             "max_execution_time": profile_report.max_execution_time,
             "throughput": profile_report.throughput,
             "concurrency_level": profile_report.concurrency_level,
-            "failure_rate": profile_report.failed_tasks / profile_report.total_tasks if profile_report.total_tasks > 0 else 0.0,
+            "failure_rate": profile_report.failed_tasks / profile_report.total_tasks
+            if profile_report.total_tasks > 0
+            else 0.0,
             "task_types": len(profile_report.task_types),
             "bottlenecks": profile_report.bottlenecks,
         }
 
-    async def _generate_insights(
-        self,
-        metrics_data: Dict[str, Any],
-        system_data: Dict[str, Any],
-        async_data: Dict[str, Any]
+    async def _generate_insights_async(
+        self, metrics_data: Dict[str, Any], system_data: Dict[str, Any], async_data: Dict[str, Any]
     ) -> List[PerformanceInsight]:
         """Generate performance insights and recommendations."""
         insights = []
@@ -250,131 +245,146 @@ class PerformanceAnalyzer:
         # Response time analysis
         avg_response = metrics_data.get("avg_response_time", 0.0)
         if avg_response > self.thresholds["response_time_critical"]:
-            insights.append(PerformanceInsight(
-                category="performance",
-                severity="critical",
-                title="Critical Response Time",
-                description=f"Average response time is {avg_response:.2f}s",
-                impact="User experience severely degraded",
-                recommendation="Optimize slow operations, implement caching, consider horizontal scaling",
-                metric_value=avg_response,
-                threshold=self.thresholds["response_time_critical"]
-            ))
+            insights.append(
+                PerformanceInsight(
+                    category="performance",
+                    severity="critical",
+                    title="Critical Response Time",
+                    description=f"Average response time is {avg_response:.2f}s",
+                    impact="User experience severely degraded",
+                    recommendation="Optimize slow operations, implement caching, consider horizontal scaling",
+                    metric_value=avg_response,
+                    threshold=self.thresholds["response_time_critical"],
+                )
+            )
         elif avg_response > self.thresholds["response_time_warning"]:
-            insights.append(PerformanceInsight(
-                category="performance",
-                severity="medium",
-                title="Elevated Response Time",
-                description=f"Average response time is {avg_response:.2f}s",
-                impact="User experience may be affected",
-                recommendation="Profile slow operations and optimize bottlenecks",
-                metric_value=avg_response,
-                threshold=self.thresholds["response_time_warning"]
-            ))
+            insights.append(
+                PerformanceInsight(
+                    category="performance",
+                    severity="medium",
+                    title="Elevated Response Time",
+                    description=f"Average response time is {avg_response:.2f}s",
+                    impact="User experience may be affected",
+                    recommendation="Profile slow operations and optimize bottlenecks",
+                    metric_value=avg_response,
+                    threshold=self.thresholds["response_time_warning"],
+                )
+            )
 
         # Error rate analysis
         error_rate = metrics_data.get("error_rate", 0.0)
         if error_rate > self.thresholds["error_rate_critical"]:
-            insights.append(PerformanceInsight(
-                category="reliability",
-                severity="critical",
-                title="High Error Rate",
-                description=f"Error rate is {error_rate:.1%}",
-                impact="System reliability is compromised",
-                recommendation="Investigate and fix error sources, improve error handling",
-                metric_value=error_rate,
-                threshold=self.thresholds["error_rate_critical"]
-            ))
+            insights.append(
+                PerformanceInsight(
+                    category="reliability",
+                    severity="critical",
+                    title="High Error Rate",
+                    description=f"Error rate is {error_rate:.1%}",
+                    impact="System reliability is compromised",
+                    recommendation="Investigate and fix error sources, improve error handling",
+                    metric_value=error_rate,
+                    threshold=self.thresholds["error_rate_critical"],
+                )
+            )
 
         # CPU analysis
         avg_cpu = system_data.get("avg_cpu_percent", 0.0)
         peak_cpu = system_data.get("peak_cpu_percent", 0.0)
         if peak_cpu > self.thresholds["cpu_critical"]:
-            insights.append(PerformanceInsight(
-                category="resource",
-                severity="critical",
-                title="CPU Overload",
-                description=f"Peak CPU usage reached {peak_cpu:.1f}%",
-                impact="System performance severely degraded",
-                recommendation="Optimize CPU-intensive operations, consider vertical scaling",
-                metric_value=peak_cpu,
-                threshold=self.thresholds["cpu_critical"]
-            ))
+            insights.append(
+                PerformanceInsight(
+                    category="resource",
+                    severity="critical",
+                    title="CPU Overload",
+                    description=f"Peak CPU usage reached {peak_cpu:.1f}%",
+                    impact="System performance severely degraded",
+                    recommendation="Optimize CPU-intensive operations, consider vertical scaling",
+                    metric_value=peak_cpu,
+                    threshold=self.thresholds["cpu_critical"],
+                )
+            )
         elif avg_cpu > self.thresholds["cpu_warning"]:
-            insights.append(PerformanceInsight(
-                category="resource",
-                severity="medium",
-                title="High CPU Usage",
-                description=f"Average CPU usage is {avg_cpu:.1f}%",
-                impact="Reduced system capacity",
-                recommendation="Monitor CPU usage trends, optimize algorithms",
-                metric_value=avg_cpu,
-                threshold=self.thresholds["cpu_warning"]
-            ))
+            insights.append(
+                PerformanceInsight(
+                    category="resource",
+                    severity="medium",
+                    title="High CPU Usage",
+                    description=f"Average CPU usage is {avg_cpu:.1f}%",
+                    impact="Reduced system capacity",
+                    recommendation="Monitor CPU usage trends, optimize algorithms",
+                    metric_value=avg_cpu,
+                    threshold=self.thresholds["cpu_warning"],
+                )
+            )
 
         # Memory analysis
         avg_memory = system_data.get("avg_memory_percent", 0.0)
         peak_memory = system_data.get("peak_memory_percent", 0.0)
         if peak_memory > self.thresholds["memory_critical"]:
-            insights.append(PerformanceInsight(
-                category="resource",
-                severity="critical",
-                title="Memory Pressure",
-                description=f"Peak memory usage reached {peak_memory:.1f}%",
-                impact="Risk of out-of-memory errors",
-                recommendation="Optimize memory usage, implement garbage collection tuning",
-                metric_value=peak_memory,
-                threshold=self.thresholds["memory_critical"]
-            ))
+            insights.append(
+                PerformanceInsight(
+                    category="resource",
+                    severity="critical",
+                    title="Memory Pressure",
+                    description=f"Peak memory usage reached {peak_memory:.1f}%",
+                    impact="Risk of out-of-memory errors",
+                    recommendation="Optimize memory usage, implement garbage collection tuning",
+                    metric_value=peak_memory,
+                    threshold=self.thresholds["memory_critical"],
+                )
+            )
 
         # Async performance analysis
         if async_data:
             concurrency = async_data.get("concurrency_level", 0.0)
             if concurrency > 100:
-                insights.append(PerformanceInsight(
-                    category="performance",
-                    severity="medium",
-                    title="High Async Concurrency",
-                    description=f"Average concurrency level is {concurrency:.1f}",
-                    impact="Potential event loop congestion",
-                    recommendation="Implement task queuing and rate limiting",
-                    metric_value=concurrency,
-                    threshold=100.0
-                ))
+                insights.append(
+                    PerformanceInsight(
+                        category="performance",
+                        severity="medium",
+                        title="High Async Concurrency",
+                        description=f"Average concurrency level is {concurrency:.1f}",
+                        impact="Potential event loop congestion",
+                        recommendation="Implement task queuing and rate limiting",
+                        metric_value=concurrency,
+                        threshold=100.0,
+                    )
+                )
 
             failure_rate = async_data.get("failure_rate", 0.0)
             if failure_rate > 0.02:  # 2% threshold
-                insights.append(PerformanceInsight(
-                    category="reliability",
-                    severity="medium",
-                    title="Async Task Failures",
-                    description=f"Task failure rate is {failure_rate:.1%}",
-                    impact="Reduced system reliability",
-                    recommendation="Improve error handling in async operations",
-                    metric_value=failure_rate,
-                    threshold=0.02
-                ))
+                insights.append(
+                    PerformanceInsight(
+                        category="reliability",
+                        severity="medium",
+                        title="Async Task Failures",
+                        description=f"Task failure rate is {failure_rate:.1%}",
+                        impact="Reduced system reliability",
+                        recommendation="Improve error handling in async operations",
+                        metric_value=failure_rate,
+                        threshold=0.02,
+                    )
+                )
 
         # Optimization opportunities
         throughput = metrics_data.get("throughput", 0.0)
         if throughput > 0 and avg_response > 0.5:
-            insights.append(PerformanceInsight(
-                category="optimization",
-                severity="low",
-                title="Caching Opportunity",
-                description="Response times suggest potential for caching",
-                impact="Could improve response times and reduce load",
-                recommendation="Implement response caching for frequently accessed data",
-                confidence=0.7
-            ))
+            insights.append(
+                PerformanceInsight(
+                    category="optimization",
+                    severity="low",
+                    title="Caching Opportunity",
+                    description="Response times suggest potential for caching",
+                    impact="Could improve response times and reduce load",
+                    recommendation="Implement response caching for frequently accessed data",
+                    confidence=0.7,
+                )
+            )
 
         return insights
 
-    async def _calculate_performance_scores(
-        self,
-        metrics_data: Dict[str, Any],
-        system_data: Dict[str, Any],
-        async_data: Dict[str, Any]
+    async def _calculate_performance_scores_async(
+        self, metrics_data: Dict[str, Any], system_data: Dict[str, Any], async_data: Dict[str, Any]
     ) -> Dict[str, float]:
         """Calculate performance scores (0-100)."""
         scores = {}
@@ -421,10 +431,7 @@ class PerformanceAnalyzer:
             scores["async_performance"] = 100.0
 
         # Calculate overall score using weights
-        overall = sum(
-            scores.get(metric, 100.0) * weight
-            for metric, weight in self.performance_weights.items()
-        )
+        overall = sum(scores.get(metric, 100.0) * weight for metric, weight in self.performance_weights.items())
         scores["overall"] = overall
 
         return scores
@@ -442,7 +449,7 @@ class PerformanceAnalyzer:
         else:
             return "F"
 
-    async def _analyze_trends(self, period: timedelta) -> Dict[str, float]:
+    async def _analyze_trends_async(self, period: timedelta) -> Dict[str, float]:
         """Analyze performance trends."""
         # Get system trends
         system_trends = self.system_monitor.analyze_trends(period)
@@ -453,12 +460,8 @@ class PerformanceAnalyzer:
 
         return trends
 
-    async def benchmark_operation(
-        self,
-        operation_func,
-        iterations: int = 100,
-        concurrency: int = 10,
-        warmup_iterations: int = 10
+    async def benchmark_operation_async(
+        self, operation_func, iterations: int = 100, concurrency: int = 10, warmup_iterations: int = 10
     ) -> Dict[str, Any]:
         """Benchmark a specific operation."""
         logger.info(f"Benchmarking operation with {iterations} iterations, concurrency {concurrency}")
@@ -500,17 +503,13 @@ class PerformanceAnalyzer:
                 "total_time": total_time,
                 "throughput": iterations / total_time,
                 "avg_time_per_operation": total_time / iterations,
-                "errors": [str(e) for e in failed_results[:10]]  # First 10 errors
+                "errors": [str(e) for e in failed_results[:10]],  # First 10 errors
             }
 
             return benchmark_data
 
         finally:
-            self.metrics_collector.end_operation(
-                operation_id,
-                success=True,
-                custom_metrics={"benchmark": True}
-            )
+            self.metrics_collector.end_operation(operation_id, success=True, custom_metrics={"benchmark": True})
 
             if not was_profiling:
                 await self.async_profiler.stop_profiling()
@@ -519,27 +518,32 @@ class PerformanceAnalyzer:
         """Export analysis report in specified format."""
         if format == "json":
             import json
-            return json.dumps({
-                "summary": {
-                    "overall_score": report.overall_score,
-                    "performance_grade": report.performance_grade,
-                    "avg_response_time": report.avg_response_time,
-                    "throughput": report.throughput,
-                    "error_rate": report.error_rate,
+
+            return json.dumps(
+                {
+                    "summary": {
+                        "overall_score": report.overall_score,
+                        "performance_grade": report.performance_grade,
+                        "avg_response_time": report.avg_response_time,
+                        "throughput": report.throughput,
+                        "error_rate": report.error_rate,
+                    },
+                    "insights": [
+                        {
+                            "category": i.category,
+                            "severity": i.severity,
+                            "title": i.title,
+                            "description": i.description,
+                            "recommendation": i.recommendation,
+                        }
+                        for i in report.insights
+                    ],
+                    "system_health": report.system_health,
+                    "async_performance": report.async_performance,
+                    "trends": report.performance_trends,
                 },
-                "insights": [
-                    {
-                        "category": i.category,
-                        "severity": i.severity,
-                        "title": i.title,
-                        "description": i.description,
-                        "recommendation": i.recommendation,
-                    } for i in report.insights
-                ],
-                "system_health": report.system_health,
-                "async_performance": report.async_performance,
-                "trends": report.performance_trends,
-            }, indent=2)
+                indent=2,
+            )
 
         elif format == "text":
             lines = [
@@ -564,10 +568,12 @@ class PerformanceAnalyzer:
             else:
                 lines.append("- No critical issues found")
 
-            lines.extend([
-                "",
-                "=== Optimization Opportunities ===",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "=== Optimization Opportunities ===",
+                ]
+            )
 
             if report.optimization_opportunities:
                 for opp in report.optimization_opportunities:

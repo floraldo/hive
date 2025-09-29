@@ -29,7 +29,7 @@ _adapter_registry: Dict[str, Type[BaseAdapter]] = {}
 _adapter_instances: Dict[str, BaseAdapter] = {}
 
 
-def register_adapter(name: str):
+def register_adapter(name: str) -> None:
     """
     Decorator for registering adapters dynamically.
 
@@ -142,7 +142,7 @@ def get_enabled_adapters() -> list[str]:
     return enabled
 
 
-def cleanup():
+def cleanup() -> None:
     """Clean up all adapter instances and resources."""
     for adapter_name, adapter in _adapter_instances.items():
         try:
@@ -155,7 +155,7 @@ def cleanup():
     _adapter_instances.clear()
 
 
-def _auto_register_adapters():
+def _auto_register_adapters() -> None:
     """Auto-register built-in adapters if not already registered."""
     # Import adapters to trigger their registration decorators
     try:

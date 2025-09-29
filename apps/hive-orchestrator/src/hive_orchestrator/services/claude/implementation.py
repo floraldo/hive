@@ -93,7 +93,7 @@ class RateLimitConfig:
 class RateLimiter:
     """Token bucket rate limiter implementation"""
 
-    def __init__(self, config: RateLimitConfig):
+    def __init__(self, config: RateLimitConfig) -> None:
         self.config = config
         self.minute_calls = deque()
         self.hour_calls = deque()
@@ -101,7 +101,7 @@ class RateLimiter:
         self.last_refill = time.time()
         self.lock = Lock()
 
-    def _clean_old_calls(self):
+    def _clean_old_calls(self) -> None:
         """Remove calls outside the time windows"""
         now = time.time()
 
@@ -113,7 +113,7 @@ class RateLimiter:
         while self.hour_calls and self.hour_calls[0] < now - 3600:
             self.hour_calls.popleft()
 
-    def _refill_tokens(self):
+    def _refill_tokens(self) -> None:
         """Refill tokens based on elapsed time"""
         now = time.time()
         elapsed = now - self.last_refill
@@ -143,7 +143,7 @@ class RateLimiter:
 
             return True
 
-    def record_request(self):
+    def record_request(self) -> None:
         """Record a request being made"""
         with self.lock:
             now = time.time()
@@ -179,7 +179,7 @@ class RateLimiter:
 class ResponseCache:
     """Cache for Claude API responses"""
 
-    def __init__(self, ttl_seconds: int = 300):
+    def __init__(self, ttl_seconds: int = 300) -> None:
         self.cache: Dict[str, CacheEntry] = {}
         self.ttl_seconds = ttl_seconds
         self.lock = Lock()
@@ -208,7 +208,7 @@ class ResponseCache:
 
         return None
 
-    def set(self, prompt: str, response: Any, **kwargs):
+    def set(self, prompt: str, response: Any, **kwargs) -> None:
         """Cache a response"""
         key = self._generate_key(prompt, **kwargs)
 
@@ -216,7 +216,7 @@ class ResponseCache:
             self.cache[key] = CacheEntry(response=response, timestamp=datetime.now(), hit_count=0)
             logger.debug(f"Cached response for key {key[:8]}...")
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear all cached responses"""
         with self.lock:
             self.cache.clear()

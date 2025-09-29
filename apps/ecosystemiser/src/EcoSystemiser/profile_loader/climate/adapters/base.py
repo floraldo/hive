@@ -59,7 +59,7 @@ class CacheLevel(Enum):
 class RateLimiter:
     """Token bucket rate limiter implementation"""
 
-    def __init__(self, config: RateLimitConfig):
+    def __init__(self, config: RateLimitConfig) -> None:
         self.config = config
         self.tokens = config.burst_size
         self.last_refill = time.time()
@@ -87,7 +87,7 @@ class RateLimiter:
 
             return False
 
-    async def _refill_async(self):
+    async def _refill_async(self) -> None:
         """Refill tokens based on elapsed time"""
         now = time.time()
         elapsed = now - self.last_refill
@@ -103,7 +103,7 @@ class RateLimiter:
 class LayeredCache:
     """Three-tier caching system: memory -> disk -> redis"""
 
-    def __init__(self, config: CacheConfig):
+    def __init__(self, config: CacheConfig) -> None:
         self.config = config
         self._memory_cache: Dict[str, Tuple[Any, float]] = {}
         self._cache_order: List[str] = []  # For LRU eviction
@@ -169,9 +169,9 @@ class LayeredCache:
             try:
                 value_bytes = self._redis_cache.get_async(key)
                 if value_bytes:
-                    import pickle
+                    import json
 
-                    value = pickle.loads(value_bytes)
+                    value = json.loads(value_bytes.decode("utf-8"))
                     logger.debug(f"Redis cache hit: {key[:8]}...")
                     # Promote to memory and disk cache
                     await self._set_memory_async(key, value)
@@ -184,7 +184,7 @@ class LayeredCache:
         logger.debug(f"Cache miss: {key[:8]}...")
         return None
 
-    async def set_async(self, value: Any, **kwargs):
+    async def set_async(self, value: Any, **kwargs) -> None:
         """Set value in cache hierarchy"""
         key = self._make_key(**kwargs)
 
@@ -199,13 +199,13 @@ class LayeredCache:
 
         if self._redis_cache:
             try:
-                import pickle
+                import json
 
-                self._redis_cache.setex(key, self.config.redis_ttl, pickle.dumps(value))
+                self._redis_cache.setex(key, self.config.redis_ttl, json.dumps(value, default=str).encode("utf-8"))
             except Exception as e:
                 logger.error(f"Redis cache write error: {e}")
 
-    async def _set_memory_async(self, key: str, value: Any):
+    async def _set_memory_async(self, key: str, value: Any) -> None:
         """Set value in memory cache with LRU eviction"""
         # Evict if at capacity
         if len(self._memory_cache) >= self.config.memory_size:
@@ -293,7 +293,7 @@ class SharedHTTPClient:
     async def __aenter__(self):
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self.close_async()
 
 
@@ -409,7 +409,9 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
+    async def _transform_data_async(
+        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+    ) -> xr.Dataset:
         """Transform raw data to xarray Dataset"""
         pass
 
@@ -449,6 +451,6 @@ class BaseAdapter(ABC):
             "cache_hit_rate": cache_hit_rate,
         }
 
-    async def close_async(self):
+    async def close_async(self) -> None:
         """Clean up resources"""
         await self.http_client.close_async()

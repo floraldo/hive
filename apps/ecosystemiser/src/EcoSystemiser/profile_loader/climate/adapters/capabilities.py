@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Adapter capability declaration system"""
 
 from dataclasses import dataclass, field

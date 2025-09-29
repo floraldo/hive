@@ -98,7 +98,7 @@ class PipelineAlert:
 class PipelineMonitor:
     """Comprehensive monitor for the AI Planner -> Queen -> Worker pipeline"""
 
-    def __init__(self, alert_thresholds: Optional[Dict[str, Any]] = None):
+    def __init__(self, alert_thresholds: Optional[Dict[str, Any]] = None) -> None:
         """
         Initialize pipeline monitor
 
@@ -528,7 +528,7 @@ class PipelineMonitor:
 
         return recommendations
 
-    def monitor_loop(self, interval_seconds: int = 60):
+    def monitor_loop(self, interval_seconds: int = 60) -> None:
         """Run continuous monitoring loop"""
         logger.info(f"Starting pipeline monitor loop (interval: {interval_seconds}s)")
 
@@ -562,16 +562,16 @@ class PipelineMonitor:
                     report = self.generate_report(metrics, health, alerts)
                     logger.info(f"Pipeline Status Report:\n{report}")
 
-                time.sleep(interval_seconds)
+                await asyncio.sleep(interval_seconds)
 
             except KeyboardInterrupt:
                 logger.info("Pipeline monitor stopped by user")
                 break
             except Exception as e:
                 logger.error(f"Error in monitor loop: {e}")
-                time.sleep(interval_seconds)
+                await asyncio.sleep(interval_seconds)
 
-    async def monitor_loop_async(self, interval_seconds: int = 60):
+    async def monitor_loop_async(self, interval_seconds: int = 60) -> None:
         """Async version of monitoring loop for non-blocking operation"""
         logger.info(f"Starting async pipeline monitor loop (interval: {interval_seconds}s)")
 

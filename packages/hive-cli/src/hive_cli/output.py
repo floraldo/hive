@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Output formatting utilities for CLI commands."""
 
 import json
@@ -13,11 +17,11 @@ from rich.table import Table
 class HiveOutput:
     """Unified output formatter for Hive CLI commands."""
 
-    def __init__(self, format_type: str = "table"):
+    def __init__(self, format_type: str = "table") -> None:
         self.format_type = format_type
         self.console = Console()
 
-    def output(self, data: Any, title: Optional[str] = None):
+    def output(self, data: Any, title: Optional[str] = None) -> None:
         """Output data in the specified format."""
         if self.format_type == "json":
             self.output_json(data)
@@ -28,30 +32,30 @@ class HiveOutput:
         else:
             self.output_text(data)
 
-    def output_json(self, data: Any):
+    def output_json(self, data: Any) -> None:
         """Output data as JSON."""
         click.echo(json.dumps(data, indent=2, default=str))
 
-    def output_yaml(self, data: Any):
+    def output_yaml(self, data: Any) -> None:
         """Output data as YAML."""
         click.echo(yaml.dump(data, default_flow_style=False))
 
-    def output_table(self, data: Any, title: Optional[str] = None):
+    def output_table(self, data: Any, title: Optional[str] = None) -> None:
         """Output data as a formatted table."""
         if isinstance(data, list) and data and isinstance(data[0], dict):
             table = self._create_table_from_dicts(data, title)
-            self.console.print(table)
+            self.console.logger.info(table)
         elif isinstance(data, dict):
             table = self._create_table_from_dict(data, title)
-            self.console.print(table)
+            self.console.logger.info(table)
         else:
             # Fallback to pretty print
-            pprint(data, console=self.console)
+            plogger.info(data, console=self.console)
 
-    def output_text(self, data: Any):
+    def output_text(self, data: Any) -> None:
         """Output data as formatted text."""
         if isinstance(data, (dict, list)):
-            pprint(data, console=self.console)
+            plogger.info(data, console=self.console)
         else:
             click.echo(str(data))
 

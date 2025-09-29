@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 #!/usr/bin/env python3
 """
 Optimized Enhanced Database Functions for AI Planner Integration
@@ -43,7 +47,7 @@ def get_queued_tasks_with_planning_optimized(
         from contextlib import contextmanager
 
         @contextmanager
-        def get_conn():
+        def get_conn() -> None:
             with get_pooled_connection() as conn:
                 yield conn
 
@@ -51,7 +55,7 @@ def get_queued_tasks_with_planning_optimized(
         from contextlib import contextmanager
 
         @contextmanager
-        def get_conn():
+        def get_conn() -> None:
             conn = get_connection()
             try:
                 yield conn
@@ -137,7 +141,7 @@ def get_queued_tasks_with_planning_optimized(
     return tasks
 
 
-def _batch_check_dependencies(conn, tasks: List[Dict[str, Any]]):
+def _batch_check_dependencies(conn, tasks: List[Dict[str, Any]]) -> None:
     """
     Batch check dependencies for multiple tasks in a single query.
 

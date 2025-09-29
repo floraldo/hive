@@ -23,7 +23,7 @@ class BaseStoragePhysics(ABC):
     - Support easy testing and extension
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize physics strategy with component parameters."""
         self.params = params
 
@@ -69,7 +69,7 @@ class BaseStorageOptimization(ABC):
     Separates optimization logic from physics and data models.
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize optimization strategy with component parameters."""
         self.params = params
 
@@ -99,7 +99,7 @@ class BaseGenerationPhysics(ABC):
     - Support easy testing and extension
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize physics strategy with component parameters."""
         self.params = params
 
@@ -127,7 +127,7 @@ class BaseGenerationOptimization(ABC):
     Separates optimization logic from physics and data models.
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize optimization strategy with component parameters."""
         self.params = params
 
@@ -157,7 +157,7 @@ class BaseConversionPhysics(ABC):
     - Support easy testing and extension
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize physics strategy with component parameters."""
         self.params = params
 
@@ -202,7 +202,7 @@ class BaseConversionOptimization(ABC):
     Separates optimization logic from physics and data models.
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize optimization strategy with component parameters."""
         self.params = params
 
@@ -232,7 +232,7 @@ class BaseDemandPhysics(ABC):
     - Support easy testing and extension
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize physics strategy with component parameters."""
         self.params = params
 
@@ -260,7 +260,7 @@ class BaseDemandOptimization(ABC):
     Separates optimization logic from physics and data models.
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize optimization strategy with component parameters."""
         self.params = params
 

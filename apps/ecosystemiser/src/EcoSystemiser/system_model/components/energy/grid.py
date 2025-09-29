@@ -59,7 +59,7 @@ class GridPhysicsSimple:
     - Direct power transfer
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize with component parameters."""
         self.params = params
 
@@ -132,7 +132,7 @@ class GridOptimizationSimple:
     - No grid losses or power quality considerations
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         self.params = params
         self.component = component_instance
@@ -219,7 +219,7 @@ class Grid(Component):
 
     PARAMS_MODEL = GridParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize grid attributes and strategy objects."""
         self.type = "transmission"
         self.medium = "electricity"
@@ -284,7 +284,7 @@ class Grid(Component):
         else:
             raise ValueError(f"Unknown fidelity level for Grid optimization: {fidelity}")
 
-    def add_optimization_vars(self, N: int):
+    def add_optimization_vars(self, N: int) -> None:
         """Create CVXPY optimization variables."""
         self.P_draw = cp.Variable(N, name=f"{self.name}_P_draw", nonneg=True)
         self.P_feed = cp.Variable(N, name=f"{self.name}_P_feed", nonneg=True)

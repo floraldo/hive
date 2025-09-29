@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Common CLI decorators for Hive applications."""
 
 from functools import wraps
@@ -46,7 +50,7 @@ def common_options(f: Callable) -> Callable:
     f = output_format_option(f)
 
     @wraps(f)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> None:
         # Set up context based on common options
         ctx = click.get_current_context()
         if not ctx.obj:

@@ -10,6 +10,9 @@ import pytest
 from ai_reviewer import ReviewAgent, ReviewEngine
 from ai_reviewer.database_adapter import DatabaseAdapter
 from hive_db import Task, TaskStatus
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class TestIntegration:
@@ -280,7 +283,7 @@ class TestRealDatabaseIntegration:
         await agent._process_review_queue()
 
         # Check results
-        print(f"Processed {agent.stats['tasks_reviewed']} tasks")
-        print(f"Approved: {agent.stats['approved']}")
-        print(f"Rejected: {agent.stats['rejected']}")
-        print(f"Errors: {agent.stats['errors']}")
+        logger.info(f"Processed {agent.stats['tasks_reviewed']} tasks")
+        logger.info(f"Approved: {agent.stats['approved']}")
+        logger.info(f"Rejected: {agent.stats['rejected']}")
+        logger.info(f"Errors: {agent.stats['errors']}")

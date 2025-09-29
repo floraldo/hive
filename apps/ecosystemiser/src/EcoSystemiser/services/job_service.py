@@ -6,8 +6,8 @@ This module provides both a JobService class and functions for the arq worker to
 
 from typing import Any, Dict
 
-from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
 from ecosystemiser.profile_loader.climate import create_climate_service
+from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -36,7 +36,7 @@ class JobService:
         """Collect system and application metrics."""
         await collect_metrics_async({})
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the JobService."""
         logger.info("JobService initialized")
 

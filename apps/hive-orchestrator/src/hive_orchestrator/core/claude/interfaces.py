@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Claude Service Interfaces
 Defines the abstract interfaces and contracts for Claude services.

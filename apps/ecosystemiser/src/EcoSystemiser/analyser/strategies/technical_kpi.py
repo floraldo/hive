@@ -21,7 +21,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
     - Peak demand reduction
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize technical KPI analysis."""
         super().__init__(name="TechnicalKPI")
 

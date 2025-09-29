@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Event definitions for the Hive Event Bus
 
@@ -102,7 +106,7 @@ class TaskEvent(Event):
     task_status: Optional[str] = None
     assignee: Optional[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.event_type:
             self.event_type = TaskEventType.CREATED
 
@@ -124,7 +128,7 @@ class AgentEvent(Event):
     agent_type: Optional[str] = None
     agent_status: Optional[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.event_type:
             self.event_type = AgentEventType.HEARTBEAT
 
@@ -147,7 +151,7 @@ class WorkflowEvent(Event):
     phase: Optional[str] = None
     dependencies: Optional[list] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.event_type:
             self.event_type = WorkflowEventType.PLAN_GENERATED
 

@@ -18,7 +18,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
     Docker-based deployment strategy for containerized applications
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]) -> None:
         """Initialize Docker deployment strategy"""
         super().__init__(config)
         self.strategy = DeploymentStrategy.ROLLING

@@ -123,7 +123,7 @@ class StreamFormat(str, Enum):
 
 
 @router.get("/health")
-async def health_check_async():
+async def health_check_async() -> None:
     """Health check endpoint"""
     return {
         "status": "healthy",
@@ -255,7 +255,7 @@ async def stream_climate_data_async(
 
     context = dict(correlation_id=correlation_id)
 
-    async def generate_stream_async():
+    async def generate_stream_async() -> None:
         """Generate streaming response"""
         try:
             # Get data (placeholder - integrate with actual service)
@@ -400,7 +400,7 @@ async def get_job_result_async(
         # Convert result to proper format for streaming
         if isinstance(result, dict) and "data" in result:
 
-            async def generate_result_stream_async():
+            async def generate_result_stream_async() -> None:
                 # Stream the result data as NDJSON
                 yield json.dumps(result).encode() + b"\n"
 
@@ -634,7 +634,7 @@ def stream_as_netcdf(ds: xr.Dataset) -> bytes:
     return buffer.getvalue()
 
 
-async def process_job_async(job_id: str, job_request: JobRequest, correlation_id: str, job_manager: JobManager):
+async def process_job_async(job_id: str, job_request: JobRequest, correlation_id: str, job_manager: JobManager) -> None:
     """
     Process job asynchronously using distributed job manager.
 
@@ -861,7 +861,7 @@ async def get_climate_profile_async(
 
 
 @router.get("/processing/options")
-async def get_processing_options_async(config: Dict[str, Any]):
+async def get_processing_options_async(config: Dict[str, Any]) -> None:
     """
     Get available processing options and their defaults.
 

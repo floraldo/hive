@@ -92,7 +92,7 @@ class WorkerStatus(Enum):
 
 
 @contextmanager
-def get_connection():
+def get_connection() -> None:
     """Get a database connection from the pool.
 
     This is a context manager that properly handles connection
@@ -111,7 +111,7 @@ def get_connection():
         yield conn
 
 
-def close_connection():
+def close_connection() -> None:
     """Close database connection pool.
 
     This closes all connections in the pool and shuts down
@@ -122,7 +122,7 @@ def close_connection():
 
 
 @contextmanager
-def transaction():
+def transaction() -> None:
     """Database transaction context manager."""
     with get_connection() as conn:
         try:

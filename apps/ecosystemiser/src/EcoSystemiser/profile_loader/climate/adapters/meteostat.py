@@ -23,11 +23,11 @@ from ecosystemiser.profile_loader.climate.adapters.errors import (
 )
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
 from ecosystemiser.profile_loader.climate.processing.validation import (
-    QCReport,
     QCIssue,
+    QCProfile,
+    QCReport,
     QCSeverity,
 )
-from ecosystemiser.profile_loader.climate.processing.validation import QCProfile
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -106,7 +106,7 @@ class MeteostatAdapter(BaseAdapter):
         27: {"name": "Storm", "cloud_cover": 100, "visibility": "very_poor"},
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Meteostat adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
@@ -199,7 +199,9 @@ class MeteostatAdapter(BaseAdapter):
 
         return df
 
-    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
+    async def _transform_data_async(
+        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+    ) -> xr.Dataset:
         """Transform Meteostat DataFrame to xarray Dataset"""
         lat, lon = location
         df = raw_data
@@ -235,7 +237,7 @@ class MeteostatAdapter(BaseAdapter):
         self.logger.info(f"Successfully processed {len(ds.time)} time steps with {len(ds.data_vars)} variables")
         return ds
 
-    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict):
+    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict) -> None:
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValidationError(f"Invalid latitude: {lat}", field="lat", value=lat)
@@ -721,7 +723,7 @@ class MeteostatAdapter(BaseAdapter):
 class MeteostatQCProfile(QCProfile):
     """QC profile for Meteostat data - co-located with adapter for better cohesion."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Meteostat",
             description="Weather station data aggregated from multiple national weather services",

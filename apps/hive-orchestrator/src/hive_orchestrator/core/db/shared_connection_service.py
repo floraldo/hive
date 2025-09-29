@@ -59,7 +59,7 @@ class DatabaseConnectionPool:
         # Initialize minimum connections
         self._initialize_pool()
 
-    def _initialize_pool(self):
+    def _initialize_pool(self) -> None:
         """Create initial connections for the pool."""
         for _ in range(self.min_connections):
             conn = self._create_connection()
@@ -106,7 +106,7 @@ class DatabaseConnectionPool:
             return False
 
     @contextmanager
-    def get_connection(self):
+    def get_connection(self) -> None:
         """
         Context manager for acquiring and releasing connections.
 
@@ -155,7 +155,7 @@ class DatabaseConnectionPool:
                     with self._lock:
                         self._connections_created -= 1
 
-    def close_all(self):
+    def close_all(self) -> None:
         """Close all connections in the pool."""
         while not self._pool.empty():
             try:
@@ -190,7 +190,7 @@ class SharedDatabaseService:
     while maintaining connection pooling and proper resource management.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         """Initialize the shared database service with DI support.
 
         Args:
@@ -228,7 +228,7 @@ class SharedDatabaseService:
         return self._pools[db_name]
 
     @contextmanager
-    def get_connection(self, db_name: str, db_path: Path):
+    def get_connection(self, db_name: str, db_path: Path) -> None:
         """
         Get a connection for a specific database.
 
@@ -243,7 +243,7 @@ class SharedDatabaseService:
         with pool.get_connection() as conn:
             yield conn
 
-    def close_all_pools(self):
+    def close_all_pools(self) -> None:
         """Close all connection pools."""
         with self._lock:
             for db_name, pool in self._pools.items():
@@ -301,7 +301,7 @@ def get_shared_database_service(
 
 
 @contextmanager
-def get_database_connection(db_name: str, db_path: Path):
+def get_database_connection(db_name: str, db_path: Path) -> None:
     """
     Get a connection from the shared database service.
 
@@ -321,7 +321,7 @@ def get_database_connection(db_name: str, db_path: Path):
         yield conn
 
 
-def close_all_database_pools():
+def close_all_database_pools() -> None:
     """Close all database connection pools."""
     global _shared_service
 

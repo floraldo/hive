@@ -1,0 +1,159 @@
+# Golden Residential Microgrid - Winter Scenario
+system_id: golden_residential_winter
+timesteps: 24
+description: "Winter scenario with high heating demand and reduced solar generation"
+
+# Profile data source
+profiles:
+  source: "data/profiles/golden_24h_weather_winter.csv"
+  description: "Winter weather profiles with high thermal demand and low solar"
+
+# Component instances (winter-optimized sizing)
+components:
+  # === ELECTRICAL DOMAIN ===
+
+  # Grid connection (same capacity)
+  - name: GRID
+    component_id: grid_standard
+    params:
+      technical:
+        capacity_nominal: 100.0
+        import_tariff: 0.30      # Higher winter tariffs
+        export_tariff: 0.08      # Lower winter export rates
+        fidelity_level: "SIMPLE"
+
+  # Solar PV system (same physical capacity, weather affects output)
+  - name: SOLAR_PV
+    component_id: solar_pv_residential
+    params:
+      technical:
+        capacity_nominal: 50.0
+        efficiency_nominal: 1.0
+        fidelity_level: "SIMPLE"
+
+  # Battery storage (same capacity)
+  - name: BATTERY
+    component_id: battery_residential
+    params:
+      technical:
+        capacity_nominal: 10.0
+        max_charge_rate: 5.0
+        max_discharge_rate: 5.0
+        efficiency_roundtrip: 0.90  # Slightly reduced efficiency in cold
+        initial_soc_pct: 0.5
+        fidelity_level: "SIMPLE"
+
+  # Power demand (higher base load for winter)
+  - name: POWER_DEMAND
+    component_id: power_demand_residential
+    params:
+      technical:
+        capacity_nominal: 15.0   # Higher winter electrical demand
+        peak_demand: 15.0
+        load_profile_type: "variable"
+        fidelity_level: "SIMPLE"
+
+  # === THERMAL DOMAIN ===
+
+  # Heat pump (reduced efficiency in cold weather)
+  - name: HEAT_PUMP
+    component_id: heat_pump_residential
+    params:
+      technical:
+        capacity_nominal: 15.0
+        electrical_capacity: 8.0 # Higher electrical input due to lower COP
+        cop_nominal: 2.0         # Reduced COP in winter
+        min_cop: 1.5             # Lower minimum COP
+        max_cop: 2.5             # Lower maximum COP
+        fidelity_level: "SIMPLE"
+
+  # Heat buffer (larger to handle winter demand)
+  - name: HEAT_BUFFER
+    component_id: heat_buffer_residential
+    params:
+      technical:
+        capacity_nominal: 30.0   # Larger thermal storage for winter
+        max_charge_rate: 15.0
+        max_discharge_rate: 15.0
+        thermal_efficiency: 0.92 # Slightly reduced efficiency
+        initial_soc_pct: 0.8     # Start higher in winter
+        fidelity_level: "SIMPLE"
+
+  # Heat demand (significantly higher in winter)
+  - name: HEAT_DEMAND
+    component_id: heat_demand_residential
+    params:
+      technical:
+        capacity_nominal: 25.0   # Much higher winter heating demand
+        peak_demand: 25.0
+        load_profile_type: "variable"
+        fidelity_level: "SIMPLE"
+
+# Connections (same as base system)
+connections:
+  # Electrical domain
+  - from: GRID
+    to: POWER_DEMAND
+    type: electricity
+  - from: GRID
+    to: BATTERY
+    type: electricity
+  - from: BATTERY
+    to: GRID
+    type: electricity
+  - from: GRID
+    to: HEAT_PUMP
+    type: electricity
+  - from: SOLAR_PV
+    to: POWER_DEMAND
+    type: electricity
+  - from: SOLAR_PV
+    to: BATTERY
+    type: electricity
+  - from: SOLAR_PV
+    to: GRID
+    type: electricity
+  - from: SOLAR_PV
+    to: HEAT_PUMP
+    type: electricity
+  - from: BATTERY
+    to: POWER_DEMAND
+    type: electricity
+  - from: BATTERY
+    to: HEAT_PUMP
+    type: electricity
+
+  # Thermal domain
+  - from: HEAT_PUMP
+    to: HEAT_DEMAND
+    type: thermal
+  - from: HEAT_PUMP
+    to: HEAT_BUFFER
+    type: thermal
+  - from: HEAT_BUFFER
+    to: HEAT_DEMAND
+    type: thermal
+
+# Solver configuration
+solver:
+  default: "rule_based"
+  options:
+    rule_based:
+      priority_thermal: 1      # Thermal demand takes priority in winter
+      priority_electrical: 2
+    milp:
+      objective: "min_cost"
+      solver: "CLARABEL"
+      time_limit: 300
+
+# Winter-specific validation criteria
+validation:
+  energy_balance:
+    electrical_tolerance: 1e-6
+    thermal_tolerance: 1e-6
+
+  winter_scenario_checks:
+    high_grid_import: true     # Expect high grid imports due to low solar
+    thermal_storage_usage: true # Heat buffer should be actively used
+    heat_pump_operation: true  # Heat pump should run frequently
+    reduced_solar_export: true # Minimal solar export expected

@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 class ResultsIO:
     """Service for handling simulation results persistence."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize results I/O service."""
         self.supported_formats = ["json", "parquet", "csv", "pickle"]
 
@@ -160,12 +160,12 @@ class ResultsIO:
 
         return results
 
-    def _save_json(self, results: Dict, path: Path):
+    def _save_json(self, results: Dict, path: Path) -> None:
         """Save results as JSON."""
         with open(path, "w") as f:
             json.dump(results, f, indent=2, default=str)
 
-    def _save_parquet(self, results: Dict, path: Path):
+    def _save_parquet(self, results: Dict, path: Path) -> None:
         """Save results as Parquet."""
         # Convert to DataFrame format
         flows_df = self._flows_to_dataframe(results["flows"])
@@ -179,7 +179,7 @@ class ResultsIO:
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
 
-    def _save_csv(self, results: Dict, path: Path):
+    def _save_csv(self, results: Dict, path: Path) -> None:
         """Save results as CSV."""
         # Convert to DataFrame format
         flows_df = self._flows_to_dataframe(results["flows"])
@@ -191,7 +191,7 @@ class ResultsIO:
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
 
-    def _save_pickle(self, results: Dict, path: Path):
+    def _save_pickle(self, results: Dict, path: Path) -> None:
         """Save results as pickle."""
         with open(path, "wb") as f:
             pickle.dump(results, f)

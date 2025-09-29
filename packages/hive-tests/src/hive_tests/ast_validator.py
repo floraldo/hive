@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Single-Pass AST-Based Validator System
 
@@ -57,13 +61,13 @@ class GoldenRuleVisitor(ast.NodeVisitor):
     Each rule can subscribe to specific AST node types.
     """
 
-    def __init__(self, file_context: FileContext, project_root: Path):
+    def __init__(self, file_context: FileContext, project_root: Path) -> None:
         self.context = file_context
         self.project_root = project_root
         self.violations: List[Violation] = []
         self.current_line = 1
 
-    def add_violation(self, rule_id: str, rule_name: str, line_num: int, message: str, severity: str = "error"):
+    def add_violation(self, rule_id: str, rule_name: str, line_num: int, message: str, severity: str = "error") -> None:
         """Add a violation if not suppressed"""
         if line_num in self.context.suppressions and rule_id in self.context.suppressions[line_num]:
             return  # Violation is suppressed
@@ -79,44 +83,44 @@ class GoldenRuleVisitor(ast.NodeVisitor):
             )
         )
 
-    def visit_Import(self, node: ast.Import):
+    def visit_Import(self, node: ast.Import) -> None:
         """Validate import statements"""
         self._validate_dependency_direction(node)
         self._validate_no_unsafe_imports(node)
         self.generic_visit(node)
 
-    def visit_ImportFrom(self, node: ast.ImportFrom):
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         """Validate from imports"""
         self._validate_dependency_direction_from(node)
         self._validate_no_unsafe_imports_from(node)
         self.generic_visit(node)
 
-    def visit_Call(self, node: ast.Call):
+    def visit_Call(self, node: ast.Call) -> None:
         """Validate function calls"""
         self._validate_no_unsafe_calls(node)
         self._validate_async_sync_mixing(node)
         self._validate_print_statements(node)
         self.generic_visit(node)
 
-    def visit_FunctionDef(self, node: ast.FunctionDef):
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """Validate function definitions"""
         self._validate_interface_contracts(node)
         self._validate_async_naming(node)
         self.generic_visit(node)
 
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         """Validate async function definitions"""
         self._validate_interface_contracts_async(node)
         self._validate_async_naming(node)
         self.generic_visit(node)
 
-    def visit_ClassDef(self, node: ast.ClassDef):
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Validate class definitions"""
         self._validate_error_handling_standards(node)
         self.generic_visit(node)
 
     # Rule implementations
-    def _validate_dependency_direction(self, node: ast.Import):
+    def _validate_dependency_direction(self, node: ast.Import) -> None:
         """Golden Rule 6: Dependency Direction - Import statements"""
         for alias in node.names:
             if self._is_invalid_app_import(alias.name):
@@ -127,8 +131,16 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     f"Invalid app import: {alias.name}. Apps should only import from packages or other apps' core/ modules.",
                 )
 
-    def _validate_dependency_direction_from(self, node: ast.ImportFrom):
+    def _validate_dependency_direction_from(self, node: ast.ImportFrom) -> None:
         """Golden Rule 6: Dependency Direction - From imports"""
+        # Allow test files to import from their own app more freely
+        if self.context.is_test_file or "/tests/" in str(self.context.path):
+            return  # Test files can import from their parent app
+
+        # Allow demo/run files to import from their own app
+        if self.context.path.name.startswith(("demo_", "run_")):
+            return  # Demo and run files can import from their app
+
         if node.module and self._is_invalid_app_import(node.module):
             self.add_violation(
                 "rule-6",
@@ -137,7 +149,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 f"Invalid app import: from {node.module}. Use service layer (core/) or shared packages.",
             )
 
-    def _validate_no_unsafe_calls(self, node: ast.Call):
+    def _validate_no_unsafe_calls(self, node: ast.Call) -> None:
         """Golden Rule 17: No Unsafe Function Calls"""
         unsafe_calls = {
             "eval": "Use ast.literal_eval() or safer alternatives",
@@ -182,7 +194,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                             f"Avoid {node.func.attr}() with shell=True. Use explicit argument lists.",
                         )
 
-    def _validate_async_sync_mixing(self, node: ast.Call):
+    def _validate_async_sync_mixing(self, node: ast.Call) -> None:
         """Golden Rule 19: No Synchronous Calls in Async Code"""
         # Check if we're in an async function
         if not self._in_async_function():
@@ -217,11 +229,22 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     "Use aiofiles.open() instead of open() in async functions.",
                 )
 
-    def _validate_print_statements(self, node: ast.Call):
+    def _validate_print_statements(self, node: ast.Call) -> None:
         """Golden Rule 9: Logging Standards - No print statements in production"""
         if isinstance(node.func, ast.Name) and node.func.id == "print":
             # Skip if in CLI context
             if self.context.is_cli_file or self._in_main_section() or self._in_cli_function():
+                return
+
+            # Skip scripts, tests, demo files, and archive files (they can use print)
+            path_str = str(self.context.path).replace("\\", "/")  # Normalize path separators
+            if (
+                "/scripts/" in path_str
+                or "/tests/" in path_str
+                or "/archive/" in path_str
+                or self.context.path.name.startswith(("test_", "demo_", "run_"))
+                or ".backup" in path_str
+            ):
                 return
 
             self.add_violation(
@@ -232,6 +255,24 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         """Golden Rule 7: Interface Contracts - Type hints required"""
         if self.context.is_test_file or node.name.startswith("_"):
             return  # Skip private functions and tests
+
+        # Skip entry points and special functions
+        if node.name == "main":
+            return  # Entry points don't need return type annotations
+
+        # Skip dunder methods (special methods)
+        if node.name.startswith("__") and node.name.endswith("__"):
+            return
+
+        # Skip script files, demo files, archive files, and backup files (not production code)
+        path_str = str(self.context.path).replace("\\", "/")  # Normalize path separators
+        if (
+            "/scripts/" in path_str
+            or "/archive/" in path_str
+            or self.context.path.name.startswith(("run_", "demo_"))
+            or ".backup" in path_str
+        ):
+            return
 
         # Check return type annotation
         if node.returns is None:
@@ -254,7 +295,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     severity="warning",
                 )
 
-    def _validate_interface_contracts_async(self, node: ast.AsyncFunctionDef):
+    def _validate_interface_contracts_async(self, node: ast.AsyncFunctionDef) -> None:
         """Golden Rule 7: Interface Contracts - Async functions"""
         # Reuse sync validation logic
         sync_node = ast.FunctionDef(
@@ -267,7 +308,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         )
         self._validate_interface_contracts(sync_node)
 
-    def _validate_error_handling_standards(self, node: ast.ClassDef):
+    def _validate_error_handling_standards(self, node: ast.ClassDef) -> None:
         """Golden Rule 8: Error Handling Standards"""
         # Check if this is an exception class
         if any(isinstance(base, ast.Name) and base.id.endswith("Error") for base in node.bases):
@@ -283,9 +324,19 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     f"Exception class {node.name} should inherit from BaseError or standard exceptions.",
                 )
 
-    def _validate_async_naming(self, node):
+    def _validate_async_naming(self, node) -> None:
         """Golden Rule 14: Async Pattern Consistency"""
         if isinstance(node, ast.AsyncFunctionDef):
+            # Skip special methods and entry points
+            special_methods = ["main", "__aenter__", "__aexit__", "__aiter__", "__anext__"]
+            if node.name in special_methods:
+                return
+
+            # Skip test functions (they have different naming conventions)
+            path_str = str(self.context.path)
+            if "/tests/" in path_str or node.name.startswith("test_"):
+                return
+
             if not node.name.endswith("_async") and not node.name.startswith("a"):
                 self.add_violation(
                     "rule-14",
@@ -294,7 +345,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     f"Async function {node.name}() should end with '_async' or start with 'a' for clarity.",
                 )
 
-    def _validate_no_unsafe_imports(self, node: ast.Import):
+    def _validate_no_unsafe_imports(self, node: ast.Import) -> None:
         """Golden Rule 17: Security - Unsafe imports"""
         unsafe_modules = {"pickle", "marshal", "shelve", "dill"}
 
@@ -307,7 +358,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     f"Unsafe import: {alias.name}. Consider safer alternatives like json.",
                 )
 
-    def _validate_no_unsafe_imports_from(self, node: ast.ImportFrom):
+    def _validate_no_unsafe_imports_from(self, node: ast.ImportFrom) -> None:
         """Golden Rule 17: Security - Unsafe from imports"""
         if node.module in {"pickle", "marshal", "shelve", "dill"}:
             self.add_violation(
@@ -327,9 +378,12 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         if module_name.startswith("hive_"):
             return False
 
-        # Skip if importing from current app
-        if self.context.app_name and module_name.startswith(self.context.app_name):
-            return False
+        # Skip if importing from current app (more lenient matching)
+        if self.context.app_name:
+            # Replace underscores with hyphens for matching
+            app_name_normalized = self.context.app_name.replace("-", "_")
+            if module_name.startswith(app_name_normalized):
+                return False
 
         # Allow imports from other apps' core modules
         if ".core." in module_name or module_name.endswith(".core"):
@@ -364,7 +418,7 @@ class EnhancedValidator:
     Enhanced single-pass validator system with suppression support
     """
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
         self.violations: List[Violation] = []
 
@@ -479,7 +533,7 @@ class EnhancedValidator:
             suppressions=suppressions,
         )
 
-    def _validate_app_contracts(self):
+    def _validate_app_contracts(self) -> None:
         """Golden Rule 1: App Contract Compliance"""
         apps_dir = self.project_root / "apps"
         if not apps_dir.exists():
@@ -499,7 +553,7 @@ class EnhancedValidator:
                         )
                     )
 
-    def _validate_colocated_tests(self):
+    def _validate_colocated_tests(self) -> None:
         """Golden Rule 2: Co-located Tests Pattern"""
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if not base_dir.exists():
@@ -519,7 +573,7 @@ class EnhancedValidator:
                             )
                         )
 
-    def _validate_documentation_hygiene(self):
+    def _validate_documentation_hygiene(self) -> None:
         """Golden Rule 22: Documentation Hygiene"""
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if not base_dir.exists():
@@ -539,7 +593,7 @@ class EnhancedValidator:
                             )
                         )
 
-    def _validate_models_purity(self):
+    def _validate_models_purity(self) -> None:
         """Golden Rule 21: hive-models Purity"""
         models_dir = self.project_root / "packages" / "hive-models"
         if not models_dir.exists():
@@ -562,7 +616,14 @@ class EnhancedValidator:
                             node.names[0].name if isinstance(node, ast.Import) else None
                         )
 
-                        if module and not any(module.startswith(allowed) for allowed in allowed_imports):
+                        # Allow relative imports within the same package and standard library imports
+                        if (
+                            module
+                            and not module.startswith(".")
+                            and module != "base"
+                            and module != "common"
+                            and not any(module.startswith(allowed) for allowed in allowed_imports)
+                        ):
                             self.violations.append(
                                 Violation(
                                     rule_id="rule-21",

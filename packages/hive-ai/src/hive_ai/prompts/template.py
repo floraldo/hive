@@ -5,18 +5,17 @@ Provides type-safe prompt templating with variable validation,
 formatting, and integration with the AI model system.
 """
 
-import re
 import json
-from typing import Dict, List, Any, Optional, Union, Callable
-from dataclasses import dataclass, field
+import re
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Union
 
-from hive_logging import get_logger
 from hive_config import BaseConfig
+from hive_logging import get_logger
 
-from ..core.interfaces import PromptTemplateInterface
 from ..core.exceptions import PromptError
-
+from ..core.interfaces import PromptTemplateInterface
 
 logger = get_logger(__name__)
 
@@ -24,6 +23,7 @@ logger = get_logger(__name__)
 @dataclass
 class PromptVariable:
     """Definition of a prompt template variable."""
+
     name: str
     type: str  # str, int, float, bool, list, dict
     required: bool = True
@@ -35,6 +35,7 @@ class PromptVariable:
 @dataclass
 class PromptMetadata:
     """Metadata for prompt templates."""
+
     name: str
     description: str = ""
     author: str = ""
@@ -58,7 +59,7 @@ class PromptTemplate(PromptTemplateInterface):
         variables: Optional[List[PromptVariable]] = None,
         metadata: Optional[PromptMetadata] = None,
         variable_prefix: str = "{{",
-        variable_suffix: str = "}}"
+        variable_suffix: str = "}}",
     ):
         self.template = template
         self.variables = {var.name: var for var in (variables or [])}
@@ -76,16 +77,13 @@ class PromptTemplate(PromptTemplateInterface):
     def _extract_variables_from_template(self) -> None:
         """Extract variable names from template string."""
         # Pattern to match variables like {{ variable_name }}
-        pattern = re.escape(self.variable_prefix) + r'\s*(\w+)\s*' + re.escape(self.variable_suffix)
+        pattern = re.escape(self.variable_prefix) + r"\s*(\w+)\s*" + re.escape(self.variable_suffix)
         matches = re.findall(pattern, self.template)
 
         for var_name in set(matches):
             if var_name not in self.variables:
                 self.variables[var_name] = PromptVariable(
-                    name=var_name,
-                    type="str",
-                    required=True,
-                    description=f"Auto-extracted variable: {var_name}"
+                    name=var_name, type="str", required=True, description=f"Auto-extracted variable: {var_name}"
                 )
 
         logger.debug(f"Extracted {len(self.variables)} variables from template")
@@ -100,14 +98,11 @@ class PromptTemplate(PromptTemplateInterface):
             if open_count != close_count:
                 raise PromptError(
                     f"Unbalanced template delimiters: {open_count} opening, {close_count} closing",
-                    template_name=self.metadata.name if self.metadata else "unknown"
+                    template_name=self.metadata.name if self.metadata else "unknown",
                 )
 
             # Test rendering with dummy values
-            dummy_values = {
-                name: self._get_dummy_value(var.type)
-                for name, var in self.variables.items()
-            }
+            dummy_values = {name: self._get_dummy_value(var.type) for name, var in self.variables.items()}
             self._render_internal(dummy_values)
 
             logger.debug("Template validation successful")
@@ -115,7 +110,7 @@ class PromptTemplate(PromptTemplateInterface):
         except Exception as e:
             raise PromptError(
                 f"Template validation failed: {str(e)}",
-                template_name=self.metadata.name if self.metadata else "unknown"
+                template_name=self.metadata.name if self.metadata else "unknown",
             ) from e
 
     def _get_dummy_value(self, var_type: str) -> Any:
@@ -126,7 +121,7 @@ class PromptTemplate(PromptTemplateInterface):
             "float": 3.14,
             "bool": True,
             "list": ["item1", "item2"],
-            "dict": {"key": "value"}
+            "dict": {"key": "value"},
         }
         return type_map.get(var_type, "default_value")
 
@@ -149,7 +144,7 @@ class PromptTemplate(PromptTemplateInterface):
             raise PromptError(
                 f"Template rendering failed: missing required variables",
                 template_name=self.metadata.name if self.metadata else "unknown",
-                missing_variables=missing
+                missing_variables=missing,
             )
 
         try:
@@ -157,8 +152,7 @@ class PromptTemplate(PromptTemplateInterface):
 
         except Exception as e:
             raise PromptError(
-                f"Template rendering failed: {str(e)}",
-                template_name=self.metadata.name if self.metadata else "unknown"
+                f"Template rendering failed: {str(e)}", template_name=self.metadata.name if self.metadata else "unknown"
             ) from e
 
     def _render_internal(self, variables: Dict[str, Any]) -> str:
@@ -222,7 +216,7 @@ class PromptTemplate(PromptTemplateInterface):
             "bool": lambda v: isinstance(v, bool),
             "list": lambda v: isinstance(v, list),
             "dict": lambda v: isinstance(v, dict),
-            "any": lambda v: True
+            "any": lambda v: True,
         }
 
         validator = type_validators.get(expected_type.lower())
@@ -230,10 +224,7 @@ class PromptTemplate(PromptTemplateInterface):
 
     def get_required_variables(self) -> List[str]:
         """Get list of required template variables."""
-        return [
-            var.name for var in self.variables.values()
-            if var.required and var.default is None
-        ]
+        return [var.name for var in self.variables.values() if var.required and var.default is None]
 
     def get_missing_variables(self, **kwargs) -> List[str]:
         """Get list of missing required variables."""
@@ -258,7 +249,7 @@ class PromptTemplate(PromptTemplateInterface):
             return True
         return False
 
-    def clone(self, new_name: Optional[str] = None) -> 'PromptTemplate':
+    def clone(self, new_name: Optional[str] = None) -> "PromptTemplate":
         """Create a copy of this template."""
         new_metadata = None
         if self.metadata:
@@ -267,7 +258,7 @@ class PromptTemplate(PromptTemplateInterface):
                 description=self.metadata.description,
                 author=self.metadata.author,
                 version=self.metadata.version,
-                tags=self.metadata.tags.copy()
+                tags=self.metadata.tags.copy(),
             )
 
         return PromptTemplate(
@@ -275,7 +266,7 @@ class PromptTemplate(PromptTemplateInterface):
             variables=list(self.variables.values()),
             metadata=new_metadata,
             variable_prefix=self.variable_prefix,
-            variable_suffix=self.variable_suffix
+            variable_suffix=self.variable_suffix,
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -288,7 +279,7 @@ class PromptTemplate(PromptTemplateInterface):
                     "type": var.type,
                     "required": var.required,
                     "default": var.default,
-                    "description": var.description
+                    "description": var.description,
                 }
                 for var in self.variables.values()
             ],
@@ -297,14 +288,16 @@ class PromptTemplate(PromptTemplateInterface):
                 "description": self.metadata.description,
                 "author": self.metadata.author,
                 "version": self.metadata.version,
-                "tags": self.metadata.tags
-            } if self.metadata else None,
+                "tags": self.metadata.tags,
+            }
+            if self.metadata
+            else None,
             "variable_prefix": self.variable_prefix,
-            "variable_suffix": self.variable_suffix
+            "variable_suffix": self.variable_suffix,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'PromptTemplate':
+    def from_dict(cls, data: Dict[str, Any]) -> "PromptTemplate":
         """Create template from dictionary."""
         variables = [
             PromptVariable(
@@ -312,7 +305,7 @@ class PromptTemplate(PromptTemplateInterface):
                 type=var_data["type"],
                 required=var_data.get("required", True),
                 default=var_data.get("default"),
-                description=var_data.get("description", "")
+                description=var_data.get("description", ""),
             )
             for var_data in data.get("variables", [])
         ]
@@ -326,7 +319,7 @@ class PromptTemplate(PromptTemplateInterface):
             variables=variables,
             metadata=metadata,
             variable_prefix=data.get("variable_prefix", "{{"),
-            variable_suffix=data.get("variable_suffix", "}}")
+            variable_suffix=data.get("variable_suffix", "}}"),
         )
 
 
@@ -338,7 +331,7 @@ class PromptChain:
     become inputs to the next template in the chain.
     """
 
-    def __init__(self, templates: List[PromptTemplate], name: str = ""):
+    def __init__(self, templates: List[PromptTemplate], name: str = "") -> None:
         self.templates = templates
         self.name = name
         self._validate_chain()
@@ -360,9 +353,7 @@ class PromptChain:
             )
 
     async def execute_async(
-        self,
-        initial_variables: Dict[str, Any],
-        model_client: Any = None  # ModelClient type - avoid circular import
+        self, initial_variables: Dict[str, Any], model_client: Any = None  # ModelClient type - avoid circular import
     ) -> List[str]:
         """
         Execute the prompt chain with model generation.
@@ -401,9 +392,7 @@ class PromptChain:
             return results
 
         except Exception as e:
-            raise PromptError(
-                f"Prompt chain execution failed at step {i + 1}: {str(e)}"
-            ) from e
+            raise PromptError(f"Prompt chain execution failed at step {i + 1}: {str(e)}") from e
 
     def render_all(self, variables: Dict[str, Any]) -> List[str]:
         """

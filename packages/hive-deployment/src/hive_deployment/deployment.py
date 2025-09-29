@@ -1,3 +1,5 @@
+import asyncio
+
 #!/usr/bin/env python3
 """
 Deployment Utilities for Hive Applications
@@ -359,7 +361,7 @@ WantedBy=multi-user.target"""
     # Stop the service if it's already running
     log.info(f"Stopping {app_name}.service (if running)...")
     run_remote_command(ssh, f"systemctl stop {app_name}.service", config=config, sudo=True, check=False)
-    time.sleep(1)
+    await asyncio.sleep(1)
 
     # Enable and restart the service
     log.info(f"Enabling and restarting {app_name}.service...")
@@ -399,7 +401,7 @@ WantedBy=multi-user.target"""
 
     # Wait for service to stabilize
     log.info("Waiting for service to stabilize...")
-    time.sleep(2)
+    await asyncio.sleep(2)
 
     # Check service status with retry logic
     log.info(f"Checking status of {app_name}.service...")
@@ -429,7 +431,7 @@ WantedBy=multi-user.target"""
             break
 
         if attempt < max_retries - 1:
-            time.sleep(retry_delay)
+            await asyncio.sleep(retry_delay)
 
     if not service_active:
         log.error(f"{app_name}.service did not become active after {max_retries} attempts.")
@@ -531,7 +533,7 @@ location /{app_name}/ {{
         return False
 
     # Wait for nginx to stabilize
-    time.sleep(2)
+    await asyncio.sleep(2)
 
     log.info("Nginx configuration applied successfully.")
     return True
@@ -579,7 +581,7 @@ def verify_deployment(
 
     # Wait for service to start
     log.info(f"Waiting {wait_time} seconds before verification...")
-    time.sleep(wait_time)
+    await asyncio.sleep(wait_time)
 
     # Define headers for the requests
     headers = {"User-Agent": "HiveDeploymentVerification/1.0"}

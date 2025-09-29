@@ -44,7 +44,7 @@ class ReportResult(BaseModel):
 class ReportingService:
     """Centralized service for generating all types of reports."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the reporting service."""
         # Lazy imports to avoid circular dependencies
         self._plot_factory = None
@@ -322,7 +322,9 @@ class ReportingService:
 
         return summary
 
-    def _save_report(self, html_content: Optional[str], json_content: Optional[Dict[str, Any]], save_path: Path):
+    def _save_report(
+        self, html_content: Optional[str], json_content: Optional[Dict[str, Any]], save_path: Path
+    ) -> None:
         """Save report content to disk.
 
         Args:

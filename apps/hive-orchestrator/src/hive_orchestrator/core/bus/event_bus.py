@@ -49,7 +49,7 @@ class EventBus:
     - Async-ready architecture
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         """Initialize the event bus
 
         Args:
@@ -60,7 +60,7 @@ class EventBus:
         self._subscriber_lock = threading.Lock()
         self._ensure_event_tables()
 
-    def _ensure_event_tables(self):
+    def _ensure_event_tables(self) -> None:
         """Ensure event storage tables exist"""
         with get_sqlite_connection() as conn:
             cursor = conn.cursor()
@@ -227,7 +227,7 @@ class EventBus:
                         return True
         return False
 
-    def _notify_subscribers(self, event: Event):
+    def _notify_subscribers(self, event: Event) -> None:
         """Notify all matching subscribers of an event"""
         with self._subscriber_lock:
             for pattern, subscribers in self._subscribers.items():
@@ -471,7 +471,7 @@ class EventBus:
                 logger.error(f"Failed to get async event history for {correlation_id}: {e}")
                 return []
 
-        async def _notify_subscribers_async(self, event: Event):
+        async def _notify_subscribers_async(self, event: Event) -> None:
             """Notify subscribers asynchronously."""
             try:
                 # Get matching subscribers
@@ -491,7 +491,7 @@ class EventBus:
             except Exception as e:
                 logger.error(f"Error in async subscriber notification: {e}")
 
-        async def _notify_single_subscriber_async(self, subscriber: EventSubscriber, event: Event):
+        async def _notify_single_subscriber_async(self, subscriber: EventSubscriber, event: Event) -> None:
             """Notify a single subscriber asynchronously."""
             try:
                 # Check if callback is async
@@ -505,7 +505,7 @@ class EventBus:
             except Exception as e:
                 logger.error(f"Error notifying async subscriber {subscriber.subscriber_name}: {e}")
 
-    def clear_old_events(self, days_to_keep: int = 30):
+    def clear_old_events(self, days_to_keep: int = 30) -> None:
         """Clean up old events to prevent database growth"""
         cutoff_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         cutoff_date = cutoff_date.replace(day=cutoff_date.day - days_to_keep)
@@ -538,7 +538,7 @@ def get_event_bus() -> EventBus:
     return _event_bus
 
 
-def reset_event_bus():
+def reset_event_bus() -> None:
     """Reset the global event bus (for testing)"""
     global _event_bus
     _event_bus = None

@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Specialized Claude Bridge for AI Code Review
 """
@@ -37,7 +41,7 @@ class ClaudeReviewResponse(BaseModel):
 class ReviewResponseValidator(PydanticValidator):
     """Validator for review responses"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(ClaudeReviewResponse)
 
     def create_fallback(self, error_message: str, context: Dict[str, Any]) -> ClaudeReviewResponse:
@@ -58,7 +62,7 @@ class ReviewResponseValidator(PydanticValidator):
 class ClaudeReviewerBridge(BaseClaludeBridge):
     """Specialized Claude bridge for AI code review tasks"""
 
-    def __init__(self, config: Optional[ClaudeBridgeConfig] = None):
+    def __init__(self, config: Optional[ClaudeBridgeConfig] = None) -> None:
         super().__init__(config)
         self.validator = ReviewResponseValidator()
 

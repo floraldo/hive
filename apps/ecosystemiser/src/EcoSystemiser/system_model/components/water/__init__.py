@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Water system components for EcoSystemiser.
 
 This module provides water management components including storage,

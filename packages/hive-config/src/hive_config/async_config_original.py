@@ -10,12 +10,13 @@ import json
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
+
 import aiofiles
 import aiofiles.os
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileModifiedEvent
-
 from hive_logging import get_logger
+from watchdog.events import FileModifiedEvent, FileSystemEventHandler
+from watchdog.observers import Observer
+
 from .secure_config import SecureConfigLoader
 
 logger = get_logger(__name__)
@@ -24,12 +25,12 @@ logger = get_logger(__name__)
 class ConfigFileHandler(FileSystemEventHandler):
     """Handle configuration file changes for hot-reload"""
 
-    def __init__(self, callback):
+    def __init__(self, callback) -> None:
         """Initialize with callback function"""
         self.callback = callback
         self.debounce_timer = None
 
-    def on_modified(self, event):
+    def on_modified(self, event) -> None:
         """Handle file modification events"""
         if isinstance(event, FileModifiedEvent) and not event.is_directory:
             # Debounce rapid changes
@@ -220,7 +221,7 @@ class AsyncConfigLoader:
 
         return {app_configs[i][0]: config for i, config in enumerate(configs)}
 
-    async def _watch_file_async(self, file_path: Path):
+    async def _watch_file_async(self, file_path: Path) -> None:
         """Start watching a config file for changes"""
         if not self._enable_hot_reload or file_path in self._watched_files:
             return
@@ -237,7 +238,7 @@ class AsyncConfigLoader:
 
         logger.info(f"Watching config file for changes: {file_path}")
 
-    async def _handle_file_change_async(self, file_path: str):
+    async def _handle_file_change_async(self, file_path: str) -> None:
         """Handle configuration file changes"""
         logger.info(f"Config file changed: {file_path}")
 
@@ -259,16 +260,16 @@ class AsyncConfigLoader:
             except Exception as e:
                 logger.error(f"Reload callback failed: {e}")
 
-    def add_reload_callback(self, callback: callable):
+    def add_reload_callback(self, callback: callable) -> None:
         """Add a callback to trigger on config reload"""
         self._reload_callbacks.append(callback)
 
-    def remove_reload_callback(self, callback: callable):
+    def remove_reload_callback(self, callback: callable) -> None:
         """Remove a reload callback"""
         if callback in self._reload_callbacks:
             self._reload_callbacks.remove(callback)
 
-    async def clear_cache_async(self, app_name: Optional[str] = None):
+    async def clear_cache_async(self, app_name: Optional[str] = None) -> None:
         """Clear configuration cache"""
         async with self._lock:
             if app_name:
@@ -296,7 +297,7 @@ class AsyncConfigLoader:
             "cache_ages": {key: current_time - timestamp for key, timestamp in self._cache_timestamps.items()},
         }
 
-    async def shutdown_async(self):
+    async def shutdown_async(self) -> None:
         """Clean shutdown of config loader"""
         if self._observer:
             self._observer.stop()

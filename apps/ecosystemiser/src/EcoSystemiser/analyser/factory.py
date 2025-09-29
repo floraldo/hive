@@ -26,7 +26,7 @@ class AnalyserFactory:
     }
 
     @classmethod
-    def register_strategy(cls, name: str, strategy_class: Type[BaseAnalysis]):
+    def register_strategy(cls, name: str, strategy_class: Type[BaseAnalysis]) -> None:
         """Register a custom analysis strategy.
 
         Args:

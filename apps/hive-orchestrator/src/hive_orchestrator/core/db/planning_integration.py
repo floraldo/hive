@@ -26,12 +26,12 @@ logger = get_logger(__name__)
 class PlanningIntegration:
     """Enhanced integration layer for AI Planner ↔ Queen communication"""
 
-    def __init__(self, use_pool: bool = True):
+    def __init__(self, use_pool: bool = True) -> None:
         self.use_pool = use_pool
         logger.info("Planning Integration initialized")
 
     @contextmanager
-    def _get_connection(self):
+    def _get_connection(self) -> None:
         """Get database connection with pooling support"""
         if self.use_pool:
             try:

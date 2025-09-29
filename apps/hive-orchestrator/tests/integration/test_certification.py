@@ -53,7 +53,11 @@ class CertificationTestConductor:
         if env is None:
             env = os.environ.copy()
             env["PYTHONPATH"] = str(Path.cwd())
-        result = subprocess.run(command, shell=True, capture_output=capture_output, text=True, env=env)
+        # Split command into arguments for security
+        import shlex
+
+        cmd_args = shlex.split(command)
+        result = subprocess.run(cmd_args, capture_output=capture_output, text=True, env=env)
         return result.returncode, result.stdout, result.stderr
 
     def setup_environment(self) -> bool:
@@ -99,9 +103,12 @@ class CertificationTestConductor:
                 stdout_file = open(log_dir / f"{name}_stdout.log", "w")
                 stderr_file = open(log_dir / f"{name}_stderr.log", "w")
 
+                # Split command into arguments for security
+                import shlex
+
+                cmd_args = shlex.split(command)
                 proc = subprocess.Popen(
-                    command,
-                    shell=True,
+                    cmd_args,
                     stdout=stdout_file,
                     stderr=stderr_file,
                     preexec_fn=os.setsid if os.name != "nt" else None,

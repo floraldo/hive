@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Analysis package for deriving insights and new data products from climate data."""
 
 # Individual modules can be imported as needed

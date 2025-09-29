@@ -8,7 +8,7 @@ import json
 import os
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -142,7 +142,7 @@ def find_output_files(base_dir: Path = None) -> List[Path]:
     return sorted(files, key=lambda x: x.stat().st_mtime, reverse=True)[:20]  # Most recent 20
 
 
-def plot_time_series(df: pd.DataFrame, variables: List[str], title: str = "Time Series"):
+def plot_time_series(df: pd.DataFrame, variables: List[str], title: str = "Time Series") -> go.Figure:
     """Create time series plot for selected variables."""
     fig = go.Figure()
 
@@ -162,7 +162,7 @@ def plot_time_series(df: pd.DataFrame, variables: List[str], title: str = "Time 
     return fig
 
 
-def plot_correlation_matrix(df: pd.DataFrame, variables: List[str]):
+def plot_correlation_matrix(df: pd.DataFrame, variables: List[str]) -> go.Figure:
     """Create correlation matrix heatmap."""
     numeric_vars = [v for v in variables if v in df.columns and pd.api.types.is_numeric_dtype(df[v])]
 
@@ -184,7 +184,7 @@ def plot_correlation_matrix(df: pd.DataFrame, variables: List[str]):
     return None
 
 
-def plot_distribution(df: pd.DataFrame, variable: str):
+def plot_distribution(df: pd.DataFrame, variable: str) -> go.Figure:
     """Create distribution plot for a variable."""
     if variable in df.columns:
         fig = px.histogram(
@@ -199,7 +199,8 @@ def plot_distribution(df: pd.DataFrame, variable: str):
 
 
 # Main app
-def main():
+def main() -> None:
+    """Main entry point for EcoSystemiser Climate Dashboard."""
     st.title("🌍 EcoSystemiser Climate Dashboard")
     st.markdown("### Isolated Data Viewer - Reads from Output Files")
 

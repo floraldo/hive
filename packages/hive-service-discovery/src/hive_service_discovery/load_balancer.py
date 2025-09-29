@@ -4,19 +4,22 @@ import asyncio
 import random
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+from hive_async.resilience import AsyncCircuitBreaker
 from hive_logging import get_logger
 
-from .service_registry import ServiceInfo
 from .exceptions import LoadBalancerError, ServiceNotFoundError
+from .service_registry import ServiceInfo
 
 logger = get_logger(__name__)
 
 
 class LoadBalancingStrategy(Enum):
     """Load balancing strategies."""
+
     ROUND_ROBIN = "round_robin"
     LEAST_CONNECTIONS = "least_connections"
     RANDOM = "random"
@@ -27,22 +30,23 @@ class LoadBalancingStrategy(Enum):
 @dataclass
 class ServiceMetrics:
     """Metrics for a service instance."""
+
     active_connections: int = 0
     total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
     average_response_time: float = 0.0
     last_request_time: float = 0.0
-    circuit_breaker_open: bool = False
-    circuit_breaker_failures: int = 0
-    circuit_breaker_last_failure: float = 0.0
+    circuit_breaker: Optional[AsyncCircuitBreaker] = field(default=None)
 
 
 class LoadBalancingAlgorithm(ABC):
     """Abstract base class for load balancing algorithms."""
 
     @abstractmethod
-    async def select_service(self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]) -> Optional[ServiceInfo]:
+    async def select_service_async(
+        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+    ) -> Optional[ServiceInfo]:
         """Select a service instance based on the algorithm."""
         pass
 
@@ -53,15 +57,14 @@ class RoundRobinAlgorithm(LoadBalancingAlgorithm):
     def __init__(self):
         self._counters: Dict[str, int] = {}
 
-    async def select_service(self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]) -> Optional[ServiceInfo]:
+    async def select_service_async(
+        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+    ) -> Optional[ServiceInfo]:
         if not services:
             return None
 
         # Filter out unhealthy services and those with open circuit breakers
-        healthy_services = [
-            s for s in services
-            if s.healthy and not metrics.get(s.service_id, ServiceMetrics()).circuit_breaker_open
-        ]
+        healthy_services = [s for s in services if self._is_service_available(s)]
 
         if not healthy_services:
             return None
@@ -83,38 +86,33 @@ class RoundRobinAlgorithm(LoadBalancingAlgorithm):
 class LeastConnectionsAlgorithm(LoadBalancingAlgorithm):
     """Least connections load balancing algorithm."""
 
-    async def select_service(self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]) -> Optional[ServiceInfo]:
+    async def select_service_async(
+        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+    ) -> Optional[ServiceInfo]:
         if not services:
             return None
 
         # Filter out unhealthy services and those with open circuit breakers
-        candidates = [
-            s for s in services
-            if s.healthy and not metrics.get(s.service_id, ServiceMetrics()).circuit_breaker_open
-        ]
+        candidates = [s for s in services if self._is_service_available(s)]
 
         if not candidates:
             return None
 
         # Select service with least connections
-        return min(
-            candidates,
-            key=lambda s: metrics.get(s.service_id, ServiceMetrics()).active_connections
-        )
+        return min(candidates, key=lambda s: metrics.get(s.service_id, ServiceMetrics()).active_connections)
 
 
 class RandomAlgorithm(LoadBalancingAlgorithm):
     """Random load balancing algorithm."""
 
-    async def select_service(self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]) -> Optional[ServiceInfo]:
+    async def select_service_async(
+        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+    ) -> Optional[ServiceInfo]:
         if not services:
             return None
 
         # Filter out unhealthy services and those with open circuit breakers
-        healthy_services = [
-            s for s in services
-            if s.healthy and not metrics.get(s.service_id, ServiceMetrics()).circuit_breaker_open
-        ]
+        healthy_services = [s for s in services if self._is_service_available(s)]
 
         if not healthy_services:
             return None
@@ -125,15 +123,14 @@ class RandomAlgorithm(LoadBalancingAlgorithm):
 class WeightedAlgorithm(LoadBalancingAlgorithm):
     """Weighted load balancing algorithm based on service metadata."""
 
-    async def select_service(self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]) -> Optional[ServiceInfo]:
+    async def select_service_async(
+        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+    ) -> Optional[ServiceInfo]:
         if not services:
             return None
 
         # Filter out unhealthy services and those with open circuit breakers
-        candidates = [
-            s for s in services
-            if s.healthy and not metrics.get(s.service_id, ServiceMetrics()).circuit_breaker_open
-        ]
+        candidates = [s for s in services if self._is_service_available(s)]
 
         if not candidates:
             return None
@@ -150,15 +147,14 @@ class WeightedAlgorithm(LoadBalancingAlgorithm):
 class HealthBasedAlgorithm(LoadBalancingAlgorithm):
     """Health-based load balancing that considers response times and success rates."""
 
-    async def select_service(self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]) -> Optional[ServiceInfo]:
+    async def select_service_async(
+        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+    ) -> Optional[ServiceInfo]:
         if not services:
             return None
 
         # Filter out unhealthy services and those with open circuit breakers
-        candidates = [
-            s for s in services
-            if s.healthy and not metrics.get(s.service_id, ServiceMetrics()).circuit_breaker_open
-        ]
+        candidates = [s for s in services if self._is_service_available(s)]
 
         if not candidates:
             return None
@@ -170,10 +166,7 @@ class HealthBasedAlgorithm(LoadBalancingAlgorithm):
 
             # Calculate success rate
             total_requests = service_metrics.total_requests
-            success_rate = (
-                service_metrics.successful_requests / total_requests
-                if total_requests > 0 else 1.0
-            )
+            success_rate = service_metrics.successful_requests / total_requests if total_requests > 0 else 1.0
 
             # Calculate response time score (lower is better)
             response_time_score = 1.0 / (1.0 + service_metrics.average_response_time)
@@ -208,7 +201,7 @@ class LoadBalancer:
         strategy: LoadBalancingStrategy = LoadBalancingStrategy.ROUND_ROBIN,
         circuit_breaker_threshold: int = 5,
         circuit_breaker_timeout: float = 60.0,
-        enable_sticky_sessions: bool = False
+        enable_sticky_sessions: bool = False,
     ):
         self.strategy = strategy
         self.circuit_breaker_threshold = circuit_breaker_threshold
@@ -230,10 +223,8 @@ class LoadBalancer:
             LoadBalancingStrategy.HEALTH_BASED: HealthBasedAlgorithm(),
         }
 
-    async def select_service(
-        self,
-        services: List[ServiceInfo],
-        session_id: Optional[str] = None
+    async def select_service_async(
+        self, services: List[ServiceInfo], session_id: Optional[str] = None
     ) -> Optional[ServiceInfo]:
         """Select a service instance for load balancing.
 
@@ -259,7 +250,7 @@ class LoadBalancer:
 
         # Use load balancing algorithm
         algorithm = self._algorithms[self.strategy]
-        selected_service = await algorithm.select_service(services, self._service_metrics)
+        selected_service = await algorithm.select_service_async(services, self._service_metrics)
 
         if selected_service and self.enable_sticky_sessions and session_id:
             # Create sticky session mapping
@@ -267,13 +258,7 @@ class LoadBalancer:
 
         return selected_service
 
-    async def execute_request(
-        self,
-        service: ServiceInfo,
-        request_func: Callable,
-        *args,
-        **kwargs
-    ) -> Any:
+    async def execute_request_async(self, service: ServiceInfo, request_func: Callable, *args, **kwargs) -> Any:
         """Execute a request with metrics tracking and circuit breaker.
 
         Args:
@@ -290,13 +275,16 @@ class LoadBalancer:
         # Check circuit breaker
         if self._is_circuit_breaker_open(service_id):
             raise LoadBalancerError(
-                f"Circuit breaker is open for service {service_id}",
-                service_name=service.service_name
+                f"Circuit breaker is open for service {service_id}", service_name=service.service_name
             )
 
         # Initialize metrics if needed
         if service_id not in self._service_metrics:
-            self._service_metrics[service_id] = ServiceMetrics()
+            circuit_breaker = AsyncCircuitBreaker(
+                failure_threshold=self.circuit_breaker_threshold,
+                recovery_timeout=self.circuit_breaker_timeout,
+            )
+            self._service_metrics[service_id] = ServiceMetrics(circuit_breaker=circuit_breaker)
 
         metrics = self._service_metrics[service_id]
 
@@ -308,8 +296,11 @@ class LoadBalancer:
         start_time = time.time()
 
         try:
-            # Execute request
-            result = await request_func(*args, **kwargs)
+            # Execute request through circuit breaker if available
+            if metrics.circuit_breaker:
+                result = await metrics.circuit_breaker.call_async(request_func, *args, **kwargs)
+            else:
+                result = await request_func(*args, **kwargs)
 
             # Record success
             metrics.successful_requests += 1
@@ -319,32 +310,16 @@ class LoadBalancer:
             if metrics.average_response_time == 0:
                 metrics.average_response_time = response_time
             else:
-                metrics.average_response_time = (
-                    0.8 * metrics.average_response_time + 0.2 * response_time
-                )
-
-            # Reset circuit breaker on success
-            metrics.circuit_breaker_failures = 0
+                metrics.average_response_time = 0.8 * metrics.average_response_time + 0.2 * response_time
 
             return result
 
         except Exception as e:
             # Record failure
             metrics.failed_requests += 1
-            metrics.circuit_breaker_failures += 1
-            metrics.circuit_breaker_last_failure = time.time()
-
-            # Check if circuit breaker should open
-            if metrics.circuit_breaker_failures >= self.circuit_breaker_threshold:
-                metrics.circuit_breaker_open = True
-                logger.warning(
-                    f"Circuit breaker opened for service {service_id} "
-                    f"after {metrics.circuit_breaker_failures} failures"
-                )
 
             raise LoadBalancerError(
-                f"Request failed for service {service_id}: {e}",
-                service_name=service.service_name
+                f"Request failed for service {service_id}: {e}", service_name=service.service_name
             ) from e
 
         finally:
@@ -357,27 +332,23 @@ class LoadBalancer:
             return False
 
         metrics = self._service_metrics[service_id]
-
-        if not metrics.circuit_breaker_open:
+        if metrics.circuit_breaker is None:
             return False
 
-        # Check if circuit breaker should close (timeout elapsed)
-        if time.time() - metrics.circuit_breaker_last_failure > self.circuit_breaker_timeout:
-            metrics.circuit_breaker_open = False
-            metrics.circuit_breaker_failures = 0
-            logger.info(f"Circuit breaker closed for service {service_id}")
-            return False
+        return metrics.circuit_breaker.is_open
 
-        return True
+    def _is_service_available(self, service: ServiceInfo) -> bool:
+        """Check if service is healthy and circuit breaker is not open."""
+        return service.healthy and not self._is_circuit_breaker_open(service.service_id)
 
-    async def execute_with_retry(
+    async def execute_with_retry_async(
         self,
         services: List[ServiceInfo],
         request_func: Callable,
         max_retries: int = 3,
         session_id: Optional[str] = None,
         *args,
-        **kwargs
+        **kwargs,
     ) -> Any:
         """Execute request with automatic retry and failover.
 
@@ -399,14 +370,15 @@ class LoadBalancer:
             try:
                 # Select service (excluding already attempted services if possible)
                 available_services = [
-                    s for s in services
+                    s
+                    for s in services
                     if s.service_id not in attempted_services or len(attempted_services) >= len(services)
                 ]
 
                 if not available_services:
                     available_services = services
 
-                selected_service = await self.select_service(available_services, session_id)
+                selected_service = await self.select_service_async(available_services, session_id)
 
                 if not selected_service:
                     raise ServiceNotFoundError("No healthy services available")
@@ -414,7 +386,7 @@ class LoadBalancer:
                 attempted_services.add(selected_service.service_id)
 
                 # Execute request
-                return await self.execute_request(selected_service, request_func, *args, **kwargs)
+                return await self.execute_request_async(selected_service, request_func, *args, **kwargs)
 
             except (LoadBalancerError, ServiceNotFoundError) as e:
                 last_exception = e
@@ -422,11 +394,11 @@ class LoadBalancer:
                     break
 
                 logger.warning(f"Request attempt {attempt + 1} failed: {e}")
-                await asyncio.sleep(0.1 * (2 ** attempt))  # Exponential backoff
+                await asyncio.sleep(0.1 * (2**attempt))  # Exponential backoff
 
         raise LoadBalancerError(
             f"All retry attempts failed. Last error: {last_exception}",
-            details={"attempts": max_retries + 1, "attempted_services": list(attempted_services)}
+            details={"attempts": max_retries + 1, "attempted_services": list(attempted_services)},
         )
 
     def get_service_metrics(self, service_id: str) -> Optional[ServiceMetrics]:
@@ -460,7 +432,7 @@ class LoadBalancer:
         else:
             self._service_metrics.clear()
 
-    def force_circuit_breaker_close(self, service_id: str) -> bool:
+    async def force_circuit_breaker_close_async(self, service_id: str) -> bool:
         """Force close circuit breaker for a service.
 
         Args:
@@ -471,10 +443,10 @@ class LoadBalancer:
         """
         if service_id in self._service_metrics:
             metrics = self._service_metrics[service_id]
-            metrics.circuit_breaker_open = False
-            metrics.circuit_breaker_failures = 0
-            logger.info(f"Forcibly closed circuit breaker for service {service_id}")
-            return True
+            if metrics.circuit_breaker:
+                await metrics.circuit_breaker.reset_async()
+                logger.info(f"Forcibly reset circuit breaker for service {service_id}")
+                return True
         return False
 
     def get_load_balancer_stats(self) -> Dict[str, Any]:
@@ -490,7 +462,7 @@ class LoadBalancer:
         success_rate = (total_successful / total_requests * 100) if total_requests > 0 else 0
 
         open_circuit_breakers = sum(
-            1 for m in self._service_metrics.values() if m.circuit_breaker_open
+            1 for m in self._service_metrics.values() if m.circuit_breaker and m.circuit_breaker.is_open
         )
 
         return {

@@ -1,8 +1,13 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Configuration for service discovery components."""
 
-from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, Field, validator
 import os
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field, validator
 
 
 class HealthCheckConfig(BaseModel):
@@ -151,7 +156,7 @@ class ServiceDiscoveryConfig(BaseModel):
             f"datacenter:{self.datacenter}",
             f"region:{self.region}",
             f"version:1.0.0",
-            "platform:hive"
+            "platform:hive",
         ]
 
         if additional_tags:

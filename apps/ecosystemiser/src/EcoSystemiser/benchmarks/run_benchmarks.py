@@ -48,7 +48,7 @@ logger = get_logger(__name__)
 class PerformanceBenchmark:
     """Performance benchmarking suite for EcoSystemiser optimization."""
 
-    def __init__(self, output_dir: Path = None):
+    def __init__(self, output_dir: Path = None) -> None:
         self.output_dir = output_dir or Path(__file__).parent / "benchmark_results"
         self.output_dir.mkdir(exist_ok=True)
         self.results = {
@@ -326,7 +326,7 @@ class PerformanceBenchmark:
 
         return memory_results
 
-    def run_all_benchmarks(self, simulation_only=False, milp_only=False, include_memory=False):
+    def run_all_benchmarks(self, simulation_only=False, milp_only=False, include_memory=False) -> None:
         """Run the complete benchmark suite."""
         logger.info("Starting EcoSystemiser performance benchmarks...")
 
@@ -356,7 +356,7 @@ class PerformanceBenchmark:
             logger.error(f"Benchmark suite failed: {e}")
             raise
 
-    def _print_summary(self):
+    def _print_summary(self) -> None:
         """Print benchmark summary to console."""
         logger.info("\n" + "=" * 60)
         logger.info("ECOSYSTEMISER PERFORMANCE BENCHMARK SUMMARY")
@@ -410,7 +410,7 @@ class PerformanceBenchmark:
         logger.info("\n" + "=" * 60)
 
 
-def main():
+def main() -> None:
     """Main benchmark execution."""
     parser = argparse.ArgumentParser(description="EcoSystemiser Performance Benchmarks")
     parser.add_argument(

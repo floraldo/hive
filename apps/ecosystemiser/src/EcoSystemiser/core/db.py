@@ -42,7 +42,7 @@ def get_ecosystemiser_db_path() -> Path:
 
 
 @contextmanager
-def get_ecosystemiser_connection():
+def get_ecosystemiser_connection() -> None:
     """
     Get a context-managed connection to the EcoSystemiser database.
 
@@ -66,7 +66,7 @@ def get_ecosystemiser_connection():
 
 
 @contextmanager
-def ecosystemiser_transaction():
+def ecosystemiser_transaction() -> None:
     """
     Context manager for EcoSystemiser database transactions.
 

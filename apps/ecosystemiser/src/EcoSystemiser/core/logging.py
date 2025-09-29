@@ -7,8 +7,6 @@ compatibility with the existing structlog implementation.
 
 from typing import Optional
 
-from hive_logging import get_logger as get_hive_logger, setup_logging as setup_hive_logging
-
 # Import the existing structlog configuration for backward compatibility
 from ecosystemiser.profile_loader.climate.logging_config import (
     AdapterContextProcessor,
@@ -20,13 +18,19 @@ from ecosystemiser.profile_loader.climate.logging_config import (
     log_with_context,
     set_correlation_id,
     set_request_id,
+)
+from ecosystemiser.profile_loader.climate.logging_config import (
     setup_logging as setup_structlog_logging,
 )
+from hive_logging import get_logger as get_hive_logger
+from hive_logging import setup_logging as setup_hive_logging
 
 # Re-export structlog logger for EcoSystemiser components that need it
 try:
     import structlog
-    from ecosystemiser.profile_loader.climate.logging_config import get_logger as get_structlog_logger
+    from ecosystemiser.profile_loader.climate.logging_config import (
+        get_logger as get_structlog_logger,
+    )
 
     STRUCTLOG_AVAILABLE = True
 except ImportError:
@@ -54,7 +58,7 @@ def setup_logging(
         )
 
 
-def get_logger(name: str, use_structlog: Optional[bool] = None):
+def get_logger(name: str, use_structlog: Optional[bool] = None) -> None:
     """
     Get a logger instance with automatic selection between structlog and hive-logging.
 

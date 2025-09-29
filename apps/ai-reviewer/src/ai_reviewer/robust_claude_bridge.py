@@ -42,7 +42,7 @@ class ClaudeReviewResponse(BaseModel):
 class RobustClaudeBridge:
     """Production-ready Claude CLI integration with drift resilience"""
 
-    def __init__(self, mock_mode: bool = False):
+    def __init__(self, mock_mode: bool = False) -> None:
         """Initialize the robust bridge
 
         Args:
@@ -159,7 +159,6 @@ class RobustClaudeBridge:
                 capture_output=True,
                 text=True,
                 timeout=45,
-                shell=True if os.name == "nt" else False,
             )
 
             if result.returncode != 0:

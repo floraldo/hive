@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive Service Discovery - Intelligent service registry and load balancing.
 
@@ -6,17 +10,17 @@ enabling automatic service registration, health monitoring, and intelligent
 load balancing across distributed services.
 """
 
-from .service_registry import ServiceRegistry, ServiceInfo
-from .discovery_client import DiscoveryClient
-from .load_balancer import LoadBalancer, LoadBalancingStrategy
-from .health_monitor import HealthMonitor, HealthStatus
 from .config import ServiceDiscoveryConfig
+from .discovery_client import DiscoveryClient
 from .exceptions import (
     ServiceDiscoveryError,
+    ServiceHealthError,
     ServiceNotFoundError,
     ServiceRegistrationError,
-    ServiceHealthError,
 )
+from .health_monitor import HealthMonitor, HealthStatus
+from .load_balancer import LoadBalancer, LoadBalancingStrategy
+from .service_registry import ServiceInfo, ServiceRegistry
 
 __version__ = "1.0.0"
 __all__ = [

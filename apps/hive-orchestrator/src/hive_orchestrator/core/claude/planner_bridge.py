@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Specialized Claude Bridge for AI Planning
 """
@@ -79,7 +83,7 @@ class ClaudePlanningResponse(BaseModel):
 class PlanningResponseValidator(PydanticValidator):
     """Validator for planning responses"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(ClaudePlanningResponse)
 
     def create_fallback(self, error_message: str, context: Dict[str, Any]) -> ClaudePlanningResponse:
@@ -171,7 +175,7 @@ class PlanningResponseValidator(PydanticValidator):
 class ClaudePlannerBridge(BaseClaludeBridge):
     """Specialized Claude bridge for AI planning tasks"""
 
-    def __init__(self, config: Optional[ClaudeBridgeConfig] = None):
+    def __init__(self, config: Optional[ClaudeBridgeConfig] = None) -> None:
         super().__init__(config)
         self.validator = PlanningResponseValidator()
 

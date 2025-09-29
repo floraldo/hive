@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Climate data source adapters"""
 
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter

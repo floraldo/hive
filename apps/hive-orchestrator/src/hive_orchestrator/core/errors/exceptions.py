@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive System Exception Hierarchy
 Provides structured exceptions for all components
@@ -63,7 +67,7 @@ class HiveError(BaseError):
         return base
 
 
-class HiveConfigError(HiveError):
+class HiveConfigError(BaseError):
     """Configuration-related errors"""
 
     def __init__(
@@ -86,7 +90,7 @@ class HiveConfigError(HiveError):
         ]
 
 
-class HiveDatabaseError(HiveError):
+class HiveDatabaseError(BaseError):
     """Database operation errors"""
 
     def __init__(
@@ -123,7 +127,7 @@ class HiveDatabaseError(HiveError):
             ]
 
 
-class HiveTaskError(HiveError):
+class HiveTaskError(BaseError):
     """Task execution errors"""
 
     def __init__(
@@ -147,7 +151,7 @@ class HiveTaskError(HiveError):
         ]
 
 
-class HiveWorkerError(HiveError):
+class HiveWorkerError(BaseError):
     """Worker process errors"""
 
     def __init__(
@@ -179,7 +183,7 @@ class HiveWorkerError(HiveError):
             ]
 
 
-class HiveAPIError(HiveError):
+class HiveAPIError(BaseError):
     """External API errors (e.g., Claude API)"""
 
     def __init__(
@@ -222,7 +226,7 @@ class HiveAPIError(HiveError):
             ]
 
 
-class HiveTimeoutError(HiveError):
+class HiveTimeoutError(BaseError):
     """Operation timeout errors"""
 
     def __init__(
@@ -244,7 +248,7 @@ class HiveTimeoutError(HiveError):
         ]
 
 
-class HiveValidationError(HiveError):
+class HiveValidationError(BaseError):
     """Data validation errors"""
 
     def __init__(
@@ -268,7 +272,7 @@ class HiveValidationError(HiveError):
         ]
 
 
-class HiveResourceError(HiveError):
+class HiveResourceError(BaseError):
     """Resource availability errors"""
 
     def __init__(
@@ -292,7 +296,7 @@ class HiveResourceError(HiveError):
         ]
 
 
-class HiveStateError(HiveError):
+class HiveStateError(BaseError):
     """System state errors"""
 
     def __init__(
@@ -316,10 +320,10 @@ class HiveStateError(HiveError):
         ]
 
 
-class EventBusError(HiveError):
+class EventBusError(BaseError):
     """Base event bus errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(message, component="event_bus", **kwargs)
         self.recovery_suggestions = [
             "Check event bus connection and configuration",
@@ -329,7 +333,7 @@ class EventBusError(HiveError):
         ]
 
 
-class EventPublishError(EventBusError):
+class EventPublishError(BaseError):
     """Event publishing errors"""
 
     def __init__(
@@ -351,7 +355,7 @@ class EventPublishError(EventBusError):
         ]
 
 
-class EventSubscribeError(EventBusError):
+class EventSubscribeError(BaseError):
     """Event subscription errors"""
 
     def __init__(

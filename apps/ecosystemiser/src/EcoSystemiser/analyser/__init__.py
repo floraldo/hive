@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Analyser Module - Data analysis engine for EcoSystemiser.
 
 This module provides a headless computational engine that processes

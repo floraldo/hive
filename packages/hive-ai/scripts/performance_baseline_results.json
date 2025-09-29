@@ -1,0 +1,31 @@
+{
+  "timestamp": 1759105048.092667,
+  "total_duration_ms": 539.1925000585616,
+  "summary": {
+    "total_operations": 0,
+    "errors": [
+      "security: cannot import name 'BaseConfig' from 'hive_config' (C:\\Users\\flori\\AppData\\Roaming\\Python\\Python311\\site-packages\\hive_config\\__init__.py)",
+      "config: cannot import name 'BaseConfig' from 'hive_config' (C:\\Users\\flori\\AppData\\Roaming\\Python\\Python311\\site-packages\\hive_config\\__init__.py)",
+      "vector: cannot import name 'BaseConfig' from 'hive_config' (C:\\Users\\flori\\AppData\\Roaming\\Python\\Python311\\site-packages\\hive_config\\__init__.py)",
+      "model_system: cannot import name 'BaseConfig' from 'hive_config' (C:\\Users\\flori\\AppData\\Roaming\\Python\\Python311\\site-packages\\hive_config\\__init__.py)"
+    ],
+    "fastest_operations": [],
+    "slowest_operations": [],
+    "avg_operation_time": 0,
+    "recommendations": []
+  },
+  "detailed_results": {
+    "security": {
+      "error": "cannot import name 'BaseConfig' from 'hive_config' (C:\\Users\\flori\\AppData\\Roaming\\Python\\Python311\\site-packages\\hive_config\\__init__.py)"
+    },
+    "config": {
+      "error": "cannot import name 'BaseConfig' from 'hive_config' (C:\\Users\\flori\\AppData\\Roaming\\Python\\Python311\\site-packages\\hive_config\\__init__.py)"
+    },
+    "vector": {
+      "error": "cannot import name 'BaseConfig' from 'hive_config' (C:\\Users\\flori\\AppData\\Roaming\\Python\\Python311\\site-packages\\hive_config\\__init__.py)"
+    },
+    "model_system": {
+      "error": "cannot import name 'BaseConfig' from 'hive_config' (C:\\Users\\flori\\AppData\\Roaming\\Python\\Python311\\site-packages\\hive_config\\__init__.py)"
+    }
+  }
+}

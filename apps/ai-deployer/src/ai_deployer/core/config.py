@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 AI Deployer Configuration Management.
 
@@ -7,7 +11,8 @@ Extends hive-config with deployer-specific settings following the inherit→exte
 from typing import Dict, List, Optional
 
 try:
-    from hive_config import HiveConfig, load_config as load_hive_config
+    from hive_config import HiveConfig
+    from hive_config import load_config as load_hive_config
 except ImportError:
     # Fallback for development - define minimal config structure
     from pydantic import BaseModel
@@ -17,7 +22,7 @@ except ImportError:
 
         pass
 
-    def load_hive_config():
+    def load_hive_config() -> HiveConfig:
         """Fallback config loader"""
         return HiveConfig()
 

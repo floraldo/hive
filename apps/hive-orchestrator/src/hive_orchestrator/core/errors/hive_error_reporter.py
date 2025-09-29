@@ -54,7 +54,7 @@ class HiveErrorReporter(BaseErrorReporter):
         self.config = config or {}
         self._setup_hive_error_tables()
 
-    def _setup_hive_error_tables(self):
+    def _setup_hive_error_tables(self) -> None:
         """Setup Hive-specific error tables"""
         if not self.log_to_db:
             return
@@ -180,7 +180,7 @@ class HiveErrorReporter(BaseErrorReporter):
 
         return record
 
-    def _log_to_hive_database(self, error_record: Dict[str, Any]):
+    def _log_to_hive_database(self, error_record: Dict[str, Any]) -> None:
         """Log error to Hive database with orchestration fields"""
         try:
             conn = sqlite3.connect(str(self.error_db_path))

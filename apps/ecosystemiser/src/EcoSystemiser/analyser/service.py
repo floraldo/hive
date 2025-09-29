@@ -29,7 +29,7 @@ class AnalyserService:
     producing only data (JSON) without any visualization or side effects.
     """
 
-    def __init__(self, event_bus: Optional[EcoSystemiserEventBus] = None):
+    def __init__(self, event_bus: Optional[EcoSystemiserEventBus] = None) -> None:
         """Initialize the AnalyserService with available strategies.
 
         Args:
@@ -39,13 +39,13 @@ class AnalyserService:
         self.event_bus = event_bus or get_ecosystemiser_event_bus()
         self._register_default_strategies()
 
-    def _register_default_strategies(self):
+    def _register_default_strategies(self) -> None:
         """Register the default analysis strategies."""
         self.register_strategy("technical_kpi", TechnicalKPIAnalysis())
         self.register_strategy("economic", EconomicAnalysis())
         self.register_strategy("sensitivity", SensitivityAnalysis())
 
-    def register_strategy(self, name: str, strategy: BaseAnalysis):
+    def register_strategy(self, name: str, strategy: BaseAnalysis) -> None:
         """Register a new analysis strategy.
 
         Args:
@@ -277,7 +277,7 @@ class AnalyserService:
 
         return summary
 
-    def save_analysis(self, analysis_results: Dict[str, Any], output_path: str):
+    def save_analysis(self, analysis_results: Dict[str, Any], output_path: str) -> None:
         """Save analysis results to file.
 
         Args:

@@ -26,7 +26,11 @@ from ecosystemiser.system_model.components.energy.battery import (
     BatteryParams,
     BatteryTechnicalParams,
 )
-from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
+from ecosystemiser.system_model.components.energy.grid import (
+    Grid,
+    GridParams,
+    GridTechnicalParams,
+)
 from ecosystemiser.system_model.components.energy.power_demand import (
     PowerDemand,
     PowerDemandParams,
@@ -50,7 +54,7 @@ def load_golden_dataset():
         return json.load(f)
 
 
-def create_minimal_ecosystemiser():
+def create_minimal_ecosystemiser() -> None:
     """Create the minimal 4-component system matching the golden dataset configuration."""
 
     # Create system with 24 timesteps
@@ -155,7 +159,9 @@ def create_minimal_ecosystemiser():
     print(f"DEBUG: Before assignment - solar.profile: {getattr(solar, 'profile', 'NOT_SET')}")
     print(f"DEBUG: Assigning solar_profile with daylight values: {solar_profile[7:13]}")  # Show daylight hours
     solar.profile = solar_profile  # Already normalized (0-1)
-    print(f"DEBUG: After assignment - solar.profile daylight: {solar.profile[7:13] if solar.profile is not None else 'None'}")
+    print(
+        f"DEBUG: After assignment - solar.profile daylight: {solar.profile[7:13] if solar.profile is not None else 'None'}"
+    )
 
     # Power demand component (12.5 kW peak, matching golden dataset)
     demand_params = PowerDemandParams(
@@ -196,7 +202,7 @@ def create_minimal_ecosystemiser():
     return system
 
 
-def extract_ecosystemiser_results(system):
+def extract_ecosystemiser_results(system) -> None:
     """Extract results from ecosystemiser in the same format as golden dataset."""
 
     results = {
@@ -242,7 +248,7 @@ def extract_ecosystemiser_results(system):
     return results
 
 
-def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
+def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6) -> None:
     """Compare EcoSystemiser results against golden dataset with strict tolerance."""
 
     logger.info("Performing numerical comparison...")
@@ -290,7 +296,7 @@ def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6):
     return failures, total_comparisons
 
 
-def main():
+def main() -> None:
     """Main validation function."""
 
     logger.info("=" * 80)

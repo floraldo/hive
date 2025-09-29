@@ -152,7 +152,7 @@ class HeatDemandOptimizationSimple(BaseDemandOptimization):
     - No thermal comfort flexibility
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -248,7 +248,7 @@ class HeatDemand(Component):
 
     PARAMS_MODEL = HeatDemandParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize heat demand attributes and strategy objects."""
         self.type = "consumption"
         self.medium = "heat"
@@ -340,7 +340,7 @@ class HeatDemand(Component):
 
         return demand_output
 
-    def add_optimization_vars(self, N: Optional[int] = None):
+    def add_optimization_vars(self, N: Optional[int] = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N

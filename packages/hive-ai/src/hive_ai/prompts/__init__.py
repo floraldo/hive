@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Prompt Engineering Toolkit for Hive AI.
 
@@ -5,20 +9,15 @@ Provides comprehensive prompt template management, optimization,
 and engineering capabilities with type safety and validation.
 """
 
-from .template import (
-    PromptTemplate,
-    PromptChain,
-    PromptVariable,
-    PromptMetadata
-)
 from .optimizer import (
-    PromptOptimizer,
     OptimizationResult,
     OptimizationStrategy,
+    PerformanceMetric,
+    PromptOptimizer,
     PromptTestResult,
-    PerformanceMetric
 )
 from .registry import PromptRegistry
+from .template import PromptChain, PromptMetadata, PromptTemplate, PromptVariable
 
 __all__ = [
     # Core template management
@@ -26,14 +25,12 @@ __all__ = [
     "PromptChain",
     "PromptVariable",
     "PromptMetadata",
-
     # Optimization and testing
     "PromptOptimizer",
     "OptimizationResult",
     "OptimizationStrategy",
     "PromptTestResult",
     "PerformanceMetric",
-
     # Registry management
     "PromptRegistry",
 ]

@@ -11,9 +11,10 @@ as a standalone application within the Hive ecosystem.
 
 import os
 import sys
+from typing import Any, Dict, Optional
 
 
-def setup_environment():
+def setup_environment() -> None:
     """Setup environment for EcoSystemiser - now using proper package installation"""
 
     logger.info(f"🐝 EcoSystemiser starting in Hive ecosystem")
@@ -23,7 +24,7 @@ def setup_environment():
     # No more path manipulation - EcoSystemiser should be properly installed
 
 
-def run_server():
+def run_server() -> None:
     """Run the EcoSystemiser FastAPI server"""
 
     try:
@@ -66,7 +67,7 @@ def run_server():
         sys.exit(1)
 
 
-def run_cli():
+def run_cli() -> None:
     """Run EcoSystemiser CLI commands"""
 
     try:
@@ -91,7 +92,7 @@ def run_cli():
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """Main entry point"""
 
     setup_environment()

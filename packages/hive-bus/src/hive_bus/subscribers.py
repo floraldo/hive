@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Generic subscription management.
 
@@ -37,7 +41,7 @@ class BaseSubscriber:
         self.callback = callback
         self.subscriber_name = subscriber_name
 
-    def handle_event(self, event: BaseEvent):
+    def handle_event(self, event: BaseEvent) -> None:
         """Handle an event by calling the callback"""
         try:
             self.callback(event)

@@ -27,7 +27,7 @@ class BaseErrorReporter(ABC):
     Subclasses must implement storage mechanisms.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the base error reporter"""
         self.error_counts = defaultdict(int)
         self.error_history: List[Dict[str, Any]] = []
@@ -96,7 +96,7 @@ class BaseErrorReporter(ABC):
 
         return record
 
-    def _update_metrics(self, error_record: Dict[str, Any]):
+    def _update_metrics(self, error_record: Dict[str, Any]) -> None:
         """Update error metrics"""
         error_type = error_record["error_type"]
         component = error_record.get("component", "unknown")

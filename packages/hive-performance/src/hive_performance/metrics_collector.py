@@ -1,12 +1,13 @@
 """Performance metrics collection and aggregation."""
 
 import asyncio
+import threading
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Callable, Union
 from datetime import datetime, timedelta
-import threading
+from typing import Any, Callable, Dict, List, Optional, Union
+
 import psutil
 from hive_logging import get_logger
 
@@ -24,7 +25,7 @@ class PerformanceMetrics:
 
     # Resource metrics
     memory_usage: int = 0  # bytes
-    peak_memory: int = 0   # bytes
+    peak_memory: int = 0  # bytes
     cpu_percent: float = 0.0
 
     # Throughput metrics
@@ -68,7 +69,7 @@ class MetricsCollector:
         collection_interval: float = 1.0,
         max_history: int = 1000,
         enable_system_metrics: bool = True,
-        enable_async_metrics: bool = True
+        enable_async_metrics: bool = True,
     ):
         self.collection_interval = collection_interval
         self.max_history = max_history
@@ -94,16 +95,16 @@ class MetricsCollector:
         # Performance baselines
         self._baselines: Dict[str, PerformanceMetrics] = {}
 
-    async def start_collection(self) -> None:
+    async def start_collection_async(self) -> None:
         """Start automatic metrics collection."""
         if self._collecting:
             return
 
         self._collecting = True
-        self._collection_task = asyncio.create_task(self._collection_loop())
+        self._collection_task = asyncio.create_task(self._collection_loop_async())
         logger.info("Started performance metrics collection")
 
-    async def stop_collection(self) -> None:
+    async def stop_collection_async(self) -> None:
         """Stop automatic metrics collection."""
         self._collecting = False
         if self._collection_task:
@@ -114,17 +115,17 @@ class MetricsCollector:
                 pass
         logger.info("Stopped performance metrics collection")
 
-    async def _collection_loop(self) -> None:
+    async def _collection_loop_async(self) -> None:
         """Background collection loop."""
         while self._collecting:
             try:
-                await self._collect_system_metrics()
+                await self._collect_system_metrics_async()
                 await asyncio.sleep(self.collection_interval)
             except Exception as e:
                 logger.error(f"Error in metrics collection loop: {e}")
                 await asyncio.sleep(self.collection_interval)
 
-    async def _collect_system_metrics(self) -> None:
+    async def _collect_system_metrics_async(self) -> None:
         """Collect system-level metrics."""
         if not self.enable_system_metrics or not self._process:
             return
@@ -147,10 +148,10 @@ class MetricsCollector:
             metrics = PerformanceMetrics(
                 cpu_percent=cpu_percent,
                 memory_usage=memory_info.rss,
-                peak_memory=memory_info.peak_wset if hasattr(memory_info, 'peak_wset') else memory_info.vms,
+                peak_memory=memory_info.peak_wset if hasattr(memory_info, "peak_wset") else memory_info.vms,
                 active_tasks=active_tasks,
                 operation_name="system",
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
 
             with self._lock:
@@ -169,7 +170,7 @@ class MetricsCollector:
             "start_cpu": time.process_time(),
             "start_memory": self._get_memory_usage(),
             "tags": tags or {},
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.utcnow(),
         }
 
         with self._lock:
@@ -183,7 +184,7 @@ class MetricsCollector:
         operation_id: str,
         success: bool = True,
         bytes_processed: int = 0,
-        custom_metrics: Optional[Dict[str, Any]] = None
+        custom_metrics: Optional[Dict[str, Any]] = None,
     ) -> PerformanceMetrics:
         """End tracking a performance operation."""
         end_time = time.perf_counter()
@@ -220,7 +221,7 @@ class MetricsCollector:
                 operation_name=operation_name,
                 tags=start_info["tags"],
                 custom_metrics=custom_metrics or {},
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
 
             # Store metrics
@@ -233,8 +234,10 @@ class MetricsCollector:
         if self._process:
             try:
                 return self._process.memory_info().rss
-            except Exception:
-                pass
+            except (psutil.AccessDenied, psutil.NoSuchProcess) as e:
+                logger.debug(f"Cannot access process metrics: {e}")
+            except Exception as e:
+                logger.warning(f"Unexpected error getting memory usage: {e}")
         return 0
 
     def _calculate_error_rate(self, operation_name: str) -> float:
@@ -244,9 +247,7 @@ class MetricsCollector:
         return errors / total_ops if total_ops > 0 else 0.0
 
     def get_metrics(
-        self,
-        operation_name: Optional[str] = None,
-        time_window: Optional[timedelta] = None
+        self, operation_name: Optional[str] = None, time_window: Optional[timedelta] = None
     ) -> List[PerformanceMetrics]:
         """Get collected metrics."""
         with self._lock:
@@ -265,9 +266,7 @@ class MetricsCollector:
         return sorted(metrics_list, key=lambda m: m.timestamp)
 
     def get_aggregated_metrics(
-        self,
-        operation_name: Optional[str] = None,
-        time_window: Optional[timedelta] = None
+        self, operation_name: Optional[str] = None, time_window: Optional[timedelta] = None
     ) -> PerformanceMetrics:
         """Get aggregated metrics for analysis."""
         metrics_list = self.get_metrics(operation_name, time_window)
@@ -300,7 +299,7 @@ class MetricsCollector:
             error_count=total_errors,
             error_rate=total_errors / total_ops if total_ops > 0 else 0.0,
             operation_name=operation_name or "aggregated",
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
 
     def set_baseline(self, operation_name: str, metrics: Optional[PerformanceMetrics] = None) -> None:
@@ -324,9 +323,13 @@ class MetricsCollector:
         return {
             "execution_time_change": (current.execution_time - baseline.execution_time) / baseline.execution_time * 100,
             "memory_change": (current.memory_usage - baseline.memory_usage) / baseline.memory_usage * 100,
-            "throughput_change": (current.operations_per_second - baseline.operations_per_second) / baseline.operations_per_second * 100,
+            "throughput_change": (current.operations_per_second - baseline.operations_per_second)
+            / baseline.operations_per_second
+            * 100,
             "error_rate_change": current.error_rate - baseline.error_rate,
-            "cpu_change": (current.cpu_percent - baseline.cpu_percent) / baseline.cpu_percent * 100 if baseline.cpu_percent > 0 else 0.0
+            "cpu_change": (current.cpu_percent - baseline.cpu_percent) / baseline.cpu_percent * 100
+            if baseline.cpu_percent > 0
+            else 0.0,
         }
 
     def export_metrics(self, format: str = "json") -> Union[str, Dict[str, Any]]:
@@ -335,26 +338,33 @@ class MetricsCollector:
 
         if format == "json":
             import json
-            return json.dumps([
-                {
-                    "operation_name": m.operation_name,
-                    "execution_time": m.execution_time,
-                    "memory_usage": m.memory_usage,
-                    "operations_per_second": m.operations_per_second,
-                    "error_rate": m.error_rate,
-                    "timestamp": m.timestamp.isoformat(),
-                    "tags": m.tags,
-                    "custom_metrics": m.custom_metrics
-                } for m in all_metrics
-            ], indent=2)
+
+            return json.dumps(
+                [
+                    {
+                        "operation_name": m.operation_name,
+                        "execution_time": m.execution_time,
+                        "memory_usage": m.memory_usage,
+                        "operations_per_second": m.operations_per_second,
+                        "error_rate": m.error_rate,
+                        "timestamp": m.timestamp.isoformat(),
+                        "tags": m.tags,
+                        "custom_metrics": m.custom_metrics,
+                    }
+                    for m in all_metrics
+                ],
+                indent=2,
+            )
         elif format == "dict":
             return {
                 "metrics": all_metrics,
                 "summary": {
                     "total_operations": len(all_metrics),
                     "operation_types": len(set(m.operation_name for m in all_metrics)),
-                    "time_span": (all_metrics[-1].timestamp - all_metrics[0].timestamp).total_seconds() if all_metrics else 0
-                }
+                    "time_span": (all_metrics[-1].timestamp - all_metrics[0].timestamp).total_seconds()
+                    if all_metrics
+                    else 0,
+                },
             }
         else:
             raise ValueError(f"Unsupported export format: {format}")
@@ -384,7 +394,7 @@ class operation_tracker:
         operation_name: str,
         tags: Optional[Dict[str, str]] = None,
         bytes_processed: int = 0,
-        custom_metrics: Optional[Dict[str, Any]] = None
+        custom_metrics: Optional[Dict[str, Any]] = None,
     ):
         self.collector = collector
         self.operation_name = operation_name
@@ -404,15 +414,13 @@ class operation_tracker:
                 self.operation_id,
                 success=success,
                 bytes_processed=self.bytes_processed,
-                custom_metrics=self.custom_metrics
+                custom_metrics=self.custom_metrics,
             )
 
 
 # Decorator for automatic function performance tracking
 def track_performance(
-    collector: MetricsCollector,
-    operation_name: Optional[str] = None,
-    tags: Optional[Dict[str, str]] = None
+    collector: MetricsCollector, operation_name: Optional[str] = None, tags: Optional[Dict[str, str]] = None
 ) -> Callable:
     """Decorator for automatic function performance tracking."""
 
@@ -422,14 +430,18 @@ def track_performance(
             operation_name = f"{func.__module__}.{func.__name__}"
 
         if asyncio.iscoroutinefunction(func):
+
             async def async_wrapper(*args, **kwargs):
                 with operation_tracker(collector, operation_name, tags):
                     return await func(*args, **kwargs)
+
             return async_wrapper
         else:
+
             def sync_wrapper(*args, **kwargs):
                 with operation_tracker(collector, operation_name, tags):
                     return func(*args, **kwargs)
+
             return sync_wrapper
 
     return decorator

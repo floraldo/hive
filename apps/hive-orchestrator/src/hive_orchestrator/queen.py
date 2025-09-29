@@ -132,7 +132,7 @@ class QueenLite:
         if self.simple_mode:
             self.log.info("Running in HIVE_SIMPLE_MODE - some features may be simplified")
 
-    def _register_as_worker(self):
+    def _register_as_worker(self) -> None:
         """Register Queen as a worker in the database."""
         try:
             hive_core_db.register_worker(
@@ -158,7 +158,7 @@ class QueenLite:
             self.log.warning(f"Failed to register Queen as worker: {e}")
             # Continue anyway - registration might already exist
 
-    def _validate_system_configuration(self):
+    def _validate_system_configuration(self) -> None:
         """Validate system configuration and dependencies on startup."""
         self.log.info("Validating system configuration...")
 
@@ -278,7 +278,7 @@ class QueenLite:
             # Don't fail the operation if event publishing fails
             return ""
 
-    def _setup_event_subscriptions(self):
+    def _setup_event_subscriptions(self) -> None:
         """Set up cross-agent event subscriptions for choreographed workflow"""
         try:
             # Subscribe to AI Planner events to trigger task scheduling
@@ -307,7 +307,7 @@ class QueenLite:
         except Exception as e:
             self.log.error(f"Failed to setup event subscriptions: {e}")
 
-    def _handle_plan_generated_event(self, event):
+    def _handle_plan_generated_event(self, event) -> None:
         """Handle plan generation completion from AI Planner"""
         try:
             payload = event.payload
@@ -334,7 +334,7 @@ class QueenLite:
         except Exception as e:
             self.log.error(f"Error handling plan generated event: {e}")
 
-    def _handle_review_completed_event(self, event):
+    def _handle_review_completed_event(self, event) -> None:
         """Handle review completion from AI Reviewer"""
         try:
             payload = event.payload
@@ -367,7 +367,7 @@ class QueenLite:
         except Exception as e:
             self.log.error(f"Error handling review completed event: {e}")
 
-    def _handle_task_escalated_event(self, event):
+    def _handle_task_escalated_event(self, event) -> None:
         """Handle task escalation events for administrative attention"""
         try:
             payload = event.payload
@@ -453,8 +453,8 @@ class QueenLite:
 
             # Execute the command
             process = subprocess.Popen(
-                command,
-                shell=True,
+                command.split(),
+                shell=False,
                 cwd=app_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -682,7 +682,7 @@ class QueenLite:
     # TASK PROCESSING ENGINE (Queue Processing, Phase Advancement)
     # ================================================================================
 
-    def process_queued_tasks(self):
+    def process_queued_tasks(self) -> None:
         """Process tasks in queued status by starting their workflows with PARALLEL execution"""
         # Calculate available slots for parallel execution
         max_parallel = sum(self.hive.config["max_parallel_per_role"].values())
@@ -923,7 +923,7 @@ class QueenLite:
         self.log.info(f"Task {task_id} reset to queued for restart")
         return True
 
-    def recover_zombie_tasks(self):
+    def recover_zombie_tasks(self) -> None:
         """HARDENING: Detect and recover zombie tasks using database queries"""
         # Query database for tasks that are in_progress but not actively managed
         in_progress_tasks = hive_core_db.get_tasks_by_status("in_progress")
@@ -979,7 +979,7 @@ class QueenLite:
                         },
                     )
 
-    def monitor_workers(self):
+    def monitor_workers(self) -> None:
         """Monitor active workers with zombie recovery and timeout detection"""
         # First, detect and recover zombie tasks
         self.recover_zombie_tasks()
@@ -1027,7 +1027,7 @@ class QueenLite:
         # Handle successful worker completion
         return self._handle_worker_success(task_id, task, metadata, completed)
 
-    def _handle_worker_failure(self, task_id: str, task: Dict[str, Any], completed: List[str]):
+    def _handle_worker_failure(self, task_id: str, task: Dict[str, Any], completed: List[str]) -> None:
         """Handle worker process failure"""
         self.log.info(f"Worker failed for {task_id} - reverting to queued")
 
@@ -1218,7 +1218,7 @@ class QueenLite:
         completed.append(task_id)
         return True
 
-    def _check_worker_timeouts(self):
+    def _check_worker_timeouts(self) -> None:
         """Check for timed-out workers and kill them"""
         current_time = datetime.now(timezone.utc)
         timeout_minutes = self.hive.config.get("worker_timeout_minutes", 30)
@@ -1268,7 +1268,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error checking timeout for {task_id}: {e}")
 
-    def _cleanup_completed_workers(self, completed: List[str]):
+    def _cleanup_completed_workers(self, completed: List[str]) -> None:
         """Clean up completed workers from active_workers dict"""
         for task_id in completed:
             if task_id in self.active_workers:
@@ -1278,7 +1278,7 @@ class QueenLite:
     # STATUS MONITORING & RECOVERY (Health Checks, Zombie Recovery)
     # ================================================================================
 
-    def print_status(self):
+    def print_status(self) -> None:
         """Print clean status update with clear separation"""
         stats = self.hive.get_task_stats()
         active_count = len(self.active_workers)
@@ -1334,7 +1334,7 @@ class QueenLite:
     # WORKFLOW MANAGEMENT (Multi-step Task Orchestration)
     # ================================================================================
 
-    def process_workflow_tasks(self):
+    def process_workflow_tasks(self) -> None:
         """Process queued tasks using workflow definitions with PARALLEL execution"""
         # Calculate available slots for parallel execution
         max_parallel = sum(self.hive.config["max_parallel_per_role"].values())
@@ -1411,8 +1411,8 @@ class QueenLite:
                 self.log.info(f"[DEBUG] PYTHONPATH: {env.get('PYTHONPATH', 'not set')}")
 
                 process = subprocess.Popen(
-                    command,
-                    shell=True,
+                    command.split(),
+                    shell=False,
                     cwd=str(PROJECT_ROOT),
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
@@ -1446,7 +1446,7 @@ class QueenLite:
                 self.log.info(f"[PARALLEL] Reached max capacity ({max_parallel}), stopping task spawn")
                 break
 
-    async def process_review_tasks_async(self):
+    async def process_review_tasks_async(self) -> None:
         """Process tasks awaiting intelligent review"""
         review_tasks = hive_core_db.get_tasks_by_status("review_pending")
 
@@ -1460,7 +1460,7 @@ class QueenLite:
             # The AI Queen will handle this through the CLI tools
             # No auto-approval - this is the AI's decision point
 
-    def monitor_workflow_processes(self):
+    def monitor_workflow_processes(self) -> None:
         """Monitor running processes and handle completion"""
         completed = []
 
@@ -1493,7 +1493,7 @@ class QueenLite:
     # MAIN ORCHESTRATION LOOP
     # ================================================================================
 
-    async def run_forever_async(self):
+    async def run_forever_async(self) -> None:
         """Main orchestration loop - event-driven state machine"""
         self.log.info("QueenLite starting (Stateful Workflow Mode)...")
         logger.info("Workflow-driven task orchestration enabled")
@@ -1550,7 +1550,7 @@ class QueenLite:
 
     if ASYNC_ENABLED:
 
-        async def execute_app_task_async(self, task: Dict[str, Any]):
+        async def execute_app_task_async(self, task: Dict[str, Any]) -> None:
             """
             Async version of execute_app_task for non-blocking app task execution.
 
@@ -1612,7 +1612,7 @@ class QueenLite:
                 self.log.error(f"Async app task {task_id} failed - unexpected error: {type(e).__name__}: {e}")
                 return None
 
-        async def spawn_worker_async(self, task: Dict[str, Any], worker: str, phase: Phase):
+        async def spawn_worker_async(self, task: Dict[str, Any], worker: str, phase: Phase) -> None:
             """
             Async version of spawn_worker for non-blocking worker process creation.
 
@@ -1694,7 +1694,7 @@ class QueenLite:
 
     if ASYNC_ENABLED:
 
-        async async def run_forever_async_async(self):
+        async def run_forever_async(self):
             """
             Async version of main orchestration loop for 3-5x performance improvement.
 
@@ -1754,7 +1754,7 @@ class QueenLite:
 
                 self.log.info("QueenLite async mode stopped")
 
-        async async def _process_workflow_tasks_async_async(self):
+        async def _process_workflow_tasks_async(self):
             """Async version of workflow task processing."""
             try:
                 # Get queued tasks concurrently
@@ -1779,7 +1779,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error in async workflow task processing: {e}")
 
-        async async def _process_single_workflow_task_async_async(self, task: Dict[str, Any], semaphore: asyncio.Semaphore):
+        async def _process_single_workflow_task_async(self, task: Dict[str, Any], semaphore: asyncio.Semaphore):
             """Process a single workflow task asynchronously."""
             async with semaphore:
                 try:
@@ -1802,7 +1802,7 @@ class QueenLite:
                 except Exception as e:
                     self.log.error(f"Error processing async task {task.get('id', 'unknown')}: {e}")
 
-        async async def _process_app_task_async_async(self, task: Dict[str, Any]):
+        async def _process_app_task_async(self, task: Dict[str, Any]):
             """Process app task asynchronously."""
             task_id = task["id"]
 
@@ -1856,7 +1856,7 @@ class QueenLite:
                     )
                     await self.event_bus.publish_async(event)
 
-        async def _process_regular_task_async(self, task: Dict[str, Any]):
+        async def _process_regular_task_async(self, task: Dict[str, Any]) -> None:
             """Process regular workflow task asynchronously."""
             task_id = task["id"]
 
@@ -1888,7 +1888,7 @@ class QueenLite:
                             {"started_at": datetime.now(timezone.utc).isoformat()},
                         )
 
-        async async def _process_review_tasks_async_async(self):
+        async def _process_review_tasks_async(self):
             """Async version of review task processing."""
             try:
                 # This is a placeholder - the AI Reviewer will be converted to async separately
@@ -1900,7 +1900,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error in async review task processing: {e}")
 
-        async async def _monitor_workflow_processes_async_async(self):
+        async def _monitor_workflow_processes_async(self):
             """Async version of process monitoring with concurrent monitoring."""
             if not self.active_workers:
                 return
@@ -1918,7 +1918,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error in async process monitoring: {e}")
 
-        async async def _monitor_single_worker_async_async(self, task_id: str, metadata: Dict[str, Any]):
+        async def _monitor_single_worker_async(self, task_id: str, metadata: Dict[str, Any]):
             """Monitor a single worker process asynchronously."""
             try:
                 process = metadata["process"]
@@ -1940,7 +1940,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error monitoring async worker {task_id}: {e}")
 
-        async async def _handle_worker_success_async_async(self, task_id: str, metadata: Dict[str, Any]):
+        async def _handle_worker_success_async(self, task_id: str, metadata: Dict[str, Any]):
             """Handle successful worker completion asynchronously."""
             try:
                 task = await get_task_async(task_id)
@@ -1963,7 +1963,7 @@ class QueenLite:
             except Exception as e:
                 self.log.error(f"Error handling async worker success for {task_id}: {e}")
 
-        async async def _handle_worker_failure_async_async(self, task_id: str, metadata: Dict[str, Any], return_code: int):
+        async def _handle_worker_failure_async(self, task_id: str, metadata: Dict[str, Any], return_code: int):
             """Handle worker failure asynchronously."""
             try:
                 # Update task status
@@ -1993,7 +1993,7 @@ class QueenLite:
                 self.log.error(f"Error handling async worker failure for {task_id}: {e}")
 
 
-def main():
+def main() -> None:
     """Main CLI entry point with async support"""
     parser = argparse.ArgumentParser(description="QueenLite - Streamlined Queen Orchestrator")
     parser.add_argument("--live", action="store_true", help="Enable live streaming output from workers")

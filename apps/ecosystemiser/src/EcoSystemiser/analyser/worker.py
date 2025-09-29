@@ -55,7 +55,7 @@ class AnalyserWorker:
         self.is_running = False
         self._subscription_ids: List[str] = []
 
-    async def start_async(self):
+    async def start_async(self) -> None:
         """Start the worker and subscribe to relevant events."""
         if self.is_running:
             logger.warning("Analyser worker is already running")
@@ -79,7 +79,7 @@ class AnalyserWorker:
         self.is_running = True
         logger.info("Analyser Worker started successfully")
 
-    async def stop_async(self):
+    async def stop_async(self) -> None:
         """Stop the worker and unsubscribe from events."""
         if not self.is_running:
             return
@@ -94,7 +94,7 @@ class AnalyserWorker:
         self.is_running = False
         logger.info("Analyser Worker stopped")
 
-    async def _handle_study_completed_async(self, event: Event):
+    async def _handle_study_completed_async(self, event: Event) -> None:
         """Handle study completion events by triggering analysis.
 
         Args:
@@ -130,7 +130,7 @@ class AnalyserWorker:
         except Exception as e:
             logger.error(f"Error handling study completion event: {e}")
 
-    async def _handle_simulation_completed_async(self, event: Event):
+    async def _handle_simulation_completed_async(self, event: Event) -> None:
         """Handle individual simulation completion events.
 
         Args:
@@ -332,7 +332,7 @@ class AnalyserWorkerPool:
     Provides load balancing and resilience for analysis processing.
     """
 
-    def __init__(self, pool_size: int = 3, event_bus: Optional[EcoSystemiserEventBus] = None):
+    def __init__(self, pool_size: int = 3, event_bus: Optional[EcoSystemiserEventBus] = None) -> None:
         """Initialize worker pool.
 
         Args:
@@ -344,7 +344,7 @@ class AnalyserWorkerPool:
         self.workers: List[AnalyserWorker] = []
         self.current_worker_index = 0
 
-    async def start_async(self):
+    async def start_async(self) -> None:
         """Start all workers in the pool."""
         logger.info(f"Starting Analyser Worker Pool with {self.pool_size} workers")
 
@@ -358,7 +358,7 @@ class AnalyserWorkerPool:
 
         logger.info("Analyser Worker Pool started successfully")
 
-    async def stop_async(self):
+    async def stop_async(self) -> None:
         """Stop all workers in the pool."""
         logger.info("Stopping Analyser Worker Pool")
 

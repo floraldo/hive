@@ -2,14 +2,15 @@
 
 import asyncio
 import time
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 from hive_logging import get_logger
 
 from .cache_client import HiveCacheClient
 from .config import CacheConfig
-from .exceptions import CacheError, CacheConnectionError
+from .exceptions import CacheConnectionError, CacheError
 
 logger = get_logger(__name__)
 
@@ -49,7 +50,7 @@ class CacheHealthMonitor:
     - Connection pool monitoring
     """
 
-    def __init__(self, cache_client: HiveCacheClient, config: CacheConfig):
+    def __init__(self, cache_client: HiveCacheClient, config: CacheConfig) -> None:
         self.cache_client = cache_client
         self.config = config
         self._monitoring_active = False
@@ -62,7 +63,7 @@ class CacheHealthMonitor:
         }
         self._consecutive_failures = 0
 
-    async def start_monitoring(self) -> None:
+    async def start_monitoring_async(self) -> None:
         """Start continuous health monitoring."""
         if self._monitoring_active:
             logger.warning("Health monitoring already active")
@@ -72,25 +73,25 @@ class CacheHealthMonitor:
         logger.info("Starting cache health monitoring")
 
         # Start monitoring task
-        asyncio.create_task(self._monitoring_loop())
+        asyncio.create_task(self._monitoring_loop_async())
 
-    async def stop_monitoring(self) -> None:
+    async def stop_monitoring_async(self) -> None:
         """Stop continuous health monitoring."""
         self._monitoring_active = False
         logger.info("Stopped cache health monitoring")
 
-    async def _monitoring_loop(self) -> None:
+    async def _monitoring_loop_async(self) -> None:
         """Main monitoring loop."""
         while self._monitoring_active:
             try:
                 # Perform health check
-                health_result = await self.perform_health_check()
+                health_result = await self.perform_health_check_async()
 
                 # Store in history
                 self._add_to_history(health_result)
 
                 # Check for alerts
-                await self._check_alerts(health_result)
+                await self._check_alerts_async(health_result)
 
                 # Sleep until next check
                 await asyncio.sleep(self.config.health_check_interval)
@@ -107,7 +108,7 @@ class CacheHealthMonitor:
         if len(self._health_history) > self._max_history_size:
             self._health_history.pop(0)
 
-    async def _check_alerts(self, result: HealthCheckResult) -> None:
+    async def _check_alerts_async(self, result: HealthCheckResult) -> None:
         """Check if alerts should be generated."""
         alerts = []
 
@@ -136,7 +137,7 @@ class CacheHealthMonitor:
         for alert in alerts:
             logger.warning(f"Cache health alert: {alert}")
 
-    async def perform_health_check(self) -> HealthCheckResult:
+    async def perform_health_check_async(self) -> HealthCheckResult:
         """Perform comprehensive health check.
 
         Returns:
@@ -148,23 +149,23 @@ class CacheHealthMonitor:
 
         try:
             # Test basic connectivity
-            ping_result = await self._test_ping()
+            ping_result = await self._test_ping_async()
             details["ping"] = ping_result
 
             # Test set/get operations
-            set_get_result = await self._test_set_get()
+            set_get_result = await self._test_set_get_async()
             details["set_get"] = set_get_result
 
             # Test pattern operations
-            pattern_result = await self._test_pattern_operations()
+            pattern_result = await self._test_pattern_operations_async()
             details["pattern_operations"] = pattern_result
 
             # Get Redis info
-            redis_info = await self._get_redis_info()
+            redis_info = await self._get_redis_info_async()
             details["redis_info"] = redis_info
 
             # Get connection pool stats
-            pool_stats = await self._get_connection_pool_stats()
+            pool_stats = await self._get_connection_pool_stats_async()
             details["connection_pool"] = pool_stats
 
             # Calculate response time
@@ -197,7 +198,7 @@ class CacheHealthMonitor:
                 errors=errors
             )
 
-    async def _test_ping(self) -> Dict[str, Any]:
+    async def _test_ping_async(self) -> Dict[str, Any]:
         """Test Redis ping operation."""
         try:
             import aioredis
@@ -218,7 +219,7 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def _test_set_get(self) -> Dict[str, Any]:
+    async def _test_set_get_async(self) -> Dict[str, Any]:
         """Test set/get operations."""
         try:
             test_key = f"health_check_{int(time.time())}"
@@ -249,7 +250,7 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def _test_pattern_operations(self) -> Dict[str, Any]:
+    async def _test_pattern_operations_async(self) -> Dict[str, Any]:
         """Test pattern-based operations."""
         try:
             # Create test keys
@@ -274,7 +275,7 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def _get_redis_info(self) -> Dict[str, Any]:
+    async def _get_redis_info_async(self) -> Dict[str, Any]:
         """Get Redis server information."""
         try:
             import aioredis
@@ -300,7 +301,7 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def _get_connection_pool_stats(self) -> Dict[str, Any]:
+    async def _get_connection_pool_stats_async(self) -> Dict[str, Any]:
         """Get connection pool statistics."""
         try:
             pool = self.cache_client._redis_pool
@@ -317,7 +318,7 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def get_performance_metrics(self) -> PerformanceMetrics:
+    async def get_performance_metrics_async(self) -> PerformanceMetrics:
         """Get current performance metrics.
 
         Returns:
@@ -395,7 +396,7 @@ class CacheHealthMonitor:
             "monitoring_active": self._monitoring_active
         }
 
-    async def diagnose_issues(self) -> Dict[str, Any]:
+    async def diagnose_issues_async(self) -> Dict[str, Any]:
         """Perform diagnostic analysis of cache issues.
 
         Returns:

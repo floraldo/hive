@@ -21,13 +21,13 @@ from ecosystemiser.profile_loader.climate.adapters.errors import (
     DataParseError,
     ValidationError,
 )
-from ecosystemiser.profile_loader.climate.processing.validation import (
-    QCReport,
-    QCIssue,
-    QCSeverity,
-    QCProfile,
-)
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
+from ecosystemiser.profile_loader.climate.processing.validation import (
+    QCIssue,
+    QCProfile,
+    QCReport,
+    QCSeverity,
+)
 from ecosystemiser.profile_loader.climate.utils.chunking import (
     concatenate_chunked_results,
     estimate_memory_usage,
@@ -145,7 +145,9 @@ class NASAPowerAdapter(BaseAdapter):
 
         return data
 
-    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
+    async def _transform_data_async(
+        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+    ) -> xr.Dataset:
         """Transform raw NASA POWER data to xarray Dataset"""
         lat, lon = location
 
@@ -403,7 +405,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         return da
 
-    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict[str, Any]):
+    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict[str, Any]) -> None:
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValidationError(f"Invalid latitude: {lat}", field="lat", value=lat)
@@ -423,7 +425,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         return ds
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize NASA POWER adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
@@ -621,7 +623,7 @@ class NASAPowerAdapter(BaseAdapter):
 class NASAPowerQCProfile(QCProfile):
     """QC profile for NASA POWER data - co-located with adapter for better cohesion."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.name = "NASA POWER"
         self.description = "NASA's Prediction Of Worldwide Energy Resources - satellite-derived with MERRA-2 reanalysis"

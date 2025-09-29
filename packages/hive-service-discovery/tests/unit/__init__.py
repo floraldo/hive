@@ -1,0 +1,1 @@
+# Unit tests for hive-service-discovery package

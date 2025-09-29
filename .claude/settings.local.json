@@ -44,7 +44,10 @@
       "Bash(PYTHONPATH=packages/hive-testing-utils/src python -c:*)",
       "Bash(test:*)",
       "Bash(awk:*)",
-      "Bash(poetry install:*)"
+      "Bash(poetry install:*)",
+      "Read(//c/c/git/SmartHoodsOptimisationTool/**)",
+      "Read(//c/git/SmartHoodsOptimisationTool/Systemiser/**)",
+      "Read(//c/git/**)"
     ],
     "deny": [],
     "ask": []

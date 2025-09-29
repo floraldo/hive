@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Configuration classes for Hive AI components.
 
@@ -5,9 +9,10 @@ Follows the inherit-extend pattern by building upon hive-config
 with AI-specific configuration needs.
 """
 
-from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, Field, validator
+from typing import Any, Dict, List, Optional
+
 from hive_config import BaseConfig
+from pydantic import BaseModel, Field, validator
 
 
 class ModelConfig(BaseModel):
@@ -24,17 +29,19 @@ class ModelConfig(BaseModel):
     rate_limit_rpm: int = Field(60, description="Requests per minute limit")
     cost_per_token: float = Field(0.0, description="Cost per token in USD")
 
-    @validator('temperature')
-    def validate_temperature(cls, v):
+    @validator("temperature")
+    def validate_temperature(cls, v: float) -> float:
+        """Validate temperature is within valid range (0.0-2.0)."""
         if not 0.0 <= v <= 2.0:
-            raise ValueError('Temperature must be between 0.0 and 2.0')
+            raise ValueError("Temperature must be between 0.0 and 2.0")
         return v
 
-    @validator('provider')
-    def validate_provider(cls, v):
-        allowed = ['anthropic', 'openai', 'local', 'azure', 'huggingface']
+    @validator("provider")
+    def validate_provider(cls, v: str) -> str:
+        """Validate provider is in allowed list."""
+        allowed = ["anthropic", "openai", "local", "azure", "huggingface"]
         if v not in allowed:
-            raise ValueError(f'Provider must be one of: {allowed}')
+            raise ValueError(f"Provider must be one of: {allowed}")
         return v
 
 
@@ -50,11 +57,12 @@ class VectorConfig(BaseModel):
     max_connections: int = Field(10, description="Max concurrent connections")
     timeout_seconds: int = Field(30, description="Operation timeout")
 
-    @validator('distance_metric')
-    def validate_distance_metric(cls, v):
-        allowed = ['cosine', 'euclidean', 'dot_product']
+    @validator("distance_metric")
+    def validate_distance_metric(cls, v: str) -> str:
+        """Validate distance metric is in allowed list."""
+        allowed = ["cosine", "euclidean", "dot_product"]
         if v not in allowed:
-            raise ValueError(f'Distance metric must be one of: {allowed}')
+            raise ValueError(f"Distance metric must be one of: {allowed}")
         return v
 
 
@@ -78,23 +86,16 @@ class AIConfig(BaseConfig):
     """
 
     # Model configurations
-    models: Dict[str, ModelConfig] = Field(
-        default_factory=dict,
-        description="Available model configurations"
-    )
+    models: Dict[str, ModelConfig] = Field(default_factory=dict, description="Available model configurations")
     default_model: str = Field("claude-3-sonnet", description="Default model name")
 
     # Vector database configuration
     vector: VectorConfig = Field(
-        default_factory=lambda: VectorConfig(provider="chroma"),
-        description="Vector database configuration"
+        default_factory=lambda: VectorConfig(provider="chroma"), description="Vector database configuration"
     )
 
     # Prompt configuration
-    prompts: PromptConfig = Field(
-        default_factory=PromptConfig,
-        description="Prompt template configuration"
-    )
+    prompts: PromptConfig = Field(default_factory=PromptConfig, description="Prompt template configuration")
 
     # Cost and usage limits
     daily_cost_limit: float = Field(100.0, description="Daily cost limit in USD")
@@ -111,8 +112,9 @@ class AIConfig(BaseConfig):
     tracing_enabled: bool = Field(False, description="Enable request tracing")
     log_requests: bool = Field(False, description="Log all requests")
 
-    @validator('models')
-    def validate_models(cls, v):
+    @validator("models")
+    def validate_models(cls, v: Dict[str, "ModelConfig"]) -> Dict[str, "ModelConfig"]:
+        """Validate models configuration and provide defaults if empty."""
         if not v:
             # Provide default model configurations
             return {
@@ -121,45 +123,64 @@ class AIConfig(BaseConfig):
                     provider="anthropic",
                     model_type="chat",
                     max_tokens=4096,
-                    cost_per_token=0.000015
+                    cost_per_token=0.000015,
                 ),
                 "gpt-4": ModelConfig(
-                    name="gpt-4",
-                    provider="openai",
-                    model_type="chat",
-                    max_tokens=4096,
-                    cost_per_token=0.00003
+                    name="gpt-4", provider="openai", model_type="chat", max_tokens=4096, cost_per_token=0.00003
                 ),
                 "text-embedding-ada-002": ModelConfig(
                     name="text-embedding-ada-002",
                     provider="openai",
                     model_type="embedding",
                     max_tokens=8191,
-                    cost_per_token=0.0000001
-                )
+                    cost_per_token=0.0000001,
+                ),
             }
         return v
 
-    @validator('default_model')
-    def validate_default_model(cls, v, values):
-        models = values.get('models', {})
+    @validator("default_model")
+    def validate_default_model(cls, v: str, values: Dict[str, Any]) -> str:
+        """Validate default model exists in configured models."""
+        models = values.get("models", {})
         if models and v not in models:
             raise ValueError(f'Default model "{v}" not found in configured models')
         return v
 
     def get_model_config(self, model_name: Optional[str] = None) -> ModelConfig:
-        """Get configuration for specific model or default."""
+        """Get configuration for specific model or default.
+
+        Args:
+            model_name: Name of the model to retrieve. If None, uses default_model.
+
+        Returns:
+            ModelConfig instance for the specified model.
+
+        Raises:
+            ValueError: If the specified model is not configured.
+        """
         name = model_name or self.default_model
         if name not in self.models:
             raise ValueError(f'Model "{name}" not configured')
         return self.models[name]
 
     def add_model(self, config: ModelConfig) -> None:
-        """Add new model configuration."""
+        """Add new model configuration.
+
+        Args:
+            config: ModelConfig instance to add to available models.
+        """
         self.models[config.name] = config
 
     def remove_model(self, model_name: str) -> None:
-        """Remove model configuration."""
+        """Remove model configuration.
+
+        Args:
+            model_name: Name of the model to remove from configuration.
+
+        Note:
+            If removing the default model, automatically sets a new default
+            from remaining models if any exist.
+        """
         if model_name in self.models:
             del self.models[model_name]
             if self.default_model == model_name:

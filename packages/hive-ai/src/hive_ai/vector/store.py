@@ -6,18 +6,17 @@ vector database providers with hive-db integration patterns.
 """
 
 import asyncio
-from typing import Dict, List, Optional, Any, Union
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional, Union
 
-from hive_logging import get_logger
-from hive_db import get_async_session, AsyncSession
-from hive_async import async_retry, AsyncCircuitBreaker
+from hive_async import AsyncCircuitBreaker, async_retry
 from hive_cache import CacheManager
+from hive_db import AsyncSession, get_async_session
+from hive_logging import get_logger
 
 from ..core.config import VectorConfig
-from ..core.interfaces import VectorStoreInterface
 from ..core.exceptions import VectorError
-
+from ..core.interfaces import VectorStoreInterface
 
 logger = get_logger(__name__)
 
@@ -25,25 +24,19 @@ logger = get_logger(__name__)
 class BaseVectorProvider(ABC):
     """Abstract base for vector database providers."""
 
-    def __init__(self, config: VectorConfig):
+    def __init__(self, config: VectorConfig) -> None:
         self.config = config
 
     @abstractmethod
     async def store_vectors_async(
-        self,
-        vectors: List[List[float]],
-        metadata: List[Dict[str, Any]],
-        ids: Optional[List[str]] = None
+        self, vectors: List[List[float]], metadata: List[Dict[str, Any]], ids: Optional[List[str]] = None
     ) -> List[str]:
         """Store vectors in the database."""
         pass
 
     @abstractmethod
     async def search_vectors_async(
-        self,
-        query_vector: List[float],
-        top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None
+        self, query_vector: List[float], top_k: int = 10, filter_metadata: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """Search for similar vectors."""
         pass
@@ -67,12 +60,12 @@ class BaseVectorProvider(ABC):
 class ChromaProvider(BaseVectorProvider):
     """ChromaDB vector database provider."""
 
-    def __init__(self, config: VectorConfig):
+    def __init__(self, config: VectorConfig) -> None:
         super().__init__(config)
         self._client = None
         self._collection = None
 
-    async def _get_client(self):
+    async def _get_client_async(self) -> None:
         """Get or create ChromaDB client."""
         if self._client is None:
             try:
@@ -81,11 +74,9 @@ class ChromaProvider(BaseVectorProvider):
 
                 if self.config.connection_string:
                     # Remote ChromaDB
-                    host, port = self.config.connection_string.split(':')
+                    host, port = self.config.connection_string.split(":")
                     self._client = chromadb.HttpClient(
-                        host=host,
-                        port=int(port),
-                        settings=Settings(anonymized_telemetry=False)
+                        host=host, port=int(port), settings=Settings(anonymized_telemetry=False)
                     )
                 else:
                     # Local ChromaDB
@@ -93,8 +84,7 @@ class ChromaProvider(BaseVectorProvider):
 
                 # Get or create collection
                 self._collection = self._client.get_or_create_collection(
-                    name=self.config.collection_name,
-                    metadata={"dimension": self.config.dimension}
+                    name=self.config.collection_name, metadata={"dimension": self.config.dimension}
                 )
 
                 logger.info(f"Connected to ChromaDB collection: {self.config.collection_name}")
@@ -103,85 +93,70 @@ class ChromaProvider(BaseVectorProvider):
                 raise VectorError(
                     "ChromaDB not installed. Install with: pip install chromadb",
                     collection=self.config.collection_name,
-                    operation="initialize"
+                    operation="initialize",
                 )
             except Exception as e:
                 raise VectorError(
                     f"Failed to connect to ChromaDB: {str(e)}",
                     collection=self.config.collection_name,
-                    operation="connect"
+                    operation="connect",
                 ) from e
 
         return self._client, self._collection
 
     async def store_vectors_async(
-        self,
-        vectors: List[List[float]],
-        metadata: List[Dict[str, Any]],
-        ids: Optional[List[str]] = None
+        self, vectors: List[List[float]], metadata: List[Dict[str, Any]], ids: Optional[List[str]] = None
     ) -> List[str]:
         """Store vectors in ChromaDB."""
-        _, collection = await self._get_client()
+        _, collection = await self._get_client_async()
 
         if ids is None:
             import uuid
+
             ids = [str(uuid.uuid4()) for _ in vectors]
 
         try:
-            collection.add(
-                embeddings=vectors,
-                metadatas=metadata,
-                ids=ids
-            )
+            collection.add(embeddings=vectors, metadatas=metadata, ids=ids)
             logger.debug(f"Stored {len(vectors)} vectors in ChromaDB")
             return ids
 
         except Exception as e:
             raise VectorError(
-                f"Failed to store vectors: {str(e)}",
-                collection=self.config.collection_name,
-                operation="store"
+                f"Failed to store vectors: {str(e)}", collection=self.config.collection_name, operation="store"
             ) from e
 
     async def search_vectors_async(
-        self,
-        query_vector: List[float],
-        top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None
+        self, query_vector: List[float], top_k: int = 10, filter_metadata: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """Search for similar vectors in ChromaDB."""
-        _, collection = await self._get_client()
+        _, collection = await self._get_client_async()
 
         try:
-            results = collection.query(
-                query_embeddings=[query_vector],
-                n_results=top_k,
-                where=filter_metadata
-            )
+            results = collection.query(query_embeddings=[query_vector], n_results=top_k, where=filter_metadata)
 
             # Transform results to standard format
             search_results = []
-            for i in range(len(results['ids'][0])):
-                search_results.append({
-                    'id': results['ids'][0][i],
-                    'distance': results['distances'][0][i],
-                    'metadata': results['metadatas'][0][i],
-                    'score': 1.0 - results['distances'][0][i]  # Convert distance to similarity
-                })
+            for i in range(len(results["ids"][0])):
+                search_results.append(
+                    {
+                        "id": results["ids"][0][i],
+                        "distance": results["distances"][0][i],
+                        "metadata": results["metadatas"][0][i],
+                        "score": 1.0 - results["distances"][0][i],  # Convert distance to similarity
+                    }
+                )
 
             logger.debug(f"Found {len(search_results)} similar vectors")
             return search_results
 
         except Exception as e:
             raise VectorError(
-                f"Failed to search vectors: {str(e)}",
-                collection=self.config.collection_name,
-                operation="search"
+                f"Failed to search vectors: {str(e)}", collection=self.config.collection_name, operation="search"
             ) from e
 
     async def delete_vectors_async(self, ids: List[str]) -> bool:
         """Delete vectors from ChromaDB."""
-        _, collection = await self._get_client()
+        _, collection = await self._get_client_async()
 
         try:
             collection.delete(ids=ids)
@@ -194,7 +169,7 @@ class ChromaProvider(BaseVectorProvider):
 
     async def get_collection_info_async(self) -> Dict[str, Any]:
         """Get ChromaDB collection information."""
-        _, collection = await self._get_client()
+        _, collection = await self._get_client_async()
 
         try:
             count = collection.count()
@@ -202,24 +177,26 @@ class ChromaProvider(BaseVectorProvider):
                 "name": self.config.collection_name,
                 "count": count,
                 "dimension": self.config.dimension,
-                "provider": "chromadb"
+                "provider": "chromadb",
             }
 
         except Exception as e:
             raise VectorError(
-                f"Failed to get collection info: {str(e)}",
-                collection=self.config.collection_name,
-                operation="info"
+                f"Failed to get collection info: {str(e)}", collection=self.config.collection_name, operation="info"
             ) from e
 
     async def health_check_async(self) -> bool:
         """Check ChromaDB health."""
         try:
-            client, collection = await self._get_client()
+            client, collection = await self._get_client_async()
             # Simple health check - try to count documents
             collection.count()
             return True
-        except Exception:
+        except ConnectionError as e:
+            logger.warning(f"Vector store connection failed: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Vector store health check failed: {e}")
             return False
 
 
@@ -231,7 +208,7 @@ class VectorStore(VectorStoreInterface):
     with caching, circuit breaker, and hive-db integration.
     """
 
-    def __init__(self, config: VectorConfig):
+    def __init__(self, config: VectorConfig) -> None:
         self.config = config
         self._provider = self._create_provider()
         self._circuit_breaker = AsyncCircuitBreaker(failure_threshold=5, recovery_timeout=60)
@@ -252,25 +229,21 @@ class VectorStore(VectorStoreInterface):
         if not provider_class:
             available = list(provider_map.keys())
             raise VectorError(
-                f"Unsupported vector provider: {self.config.provider}. Available: {available}",
-                operation="initialize"
+                f"Unsupported vector provider: {self.config.provider}. Available: {available}", operation="initialize"
             )
 
         return provider_class(self.config)
 
     @async_retry(max_attempts=3, delay=1.0)
     async def store_async(
-        self,
-        vectors: List[List[float]],
-        metadata: List[Dict[str, Any]],
-        ids: Optional[List[str]] = None
+        self, vectors: List[List[float]], metadata: List[Dict[str, Any]], ids: Optional[List[str]] = None
     ) -> List[str]:
         """Store vectors with retry and circuit breaker."""
         if len(vectors) != len(metadata):
             raise VectorError(
                 f"Vector count ({len(vectors)}) must match metadata count ({len(metadata)})",
                 collection=self.config.collection_name,
-                operation="store"
+                operation="store",
             )
 
         # Validate vector dimensions
@@ -279,29 +252,21 @@ class VectorStore(VectorStoreInterface):
                 raise VectorError(
                     f"Vector {i} has dimension {len(vector)}, expected {self.config.dimension}",
                     collection=self.config.collection_name,
-                    operation="store"
+                    operation="store",
                 )
 
-        return await self._circuit_breaker.call_async(
-            self._provider.store_vectors_async,
-            vectors,
-            metadata,
-            ids
-        )
+        return await self._circuit_breaker.call_async(self._provider.store_vectors_async, vectors, metadata, ids)
 
     @async_retry(max_attempts=3, delay=1.0)
     async def search_async(
-        self,
-        query_vector: List[float],
-        top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None
+        self, query_vector: List[float], top_k: int = 10, filter_metadata: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """Search vectors with caching and circuit breaker."""
         if len(query_vector) != self.config.dimension:
             raise VectorError(
                 f"Query vector has dimension {len(query_vector)}, expected {self.config.dimension}",
                 collection=self.config.collection_name,
-                operation="search"
+                operation="search",
             )
 
         # Create cache key
@@ -314,10 +279,7 @@ class VectorStore(VectorStoreInterface):
 
         # Execute search
         results = await self._circuit_breaker.call_async(
-            self._provider.search_vectors_async,
-            query_vector,
-            top_k,
-            filter_metadata
+            self._provider.search_vectors_async, query_vector, top_k, filter_metadata
         )
 
         # Cache results for 5 minutes
@@ -332,10 +294,7 @@ class VectorStore(VectorStoreInterface):
         # Clear relevant caches
         self._cache.clear()
 
-        return await self._circuit_breaker.call_async(
-            self._provider.delete_vectors_async,
-            ids
-        )
+        return await self._circuit_breaker.call_async(self._provider.delete_vectors_async, ids)
 
     async def get_info_async(self) -> Dict[str, Any]:
         """Get collection information."""
@@ -362,7 +321,7 @@ class VectorStore(VectorStoreInterface):
                 "provider": self.config.provider,
                 "collection": self.config.collection_name,
                 "circuit_breaker": circuit_stats,
-                "cache_size": self._cache.size() if hasattr(self._cache, 'size') else 0
+                "cache_size": self._cache.size() if hasattr(self._cache, "size") else 0,
             }
 
         except Exception as e:
@@ -370,7 +329,7 @@ class VectorStore(VectorStoreInterface):
                 "healthy": False,
                 "error": str(e),
                 "provider": self.config.provider,
-                "collection": self.config.collection_name
+                "collection": self.config.collection_name,
             }
 
     async def optimize_async(self) -> Dict[str, Any]:
@@ -381,29 +340,21 @@ class VectorStore(VectorStoreInterface):
         # Get collection stats
         info = await self.get_info_async()
 
-        optimization_results = {
-            "cache_cleared": True,
-            "collection_info": info,
-            "recommendations": []
-        }
+        optimization_results = {"cache_cleared": True, "collection_info": info, "recommendations": []}
 
         # Add optimization recommendations based on collection size
         if info.get("count", 0) > 10000:
-            optimization_results["recommendations"].append(
-                "Consider using approximate search for large collections"
-            )
+            optimization_results["recommendations"].append("Consider using approximate search for large collections")
 
         if info.get("count", 0) < 100:
-            optimization_results["recommendations"].append(
-                "Collection is small, exact search is optimal"
-            )
+            optimization_results["recommendations"].append("Collection is small, exact search is optimal")
 
         return optimization_results
 
     async def close_async(self) -> None:
         """Close vector store connections."""
         try:
-            if hasattr(self._provider, 'close_async'):
+            if hasattr(self._provider, "close_async"):
                 await self._provider.close_async()
         except Exception as e:
             logger.error(f"Error closing vector store: {e}")

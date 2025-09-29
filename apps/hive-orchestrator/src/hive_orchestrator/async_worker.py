@@ -24,14 +24,11 @@ from hive_config.paths import (
 )
 from hive_logging import get_logger, setup_logging
 
-# Async database operations from Phase 1
-from hive_orchestrator.core.db import (
-    AsyncDatabaseOperations,
-    get_async_db_operations,
-)
-
 # Async event bus from Phase 1
 from hive_orchestrator.core.bus import get_async_event_bus
+
+# Async database operations from Phase 1
+from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
 
 
 class AsyncWorker:
@@ -105,7 +102,7 @@ class AsyncWorker:
         self.log.info(f"  Workspace: {self.workspace}")
         self.log.info(f"  Claude: {self.claude_cmd or 'SIMULATION MODE'}")
 
-    async def initialize_async(self):
+    async def initialize_async(self) -> None:
         """Async initialization of database and event bus"""
         # Initialize async database operations
         self.db_ops = await get_async_db_operations()
@@ -118,7 +115,7 @@ class AsyncWorker:
         # Register worker
         await self._register_worker_async()
 
-    async def _register_worker_async(self):
+    async def _register_worker_async(self) -> None:
         """Register worker in database"""
         try:
             await self.db_ops.register_worker_async(
@@ -180,13 +177,10 @@ class AsyncWorker:
     def _command_exists(self, cmd: str) -> bool:
         """Check if command exists"""
         import shutil
+
         return shutil.which(cmd) is not None
 
-    async def execute_claude_async(
-        self,
-        prompt: str,
-        context_files: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+    async def execute_claude_async(self, prompt: str, context_files: Optional[List[str]] = None) -> Dict[str, Any]:
         """Execute Claude CLI asynchronously with non-blocking I/O"""
         if not self.claude_cmd:
             self.log.info("Claude not available - simulating response")
@@ -223,10 +217,7 @@ class AsyncWorker:
 
             # Wait for completion with timeout
             try:
-                stdout, stderr = await asyncio.wait_for(
-                    process.communicate(),
-                    timeout=300  # 5 minute timeout
-                )
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=300)  # 5 minute timeout
             except asyncio.TimeoutError:
                 process.kill()
                 await process.wait()
@@ -338,11 +329,7 @@ class AsyncWorker:
                 "phase": self.phase,
             }
 
-    async def _execute_apply_phase_async(
-        self,
-        description: str,
-        payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _execute_apply_phase_async(self, description: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Execute APPLY phase asynchronously"""
         self.log.info("Executing APPLY phase")
 
@@ -369,11 +356,7 @@ class AsyncWorker:
 
         return result
 
-    async def _execute_test_phase_async(
-        self,
-        description: str,
-        payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _execute_test_phase_async(self, description: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Execute TEST phase asynchronously"""
         self.log.info("Executing TEST phase")
 
@@ -410,11 +393,7 @@ class AsyncWorker:
 
         return result
 
-    async def _execute_plan_phase_async(
-        self,
-        description: str,
-        payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _execute_plan_phase_async(self, description: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Execute PLAN phase asynchronously"""
         self.log.info("Executing PLAN phase")
 
@@ -461,10 +440,7 @@ class AsyncWorker:
                 cwd=str(self.workspace),
             )
 
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=60  # 1 minute timeout for tests
-            )
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)  # 1 minute timeout for tests
 
             if process.returncode == 0:
                 return {
@@ -489,15 +465,13 @@ class AsyncWorker:
                 "error": str(e),
             }
 
-    async def _save_run_result_async(self, result: Dict[str, Any]):
+    async def _save_run_result_async(self, result: Dict[str, Any]) -> None:
         """Save run result to database asynchronously"""
         try:
             self.metrics["db_operations"] += 1
 
             # Calculate metrics
-            execution_time = (
-                datetime.now(timezone.utc) - self.metrics["start_time"]
-            ).total_seconds()
+            execution_time = (datetime.now(timezone.utc) - self.metrics["start_time"]).total_seconds()
 
             # Save result
             await self.db_ops.update_run_async(
@@ -551,7 +525,7 @@ class AsyncWorker:
                 await self.db_ops.close()
 
 
-async def main_async():
+async def main_async() -> None:
     """Main entry point for AsyncWorker"""
     parser = argparse.ArgumentParser(description="AsyncWorker - V4.0 High-Performance Worker")
     parser.add_argument("role", choices=["backend", "frontend", "infra"], help="Worker role")

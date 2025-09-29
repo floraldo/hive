@@ -98,7 +98,7 @@ class ProcessingPipeline:
     postprocessing (analytics/derived metrics) stages.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]) -> None:
         """
         Initialize processing pipeline with centralized configuration.
 
@@ -116,7 +116,7 @@ class ProcessingPipeline:
         self._setup_default_preprocessing()
         self._setup_default_postprocessing()
 
-    def _setup_default_preprocessing(self):
+    def _setup_default_preprocessing(self) -> None:
         """Set up default preprocessing pipeline based on config"""
         try:
             from ecosystemiser.profile_loader.climate.gap_filling import smart_fill_gaps
@@ -181,7 +181,7 @@ class ProcessingPipeline:
             enabled=False,  # Only enabled when timezone is requested
         )
 
-    def _setup_default_postprocessing(self):
+    def _setup_default_postprocessing(self) -> None:
         """Set up default postprocessing pipeline based on config"""
         try:
             # Try to import postprocessing modules
@@ -321,7 +321,7 @@ class ProcessingPipeline:
             "skipped": [r for r in self.execution_reports if r.get("skipped")],
         }
 
-    def clear_steps(self, stage: Optional[PipelineStage] = None):
+    def clear_steps(self, stage: Optional[PipelineStage] = None) -> None:
         """Clear processing steps"""
         if stage == PipelineStage.PREPROCESSING or stage is None:
             self.preprocessing_steps = []

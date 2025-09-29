@@ -28,13 +28,13 @@ class EventSubscriber:
     subscription_id: str = None
     created_at: datetime = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.subscription_id:
             self.subscription_id = str(uuid.uuid4())
         if not self.created_at:
             self.created_at = datetime.now(timezone.utc)
 
-    def handle_event(self, event: Event):
+    def handle_event(self, event: Event) -> None:
         """Handle an incoming event"""
         try:
             logger.debug(f"Subscriber {self.subscriber_name} handling event {event.event_id}")
@@ -54,13 +54,13 @@ class AsyncEventSubscriber:
     subscription_id: str = None
     created_at: datetime = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.subscription_id:
             self.subscription_id = str(uuid.uuid4())
         if not self.created_at:
             self.created_at = datetime.now(timezone.utc)
 
-    async def handle_event_async(self, event: Event):
+    async def handle_event_async(self, event: Event) -> None:
         """Handle an incoming event asynchronously"""
         try:
             logger.debug(f"Async subscriber {self.subscriber_name} handling event {event.event_id}")
@@ -78,18 +78,18 @@ class AsyncEventSubscriber:
 class SubscriberRegistry:
     """Registry for managing event subscribers"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._subscribers = {}
         self._async_subscribers = {}
 
-    def add_subscriber(self, subscriber: EventSubscriber):
+    def add_subscriber(self, subscriber: EventSubscriber) -> None:
         """Add a synchronous subscriber"""
         pattern = subscriber.pattern
         if pattern not in self._subscribers:
             self._subscribers[pattern] = []
         self._subscribers[pattern].append(subscriber)
 
-    def add_async_subscriber(self, subscriber: AsyncEventSubscriber):
+    def add_async_subscriber(self, subscriber: AsyncEventSubscriber) -> None:
         """Add an asynchronous subscriber"""
         pattern = subscriber.pattern
         if pattern not in self._async_subscribers:
@@ -164,10 +164,10 @@ def create_async_subscriber(
 
 
 # Decorator for easy subscription
-def event_handler(pattern: str, subscriber_name: str = "anonymous"):
+def event_handler(pattern: str, subscriber_name: str = "anonymous") -> None:
     """Decorator for creating event handlers"""
 
-    def decorator(func):
+    def decorator(func) -> None:
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
 

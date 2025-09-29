@@ -182,7 +182,7 @@ class ElectricBoilerOptimizationSimple(BaseConversionOptimization):
     - No modulation or heat exchanger effects
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -286,7 +286,7 @@ class ElectricBoiler(Component):
 
     PARAMS_MODEL = ElectricBoilerParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize electric boiler attributes and strategy objects."""
         self.type = "generation"
         self.medium = "heat"
@@ -369,7 +369,7 @@ class ElectricBoiler(Component):
         """
         return self.physics.rule_based_conversion_dispatch(t, requested_output, from_medium, to_medium)
 
-    def add_optimization_vars(self, N: Optional[int] = None):
+    def add_optimization_vars(self, N: Optional[int] = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N

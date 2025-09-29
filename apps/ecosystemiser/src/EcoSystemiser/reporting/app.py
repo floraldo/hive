@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from ecosystemiser.analyser import AnalyserService
-from ecosystemiser.services.reporting_service import ReportingService, ReportConfig
-from flask import Flask, jsonify, render_template, request, send_file, Response
+from ecosystemiser.services.reporting_service import ReportConfig, ReportingService
+from flask import Flask, Response, jsonify, render_template, request, send_file
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -90,7 +90,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         return render_template("upload.html")
 
     @app.route("/report/<session_id>")
-    def report(session_id):
+    def report(session_id) -> None:
         """Generate and display comprehensive report."""
         # Retrieve stored results
         session_key = f"results_{session_id}"
@@ -117,7 +117,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/report/ga/<study_id>")
-    def report_ga(study_id):
+    def report_ga(study_id) -> None:
         """Generate GA optimization report from study results."""
         # Look for study results file
         results_dir = Path(app.config.get("RESULTS_DIR", "results"))
@@ -150,7 +150,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/report/mc/<study_id>")
-    def report_mc(study_id):
+    def report_mc(study_id) -> None:
         """Generate MC uncertainty analysis report from study results."""
         # Look for study results file
         results_dir = Path(app.config.get("RESULTS_DIR", "results"))
@@ -183,7 +183,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/api/study/<study_id>")
-    def api_study(study_id):
+    def api_study(study_id) -> None:
         """API endpoint to retrieve study results."""
         results_dir = Path(app.config.get("RESULTS_DIR", "results"))
 
@@ -303,7 +303,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 # Note: generate_plots function removed - now handled by ReportingService
 
 
-def run_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = False):
+def run_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = False) -> None:
     """Run the Flask development server.
 
     Args:

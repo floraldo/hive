@@ -66,7 +66,7 @@ class DeploymentOrchestrator:
     Orchestrates deployment operations using various strategies
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         """
         Initialize deployment orchestrator
 

@@ -45,7 +45,7 @@ class CopulaSyntheticGenerator:
     while allowing for temporal pattern preservation.
     """
 
-    def __init__(self, config: Optional[CopulaConfig] = None):
+    def __init__(self, config: Optional[CopulaConfig] = None) -> None:
         """Initialize copula generator"""
         self.config = config or CopulaConfig()
         self._fitted_copula = None
@@ -167,7 +167,7 @@ class CopulaSyntheticGenerator:
 
         return data_matrix, variables, time_info
 
-    def _fit_marginals(self, data_matrix: np.ndarray, variables: List[str], time_info: Dict):
+    def _fit_marginals(self, data_matrix: np.ndarray, variables: List[str], time_info: Dict) -> None:
         """Fit marginal distributions for each variable"""
 
         logger.info("Fitting marginal distributions")
@@ -214,7 +214,7 @@ class CopulaSyntheticGenerator:
 
             logger.debug(f"Variable {var}: fitted {best_dist.name} distribution")
 
-    def _fit_copula(self, data_matrix: np.ndarray):
+    def _fit_copula(self, data_matrix: np.ndarray) -> None:
         """Fit copula to the dependence structure"""
 
         logger.info(f"Fitting {self.config.copula_type.value} copula")

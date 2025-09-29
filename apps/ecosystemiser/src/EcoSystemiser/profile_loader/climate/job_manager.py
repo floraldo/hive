@@ -43,7 +43,7 @@ class JobManager:
     production environments.
     """
 
-    def __init__(self, redis_url: Optional[str] = None, ttl_hours: int = 24):
+    def __init__(self, redis_url: Optional[str] = None, ttl_hours: int = 24) -> None:
         """
         Initialize job manager.
 

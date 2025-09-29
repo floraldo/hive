@@ -8,7 +8,7 @@ import asyncio
 import json
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import IntEnum
 from typing import Any, Callable, Coroutine, Dict, List, Optional, Set, Tuple
@@ -128,7 +128,7 @@ class AsyncEventBus:
             "events_timeout": 0,
         }
 
-    async def start_async(self):
+    async def start_async(self) -> None:
         """Start the event bus"""
         if self._running:
             return
@@ -139,7 +139,7 @@ class AsyncEventBus:
         # Start dead letter queue processor
         asyncio.create_task(self._process_dead_letter_queue_async())
 
-    async def stop_async(self):
+    async def stop_async(self) -> None:
         """Stop the event bus"""
         self._running = False
 
@@ -287,7 +287,7 @@ class AsyncEventBus:
 
         return event_ids
 
-    async def _process_events_async(self, event_type: str):
+    async def _process_events_async(self, event_type: str) -> None:
         """Process events for a specific event type"""
         queue = self._queues[event_type]
 
@@ -343,7 +343,7 @@ class AsyncEventBus:
                 logger.error(f"Error processing events for {event_type}: {e}")
                 await asyncio.sleep(1)  # Brief pause before retrying
 
-    async def _process_dead_letter_queue_async(self):
+    async def _process_dead_letter_queue_async(self) -> None:
         """Process dead letter queue"""
         while self._running:
             try:
@@ -435,7 +435,7 @@ class AsyncEventBus:
         received_event = None
         event_received = asyncio.Event()
 
-        async def handler_async(event: AsyncEvent):
+        async def handler_async(event: AsyncEvent) -> None:
             nonlocal received_event
             if predicate is None or predicate(event):
                 received_event = event

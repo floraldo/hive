@@ -1,3 +1,9 @@
+from hive_errors import BaseError
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
+
 """
 Unified profile service interface for all profile types.
 
@@ -137,19 +143,19 @@ class ProfileServiceError(Exception):
         self.details = details or {}
 
 
-class ProfileValidationError(ProfileServiceError):
+class ProfileValidationError(BaseError):
     """Exception for profile request validation errors."""
 
     pass
 
 
-class ProfileDataError(ProfileServiceError):
+class ProfileDataError(BaseError):
     """Exception for profile data processing errors."""
 
     pass
 
 
-class ProfileSourceError(ProfileServiceError):
+class ProfileSourceError(BaseError):
     """Exception for profile data source errors."""
 
     pass

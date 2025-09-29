@@ -21,7 +21,7 @@ class EconomicAnalysis(BaseAnalysis):
     - Total cost of ownership
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize economic analysis."""
         super().__init__(name="Economic")
         self.discount_rate = 0.05  # Default 5% discount rate

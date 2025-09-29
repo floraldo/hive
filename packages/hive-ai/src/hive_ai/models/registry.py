@@ -6,13 +6,13 @@ dynamic registration and health monitoring.
 """
 
 from typing import Dict, List, Optional, Type
-from hive_logging import get_logger
+
 from hive_cache import CacheManager
+from hive_logging import get_logger
 
-from ..core.config import ModelConfig, AIConfig
-from ..core.interfaces import ModelProviderInterface
+from ..core.config import AIConfig, ModelConfig
 from ..core.exceptions import ModelUnavailableError
-
+from ..core.interfaces import ModelProviderInterface
 
 logger = get_logger(__name__)
 
@@ -25,18 +25,14 @@ class ModelRegistry:
     health status with caching for performance.
     """
 
-    def __init__(self, config: AIConfig):
+    def __init__(self, config: AIConfig) -> None:
         self.config = config
         self._providers: Dict[str, ModelProviderInterface] = {}
         self._provider_classes: Dict[str, Type[ModelProviderInterface]] = {}
         self._health_status: Dict[str, bool] = {}
         self._cache = CacheManager("model_registry")
 
-    def register_provider(
-        self,
-        provider_name: str,
-        provider_class: Type[ModelProviderInterface]
-    ) -> None:
+    def register_provider(self, provider_name: str, provider_class: Type[ModelProviderInterface]) -> None:
         """Register a model provider class."""
         logger.info(f"Registering provider: {provider_name}")
         self._provider_classes[provider_name] = provider_class
@@ -49,7 +45,7 @@ class ModelRegistry:
                     f"Provider '{provider_name}' not registered",
                     model="",
                     provider=provider_name,
-                    available_models=self.list_available_models()
+                    available_models=self.list_available_models(),
                 )
 
             # Create provider instance
@@ -64,10 +60,7 @@ class ModelRegistry:
             return self.config.get_model_config(model_name)
         except ValueError as e:
             raise ModelUnavailableError(
-                str(e),
-                model=model_name,
-                provider="",
-                available_models=self.list_available_models()
+                str(e), model=model_name, provider="", available_models=self.list_available_models()
             )
 
     def list_available_models(self) -> List[str]:
@@ -141,7 +134,7 @@ class ModelRegistry:
             return None
 
         cheapest = None
-        lowest_cost = float('inf')
+        lowest_cost = float("inf")
 
         for model_name in models:
             if not self.validate_model_available(model_name):
@@ -164,5 +157,5 @@ class ModelRegistry:
             "total_models": total_models,
             "healthy_models": healthy_models,
             "total_providers": providers,
-            "health_percentage": int((healthy_models / total_models * 100) if total_models > 0 else 0)
+            "health_percentage": int((healthy_models / total_models * 100) if total_models > 0 else 0),
         }

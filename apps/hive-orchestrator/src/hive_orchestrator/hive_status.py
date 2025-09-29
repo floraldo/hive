@@ -1,3 +1,5 @@
+import asyncio
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -9,6 +11,7 @@ Shows tasks, active workers, results, and events without any scheduling logic
 
 import json
 import os
+import subprocess
 import sys
 import time
 from collections import defaultdict
@@ -18,13 +21,14 @@ from typing import Any, Dict, List, Optional
 
 # Windows console color support
 if sys.platform == "win32":
-    os.system("color")
+    # Use subprocess instead of os.system for security
+    subprocess.run(["cmd", "/c", "color"], check=False)
 
 
 class HiveStatus:
     """Pure read-only status viewer for Hive MAS with DI support"""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         self.config = config or {}
         self.root = Path.cwd()
         self.hive_dir = self.root / "hive"
@@ -208,7 +212,7 @@ class HiveStatus:
             borders = {"double": "=", "single": "-"}
         return borders.get(char_type, "-")
 
-    def print_dashboard(self):
+    def print_dashboard(self) -> None:
         """Print the status dashboard"""
         # Clear screen
         logger.info("\033[2J\033[H", end="")
@@ -367,7 +371,7 @@ class HiveStatus:
         logger.info(self.get_border_char("single") * 80)
         logger.info("Press Ctrl+C to exit | Updates every 2 seconds | Read-only viewer")
 
-    def run(self, refresh_seconds: int = 2):
+    def run(self, refresh_seconds: int = 2) -> None:
         """Run the dashboard with periodic refresh"""
         logger.info("Starting Hive Status Dashboard v2...")
 
@@ -391,15 +395,15 @@ class HiveStatus:
             logger.info("\n\nDashboard stopped.")
 
 
-def main():
+def main() -> None:
     """Main entry point"""
     # For production, pass environment variables via config
     # For now, using defaults which enable emoji by default
     import os
 
     config = {}
-    if "HIVE_EMOJI" in os.environ:
-        config["use_emoji"] = os.environ["HIVE_EMOJI"] != "0"
+    # Default to emoji enabled, disable only if explicitly set to "0"
+    config["use_emoji"] = os.environ.get("HIVE_EMOJI", "1") != "0"
 
     dashboard = HiveStatus(config)
     dashboard.run()

@@ -44,7 +44,7 @@ logger = get_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan_async(app: FastAPI):
+async def lifespan_async(app: FastAPI) -> None:
     """Application lifespan manager"""
     logger.info("Starting EcoSystemiser Platform")
     # Initialize observability
@@ -116,7 +116,7 @@ app.add_middleware(
 
 # Root router
 @app.get("/", response_model=PlatformInfo, tags=["Platform"])
-async def root_async():
+async def root_async() -> None:
     """Root endpoint with platform information"""
     return PlatformInfo(
         platform="EcoSystemiser",
@@ -154,7 +154,7 @@ async def root_async():
 
 
 @app.get("/health", response_model=HealthCheck, tags=["Platform"])
-async def health_async():
+async def health_async() -> None:
     """Enhanced health check endpoint with system status"""
     checks = {
         "database": check_database_health_async(),
@@ -200,7 +200,7 @@ solver_router = APIRouter(prefix="/solver", tags=["Solver"])
 
 
 @solver_router.get("/status", response_model=SolverStatus)
-async def solver_status_async():
+async def solver_status_async() -> None:
     """Get solver module status"""
     return SolverStatus(
         module="solver",
@@ -219,7 +219,7 @@ analyser_router = APIRouter(prefix="/analyser", tags=["Analyser"])
 
 
 @analyser_router.get("/status", response_model=AnalyserStatus)
-async def analyser_status_async():
+async def analyser_status_async() -> None:
     """Get analyser module status"""
     return AnalyserStatus(
         module="analyser",
@@ -243,7 +243,7 @@ reporting_router = APIRouter(prefix="/reporting", tags=["Reporting"])
 
 
 @reporting_router.get("/status", response_model=ReportingStatus)
-async def reporting_status_async():
+async def reporting_status_async() -> None:
     """Get reporting module status"""
     return ReportingStatus(
         module="reporting",
@@ -263,7 +263,7 @@ app.include_router(api_v3)
 
 # Legacy v2 support (redirect to v3)
 @app.get("/api/v2/{path:path}", response_model=LegacyRedirect, tags=["Legacy"])
-async def legacy_v2_redirect_async(path: str):
+async def legacy_v2_redirect_async(path: str) -> None:
     """Redirect v2 API calls to v3 with migration guidance"""
     redirect_response = LegacyRedirect(
         message="API v2 deprecated, please use v3",
@@ -278,7 +278,7 @@ async def legacy_v2_redirect_async(path: str):
 
 # Error handlers
 @app.exception_handler(ClimateError)
-async def climate_error_handler_async(request: Request, exc: ClimateError):
+async def climate_error_handler_async(request: Request, exc: ClimateError) -> None:
     """Handle platform-specific errors with structured response"""
     error_response = APIError(
         error=exc.__class__.__name__,
@@ -294,7 +294,7 @@ async def climate_error_handler_async(request: Request, exc: ClimateError):
 
 
 @app.exception_handler(Exception)
-async def general_error_handler_async(request: Request, exc: Exception):
+async def general_error_handler_async(request: Request, exc: Exception) -> None:
     """Handle unexpected errors with structured response"""
     logger.error(f"Unexpected error: {exc}", exc_info=True)
 
@@ -380,7 +380,7 @@ def check_filesystem_health_async() -> bool:
 
 
 @app.get("/metrics", response_model=MonitoringResponse, tags=["Monitoring"])
-async def get_metrics_async():
+async def get_metrics_async() -> None:
     """Get system metrics and performance data"""
     import os
 
@@ -425,7 +425,7 @@ async def get_metrics_async():
 
 
 @app.get("/version", tags=["Platform"])
-async def get_version_async():
+async def get_version_async() -> None:
     """Get detailed version information"""
     return {
         "version": settings.api.version,

@@ -29,7 +29,7 @@ class ComponentParams(BaseModel):
 class Component:
     """Base class for all system components with enhanced parameter handling."""
 
-    def __init__(self, name: str, params: BaseModel, n: int = 24):
+    def __init__(self, name: str, params: BaseModel, n: int = 24) -> None:
         """Initialize component with automatic parameter extraction.
 
         Args:
@@ -69,7 +69,7 @@ class Component:
         # Call component-specific initialization
         self._post_init()
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Component-specific initialization after parameter unpacking.
 
         Override this method in subclasses for component-specific setup.
@@ -77,7 +77,7 @@ class Component:
         """
         pass
 
-    def add_optimization_vars(self):
+    def add_optimization_vars(self) -> None:
         """Placeholder for future cvxpy variable initialization.
 
         This method will be called by OptimizationSolver before solving.
@@ -86,7 +86,7 @@ class Component:
         """
         pass
 
-    def set_constraints(self):
+    def set_constraints(self) -> None:
         """Define component constraints for optimization.
 
         Returns:
@@ -129,7 +129,7 @@ class Component:
         """
         return True
 
-    def print_info(self):
+    def print_info(self) -> None:
         """Print component information for debugging."""
         logger.info(f"\n=== Component: {self.name} ===")
         logger.info(f"Type: {self.type}")

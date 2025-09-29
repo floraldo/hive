@@ -170,7 +170,7 @@ class WaterStorageOptimizationSimple(BaseStorageOptimization):
     - No temperature-dependent effects
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -294,8 +294,8 @@ class WaterStorageParams(ComponentParams):
             max_discharge_rate=2.0,  # Default 2 m³/h outflow
             efficiency_roundtrip=0.98,  # Storage efficiency
             initial_soc_pct=0.5,  # Start at 50% full
-            soc_min_pct=0.05,  # Minimum 5% (emergency reserve)
-            soc_max_pct=1.0,  # Maximum 100%
+            soc_min=0.05,  # Minimum 5% (emergency reserve)
+            soc_max=1.0,  # Maximum 100%
             fidelity_level=FidelityLevel.STANDARD,
         ),
         description="Technical parameters following the hierarchical archetype system",
@@ -317,7 +317,7 @@ class WaterStorage(Component):
 
     PARAMS_MODEL = WaterStorageParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize water storage attributes and strategy objects."""
         self.type = "storage"
         self.medium = "water"
@@ -392,7 +392,7 @@ class WaterStorage(Component):
         else:
             raise ValueError(f"Unknown fidelity level for WaterStorage optimization: {fidelity}")
 
-    def rule_based_update_state(self, t: int, inflow: float, outflow: float):
+    def rule_based_update_state(self, t: int, inflow: float, outflow: float) -> None:
         """
         Delegate to physics strategy for state update calculation.
 
@@ -418,7 +418,7 @@ class WaterStorage(Component):
                 f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, " f"outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
             )
 
-    def add_optimization_vars(self, N: Optional[int] = None):
+    def add_optimization_vars(self, N: Optional[int] = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N
@@ -473,13 +473,13 @@ class WaterStorage(Component):
             return (self.water_level[timestep] / self.capacity_m3) * 100
         return 0.0
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset component state."""
         if hasattr(self, "water_level"):
             self.water_level[:] = 0
             self.water_level[0] = self.initial_level_m3
 
-    def __repr__(self):
+    def __repr__(self) -> None:
         """String representation."""
         return (
             f"WaterStorage(name='{self.name}', "

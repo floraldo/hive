@@ -44,7 +44,7 @@ def create_orchestrator_db_manager() -> AsyncDatabaseManager:
 
 
 @asynccontextmanager
-async def get_async_connection_async(db_manager: Optional[AsyncDatabaseManager] = None):
+async def get_async_connection_async(db_manager: Optional[AsyncDatabaseManager] = None) -> None:
     """
     Get an async connection using dependency injection.
 

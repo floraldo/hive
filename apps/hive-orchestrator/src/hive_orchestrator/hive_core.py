@@ -28,7 +28,7 @@ from .core.db import get_connection, get_pooled_connection
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
 
-    def __init__(self, root_dir: Optional[Path] = None, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, root_dir: Optional[Path] = None, config: Optional[Dict[str, Any]] = None) -> None:
         # Use authoritative paths from singleton
         self.root = PROJECT_ROOT
         self.hive_dir = HIVE_DIR
@@ -117,7 +117,7 @@ class HiveCore:
         # Return default from main config
         return self.config.get(key)
 
-    def ensure_directories(self):
+    def ensure_directories(self) -> None:
         """Create all required directories"""
         dirs = [
             self.hive_dir,
@@ -200,7 +200,7 @@ class HiveCore:
             self.log.error(f"Error loading queue from database: {e}")
             return []
 
-    def save_task_queue(self, queue: List[str]):
+    def save_task_queue(self, queue: List[str]) -> None:
         """Save task queue - No-op since database manages queue through task status"""
         # Database manages queue state through task status - no explicit queue file needed
         pass
@@ -213,7 +213,7 @@ class HiveCore:
             self.log.error(f"Error loading task {task_id} from database: {e}")
             return None
 
-    def save_task(self, task: Dict[str, Any]):
+    def save_task(self, task: Dict[str, Any]) -> None:
         """Save task data to database"""
         task_id = task.get("id")
         if not task_id:
@@ -283,7 +283,7 @@ class HiveCore:
             self.log.error(f"Error getting all tasks from database: {e}")
             return []
 
-    def clean_fresh_environment(self):
+    def clean_fresh_environment(self) -> None:
         """Clean all state for fresh environment testing"""
         logger.info(f"[{self.timestamp()}] Cleaning fresh environment...")
 
@@ -421,7 +421,7 @@ class HiveCore:
 
         return stats
 
-    def emit_event(self, event_type: str, **data):
+    def emit_event(self, event_type: str, **data) -> None:
         """Emit event to bus for tracking"""
         event = {
             "type": event_type,
@@ -488,7 +488,7 @@ class HiveCore:
         return None
 
 
-def cmd_init(args, core: HiveCore):
+def cmd_init(args, core: HiveCore) -> None:
     """Initialize hive environment"""
     logger.info("Initializing Hive environment...")
     core.ensure_directories()
@@ -501,7 +501,7 @@ def cmd_init(args, core: HiveCore):
     logger.info("Hive initialized successfully")
 
 
-def cmd_clean(args, core: HiveCore):
+def cmd_clean(args, core: HiveCore) -> None:
     """Clean fresh environment"""
     if args.fresh_env:
         core.clean_fresh_environment()
@@ -509,7 +509,7 @@ def cmd_clean(args, core: HiveCore):
         logger.info("Use --fresh-env flag to clean environment")
 
 
-def cmd_status(args, core: HiveCore):
+def cmd_status(args, core: HiveCore) -> None:
     """Show hive status"""
     stats = core.get_task_stats()
     queue = core.load_task_queue()
@@ -531,7 +531,7 @@ def cmd_status(args, core: HiveCore):
             logger.info(f"  {task['id']}: {status} ({assignee})")
 
 
-def cmd_queue(args, core: HiveCore):
+def cmd_queue(args, core: HiveCore) -> None:
     """Add task to queue"""
     task_id = args.task_id
     task_file = core.tasks_dir / f"{task_id}.json"
@@ -549,7 +549,7 @@ def cmd_queue(args, core: HiveCore):
         logger.info(f"Task {task_id} already in queue")
 
 
-def cmd_logs(args, core: HiveCore):
+def cmd_logs(args, core: HiveCore) -> None:
     """Show task logs"""
     task_id = args.task_id
     logs_dir = core.root / "hive" / "logs" / task_id
@@ -576,7 +576,7 @@ def cmd_logs(args, core: HiveCore):
                 logger.info(f.read())
 
 
-def cmd_list(args, core: HiveCore):
+def cmd_list(args, core: HiveCore) -> None:
     """List all tasks"""
     tasks = core.get_all_tasks()
 
@@ -590,7 +590,7 @@ def cmd_list(args, core: HiveCore):
         logger.info(f"  [{status:12}] {task['id']:30} - {title}")
 
 
-def cmd_clear(args, core: HiveCore):
+def cmd_clear(args, core: HiveCore) -> None:
     """Clear a specific task's workspace"""
     task_id = args.task_id
     if core.clean_task_workspace(task_id):
@@ -599,7 +599,7 @@ def cmd_clear(args, core: HiveCore):
         logger.error(f"Failed to clear workspace for {task_id}")
 
 
-def cmd_reset(args, core: HiveCore):
+def cmd_reset(args, core: HiveCore) -> None:
     """Reset a task to queued status"""
     task = core.load_task(args.task_id)
     if not task:
@@ -616,7 +616,7 @@ def cmd_reset(args, core: HiveCore):
     logger.info(f"Task {args.task_id} reset to queued")
 
 
-def cmd_get_transcript(args, core: HiveCore):
+def cmd_get_transcript(args, core: HiveCore) -> None:
     """Get transcript for a specific run"""
     run_id = args.run_id
 
@@ -651,7 +651,7 @@ def cmd_get_transcript(args, core: HiveCore):
     logger.info(transcript)
 
 
-def cmd_review_next_task(args, core: HiveCore):
+def cmd_review_next_task(args, core: HiveCore) -> None:
     """Get the next task awaiting review (for AI reviewer)"""
     # Initialize database
     hive_core_db.init_db()
@@ -744,7 +744,7 @@ def cmd_review_next_task(args, core: HiveCore):
         logger.info(f"{'='*60}\n")
 
 
-def cmd_complete_review(args, core: HiveCore):
+def cmd_complete_review(args, core: HiveCore) -> None:
     """Complete review of a task and transition to next phase"""
     # Initialize database
     hive_core_db.init_db()
@@ -813,7 +813,7 @@ def cmd_complete_review(args, core: HiveCore):
         logger.error(f"Error: Failed to update task {task_id}")
 
 
-def main():
+def main() -> None:
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(description="HiveCore - Streamlined Hive Manager")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

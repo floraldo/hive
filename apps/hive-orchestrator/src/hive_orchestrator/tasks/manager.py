@@ -26,7 +26,7 @@ class TaskResult:
 class TaskManager:
     """Manages async task execution with monitoring and coordination."""
 
-    def __init__(self, max_concurrent: int = 10):
+    def __init__(self, max_concurrent: int = 10) -> None:
         self.max_concurrent = max_concurrent
         self.semaphore = asyncio.Semaphore(max_concurrent)
         self.active_tasks: Dict[str, asyncio.Task] = {}
@@ -58,7 +58,7 @@ class TaskManager:
             raise ValueError(f"Task {task_id} is already active")
 
         # Wrap the coroutine with semaphore and monitoring
-        async def wrapped_task_async():
+        async def wrapped_task_async() -> None:
             async with self.semaphore:
                 start_time = asyncio.get_event_loop().time()
                 try:
@@ -135,7 +135,7 @@ class TaskManager:
 
         return True
 
-    async def cancel_all_async(self):
+    async def cancel_all_async(self) -> None:
         """Cancel all active tasks."""
         task_ids = list(self.active_tasks.keys())
         for task_id in task_ids:
@@ -160,7 +160,7 @@ class TaskManager:
         return successful / len(self.completed_tasks)
 
     @asynccontextmanager
-    async def task_group_async(self, max_concurrent: Optional[int] = None):
+    async def task_group_async(self, max_concurrent: Optional[int] = None) -> None:
         """Context manager for task group execution."""
         if max_concurrent:
             original_limit = self.max_concurrent

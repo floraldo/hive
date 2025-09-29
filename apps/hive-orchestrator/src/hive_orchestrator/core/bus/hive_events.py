@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive-specific event types.
 
@@ -45,7 +49,7 @@ class TaskEvent(BaseEvent):
     status: TaskStatus = TaskStatus.PENDING
     priority: int = 1
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Set event type for task events"""
         if not self.event_type:
             self.event_type = f"task.{self.status.value}"
@@ -64,7 +68,7 @@ class AgentEvent(BaseEvent):
     status: AgentStatus = AgentStatus.IDLE
     capabilities: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Set event type for agent events"""
         if not self.event_type:
             self.event_type = f"agent.{self.status.value}"
@@ -83,7 +87,7 @@ class WorkflowEvent(BaseEvent):
     progress: float = 0.0  # 0.0 to 1.0
     dependencies: Dict[str, str] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Set event type for workflow events"""
         if not self.event_type:
             self.event_type = f"workflow.{self.phase}"

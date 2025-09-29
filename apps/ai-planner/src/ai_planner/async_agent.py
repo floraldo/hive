@@ -17,22 +17,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-from hive_logging import get_logger
-
-# V4.0 Async infrastructure imports
-from hive_orchestrator.core.db import (
-    AsyncDatabaseOperations,
-    get_async_db_operations,
-)
-from hive_orchestrator.core.bus import (
-    get_async_event_bus,
-    publish_event_async,
-    TaskEventType,
-    WorkflowEventType,
-    create_task_event,
-    create_workflow_event,
-)
-
 # Import recovery strategies
 from ai_planner.core.errors import (
     ClaudeServiceError,
@@ -47,12 +31,25 @@ from ai_planner.core.errors import (
     get_error_reporter,
     with_recovery,
 )
+from hive_logging import get_logger
+from hive_orchestrator.core.bus import (
+    TaskEventType,
+    WorkflowEventType,
+    create_task_event,
+    create_workflow_event,
+    get_async_event_bus,
+    publish_event_async,
+)
+
+# V4.0 Async infrastructure imports
+from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
 
 logger = get_logger(__name__)
 
 
 class PlanningPriority(Enum):
     """Task planning priority levels"""
+
     LOW = 1
     MEDIUM = 2
     HIGH = 3
@@ -64,7 +61,7 @@ class AsyncClaudeService:
     Async version of Claude service for non-blocking plan generation
     """
 
-    def __init__(self, config=None, rate_config=None):
+    def __init__(self, config=None, rate_config=None) -> None:
         self.mock_mode = getattr(config, "mock_mode", True)
         self.max_calls_per_minute = getattr(rate_config, "max_calls_per_minute", 20)
         self.max_calls_per_hour = getattr(rate_config, "max_calls_per_hour", 500)
@@ -94,7 +91,7 @@ class AsyncClaudeService:
         """
         async with self._semaphore:
             # Rate limiting check
-            await self._check_rate_limits()
+            await self._check_rate_limits_async()
 
             # Record call timestamp
             now = time.time()
@@ -108,18 +105,14 @@ class AsyncClaudeService:
                 plan_id = f"plan_{uuid.uuid4().hex[:8]}"
                 complexity = self._determine_complexity(task_description)
 
-                sub_tasks = await self._generate_mock_subtasks(
-                    task_description, complexity, priority
-                )
+                sub_tasks = await self._generate_mock_subtasks_async(task_description, complexity, priority)
 
                 return {
                     "plan_id": plan_id,
                     "plan_name": f"Async Generated Plan: {task_description[:50]}",
                     "sub_tasks": sub_tasks,
                     "metrics": {
-                        "total_estimated_duration": sum(
-                            task.get("estimated_duration", 30) for task in sub_tasks
-                        ),
+                        "total_estimated_duration": sum(task.get("estimated_duration", 30) for task in sub_tasks),
                         "complexity_breakdown": self._analyze_complexity(sub_tasks),
                         "confidence_score": 0.85 + (priority / 200),
                         "generation_time": 0.5 + (priority / 100),
@@ -130,25 +123,21 @@ class AsyncClaudeService:
                         "priority": priority,
                         "cache_used": use_cache,
                         "generation_timestamp": datetime.now(timezone.utc).isoformat(),
-                    }
+                    },
                 }
             else:
                 # TODO: Implement actual Claude API integration
                 raise NotImplementedError("Real Claude integration not yet implemented")
 
-    async def _check_rate_limits(self):
+    async def _check_rate_limits_async(self) -> None:
         """Check and enforce rate limits"""
         now = time.time()
 
         # Clean old timestamps (older than 1 hour)
-        self._call_timestamps = [
-            ts for ts in self._call_timestamps if now - ts < 3600
-        ]
+        self._call_timestamps = [ts for ts in self._call_timestamps if now - ts < 3600]
 
         # Check minute limit
-        minute_calls = len([
-            ts for ts in self._call_timestamps if now - ts < 60
-        ])
+        minute_calls = len([ts for ts in self._call_timestamps if now - ts < 60])
         if minute_calls >= self.max_calls_per_minute:
             wait_time = 60 - (now - min(self._call_timestamps[-minute_calls:]))
             logger.warning(f"Rate limit reached, waiting {wait_time:.1f}s")
@@ -171,7 +160,7 @@ class AsyncClaudeService:
         else:
             return "medium"
 
-    async def _generate_mock_subtasks(
+    async def _generate_mock_subtasks_async(
         self, task_description: str, complexity: str, priority: int
     ) -> List[Dict[str, Any]]:
         """Generate realistic mock subtasks"""
@@ -196,37 +185,41 @@ class AsyncClaudeService:
                 "workflow_phase": "implementation",
                 "required_skills": ["development", "coding"],
                 "estimated_duration": 30 if complexity == "low" else 90,
-            }
+            },
         ]
 
         if complexity == "high":
-            base_tasks.extend([
-                {
-                    "title": "Create comprehensive tests",
-                    "description": "Create unit and integration tests",
-                    "workflow_phase": "testing",
-                    "required_skills": ["testing", "quality_assurance"],
-                    "estimated_duration": 45,
-                },
-                {
-                    "title": "Performance optimization",
-                    "description": "Optimize performance and scalability",
-                    "workflow_phase": "optimization",
-                    "required_skills": ["performance", "optimization"],
-                    "estimated_duration": 30,
-                }
-            ])
+            base_tasks.extend(
+                [
+                    {
+                        "title": "Create comprehensive tests",
+                        "description": "Create unit and integration tests",
+                        "workflow_phase": "testing",
+                        "required_skills": ["testing", "quality_assurance"],
+                        "estimated_duration": 45,
+                    },
+                    {
+                        "title": "Performance optimization",
+                        "description": "Optimize performance and scalability",
+                        "workflow_phase": "optimization",
+                        "required_skills": ["performance", "optimization"],
+                        "estimated_duration": 30,
+                    },
+                ]
+            )
 
         # Add IDs and metadata
         for i, task in enumerate(base_tasks):
-            task.update({
-                "id": f"subtask_{uuid.uuid4().hex[:8]}",
-                "assignee": "auto",
-                "complexity": complexity,
-                "deliverables": [f"{task['workflow_phase']}_output"],
-                "dependencies": [base_tasks[i-1]["id"]] if i > 0 else [],
-                "priority": max(1, priority - 10),  # Slightly lower than parent
-            })
+            task.update(
+                {
+                    "id": f"subtask_{uuid.uuid4().hex[:8]}",
+                    "assignee": "auto",
+                    "complexity": complexity,
+                    "deliverables": [f"{task['workflow_phase']}_output"],
+                    "dependencies": [base_tasks[i - 1]["id"]] if i > 0 else [],
+                    "priority": max(1, priority - 10),  # Slightly lower than parent
+                }
+            )
 
         return base_tasks
 
@@ -251,7 +244,7 @@ class AsyncAIPlanner:
     - Performance metrics tracking
     """
 
-    def __init__(self, mock_mode: bool = False):
+    def __init__(self, mock_mode: bool = False) -> None:
         self.agent_id = f"async-ai-planner-{uuid.uuid4().hex[:8]}"
         self.running = False
         self.mock_mode = mock_mode
@@ -282,16 +275,14 @@ class AsyncAIPlanner:
 
         # Error handling
         self.error_reporter = get_error_reporter(component_name="async-ai-planner")
-        self.retry_strategy = ExponentialBackoffStrategy(
-            max_retries=3, base_delay=1.0, max_delay=10.0
-        )
+        self.retry_strategy = ExponentialBackoffStrategy(max_retries=3, base_delay=1.0, max_delay=10.0)
 
         # Graceful shutdown
         self.shutdown_event = asyncio.Event()
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
 
-    async def initialize_async(self):
+    async def initialize_async(self) -> None:
         """Initialize all async components"""
         logger.info(f"Initializing AsyncAIPlanner {self.agent_id}")
 
@@ -305,18 +296,19 @@ class AsyncAIPlanner:
 
         # Initialize async Claude service
         from ai_planner.core.config import get_claude_config, get_rate_limit_config
+
         config = get_claude_config(mock_mode=self.mock_mode)
         rate_config = get_rate_limit_config()
         self.claude_service = AsyncClaudeService(config=config, rate_config=rate_config)
         logger.info("Async Claude service initialized")
 
         # Register agent in database
-        await self._register_agent()
+        await self._register_agent_async()
 
         # Start performance monitoring
-        asyncio.create_task(self._monitor_performance())
+        asyncio.create_task(self._monitor_performance_async())
 
-    async def _register_agent(self):
+    async def _register_agent_async(self) -> None:
         """Register agent in the database"""
         try:
             await self.db_ops.register_worker_async(
@@ -333,13 +325,13 @@ class AsyncAIPlanner:
                     "type": "AsyncAIPlanner",
                     "max_concurrent": self.max_concurrent_plans,
                     "performance": "3-5x",
-                }
+                },
             )
             logger.info("AsyncAIPlanner registered as worker")
         except Exception as e:
             logger.warning(f"Failed to register agent: {e}")
 
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum, frame) -> None:
         """Handle shutdown signals gracefully"""
         logger.info(f"Received signal {signum}, initiating graceful shutdown")
         self.shutdown_event.set()
@@ -348,21 +340,13 @@ class AsyncAIPlanner:
         """Get the next task requiring planning"""
         try:
             # Get tasks needing planning
-            planning_tasks = await self.db_ops.get_tasks_concurrent_async(
-                status="planning_pending",
-                limit=10
-            )
+            planning_tasks = await self.db_ops.get_tasks_concurrent_async(status="planning_pending", limit=10)
 
             if not planning_tasks:
                 return None
 
             # Sort by priority and creation time
-            planning_tasks.sort(
-                key=lambda t: (
-                    -t.get("priority", 1),
-                    t.get("created_at", "")
-                )
-            )
+            planning_tasks.sort(key=lambda t: (-t.get("priority", 1), t.get("created_at", "")))
 
             # Return highest priority task not currently being planned
             for task in planning_tasks:
@@ -386,10 +370,7 @@ class AsyncAIPlanner:
                 start_time = time.time()
 
                 # Update metrics
-                self.metrics["concurrent_peak"] = max(
-                    self.metrics["concurrent_peak"],
-                    len(self.active_plans)
-                )
+                self.metrics["concurrent_peak"] = max(self.metrics["concurrent_peak"], len(self.active_plans))
 
                 logger.info(f"Starting async plan generation for task {task_id}")
 
@@ -397,10 +378,7 @@ class AsyncAIPlanner:
                 await self.db_ops.update_task_status_async(
                     task_id,
                     "planning_in_progress",
-                    {
-                        "planner_id": self.agent_id,
-                        "planning_start": datetime.now(timezone.utc).isoformat()
-                    }
+                    {"planner_id": self.agent_id, "planning_start": datetime.now(timezone.utc).isoformat()},
                 )
 
                 # Generate plan using async Claude service
@@ -419,7 +397,7 @@ class AsyncAIPlanner:
                         requestor=task.get("created_by", "system"),
                         use_cache=True,
                     ),
-                    timeout=self.max_planning_time
+                    timeout=self.max_planning_time,
                 )
 
                 # Create subtasks in database
@@ -456,7 +434,7 @@ class AsyncAIPlanner:
                         "planning_metrics": plan_result["metrics"],
                         "planned_at": datetime.now(timezone.utc).isoformat(),
                         "planner_id": self.agent_id,
-                    }
+                    },
                 )
 
                 # Update metrics
@@ -477,12 +455,11 @@ class AsyncAIPlanner:
                         "subtask_count": len(subtask_ids),
                         "planning_time": planning_time,
                         "planner_id": self.agent_id,
-                    }
+                    },
                 )
 
                 logger.info(
-                    f"# OK Plan generated for {task_id}: "
-                    f"{len(subtask_ids)} subtasks in {planning_time:.1f}s"
+                    f"# OK Plan generated for {task_id}: " f"{len(subtask_ids)} subtasks in {planning_time:.1f}s"
                 )
 
                 return {
@@ -495,9 +472,7 @@ class AsyncAIPlanner:
             except asyncio.TimeoutError:
                 logger.error(f"Planning timeout for task {task_id}")
                 await self.db_ops.update_task_status_async(
-                    task_id,
-                    "planning_failed",
-                    {"error": "Planning timeout", "planner_id": self.agent_id}
+                    task_id, "planning_failed", {"error": "Planning timeout", "planner_id": self.agent_id}
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": "timeout"}
@@ -505,9 +480,7 @@ class AsyncAIPlanner:
             except Exception as e:
                 logger.error(f"Planning failed for task {task_id}: {e}")
                 await self.db_ops.update_task_status_async(
-                    task_id,
-                    "planning_failed",
-                    {"error": str(e), "planner_id": self.agent_id}
+                    task_id, "planning_failed", {"error": str(e), "planner_id": self.agent_id}
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": str(e)}
@@ -516,7 +489,7 @@ class AsyncAIPlanner:
                 # Remove from active planning
                 self.active_plans.discard(task_id)
 
-    async def process_planning_queue_async(self):
+    async def process_planning_queue_async(self) -> None:
         """Process the planning queue with concurrent execution"""
         planning_tasks = []
 
@@ -527,9 +500,7 @@ class AsyncAIPlanner:
         for _ in range(available_slots):
             task = await self.get_next_planning_task_async()
             if task:
-                planning_task = asyncio.create_task(
-                    self.generate_plan_async(task)
-                )
+                planning_task = asyncio.create_task(self.generate_plan_async(task))
                 planning_tasks.append(planning_task)
             else:
                 break
@@ -538,15 +509,12 @@ class AsyncAIPlanner:
         if planning_tasks:
             results = await asyncio.gather(*planning_tasks, return_exceptions=True)
 
-            successful_plans = len([
-                r for r in results
-                if isinstance(r, dict) and r.get("success")
-            ])
+            successful_plans = len([r for r in results if isinstance(r, dict) and r.get("success")])
 
             if successful_plans > 0:
                 logger.info(f"Completed {successful_plans} plans concurrently")
 
-    async def _monitor_performance(self):
+    async def _monitor_performance_async(self) -> None:
         """Background performance monitoring"""
         while not self.shutdown_event.is_set():
             await asyncio.sleep(60)  # Every minute
@@ -559,7 +527,7 @@ class AsyncAIPlanner:
                 f"Errors: {self.metrics['errors']}"
             )
 
-    async def run_forever_async(self):
+    async def run_forever_async(self) -> None:
         """Main async planning loop"""
         logger.info("AsyncAIPlanner starting main loop")
 
@@ -579,10 +547,7 @@ class AsyncAIPlanner:
 
                 # Non-blocking sleep
                 try:
-                    await asyncio.wait_for(
-                        self.shutdown_event.wait(),
-                        timeout=self.poll_interval
-                    )
+                    await asyncio.wait_for(self.shutdown_event.wait(), timeout=self.poll_interval)
                     break  # Shutdown signal received
                 except asyncio.TimeoutError:
                     pass  # Normal timeout, continue loop
@@ -594,7 +559,7 @@ class AsyncAIPlanner:
         finally:
             await self._shutdown_async()
 
-    async def _shutdown_async(self):
+    async def _shutdown_async(self) -> None:
         """Graceful async shutdown"""
         logger.info("AsyncAIPlanner shutting down...")
 
@@ -619,7 +584,7 @@ class AsyncAIPlanner:
         )
 
 
-async def main():
+async def main_async() -> None:
     """Main entry point for AsyncAIPlanner"""
     import argparse
 
@@ -631,11 +596,8 @@ async def main():
 
     # Configure logging
     from hive_logging import setup_logging
-    setup_logging(
-        name="async-ai-planner",
-        log_to_file=True,
-        log_file_path="logs/async-ai-planner.log"
-    )
+
+    setup_logging(name="async-ai-planner", log_to_file=True, log_file_path="logs/async-ai-planner.log")
 
     # Create and run planner
     planner = AsyncAIPlanner(mock_mode=args.mock)
@@ -650,4 +612,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main_async())

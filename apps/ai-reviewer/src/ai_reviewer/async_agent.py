@@ -17,29 +17,27 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-from hive_logging import get_logger
-
-# V4.0 Async infrastructure imports
-from hive_orchestrator.core.db import (
-    AsyncDatabaseOperations,
-    get_async_db_operations,
-)
-from hive_orchestrator.core.bus import (
-    get_async_event_bus,
-    publish_event_async,
-    TaskEventType,
-    create_task_event,
-)
+from ai_reviewer.database_adapter import DatabaseAdapter
 
 # Import existing review components
 from ai_reviewer.reviewer import ReviewDecision, ReviewEngine
-from ai_reviewer.database_adapter import DatabaseAdapter
+from hive_logging import get_logger
+from hive_orchestrator.core.bus import (
+    TaskEventType,
+    create_task_event,
+    get_async_event_bus,
+    publish_event_async,
+)
+
+# V4.0 Async infrastructure imports
+from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
 
 logger = get_logger(__name__)
 
 
 class ReviewPriority(Enum):
     """Review priority levels"""
+
     LOW = 1
     MEDIUM = 2
     HIGH = 3
@@ -51,16 +49,13 @@ class AsyncReviewEngine:
     Async version of review engine for non-blocking code analysis
     """
 
-    def __init__(self, config=None):
+    def __init__(self, config=None) -> None:
         self.config = config or {}
         self.mock_mode = self.config.get("mock_mode", True)
         self._review_semaphore = asyncio.Semaphore(3)  # Limit concurrent reviews
 
     async def review_task_async(
-        self,
-        task: Dict[str, Any],
-        run_data: Dict[str, Any],
-        context: Dict[str, Any] = None
+        self, task: Dict[str, Any], run_data: Dict[str, Any], context: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         """
         Perform async code review of a completed task
@@ -83,16 +78,12 @@ class AsyncReviewEngine:
 
             if self.mock_mode:
                 await asyncio.sleep(review_time)
-                return await self._generate_mock_review(task, run_data)
+                return await self._generate_mock_review_async(task, run_data)
             else:
                 # TODO: Implement actual Claude-based review
-                return await self._perform_real_review(task, run_data, context)
+                return await self._perform_real_review_async(task, run_data, context)
 
-    async def _generate_mock_review(
-        self,
-        task: Dict[str, Any],
-        run_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _generate_mock_review_async(self, task: Dict[str, Any], run_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate realistic mock review result"""
         task_id = task.get("id", "unknown")
         status = run_data.get("status", "unknown")
@@ -114,32 +105,29 @@ class AsyncReviewEngine:
         analysis = {
             "code_quality": {
                 "score": 85 if decision == ReviewDecision.APPROVE else 65,
-                "issues": [] if decision == ReviewDecision.APPROVE else [
-                    "Code structure could be improved",
-                    "Missing error handling in some areas"
-                ],
-                "strengths": [
-                    "Clear variable naming",
-                    "Good separation of concerns"
-                ] if decision == ReviewDecision.APPROVE else []
+                "issues": []
+                if decision == ReviewDecision.APPROVE
+                else ["Code structure could be improved", "Missing error handling in some areas"],
+                "strengths": ["Clear variable naming", "Good separation of concerns"]
+                if decision == ReviewDecision.APPROVE
+                else [],
             },
             "test_coverage": {
                 "score": 80 if decision == ReviewDecision.APPROVE else 45,
-                "missing_tests": [] if decision == ReviewDecision.APPROVE else [
-                    "Edge case testing",
-                    "Error handling tests"
-                ]
+                "missing_tests": []
+                if decision == ReviewDecision.APPROVE
+                else ["Edge case testing", "Error handling tests"],
             },
             "security": {
                 "score": 90,
                 "vulnerabilities": [],
-                "recommendations": ["Use parameterized queries", "Validate input data"]
+                "recommendations": ["Use parameterized queries", "Validate input data"],
             },
             "performance": {
                 "score": 75,
                 "bottlenecks": [],
-                "optimizations": ["Consider caching", "Optimize database queries"]
-            }
+                "optimizations": ["Consider caching", "Optimize database queries"],
+            },
         }
 
         # Generate review summary
@@ -162,11 +150,8 @@ class AsyncReviewEngine:
             "review_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    async def _perform_real_review(
-        self,
-        task: Dict[str, Any],
-        run_data: Dict[str, Any],
-        context: Dict[str, Any]
+    async def _perform_real_review_async(
+        self, task: Dict[str, Any], run_data: Dict[str, Any], context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Perform real Claude-based review (placeholder)"""
         # TODO: Implement actual Claude integration for code review
@@ -185,7 +170,7 @@ class AsyncAIReviewer:
     - Performance metrics tracking
     """
 
-    def __init__(self, mock_mode: bool = False):
+    def __init__(self, mock_mode: bool = False) -> None:
         self.agent_id = f"async-ai-reviewer-{uuid.uuid4().hex[:8]}"
         self.running = False
         self.mock_mode = mock_mode
@@ -221,7 +206,7 @@ class AsyncAIReviewer:
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
 
-    async def initialize_async(self):
+    async def initialize_async(self) -> None:
         """Initialize all async components"""
         logger.info(f"Initializing AsyncAIReviewer {self.agent_id}")
 
@@ -239,12 +224,12 @@ class AsyncAIReviewer:
         logger.info("Async review engine initialized")
 
         # Register agent in database
-        await self._register_agent()
+        await self._register_agent_async()
 
         # Start performance monitoring
-        asyncio.create_task(self._monitor_performance())
+        asyncio.create_task(self._monitor_performance_async())
 
-    async def _register_agent(self):
+    async def _register_agent_async(self) -> None:
         """Register agent in the database"""
         try:
             await self.db_ops.register_worker_async(
@@ -261,13 +246,13 @@ class AsyncAIReviewer:
                     "type": "AsyncAIReviewer",
                     "max_concurrent": self.max_concurrent_reviews,
                     "performance": "3-5x",
-                }
+                },
             )
             logger.info("AsyncAIReviewer registered as worker")
         except Exception as e:
             logger.warning(f"Failed to register agent: {e}")
 
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum, frame) -> None:
         """Handle shutdown signals gracefully"""
         logger.info(f"Received signal {signum}, initiating graceful shutdown")
         self.shutdown_event.set()
@@ -276,21 +261,13 @@ class AsyncAIReviewer:
         """Get the next task requiring review"""
         try:
             # Get tasks needing review
-            review_tasks = await self.db_ops.get_tasks_concurrent_async(
-                status="review_pending",
-                limit=10
-            )
+            review_tasks = await self.db_ops.get_tasks_concurrent_async(status="review_pending", limit=10)
 
             if not review_tasks:
                 return None
 
             # Sort by priority and creation time
-            review_tasks.sort(
-                key=lambda t: (
-                    -t.get("priority", 1),
-                    t.get("updated_at", "")
-                )
-            )
+            review_tasks.sort(key=lambda t: (-t.get("priority", 1), t.get("updated_at", "")))
 
             # Return highest priority task not currently being reviewed
             for task in review_tasks:
@@ -314,10 +291,7 @@ class AsyncAIReviewer:
                 start_time = time.time()
 
                 # Update metrics
-                self.metrics["concurrent_peak"] = max(
-                    self.metrics["concurrent_peak"],
-                    len(self.active_reviews)
-                )
+                self.metrics["concurrent_peak"] = max(self.metrics["concurrent_peak"], len(self.active_reviews))
 
                 logger.info(f"Starting async review for task {task_id}")
 
@@ -325,14 +299,11 @@ class AsyncAIReviewer:
                 await self.db_ops.update_task_status_async(
                     task_id,
                     "review_in_progress",
-                    {
-                        "reviewer_id": self.agent_id,
-                        "review_start": datetime.now(timezone.utc).isoformat()
-                    }
+                    {"reviewer_id": self.agent_id, "review_start": datetime.now(timezone.utc).isoformat()},
                 )
 
                 # Get run data for review
-                run_data = await self._get_task_run_data(task_id)
+                run_data = await self._get_task_run_data_async(task_id)
                 if not run_data:
                     logger.warning(f"No run data found for task {task_id}")
                     run_data = {"status": "unknown", "files": {}}
@@ -340,11 +311,9 @@ class AsyncAIReviewer:
                 # Perform review with timeout
                 review_result = await asyncio.wait_for(
                     self.review_engine.review_task_async(
-                        task=task,
-                        run_data=run_data,
-                        context={"reviewer_id": self.agent_id}
+                        task=task, run_data=run_data, context={"reviewer_id": self.agent_id}
                     ),
-                    timeout=self.max_review_time
+                    timeout=self.max_review_time,
                 )
 
                 # Process review decision
@@ -373,7 +342,7 @@ class AsyncAIReviewer:
                         "review_time": review_time,
                         "reviewer_id": self.agent_id,
                         "reviewed_at": datetime.now(timezone.utc).isoformat(),
-                    }
+                    },
                 )
 
                 # Update metrics
@@ -394,13 +363,10 @@ class AsyncAIReviewer:
                         "review_time": review_time,
                         "reviewer_id": self.agent_id,
                         "confidence": review_result.get("confidence", 0.8),
-                    }
+                    },
                 )
 
-                logger.info(
-                    f"# OK Review completed for {task_id}: "
-                    f"{decision.value} in {review_time:.1f}s"
-                )
+                logger.info(f"# OK Review completed for {task_id}: " f"{decision.value} in {review_time:.1f}s")
 
                 return {
                     "success": True,
@@ -412,9 +378,7 @@ class AsyncAIReviewer:
             except asyncio.TimeoutError:
                 logger.error(f"Review timeout for task {task_id}")
                 await self.db_ops.update_task_status_async(
-                    task_id,
-                    "review_failed",
-                    {"error": "Review timeout", "reviewer_id": self.agent_id}
+                    task_id, "review_failed", {"error": "Review timeout", "reviewer_id": self.agent_id}
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": "timeout"}
@@ -422,9 +386,7 @@ class AsyncAIReviewer:
             except Exception as e:
                 logger.error(f"Review failed for task {task_id}: {e}")
                 await self.db_ops.update_task_status_async(
-                    task_id,
-                    "review_failed",
-                    {"error": str(e), "reviewer_id": self.agent_id}
+                    task_id, "review_failed", {"error": str(e), "reviewer_id": self.agent_id}
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": str(e)}
@@ -433,7 +395,7 @@ class AsyncAIReviewer:
                 # Remove from active reviews
                 self.active_reviews.discard(task_id)
 
-    async def _get_task_run_data(self, task_id: str) -> Optional[Dict[str, Any]]:
+    async def _get_task_run_data_async(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Get the most recent run data for a task"""
         try:
             # Get runs for this task
@@ -449,7 +411,7 @@ class AsyncAIReviewer:
             logger.error(f"Error getting run data for task {task_id}: {e}")
             return None
 
-    async def process_review_queue_async(self):
+    async def process_review_queue_async(self) -> None:
         """Process the review queue with concurrent execution"""
         review_tasks = []
 
@@ -460,9 +422,7 @@ class AsyncAIReviewer:
         for _ in range(available_slots):
             task = await self.get_next_review_task_async()
             if task:
-                review_task = asyncio.create_task(
-                    self.perform_review_async(task)
-                )
+                review_task = asyncio.create_task(self.perform_review_async(task))
                 review_tasks.append(review_task)
             else:
                 break
@@ -471,15 +431,12 @@ class AsyncAIReviewer:
         if review_tasks:
             results = await asyncio.gather(*review_tasks, return_exceptions=True)
 
-            successful_reviews = len([
-                r for r in results
-                if isinstance(r, dict) and r.get("success")
-            ])
+            successful_reviews = len([r for r in results if isinstance(r, dict) and r.get("success")])
 
             if successful_reviews > 0:
                 logger.info(f"Completed {successful_reviews} reviews concurrently")
 
-    async def _monitor_performance(self):
+    async def _monitor_performance_async(self) -> None:
         """Background performance monitoring"""
         while not self.shutdown_event.is_set():
             await asyncio.sleep(60)  # Every minute
@@ -493,7 +450,7 @@ class AsyncAIReviewer:
                 f"Errors: {self.metrics['errors']}"
             )
 
-    async def run_forever_async(self):
+    async def run_forever_async(self) -> None:
         """Main async review loop"""
         logger.info("AsyncAIReviewer starting main loop")
 
@@ -513,10 +470,7 @@ class AsyncAIReviewer:
 
                 # Non-blocking sleep
                 try:
-                    await asyncio.wait_for(
-                        self.shutdown_event.wait(),
-                        timeout=self.poll_interval
-                    )
+                    await asyncio.wait_for(self.shutdown_event.wait(), timeout=self.poll_interval)
                     break  # Shutdown signal received
                 except asyncio.TimeoutError:
                     pass  # Normal timeout, continue loop
@@ -528,7 +482,7 @@ class AsyncAIReviewer:
         finally:
             await self._shutdown_async()
 
-    async def _shutdown_async(self):
+    async def _shutdown_async(self) -> None:
         """Graceful async shutdown"""
         logger.info("AsyncAIReviewer shutting down...")
 
@@ -545,9 +499,7 @@ class AsyncAIReviewer:
             await self.db_ops.close()
 
         # Final metrics
-        approval_rate = (
-            self.metrics["approved"] / max(self.metrics["reviews_completed"], 1) * 100
-        )
+        approval_rate = self.metrics["approved"] / max(self.metrics["reviews_completed"], 1) * 100
         logger.info(
             f"Shutdown complete. Final metrics: "
             f"Reviews: {self.metrics['reviews_completed']}, "
@@ -557,7 +509,7 @@ class AsyncAIReviewer:
         )
 
 
-async def main():
+async def main_async() -> None:
     """Main entry point for AsyncAIReviewer"""
     import argparse
 
@@ -569,11 +521,8 @@ async def main():
 
     # Configure logging
     from hive_logging import setup_logging
-    setup_logging(
-        name="async-ai-reviewer",
-        log_to_file=True,
-        log_file_path="logs/async-ai-reviewer.log"
-    )
+
+    setup_logging(name="async-ai-reviewer", log_to_file=True, log_file_path="logs/async-ai-reviewer.log")
 
     # Create and run reviewer
     reviewer = AsyncAIReviewer(mock_mode=args.mock)
@@ -588,4 +537,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main_async())

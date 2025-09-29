@@ -38,7 +38,7 @@ class QueenPlanningEnhanced(QueenLite):
     - Comprehensive error handling and recovery
     """
 
-    def __init__(self, hive_core, live_output: bool = False):
+    def __init__(self, hive_core, live_output: bool = False) -> None:
         """Initialize enhanced Queen with planning integration"""
         super().__init__(hive_core, live_output)
 
@@ -57,7 +57,7 @@ class QueenPlanningEnhanced(QueenLite):
 
         logger.info("Queen Planning Enhanced initialized")
 
-    def _setup_planning_event_subscriptions(self):
+    def _setup_planning_event_subscriptions(self) -> None:
         """Setup additional event subscriptions for planning integration"""
         try:
             # Subscribe to plan generation events from AI Planner
@@ -86,7 +86,7 @@ class QueenPlanningEnhanced(QueenLite):
         except Exception as e:
             logger.error(f"Failed to setup enhanced planning event subscriptions: {e}")
 
-    def _handle_plan_generated_enhanced(self, event):
+    def _handle_plan_generated_enhanced(self, event) -> None:
         """Enhanced handler for plan generation events"""
         try:
             payload = event.payload
@@ -110,7 +110,7 @@ class QueenPlanningEnhanced(QueenLite):
         except Exception as e:
             logger.error(f"Error in enhanced plan generated handler: {e}")
 
-    def _handle_subtask_completion(self, event):
+    def _handle_subtask_completion(self, event) -> None:
         """Handle subtask completion and sync status to parent plan"""
         try:
             payload = event.payload
@@ -146,7 +146,7 @@ class QueenPlanningEnhanced(QueenLite):
             logger.error(f"Error handling subtask completion: {e}")
             self.planning_stats["sync_errors"] += 1
 
-    def _handle_execute_plan_request(self, event):
+    def _handle_execute_plan_request(self, event) -> None:
         """Handle explicit plan execution requests"""
         try:
             payload = event.payload
@@ -164,7 +164,7 @@ class QueenPlanningEnhanced(QueenLite):
         except Exception as e:
             logger.error(f"Error handling execute plan request: {e}")
 
-    def process_queued_tasks_enhanced(self):
+    def process_queued_tasks_enhanced(self) -> None:
         """Enhanced task processing that includes robust AI Planner integration"""
         # Calculate available slots for parallel execution
         max_parallel = sum(self.hive.config["max_parallel_per_role"].values())
@@ -208,7 +208,7 @@ class QueenPlanningEnhanced(QueenLite):
             # Fall back to regular processing
             super().process_queued_tasks()
 
-    def _process_task_list_enhanced(self, tasks: List[Dict[str, Any]], slots_free: int):
+    def _process_task_list_enhanced(self, tasks: List[Dict[str, Any]], slots_free: int) -> None:
         """Process task list with enhanced planning integration"""
         # Count active workers per role
         active_per_role = {"backend": 0, "frontend": 0, "infra": 0}
@@ -411,7 +411,7 @@ class QueenPlanningEnhanced(QueenLite):
         # For now, return the string
         return event_name
 
-    def monitor_planning_queue(self):
+    def monitor_planning_queue(self) -> None:
         """Monitor planning queue for new tasks that need AI Planner attention"""
         current_time = time.time()
         if current_time - self.last_planning_check < self.planning_poll_interval:
@@ -429,7 +429,7 @@ class QueenPlanningEnhanced(QueenLite):
         except Exception as e:
             logger.error(f"Error monitoring planning queue: {e}")
 
-    def print_status_enhanced(self):
+    def print_status_enhanced(self) -> None:
         """Enhanced status display with planning statistics"""
         # Call parent status
         super().print_status()
@@ -467,7 +467,7 @@ class QueenPlanningEnhanced(QueenLite):
         except Exception as e:
             logger.debug(f"Could not display plan status: {e}")
 
-    def run_forever_enhanced(self):
+    def run_forever_enhanced(self) -> None:
         """Enhanced main orchestration loop with planning integration"""
         self.log.info("Queen Planning Enhanced starting...")
         logger.info("Enhanced AI Planner integration enabled")
@@ -508,7 +508,7 @@ class QueenPlanningEnhanced(QueenLite):
                         self.log.info("All tasks completed. Exiting enhanced mode...")
                         break
 
-                time.sleep(self.hive.config["orchestration"]["status_refresh_seconds"])
+                await asyncio.sleep(self.hive.config["orchestration"]["status_refresh_seconds"])
 
         except KeyboardInterrupt:
             self.log.info("\nQueen Planning Enhanced shutting down...")
@@ -525,7 +525,7 @@ class QueenPlanningEnhanced(QueenLite):
     # ASYNC VERSION - Phase 4.1 Implementation
     # ================================================================================
 
-    async def run_forever_enhanced_async(self):
+    async def run_forever_enhanced_async(self) -> None:
         """Async version of enhanced orchestration loop for maximum performance"""
         self.log.info("Queen Planning Enhanced starting (Async Mode)...")
         logger.info("🚀 High-performance async planning integration enabled")
@@ -577,7 +577,7 @@ class QueenPlanningEnhanced(QueenLite):
 
             self.log.info("Queen Planning Enhanced async mode stopped")
 
-    async def _process_queued_tasks_enhanced_async(self):
+    async def _process_queued_tasks_enhanced_async(self) -> None:
         """Async version of enhanced task processing"""
         try:
             # Get ready planned subtasks asynchronously
@@ -590,7 +590,7 @@ class QueenPlanningEnhanced(QueenLite):
         except Exception as e:
             logger.error(f"Error in async enhanced task processing: {e}")
 
-    async def _monitor_planning_queue_async(self):
+    async def _monitor_planning_queue_async(self) -> None:
         """Async version of planning queue monitoring"""
         try:
             # This would use async database operations when available
@@ -599,7 +599,7 @@ class QueenPlanningEnhanced(QueenLite):
         except Exception as e:
             logger.error(f"Error in async planning queue monitoring: {e}")
 
-    async def _process_review_tasks_async(self):
+    async def _process_review_tasks_async(self) -> None:
         """Async version of review task processing"""
         try:
             # Placeholder for async review processing
@@ -608,7 +608,7 @@ class QueenPlanningEnhanced(QueenLite):
         except Exception as e:
             logger.error(f"Error in async review processing: {e}")
 
-    async def _monitor_workers_async(self):
+    async def _monitor_workers_async(self) -> None:
         """Async version of worker monitoring"""
         try:
             # Placeholder for async worker monitoring
@@ -618,7 +618,7 @@ class QueenPlanningEnhanced(QueenLite):
             logger.error(f"Error in async worker monitoring: {e}")
 
 
-def main():
+def main() -> None:
     """Main entry point for enhanced Queen with planning integration"""
     import argparse
 

@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 COMPONENT_REGISTRY: Dict[str, Type["Component"]] = {}
 
 
-def register_component(name: str):
+def register_component(name: str) -> None:
     """
     A class decorator that registers a component blueprint in the global registry.
 
@@ -89,7 +89,7 @@ def is_component_registered(name: str) -> bool:
     return name in COMPONENT_REGISTRY
 
 
-def clear_registry():
+def clear_registry() -> None:
     """
     Clears the component registry (useful for testing).
 

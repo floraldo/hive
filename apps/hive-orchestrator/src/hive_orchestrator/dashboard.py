@@ -1,3 +1,5 @@
+import asyncio
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -29,7 +31,7 @@ from rich.text import Text
 class HiveDashboard:
     """Real-time dashboard for Hive orchestration monitoring."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.console = Console()
         self.refresh_rate = 2  # seconds
 
@@ -459,12 +461,12 @@ class HiveDashboard:
 
         return layout
 
-    def run(self):
+    def run(self) -> None:
         """Run the dashboard with live updates."""
         try:
             with Live(self.create_dashboard(), refresh_per_second=0.5, console=self.console) as live:
                 while True:
-                    time.sleep(self.refresh_rate)
+                    await asyncio.sleep(self.refresh_rate)
                     live.update(self.create_dashboard())
 
         except KeyboardInterrupt:
@@ -474,7 +476,7 @@ class HiveDashboard:
             self.console.logger.info("[green]Database connection closed.[/green]")
 
 
-def main():
+def main() -> None:
     """Entry point for the dashboard."""
     dashboard = HiveDashboard()
     dashboard.run()

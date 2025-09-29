@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Generic event bus base class.
 
@@ -25,7 +29,7 @@ class BaseBus(ABC):
     Subclasses must implement storage and notification mechanisms.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the base bus"""
         self._subscribers: Dict[str, List[BaseSubscriber]] = {}
         self._subscriber_lock = threading.Lock()
@@ -88,7 +92,7 @@ class BaseBus(ABC):
                         return True
         return False
 
-    def _notify_subscribers(self, event: BaseEvent):
+    def _notify_subscribers(self, event: BaseEvent) -> None:
         """Notify all matching subscribers of an event"""
         with self._subscriber_lock:
             for pattern, subscribers in self._subscribers.items():
@@ -110,6 +114,6 @@ class BaseBus(ABC):
             return True
         return False
 
-    def _handle_subscriber_error(self, subscriber: BaseSubscriber, event: BaseEvent):
+    def _handle_subscriber_error(self, subscriber: BaseSubscriber, event: BaseEvent) -> None:
         """Handle subscriber callback errors. Override in subclasses."""
         pass

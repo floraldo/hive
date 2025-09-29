@@ -19,7 +19,11 @@ from ecosystemiser.system_model.components.energy.battery import (
     BatteryParams,
     BatteryTechnicalParams,
 )
-from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
+from ecosystemiser.system_model.components.energy.grid import (
+    Grid,
+    GridParams,
+    GridTechnicalParams,
+)
 from ecosystemiser.system_model.components.energy.power_demand import (
     PowerDemand,
     PowerDemandParams,

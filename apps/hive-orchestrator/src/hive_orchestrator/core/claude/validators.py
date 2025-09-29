@@ -28,7 +28,7 @@ class BaseResponseValidator(ABC):
 class PydanticValidator(BaseResponseValidator):
     """Validator using Pydantic models"""
 
-    def __init__(self, model_class: Type[BaseModel]):
+    def __init__(self, model_class: Type[BaseModel]) -> None:
         """
         Initialize with a Pydantic model class
 
@@ -103,7 +103,7 @@ class ResponseValidator:
     Main validation utility with fallback support
     """
 
-    def __init__(self, validator: BaseResponseValidator):
+    def __init__(self, validator: BaseResponseValidator) -> None:
         self.validator = validator
 
     def validate_response(

@@ -28,12 +28,12 @@ class AsyncEcoSystemiserFacade:
     improvements for I/O-bound operations.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._async_simulation_service = None
         self._climate_service = None
         self._initialized = False
 
-    async def initialize_async(self, config: Optional[Dict[str, Any]] = None):
+    async def initialize_async(self, config: Optional[Dict[str, Any]] = None) -> None:
         """Initialize async services.
 
         Args:
@@ -61,7 +61,7 @@ class AsyncEcoSystemiserFacade:
             logger.error(f"Failed to initialize async facade: {e}")
             raise
 
-    def ensure_initialized(self):
+    def ensure_initialized(self) -> None:
         """Ensure facade is initialized, initialize if needed."""
         if not self._initialized:
             # Run initialization in current event loop
@@ -69,6 +69,7 @@ class AsyncEcoSystemiserFacade:
                 loop = asyncio.get_running_loop()
                 # Create a task to initialize
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(lambda: asyncio.run(self.initialize_async()))
                     future.result()
@@ -76,7 +77,7 @@ class AsyncEcoSystemiserFacade:
                 # No event loop running, safe to use asyncio.run
                 asyncio.run(self.initialize_async())
 
-    async def get_climate_profile_async(self, request: ClimateRequest):
+    async def get_climate_profile_async(self, request: ClimateRequest) -> None:
         """Get climate profile asynchronously.
 
         Args:
@@ -97,7 +98,7 @@ class AsyncEcoSystemiserFacade:
             logger.error(f"Async climate profile retrieval failed: {e}")
             raise
 
-    def get_climate_profile_sync(self, request: ClimateRequest):
+    def get_climate_profile_sync(self, request: ClimateRequest) -> None:
         """Get climate profile synchronously (async facade).
 
         Args:
@@ -114,10 +115,9 @@ class AsyncEcoSystemiserFacade:
                 loop = asyncio.get_running_loop()
                 # If we're in an event loop, run in thread pool
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(
-                        lambda: asyncio.run(self.get_climate_profile_async(request))
-                    )
+                    future = executor.submit(lambda: asyncio.run(self.get_climate_profile_async(request)))
                     return future.result()
             except RuntimeError:
                 # No event loop, safe to use asyncio.run
@@ -127,11 +127,7 @@ class AsyncEcoSystemiserFacade:
             logger.error(f"Sync climate profile retrieval failed: {e}")
             raise
 
-    async def run_simulation_async(
-        self,
-        config: SimulationConfig,
-        timeout: Optional[float] = None
-    ):
+    async def run_simulation_async(self, config: SimulationConfig, timeout: Optional[float] = None):
         """Run simulation asynchronously.
 
         Args:
@@ -153,11 +149,7 @@ class AsyncEcoSystemiserFacade:
             logger.error(f"Async simulation failed: {e}")
             raise
 
-    async def run_batch_simulations_async(
-        self,
-        configs: List[SimulationConfig],
-        max_concurrent: Optional[int] = None
-    ):
+    async def run_batch_simulations_async(self, configs: List[SimulationConfig], max_concurrent: Optional[int] = None):
         """Run multiple simulations concurrently.
 
         Args:
@@ -171,9 +163,7 @@ class AsyncEcoSystemiserFacade:
             await self.initialize_async()
 
         try:
-            results = await self._async_simulation_service.run_batch_simulations_async(
-                configs, max_concurrent
-            )
+            results = await self._async_simulation_service.run_batch_simulations_async(configs, max_concurrent)
             successful = sum(1 for r in results if r.status != "error")
             logger.info(f"Batch simulations completed: {successful}/{len(configs)} successful")
             return results
@@ -182,7 +172,7 @@ class AsyncEcoSystemiserFacade:
             logger.error(f"Batch simulations failed: {e}")
             raise
 
-    def run_simulation_sync(self, config: SimulationConfig, timeout: Optional[float] = None):
+    def run_simulation_sync(self, config: SimulationConfig, timeout: Optional[float] = None) -> None:
         """Run simulation synchronously using async facade.
 
         Args:
@@ -200,10 +190,9 @@ class AsyncEcoSystemiserFacade:
                 loop = asyncio.get_running_loop()
                 # If we're in an event loop, run in thread pool
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(
-                        lambda: asyncio.run(self.run_simulation_async(config, timeout))
-                    )
+                    future = executor.submit(lambda: asyncio.run(self.run_simulation_async(config, timeout)))
                     return future.result()
             except RuntimeError:
                 # No event loop, safe to use asyncio.run
@@ -228,11 +217,7 @@ class AsyncEcoSystemiserFacade:
         try:
             # Run validation in thread pool (I/O bound)
             loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                None,
-                self._validate_config_sync,
-                config_path
-            )
+            result = await loop.run_in_executor(None, self._validate_config_sync, config_path)
             return result
 
         except Exception as e:
@@ -242,6 +227,7 @@ class AsyncEcoSystemiserFacade:
     def _validate_config_sync(self, config_path: Path) -> Dict[str, Any]:
         """Synchronous config validation for thread pool execution."""
         from ecosystemiser.services.simulation_service import SimulationService
+
         service = SimulationService()
         return service.validate_system_config(config_path)
 
@@ -284,7 +270,7 @@ class AsyncEcoSystemiserFacade:
 
         return await self._async_simulation_service.get_simulation_status_async(simulation_id)
 
-    async def shutdown_async(self):
+    async def shutdown_async(self) -> None:
         """Shutdown facade and cleanup resources."""
         if not self._initialized:
             return
@@ -294,7 +280,7 @@ class AsyncEcoSystemiserFacade:
         if self._async_simulation_service:
             await self._async_simulation_service.shutdown_async()
 
-        if self._climate_service and hasattr(self._climate_service, 'shutdown_async'):
+        if self._climate_service and hasattr(self._climate_service, "shutdown_async"):
             await self._climate_service.shutdown_async()
 
         self._initialized = False
@@ -305,7 +291,7 @@ class AsyncEcoSystemiserFacade:
 _global_facade = None
 
 
-async def get_async_facade() -> AsyncEcoSystemiserFacade:
+async def get_async_facade_async() -> AsyncEcoSystemiserFacade:
     """Get or create the global async facade instance.
 
     Returns:
@@ -338,10 +324,9 @@ def get_facade_sync() -> AsyncEcoSystemiserFacade:
 
 # Convenience functions for common operations
 
-async def run_simulation_with_async_io(
-    config_path: Path,
-    solver_type: str = "milp",
-    timeout: Optional[float] = None
+
+async def run_simulation_with_async_io_async(
+    config_path: Path, solver_type: str = "milp", timeout: Optional[float] = None
 ) -> Dict[str, Any]:
     """Run a single simulation with async I/O optimizations.
 
@@ -353,10 +338,11 @@ async def run_simulation_with_async_io(
     Returns:
         Simulation result dictionary
     """
-    facade = await get_async_facade()
+    facade = await get_async_facade_async()
 
     # Create simulation config
     from datetime import datetime
+
     from ecosystemiser.services.simulation_service import SimulationConfig
     from ecosystemiser.solver.base import SolverConfig
 
@@ -365,18 +351,15 @@ async def run_simulation_with_async_io(
         system_config_path=str(config_path),
         solver_type=solver_type,
         solver_config=SolverConfig(verbose=False, solver_type=solver_type),
-        output_config={"save_results": True}
+        output_config={"save_results": True},
     )
 
     result = await facade.run_simulation_async(sim_config, timeout)
-    return result.dict() if hasattr(result, 'dict') else result.__dict__
+    return result.dict() if hasattr(result, "dict") else result.__dict__
 
 
 async def fetch_climate_data_async(
-    location: str,
-    year: int,
-    variables: List[str],
-    source: str = "nasa_power"
+    location: str, year: int, variables: List[str], source: str = "nasa_power"
 ) -> Dict[str, Any]:
     """Fetch climate data with async I/O optimizations.
 
@@ -389,7 +372,7 @@ async def fetch_climate_data_async(
     Returns:
         Climate data response
     """
-    facade = await get_async_facade()
+    facade = await get_async_facade_async()
 
     # Create climate request
     request = ClimateRequest(
@@ -407,5 +390,5 @@ async def fetch_climate_data_async(
         "response": response,
         "manifest": response.manifest,
         "shape": response.shape,
-        "path": response.path_parquet
+        "path": response.path_parquet,
     }

@@ -20,7 +20,7 @@ except ImportError:
     class BaseEvent:
         """Base event class for fallback implementation."""
 
-        def __init__(self, event_type: str, source: str = "unknown", **kwargs):
+        def __init__(self, event_type: str, source: str = "unknown", **kwargs) -> None:
             self.event_type = event_type
             self.source = source
             self.timestamp = datetime.now(timezone.utc)
@@ -31,10 +31,10 @@ except ImportError:
     class BaseBus:
         """Base event bus class for fallback implementation."""
 
-        def __init__(self):
+        def __init__(self) -> None:
             self.events = []
 
-        def publish(self, event: BaseEvent):
+        def publish(self, event: BaseEvent) -> None:
             self.events.append(event)
 
 
@@ -58,13 +58,13 @@ class EcoSystemiserEventBus(BaseBus):
     - Optimization coordination patterns
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the EcoSystemiser event bus"""
         super().__init__()
         self.db_path = get_ecosystemiser_db_path()
         self._ensure_event_tables()
 
-    def _ensure_event_tables(self):
+    def _ensure_event_tables(self) -> None:
         """Ensure EcoSystemiser event storage tables exist"""
         with ecosystemiser_transaction() as conn:
             # Check if table exists and get its schema
@@ -105,7 +105,7 @@ class EcoSystemiserEventBus(BaseBus):
                 # Table doesn't exist, create it
                 self._create_events_table(conn)
 
-    def _create_events_table(self, conn):
+    def _create_events_table(self, conn) -> None:
         """Create the events table with proper schema"""
         # EcoSystemiser events table with simulation-specific fields
         conn.execute(

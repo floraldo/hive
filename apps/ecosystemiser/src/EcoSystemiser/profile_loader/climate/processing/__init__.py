@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Processing package for data quality and preparation."""
 
 # Individual modules can be imported as needed

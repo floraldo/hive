@@ -32,13 +32,10 @@ from ecosystemiser.discovery.encoders.parameter_encoder import (
     ParameterSpec,
     SystemConfigEncoder,
 )
+from ecosystemiser.services.job_facade import JobFacade
 
 # Import only types from simulation_service to avoid direct coupling
-from ecosystemiser.services.simulation_service import (
-    SimulationConfig,
-    SimulationResult,
-)
-from ecosystemiser.services.job_facade import JobFacade
+from ecosystemiser.services.simulation_service import SimulationConfig, SimulationResult
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from hive_logging import get_logger
 from pydantic import BaseModel, Field
@@ -118,7 +115,7 @@ class StudyResult(BaseModel):
 class StudyService:
     """Service for orchestrating multi-simulation studies."""
 
-    def __init__(self, job_facade: Optional[JobFacade] = None):
+    def __init__(self, job_facade: Optional[JobFacade] = None) -> None:
         """Initialize study service.
 
         Args:

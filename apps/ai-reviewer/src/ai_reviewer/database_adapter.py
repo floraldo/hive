@@ -19,7 +19,7 @@ class DatabaseAdapter:
     Adapter for database operations specific to AI Review functionality
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize with database connection"""
         # Initialize the database
         hive_core_db.init_db()

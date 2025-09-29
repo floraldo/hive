@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 #!/usr/bin/env python3
 """
 Example: Parametric Sweep for Battery and Solar Capacity Optimization
@@ -75,9 +79,9 @@ def create_example_system_config():
 
 def run_battery_capacity_sweep():
     """Run a sweep of battery capacity values to find optimal size."""
-    print("=" * 60)
-    print("BATTERY CAPACITY OPTIMIZATION")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("BATTERY CAPACITY OPTIMIZATION")
+    logger.info("=" * 60)
 
     # Create base configuration
     system_config = create_example_system_config()
@@ -120,46 +124,46 @@ def run_battery_capacity_sweep():
     )
 
     # Run study
-    print(f"\nRunning parametric sweep with {len(battery_values)} battery capacity values:")
-    print(f"Values: {[f'{v:.1f} kWh' for v in battery_values]}")
+    logger.info(f"\nRunning parametric sweep with {len(battery_values)} battery capacity values:")
+    logger.info(f"Values: {[f'{v:.1f} kWh' for v in battery_values]}")
 
     study_service = StudyService()
     result = study_service.run_study(study_config)
 
     # Analyze results
-    print(f"\n{'='*40}")
-    print("RESULTS SUMMARY")
-    print(f"{'='*40}")
-    print(f"Total simulations: {result.num_simulations}")
-    print(f"Successful: {result.successful_simulations}")
-    print(f"Failed: {result.failed_simulations}")
-    print(f"Execution time: {result.execution_time:.1f} seconds")
+    logger.info(f"\n{'='*40}")
+    logger.info("RESULTS SUMMARY")
+    logger.info(f"{'='*40}")
+    logger.info(f"Total simulations: {result.num_simulations}")
+    logger.info(f"Successful: {result.successful_simulations}")
+    logger.info(f"Failed: {result.failed_simulations}")
+    logger.info(f"Execution time: {result.execution_time:.1f} seconds")
 
     if result.best_result:
         best_params = result.best_result.get("output_config", {}).get("parameter_settings", {})
         best_kpis = result.best_result.get("kpis", {})
 
-        print(f"\nOPTIMAL CONFIGURATION:")
-        print(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
-        print(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
-        print(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
+        logger.info(f"\nOPTIMAL CONFIGURATION:")
+        logger.info(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
+        logger.info(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
+        logger.info(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
 
     # Perform influence analysis
     analysis = ParametricSweepEnhancement.analyze_parameter_influence(result.model_dump())
 
     if analysis["recommendations"]:
-        print(f"\nRECOMMENDATIONS:")
+        logger.info(f"\nRECOMMENDATIONS:")
         for rec in analysis["recommendations"]:
-            print(f"- {rec}")
+            logger.info(f"- {rec}")
 
     return result
 
 
 def run_multi_parameter_sweep():
     """Run a sweep of both battery and solar capacity."""
-    print("\n" + "=" * 60)
-    print("MULTI-PARAMETER OPTIMIZATION (Battery + Solar)")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info("MULTI-PARAMETER OPTIMIZATION (Battery + Solar)")
+    logger.info("=" * 60)
 
     system_config = create_example_system_config()
 
@@ -206,36 +210,36 @@ def run_multi_parameter_sweep():
         save_all_results=True,
     )
 
-    print(f"\nRunning parametric sweep:")
-    print(f"Battery capacity values: {battery_sweep.values} kWh")
-    print(f"Solar capacity values: {solar_sweep.values} kW")
-    print(f"Total combinations: {len(battery_sweep.values) * len(solar_sweep.values)}")
+    logger.info(f"\nRunning parametric sweep:")
+    logger.info(f"Battery capacity values: {battery_sweep.values} kWh")
+    logger.info(f"Solar capacity values: {solar_sweep.values} kW")
+    logger.info(f"Total combinations: {len(battery_sweep.values) * len(solar_sweep.values)}")
 
     study_service = StudyService()
     result = study_service.run_study(study_config)
 
-    print(f"\n{'='*40}")
-    print("RESULTS SUMMARY")
-    print(f"{'='*40}")
-    print(f"Total simulations: {result.num_simulations}")
-    print(f"Successful: {result.successful_simulations}")
-    print(f"Execution time: {result.execution_time:.1f} seconds")
+    logger.info(f"\n{'='*40}")
+    logger.info("RESULTS SUMMARY")
+    logger.info(f"{'='*40}")
+    logger.info(f"Total simulations: {result.num_simulations}")
+    logger.info(f"Successful: {result.successful_simulations}")
+    logger.info(f"Execution time: {result.execution_time:.1f} seconds")
 
     if result.best_result:
         best_params = result.best_result.get("output_config", {}).get("parameter_settings", {})
         best_kpis = result.best_result.get("kpis", {})
 
-        print(f"\nOPTIMAL CONFIGURATION:")
-        print(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
-        print(f"Solar capacity: {best_params.get('solar_pv.technical.capacity_nominal', 'N/A')} kW")
-        print(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
-        print(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
+        logger.info(f"\nOPTIMAL CONFIGURATION:")
+        logger.info(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
+        logger.info(f"Solar capacity: {best_params.get('solar_pv.technical.capacity_nominal', 'N/A')} kW")
+        logger.info(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
+        logger.info(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
 
     # Create a simple visualization of the results
     if result.all_results:
-        print(f"\nPARAMETER SPACE EXPLORATION:")
-        print(f"{'Battery (kWh)':<15} {'Solar (kW)':<12} {'Cost ($)':<12} {'Renewable %':<12}")
-        print("-" * 51)
+        logger.info(f"\nPARAMETER SPACE EXPLORATION:")
+        logger.info(f"{'Battery (kWh)':<15} {'Solar (kW)':<12} {'Cost ($)':<12} {'Renewable %':<12}")
+        logger.info("-" * 51)
 
         for sim_result in result.all_results[:10]:  # Show first 10
             if sim_result.get("status") in ["optimal", "feasible"]:
@@ -247,17 +251,17 @@ def run_multi_parameter_sweep():
                 cost = kpis.get("total_cost", 0)
                 renewable = kpis.get("renewable_fraction", 0) * 100
 
-                print(f"{battery:<15.0f} {solar:<12.0f} {cost:<12,.0f} {renewable:<12.1f}")
+                logger.info(f"{battery:<15.0f} {solar:<12.0f} {cost:<12,.0f} {renewable:<12.1f}")
 
     return result
 
 
 def main():
     """Run parametric sweep examples."""
-    print("EcoSystemiser Parametric Sweep Examples")
-    print("========================================")
-    print("Demonstrating the intelligent co-pilot capability")
-    print("for exploring energy system design spaces.\n")
+    logger.info("EcoSystemiser Parametric Sweep Examples")
+    logger.info("========================================")
+    logger.info("Demonstrating the intelligent co-pilot capability")
+    logger.info("for exploring energy system design spaces.\n")
 
     # Example 1: Single parameter sweep
     battery_result = run_battery_capacity_sweep()
@@ -265,17 +269,17 @@ def main():
     # Example 2: Multi-parameter sweep
     multi_result = run_multi_parameter_sweep()
 
-    print("\n" + "=" * 60)
-    print("PARAMETRIC SWEEP EXAMPLES COMPLETE")
-    print("=" * 60)
-    print("\nThe StudyService enables systematic exploration of design")
-    print("parameters to find optimal configurations automatically.")
-    print("\nKey capabilities demonstrated:")
-    print("- Single parameter sweeps (battery capacity)")
-    print("- Multi-parameter sweeps (battery + solar)")
-    print("- Parallel execution for performance")
-    print("- Automatic identification of optimal configurations")
-    print("- Parameter influence analysis")
+    logger.info("\n" + "=" * 60)
+    logger.info("PARAMETRIC SWEEP EXAMPLES COMPLETE")
+    logger.info("=" * 60)
+    logger.info("\nThe StudyService enables systematic exploration of design")
+    logger.info("parameters to find optimal configurations automatically.")
+    logger.info("\nKey capabilities demonstrated:")
+    logger.info("- Single parameter sweeps (battery capacity)")
+    logger.info("- Multi-parameter sweeps (battery + solar)")
+    logger.info("- Parallel execution for performance")
+    logger.info("- Automatic identification of optimal configurations")
+    logger.info("- Parameter influence analysis")
 
 
 if __name__ == "__main__":

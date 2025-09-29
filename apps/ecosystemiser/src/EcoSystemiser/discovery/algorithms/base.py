@@ -38,7 +38,7 @@ class OptimizationResult:
     execution_time: float = 0.0
     metadata: Dict[str, Any] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.metadata is None:
             self.metadata = {}
 
@@ -82,7 +82,7 @@ class BaseOptimizationAlgorithm(ABC):
     must implement to be compatible with the Discovery Engine.
     """
 
-    def __init__(self, config: OptimizationConfig):
+    def __init__(self, config: OptimizationConfig) -> None:
         """Initialize the optimization algorithm.
 
         Args:

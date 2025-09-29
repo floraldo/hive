@@ -1,3 +1,5 @@
+import asyncio
+
 #!/usr/bin/env python3
 """
 Advanced EcoSystemiser Capabilities Demonstration
@@ -29,7 +31,7 @@ try:
 
     logger = get_logger(__name__)
 
-    def demo_genetic_algorithm_optimization():
+    def demo_genetic_algorithm_optimization() -> None:
         """Demonstrate genetic algorithm optimization for system design."""
         logger.info("=== Genetic Algorithm Design Optimization Demo ===")
 
@@ -155,7 +157,7 @@ try:
 
         return demo_result
 
-    def demo_monte_carlo_uncertainty():
+    def demo_monte_carlo_uncertainty() -> None:
         """Demonstrate Monte Carlo uncertainty analysis."""
         logger.info("=== Monte Carlo Uncertainty Analysis Demo ===")
 
@@ -308,7 +310,7 @@ try:
 
         return demo_result
 
-    def generate_demo_plots():
+    def generate_demo_plots() -> None:
         """Generate demonstration plots for the reports."""
         plot_factory = PlotFactory()
         plots = {}
@@ -375,7 +377,7 @@ try:
 
         return plots
 
-    def generate_interactive_reports():
+    def generate_interactive_reports() -> None:
         """Generate interactive HTML reports demonstrating the new capabilities."""
         logger.info("=== Generating Interactive Reports ===")
 
@@ -411,7 +413,7 @@ try:
             "comparison_report": comparison_report_path,
         }
 
-    def main():
+    def main() -> None:
         """Main demonstration function."""
         logger.info("EcoSystemiser Advanced Capabilities Demonstration")
         logger.info("=" * 60)
@@ -423,10 +425,10 @@ try:
             logger.info("Running advanced solver demonstrations...")
 
             ga_result = demo_genetic_algorithm_optimization()
-            time.sleep(1)  # Simulate processing time
+            await asyncio.sleep(1)  # Simulate processing time
 
             mc_result = demo_monte_carlo_uncertainty()
-            time.sleep(1)  # Simulate processing time
+            await asyncio.sleep(1)  # Simulate processing time
 
             # Generate reports
             logger.info("Generating interactive reports...")

@@ -50,7 +50,7 @@ class RollingHorizonMILPSolver(BaseSolver):
     - Better decisions through limited lookahead
     """
 
-    def __init__(self, system: System, config: Optional[RollingHorizonConfig] = None):
+    def __init__(self, system: System, config: Optional[RollingHorizonConfig] = None) -> None:
         """Initialize rolling horizon solver.
 
         Args:
@@ -271,7 +271,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         return window_system
 
-    def _initialize_storage_states(self):
+    def _initialize_storage_states(self) -> None:
         """Initialize storage state tracking from system components."""
         for comp_name, comp in self.system.components.items():
             if hasattr(comp, "E_init") or comp.type == "storage":
@@ -282,7 +282,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 }
                 logger.debug(f"Initialized storage {comp_name} at {initial_energy}")
 
-    def _set_initial_storage_states(self, window_system: System, window: Dict[str, int]):
+    def _set_initial_storage_states(self, window_system: System, window: Dict[str, int]) -> None:
         """Set initial storage states for window optimization.
 
         Args:
@@ -323,7 +323,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         # Solve window
         return milp_solver.solve()
 
-    def _apply_warmstart(self, solver: MILPSolver, window: Dict[str, int]):
+    def _apply_warmstart(self, solver: MILPSolver, window: Dict[str, int]) -> None:
         """Apply warmstart from previous window solution.
 
         Args:
@@ -434,7 +434,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         except Exception as e:
             logger.warning(f"Warmstart failed: {e}, continuing without warmstart")
 
-    def _apply_window_solution(self, window_result: SolverResult, window: Dict[str, int], window_idx: int):
+    def _apply_window_solution(self, window_result: SolverResult, window: Dict[str, int], window_idx: int) -> None:
         """Apply window solution to the main system.
 
         Args:
@@ -639,7 +639,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         return solution
 
-    def prepare_system(self):
+    def prepare_system(self) -> None:
         """Prepare the system for rolling horizon solving.
 
         This method handles initialization specific to rolling horizon,
@@ -661,7 +661,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         self.storage_violations = []
         self.total_solve_time = 0.0
 
-    def extract_results(self):
+    def extract_results(self) -> None:
         """Extract results from rolling horizon solution.
 
         This method reconstructs the full solution from all window solutions
@@ -694,7 +694,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         except Exception as e:
             logger.error(f"Failed to extract rolling horizon results: {e}")
 
-    def _update_system_flows(self):
+    def _update_system_flows(self) -> None:
         """Update system flow variables with component solution values."""
         for flow_key, flow_data in self.system.flows.items():
             source_comp = self.system.components.get(flow_data["source"])
@@ -711,7 +711,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
                 flow_data["values"] = flow_values
 
-    def _calculate_system_totals(self):
+    def _calculate_system_totals(self) -> None:
         """Calculate system-level totals for the rolling horizon solution."""
         total_energy = 0
         total_cost = 0

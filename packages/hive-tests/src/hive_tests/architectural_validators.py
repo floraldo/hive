@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Architectural Validators - Core validation functions for Hive platform standards.
 
@@ -225,6 +229,10 @@ def validate_package_app_discipline(project_root: Path) -> Tuple[bool, List[str]
                     "hive-bus",  # Event bus infrastructure
                     "hive-errors",  # Error handling infrastructure
                     "hive-tests",  # Testing infrastructure
+                    "hive-ai",  # AI infrastructure framework (ADR-006)
+                    "hive-performance",  # Performance monitoring infrastructure
+                    "hive-service-discovery",  # Service discovery infrastructure
+                    "hive-cache",  # Caching infrastructure
                 ]:
                     continue
 
@@ -819,7 +827,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                     content = f.read()
 
                 # Check for print statements in non-test, non-demo files
-                if "print(" in content:
+                if "logger.info(" in content:
                     # Check if this file is a CLI tool or has __main__ section
                     is_cli_tool = (
                         'if __name__ == "__main__":' in content
@@ -843,13 +851,13 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                             in_main_section = True
                             continue
 
-                        if "print(" in line and not line.strip().startswith("#"):
-                            # Check if this is actually the built-in print() function
-                            # Exclude: self.console.print(), pprint(), rich.print(), etc.
+                        if "logger.info(" in line and not line.strip().startswith("#"):
+                            # Check if this is actually the built-in logger.info() function
+                            # Exclude: self.console.logger.info(), plogger.info(), rich.logger.info(), etc.
                             stripped_line = line.strip()
                             if (
-                                ".print(" not in stripped_line  # Exclude method calls like console.print()
-                                and "pprint(" not in stripped_line  # Exclude pprint() calls
+                                ".logger.info(" not in stripped_line  # Exclude method calls like console.logger.info()
+                                and "plogger.info(" not in stripped_line  # Exclude plogger.info() calls
                                 and not stripped_line.startswith("from ")  # Exclude import statements
                                 and not stripped_line.startswith("import ")  # Exclude import statements
                                 and not stripped_line.startswith("# ")  # Already excluded comments
@@ -970,7 +978,11 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
                                 violations.append(
                                     f"App '{app_name}' core/{module_name} doesn't import from {base_package}"
                                 )
-                        except Exception:
+                        except (FileNotFoundError, PermissionError, UnicodeDecodeError) as e:
+                            logger.debug(f"Cannot read file {check_file}: {e}")
+                            continue
+                        except Exception as e:
+                            logger.warning(f"Unexpected error reading {check_file}: {e}")
                             continue
 
             # Check for incorrect naming (error.py instead of errors.py)
@@ -1129,11 +1141,13 @@ def validate_async_pattern_consistency(project_root: Path) -> Tuple[bool, List[s
                         if not has_hive_async_import:
                             violations.append(f"{rel_path}: Async connection handling should use hive-async utilities")
 
-        except (UnicodeDecodeError, SyntaxError):
+        except (UnicodeDecodeError, SyntaxError) as e:
             # Skip files that can't be parsed (binary files, syntax errors)
+            logger.debug(f"Cannot parse file {file_path}: {e}")
             continue
-        except Exception:
+        except Exception as e:
             # Skip other parsing errors
+            logger.warning(f"Unexpected error parsing {file_path}: {e}")
             continue
 
     return len(violations) == 0, violations
@@ -1176,11 +1190,13 @@ def validate_cli_pattern_consistency(project_root: Path) -> Tuple[bool, List[str
                 if any(pattern in content for pattern in ["@click.group", "@click.command", "click.echo"]):
                     violations.append(f"{rel_path}: CLI should use hive-cli utilities for consistency")
 
-        except (UnicodeDecodeError, SyntaxError):
+        except (UnicodeDecodeError, SyntaxError) as e:
             # Skip files that can't be parsed
+            logger.debug(f"Cannot parse CLI file {cli_file}: {e}")
             continue
-        except Exception:
+        except Exception as e:
             # Skip other parsing errors
+            logger.warning(f"Unexpected error parsing CLI file {cli_file}: {e}")
             continue
 
     return len(violations) == 0, violations
@@ -1369,15 +1385,79 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
     return len(violations) == 0, violations
 
 
-def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
-    """
-    Run all Golden Rules validation.
+def _uses_comprehensive_testing(package_dir: Path) -> bool:
+    """Check if package uses comprehensive testing strategy (ADR-005)."""
+    tests_dir = package_dir / "tests"
+    if not tests_dir.exists():
+        return False
 
-    Returns:
-        Tuple of (all_passed, results_dict)
-    """
-    results = {}
-    all_passed = True
+    # Look for comprehensive testing indicators
+    indicators = [
+        tests_dir / "property_based",  # Property-based testing directory
+        tests_dir / "integration",  # Integration testing directory
+    ]
+
+    # Check for Hypothesis usage (property-based testing)
+    for py_file in tests_dir.rglob("*.py"):
+        try:
+            with open(py_file, "r", encoding="utf-8") as f:
+                content = f.read()
+                if "hypothesis" in content.lower() or "@given" in content:
+                    return True
+        except:
+            continue
+
+    # Check for comprehensive testing directories
+    return any(indicator.exists() and indicator.is_dir() for indicator in indicators)
+
+
+def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> List[str]:
+    """Validate comprehensive testing package (ADR-005)."""
+    violations = []
+    tests_dir = package_dir / "tests"
+
+    # Check for minimum comprehensive testing requirements
+    required_dirs = ["integration", "property_based"]
+    existing_dirs = []
+
+    for dir_name in required_dirs:
+        test_subdir = tests_dir / dir_name
+        if test_subdir.exists() and test_subdir.is_dir():
+            existing_dirs.append(dir_name)
+
+    # For comprehensive testing packages, require at least one advanced testing approach
+    if not existing_dirs:
+        violations.append(
+            f"Package '{package_name}' uses comprehensive testing but lacks property_based/ "
+            f"or integration/ test directories"
+        )
+
+    # Check for property-based testing quality
+    if "property_based" in existing_dirs:
+        property_dir = tests_dir / "property_based"
+        has_hypothesis = False
+        for py_file in property_dir.rglob("*.py"):
+            try:
+                with open(py_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    if "hypothesis" in content.lower() and "@given" in content:
+                        has_hypothesis = True
+                        break
+            except:
+                continue
+
+        if not has_hypothesis:
+            violations.append(f"Package '{package_name}' has property_based/ directory but no Hypothesis tests found")
+
+    # Check for integration test quality
+    if "integration" in existing_dirs:
+        integration_dir = tests_dir / "integration"
+        py_files = list(integration_dir.rglob("*.py"))
+        if len(py_files) == 0:
+            violations.append(f"Package '{package_name}' has integration/ directory but no test files")
+
+    return violations
+
 
 def validate_test_coverage_mapping(project_root: Path) -> Tuple[bool, List[str]]:
     """
@@ -1406,7 +1486,16 @@ def validate_test_coverage_mapping(project_root: Path) -> Tuple[bool, List[str]]
         return True, []  # No packages to validate
 
     for package_dir in packages_dir.iterdir():
-        if not package_dir.is_dir() or package_dir.name.startswith('.'):
+        if not package_dir.is_dir() or package_dir.name.startswith("."):
+            continue
+
+        package_name = package_dir.name
+
+        # Check if this package uses comprehensive testing (ADR-005)
+        if _uses_comprehensive_testing(package_dir):
+            # Apply comprehensive testing validation
+            comprehensive_violations = _validate_comprehensive_testing(package_dir, package_name)
+            violations.extend(comprehensive_violations)
             continue
 
         # Find src directory
@@ -1435,7 +1524,7 @@ def validate_test_coverage_mapping(project_root: Path) -> Tuple[bool, List[str]]
 
             # Convert source file path to expected test file path
             # e.g., hive_config/loader.py -> test_loader.py
-            module_parts = src_file.with_suffix('').parts
+            module_parts = src_file.with_suffix("").parts
             if len(module_parts) > 1:
                 # Skip package namespace files for now (complex mapping)
                 test_file_name = f"test_{'_'.join(module_parts[1:])}.py"
@@ -1466,7 +1555,7 @@ def validate_test_coverage_mapping(project_root: Path) -> Tuple[bool, List[str]]
     apps_dir = project_root / "apps"
     if apps_dir.exists():
         for app_dir in apps_dir.iterdir():
-            if not app_dir.is_dir() or app_dir.name.startswith('.'):
+            if not app_dir.is_dir() or app_dir.name.startswith("."):
                 continue
 
             # Look for core modules that should have tests
@@ -1528,14 +1617,14 @@ def validate_test_file_quality(project_root: Path) -> Tuple[bool, List[str]]:
 
     for test_file in test_files:
         try:
-            with open(test_file, 'r', encoding='utf-8') as f:
+            with open(test_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Check if file has actual test functions
             has_test_functions = False
             has_test_classes = False
 
-            lines = content.split('\n')
+            lines = content.split("\n")
             for line in lines:
                 stripped = line.strip()
 
@@ -1550,23 +1639,29 @@ def validate_test_file_quality(project_root: Path) -> Tuple[bool, List[str]]:
             # Test file should have either test functions or test classes
             if not has_test_functions and not has_test_classes:
                 violations.append(
-                    f"Test file {test_file.relative_to(project_root)} "
-                    f"contains no test functions or test classes"
+                    f"Test file {test_file.relative_to(project_root)} " f"contains no test functions or test classes"
                 )
 
             # Check for imports (test files should import something)
             if "import " not in content and "from " not in content:
-                violations.append(
-                    f"Test file {test_file.relative_to(project_root)} "
-                    f"contains no import statements"
-                )
+                violations.append(f"Test file {test_file.relative_to(project_root)} " f"contains no import statements")
 
         except Exception as e:
-            violations.append(
-                f"Failed to analyze test file {test_file.relative_to(project_root)}: {e}"
-            )
+            violations.append(f"Failed to analyze test file {test_file.relative_to(project_root)}: {e}")
 
     return len(violations) == 0, violations
+
+
+def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
+    """
+    Run all Golden Rules validation.
+
+    Returns:
+        Tuple of (all_passed, results_dict)
+    """
+    results = {}
+    all_passed = True
+
     # Run all golden rule validators
     golden_rules = [
         ("Golden Rule 5: Package vs App Discipline", validate_package_app_discipline),

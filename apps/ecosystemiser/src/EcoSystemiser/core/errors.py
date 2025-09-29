@@ -20,7 +20,7 @@ except ImportError:
     class BaseError(Exception):
         """Base error class for fallback implementation."""
 
-        def __init__(self, message: str, component: str = "unknown", **kwargs):
+        def __init__(self, message: str, component: str = "unknown", **kwargs) -> None:
             super().__init__(message)
             self.message = message
             self.component = component
@@ -32,7 +32,7 @@ except ImportError:
     class BaseErrorReporter:
         """Base error reporter class for fallback implementation."""
 
-        def report_error(self, error: BaseError):
+        def report_error(self, error: BaseError) -> None:
             logger.error(f"Error in {error.component}: {error.message}")
 
     class RecoveryStrategy:
@@ -122,14 +122,14 @@ class EcoSystemiserError(BaseError):
 # ===============================================================================
 
 
-class SimulationError(EcoSystemiserError):
+class SimulationError(BaseError):
     """Base class for simulation-related errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(message=message, component=kwargs.get("component", "simulation"), **kwargs)
 
 
-class SimulationConfigError(SimulationError):
+class SimulationConfigError(BaseError):
     """Error in simulation configuration"""
 
     def __init__(
@@ -158,10 +158,10 @@ class SimulationConfigError(SimulationError):
         super().__init__(message=message, operation="configuration", **kwargs)
 
 
-class SimulationExecutionError(SimulationError):
+class SimulationExecutionError(BaseError):
     """Error during simulation execution"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions",
             [
@@ -179,10 +179,10 @@ class SimulationExecutionError(SimulationError):
 # ===============================================================================
 
 
-class ProfileError(EcoSystemiserError):
+class ProfileError(BaseError):
     """Base class for profile-related errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(
             message=message,
             component=kwargs.get("component", "profile_loader"),
@@ -190,7 +190,7 @@ class ProfileError(EcoSystemiserError):
         )
 
 
-class ProfileLoadError(ProfileError):
+class ProfileLoadError(BaseError):
     """Error loading profile data"""
 
     def __init__(
@@ -220,7 +220,7 @@ class ProfileLoadError(ProfileError):
         super().__init__(message=message, operation="load", **kwargs)
 
 
-class ProfileValidationError(ProfileError):
+class ProfileValidationError(BaseError):
     """Error validating profile data"""
 
     def __init__(
@@ -255,14 +255,14 @@ class ProfileValidationError(ProfileError):
 # ===============================================================================
 
 
-class SolverError(EcoSystemiserError):
+class SolverError(BaseError):
     """Base class for solver-related errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(message=message, component=kwargs.get("component", "solver"), **kwargs)
 
 
-class OptimizationInfeasibleError(SolverError):
+class OptimizationInfeasibleError(BaseError):
     """Error when optimization problem is infeasible"""
 
     def __init__(
@@ -293,7 +293,7 @@ class OptimizationInfeasibleError(SolverError):
         super().__init__(message=message, operation="optimization", **kwargs)
 
 
-class SolverConvergenceError(SolverError):
+class SolverConvergenceError(BaseError):
     """Error when solver fails to converge"""
 
     def __init__(
@@ -329,7 +329,7 @@ class SolverConvergenceError(SolverError):
 # ===============================================================================
 
 
-class ComponentError(EcoSystemiserError):
+class ComponentError(BaseError):
     """Base class for component-related errors"""
 
     def __init__(
@@ -353,7 +353,7 @@ class ComponentError(EcoSystemiserError):
         )
 
 
-class ComponentConnectionError(ComponentError):
+class ComponentConnectionError(BaseError):
     """Error in component connections"""
 
     def __init__(
@@ -386,7 +386,7 @@ class ComponentConnectionError(ComponentError):
         super().__init__(message=message, operation="connection", **kwargs)
 
 
-class ComponentValidationError(ComponentError):
+class ComponentValidationError(BaseError):
     """Error validating component parameters"""
 
     def __init__(
@@ -424,17 +424,17 @@ class ComponentValidationError(ComponentError):
 # ===============================================================================
 
 
-class DatabaseError(EcoSystemiserError):
+class DatabaseError(BaseError):
     """Base class for database-related errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(message=message, component=kwargs.get("component", "database"), **kwargs)
 
 
-class DatabaseConnectionError(DatabaseError):
+class DatabaseConnectionError(BaseError):
     """Error connecting to EcoSystemiser database"""
 
-    def __init__(self, message: str, db_path: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, db_path: Optional[str] = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if db_path:
             details["db_path"] = db_path
@@ -453,10 +453,10 @@ class DatabaseConnectionError(DatabaseError):
         super().__init__(message=message, operation="connection", **kwargs)
 
 
-class DatabaseTransactionError(DatabaseError):
+class DatabaseTransactionError(BaseError):
     """Error during database transaction"""
 
-    def __init__(self, message: str, transaction_type: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, transaction_type: Optional[str] = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if transaction_type:
             details["transaction_type"] = transaction_type
@@ -480,14 +480,14 @@ class DatabaseTransactionError(DatabaseError):
 # ===============================================================================
 
 
-class EventBusError(EcoSystemiserError):
+class EventBusError(BaseError):
     """Base class for event bus errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(message=message, component=kwargs.get("component", "event_bus"), **kwargs)
 
 
-class EventPublishError(EventBusError):
+class EventPublishError(BaseError):
     """Error publishing event to bus"""
 
     def __init__(
@@ -530,7 +530,7 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
     and EcoSystemiser-specific reporting patterns.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the EcoSystemiser error reporter"""
         super().__init__()
         self.simulation_errors: List[SimulationError] = []

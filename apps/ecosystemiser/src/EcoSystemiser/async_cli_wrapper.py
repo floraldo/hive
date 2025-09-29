@@ -13,13 +13,13 @@ from typing import Any, Dict, List, Optional
 import click
 from ecosystemiser.profile_loader import ClimateRequest
 from ecosystemiser.services.async_facade import (
+    fetch_climate_data_async,
     get_async_facade,
     run_simulation_with_async_io,
-    fetch_climate_data_async,
 )
 from ecosystemiser.services.simulation_service import SimulationConfig
 from ecosystemiser.solver.base import SolverConfig
-from hive_cli.output import success, error, info, warning
+from hive_cli.output import error, info, success, warning
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -33,11 +33,11 @@ class AsyncCLIWrapper:
     while maintaining compatibility with existing command structure.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._facade = None
         self._initialized = False
 
-    async def initialize_async(self):
+    async def initialize_async(self) -> None:
         """Initialize async services."""
         if self._initialized:
             return
@@ -51,13 +51,13 @@ class AsyncCLIWrapper:
             logger.error(f"Failed to initialize async CLI wrapper: {e}")
             raise
 
-    async def run_simulation_async_cli(
+    async def run_simulation_async_cli_async(
         self,
         config_path: str,
         output: Optional[str] = None,
         solver: str = "milp",
         verbose: bool = False,
-        timeout: Optional[float] = None
+        timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Run simulation with async I/O optimizations.
 
@@ -84,11 +84,7 @@ class AsyncCLIWrapper:
                 system_config_path=config_path,
                 solver_type=solver,
                 solver_config=SolverConfig(verbose=verbose, solver_type=solver),
-                output_config={
-                    "save_results": output is not None,
-                    "directory": output or "outputs",
-                    "format": "json"
-                }
+                output_config={"save_results": output is not None, "directory": output or "outputs", "format": "json"},
             )
 
             # Run simulation with timeout
@@ -102,7 +98,7 @@ class AsyncCLIWrapper:
                     for key, value in result.kpis.items():
                         info(f"  {key}: {value:.2f}")
                 if result.solver_metrics:
-                    if 'solve_time' in result.solver_metrics:
+                    if "solve_time" in result.solver_metrics:
                         info(f"  Solve Time: {result.solver_metrics['solve_time']:.3f}s")
             else:
                 warning(f"Simulation completed with status: {result.status}")
@@ -112,7 +108,7 @@ class AsyncCLIWrapper:
             if output and result.results_path:
                 success(f"Results saved to: {result.results_path}")
 
-            return result.dict() if hasattr(result, 'dict') else result.__dict__
+            return result.dict() if hasattr(result, "dict") else result.__dict__
 
         except asyncio.TimeoutError:
             error(f"Simulation timed out after {timeout}s")
@@ -123,13 +119,13 @@ class AsyncCLIWrapper:
             logger.exception("Simulation error details")
             return {"status": "error", "error": str(e)}
 
-    async def run_batch_simulations_async_cli(
+    async def run_batch_simulations_async_cli_async(
         self,
         config_paths: List[str],
         output_dir: Optional[str] = None,
         solver: str = "milp",
         max_concurrent: int = 4,
-        verbose: bool = False
+        verbose: bool = False,
     ) -> List[Dict[str, Any]]:
         """Run multiple simulations concurrently.
 
@@ -160,8 +156,8 @@ class AsyncCLIWrapper:
                     output_config={
                         "save_results": output_dir is not None,
                         "directory": output_dir or "outputs",
-                        "format": "json"
-                    }
+                        "format": "json",
+                    },
                 )
                 configs.append(sim_config)
 
@@ -182,14 +178,14 @@ class AsyncCLIWrapper:
             if output_dir:
                 success(f"Results saved to: {output_dir}")
 
-            return [r.dict() if hasattr(r, 'dict') else r.__dict__ for r in results]
+            return [r.dict() if hasattr(r, "dict") else r.__dict__ for r in results]
 
         except Exception as e:
             error(f"Batch simulation failed: {e}")
             logger.exception("Batch simulation error details")
             return [{"status": "error", "error": str(e)}]
 
-    async def get_climate_async_cli(
+    async def get_climate_async_cli_async(
         self,
         location: str,
         year: Optional[int] = None,
@@ -200,7 +196,7 @@ class AsyncCLIWrapper:
         mode: str = "observed",
         resolution: str = "1H",
         output: Optional[str] = None,
-        stats: bool = False
+        stats: bool = False,
     ) -> Dict[str, Any]:
         """Get climate data with async I/O optimizations.
 
@@ -225,9 +221,9 @@ class AsyncCLIWrapper:
             info(f"Fetching climate data from {source}...")
 
             # Parse location
-            if ',' in location and any(c.isdigit() for c in location):
+            if "," in location and any(c.isdigit() for c in location):
                 # Coordinate format
-                parts = location.split(',')
+                parts = location.split(",")
                 location_parsed = (float(parts[0]), float(parts[1]))
             else:
                 # String location
@@ -243,7 +239,7 @@ class AsyncCLIWrapper:
                 return {"status": "error", "error": "Invalid period specification"}
 
             # Parse variables
-            variables_list = [v.strip() for v in variables.split(',')]
+            variables_list = [v.strip() for v in variables.split(",")]
 
             # Create request
             request = ClimateRequest(
@@ -268,10 +264,7 @@ class AsyncCLIWrapper:
 
                 # Convert to parquet in thread pool
                 loop = asyncio.get_event_loop()
-                await loop.run_in_executor(
-                    None,
-                    lambda: ds.to_dataframe().to_parquet(output_path)
-                )
+                await loop.run_in_executor(None, lambda: ds.to_dataframe().to_parquet(output_path))
                 success(f"Saved to {output_path}")
             else:
                 success(f"Cached to {response.path_parquet}")
@@ -280,7 +273,7 @@ class AsyncCLIWrapper:
             if stats and response.stats:
                 info("\nStatistics:")
                 for var, var_stats in response.stats.items():
-                    if var != 'correlations':
+                    if var != "correlations":
                         info(f"\n  {var}:")
                         info(f"    Mean: {var_stats.get('mean', 'N/A'):.2f}")
                         info(f"    Std:  {var_stats.get('std', 'N/A'):.2f}")
@@ -292,7 +285,7 @@ class AsyncCLIWrapper:
                 "shape": response.shape,
                 "path": response.path_parquet,
                 "manifest": response.manifest,
-                "stats": response.stats
+                "stats": response.stats,
             }
 
         except Exception as e:
@@ -300,7 +293,7 @@ class AsyncCLIWrapper:
             logger.exception("Climate data error details")
             return {"status": "error", "error": str(e)}
 
-    async def validate_config_async_cli(self, config_path: str) -> Dict[str, Any]:
+    async def validate_config_async_cli_async(self, config_path: str) -> Dict[str, Any]:
         """Validate system configuration asynchronously.
 
         Args:
@@ -317,14 +310,14 @@ class AsyncCLIWrapper:
             # Run validation asynchronously
             result = await self._facade.validate_system_config_async(Path(config_path))
 
-            if result['valid']:
+            if result["valid"]:
                 success("Configuration is valid!")
                 info(f"  System ID: {result['system_id']}")
                 info(f"  Components: {result['num_components']}")
                 info(f"  Timesteps: {result['timesteps']}")
 
                 info("\n  Component List:")
-                for comp in result['components']:
+                for comp in result["components"]:
                     info(f"    - {comp['name']} ({comp['type']})")
             else:
                 error(f"Configuration validation failed: {result['error']}")
@@ -336,7 +329,7 @@ class AsyncCLIWrapper:
             logger.exception("Validation error details")
             return {"valid": False, "error": str(e)}
 
-    async def get_performance_metrics_cli(self) -> Dict[str, Any]:
+    async def get_performance_metrics_cli_async(self) -> Dict[str, Any]:
         """Get performance metrics for async operations.
 
         Returns:
@@ -361,7 +354,7 @@ class AsyncCLIWrapper:
             error(f"Failed to get performance metrics: {e}")
             return {"error": str(e)}
 
-    async def shutdown_async(self):
+    async def shutdown_async(self) -> None:
         """Shutdown async services."""
         if self._facade:
             await self._facade.shutdown_async()
@@ -386,12 +379,13 @@ def get_async_cli_wrapper() -> AsyncCLIWrapper:
 
 # Convenience functions for integrating with existing CLI
 
+
 def run_async_simulation_from_cli(
     config_path: str,
     output: Optional[str] = None,
     solver: str = "milp",
     verbose: bool = False,
-    timeout: Optional[float] = None
+    timeout: Optional[float] = None,
 ) -> Dict[str, Any]:
     """Run async simulation from CLI (sync wrapper).
 
@@ -407,9 +401,7 @@ def run_async_simulation_from_cli(
     """
     wrapper = get_async_cli_wrapper()
     try:
-        return asyncio.run(wrapper.run_simulation_async_cli(
-            config_path, output, solver, verbose, timeout
-        ))
+        return asyncio.run(wrapper.run_simulation_async_cli_async(config_path, output, solver, verbose, timeout))
     except KeyboardInterrupt:
         warning("Simulation cancelled by user")
         return {"status": "cancelled", "error": "Cancelled by user"}
@@ -425,7 +417,7 @@ def get_async_climate_from_cli(
     mode: str = "observed",
     resolution: str = "1H",
     output: Optional[str] = None,
-    stats: bool = False
+    stats: bool = False,
 ) -> Dict[str, Any]:
     """Get climate data async from CLI (sync wrapper).
 
@@ -446,9 +438,11 @@ def get_async_climate_from_cli(
     """
     wrapper = get_async_cli_wrapper()
     try:
-        return asyncio.run(wrapper.get_climate_async_cli(
-            location, year, start, end, variables, source, mode, resolution, output, stats
-        ))
+        return asyncio.run(
+            wrapper.get_climate_async_cli_async(
+                location, year, start, end, variables, source, mode, resolution, output, stats
+            )
+        )
     except KeyboardInterrupt:
         warning("Climate data fetch cancelled by user")
         return {"status": "cancelled", "error": "Cancelled by user"}
@@ -465,7 +459,7 @@ def validate_async_config_from_cli(config_path: str) -> Dict[str, Any]:
     """
     wrapper = get_async_cli_wrapper()
     try:
-        return asyncio.run(wrapper.validate_config_async_cli(config_path))
+        return asyncio.run(wrapper.validate_config_async_cli_async(config_path))
     except KeyboardInterrupt:
         warning("Validation cancelled by user")
         return {"valid": False, "error": "Cancelled by user"}

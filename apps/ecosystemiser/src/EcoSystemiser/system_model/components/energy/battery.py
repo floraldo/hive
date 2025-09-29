@@ -174,7 +174,7 @@ class BatteryOptimizationSimple(BaseStorageOptimization):
     - No losses or degradation
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -285,7 +285,7 @@ class Battery(Component):
 
     PARAMS_MODEL = BatteryParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize battery attributes and strategy objects."""
         self.type = "storage"
         self.medium = "electricity"
@@ -345,7 +345,7 @@ class Battery(Component):
         else:
             raise ValueError(f"Unknown fidelity level for Battery optimization: {fidelity}")
 
-    def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float):
+    def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float) -> None:
         """
         Delegate to physics strategy for state update.
 
@@ -375,7 +375,7 @@ class Battery(Component):
                 f"E[{t}]={self.E[t]:.3f}kWh"
             )
 
-    def add_optimization_vars(self, N: int):
+    def add_optimization_vars(self, N: int) -> None:
         """Create CVXPY optimization variables for MILP solver."""
         self.E_opt = cp.Variable(N + 1, name=f"{self.name}_energy", nonneg=True)
         self.P_cha = cp.Variable(N, name=f"{self.name}_charge", nonneg=True)

@@ -1,21 +1,19 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Hive performance optimization and monitoring utilities"""
 
-from .pool import EnhancedAsyncPool, PoolConfig
-from .circuit_breaker import CircuitBreaker, circuit_breaker
-from .timeout import TimeoutManager, with_timeout
-from .metrics_collector import MetricsCollector, PerformanceMetrics
-from .system_monitor import SystemMonitor, SystemMetrics
 from .async_profiler import AsyncProfiler, ProfileReport
-from .performance_analyzer import PerformanceAnalyzer, AnalysisReport
+from .metrics_collector import MetricsCollector, PerformanceMetrics
 from .monitoring_service import MonitoringService
+from .performance_analyzer import AnalysisReport, PerformanceAnalyzer
+from .pool import EnhancedAsyncPool, PoolConfig
+from .system_monitor import SystemMetrics, SystemMonitor
 
 __all__ = [
     "EnhancedAsyncPool",
     "PoolConfig",
-    "CircuitBreaker",
-    "circuit_breaker",
-    "TimeoutManager",
-    "with_timeout",
     "MetricsCollector",
     "PerformanceMetrics",
     "SystemMonitor",

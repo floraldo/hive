@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive DB package - Database utilities and connection management for Hive applications.
 
@@ -10,11 +14,7 @@ from .async_pool import (
     create_async_database_manager,
     create_async_sqlite_pool,
 )
-from .pool import (
-    ConnectionPool,
-    DatabaseManager,
-    create_database_manager,
-)
+from .pool import ConnectionPool, DatabaseManager, create_database_manager
 from .postgres_connector import (
     create_connection_pool,
     get_postgres_connection,

@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive-specific exception classes.
 
@@ -33,16 +37,16 @@ class HiveError(BaseError):
 
 
 # Task Management Errors
-class TaskError(HiveError):
+class TaskError(BaseError):
     """Base class for task-related errors"""
 
     pass
 
 
-class TaskCreationError(TaskError):
+class TaskCreationError(BaseError):
     """Error during task creation"""
 
-    def __init__(self, task_description: str, reason: str, **kwargs):
+    def __init__(self, task_description: str, reason: str, **kwargs) -> None:
         super().__init__(
             message=f"Failed to create task '{task_description}': {reason}",
             operation="create_task",
@@ -55,10 +59,10 @@ class TaskCreationError(TaskError):
         )
 
 
-class TaskExecutionError(TaskError):
+class TaskExecutionError(BaseError):
     """Error during task execution"""
 
-    def __init__(self, task_id: str, worker_id: str, reason: str, **kwargs):
+    def __init__(self, task_id: str, worker_id: str, reason: str, **kwargs) -> None:
         super().__init__(
             message=f"Task {task_id} failed on worker {worker_id}: {reason}",
             operation="execute_task",
@@ -73,10 +77,10 @@ class TaskExecutionError(TaskError):
         )
 
 
-class TaskTimeoutError(TaskError):
+class TaskTimeoutError(BaseError):
     """Error when task exceeds time limit"""
 
-    def __init__(self, task_id: str, timeout_seconds: int, **kwargs):
+    def __init__(self, task_id: str, timeout_seconds: int, **kwargs) -> None:
         super().__init__(
             message=f"Task {task_id} timed out after {timeout_seconds} seconds",
             operation="execute_task",
@@ -92,16 +96,16 @@ class TaskTimeoutError(TaskError):
 
 
 # Worker Management Errors
-class WorkerError(HiveError):
+class WorkerError(BaseError):
     """Base class for worker-related errors"""
 
     pass
 
 
-class WorkerSpawnError(WorkerError):
+class WorkerSpawnError(BaseError):
     """Error spawning a new worker"""
 
-    def __init__(self, worker_type: str, reason: str, **kwargs):
+    def __init__(self, worker_type: str, reason: str, **kwargs) -> None:
         super().__init__(
             message=f"Failed to spawn {worker_type} worker: {reason}",
             operation="spawn_worker",
@@ -116,10 +120,10 @@ class WorkerSpawnError(WorkerError):
         )
 
 
-class WorkerCommunicationError(WorkerError):
+class WorkerCommunicationError(BaseError):
     """Error communicating with worker"""
 
-    def __init__(self, worker_id: str, operation: str, reason: str, **kwargs):
+    def __init__(self, worker_id: str, operation: str, reason: str, **kwargs) -> None:
         super().__init__(
             message=f"Communication failed with worker {worker_id} during {operation}: {reason}",
             operation="worker_communication",
@@ -134,10 +138,10 @@ class WorkerCommunicationError(WorkerError):
         )
 
 
-class WorkerOverloadError(WorkerError):
+class WorkerOverloadError(BaseError):
     """Error when worker is overloaded"""
 
-    def __init__(self, worker_id: str, current_load: int, max_load: int, **kwargs):
+    def __init__(self, worker_id: str, current_load: int, max_load: int, **kwargs) -> None:
         super().__init__(
             message=f"Worker {worker_id} overloaded: {current_load}/{max_load} tasks",
             operation="assign_task",
@@ -157,16 +161,16 @@ class WorkerOverloadError(WorkerError):
 
 
 # Event Bus Errors
-class EventBusError(HiveError):
+class EventBusError(BaseError):
     """Base class for event bus errors"""
 
     pass
 
 
-class EventPublishError(EventBusError):
+class EventPublishError(BaseError):
     """Error publishing event to bus"""
 
-    def __init__(self, event_type: str, reason: str, **kwargs):
+    def __init__(self, event_type: str, reason: str, **kwargs) -> None:
         super().__init__(
             message=f"Failed to publish {event_type} event: {reason}",
             operation="publish_event",
@@ -181,10 +185,10 @@ class EventPublishError(EventBusError):
         )
 
 
-class EventSubscribeError(EventBusError):
+class EventSubscribeError(BaseError):
     """Error subscribing to events"""
 
-    def __init__(self, pattern: str, subscriber: str, reason: str, **kwargs):
+    def __init__(self, pattern: str, subscriber: str, reason: str, **kwargs) -> None:
         super().__init__(
             message=f"Failed to subscribe {subscriber} to pattern '{pattern}': {reason}",
             operation="subscribe_events",
@@ -200,16 +204,16 @@ class EventSubscribeError(EventBusError):
 
 
 # Claude Integration Errors
-class ClaudeError(HiveError):
+class ClaudeError(BaseError):
     """Base class for Claude integration errors"""
 
     pass
 
 
-class ClaudeRateLimitError(ClaudeError):
+class ClaudeRateLimitError(BaseError):
     """Error when Claude API rate limit is exceeded"""
 
-    def __init__(self, wait_time: float, **kwargs):
+    def __init__(self, wait_time: float, **kwargs) -> None:
         super().__init__(
             message=f"Claude API rate limit exceeded, wait {wait_time:.1f} seconds",
             operation="claude_api_call",
@@ -224,10 +228,10 @@ class ClaudeRateLimitError(ClaudeError):
         )
 
 
-class ClaudeServiceError(ClaudeError):
+class ClaudeServiceError(BaseError):
     """General Claude service error"""
 
-    def __init__(self, operation: str, reason: str, **kwargs):
+    def __init__(self, operation: str, reason: str, **kwargs) -> None:
         super().__init__(
             message=f"Claude service error during {operation}: {reason}",
             operation=operation,

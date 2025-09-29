@@ -83,7 +83,7 @@ class QCReport:
     data_quality_score: Optional[float] = None  # Overall quality score (0-100)
     metadata: Dict[str, Any] = field(default_factory=dict)  # Additional metadata
 
-    def add_issue(self, issue: QCIssue):
+    def add_issue(self, issue: QCIssue) -> None:
         """Add a quality control issue"""
         self.issues.append(issue)
 
@@ -167,7 +167,7 @@ class QCReport:
         """Convert report to JSON string"""
         return json.dumps(self.to_dict(), indent=2)
 
-    def log_summary(self):
+    def log_summary(self) -> None:
         """Log a summary of the QC report"""
         summary = self.generate_summary()
 
@@ -189,7 +189,7 @@ class QCReport:
         for issue in critical_issues:
             logger.error(f"CRITICAL QC ISSUE: {issue.message}")
 
-    def print_report(self):
+    def print_report(self) -> None:
         """Print a human-readable report"""
         logger.info("\n" + "=" * 60)
         logger.info("CLIMATE DATA QUALITY CONTROL REPORT")
@@ -362,11 +362,15 @@ def get_source_profile(source: str) -> QCProfile:
     # Dynamically import the profile from the adapter module
     try:
         if source == "nasa_power":
-            from ecosystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerQCProfile
+            from ecosystemiser.profile_loader.climate.adapters.nasa_power import (
+                NASAPowerQCProfile,
+            )
 
             return NASAPowerQCProfile()
         elif source == "meteostat":
-            from ecosystemiser.profile_loader.climate.adapters.meteostat import MeteostatQCProfile
+            from ecosystemiser.profile_loader.climate.adapters.meteostat import (
+                MeteostatQCProfile,
+            )
 
             return MeteostatQCProfile()
         elif source == "era5":
@@ -374,11 +378,15 @@ def get_source_profile(source: str) -> QCProfile:
 
             return ERA5QCProfile()
         elif source in ["pvgis"]:
-            from ecosystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
+            from ecosystemiser.profile_loader.climate.adapters.pvgis import (
+                get_qc_profile,
+            )
 
             return get_qc_profile()
         elif source in ["epw", "file_epw"]:
-            from ecosystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
+            from ecosystemiser.profile_loader.climate.adapters.file_epw import (
+                get_qc_profile,
+            )
 
             return get_qc_profile()
     except ImportError as e:
@@ -434,7 +442,7 @@ class MeteorologicalValidator:
         "cloud_cover": (0, 100),  # %
     }
 
-    def __init__(self, strict_mode: bool = False):
+    def __init__(self, strict_mode: bool = False) -> None:
         """
         Initialize validator.
 
@@ -486,7 +494,7 @@ class MeteorologicalValidator:
 
         return report
 
-    def _validate_physical_bounds(self, ds: xr.Dataset, report: QCReport):
+    def _validate_physical_bounds(self, ds: xr.Dataset, report: QCReport) -> None:
         """Enhanced physical bounds validation with location/seasonal adjustments"""
         logger.debug("Validating physical bounds")
 
@@ -523,7 +531,7 @@ class MeteorologicalValidator:
             else:
                 report.passed_checks.append(f"physical_bounds_{var_name}")
 
-    def _validate_cross_variable_consistency(self, ds: xr.Dataset, report: QCReport):
+    def _validate_cross_variable_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Validate consistency between related meteorological variables"""
         logger.debug("Validating cross-variable consistency")
 
@@ -547,7 +555,7 @@ class MeteorologicalValidator:
         if "cloud_cover" in ds and "ghi" in ds:
             self._check_cloud_solar_consistency(ds, report)
 
-    def _check_temp_dewpoint_consistency(self, ds: xr.Dataset, report: QCReport):
+    def _check_temp_dewpoint_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check temperature-dewpoint consistency"""
         temp = ds["temp_air"].values
         dewpoint = ds["dewpoint"].values
@@ -575,7 +583,7 @@ class MeteorologicalValidator:
         else:
             report.passed_checks.append("temp_dewpoint_consistency")
 
-    def _check_solar_radiation_consistency(self, ds: xr.Dataset, report: QCReport):
+    def _check_solar_radiation_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check solar radiation components consistency (GHI = DNI*cos(zenith) + DHI)"""
         ghi = ds["ghi"].values
         dni = ds["dni"].values
@@ -620,7 +628,7 @@ class MeteorologicalValidator:
             else:
                 report.passed_checks.append("solar_components_consistency")
 
-    def _check_wind_consistency(self, ds: xr.Dataset, report: QCReport):
+    def _check_wind_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check wind speed-direction consistency"""
         wind_speed = ds["wind_speed"].values
         wind_dir = ds["wind_dir"].values
@@ -652,7 +660,7 @@ class MeteorologicalValidator:
         else:
             report.passed_checks.append("wind_consistency")
 
-    def _check_humidity_precipitation_consistency(self, ds: xr.Dataset, report: QCReport):
+    def _check_humidity_precipitation_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check humidity-precipitation relationship"""
         humidity = ds["rel_humidity"].values
         precip = ds["precip"].values
@@ -683,7 +691,7 @@ class MeteorologicalValidator:
         else:
             report.passed_checks.append("humidity_precipitation_consistency")
 
-    def _check_cloud_solar_consistency(self, ds: xr.Dataset, report: QCReport):
+    def _check_cloud_solar_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check cloud cover-solar radiation relationship"""
         cloud_cover = ds["cloud_cover"].values
         ghi = ds["ghi"].values
@@ -722,7 +730,7 @@ class MeteorologicalValidator:
             else:
                 report.passed_checks.append("cloud_solar_consistency")
 
-    def _validate_temporal_continuity(self, ds: xr.Dataset, report: QCReport):
+    def _validate_temporal_continuity(self, ds: xr.Dataset, report: QCReport) -> None:
         """Validate temporal continuity and detect unrealistic changes"""
         logger.debug("Validating temporal continuity")
 
@@ -732,7 +740,7 @@ class MeteorologicalValidator:
         # Check for unrealistic rate of change
         self._check_rate_of_change(ds, report)
 
-    def _check_time_gaps(self, ds: xr.Dataset, report: QCReport, expected_freq: str = None):
+    def _check_time_gaps(self, ds: xr.Dataset, report: QCReport, expected_freq: str = None) -> None:
         """
         Check for significant gaps in time series.
 
@@ -831,7 +839,7 @@ class MeteorologicalValidator:
         else:
             report.passed_checks.append("time_gaps")
 
-    def _check_rate_of_change(self, ds: xr.Dataset, report: QCReport):
+    def _check_rate_of_change(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check for unrealistic rates of change in variables"""
         # Define maximum realistic hourly changes
         max_hourly_changes = {
@@ -879,7 +887,7 @@ class MeteorologicalValidator:
             else:
                 report.passed_checks.append(f"rate_of_change_{var_name}")
 
-    def _validate_statistical_patterns(self, ds: xr.Dataset, report: QCReport):
+    def _validate_statistical_patterns(self, ds: xr.Dataset, report: QCReport) -> None:
         """Validate statistical patterns in the data"""
         logger.debug("Validating statistical patterns")
 
@@ -889,7 +897,7 @@ class MeteorologicalValidator:
         # Check for constant values (sensor stuck)
         self._check_constant_values(ds, report)
 
-    def _check_missing_data_patterns(self, ds: xr.Dataset, report: QCReport):
+    def _check_missing_data_patterns(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check for excessive or problematic missing data patterns"""
         for var_name in ds.data_vars:
             data = ds[var_name].values
@@ -920,7 +928,7 @@ class MeteorologicalValidator:
             )
             report.add_issue(issue)
 
-    def _check_constant_values(self, ds: xr.Dataset, report: QCReport):
+    def _check_constant_values(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check for suspiciously constant values (stuck sensors)"""
         min_variation_thresholds = {
             "temp_air": 0.1,  # degC
@@ -962,7 +970,7 @@ class MeteorologicalValidator:
             else:
                 report.passed_checks.append(f"variation_{var_name}")
 
-    def _validate_source_specific(self, ds: xr.Dataset, report: QCReport, source: str):
+    def _validate_source_specific(self, ds: xr.Dataset, report: QCReport, source: str) -> None:
         """Apply source-specific validation rules"""
         logger.debug(f"Applying source-specific validation for: {source}")
 

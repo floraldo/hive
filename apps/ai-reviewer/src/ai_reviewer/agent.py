@@ -144,7 +144,7 @@ class ReviewAgent:
             logger.warning(f"Failed to publish task event {event_type} for task {task_id}: {e}")
             return ""
 
-    async def run_async(self):
+    async def run_async(self) -> None:
         """Main autonomous loop"""
         self.running = True
         self.stats["start_time"] = datetime.now()
@@ -173,7 +173,7 @@ class ReviewAgent:
         finally:
             await self._shutdown_async()
 
-    async def _process_review_queue_async(self):
+    async def _process_review_queue_async(self) -> None:
         """Process all pending review tasks"""
         try:
             # Get pending review tasks
@@ -195,7 +195,7 @@ class ReviewAgent:
             logger.error(f"Error processing review queue: {e}")
             self.stats["errors"] += 1
 
-    async def _review_task_async(self, task: Dict[str, Any]):
+    async def _review_task_async(self, task: Dict[str, Any]) -> None:
         """Review a single task"""
         try:
             console.logger.info(
@@ -308,7 +308,7 @@ class ReviewAgent:
             for suggestion in result.suggestions:
                 console.logger.info(f"  • {suggestion}")
 
-    async def _execute_decision_async(self, task: Dict[str, Any], result):
+    async def _execute_decision_async(self, task: Dict[str, Any], result) -> None:
         """Execute the review decision"""
         new_status = {
             ReviewDecision.APPROVE: TaskStatus.APPROVED,
@@ -345,13 +345,13 @@ class ReviewAgent:
 
         logger.info(f"Task {task['id']} review completed: {result.decision.value}")
 
-    async def _trigger_next_phase_async(self, task: Dict[str, Any]):
+    async def _trigger_next_phase_async(self, task: Dict[str, Any]) -> None:
         """Trigger next phase for approved tasks"""
         # This would integrate with the broader Hive system
         # For now, just log it
         logger.info(f"Task {task['id']} approved, ready for next phase")
 
-    def _update_stats_for_decision(self, decision: ReviewDecision):
+    def _update_stats_for_decision(self, decision: ReviewDecision) -> None:
         """Update statistics based on decision"""
         if decision == ReviewDecision.APPROVE:
             self.stats["approved"] += 1
@@ -362,7 +362,7 @@ class ReviewAgent:
         elif decision == ReviewDecision.ESCALATE:
             self.stats["escalated"] += 1
 
-    async def _report_status_async(self):
+    async def _report_status_async(self) -> None:
         """Report agent status periodically"""
         if self.stats["tasks_reviewed"] > 0 and self.stats["tasks_reviewed"] % 10 == 0:
             runtime = (datetime.now() - self.stats["start_time"]).total_seconds()
@@ -393,7 +393,7 @@ class ReviewAgent:
         logger.info(f"Received signal {signum}, initiating shutdown")
         self.running = False
 
-    async def _shutdown_async(self):
+    async def _shutdown_async(self) -> None:
         """Graceful shutdown"""
         console.logger.info("\n[yellow]Shutting down AI Reviewer Agent...[/yellow]")
 
@@ -476,7 +476,7 @@ class ReviewAgent:
             logger.error(f"Error updating async task status: {e}")
             return False
 
-    async def _process_review_queue_async(self):
+    async def _process_review_queue_async(self) -> None:
         """Async version of processing review queue with enhanced performance."""
         try:
             # Get pending review tasks asynchronously
@@ -498,7 +498,7 @@ class ReviewAgent:
             logger.error(f"Error processing async review queue: {e}")
             self.stats["errors"] += 1
 
-    async def _review_task_async(self, task: Dict[str, Any]):
+    async def _review_task_async(self, task: Dict[str, Any]) -> None:
         """Async version of reviewing a single task."""
         try:
             console.logger.info(
@@ -567,7 +567,7 @@ class ReviewAgent:
                     error_type=type(e).__name__,
                 )
 
-    async def _execute_decision_async(self, task: Dict[str, Any], result):
+    async def _execute_decision_async(self, task: Dict[str, Any], result) -> None:
         """Async version of executing review decision."""
         from ai_reviewer.database_adapter import TaskStatus
         from ai_reviewer.reviewer import ReviewDecision
@@ -616,7 +616,7 @@ class ReviewAgent:
 
         console.logger.info(f"[green]Task {task['id']} reviewed: {result.decision.value}[/green]")
 
-    async def run_async(self):
+    async def run_async(self) -> None:
         """Enhanced async version of main autonomous loop for 3-5x performance improvement."""
         self.running = True
         self.stats["start_time"] = datetime.now()

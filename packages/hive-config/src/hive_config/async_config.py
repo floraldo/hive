@@ -10,13 +10,15 @@ import json
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
+
 import aiofiles
 import aiofiles.os
 
 # Optional watchdog import for hot-reload functionality
 try:
+    from watchdog.events import FileModifiedEvent, FileSystemEventHandler
     from watchdog.observers import Observer
-    from watchdog.events import FileSystemEventHandler, FileModifiedEvent
+
     WATCHDOG_AVAILABLE = True
 except ImportError:
     WATCHDOG_AVAILABLE = False
@@ -25,6 +27,7 @@ except ImportError:
     FileModifiedEvent = None
 
 from hive_logging import get_logger
+
 from .secure_config import SecureConfigLoader
 
 logger = get_logger(__name__)
@@ -33,12 +36,11 @@ logger = get_logger(__name__)
 class ConfigFileHandler:
     """Handle configuration file changes for hot-reload"""
 
-    def __init__(self, callback):
+    def __init__(self, callback) -> None:
         """Initialize with callback function"""
         if not WATCHDOG_AVAILABLE:
             raise ImportError(
-                "watchdog package is required for hot-reload functionality. "
-                "Install with: pip install watchdog"
+                "watchdog package is required for hot-reload functionality. " "Install with: pip install watchdog"
             )
 
         # Only inherit from FileSystemEventHandler if watchdog is available
@@ -48,7 +50,7 @@ class ConfigFileHandler:
         self.callback = callback
         self.debounce_timer = None
 
-    def on_modified(self, event):
+    def on_modified(self, event) -> None:
         """Handle file modification events"""
         if isinstance(event, FileModifiedEvent) and not event.is_directory:
             # Debounce rapid changes
@@ -57,10 +59,7 @@ class ConfigFileHandler:
 
             # Wait 500ms before triggering reload
             loop = asyncio.get_event_loop()
-            self.debounce_timer = loop.call_later(
-                0.5,
-                lambda: asyncio.create_task(self.callback(event.src_path))
-            )
+            self.debounce_timer = loop.call_later(0.5, lambda: asyncio.create_task(self.callback(event.src_path)))
 
 
 class AsyncConfigLoader:
@@ -79,7 +78,7 @@ class AsyncConfigLoader:
         self,
         enable_hot_reload: bool = False,
         cache_configs: bool = True,
-        secure_loader: Optional[SecureConfigLoader] = None
+        secure_loader: Optional[SecureConfigLoader] = None,
     ):
         """
         Initialize async configuration loader
@@ -111,11 +110,7 @@ class AsyncConfigLoader:
             )
             self.enable_hot_reload = False
 
-    async def load_config_async(
-        self,
-        config_path: Path,
-        config_type: str = "env"
-    ) -> Dict[str, Any]:
+    async def load_config_async(self, config_path: Path, config_type: str = "env") -> Dict[str, Any]:
         """
         Load configuration file asynchronously
 
@@ -179,14 +174,14 @@ class AsyncConfigLoader:
                 content = self.secure_loader.decrypt_file(config_path)
             else:
                 # Read plain text file
-                async with aiofiles.open(config_path, 'r') as f:
+                async with aiofiles.open(config_path, "r") as f:
                     content = await f.read()
 
             # Parse env format
-            for line in content.split('\n'):
+            for line in content.split("\n"):
                 line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
                     config[key.strip()] = value.strip().strip('"').strip("'")
 
         except Exception as e:
@@ -197,7 +192,7 @@ class AsyncConfigLoader:
     async def _load_json_config_async(self, config_path: Path) -> Dict[str, Any]:
         """Load JSON configuration file"""
         try:
-            async with aiofiles.open(config_path, 'r') as f:
+            async with aiofiles.open(config_path, "r") as f:
                 content = await f.read()
                 return json.loads(content)
         except Exception as e:
@@ -210,7 +205,7 @@ class AsyncConfigLoader:
             # YAML support is optional
             import yaml
 
-            async with aiofiles.open(config_path, 'r') as f:
+            async with aiofiles.open(config_path, "r") as f:
                 content = await f.read()
                 return yaml.safe_load(content) or {}
         except ImportError:
@@ -220,10 +215,7 @@ class AsyncConfigLoader:
             logger.error(f"Failed to load YAML config: {e}")
             return {}
 
-    async def load_multiple_configs_async(
-        self,
-        config_paths: List[Path]
-    ) -> Dict[str, Any]:
+    async def load_multiple_configs_async(self, config_paths: List[Path]) -> Dict[str, Any]:
         """
         Load multiple configuration files concurrently
 
@@ -234,10 +226,7 @@ class AsyncConfigLoader:
             Merged configuration dictionary (later files override earlier)
         """
         # Create concurrent loading tasks
-        tasks = [
-            self.load_config_async(path)
-            for path in config_paths
-        ]
+        tasks = [self.load_config_async(path) for path in config_paths]
 
         # Wait for all configs to load
         config_results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -340,16 +329,14 @@ class AsyncConfigLoader:
             self._watched_paths.clear()
             logger.debug("Stopped configuration file watching")
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Cleanup on garbage collection"""
         self.stop_watching()
 
 
 # Factory function for easy instantiation
 def create_async_config_loader(
-    enable_hot_reload: bool = False,
-    cache_configs: bool = True,
-    master_key: Optional[str] = None
+    enable_hot_reload: bool = False, cache_configs: bool = True, master_key: Optional[str] = None
 ) -> AsyncConfigLoader:
     """
     Create an AsyncConfigLoader with optional secure configuration support
@@ -365,26 +352,17 @@ def create_async_config_loader(
     secure_loader = SecureConfigLoader(master_key) if master_key else None
 
     loader = AsyncConfigLoader(
-        enable_hot_reload=enable_hot_reload,
-        cache_configs=cache_configs,
-        secure_loader=secure_loader
+        enable_hot_reload=enable_hot_reload, cache_configs=cache_configs, secure_loader=secure_loader
     )
 
     if enable_hot_reload and not WATCHDOG_AVAILABLE:
-        logger.warning(
-            "Hot-reload requested but watchdog not available. "
-            "Install with: pip install watchdog"
-        )
+        logger.warning("Hot-reload requested but watchdog not available. " "Install with: pip install watchdog")
 
     return loader
 
 
 # Async utility functions
-async def load_app_config_async(
-    app_name: str,
-    project_root: Path,
-    enable_hot_reload: bool = False
-) -> Dict[str, Any]:
+async def load_app_config_async(app_name: str, project_root: Path, enable_hot_reload: bool = False) -> Dict[str, Any]:
     """
     Load application configuration with standard fallback hierarchy
 

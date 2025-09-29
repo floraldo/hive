@@ -18,7 +18,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import yaml
 from ecosystemiser.component_data.repository import ComponentRepository
 from ecosystemiser.profile_loader import ClimateRequest
-from ecosystemiser.profile_loader.climate import create_climate_service, get_profile_async
+from ecosystemiser.profile_loader.climate import (
+    create_climate_service,
+    get_profile_async,
+)
 from ecosystemiser.services.results_io import ResultsIO
 from ecosystemiser.services.simulation_service import (
     SimulationConfig,
@@ -29,8 +32,8 @@ from ecosystemiser.solver.base import SolverConfig
 from ecosystemiser.solver.factory import SolverFactory
 from ecosystemiser.system_model.system import System
 from ecosystemiser.utils.system_builder import SystemBuilder
-from hive_logging import get_logger
 from hive_db import get_async_db_ops
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -48,7 +51,7 @@ class AsyncSimulationService:
     - Proper resource management and cleanup
     """
 
-    def __init__(self, component_repo: Optional[ComponentRepository] = None):
+    def __init__(self, component_repo: Optional[ComponentRepository] = None) -> None:
         """Initialize async simulation service.
 
         Args:
@@ -65,7 +68,7 @@ class AsyncSimulationService:
             "successful_simulations": 0,
             "failed_simulations": 0,
             "average_execution_time": 0.0,
-            "peak_concurrent_simulations": 0
+            "peak_concurrent_simulations": 0,
         }
 
         # Resource management
@@ -77,7 +80,7 @@ class AsyncSimulationService:
         self.db_ops = None
         self._climate_service = None
 
-    async def initialize_async(self, config: Optional[Dict[str, Any]] = None):
+    async def initialize_async(self, config: Optional[Dict[str, Any]] = None) -> None:
         """Initialize async components and services.
 
         Args:
@@ -90,6 +93,7 @@ class AsyncSimulationService:
             # Initialize climate service with async capabilities
             if config:
                 from ecosystemiser.profile_loader.climate import create_climate_service
+
                 self._climate_service = create_climate_service(config)
 
             logger.info("AsyncSimulationService initialized with V4.0 async infrastructure")
@@ -98,11 +102,7 @@ class AsyncSimulationService:
             logger.error(f"Failed to initialize async components: {e}")
             raise
 
-    async def run_simulation_async(
-        self,
-        config: SimulationConfig,
-        timeout: Optional[float] = None
-    ) -> SimulationResult:
+    async def run_simulation_async(self, config: SimulationConfig, timeout: Optional[float] = None) -> SimulationResult:
         """Run a complete simulation asynchronously with timeout support.
 
         Args:
@@ -116,16 +116,12 @@ class AsyncSimulationService:
             # Update concurrent simulation tracking
             current_concurrent = len(self.active_simulations)
             self.simulation_metrics["peak_concurrent_simulations"] = max(
-                self.simulation_metrics["peak_concurrent_simulations"],
-                current_concurrent + 1
+                self.simulation_metrics["peak_concurrent_simulations"], current_concurrent + 1
             )
 
             # Track simulation start
             sim_start_time = asyncio.get_event_loop().time()
-            self.active_simulations[config.simulation_id] = {
-                "start_time": sim_start_time,
-                "status": "running"
-            }
+            self.active_simulations[config.simulation_id] = {"start_time": sim_start_time, "status": "running"}
 
             try:
                 logger.info(f"Starting async simulation: {config.simulation_id}")
@@ -135,10 +131,7 @@ class AsyncSimulationService:
                 timeout = timeout or self.default_timeout
 
                 # Run simulation with timeout
-                result = await asyncio.wait_for(
-                    self._execute_simulation_async(config),
-                    timeout=timeout
-                )
+                result = await asyncio.wait_for(self._execute_simulation_async(config), timeout=timeout)
 
                 # Calculate execution time
                 execution_time = asyncio.get_event_loop().time() - sim_start_time
@@ -153,7 +146,7 @@ class AsyncSimulationService:
                 return SimulationResult(
                     simulation_id=config.simulation_id,
                     status="timeout",
-                    error=f"Simulation timed out after {timeout} seconds"
+                    error=f"Simulation timed out after {timeout} seconds",
                 )
 
             except Exception as e:
@@ -162,11 +155,7 @@ class AsyncSimulationService:
 
                 logger.error(f"Async simulation failed: {e}")
                 self.simulation_metrics["failed_simulations"] += 1
-                return SimulationResult(
-                    simulation_id=config.simulation_id,
-                    status="error",
-                    error=str(e)
-                )
+                return SimulationResult(simulation_id=config.simulation_id, status="error", error=str(e))
 
             finally:
                 # Cleanup simulation tracking
@@ -240,7 +229,9 @@ class AsyncSimulationService:
 
             # Execute stage groups (parallel within groups, sequential between groups)
             for group_idx, stage_group in enumerate(execution_groups):
-                logger.info(f"Executing stage group {group_idx + 1}/{len(execution_groups)} with {len(stage_group)} stages")
+                logger.info(
+                    f"Executing stage group {group_idx + 1}/{len(execution_groups)} with {len(stage_group)} stages"
+                )
 
                 if len(stage_group) == 1:
                     # Single stage - execute normally
@@ -267,11 +258,9 @@ class AsyncSimulationService:
                     for stage, result in zip(stage_group, parallel_results):
                         if isinstance(result, Exception):
                             logger.error(f"Parallel stage {stage.stage_name} failed: {result}")
-                            stage_results.append({
-                                "stage_name": stage.stage_name,
-                                "status": "failed",
-                                "error": str(result)
-                            })
+                            stage_results.append(
+                                {"stage_name": stage.stage_name, "status": "failed", "error": str(result)}
+                            )
                         else:
                             stage_results.append(result)
 
@@ -281,13 +270,9 @@ class AsyncSimulationService:
 
             # Aggregate final results
             total_solve_time = sum(
-                r.get("solve_time", 0) for r in stage_results
-                if isinstance(r, dict) and r.get("solve_time")
+                r.get("solve_time", 0) for r in stage_results if isinstance(r, dict) and r.get("solve_time")
             )
-            all_success = all(
-                r.get("status") == "optimal" for r in stage_results
-                if isinstance(r, dict)
-            )
+            all_success = all(r.get("status") == "optimal" for r in stage_results if isinstance(r, dict))
 
             return SimulationResult(
                 simulation_id=config.simulation_id,
@@ -304,11 +289,7 @@ class AsyncSimulationService:
 
         except Exception as e:
             logger.error(f"Async staged simulation failed: {e}")
-            return SimulationResult(
-                simulation_id=config.simulation_id,
-                status="error",
-                error=str(e)
-            )
+            return SimulationResult(simulation_id=config.simulation_id, status="error", error=str(e))
 
     def _analyze_stage_dependencies(self, stages: List[StageConfig]) -> Dict[str, List[str]]:
         """Analyze dependencies between stages to enable parallelization.
@@ -335,8 +316,8 @@ class AsyncSimulationService:
 
         return dependencies
 
-    def _group_stages_for_parallel_execution(self, dependencies: Dict[str, List[str]]) -> List[List[StageConfig]]:
-        """Group stages that can be executed in parallel.
+    def _group_stages_for_parallel_execution(self, dependencies: Dict[str, List[str]]) -> List[List[str]]:
+        """Group stages that can be executed in parallel using topological sorting.
 
         Args:
             dependencies: Stage dependency mapping
@@ -344,26 +325,42 @@ class AsyncSimulationService:
         Returns:
             List of stage groups that can be executed in parallel
         """
-        # For now, implement simple sequential execution
-        # In a more advanced version, this would use topological sorting
-        # to identify truly independent stages
+        if not dependencies:
+            return []
 
-        # This is a placeholder implementation - each stage runs sequentially
-        # TODO: Implement proper dependency analysis for parallel execution
+        # Create a copy for manipulation
+        remaining_deps = {stage: set(deps) for stage, deps in dependencies.items()}
         stage_groups = []
-        for stage_name in dependencies.keys():
-            # Find the actual stage config
-            # For now, just return sequential execution
-            pass
 
-        return []  # Fallback to sequential execution for now
+        while remaining_deps:
+            # Find stages with no remaining dependencies
+            ready_stages = [stage for stage, deps in remaining_deps.items() if not deps]
+
+            if not ready_stages:
+                # Circular dependency detected - fall back to sequential
+                logger.warning("Circular dependency detected in stages, falling back to sequential execution")
+                return [[stage] for stage in dependencies.keys()]
+
+            # Add this group to our execution plan
+            stage_groups.append(ready_stages)
+
+            # Remove completed stages from dependencies
+            for completed_stage in ready_stages:
+                remaining_deps.pop(completed_stage)
+
+                # Remove this stage from other stages' dependency lists
+                for stage_deps in remaining_deps.values():
+                    stage_deps.discard(completed_stage)
+
+        logger.info(f"Grouped {len(dependencies)} stages into {len(stage_groups)} parallel execution groups")
+        return stage_groups
 
     async def _execute_single_stage_async(
         self,
         stage: StageConfig,
         config: SimulationConfig,
         base_profiles: Dict[str, Any],
-        intermediate_profiles: Dict[str, Any]
+        intermediate_profiles: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Execute a single stage asynchronously.
 
@@ -418,14 +415,10 @@ class AsyncSimulationService:
             "status": stage_solver_result.status,
             "solve_time": stage_solver_result.solve_time,
             "kpis": stage_kpis,
-            "system": stage_system  # Keep reference for output extraction
+            "system": stage_system,  # Keep reference for output extraction
         }
 
-    async def _extract_stage_outputs_async(
-        self,
-        stage: StageConfig,
-        stage_result: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _extract_stage_outputs_async(self, stage: StageConfig, stage_result: Dict[str, Any]) -> Dict[str, Any]:
         """Extract outputs from a completed stage.
 
         Args:
@@ -517,12 +510,13 @@ class AsyncSimulationService:
             else:
                 # Fallback to default service creation
                 from ecosystemiser.settings import get_settings
+
                 config = get_settings()
                 climate_service = create_climate_service(config)
                 _, climate_response = await climate_service.process_request_async(climate_request)
 
             logger.info("Loaded climate profiles asynchronously")
-            return climate_response.data if hasattr(climate_response, 'data') else {}
+            return climate_response.data if hasattr(climate_response, "data") else {}
 
         except Exception as e:
             logger.warning(f"Could not load climate profiles: {e}")
@@ -540,11 +534,7 @@ class AsyncSimulationService:
         try:
             # Run in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
-            demand_profiles = await loop.run_in_executor(
-                None,
-                self._load_demand_profiles_sync,
-                demand_input
-            )
+            demand_profiles = await loop.run_in_executor(None, self._load_demand_profiles_sync, demand_input)
 
             logger.info(f"Loaded {len(demand_profiles)} demand profiles asynchronously")
             return demand_profiles
@@ -572,12 +562,7 @@ class AsyncSimulationService:
         """
         # Run system building in thread pool (CPU-intensive but relatively fast)
         loop = asyncio.get_event_loop()
-        system = await loop.run_in_executor(
-            None,
-            self._build_system_sync,
-            config,
-            profiles
-        )
+        system = await loop.run_in_executor(None, self._build_system_sync, config, profiles)
 
         logger.info(f"Built system with {len(system.components)} components")
         return system
@@ -589,7 +574,7 @@ class AsyncSimulationService:
         builder.assign_profiles(system, profiles)
         return system
 
-    async def _run_solver_async(self, system: System, config: SimulationConfig):
+    async def _run_solver_async(self, system: System, config: SimulationConfig) -> None:
         """Run the configured solver asynchronously.
 
         Args:
@@ -603,12 +588,7 @@ class AsyncSimulationService:
 
         # Run solver in thread pool (CPU-intensive)
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(
-            None,
-            self._run_solver_sync,
-            system,
-            config
-        )
+        result = await loop.run_in_executor(None, self._run_solver_sync, system, config)
 
         logger.info(f"Async solver completed with status: {result.status}")
         return result
@@ -631,13 +611,7 @@ class AsyncSimulationService:
         """
         # Run results saving in thread pool (I/O intensive)
         loop = asyncio.get_event_loop()
-        results_path = await loop.run_in_executor(
-            None,
-            self._save_results_sync,
-            system,
-            config,
-            solver_result
-        )
+        results_path = await loop.run_in_executor(None, self._save_results_sync, system, config, solver_result)
 
         logger.info(f"Results saved asynchronously to: {results_path}")
         return results_path
@@ -671,11 +645,7 @@ class AsyncSimulationService:
         """
         # Run KPI calculation in thread pool (CPU-intensive)
         loop = asyncio.get_event_loop()
-        kpis = await loop.run_in_executor(
-            None,
-            self._calculate_kpis_sync,
-            system
-        )
+        kpis = await loop.run_in_executor(None, self._calculate_kpis_sync, system)
 
         return kpis
 
@@ -712,7 +682,7 @@ class AsyncSimulationService:
 
         return kpis
 
-    def _update_performance_metrics(self, execution_time: float, success: bool):
+    def _update_performance_metrics(self, execution_time: float, success: bool) -> None:
         """Update internal performance metrics.
 
         Args:
@@ -726,13 +696,11 @@ class AsyncSimulationService:
         total_sims = self.simulation_metrics["total_simulations"]
         current_avg = self.simulation_metrics["average_execution_time"]
         self.simulation_metrics["average_execution_time"] = (
-            (current_avg * (total_sims - 1) + execution_time) / total_sims
-        )
+            current_avg * (total_sims - 1) + execution_time
+        ) / total_sims
 
     async def run_batch_simulations_async(
-        self,
-        configs: List[SimulationConfig],
-        max_concurrent: Optional[int] = None
+        self, configs: List[SimulationConfig], max_concurrent: Optional[int] = None
     ) -> List[SimulationResult]:
         """Run multiple simulations concurrently with controlled parallelism.
 
@@ -748,25 +716,27 @@ class AsyncSimulationService:
         # Create semaphore for batch execution
         batch_semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def run_single_with_semaphore(config):
+        async def run_single_with_semaphore_async(config):
             async with batch_semaphore:
                 return await self.run_simulation_async(config)
 
         logger.info(f"Starting batch execution of {len(configs)} simulations with max_concurrent={max_concurrent}")
 
         # Execute all simulations concurrently
-        tasks = [run_single_with_semaphore(config) for config in configs]
+        tasks = [run_single_with_semaphore_async(config) for config in configs]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Convert exceptions to error results
         final_results = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
-                final_results.append(SimulationResult(
-                    simulation_id=configs[i].simulation_id,
-                    status="error",
-                    error=f"Batch execution failed: {result}"
-                ))
+                final_results.append(
+                    SimulationResult(
+                        simulation_id=configs[i].simulation_id,
+                        status="error",
+                        error=f"Batch execution failed: {result}",
+                    )
+                )
             else:
                 final_results.append(result)
 
@@ -812,10 +782,10 @@ class AsyncSimulationService:
         return {
             **self.simulation_metrics,
             "active_simulations": len(self.active_simulations),
-            "max_concurrent_simulations": self.max_concurrent_simulations
+            "max_concurrent_simulations": self.max_concurrent_simulations,
         }
 
-    async def shutdown_async(self):
+    async def shutdown_async(self) -> None:
         """Shutdown service and cleanup resources."""
         logger.info("Shutting down AsyncSimulationService")
 
@@ -829,7 +799,7 @@ class AsyncSimulationService:
         if self.db_ops:
             await self.db_ops.close_async()
 
-        if self._climate_service and hasattr(self._climate_service, 'shutdown_async'):
+        if self._climate_service and hasattr(self._climate_service, "shutdown_async"):
             await self._climate_service.shutdown_async()
 
         logger.info("AsyncSimulationService shutdown complete")

@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Shared time series utilities for both climate and demand profiles"""
 
 from typing import Any, Dict, Literal, Union

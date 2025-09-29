@@ -23,7 +23,11 @@ from ecosystemiser.system_model.components.energy.battery import (
     BatteryParams,
     BatteryTechnicalParams,
 )
-from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
+from ecosystemiser.system_model.components.energy.grid import (
+    Grid,
+    GridParams,
+    GridTechnicalParams,
+)
 from ecosystemiser.system_model.components.energy.power_demand import (
     PowerDemand,
     PowerDemandParams,
@@ -41,7 +45,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 
-def create_system_with_fidelity(fidelity_level: FidelityLevel):
+def create_system_with_fidelity(fidelity_level: FidelityLevel) -> None:
     """Create a test system with specified fidelity level."""
 
     system = System(system_id=f"fidelity_test_{fidelity_level.value}", n=24)
@@ -131,7 +135,7 @@ def create_system_with_fidelity(fidelity_level: FidelityLevel):
     return system
 
 
-def extract_key_metrics(system):
+def extract_key_metrics(system) -> None:
     """Extract key metrics for comparison."""
 
     metrics = {
@@ -166,7 +170,7 @@ def extract_key_metrics(system):
     return metrics
 
 
-def compare_fidelity_results(simple_metrics, standard_metrics):
+def compare_fidelity_results(simple_metrics, standard_metrics) -> None:
     """Compare metrics between fidelity levels."""
 
     logger.info("FIDELITY COMPARISON:")
@@ -193,7 +197,7 @@ def compare_fidelity_results(simple_metrics, standard_metrics):
     return differences
 
 
-def validate_fidelity_realism(differences):
+def validate_fidelity_realism(differences) -> None:
     """Validate that fidelity differences are realistic."""
 
     logger.info("VALIDATION CHECKS:")
@@ -241,7 +245,7 @@ def validate_fidelity_realism(differences):
     return checks_passed == total_checks
 
 
-def main():
+def main() -> None:
     """Main fidelity validation function."""
 
     logger.info("=" * 80)

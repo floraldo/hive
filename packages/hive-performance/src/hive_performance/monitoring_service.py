@@ -36,7 +36,7 @@ class MonitoringService:
         analysis_interval: float = 300.0,  # 5 minutes
         enable_profiling: bool = True,
         enable_alerts: bool = True,
-        max_history_hours: int = 24
+        max_history_hours: int = 24,
     ):
         self.collection_interval = collection_interval
         self.analysis_interval = analysis_interval
@@ -48,26 +48,21 @@ class MonitoringService:
         max_history_points = int(max_history_hours * 3600 / collection_interval)
 
         self.metrics_collector = MetricsCollector(
-            collection_interval=collection_interval,
-            max_history=max_history_points
+            collection_interval=collection_interval, max_history=max_history_points
         )
 
         self.system_monitor = SystemMonitor(
-            collection_interval=collection_interval,
-            max_history=max_history_points,
-            enable_alerts=enable_alerts
+            collection_interval=collection_interval, max_history=max_history_points, enable_alerts=enable_alerts
         )
 
         self.async_profiler = AsyncProfiler(
             max_task_history=max_history_points // 10,  # Less frequent task storage
             enable_stack_traces=False,  # Disabled for performance
-            sample_rate=0.1  # 10% sampling for performance
+            sample_rate=0.1,  # 10% sampling for performance
         )
 
         self.performance_analyzer = PerformanceAnalyzer(
-            self.metrics_collector,
-            self.system_monitor,
-            self.async_profiler
+            self.metrics_collector, self.system_monitor, self.async_profiler
         )
 
         # Service state
@@ -78,7 +73,7 @@ class MonitoringService:
         # Analysis history
         self._analysis_history: List[AnalysisReport] = []
 
-    async def start_monitoring(self) -> None:
+    async def start_monitoring_async(self) -> None:
         """Start comprehensive monitoring."""
         if self._monitoring:
             logger.warning("Monitoring already started")
@@ -90,22 +85,22 @@ class MonitoringService:
         try:
             # Start all monitoring components
             await self.metrics_collector.start_collection()
-            await self.system_monitor.start_monitoring()
+            await self.system_monitor.start_monitoring_async()
 
             if self.enable_profiling:
                 await self.async_profiler.start_profiling()
 
             # Start analysis task
-            self._analysis_task = asyncio.create_task(self._analysis_loop())
+            self._analysis_task = asyncio.create_task(self._analysis_loop_async())
 
             logger.info("Monitoring service started successfully")
 
         except Exception as e:
             logger.error(f"Failed to start monitoring service: {e}")
-            await self.stop_monitoring()
+            await self.stop_monitoring_async()
             raise
 
-    async def stop_monitoring(self) -> None:
+    async def stop_monitoring_async(self) -> None:
         """Stop all monitoring."""
         if not self._monitoring:
             return
@@ -123,14 +118,14 @@ class MonitoringService:
 
         # Stop all components
         await self.metrics_collector.stop_collection()
-        await self.system_monitor.stop_monitoring()
+        await self.system_monitor.stop_monitoring_async()
 
         if self.enable_profiling:
             await self.async_profiler.stop_profiling()
 
         logger.info("Monitoring service stopped")
 
-    async def _analysis_loop(self) -> None:
+    async def _analysis_loop_async(self) -> None:
         """Periodic analysis and reporting loop."""
         while self._monitoring:
             try:
@@ -148,14 +143,11 @@ class MonitoringService:
 
                 # Keep only recent analyses (last 24 hours)
                 cutoff_time = datetime.utcnow() - timedelta(hours=24)
-                self._analysis_history = [
-                    r for r in self._analysis_history
-                    if r.analysis_timestamp >= cutoff_time
-                ]
+                self._analysis_history = [r for r in self._analysis_history if r.analysis_timestamp >= cutoff_time]
 
                 # Check for alerts
                 if self.enable_alerts:
-                    await self._check_analysis_alerts(report)
+                    await self._check_analysis_alerts_async(report)
 
                 logger.debug(f"Analysis complete: Grade {report.performance_grade}, Score {report.overall_score:.1f}")
 
@@ -163,7 +155,7 @@ class MonitoringService:
                 logger.error(f"Error in analysis loop: {e}")
                 await asyncio.sleep(60)  # Wait before retry
 
-    async def _check_analysis_alerts(self, report: AnalysisReport) -> None:
+    async def _check_analysis_alerts_async(self, report: AnalysisReport) -> None:
         """Check analysis results for alert conditions."""
         alert_conditions = []
 
@@ -185,9 +177,9 @@ class MonitoringService:
             alert_conditions.append(f"Slow response times: {report.avg_response_time:.2f}s")
 
         if alert_conditions:
-            await self._trigger_alerts(alert_conditions, report)
+            await self._trigger_alerts_async(alert_conditions, report)
 
-    async def _trigger_alerts(self, conditions: List[str], report: AnalysisReport) -> None:
+    async def _trigger_alerts_async(self, conditions: List[str], report: AnalysisReport) -> None:
         """Trigger alert callbacks."""
         for callback in self._alert_callbacks:
             try:
@@ -218,18 +210,22 @@ class MonitoringService:
                 "cpu_percent": current_metrics.cpu_percent if current_metrics else 0.0,
                 "memory_percent": current_metrics.memory_percent if current_metrics else 0.0,
                 "active_tasks": current_metrics.active_tasks if current_metrics else 0,
-            } if current_metrics else {},
+            }
+            if current_metrics
+            else {},
             "latest_analysis": {
                 "overall_score": latest_analysis.overall_score,
                 "performance_grade": latest_analysis.performance_grade,
                 "avg_response_time": latest_analysis.avg_response_time,
                 "error_rate": latest_analysis.error_rate,
                 "critical_issues_count": len(latest_analysis.critical_issues),
-            } if latest_analysis else {},
+            }
+            if latest_analysis
+            else {},
             "analysis_history_count": len(self._analysis_history),
         }
 
-    async def get_health_check(self) -> Dict[str, Any]:
+    async def get_health_check_async(self) -> Dict[str, Any]:
         """Get comprehensive health check."""
         status = self.get_current_status()
         current_metrics = self.system_monitor.get_current_metrics()
@@ -269,25 +265,19 @@ class MonitoringService:
             "metrics": status,
         }
 
-    async def generate_report(
-        self,
-        time_window: Optional[timedelta] = None,
-        include_recommendations: bool = True
+    async def generate_report_async(
+        self, time_window: Optional[timedelta] = None, include_recommendations: bool = True
     ) -> AnalysisReport:
         """Generate comprehensive performance report."""
         if time_window is None:
             time_window = timedelta(hours=1)
 
         return await self.performance_analyzer.analyze_performance(
-            analysis_period=time_window,
-            include_predictions=include_recommendations
+            analysis_period=time_window, include_predictions=include_recommendations
         )
 
-    async def benchmark_system(
-        self,
-        operation_func: Callable,
-        iterations: int = 100,
-        concurrency: int = 10
+    async def benchmark_system_async(
+        self, operation_func: Callable, iterations: int = 100, concurrency: int = 10
     ) -> Dict[str, Any]:
         """Run system benchmark."""
         logger.info(f"Starting system benchmark: {iterations} iterations, concurrency {concurrency}")
@@ -295,15 +285,13 @@ class MonitoringService:
         # Ensure monitoring is active
         was_monitoring = self._monitoring
         if not was_monitoring:
-            await self.start_monitoring()
+            await self.start_monitoring_async()
             await asyncio.sleep(2)  # Let monitoring stabilize
 
         try:
             # Run benchmark
             benchmark_results = await self.performance_analyzer.benchmark_operation(
-                operation_func,
-                iterations=iterations,
-                concurrency=concurrency
+                operation_func, iterations=iterations, concurrency=concurrency
             )
 
             # Get system metrics during benchmark
@@ -315,18 +303,18 @@ class MonitoringService:
                     "cpu_percent": system_metrics.cpu_percent if system_metrics else 0.0,
                     "memory_percent": system_metrics.memory_percent if system_metrics else 0.0,
                     "active_tasks": system_metrics.active_tasks if system_metrics else 0,
-                } if system_metrics else {},
+                }
+                if system_metrics
+                else {},
                 "timestamp": datetime.utcnow().isoformat(),
             }
 
         finally:
             if not was_monitoring:
-                await self.stop_monitoring()
+                await self.stop_monitoring_async()
 
     def get_analysis_history(
-        self,
-        time_window: Optional[timedelta] = None,
-        limit: Optional[int] = None
+        self, time_window: Optional[timedelta] = None, limit: Optional[int] = None
     ) -> List[AnalysisReport]:
         """Get historical analysis reports."""
         reports = self._analysis_history.copy()
@@ -371,58 +359,66 @@ class MonitoringService:
             "worst_score": min(scores) if scores else 0.0,
         }
 
-    async def optimize_performance(self) -> Dict[str, Any]:
+    async def optimize_performance_async(self) -> Dict[str, Any]:
         """Run automated performance optimization analysis."""
         logger.info("Running performance optimization analysis")
 
         # Generate current report
-        current_report = await self.generate_report()
+        current_report = await self.generate_report_async()
 
         # Analyze optimization opportunities
         optimization_recommendations = []
 
         for insight in current_report.insights:
             if insight.category == "optimization":
-                optimization_recommendations.append({
-                    "title": insight.title,
-                    "description": insight.description,
-                    "recommendation": insight.recommendation,
-                    "expected_impact": insight.impact,
-                    "confidence": insight.confidence,
-                })
+                optimization_recommendations.append(
+                    {
+                        "title": insight.title,
+                        "description": insight.description,
+                        "recommendation": insight.recommendation,
+                        "expected_impact": insight.impact,
+                        "confidence": insight.confidence,
+                    }
+                )
 
         # System-level recommendations
         system_metrics = self.system_monitor.get_current_metrics()
         if system_metrics:
             if system_metrics.memory_percent > 80:
-                optimization_recommendations.append({
-                    "title": "Memory Optimization",
-                    "description": f"Memory usage at {system_metrics.memory_percent:.1f}%",
-                    "recommendation": "Consider implementing memory-efficient algorithms or increasing memory limits",
-                    "expected_impact": "Reduced memory pressure and improved stability",
-                    "confidence": 0.9,
-                })
+                optimization_recommendations.append(
+                    {
+                        "title": "Memory Optimization",
+                        "description": f"Memory usage at {system_metrics.memory_percent:.1f}%",
+                        "recommendation": "Consider implementing memory-efficient algorithms or increasing memory limits",
+                        "expected_impact": "Reduced memory pressure and improved stability",
+                        "confidence": 0.9,
+                    }
+                )
 
             if system_metrics.cpu_percent > 70:
-                optimization_recommendations.append({
-                    "title": "CPU Optimization",
-                    "description": f"CPU usage at {system_metrics.cpu_percent:.1f}%",
-                    "recommendation": "Profile CPU-intensive operations and consider async alternatives",
-                    "expected_impact": "Improved responsiveness and throughput",
-                    "confidence": 0.8,
-                })
+                optimization_recommendations.append(
+                    {
+                        "title": "CPU Optimization",
+                        "description": f"CPU usage at {system_metrics.cpu_percent:.1f}%",
+                        "recommendation": "Profile CPU-intensive operations and consider async alternatives",
+                        "expected_impact": "Improved responsiveness and throughput",
+                        "confidence": 0.8,
+                    }
+                )
 
         # Async-specific recommendations
         if self.enable_profiling:
             async_report = self.async_profiler.analyze_performance()
             if async_report.concurrency_level > 100:
-                optimization_recommendations.append({
-                    "title": "Async Concurrency Control",
-                    "description": f"High concurrency level: {async_report.concurrency_level:.1f}",
-                    "recommendation": "Implement semaphores or task queuing to control concurrency",
-                    "expected_impact": "Reduced event loop congestion",
-                    "confidence": 0.85,
-                })
+                optimization_recommendations.append(
+                    {
+                        "title": "Async Concurrency Control",
+                        "description": f"High concurrency level: {async_report.concurrency_level:.1f}",
+                        "recommendation": "Implement semaphores or task queuing to control concurrency",
+                        "expected_impact": "Reduced event loop congestion",
+                        "confidence": 0.85,
+                    }
+                )
 
         return {
             "overall_score": current_report.overall_score,
@@ -433,11 +429,7 @@ class MonitoringService:
             "analysis_timestamp": datetime.utcnow().isoformat(),
         }
 
-    def export_monitoring_data(
-        self,
-        time_window: Optional[timedelta] = None,
-        format: str = "json"
-    ) -> str:
+    def export_monitoring_data(self, time_window: Optional[timedelta] = None, format: str = "json") -> str:
         """Export comprehensive monitoring data."""
         if time_window is None:
             time_window = timedelta(hours=1)
@@ -458,20 +450,18 @@ class MonitoringService:
 
         if format == "json":
             import json
+
             return json.dumps(export_data, indent=2)
         else:
             raise ValueError(f"Unsupported export format: {format}")
 
-    async def cleanup_old_data(self, retention_hours: int = 24) -> None:
+    async def cleanup_old_data_async(self, retention_hours: int = 24) -> None:
         """Clean up old monitoring data."""
         cutoff_time = datetime.utcnow() - timedelta(hours=retention_hours)
 
         # Clean analysis history
         original_count = len(self._analysis_history)
-        self._analysis_history = [
-            r for r in self._analysis_history
-            if r.analysis_timestamp >= cutoff_time
-        ]
+        self._analysis_history = [r for r in self._analysis_history if r.analysis_timestamp >= cutoff_time]
         cleaned_count = original_count - len(self._analysis_history)
 
         # Clean component data

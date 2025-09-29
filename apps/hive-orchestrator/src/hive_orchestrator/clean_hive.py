@@ -18,11 +18,15 @@ from pathlib import Path
 from hive_orchestrator.core.db import close_connection, get_connection, transaction
 
 
-def run_command(cmd, description):
+def run_command(cmd, description) -> None:
     """Run a command and report results"""
     logger.info(f"Cleaning {description}...")
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        # Split command into arguments for security
+        import shlex
+
+        cmd_args = shlex.split(cmd) if isinstance(cmd, str) else cmd
+        result = subprocess.run(cmd_args, capture_output=True, text=True)
         if result.returncode == 0:
             logger.info(f"[OK] {description} completed")
         else:
@@ -31,7 +35,7 @@ def run_command(cmd, description):
         logger.error(f"[ERROR] {description} failed: {e}")
 
 
-def clean_directory(path, description):
+def clean_directory(path, description) -> None:
     """Clean a directory if it exists"""
     if Path(path).exists():
         logger.info(f"Cleaning {description}...")
@@ -44,7 +48,7 @@ def clean_directory(path, description):
         logger.info(f"[INFO] {description} - directory doesn't exist")
 
 
-def clean_database():
+def clean_database() -> None:
     """Clean the database tables using hive_core_db functions"""
     logger.info("Cleaning database...")
 
@@ -107,7 +111,7 @@ def clean_database():
             logger.error(f"[WARN] Error closing database connection: {e}")
 
 
-def clean_git_branches(preserve=False):
+def clean_git_branches(preserve=False) -> None:
     """Clean up agent git branches unless preserve flag is set"""
     if preserve:
         logger.info("[INFO] Preserving git branches (--keep-branches flag set)")
@@ -116,10 +120,15 @@ def clean_git_branches(preserve=False):
     logger.info("Cleaning agent git branches...")
     try:
         # First, remove any worktrees
-        result = subprocess.run("git worktree prune", shell=True, capture_output=True, text=True)
+        result = subprocess.run(["git", "worktree", "prune"], capture_output=True, text=True)
 
-        # Get list of agent branches (Windows compatible)
-        result = subprocess.run('git branch | findstr "agent/"', shell=True, capture_output=True, text=True)
+        # Get list of agent branches (cross-platform compatible)
+        result = subprocess.run(["git", "branch"], capture_output=True, text=True)
+        if result.returncode == 0:
+            # Filter branches containing 'agent/' in Python instead of shell
+            all_branches = result.stdout.strip().split("\n")
+            agent_branches = [line for line in all_branches if "agent/" in line]
+            result.stdout = "\n".join(agent_branches)
 
         if result.returncode == 0 and result.stdout.strip():
             branches = [line.strip().replace("*", "").strip() for line in result.stdout.strip().split("\n")]
@@ -130,8 +139,7 @@ def clean_git_branches(preserve=False):
                 for branch in branches:
                     try:
                         subprocess.run(
-                            f'git branch -D "{branch}"',
-                            shell=True,
+                            ["git", "branch", "-D", branch],
                             capture_output=True,
                             check=True,
                         )
@@ -148,7 +156,7 @@ def clean_git_branches(preserve=False):
         logger.warning(f"[WARN] Git branch cleanup: {e}")
 
 
-def kill_processes():
+def kill_processes() -> None:
     """Kill any running Queen or worker processes"""
     logger.info("Cleaning running processes...")
     try:
@@ -158,23 +166,49 @@ def kill_processes():
 
         for process_name in processes_to_kill:
             try:
-                # Windows tasklist and taskkill
-                result = subprocess.run(
-                    f'tasklist /FI "IMAGENAME eq python.exe" /FO CSV | findstr "{process_name}"',
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    logger.info(f"  Found running {process_name} processes")
-                    # Use wmic to kill by command line (more precise)
-                    kill_result = subprocess.run(
-                        f"wmic process where \"commandline like '%{process_name}%'\" delete",
-                        shell=True,
+                # Windows tasklist (cross-platform approach)
+                import platform
+
+                if platform.system() == "Windows":
+                    # Use tasklist without shell=True
+                    result = subprocess.run(
+                        ["tasklist", "/FI", "IMAGENAME eq python.exe", "/FO", "CSV"],
                         capture_output=True,
+                        text=True,
                         timeout=10,
                     )
+                    # Filter in Python instead of using findstr
+                    if result.returncode == 0 and process_name in result.stdout:
+                        result.returncode = 0
+                        result.stdout = result.stdout  # Keep original for processing
+                    else:
+                        result.returncode = 1
+                        result.stdout = ""
+                else:
+                    # Unix/Linux approach
+                    result = subprocess.run(
+                        ["pgrep", "-f", process_name],
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                    )
+                if result.returncode == 0 and result.stdout.strip():
+                    logger.info(f"  Found running {process_name} processes")
+                    # Kill processes (cross-platform)
+                    if platform.system() == "Windows":
+                        # Use wmic without shell=True
+                        kill_result = subprocess.run(
+                            ["wmic", "process", "where", f"commandline like '%{process_name}%'", "delete"],
+                            capture_output=True,
+                            timeout=10,
+                        )
+                    else:
+                        # Unix/Linux approach
+                        kill_result = subprocess.run(
+                            ["pkill", "-f", process_name],
+                            capture_output=True,
+                            timeout=10,
+                        )
                     if kill_result.returncode == 0:
                         logger.info(f"  [OK] Killed {process_name} processes")
                         killed_any = True
@@ -195,7 +229,7 @@ def kill_processes():
         logger.error(f"[WARN] Process cleanup failed: {e}")
 
 
-def clean_results_and_logs():
+def clean_results_and_logs() -> None:
     """Clean results and logs directories"""
     try:
         # Clean traditional directories with error handling
@@ -247,7 +281,7 @@ def clean_results_and_logs():
         logger.error(f"[ERROR] Results and logs cleanup failed: {e}")
 
 
-def main():
+def main() -> None:
     try:
         # Parse arguments
         parser = argparse.ArgumentParser(description="Clean Hive workspace and database for fresh start")

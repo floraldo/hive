@@ -171,7 +171,7 @@ class HeatBufferOptimizationSimple(BaseStorageOptimization):
     - No thermal losses
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -281,7 +281,7 @@ class HeatBuffer(Component):
 
     PARAMS_MODEL = HeatBufferParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize heat buffer attributes and strategy objects."""
         self.type = "storage"
         self.medium = "heat"
@@ -355,7 +355,7 @@ class HeatBuffer(Component):
         else:
             raise ValueError(f"Unknown fidelity level for HeatBuffer optimization: {fidelity}")
 
-    def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float):
+    def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float) -> None:
         """
         Delegate to physics strategy for state update.
 
@@ -385,7 +385,7 @@ class HeatBuffer(Component):
                 f"E[{t}]={self.E[t]:.3f}kWh"
             )
 
-    def add_optimization_vars(self, N: Optional[int] = None):
+    def add_optimization_vars(self, N: Optional[int] = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N

@@ -1,3 +1,9 @@
+from hive_errors import BaseError
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
+
 """
 Comprehensive Pydantic models for EcoSystemiser API.
 
@@ -49,7 +55,7 @@ class HealthCheck(BaseModel):
     checks: Optional[Dict[str, bool]] = None
 
 
-class APIError(BaseModel):
+class APIError(BaseError):
     """Standard API error response"""
 
     error: str
@@ -68,7 +74,7 @@ class APIResponse(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 
-class ValidationError(BaseModel):
+class ValidationError(BaseError):
     """Validation error details"""
 
     field: str

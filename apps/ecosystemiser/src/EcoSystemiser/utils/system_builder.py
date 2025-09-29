@@ -39,7 +39,7 @@ logger = get_logger(__name__)
 class SystemBuilder:
     """Build System objects from configuration files using dynamic registry pattern."""
 
-    def __init__(self, config_path: Path, component_repo: ComponentRepository):
+    def __init__(self, config_path: Path, component_repo: ComponentRepository) -> None:
         """Initialize dynamic system builder.
 
         Args:
@@ -97,7 +97,7 @@ class SystemBuilder:
         logger.info(f"Built system '{system.system_id}' with {len(system.components)} components")
         return system
 
-    def _validate_config(self, config: Dict[str, Any]):
+    def _validate_config(self, config: Dict[str, Any]) -> None:
         """Validate system configuration structure.
 
         Args:
@@ -117,7 +117,7 @@ class SystemBuilder:
         if not isinstance(config["connections"], list):
             raise ValueError("'connections' must be a list")
 
-    def _create_component(self, comp_config: Dict[str, Any], n: int):
+    def _create_component(self, comp_config: Dict[str, Any], n: int) -> None:
         """Create a component instance from configuration.
 
         Args:
@@ -181,7 +181,7 @@ class SystemBuilder:
         # Create component using registry pattern
         return ComponentClass(name, params, n)
 
-    def assign_profiles(self, system: System, profiles: Dict[str, Any]):
+    def assign_profiles(self, system: System, profiles: Dict[str, Any]) -> None:
         """Assign loaded profiles to system components.
 
         Args:

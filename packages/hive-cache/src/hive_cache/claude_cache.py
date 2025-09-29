@@ -2,7 +2,8 @@
 
 import hashlib
 import time
-from typing import Any, Dict, List, Optional, Callable, Union
+from typing import Any, Callable, Dict, List, Optional, Union
+
 from hive_logging import get_logger
 
 from .cache_client import HiveCacheClient, get_cache_client
@@ -24,7 +25,7 @@ class ClaudeAPICache:
     - Response compression for large outputs
     """
 
-    def __init__(self, cache_client: HiveCacheClient, config: CacheConfig):
+    def __init__(self, cache_client: HiveCacheClient, config: CacheConfig) -> None:
         self.cache_client = cache_client
         self.config = config
         self.namespace = config.claude_cache_namespace
@@ -39,7 +40,7 @@ class ClaudeAPICache:
         }
 
     @classmethod
-    async def create(cls, config: Optional[CacheConfig] = None) -> "ClaudeAPICache":
+    async def create_async(cls, config: Optional[CacheConfig] = None) -> "ClaudeAPICache":
         """Create Claude API cache instance.
 
         Args:
@@ -172,7 +173,7 @@ class ClaudeAPICache:
 
         return True
 
-    async def get_cached_response(
+    async def get_cached_response_async(
         self,
         prompt: str,
         model: str = "claude-3-opus",
@@ -221,7 +222,7 @@ class ClaudeAPICache:
             logger.warning(f"Failed to get cached Claude response: {e}")
             return None
 
-    async def cache_response(
+    async def cache_response_async(
         self,
         prompt: str,
         response: Dict[str, Any],
@@ -292,7 +293,7 @@ class ClaudeAPICache:
             logger.error(f"Failed to cache Claude response: {e}")
             return False
 
-    async def get_or_fetch(
+    async def get_or_fetch_async(
         self,
         prompt: str,
         fetcher: Callable,
@@ -319,7 +320,7 @@ class ClaudeAPICache:
             Claude API response (cached or fresh)
         """
         # Try cache first
-        cached_response = await self.get_cached_response(
+        cached_response = await self.get_cached_response_async(
             prompt, model, max_tokens, temperature, system, **kwargs
         )
 
@@ -336,13 +337,13 @@ class ClaudeAPICache:
             raise ValueError("Fetcher must be callable")
 
         # Cache the response
-        await self.cache_response(
+        await self.cache_response_async(
             prompt, response, model, max_tokens, temperature, system, cache_ttl, **kwargs
         )
 
         return response
 
-    async def warm_cache(self, common_prompts: List[Dict[str, Any]]) -> Dict[str, bool]:
+    async def warm_cache_async(self, common_prompts: List[Dict[str, Any]]) -> Dict[str, bool]:
         """Pre-warm cache with common prompts.
 
         Args:
@@ -360,7 +361,7 @@ class ClaudeAPICache:
 
             try:
                 # Check if already cached
-                cached = await self.get_cached_response(**prompt_config)
+                cached = await self.get_cached_response_async(**prompt_config)
                 if cached:
                     results[prompt[:50] + "..."] = True
                     continue
@@ -375,7 +376,7 @@ class ClaudeAPICache:
 
         return results
 
-    async def invalidate_by_pattern(self, pattern: str = "*") -> int:
+    async def invalidate_by_pattern_async(self, pattern: str = "*") -> int:
         """Invalidate cached responses matching a pattern.
 
         Args:
@@ -390,7 +391,7 @@ class ClaudeAPICache:
             logger.error(f"Failed to invalidate cache pattern: {e}")
             return 0
 
-    async def get_cache_stats(self) -> Dict[str, Any]:
+    async def get_cache_stats_async(self) -> Dict[str, Any]:
         """Get Claude-specific cache statistics.
 
         Returns:
@@ -410,7 +411,7 @@ class ClaudeAPICache:
             },
         }
 
-    async def cleanup_expired(self) -> int:
+    async def cleanup_expired_async(self) -> int:
         """Clean up expired cache entries (Redis handles this automatically).
 
         Returns:

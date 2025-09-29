@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 
 @click.group()
-def report():
+def report() -> None:
     """Report generation and server commands."""
     pass
 
@@ -34,7 +34,7 @@ def report():
     default="json",
     help="Output format",
 )
-def analyze(results_file: str, output: Optional[str], strategies: tuple, output_format: str):
+def analyze(results_file: str, output: Optional[str], strategies: tuple, output_format: str) -> None:
     """Analyze simulation results and generate report data.
 
     Args:
@@ -110,7 +110,7 @@ def analyze(results_file: str, output: Optional[str], strategies: tuple, output_
 @click.option("--host", default="127.0.0.1", help="Host to bind to")
 @click.option("--port", default=5000, help="Port to bind to")
 @click.option("--debug", is_flag=True, help="Enable debug mode")
-def server(host: str, port: int, debug: bool):
+def server(host: str, port: int, debug: bool) -> None:
     """Start the reporting web server.
 
     This starts a Flask web application for interactive report generation.
@@ -139,7 +139,7 @@ def server(host: str, port: int, debug: bool):
     default="report.html",
     help="Output HTML file path",
 )
-def generate(results_file: str, output: str):
+def generate(results_file: str, output: str) -> None:
     """Generate a standalone HTML report.
 
     Args:

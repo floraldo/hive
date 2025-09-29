@@ -46,7 +46,7 @@ class GoldenRulesAutoFixer:
     - Import organization (Rule 6)
     """
 
-    def __init__(self, project_root: Path, dry_run: bool = True, create_backups: bool = True):
+    def __init__(self, project_root: Path, dry_run: bool = True, create_backups: bool = True) -> None:
         self.project_root = project_root
         self.dry_run = dry_run
         self.create_backups = create_backups
@@ -127,7 +127,7 @@ class GoldenRulesAutoFixer:
         shutil.copy2(file_path, backup_path)
         return backup_path
 
-    def _fix_async_naming(self, file_path: Path):
+    def _fix_async_naming(self, file_path: Path) -> None:
         """
         Fix async function naming violations (Rule 14).
 
@@ -202,11 +202,11 @@ class GoldenRulesAutoFixer:
                 )
             )
 
-    def _fix_print_statements(self, file_path: Path):
+    def _fix_print_statements(self, file_path: Path) -> None:
         """
         Fix print statement violations (Rule 9).
 
-        Replaces print() calls with logger.info() calls.
+        Replaces logger.info() calls with logger.info() calls.
         """
         try:
             with open(file_path, "r", encoding="utf-8") as f:
@@ -246,7 +246,7 @@ class GoldenRulesAutoFixer:
             modified_content = content
 
             # Replace print statements with logger calls
-            # Pattern to match print() calls but not method calls like console.print()
+            # Pattern to match logger.info() calls but not method calls like console.logger.info()
             print_pattern = r"(?<!\.)\bprint\s*\("
 
             # Find all print statements
@@ -267,7 +267,7 @@ class GoldenRulesAutoFixer:
 
                 old_statement = content[start_pos:end_pos]
 
-                # Extract the arguments from print()
+                # Extract the arguments from logger.info()
                 args_start = old_statement.find("(") + 1
                 args_end = old_statement.rfind(")")
                 args = old_statement[args_start:args_end].strip()
@@ -279,7 +279,7 @@ class GoldenRulesAutoFixer:
                     new_statement = "logger.info('')"
 
                 modified_content = modified_content.replace(old_statement, new_statement)
-                changes_made.append(f"Replaced print() with logger.info(): {old_statement}")
+                changes_made.append(f"Replaced logger.info() with logger.info(): {old_statement}")
 
             # Apply changes
             if changes_made and not self.dry_run:
@@ -313,7 +313,7 @@ class GoldenRulesAutoFixer:
                 )
             )
 
-    def _fix_exception_inheritance(self, file_path: Path):
+    def _fix_exception_inheritance(self, file_path: Path) -> None:
         """
         Fix exception inheritance violations (Rule 8).
 
@@ -495,7 +495,7 @@ class GoldenRulesAutoFixer:
         return "\n".join(report)
 
 
-def main():
+def main() -> None:
     """CLI interface for the autofix tool"""
     import argparse
 
@@ -514,12 +514,12 @@ def main():
     create_backups = not args.no_backup
     target_rules = set(args.rules) if args.rules else None
 
-    print("🔧 Golden Rules Autofix Tool")
-    print("=" * 40)
-    print(f"Mode: {'DRY RUN' if dry_run else 'LIVE EXECUTION'}")
-    print(f"Backups: {'Enabled' if create_backups and not dry_run else 'Disabled'}")
-    print(f"Target rules: {target_rules or 'All supported rules'}")
-    print()
+    logger.info("Golden Rules Autofix Tool")
+    logger.info("=" * 40)
+    logger.info(f"Mode: {'DRY RUN' if dry_run else 'LIVE EXECUTION'}")
+    logger.info(f"Backups: {'Enabled' if create_backups and not dry_run else 'Disabled'}")
+    logger.info(f"Target rules: {target_rules or 'All supported rules'}")
+    logger.info()
 
     # Run autofix
     fixer = GoldenRulesAutoFixer(project_root=Path("."), dry_run=dry_run, create_backups=create_backups)
@@ -528,7 +528,7 @@ def main():
 
     # Generate and print report
     report = fixer.generate_report()
-    print(report)
+    logger.info(report)
 
 
 if __name__ == "__main__":

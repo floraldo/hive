@@ -12,7 +12,7 @@ from hive_logging import get_logger
 logger = get_logger("GoldenDataset")
 
 
-def run_original_systemiser():
+def run_original_systemiser() -> None:
     """Run the original Systemiser and capture its output."""
 
     # Change to Systemiser directory
@@ -49,7 +49,7 @@ def run_original_systemiser():
     return output_file
 
 
-def extract_minimal_components(original_data):
+def extract_minimal_components(original_data) -> None:
     """
     Extract only the minimal component set from the original results:
     - Grid

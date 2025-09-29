@@ -56,7 +56,7 @@ class SimulationResult(BaseModel):
 class SimulationService:
     """Main service for orchestrating system simulations."""
 
-    def __init__(self, component_repo: Optional[ComponentRepository] = None):
+    def __init__(self, component_repo: Optional[ComponentRepository] = None) -> None:
         """Initialize simulation service.
 
         Args:
@@ -298,7 +298,7 @@ class SimulationService:
         logger.info(f"Built system with {len(system.components)} components")
         return system
 
-    def _run_solver(self, system: System, config: SimulationConfig):
+    def _run_solver(self, system: System, config: SimulationConfig) -> None:
         """Run the configured solver on the system.
 
         Args:

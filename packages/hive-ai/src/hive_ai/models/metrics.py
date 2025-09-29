@@ -6,17 +6,16 @@ and trends with integration to the Hive observability stack.
 """
 
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
 from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from hive_logging import get_logger
-from hive_db import AsyncSession, get_async_session
 from hive_cache import CacheManager
+from hive_db import AsyncSession, get_async_session
+from hive_logging import get_logger
 
-from ..core.interfaces import TokenUsage, MetricsCollectorInterface
-
+from ..core.interfaces import MetricsCollectorInterface, TokenUsage
 
 logger = get_logger(__name__)
 
@@ -24,6 +23,7 @@ logger = get_logger(__name__)
 @dataclass
 class ModelUsageRecord:
     """Record of individual model usage."""
+
     timestamp: datetime
     model: str
     provider: str
@@ -36,6 +36,7 @@ class ModelUsageRecord:
 @dataclass
 class ModelPerformanceStats:
     """Aggregated performance statistics for a model."""
+
     total_requests: int
     successful_requests: int
     total_tokens: int
@@ -53,19 +54,14 @@ class ModelMetrics(MetricsCollectorInterface):
     analytics for optimization and cost management.
     """
 
-    def __init__(self, cache_ttl: int = 300):
+    def __init__(self, cache_ttl: int = 300) -> None:
         self.cache = CacheManager("model_metrics")
         self.cache_ttl = cache_ttl
         self._recent_usage: deque = deque(maxlen=1000)  # Keep last 1000 operations
         self._hourly_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     async def record_model_usage_async(
-        self,
-        model: str,
-        provider: str,
-        tokens: TokenUsage,
-        latency_ms: int,
-        success: bool
+        self, model: str, provider: str, tokens: TokenUsage, latency_ms: int, success: bool
     ) -> None:
         """Record individual model usage event."""
         timestamp = datetime.utcnow()
@@ -78,7 +74,7 @@ class ModelMetrics(MetricsCollectorInterface):
             tokens=tokens,
             latency_ms=latency_ms,
             success=success,
-            cost=cost
+            cost=cost,
         )
 
         # Store in recent usage queue
@@ -95,7 +91,7 @@ class ModelMetrics(MetricsCollectorInterface):
         # Persist to database if available
         try:
             async with get_async_session() as session:
-                await self._persist_usage_record(session, record)
+                await self._persist_usage_record_async(session, record)
         except Exception as e:
             logger.warning(f"Failed to persist metrics to database: {e}")
 
@@ -108,13 +104,7 @@ class ModelMetrics(MetricsCollectorInterface):
             f"${cost:.4f}, {'success' if success else 'failure'})"
         )
 
-    async def record_vector_operation_async(
-        self,
-        operation: str,
-        count: int,
-        latency_ms: int,
-        success: bool
-    ) -> None:
+    async def record_vector_operation_async(self, operation: str, count: int, latency_ms: int, success: bool) -> None:
         """Record vector database operation metrics."""
         # Implementation for vector operations metrics
         timestamp = datetime.utcnow()
@@ -147,7 +137,7 @@ class ModelMetrics(MetricsCollectorInterface):
         if len(self._recent_usage) < 1000:  # May not have full day
             try:
                 async with get_async_session() as session:
-                    db_cost = await self._get_daily_cost_from_db(session, target_date)
+                    db_cost = await self._get_daily_cost_from_db_async(session, target_date)
                     total_cost = max(total_cost, db_cost)  # Use higher value
             except Exception as e:
                 logger.warning(f"Failed to get daily cost from database: {e}")
@@ -173,7 +163,7 @@ class ModelMetrics(MetricsCollectorInterface):
         # Query database for complete data
         try:
             async with get_async_session() as session:
-                db_cost = await self._get_monthly_cost_from_db(session, year, month)
+                db_cost = await self._get_monthly_cost_from_db_async(session, year, month)
                 total_cost = max(total_cost, db_cost)
         except Exception as e:
             logger.warning(f"Failed to get monthly cost from database: {e}")
@@ -190,7 +180,7 @@ class ModelMetrics(MetricsCollectorInterface):
                 "successful_requests": 0,
                 "total_cost": 0.0,
                 "avg_latency_ms": 0.0,
-                "success_rate": 0.0
+                "success_rate": 0.0,
             }
 
         total_requests = len(self._recent_usage)
@@ -204,7 +194,7 @@ class ModelMetrics(MetricsCollectorInterface):
             "total_cost": total_cost,
             "avg_latency_ms": total_latency / total_requests if total_requests > 0 else 0.0,
             "success_rate": successful_requests / total_requests if total_requests > 0 else 0.0,
-            "time_range": "recent_1000_operations"
+            "time_range": "recent_1000_operations",
         }
 
     async def get_model_performance_async(self, model: str) -> ModelPerformanceStats:
@@ -241,7 +231,7 @@ class ModelMetrics(MetricsCollectorInterface):
             total_cost=total_cost,
             avg_latency_ms=avg_latency,
             success_rate=successful_requests / total_requests if total_requests > 0 else 0.0,
-            requests_per_hour=requests_per_hour
+            requests_per_hour=requests_per_hour,
         )
 
         # Cache for 2 minutes
@@ -263,28 +253,19 @@ class ModelMetrics(MetricsCollectorInterface):
             provider_usage[record.provider] += 1
 
         # Recent performance trends
-        recent_24h = [
-            r for r in self._recent_usage
-            if r.timestamp > now - timedelta(hours=24)
-        ]
+        recent_24h = [r for r in self._recent_usage if r.timestamp > now - timedelta(hours=24)]
 
         return {
-            "costs": {
-                "today": today_cost,
-                "current_month": current_month_cost
-            },
+            "costs": {"today": today_cost, "current_month": current_month_cost},
             "usage_last_24h": {
                 "total_requests": len(recent_24h),
                 "successful_requests": sum(1 for r in recent_24h if r.success),
                 "total_tokens": sum(r.tokens.total_tokens for r in recent_24h),
-                "avg_latency_ms": (
-                    sum(r.latency_ms for r in recent_24h) / len(recent_24h)
-                    if recent_24h else 0.0
-                )
+                "avg_latency_ms": (sum(r.latency_ms for r in recent_24h) / len(recent_24h) if recent_24h else 0.0),
             },
             "model_distribution": dict(model_usage),
             "provider_distribution": dict(provider_usage),
-            "hourly_stats": dict(self._hourly_stats)
+            "hourly_stats": dict(self._hourly_stats),
         }
 
     def _invalidate_caches(self) -> None:
@@ -297,19 +278,19 @@ class ModelMetrics(MetricsCollectorInterface):
         now = datetime.utcnow()
         self.cache.delete(f"monthly_cost_{now.year}_{now.month:02d}")
 
-    async def _persist_usage_record(self, session: AsyncSession, record: ModelUsageRecord) -> None:
+    async def _persist_usage_record_async(self, session: AsyncSession, record: ModelUsageRecord) -> None:
         """Persist usage record to database."""
         # Implementation would depend on specific database schema
         # This is a placeholder for the actual database persistence
         pass
 
-    async def _get_daily_cost_from_db(self, session: AsyncSession, date: datetime) -> float:
+    async def _get_daily_cost_from_db_async(self, session: AsyncSession, date: datetime) -> float:
         """Get daily cost from database."""
         # Implementation would query the database for daily cost
         # This is a placeholder for the actual database query
         return 0.0
 
-    async def _get_monthly_cost_from_db(self, session: AsyncSession, year: int, month: int) -> float:
+    async def _get_monthly_cost_from_db_async(self, session: AsyncSession, year: int, month: int) -> float:
         """Get monthly cost from database."""
         # Implementation would query the database for monthly cost
         # This is a placeholder for the actual database query

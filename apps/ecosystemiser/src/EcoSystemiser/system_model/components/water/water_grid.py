@@ -66,7 +66,7 @@ class WaterGridPhysicsSimple:
     - Direct water transfer
     """
 
-    def __init__(self, params):
+    def __init__(self, params) -> None:
         """Initialize with component parameters."""
         self.params = params
 
@@ -139,7 +139,7 @@ class WaterGridOptimizationSimple:
     - No reliability or pressure loss considerations
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         self.params = params
         self.component = component_instance
@@ -228,7 +228,7 @@ class WaterGrid(Component):
 
     PARAMS_MODEL = WaterGridParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize water grid attributes and strategy objects."""
         self.type = "transmission"
         self.medium = "water"
@@ -291,7 +291,7 @@ class WaterGrid(Component):
         else:
             raise ValueError(f"Unknown fidelity level for WaterGrid optimization: {fidelity}")
 
-    def add_optimization_vars(self, N: Optional[int] = None):
+    def add_optimization_vars(self, N: Optional[int] = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N
@@ -363,7 +363,7 @@ class WaterGrid(Component):
 
         return actual_import, actual_export
 
-    def __repr__(self):
+    def __repr__(self) -> None:
         """String representation."""
         return (
             f"WaterGrid(name='{self.name}', "

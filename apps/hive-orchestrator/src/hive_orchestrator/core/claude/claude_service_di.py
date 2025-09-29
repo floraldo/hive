@@ -1,3 +1,9 @@
+import asyncio
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Dependency Injection version of Claude Service
 
@@ -261,7 +267,7 @@ class ClaudeServiceDI:
 
         import time
 
-        time.sleep(0.1)  # Simulate API call delay
+        await asyncio.sleep(0.1)  # Simulate API call delay
 
         return ClaudeResponse(
             content=f"Processed message: {message[:50]}...",
@@ -310,7 +316,7 @@ class ClaudeServiceDI:
 class RateLimiter:
     """Rate limiter for Claude API calls"""
 
-    def __init__(self, config: RateLimitConfig):
+    def __init__(self, config: RateLimitConfig) -> None:
         """Initialize rate limiter"""
         self.config = config
         self._minute_requests = []

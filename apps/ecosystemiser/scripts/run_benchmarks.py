@@ -1,3 +1,5 @@
+import asyncio
+
 #!/usr/bin/env python3
 """
 EcoSystemiser Performance Benchmarking Script
@@ -35,6 +37,7 @@ try:
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
+    # Script output
     print("WARNING: psutil not available, memory monitoring disabled")
 
 try:
@@ -43,30 +46,31 @@ try:
     LOGGING_AVAILABLE = True
 except ImportError:
     LOGGING_AVAILABLE = False
+    # Script output
     print("WARNING: Logging not available, using print statements")
 
 
 # Mock classes for foundation testing when real components unavailable
 class MockSystem:
-    def __init__(self, name="mock_system"):
+    def __init__(self, name="mock_system") -> None:
         self.name = name
         self.components = ["solar_pv", "battery", "power_demand", "water_storage"]
 
 
 class MockResult:
-    def __init__(self, status="optimal", total_cost=1000.0):
+    def __init__(self, status="optimal", total_cost=1000.0) -> None:
         self.status = status
         self.total_cost = total_cost
         self.objective_value = total_cost
 
 
 class MockSolver:
-    def __init__(self, fidelity_level=None, warm_start=False):
+    def __init__(self, fidelity_level=None, warm_start=False) -> None:
         self.fidelity_level = fidelity_level
         self.warm_start = warm_start
         self.horizon_count = 3
 
-    def solve(self, system, start_time, end_time, time_step):
+    def solve(self, system, start_time, end_time, time_step) -> None:
         # Simulate solve time based on complexity
         complexity_factor = {
             "SIMPLE": 0.001,
@@ -77,14 +81,14 @@ class MockSolver:
         sleep_time = complexity_factor.get(str(self.fidelity_level), 0.01)
         if self.warm_start:
             sleep_time *= 0.7  # Warm start speedup
-        time.sleep(sleep_time)
+        await asyncio.sleep(sleep_time)
         return MockResult()
 
 
 class BenchmarkRunner:
     """Main benchmarking orchestrator for EcoSystemiser v3.0"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.results = {
             "benchmark_info": {
                 "version": "3.0",
@@ -130,7 +134,7 @@ class BenchmarkRunner:
         except Exception as e:
             return {"error": str(e)}
 
-    def _create_standard_system(self):
+    def _create_standard_system(self) -> None:
         """Create the standard representative system for benchmarking"""
         try:
             # Try to import real EcoSystemiser components
@@ -180,12 +184,13 @@ class BenchmarkRunner:
             peak_mb = (peak_memory - initial_memory) / (1024 * 1024)
             raise e
 
-    def _log(self, message):
+    def _log(self, message) -> None:
         """Log message using available logging system"""
         if LOGGING_AVAILABLE:
             logger = get_logger(__name__)
             logger.info(message)
         else:
+            # Script output
             print(message)
 
     def benchmark_fidelity_levels(self, system) -> List[Dict[str, Any]]:
@@ -406,7 +411,7 @@ class BenchmarkRunner:
                     optimizer = GeneticAlgorithm(ga_config)
 
                     # Simple test function (sphere function)
-                    def fitness_function(x):
+                    def fitness_function(x) -> None:
                         return {
                             "fitness": np.sum(x**2),
                             "objectives": [np.sum(x**2)],
@@ -422,7 +427,7 @@ class BenchmarkRunner:
 
                 else:
                     # Mock benchmark
-                    time.sleep(0.01 * config["population"] * config["generations"] / 100)
+                    await asyncio.sleep(0.01 * config["population"] * config["generations"] / 100)
                     solve_time = 0.01 * config["population"] * config["generations"] / 100
                     peak_memory = config["dimensions"] * config["population"] * 0.001
                     num_evaluations = config["population"] * config["generations"]
@@ -473,7 +478,7 @@ class BenchmarkRunner:
                     mc_engine = MonteCarloEngine(mc_config)
 
                     # Simple test function
-                    def fitness_function(x):
+                    def fitness_function(x) -> None:
                         return {
                             "fitness": np.sum(x**2) + np.random.normal(0, 10),
                             "objectives": [np.sum(x**2)],
@@ -487,7 +492,7 @@ class BenchmarkRunner:
 
                 else:
                     # Mock benchmark
-                    time.sleep(0.001 * config["samples"])
+                    await asyncio.sleep(0.001 * config["samples"])
                     solve_time = 0.001 * config["samples"]
                     peak_memory = config["dimensions"] * config["samples"] * 0.0001
                     result = {"uncertainty_analysis": {"statistics": {"mean": 50, "std": 10}}}
@@ -632,7 +637,7 @@ class BenchmarkRunner:
         return self.results
 
 
-def main():
+def main() -> None:
     """Main benchmark execution"""
     try:
         # Set up logging if available
@@ -654,41 +659,53 @@ def main():
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2)
 
-        print(f"\nBenchmark results saved to: {output_file}")
+        # Script output
+    print(f"\nBenchmark results saved to: {output_file}")
 
         # Print summary
-        print("\n" + "=" * 60)
-        print("ECOSYSTEMISER V3.0 PERFORMANCE BASELINE")
-        print("=" * 60)
+        # Script output
+    print("\n" + "=" * 60)
+        # Script output
+    print("ECOSYSTEMISER V3.0 PERFORMANCE BASELINE")
+        # Script output
+    print("=" * 60)
 
         summary = results["summary"]
         fidelity_perf = summary.get("fidelity_performance", {})
         rolling_perf = summary.get("rolling_horizon_performance", {})
 
-        print(
+        # Script output
+    print(
             f"Fidelity Levels: {fidelity_perf.get('successful_levels', 0)}/{fidelity_perf.get('total_levels', 4)} successful"
         )
 
         if fidelity_perf.get("fastest_solve_s"):
-            print(
+            # Script output
+    print(
                 f"Solve Time Range: {fidelity_perf['fastest_solve_s']:.4f}s - {fidelity_perf['slowest_solve_s']:.4f}s"
             )
 
         if rolling_perf.get("warm_start_speedup"):
-            print(f"Warm-start Speedup: {rolling_perf['warm_start_speedup']:.2f}x")
+            # Script output
+    print(f"Warm-start Speedup: {rolling_perf['warm_start_speedup']:.2f}x")
 
         if summary.get("recommendations"):
-            print("\nRecommendations:")
+            # Script output
+    print("\nRecommendations:")
             for rec in summary["recommendations"]:
-                print(f"  - {rec}")
+                # Script output
+    print(f"  - {rec}")
 
-        print(f"\nBaseline file: {output_file}")
-        print("\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity")
+        # Script output
+    print(f"\nBaseline file: {output_file}")
+        # Script output
+    print("\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity")
 
         return 0
 
     except Exception as e:
-        print(f"Benchmark failed: {e}")
+        # Script output
+    print(f"Benchmark failed: {e}")
         traceback.print_exc()
         return 1
 

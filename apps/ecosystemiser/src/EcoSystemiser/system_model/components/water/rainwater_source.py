@@ -164,7 +164,7 @@ class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
     - No first flush or filtration losses
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -288,7 +288,7 @@ class RainwaterSource(Component):
 
     PARAMS_MODEL = RainwaterSourceParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize rainwater source attributes and strategy objects."""
         self.type = "generation"
         self.medium = "water"
@@ -309,13 +309,9 @@ class RainwaterSource(Component):
         self.seasonal_collection_factors = tech.seasonal_collection_factors
         self.water_quality_model = tech.water_quality_model
 
-        # Profile should be assigned by the system/builder
-        # Initialize as None, will be set by assign_profiles
-        if not hasattr(self, "profile") or self.profile is None:
-            logger.warning(f"No rainfall profile assigned to {self.name}. Using zero rainfall.")
-            self.profile = np.zeros(getattr(self, "N", 24))
-        else:
-            self.profile = np.array(self.profile)
+        # Profile should be assigned by the system/builder after initialization
+        # Initialize as None, will be set later by profile assignment
+        self.profile = None
 
         # CVXPY variables (for MILP solver)
         self.Q_out = None
@@ -384,7 +380,7 @@ class RainwaterSource(Component):
 
         return collection_output
 
-    def add_optimization_vars(self, N: Optional[int] = None):
+    def add_optimization_vars(self, N: Optional[int] = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N
@@ -406,7 +402,7 @@ class RainwaterSource(Component):
         """Rule-based rainwater collection operation with fidelity-aware performance."""
         return self.rule_based_generate(t)
 
-    def __repr__(self):
+    def __repr__(self) -> None:
         """String representation."""
         return (
             f"RainwaterSource(name='{self.name}', "

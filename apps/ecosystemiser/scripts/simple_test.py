@@ -39,7 +39,7 @@ from ecosystemiser.profile_loader.climate.data_models import (
 )
 
 
-def test_direct_adapter():
+def test_direct_adapter() -> None:
     """Test creating a simple mock adapter directly."""
 
     log.info("=" * 60)
@@ -103,7 +103,7 @@ def test_direct_adapter():
                 },
             )
 
-        async def fetch_async(self, lat, lon, variables, period, resolution="1H"):
+        async def fetch_async(self, lat, lon, variables, period, resolution="1H") -> None:
             """Mock fetch that returns synthetic data."""
             log.info(f"Mock fetch for lat={lat}, lon={lon}")
 
@@ -214,7 +214,7 @@ def test_direct_adapter():
         return False
 
 
-def test_service_with_mock():
+def test_service_with_mock() -> None:
     """Test the service layer with a mock adapter."""
 
     log.info("\n" + "=" * 60)

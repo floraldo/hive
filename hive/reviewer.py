@@ -6,9 +6,13 @@ Provides quality assessment and iterative refinement capabilities
 
 import json
 import subprocess
-from pathlib import Path
-from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class ReviewerCore:
@@ -139,7 +143,7 @@ class ReviewerCore:
                 return [f for f in files if f]
 
         except Exception as e:
-            print(f"Error getting changed files: {e}")
+            logger.error(f"Error getting changed files: {e}")
 
         return []
 

@@ -21,7 +21,7 @@ class SensitivityAnalysis(BaseAnalysis):
     - Trade-offs between objectives
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize sensitivity analysis."""
         super().__init__(name="Sensitivity")
 
@@ -267,7 +267,7 @@ class SensitivityAnalysis(BaseAnalysis):
         # Find best balanced configuration (multi-objective)
         if cost_results and renewable_results:
             # Simple weighted score: minimize cost, maximize renewable
-            def balanced_score(result):
+            def balanced_score(result) -> None:
                 cost = result["kpis"].get("total_cost", float("inf"))
                 renewable = result["kpis"].get("renewable_fraction", 0)
                 # Normalize and combine (equal weights)

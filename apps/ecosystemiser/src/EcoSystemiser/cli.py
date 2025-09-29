@@ -8,29 +8,28 @@ import sys
 from pathlib import Path
 from typing import Any, Dict
 
-from hive_cli import create_cli, add_command, run_cli
-from hive_cli.decorators import command, option
-from hive_cli.output import success, error, info, warning
-
 import yaml
 from ecosystemiser.profile_loader.climate import ClimateRequest, get_profile_sync
 from ecosystemiser.reporting.generator import create_standalone_html_report
+from hive_cli import add_command, create_cli, run_cli
+from hive_cli.decorators import command, option
+from hive_cli.output import error, info, success, warning
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 @create_cli()
-def cli():
+def cli() -> None:
     """EcoSystemiser - Climate and Ecosystem Analysis Tool"""
     pass
 
 @cli.group()
-def climate():
+def climate() -> None:
     """Climate profile commands"""
     pass
 
 @cli.group()
-def simulate():
+def simulate() -> None:
     """System simulation commands"""
     pass
 
@@ -41,7 +40,7 @@ def simulate():
 @option('--start', help='Start date (e.g., "2019-01-01")')
 @option('--end', help='End date (e.g., "2019-12-31")')
 @option('--vars', '-v', default='temp_air,ghi,wind_speed', help='Variables (comma-separated)')
-@option('--source', '-s', default='nasa_power', 
+@option('--source', '-s', default='nasa_power',
               type=click.Choice(['nasa_power', 'meteostat', 'pvgis', 'era5', 'file_epw', 'epw']))
 @option('--mode', '-m', default='observed',
               type=click.Choice(['observed', 'tmy', 'average', 'synthetic']))
@@ -56,11 +55,11 @@ def simulate():
               help='Subset to season')
 @option('--seed', type=int, help='Random seed for synthetic generation')
 @option('--stats', is_flag=True, help='Show statistics')
-def get(loc, file, year, start, end, vars, source, mode, resolution, timezone, 
+def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
         out, json_out, subset_month, subset_season, seed, stats):
     """
     Get climate profile for a location.
-    
+
     Examples:
         ecosys climate get --loc "Lisbon, PT" --year 2019 --vars temp_air,ghi,wind_speed
         ecosys climate get --loc "38.7,-9.1" --start 2019-01-01 --end 2019-12-31 --mode synthetic
@@ -69,7 +68,7 @@ def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
     try:
         # Validate input based on source
         is_file_source = source in ['file_epw', 'epw']
-        
+
         if is_file_source:
             if not file:
                 info("Error: --file is required for file-based sources", err=True)
@@ -88,7 +87,7 @@ def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
             else:
                 # String location
                 location = loc
-        
+
         # Build period
         if year:
             period = {"year": year}
@@ -97,17 +96,17 @@ def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
         else:
             info("Error: Must specify either --year or both --start and --end", err=True)
             sys.exit(1)
-        
+
         # Parse variables
         variables = [v.strip() for v in vars.split(',')]
-        
+
         # Build subset if specified
         subset = None
         if subset_month:
             subset = {"month": f"{subset_month:02d}"}
         elif subset_season:
             subset = {"season": subset_season}
-        
+
         # Create request
         request = ClimateRequest(
             location=location,
@@ -120,14 +119,14 @@ def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
             subset=subset,
             seed=seed
         )
-        
+
         # Get profile using synchronous wrapper
         info(f"Fetching climate data from {source}...")
         ds, response = get_profile_sync(request)
-        
+
         # Output results
         info(f"[SUCCESS] Retrieved climate data: shape={response.shape}")
-        
+
         if out:
             # Save to custom path
             out_path = Path(out)
@@ -137,7 +136,7 @@ def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
             info(f"[SUCCESS] Saved to {out_path}")
         else:
             info(f"[SUCCESS] Cached to {response.path_parquet}")
-        
+
         if json_out:
             # Save manifest
             json_path = Path(json_out)
@@ -145,7 +144,7 @@ def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
             with open(json_path, 'w') as f:
                 json.dump(response.manifest, f, indent=2, default=str)
             info(f"[SUCCESS] Saved manifest to {json_path}")
-        
+
         # Show statistics if requested
         if stats and response.stats:
             info("\n[STATS] Statistics:")
@@ -156,7 +155,7 @@ def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
                     info(f"    Std:  {var_stats.get('std', 'N/A'):.2f}")
                     info(f"    Min:  {var_stats.get('min', 'N/A'):.2f}")
                     info(f"    Max:  {var_stats.get('max', 'N/A'):.2f}")
-        
+
     except Exception as e:
         info(f"Error: {e}", err=True)
         logger.exception("Failed to get climate profile")
@@ -164,10 +163,10 @@ def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
 
 @climate.command()
 @option('--pattern', '-p', help='Pattern to match (e.g., "nasa_power_*")')
-def clear_cache(pattern):
+def clear_cache(pattern) -> None:
     """Clear climate data cache"""
     from profile_loader.climate.cache.store import clear_cache as _clear_cache
-    
+
     try:
         _clear_cache(pattern)
         info("[SUCCESS] Cache cleared")
@@ -176,10 +175,10 @@ def clear_cache(pattern):
         sys.exit(1)
 
 @climate.command()
-def cache_info():
+def cache_info() -> None:
     """Show cache information"""
     from profile_loader.climate.cache.store import get_cache_size
-    
+
     try:
         stats = get_cache_size()
         info("[PKG] Cache Statistics:")
@@ -197,7 +196,7 @@ def cache_info():
 @option('--solver', '-s', default='milp', type=click.Choice(['milp', 'rule_based']),
               help='Solver to use for optimization')
 @option('--verbose', '-v', is_flag=True, help='Verbose output')
-def run(config, output, solver, verbose):
+def run(config, output, solver, verbose) -> None:
     """
     Run a system simulation from configuration file.
 
@@ -251,7 +250,7 @@ def run(config, output, solver, verbose):
 
 @simulate.command()
 @click.argument('config')
-def validate(config):
+def validate(config) -> None:
     """
     Validate a system configuration file.
 
@@ -295,12 +294,12 @@ def validate(config):
         sys.exit(1)
 
 @cli.group()
-def results():
+def results() -> None:
     """Results management commands"""
     pass
 
 @cli.group()
-def discover():
+def discover() -> None:
     """Design space exploration and optimization commands"""
     pass
 
@@ -421,7 +420,10 @@ def optimize(config, objectives, population, generations, variables, multi_objec
             # Generate report if requested
             if report:
                 info("\n[INFO] Generating HTML report...")
-                from ecosystemiser.services.reporting_service import ReportingService, ReportConfig
+                from ecosystemiser.services.reporting_service import (
+                    ReportConfig,
+                    ReportingService,
+                )
 
                 # Create reporting service
                 reporting_service = ReportingService()
@@ -669,7 +671,7 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
 @option('--workers', '-w', default=4, type=int,
               help='Number of parallel workers')
 @option('--verbose', is_flag=True, help='Verbose output')
-def explore(config, variables, objectives, method, samples, output, workers, verbose):
+def explore(config, variables, objectives, method, samples, output, workers, verbose) -> None:
     """
     Comprehensive design space exploration for multi-objective optimization.
 
@@ -789,7 +791,7 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
         sys.exit(1)
 
 @cli.group()
-def report():
+def report() -> None:
     """Report generation and server commands"""
     pass
 
@@ -797,7 +799,7 @@ def report():
 @click.argument('results_file', type=click.Path(exists=True))
 @option('--format', '-f', type=click.Choice(['summary', 'detailed', 'kpi']),
               default='summary', help='Output format')
-def show(results_file, format):
+def show(results_file, format) -> None:
     """
     Display simulation results.
 
@@ -861,7 +863,7 @@ def show(results_file, format):
               help='Analysis strategies to run (default: all)')
 @option('--format', 'output_format', type=click.Choice(['json', 'html']),
               default='json', help='Output format')
-def analyze(results_file, output, strategies, output_format):
+def analyze(results_file, output, strategies, output_format) -> None:
     """Analyze simulation results and generate report data."""
     from ecosystemiser.analyser import AnalyserService
 
@@ -904,7 +906,7 @@ def analyze(results_file, output, strategies, output_format):
 @option('--host', default='127.0.0.1', help='Host to bind to')
 @option('--port', default=5000, help='Port to bind to')
 @option('--debug', is_flag=True, help='Enable debug mode')
-def server(host, port, debug):
+def server(host, port, debug) -> None:
     """Start the reporting web server."""
     from ecosystemiser.reporting import run_server
 
@@ -928,7 +930,7 @@ def server(host, port, debug):
               help='Output HTML file path')
 @option('--type', 'study_type', type=click.Choice(['auto', 'ga', 'mc', 'standard']),
               default='auto', help='Type of study (auto-detect by default)')
-def generate(study_file, output, study_type):
+def generate(study_file, output, study_type) -> None:
     """Generate a standalone HTML report from study results.
 
     Examples:
@@ -936,7 +938,8 @@ def generate(study_file, output, study_type):
         ecosys report generate mc_uncertainty_456.json --output analysis.html
     """
     import json
-    from ecosystemiser.services.reporting_service import ReportingService, ReportConfig
+
+    from ecosystemiser.services.reporting_service import ReportConfig, ReportingService
 
     try:
         # Load study results
@@ -998,7 +1001,6 @@ def generate(study_file, output, study_type):
         if verbose:
             logger.exception("Failed to generate report")
         sys.exit(1)
-            raw_results = json.load(f)
 
         # Generate plots
         plot_factory = PlotFactory()

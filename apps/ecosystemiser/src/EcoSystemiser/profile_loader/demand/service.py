@@ -36,7 +36,7 @@ class DemandService(BaseProfileService):
     profile libraries using the common profile service interface.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize demand service with available adapters."""
         self.adapters = {
             "file": DemandFileAdapter(),

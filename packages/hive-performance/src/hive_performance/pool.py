@@ -1,11 +1,13 @@
-"""Enhanced connection pool configuration"""
+"""Enhanced connection_async pool configuration"""
 
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
+
 
 @dataclass
 class PoolConfig:
     """Connection pool configuration"""
+
     min_size: int = 5
     max_size: int = 20
     max_idle_time: int = 300  # seconds
@@ -19,21 +21,22 @@ class PoolConfig:
     slow_query_threshold: float = 1.0  # seconds
 
 
-"""Enhanced async connection pool with monitoring"""
+"""Enhanced async connection_async pool with monitoring"""
 
 import asyncio
 import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict, Optional
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class EnhancedAsyncPool:
-    """Async connection pool with monitoring and metrics"""
+    """Async connection_async pool with monitoring and metrics"""
 
-    def __init__(self, config: PoolConfig):
+    def __init__(self, config: PoolConfig) -> None:
         self.config = config
         self._pool = []
         self._in_use = set()
@@ -47,7 +50,7 @@ class EnhancedAsyncPool:
         self._lock = asyncio.Lock()
 
     async def acquire_async(self) -> Any:
-        """Acquire connection with timeout and monitoring"""
+        """Acquire connection_async with timeout and monitoring"""
         start_time = time.time()
 
         async with self._lock:
@@ -56,7 +59,7 @@ class EnhancedAsyncPool:
                 conn = self._pool.pop()
                 self._metrics["connections_reused"] += 1
             else:
-                # Create new connection
+                # Create new connection_async
                 conn = await self._create_connection_async()
                 self._metrics["connections_created"] += 1
 
@@ -64,12 +67,12 @@ class EnhancedAsyncPool:
 
         acquisition_time = time.time() - start_time
         if acquisition_time > self.config.connection_timeout / 2:
-            logger.warning(f"Slow connection acquisition: {acquisition_time:.2f}s")
+            logger.warning(f"Slow connection_async acquisition: {acquisition_time:.2f}s")
 
         return conn
 
     async def release_async(self, conn: Any) -> None:
-        """Release connection back to pool"""
+        """Release connection_async back to pool"""
         async with self._lock:
             self._in_use.discard(conn)
 
@@ -80,28 +83,28 @@ class EnhancedAsyncPool:
                 self._metrics["connections_closed"] += 1
 
     async def _create_connection_async(self) -> Any:
-        """Create new connection with retry logic"""
+        """Create new connection_async with retry logic"""
         for attempt in range(self.config.retry_attempts):
             try:
-                # Actual connection creation would go here
+                # Actual connection_async creation would go here
                 return await asyncio.sleep(0)  # Placeholder
             except Exception as e:
                 if attempt == self.config.retry_attempts - 1:
                     self._metrics["errors"] += 1
                     raise
-                await asyncio.sleep(self.config.retry_delay * (2 ** attempt))
+                await asyncio.sleep(self.config.retry_delay * (2**attempt))
 
     async def _close_connection_async(self, conn: Any) -> None:
-        """Close connection gracefully"""
+        """Close connection_async gracefully"""
         try:
-            # Actual connection closing would go here
+            # Actual connection_async closing would go here
             await asyncio.sleep(0)  # Placeholder
         except Exception as e:
-            logger.error(f"Error closing connection: {e}")
+            logger.error(f"Error closing connection_async: {e}")
 
     @asynccontextmanager
-    async def connection(self):
-        """Context manager for connection acquisition"""
+    async def connection_async(self) -> None:
+        """Context manager for connection_async acquisition"""
         conn = await self.acquire_async()
         try:
             yield conn
@@ -124,6 +127,6 @@ class EnhancedAsyncPool:
             self._pool.clear()
 
             for conn in self._in_use:
-                logger.warning("Force closing in-use connection")
+                logger.warning("Force closing in-use connection_async")
                 await self._close_connection_async(conn)
             self._in_use.clear()

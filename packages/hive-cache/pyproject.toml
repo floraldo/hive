@@ -13,10 +13,9 @@ packages = [{include = "hive_cache", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 redis = {extras = ["hiredis"], version = "^5.0.0"}
-aioredis = "^2.0.1"
 pydantic = "^2.5.0"
 msgpack = "^1.0.7"
-ujson = "^5.8.0"
+orjson = "^3.9.0"
 xxhash = "^3.4.1"
 async-timeout = "^4.0.3"
 tenacity = "^8.2.3"

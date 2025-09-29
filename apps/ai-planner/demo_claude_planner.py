@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 #!/usr/bin/env python3
 """
 AI Planner Phase 2 Claude Integration Demonstration
@@ -20,27 +24,27 @@ from hive_db import get_connection, init_db
 def demonstrate_claude_planning() -> None:
     """Demonstrate the complete Claude-powered planning workflow"""
 
-    print("=" * 70)
-    print("AI PLANNER PHASE 2 - CLAUDE INTEGRATION DEMONSTRATION")
-    print("=" * 70)
-    print()
+    logger.info("=" * 70)
+    logger.info("AI PLANNER PHASE 2 - CLAUDE INTEGRATION DEMONSTRATION")
+    logger.info("=" * 70)
+    logger.info("")
 
     # Initialize the system
-    print("1. SYSTEM INITIALIZATION")
-    print("-" * 30)
+    logger.info("1. SYSTEM INITIALIZATION")
+    logger.info("-" * 30)
 
     init_db()
-    print("SUCCESS: Database initialized")
+    logger.info("SUCCESS: Database initialized")
 
     agent = AIPlanner(mock_mode=True)  # Using mock mode for reliable demo
     agent.connect_database()
-    print("SUCCESS: AI Planner agent initialized")
-    print("SUCCESS: Claude bridge initialized (mock mode)")
-    print()
+    logger.info("SUCCESS: AI Planner agent initialized")
+    logger.info("SUCCESS: Claude bridge initialized (mock mode)")
+    logger.info("")
 
     # Demonstrate complex task planning
-    print("2. COMPLEX TASK SUBMISSION")
-    print("-" * 30)
+    logger.info("2. COMPLEX TASK SUBMISSION")
+    logger.info("-" * 30)
 
     complex_task = {
         "id": f'demo-{datetime.now().strftime("%Y%m%d-%H%M%S")}',
@@ -86,12 +90,12 @@ def demonstrate_claude_planning() -> None:
         },
     }
 
-    print(f"Task ID: {complex_task['id']}")
-    print(f"Description: {complex_task['task_description'][:100]}...")
-    print(f"Priority: {complex_task['priority']}/100")
-    print(f"Dependencies: {len(complex_task['context_data']['dependencies'])} technologies")
-    print(f"Constraints: {len(complex_task['context_data']['constraints'])} requirements")
-    print()
+    logger.info(f"Task ID: {complex_task['id']}")
+    logger.info(f"Description: {complex_task['task_description'][:100]}...")
+    logger.info(f"Priority: {complex_task['priority']}/100")
+    logger.info(f"Dependencies: {len(complex_task['context_data']['dependencies'])} technologies")
+    logger.info(f"Constraints: {len(complex_task['context_data']['constraints'])} requirements")
+    logger.info("")
 
     # Insert task into planning queue
     conn = get_connection()
@@ -112,68 +116,68 @@ def demonstrate_claude_planning() -> None:
         ),
     )
     conn.commit()
-    print("SUCCESS: Complex task submitted to planning queue")
-    print()
+    logger.info("SUCCESS: Complex task submitted to planning queue")
+    logger.info("")
 
     # Demonstrate Claude-powered planning
-    print("3. CLAUDE-POWERED PLAN GENERATION")
-    print("-" * 30)
+    logger.info("3. CLAUDE-POWERED PLAN GENERATION")
+    logger.info("-" * 30)
 
     # Retrieve and process the task
     task = agent.get_next_task()
     if task and task["id"] == complex_task["id"]:
-        print("SUCCESS: Task retrieved from queue")
-        print(f"Task status: {task.get('status', 'unknown')} -> assigned")
-        print()
+        logger.info("SUCCESS: Task retrieved from queue")
+        logger.info(f"Task status: {task.get('status', 'unknown')} -> assigned")
+        logger.info("")
 
-        print("Generating intelligent execution plan with Claude...")
+        logger.info("Generating intelligent execution plan with Claude...")
         plan = agent.generate_execution_plan(task)
 
         if plan:
-            print("SUCCESS: Claude plan generation completed!")
-            print()
-            print("PLAN SUMMARY:")
-            print(f"  Plan ID: {plan['plan_id']}")
-            print(f"  Plan Name: {plan['plan_name']}")
-            print(f"  Plan Summary: {plan.get('plan_summary', 'N/A')}")
-            print()
+            logger.info("SUCCESS: Claude plan generation completed!")
+            logger.info("")
+            logger.info("PLAN SUMMARY:")
+            logger.info(f"  Plan ID: {plan['plan_id']}")
+            logger.info(f"  Plan Name: {plan['plan_name']}")
+            logger.info(f"  Plan Summary: {plan.get('plan_summary', 'N/A')}")
+            logger.info("")
 
-            print("PLAN METRICS:")
+            logger.info("PLAN METRICS:")
             metrics = plan.get("metrics", {})
-            print(f"  Total Duration: {metrics.get('total_estimated_duration', 'N/A')} minutes")
-            print(f"  Critical Path: {metrics.get('critical_path_duration', 'N/A')} minutes")
-            print(f"  Complexity: {metrics.get('complexity_breakdown', {})}")
-            print(f"  Skills Required: {metrics.get('skill_requirements', {})}")
-            print(f"  Confidence Score: {metrics.get('confidence_score', 'N/A')}")
-            print()
+            logger.info(f"  Total Duration: {metrics.get('total_estimated_duration', 'N/A')} minutes")
+            logger.info(f"  Critical Path: {metrics.get('critical_path_duration', 'N/A')} minutes")
+            logger.info(f"  Complexity: {metrics.get('complexity_breakdown', {})}")
+            logger.info(f"  Skills Required: {metrics.get('skill_requirements', {})}")
+            logger.info(f"  Confidence Score: {metrics.get('confidence_score', 'N/A')}")
+            logger.info("")
 
-            print("SUB-TASKS GENERATED:")
+            logger.info("SUB-TASKS GENERATED:")
             sub_tasks = plan.get("sub_tasks", [])
             for i, subtask in enumerate(sub_tasks[:5], 1):  # Show first 5
-                print(f"  {i}. {subtask['title']}")
-                print(f"     Assignee: {subtask['assignee']}")
-                print(f"     Duration: {subtask['estimated_duration']} min")
-                print(f"     Complexity: {subtask['complexity']}")
-                print(f"     Phase: {subtask['workflow_phase']}")
-                print()
+                logger.info(f"  {i}. {subtask['title']}")
+                logger.info(f"     Assignee: {subtask['assignee']}")
+                logger.info(f"     Duration: {subtask['estimated_duration']} min")
+                logger.info(f"     Complexity: {subtask['complexity']}")
+                logger.info(f"     Phase: {subtask['workflow_phase']}")
+                logger.info("")
 
             if len(sub_tasks) > 5:
-                print(f"  ... and {len(sub_tasks) - 5} more sub-tasks")
-                print()
+                logger.info(f"  ... and {len(sub_tasks) - 5} more sub-tasks")
+                logger.info("")
         else:
-            print("FAILED: Plan generation failed")
+            logger.info("FAILED: Plan generation failed")
             return False
     else:
-        print("FAILED: Could not retrieve task from queue")
+        logger.info("FAILED: Could not retrieve task from queue")
         return False
 
     # Demonstrate plan persistence
-    print("4. PLAN PERSISTENCE AND SUB-TASK CREATION")
-    print("-" * 30)
+    logger.info("4. PLAN PERSISTENCE AND SUB-TASK CREATION")
+    logger.info("-" * 30)
 
     save_success = agent.save_execution_plan(plan)
     if save_success:
-        print("SUCCESS: Execution plan saved to database")
+        logger.info("SUCCESS: Execution plan saved to database")
 
         # Update task status
         agent.update_task_status(task["id"], "planned")
@@ -188,25 +192,25 @@ def demonstrate_claude_planning() -> None:
         cursor.execute("SELECT COUNT(*) FROM tasks WHERE task_type = 'planned_subtask'")
         subtask_count = cursor.fetchone()[0]
 
-        print(f"SUCCESS: {plan_count} execution plan(s) persisted")
-        print(f"SUCCESS: {subtask_count} sub-task(s) created in task queue")
-        print(f"SUCCESS: Task status updated to 'planned'")
-        print()
+        logger.info(f"SUCCESS: {plan_count} execution plan(s) persisted")
+        logger.info(f"SUCCESS: {subtask_count} sub-task(s) created in task queue")
+        logger.info(f"SUCCESS: Task status updated to 'planned'")
+        logger.info("")
     else:
-        print("FAILED: Plan persistence failed")
+        logger.info("FAILED: Plan persistence failed")
         return False
 
     # Demonstrate integration capabilities
-    print("5. INTEGRATION READINESS")
-    print("-" * 30)
+    logger.info("5. INTEGRATION READINESS")
+    logger.info("-" * 30)
 
-    print("The AI Planner is now ready for:")
-    print("  • Integration with hive-orchestrator for workflow execution")
-    print("  • Assignment of sub-tasks to specialized workers")
-    print("  • Real-time progress tracking and plan adjustments")
-    print("  • Dependency management and parallel execution optimization")
-    print("  • Quality gates and validation checkpoints")
-    print()
+    logger.info("The AI Planner is now ready for:")
+    logger.info("  • Integration with hive-orchestrator for workflow execution")
+    logger.info("  • Assignment of sub-tasks to specialized workers")
+    logger.info("  • Real-time progress tracking and plan adjustments")
+    logger.info("  • Dependency management and parallel execution optimization")
+    logger.info("  • Quality gates and validation checkpoints")
+    logger.info("")
 
     # Cleanup
     cursor.execute("DELETE FROM planning_queue WHERE id = ?", (task["id"],))
@@ -216,22 +220,22 @@ def demonstrate_claude_planning() -> None:
     conn.close()
     agent.db_connection.close()
 
-    print("6. PHASE 2 COMPLETION STATUS")
-    print("-" * 30)
-    print("SUCCESS: Phase 2 'Core Planning Engine' implementation complete!")
-    print()
-    print("ACHIEVEMENTS:")
-    print("  • Claude API integration with robust error handling")
-    print("  • Intelligent task decomposition and analysis")
-    print("  • Structured execution plan generation")
-    print("  • Database persistence with sub-task creation")
-    print("  • Production-ready architecture with mock/real modes")
-    print("  • Comprehensive test coverage and validation")
-    print()
-    print("The AI Planner has evolved from a rule-based MVP to a")
-    print("sophisticated, Claude-powered intelligent planning engine!")
+    logger.info("6. PHASE 2 COMPLETION STATUS")
+    logger.info("-" * 30)
+    logger.info("SUCCESS: Phase 2 'Core Planning Engine' implementation complete!")
+    logger.info("")
+    logger.info("ACHIEVEMENTS:")
+    logger.info("  • Claude API integration with robust error handling")
+    logger.info("  • Intelligent task decomposition and analysis")
+    logger.info("  • Structured execution plan generation")
+    logger.info("  • Database persistence with sub-task creation")
+    logger.info("  • Production-ready architecture with mock/real modes")
+    logger.info("  • Comprehensive test coverage and validation")
+    logger.info("")
+    logger.info("The AI Planner has evolved from a rule-based MVP to a")
+    logger.info("sophisticated, Claude-powered intelligent planning engine!")
 
-    print("=" * 70)
+    logger.info("=" * 70)
 
     return True
 
@@ -240,13 +244,13 @@ if __name__ == "__main__":
     try:
         success = demonstrate_claude_planning()
         if success:
-            print("DEMONSTRATION COMPLETED SUCCESSFULLY")
+            logger.info("DEMONSTRATION COMPLETED SUCCESSFULLY")
             sys.exit(0)
         else:
-            print("DEMONSTRATION FAILED")
+            logger.info("DEMONSTRATION FAILED")
             sys.exit(1)
     except Exception as e:
-        print(f"DEMONSTRATION ERROR: {e}")
+        logger.info(f"DEMONSTRATION ERROR: {e}")
         import traceback
 
         traceback.print_exc()

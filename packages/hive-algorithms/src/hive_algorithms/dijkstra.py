@@ -7,8 +7,8 @@ This implementation provides efficient shortest path calculation in weighted gra
 """
 
 import heapq
-from typing import Dict, List, Tuple, Optional, Set
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Set, Tuple
 
 # Use hive-logging for consistent logging
 from hive_logging import get_logger
@@ -23,7 +23,7 @@ class Edge:
     destination: str
     weight: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.weight < 0:
             raise ValueError("Edge weights must be non-negative for Dijkstra's algorithm")
 
@@ -35,7 +35,7 @@ class Graph:
     Uses adjacency list representation for efficient neighbor lookup.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._adjacency_list: Dict[str, List[Edge]] = {}
 
     def add_vertex(self, vertex: str) -> None:

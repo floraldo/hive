@@ -164,7 +164,7 @@ active_connections = Gauge(
 class ObservabilityManager:
     """Manager for observability configuration and lifecycle"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.settings = get_settings()
         self.tracer_provider: Optional[TracerProvider] = None
         self.meter_provider: Optional[MeterProvider] = None
@@ -172,7 +172,7 @@ class ObservabilityManager:
         self.meter: Optional[metrics.Meter] = None
         self._initialized = False
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Initialize observability components"""
         if self._initialized:
             return
@@ -187,7 +187,7 @@ class ObservabilityManager:
         self._initialized = True
         logger.info("Observability initialized")
 
-    def _setup_tracing(self):
+    def _setup_tracing(self) -> None:
         """Configure OpenTelemetry tracing"""
         resource = Resource.create(
             {
@@ -217,7 +217,7 @@ class ObservabilityManager:
 
         logger.info("OpenTelemetry tracing configured")
 
-    def _setup_metrics(self):
+    def _setup_metrics(self) -> None:
         """Configure OpenTelemetry metrics with Prometheus exporter"""
         # Create Prometheus metric reader
         prometheus_reader = PrometheusMetricReader()
@@ -233,7 +233,7 @@ class ObservabilityManager:
 
         logger.info("OpenTelemetry metrics configured with Prometheus exporter")
 
-    def _instrument_libraries(self):
+    def _instrument_libraries(self) -> None:
         """Auto-instrument libraries"""
         try:
             # Instrument FastAPI
@@ -249,7 +249,7 @@ class ObservabilityManager:
         except Exception as e:
             logger.warning(f"Failed to auto-instrument libraries: {e}")
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Cleanup observability resources"""
         if self.tracer_provider:
             self.tracer_provider.shutdown()
@@ -261,12 +261,12 @@ class ObservabilityManager:
 _observability_manager = ObservabilityManager()
 
 
-def init_observability():
+def init_observability() -> None:
     """Initialize observability (call once at startup)"""
     _observability_manager.initialize()
 
 
-def shutdown_observability():
+def shutdown_observability() -> None:
     """Shutdown observability (call at shutdown)"""
     _observability_manager.shutdown()
 
@@ -276,7 +276,7 @@ def shutdown_observability():
 # =============================================================================
 
 
-def track_time(metric: Histogram, labels: Optional[Dict[str, str]] = None):
+def track_time(metric: Histogram, labels: Optional[Dict[str, str]] = None) -> None:
     """
     Decorator to track execution time with Prometheus histogram.
 
@@ -322,7 +322,7 @@ def track_time(metric: Histogram, labels: Optional[Dict[str, str]] = None):
     return decorator
 
 
-def count_calls(metric: Counter, labels: Optional[Dict[str, str]] = None):
+def count_calls(metric: Counter, labels: Optional[Dict[str, str]] = None) -> None:
     """
     Decorator to count function calls.
 
@@ -389,7 +389,7 @@ def trace_span(
             raise
 
 
-def track_adapter_request(adapter_name: str):
+def track_adapter_request(adapter_name: str) -> None:
     """
     Decorator for tracking adapter requests.
 
@@ -430,7 +430,7 @@ def track_adapter_request(adapter_name: str):
     return decorator
 
 
-def track_cache_operation(cache_level: str):
+def track_cache_operation(cache_level: str) -> None:
     """
     Decorator for tracking cache operations.
 
@@ -440,7 +440,7 @@ def track_cache_operation(cache_level: str):
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper_async(*args, **kwargs):
+        async def wrapper_async(*args, **kwargs) -> None:
             result = await func(*args, **kwargs)
 
             # Track hit/miss based on result
@@ -498,27 +498,27 @@ class ClimateMetricsCollector:
     """Collector for climate-specific metrics"""
 
     @staticmethod
-    def record_data_quality(adapter: str, variable: str, score: float):
+    def record_data_quality(adapter: str, variable: str, score: float) -> None:
         """Record data quality score"""
         data_quality_score.labels(adapter=adapter, variable=variable).observe(score)
 
     @staticmethod
-    def record_data_gap(adapter: str, variable: str, count: int = 1):
+    def record_data_gap(adapter: str, variable: str, count: int = 1) -> None:
         """Record data gap detection"""
         data_gaps_total.labels(adapter=adapter, variable=variable).inc(count)
 
     @staticmethod
-    def record_data_points(adapter: str, variable: str, count: int):
+    def record_data_points(adapter: str, variable: str, count: int) -> None:
         """Record number of data points fetched"""
         adapter_data_points_total.labels(adapter=adapter, variable=variable).inc(count)
 
     @staticmethod
-    def update_queue_depth(queue: str, status: str, depth: int):
+    def update_queue_depth(queue: str, status: str, depth: int) -> None:
         """Update job queue depth"""
         job_queue_depth.labels(queue=queue, status=status).set(depth)
 
     @staticmethod
-    def record_job_error(job_type: str, error_code: str):
+    def record_job_error(job_type: str, error_code: str) -> None:
         """Record job processing error"""
         job_errors_total.labels(job_type=job_type, error_code=error_code).inc()
 

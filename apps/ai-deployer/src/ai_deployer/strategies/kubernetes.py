@@ -18,7 +18,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
     Kubernetes-based deployment strategy for cloud-native applications
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]) -> None:
         """Initialize Kubernetes deployment strategy"""
         super().__init__(config)
         self.strategy = DeploymentStrategy.CANARY

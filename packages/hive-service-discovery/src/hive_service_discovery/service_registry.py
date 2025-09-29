@@ -7,16 +7,16 @@ import asyncio
 import json
 import time
 import uuid
-from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from hive_logging import get_logger
+from typing import Any, Dict, List, Optional, Set
 
 import aioredis
+from hive_logging import get_logger
 from pydantic import BaseModel
 
 from .config import ServiceDiscoveryConfig
-from .exceptions import ServiceRegistrationError, ServiceNotFoundError
+from .exceptions import ServiceNotFoundError, ServiceRegistrationError
 
 logger = get_logger(__name__)
 
@@ -50,7 +50,7 @@ class ServiceInfo:
             "ttl": self.ttl,
             "registered_at": self.registered_at.isoformat(),
             "last_heartbeat": self.last_heartbeat.isoformat(),
-            "healthy": self.healthy
+            "healthy": self.healthy,
         }
 
     @classmethod
@@ -67,7 +67,7 @@ class ServiceInfo:
             ttl=data.get("ttl", 60),
             registered_at=datetime.fromisoformat(data.get("registered_at", datetime.utcnow().isoformat())),
             last_heartbeat=datetime.fromisoformat(data.get("last_heartbeat", datetime.utcnow().isoformat())),
-            healthy=data.get("healthy", True)
+            healthy=data.get("healthy", True),
         )
 
     def get_address(self) -> str:
@@ -91,7 +91,7 @@ class ServiceRegistry:
     - Event notifications for service changes
     """
 
-    def __init__(self, config: ServiceDiscoveryConfig):
+    def __init__(self, config: ServiceDiscoveryConfig) -> None:
         self.config = config
         self._redis = None
         self._running = False
@@ -100,21 +100,17 @@ class ServiceRegistry:
         # Service registry keys
         self._service_key_prefix = "hive:services"
         self._service_list_key = f"{self._service_key_prefix}:list"
-        self._heartbeat_key_prefix = f"{self._service_key_prefix}:heartbeat"
+        self._heartbeat_key_prefix = f"{self._service_key_prefix}:heartbeat_async"
 
         # Local cache
         self._service_cache: Dict[str, ServiceInfo] = {}
         self._cache_last_updated = 0
 
-    async def initialize(self) -> None:
+    async def initialize_async(self) -> None:
         """Initialize the service registry."""
         try:
             # Connect to Redis
-            self._redis = aioredis.from_url(
-                self.config.registry_url,
-                encoding="utf-8",
-                decode_responses=True
-            )
+            self._redis = aioredis.from_url(self.config.registry_url, encoding="utf-8", decode_responses=True)
 
             # Test connection
             await self._redis.ping()
@@ -122,15 +118,15 @@ class ServiceRegistry:
             self._running = True
 
             # Start cleanup task
-            self._cleanup_task = asyncio.create_task(self._cleanup_expired_services())
+            self._cleanup_task = asyncio.create_task(self._cleanup_expired_services_async())
 
             logger.info("Service registry initialized successfully")
 
         except Exception as e:
-            logger.error(f"Failed to initialize service registry: {e}")
+            logger.error(f"Failed to initialize_async service registry: {e}")
             raise ServiceRegistrationError(f"Registry initialization failed: {e}")
 
-    async def shutdown(self) -> None:
+    async def shutdown_async(self) -> None:
         """Shutdown the service registry."""
         self._running = False
 
@@ -146,7 +142,7 @@ class ServiceRegistry:
 
         logger.info("Service registry shut down")
 
-    async def register_service(
+    async def register_service_async(
         self,
         service_name: str,
         host: str,
@@ -155,7 +151,7 @@ class ServiceRegistry:
         tags: List[str] = None,
         metadata: Dict[str, Any] = None,
         health_check_url: Optional[str] = None,
-        ttl: Optional[int] = None
+        ttl: Optional[int] = None,
     ) -> str:
         """Register a service instance.
 
@@ -187,23 +183,19 @@ class ServiceRegistry:
             tags=tags or [],
             metadata=metadata or {},
             health_check_url=health_check_url,
-            ttl=ttl
+            ttl=ttl,
         )
 
         try:
             # Store service information
             service_key = f"{self._service_key_prefix}:{service_id}"
-            await self._redis.setex(
-                service_key,
-                ttl,
-                json.dumps(service_info.to_dict())
-            )
+            await self._redis.setex(service_key, ttl, json.dumps(service_info.to_dict()))
 
             # Add to service list
             await self._redis.sadd(self._service_list_key, service_id)
 
-            # Set heartbeat
-            await self._set_heartbeat(service_id)
+            # Set heartbeat_async
+            await self._set_heartbeat_async(service_id)
 
             # Update local cache
             self._service_cache[service_id] = service_info
@@ -215,7 +207,7 @@ class ServiceRegistry:
             logger.error(f"Failed to register service {service_name}: {e}")
             raise ServiceRegistrationError(f"Service registration failed: {e}", service_name=service_name)
 
-    async def deregister_service(self, service_id: str) -> bool:
+    async def deregister_service_async(self, service_id: str) -> bool:
         """Deregister a service instance.
 
         Args:
@@ -246,14 +238,14 @@ class ServiceRegistry:
             logger.error(f"Failed to deregister service {service_id}: {e}")
             return False
 
-    async def heartbeat(self, service_id: str) -> bool:
-        """Send heartbeat for a service instance.
+    async def heartbeat_async(self, service_id: str) -> bool:
+        """Send heartbeat_async for a service instance.
 
         Args:
             service_id: Service ID
 
         Returns:
-            True if heartbeat was recorded
+            True if heartbeat_async was recorded
         """
         try:
             # Check if service exists
@@ -261,8 +253,8 @@ class ServiceRegistry:
             if not await self._redis.exists(service_key):
                 return False
 
-            # Update heartbeat
-            await self._set_heartbeat(service_id)
+            # Update heartbeat_async
+            await self._set_heartbeat_async(service_id)
 
             # Update cache if present
             if service_id in self._service_cache:
@@ -271,15 +263,15 @@ class ServiceRegistry:
             return True
 
         except Exception as e:
-            logger.error(f"Failed to record heartbeat for {service_id}: {e}")
+            logger.error(f"Failed to record heartbeat_async for {service_id}: {e}")
             return False
 
-    async def _set_heartbeat(self, service_id: str) -> None:
-        """Set heartbeat timestamp for a service."""
+    async def _set_heartbeat_async(self, service_id: str) -> None:
+        """Set heartbeat_async timestamp for a service."""
         heartbeat_key = f"{self._heartbeat_key_prefix}:{service_id}"
         await self._redis.setex(heartbeat_key, self.config.service_ttl, time.time())
 
-    async def get_service(self, service_id: str) -> Optional[ServiceInfo]:
+    async def get_service_async(self, service_id: str) -> Optional[ServiceInfo]:
         """Get service information by ID.
 
         Args:
@@ -310,7 +302,7 @@ class ServiceRegistry:
             logger.error(f"Failed to get service {service_id}: {e}")
             return None
 
-    async def get_services_by_name(self, service_name: str, healthy_only: bool = True) -> List[ServiceInfo]:
+    async def get_services_by_name_async(self, service_name: str, healthy_only: bool = True) -> List[ServiceInfo]:
         """Get all instances of a service by name.
 
         Args:
@@ -322,7 +314,7 @@ class ServiceRegistry:
         """
         try:
             # Refresh cache if needed
-            await self._refresh_cache_if_needed()
+            await self._refresh_cache_if_needed_async()
 
             services = []
             for service in self._service_cache.values():
@@ -336,7 +328,7 @@ class ServiceRegistry:
             logger.error(f"Failed to get services for {service_name}: {e}")
             return []
 
-    async def get_services_by_tags(self, tags: List[str], match_all: bool = True) -> List[ServiceInfo]:
+    async def get_services_by_tags_async(self, tags: List[str], match_all: bool = True) -> List[ServiceInfo]:
         """Get services by tags.
 
         Args:
@@ -347,7 +339,7 @@ class ServiceRegistry:
             List of ServiceInfo instances
         """
         try:
-            await self._refresh_cache_if_needed()
+            await self._refresh_cache_if_needed_async()
 
             services = []
             for service in self._service_cache.values():
@@ -364,35 +356,35 @@ class ServiceRegistry:
             logger.error(f"Failed to get services by tags {tags}: {e}")
             return []
 
-    async def get_all_services(self) -> List[ServiceInfo]:
+    async def get_all_services_async(self) -> List[ServiceInfo]:
         """Get all registered services.
 
         Returns:
             List of all ServiceInfo instances
         """
         try:
-            await self._refresh_cache_if_needed()
+            await self._refresh_cache_if_needed_async()
             return list(self._service_cache.values())
 
         except Exception as e:
             logger.error(f"Failed to get all services: {e}")
             return []
 
-    async def get_service_names(self) -> Set[str]:
+    async def get_service_names_async(self) -> Set[str]:
         """Get all unique service names.
 
         Returns:
             Set of service names
         """
         try:
-            await self._refresh_cache_if_needed()
+            await self._refresh_cache_if_needed_async()
             return {service.service_name for service in self._service_cache.values()}
 
         except Exception as e:
             logger.error(f"Failed to get service names: {e}")
             return set()
 
-    async def update_service_health(self, service_id: str, healthy: bool) -> bool:
+    async def update_service_health_async(self, service_id: str, healthy: bool) -> bool:
         """Update health status of a service.
 
         Args:
@@ -403,7 +395,7 @@ class ServiceRegistry:
             True if health status was updated
         """
         try:
-            service = await self.get_service(service_id)
+            service = await self.get_service_async(service_id)
             if not service:
                 return False
 
@@ -412,11 +404,7 @@ class ServiceRegistry:
 
             # Store updated service info
             service_key = f"{self._service_key_prefix}:{service_id}"
-            await self._redis.setex(
-                service_key,
-                service.ttl,
-                json.dumps(service.to_dict())
-            )
+            await self._redis.setex(service_key, service.ttl, json.dumps(service.to_dict()))
 
             # Update cache
             self._service_cache[service_id] = service
@@ -428,13 +416,13 @@ class ServiceRegistry:
             logger.error(f"Failed to update health for {service_id}: {e}")
             return False
 
-    async def _refresh_cache_if_needed(self) -> None:
+    async def _refresh_cache_if_needed_async(self) -> None:
         """Refresh service cache if it's stale."""
         current_time = time.time()
         if current_time - self._cache_last_updated > self.config.cache_ttl:
-            await self._refresh_cache()
+            await self._refresh_cache_async()
 
-    async def _refresh_cache(self) -> None:
+    async def _refresh_cache_async(self) -> None:
         """Refresh the service cache from Redis."""
         try:
             # Get all service IDs
@@ -462,7 +450,7 @@ class ServiceRegistry:
         except Exception as e:
             logger.error(f"Failed to refresh service cache: {e}")
 
-    async def _cleanup_expired_services(self) -> None:
+    async def _cleanup_expired_services_async(self) -> None:
         """Background task to clean up expired services."""
         while self._running:
             try:
@@ -479,12 +467,12 @@ class ServiceRegistry:
                         if time.time() - last_heartbeat > self.config.service_ttl:
                             expired_services.append(service_id)
                     else:
-                        # No heartbeat key means service is expired
+                        # No heartbeat_async key means service is expired
                         expired_services.append(service_id)
 
                 # Remove expired services
                 for service_id in expired_services:
-                    await self.deregister_service(service_id)
+                    await self.deregister_service_async(service_id)
                     logger.info(f"Cleaned up expired service: {service_id}")
 
                 await asyncio.sleep(self.config.service_ttl / 2)  # Clean up every half TTL
@@ -493,14 +481,14 @@ class ServiceRegistry:
                 logger.error(f"Error in service cleanup: {e}")
                 await asyncio.sleep(30)  # Wait before retrying
 
-    async def get_registry_stats(self) -> Dict[str, Any]:
+    async def get_registry_stats_async(self) -> Dict[str, Any]:
         """Get registry statistics.
 
         Returns:
             Statistics dictionary
         """
         try:
-            await self._refresh_cache_if_needed()
+            await self._refresh_cache_if_needed_async()
 
             total_services = len(self._service_cache)
             healthy_services = sum(1 for s in self._service_cache.values() if s.healthy)
@@ -512,7 +500,7 @@ class ServiceRegistry:
                 "unhealthy_services": total_services - healthy_services,
                 "unique_service_names": service_names,
                 "cache_last_updated": self._cache_last_updated,
-                "registry_backend": self.config.registry_backend
+                "registry_backend": self.config.registry_backend,
             }
 
         except Exception as e:

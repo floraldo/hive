@@ -57,7 +57,7 @@ class ConnectionPool:
         # Initialize minimum connections
         self._initialize_pool()
 
-    def _initialize_pool(self):
+    def _initialize_pool(self) -> None:
         """Create initial connections for the pool."""
         for _ in range(self.min_connections):
             conn = self._create_connection()
@@ -105,7 +105,7 @@ class ConnectionPool:
             return False
 
     @contextmanager
-    def get_connection(self):
+    def get_connection(self) -> None:
         """
         Context manager for acquiring and releasing connections.
 
@@ -154,7 +154,7 @@ class ConnectionPool:
                     with self._lock:
                         self._connections_created -= 1
 
-    def close_all(self):
+    def close_all(self) -> None:
         """Close all connections in the pool."""
         while not self._pool.empty():
             try:
@@ -189,7 +189,7 @@ class DatabaseManager:
     while maintaining connection pooling and proper resource management.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the database manager."""
         self._pools: Dict[str, ConnectionPool] = {}
         self._lock = threading.RLock()
@@ -215,7 +215,7 @@ class DatabaseManager:
         return self._pools[db_name]
 
     @contextmanager
-    def get_connection(self, db_name: str, db_path: Path, **pool_kwargs):
+    def get_connection(self, db_name: str, db_path: Path, **pool_kwargs) -> None:
         """
         Get a connection for a specific database.
 
@@ -231,7 +231,7 @@ class DatabaseManager:
         with pool.get_connection() as conn:
             yield conn
 
-    def close_all_pools(self):
+    def close_all_pools(self) -> None:
         """Close all connection pools."""
         with self._lock:
             for db_name, pool in self._pools.items():

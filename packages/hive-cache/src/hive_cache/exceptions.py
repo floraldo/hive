@@ -1,40 +1,46 @@
+from hive_errors import BaseError
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
+
 """Cache-specific exceptions for Hive Cache package."""
 
 
 class CacheError(Exception):
     """Base exception for all cache-related errors."""
 
-    def __init__(self, message: str, operation: str = None, key: str = None):
+    def __init__(self, message: str, operation: str = None, key: str = None) -> None:
         super().__init__(message)
         self.operation = operation
         self.key = key
 
 
-class CacheConnectionError(CacheError):
+class CacheConnectionError(BaseError):
     """Raised when Redis connection fails."""
     pass
 
 
-class CacheTimeoutError(CacheError):
+class CacheTimeoutError(BaseError):
     """Raised when cache operation times out."""
     pass
 
 
-class CacheCircuitBreakerError(CacheError):
+class CacheCircuitBreakerError(BaseError):
     """Raised when circuit breaker is open."""
     pass
 
 
-class CacheSerializationError(CacheError):
+class CacheSerializationError(BaseError):
     """Raised when serialization/deserialization fails."""
     pass
 
 
-class CacheKeyError(CacheError):
+class CacheKeyError(BaseError):
     """Raised when cache key is invalid or not found."""
     pass
 
 
-class CacheConfigurationError(CacheError):
+class CacheConfigurationError(BaseError):
     """Raised when cache configuration is invalid."""
     pass

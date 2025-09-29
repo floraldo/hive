@@ -14,12 +14,12 @@ logger = get_logger(__name__)
 class MILPSolver(BaseSolver):
     """Mixed Integer Linear Programming solver using CVXPY."""
 
-    def __init__(self, system, config=None):
+    def __init__(self, system, config=None) -> None:
         super().__init__(system, config)
         self.problem = None
         self.objective_type = config.solver_specific.get("objective", "min_cost") if config else "min_cost"
 
-    def prepare_system(self):
+    def prepare_system(self) -> None:
         """Initialize CVXPY variables for optimization."""
         logger.info("Preparing system for MILP optimization")
 
@@ -32,7 +32,7 @@ class MILPSolver(BaseSolver):
         # Connect flow variables between components
         self._connect_flow_variables()
 
-    def _connect_flow_variables(self):
+    def _connect_flow_variables(self) -> None:
         """Connect component variables to system flows - matching original Systemiser."""
         # First create variables for all system flows
         for flow_key, flow_data in self.system.flows.items():
@@ -284,7 +284,7 @@ class MILPSolver(BaseSolver):
         Returns:
             CVXPY Minimize objective
         """
-        total_cost = 0
+        cost_terms = []
 
         for comp_name, comp_costs in contributions.items():
             for cost_type, cost_data in comp_costs.items():
@@ -293,12 +293,20 @@ class MILPSolver(BaseSolver):
 
                 if variable is not None and rate != 0:
                     # Add cost contribution: rate * sum(variable)
-                    if hasattr(variable, "__len__"):  # Array-like
-                        total_cost += cp.sum(variable) * rate
+                    if hasattr(variable, "shape") and len(variable.shape) > 0:  # Array-like
+                        cost_term = cp.sum(variable) * rate
                     else:  # Scalar
-                        total_cost += variable * rate
+                        cost_term = variable * rate
 
+                    cost_terms.append(cost_term)
                     logger.debug(f"Added {cost_type} from {comp_name}: rate={rate}")
+
+        # Sum all cost terms, or return zero if no costs
+        if cost_terms:
+            total_cost = cp.sum(cost_terms)
+        else:
+            logger.warning("No cost contributions found, creating zero objective")
+            total_cost = 0
 
         return cp.Minimize(total_cost)
 
@@ -320,7 +328,7 @@ class MILPSolver(BaseSolver):
 
                 if variable is not None and factor > 0:
                     # Add emission contribution: factor * sum(variable)
-                    if hasattr(variable, "__len__"):  # Array-like
+                    if hasattr(variable, "shape") and len(variable.shape) > 0:  # Array-like
                         total_emissions += cp.sum(variable) * factor
                     else:  # Scalar
                         total_emissions += variable * factor
@@ -344,7 +352,7 @@ class MILPSolver(BaseSolver):
             for usage_type, variable in comp_usage.items():
                 if variable is not None:
                     # Add grid usage: sum(variable)
-                    if hasattr(variable, "__len__"):  # Array-like
+                    if hasattr(variable, "shape") and len(variable.shape) > 0:  # Array-like
                         total_grid_usage += cp.sum(variable)
                     else:  # Scalar
                         total_grid_usage += variable
@@ -489,7 +497,7 @@ class MILPSolver(BaseSolver):
         logger.info("Using default CVXPY solver")
         return None
 
-    def extract_results(self):
+    def extract_results(self) -> None:
         """Convert CVXPY variable values to numpy arrays."""
         if self.problem.status not in ["optimal", "optimal_inaccurate"]:
             logger.warning(f"Problem not optimal, status: {self.problem.status}")
@@ -529,10 +537,16 @@ class MILPSolver(BaseSolver):
                 if hasattr(comp, "P_in") and isinstance(comp.P_in, cp.Variable):
                     comp.P_consumption = comp.P_in.value
 
-        # Extract flow values
+        # Extract flow values from CVXPY variables
         for flow_key, flow_data in self.system.flows.items():
             if isinstance(flow_data["value"], cp.Variable):
-                flow_data["value"] = flow_data["value"].value
-                logger.debug(f"Extracted flow values for {flow_key}")
+                if flow_data["value"].value is not None:
+                    flow_data["value"] = flow_data["value"].value
+                    logger.debug(f"Extracted flow values for {flow_key}: shape={flow_data['value'].shape}")
+                else:
+                    logger.warning(f"Flow {flow_key} has None value after optimization")
+                    flow_data["value"] = None
+            elif flow_data["value"] is None:
+                logger.warning(f"Flow {flow_key} was not assigned a CVXPY variable")
 
         logger.info("Result extraction complete")

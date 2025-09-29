@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Profile Loader Module - Unified interface for all profile loading (climate, demand, etc.)"""
 
 # Unified interface

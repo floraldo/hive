@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Generic Technical Parameter Archetypes for Component Categories.
 
 This module defines ONLY the abstract, high-level archetype parameter models

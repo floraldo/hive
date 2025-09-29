@@ -1,3 +1,9 @@
+from hive_errors import BaseError
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
+
 """Local error classes for climate adapters to avoid circular imports"""
 
 from typing import Any, Dict, List, Optional
@@ -23,7 +29,7 @@ class AdapterError(Exception):
             setattr(self, key, value)
 
 
-class DataFetchError(AdapterError):
+class DataFetchError(BaseError):
     """Error fetching data from a source"""
 
     def __init__(
@@ -38,7 +44,7 @@ class DataFetchError(AdapterError):
         self.suggested_action = suggested_action
 
 
-class DataParseError(AdapterError):
+class DataParseError(BaseError):
     """Error parsing response data"""
 
     def __init__(
@@ -53,7 +59,7 @@ class DataParseError(AdapterError):
         self.field = field
 
 
-class ValidationError(AdapterError):
+class ValidationError(BaseError):
     """Error validating request parameters or data"""
 
     def __init__(

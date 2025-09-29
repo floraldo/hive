@@ -108,7 +108,7 @@ class AsyncDatabaseManager:
     hive-async connection pool infrastructure.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the async database manager."""
         self._pools: Dict[str, ConnectionPool[aiosqlite.Connection]] = {}
         self._lock = asyncio.Lock()
@@ -136,7 +136,7 @@ class AsyncDatabaseManager:
         return self._pools[db_name]
 
     @asynccontextmanager
-    async def get_connection_async(self, db_name: str, db_path: Path, **pool_kwargs):
+    async def get_connection_async(self, db_name: str, db_path: Path, **pool_kwargs) -> None:
         """
         Get an async connection for a specific database.
 
@@ -152,7 +152,7 @@ class AsyncDatabaseManager:
         async with pool.connection() as conn:
             yield conn
 
-    async def close_all_pools_async(self):
+    async def close_all_pools_async(self) -> None:
         """Close all async connection pools."""
         async with self._lock:
             for db_name, pool in self._pools.items():

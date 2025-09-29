@@ -32,7 +32,7 @@ class ClaudeBridgeConfig:
     timeout: int = 120  # seconds
     max_retries: int = 3
     use_dangerously_skip_permissions: bool = True
-    shell_mode_windows: bool = True  # Use shell=True on Windows
+    # Removed shell_mode_windows - no longer needed for security
     fallback_enabled: bool = True
     verbose: bool = False
 
@@ -43,7 +43,7 @@ class BaseClaludeBridge(ABC):
     Provides common functionality for finding and calling Claude
     """
 
-    def __init__(self, config: Optional[ClaudeBridgeConfig] = None):
+    def __init__(self, config: Optional[ClaudeBridgeConfig] = None) -> None:
         """
         Initialize the bridge
 
@@ -144,7 +144,6 @@ class BaseClaludeBridge(ABC):
                 capture_output=True,
                 text=True,
                 timeout=self.config.timeout,
-                shell=self.config.shell_mode_windows and os.name == "nt",
             )
 
             if result.returncode != 0:

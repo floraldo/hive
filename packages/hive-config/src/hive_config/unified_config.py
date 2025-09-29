@@ -174,7 +174,7 @@ class HiveConfig(BaseModel):
             "HIVE_AI_REVIEWER_ENABLED": "ai.reviewer_enabled",
         }
 
-        def set_nested(data: dict, path: str, value: Any):
+        def set_nested(data: dict, path: str, value: Any) -> None:
             """Set a value in nested dictionary using dot notation"""
             keys = path.split(".")
             current = data
@@ -202,7 +202,7 @@ class HiveConfig(BaseModel):
             logger.error(f"Invalid configuration from environment: {e}")
             return cls()
 
-    def to_file(self, config_path: Path):
+    def to_file(self, config_path: Path) -> None:
         """
         Save configuration to a JSON file
 

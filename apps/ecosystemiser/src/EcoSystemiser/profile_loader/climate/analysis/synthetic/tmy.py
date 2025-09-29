@@ -301,7 +301,7 @@ class TMYMetrics:
 class TMYSelector:
     """Advanced TMY month selection with quality assessment"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize TMY selector"""
         self.quality_weights = {
             "completeness": 0.3,
@@ -622,7 +622,7 @@ class TMYGenerator:
     - Advanced month selection with quality assessment
     """
 
-    def __init__(self, method: TMYMethod = TMYMethod.TMY3):
+    def __init__(self, method: TMYMethod = TMYMethod.TMY3) -> None:
         """
         Initialize TMY generator.
 
@@ -782,7 +782,7 @@ class TMYGenerator:
 
         return tmy_dataset, selection_metadata
 
-    def _validate_input(self, data: xr.Dataset, min_years: int):
+    def _validate_input(self, data: xr.Dataset, min_years: int) -> None:
         """Validate input dataset"""
         if "time" not in data.dims:
             raise ValueError("Dataset must have 'time' dimension")

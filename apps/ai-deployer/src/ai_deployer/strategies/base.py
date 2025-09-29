@@ -17,7 +17,7 @@ class BaseDeploymentStrategy(ABC):
     Abstract base class for deployment strategies
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]) -> None:
         """
         Initialize strategy with configuration
 

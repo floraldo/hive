@@ -92,7 +92,7 @@ class RateLimitConfig:
 class RateLimiter:
     """Token bucket rate limiter"""
 
-    def __init__(self, config: RateLimitConfig):
+    def __init__(self, config: RateLimitConfig) -> None:
         self.config = config
         self.minute_calls = deque()
         self.hour_calls = deque()
@@ -246,7 +246,7 @@ class ClaudeService:
 
         return None
 
-    def _cache_response(self, cache_key: str, response: Any):
+    def _cache_response(self, cache_key: str, response: Any) -> None:
         """Cache response"""
         self.cache[cache_key] = CacheEntry(response=response, timestamp=datetime.now())
 
@@ -275,7 +275,7 @@ class ClaudeService:
 
             if wait_time > 0:
                 logger.info(f"Rate limited, waiting {wait_time:.1f} seconds")
-                time.sleep(min(wait_time, 1.0))
+                await asyncio.sleep(min(wait_time, 1.0))
                 self.metrics.rate_limited += 1
 
         return True
@@ -480,21 +480,21 @@ class ClaudeService:
         """Get service metrics"""
         return self.metrics.to_dict()
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear response cache"""
         self.cache.clear()
         logger.info("Claude service cache cleared")
 
-    def reset_metrics(self):
+    def reset_metrics(self) -> None:
         """Reset metrics"""
         self.metrics = ClaudeMetrics()
         logger.info("Claude service metrics reset")
 
-    def add_pre_call_hook(self, hook: Callable):
+    def add_pre_call_hook(self, hook: Callable) -> None:
         """Add pre-call hook for monitoring"""
         self.pre_call_hooks.append(hook)
 
-    def add_post_call_hook(self, hook: Callable):
+    def add_post_call_hook(self, hook: Callable) -> None:
         """Add post-call hook for monitoring"""
         self.post_call_hooks.append(hook)
 
@@ -522,7 +522,7 @@ def get_claude_service(
     return _service
 
 
-def reset_claude_service():
+def reset_claude_service() -> None:
     """Reset the global Claude service"""
     global _service
     _service = None

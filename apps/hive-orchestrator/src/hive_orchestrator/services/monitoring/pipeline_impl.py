@@ -86,7 +86,7 @@ class StageMetrics:
 class PipelineMonitor:
     """Implementation of pipeline monitoring with metrics collection"""
 
-    def __init__(self, pipeline_name: str, retention_hours: int = 24):
+    def __init__(self, pipeline_name: str, retention_hours: int = 24) -> None:
         self.pipeline_name = pipeline_name
         self.retention_hours = retention_hours
         self.metrics = PipelineMetrics()
@@ -226,7 +226,7 @@ class PipelineMonitor:
 class MonitoringService:
     """Service for managing multiple pipeline monitors"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.monitors: Dict[str, PipelineMonitor] = {}
         self.lock = Lock()
 

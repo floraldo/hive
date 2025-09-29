@@ -19,7 +19,7 @@ except ImportError:
     class BaseEvent:
         """Base event class for fallback implementation."""
 
-        def __init__(self, event_type: str, source: str = "unknown", **kwargs):
+        def __init__(self, event_type: str, source: str = "unknown", **kwargs) -> None:
             self.event_type = event_type
             self.source = source
             self.timestamp = datetime.now(timezone.utc)
@@ -98,7 +98,7 @@ class EcoSystemiserEvent(BaseEvent):
 class SimulationEvent(EcoSystemiserEvent):
     """Events related to simulation lifecycle and execution"""
 
-    def __init__(self, event_type: str, **kwargs):
+    def __init__(self, event_type: str, **kwargs) -> None:
         super().__init__(
             event_type=f"simulation.{event_type}",
             source=kwargs.get("source", "simulation"),
@@ -194,7 +194,7 @@ class SimulationEvent(EcoSystemiserEvent):
 class AnalysisEvent(EcoSystemiserEvent):
     """Events related to analysis workflows and results"""
 
-    def __init__(self, event_type: str, **kwargs):
+    def __init__(self, event_type: str, **kwargs) -> None:
         super().__init__(
             event_type=f"analysis.{event_type}",
             source=kwargs.get("source", "analysis"),
@@ -267,7 +267,7 @@ class AnalysisEvent(EcoSystemiserEvent):
 class StudyEvent(EcoSystemiserEvent):
     """Events related to multi-simulation study lifecycle and execution"""
 
-    def __init__(self, event_type: str, **kwargs):
+    def __init__(self, event_type: str, **kwargs) -> None:
         super().__init__(
             event_type=f"study.{event_type}",
             source=kwargs.get("source", "study"),
@@ -368,7 +368,7 @@ class StudyEvent(EcoSystemiserEvent):
 class OptimizationEvent(EcoSystemiserEvent):
     """Events related to optimization processes"""
 
-    def __init__(self, event_type: str, **kwargs):
+    def __init__(self, event_type: str, **kwargs) -> None:
         super().__init__(
             event_type=f"optimization.{event_type}",
             source=kwargs.get("source", "optimization"),
@@ -465,7 +465,7 @@ class OptimizationEvent(EcoSystemiserEvent):
 class ComponentEvent(EcoSystemiserEvent):
     """Events related to component lifecycle and state changes"""
 
-    def __init__(self, event_type: str, **kwargs):
+    def __init__(self, event_type: str, **kwargs) -> None:
         super().__init__(
             event_type=f"component.{event_type}",
             source=kwargs.get("source", "component"),
@@ -536,7 +536,7 @@ class ComponentEvent(EcoSystemiserEvent):
 class ProfileEvent(EcoSystemiserEvent):
     """Events related to profile loading and processing"""
 
-    def __init__(self, event_type: str, **kwargs):
+    def __init__(self, event_type: str, **kwargs) -> None:
         super().__init__(
             event_type=f"profile.{event_type}",
             source=kwargs.get("source", "profile_loader"),

@@ -137,7 +137,7 @@ class SolarPVOptimizationSimple(BaseGenerationOptimization):
     - No efficiency losses or degradation
     """
 
-    def __init__(self, params, component_instance):
+    def __init__(self, params, component_instance) -> None:
         """Initialize with both params and component instance for constraint access."""
         super().__init__(params)
         self.component = component_instance
@@ -213,7 +213,7 @@ class SolarPV(Component):
 
     PARAMS_MODEL = SolarPVParams
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         """Initialize solar PV attributes and strategy objects."""
         self.type = "generation"
         self.medium = "electricity"
@@ -298,7 +298,7 @@ class SolarPV(Component):
 
         return generation_output
 
-    def add_optimization_vars(self, N: int):
+    def add_optimization_vars(self, N: int) -> None:
         """Create CVXPY optimization variables."""
         # For solar, output is fixed by profile
         self.P_out = cp.Variable(N, name=f"{self.name}_P_out", nonneg=True)

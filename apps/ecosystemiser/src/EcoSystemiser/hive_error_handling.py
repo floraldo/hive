@@ -1,3 +1,9 @@
+from hive_errors import BaseError
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
+
 """
 Legacy alias for EcoSystemiser error handling.
 
@@ -39,10 +45,10 @@ TimeoutError = SolverConvergenceError
 
 
 # ValidationError needs special handling for field parameter compatibility
-class ValidationError(ComponentValidationError):
+class ValidationError(BaseError):
     """Legacy ValidationError with field parameter support"""
 
-    def __init__(self, message: str, field: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, field: Optional[str] = None, **kwargs) -> None:
         # Map 'field' to 'parameter_name' for compatibility
         if field is not None:
             kwargs["parameter_name"] = field

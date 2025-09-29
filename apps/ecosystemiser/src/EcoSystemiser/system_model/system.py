@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 class System:
     """Container class for system components and their connections."""
 
-    def __init__(self, system_id: str, n: int = 24):
+    def __init__(self, system_id: str, n: int = 24) -> None:
         """Initialize system.
 
         Args:
@@ -46,7 +46,7 @@ class System:
         self.total_co2 = 0
         self.total_cost = 0
 
-    def add_component(self, component):
+    def add_component(self, component) -> None:
         """Add a component to the system.
 
         Args:
@@ -55,7 +55,7 @@ class System:
         self.components[component.name] = component
         logger.debug(f"Added component: {component.name} ({component.type})")
 
-    def remove_component(self, component_name: str):
+    def remove_component(self, component_name: str) -> None:
         """Remove a component from the system.
 
         Args:
@@ -215,7 +215,7 @@ class System:
 
         return info
 
-    def prepare_for_optimization(self):
+    def prepare_for_optimization(self) -> None:
         """Prepare system for optimization solving.
 
         This method initializes CVXPY variables for flows and calls
@@ -290,22 +290,21 @@ class System:
         for comp_name, component in self.components.items():
             comp_costs = {}
 
-            # Operational costs
-            if hasattr(component, "economic") and component.economic:
-                # Import costs for transmission components
-                if component.type == "transmission" and hasattr(component, "import_tariff"):
+            # Transmission costs (Grid) - always included
+            if component.type == "transmission":
+                if hasattr(component, "import_tariff"):
                     comp_costs["import_cost"] = {
                         "rate": component.import_tariff,
-                        "variable": getattr(component, "P_import", None),
+                        "variable": getattr(component, "P_draw", None),  # Grid import variable
                     }
-
-                # Export revenues for transmission components
-                if component.type == "transmission" and hasattr(component, "export_tariff"):
+                if hasattr(component, "feed_in_tariff"):
                     comp_costs["export_revenue"] = {
-                        "rate": -component.export_tariff,  # Negative cost (revenue)
-                        "variable": getattr(component, "P_export", None),
+                        "rate": -component.feed_in_tariff,  # Negative cost (revenue)
+                        "variable": getattr(component, "P_feed", None),  # Grid export variable
                     }
 
+            # Other operational costs (for components with economic params)
+            elif hasattr(component, "economic") and component.economic:
                 # Generation costs
                 if component.type == "generation" and hasattr(component, "operating_cost"):
                     comp_costs["generation_cost"] = {

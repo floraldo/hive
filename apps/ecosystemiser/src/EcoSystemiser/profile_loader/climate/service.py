@@ -82,7 +82,7 @@ class LocationResolver:
     geographical coverage.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.location_cache = {}  # Cache for geocoded locations
 
         # Well-known locations for fast lookup
@@ -171,7 +171,7 @@ class LocationResolver:
         except Exception as e:
             raise LocationError(f"Failed to resolve location: {e}")
 
-    def _validate_coordinates(self, lat: float, lon: float):
+    def _validate_coordinates(self, lat: float, lon: float) -> None:
         """Validate that coordinates are within valid ranges."""
         if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
             raise LocationError("Latitude and longitude must be numeric")
@@ -329,7 +329,7 @@ class ClimateService(BaseProfileService):
     - Unified profile service interface
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]) -> None:
         """Initialize enhanced climate service with centralized location resolution
 
         Args:
@@ -627,7 +627,9 @@ class ClimateService(BaseProfileService):
             recovery_suggestion="Check adapter configuration and try again later",
         )
 
-    async def _fetch_from_adapter_async(self, adapter_name: str, lat: float, lon: float, req: ClimateRequest) -> xr.Dataset:
+    async def _fetch_from_adapter_async(
+        self, adapter_name: str, lat: float, lon: float, req: ClimateRequest
+    ) -> xr.Dataset:
         """
         Fetch data from specific adapter using adapter factory.
 
@@ -982,7 +984,7 @@ class ClimateService(BaseProfileService):
                 "variables": [],
             }
 
-    async def shutdown_async(self):
+    async def shutdown_async(self) -> None:
         """Shutdown service and cleanup resources"""
         logger.info("Shutting down Enhanced ClimateService")
         # Cleanup adapter factory resources

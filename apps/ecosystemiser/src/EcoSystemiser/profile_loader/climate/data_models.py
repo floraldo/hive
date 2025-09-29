@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Climate data models and contracts"""
 
 from typing import Any, Dict, List, Literal, Optional, Tuple

@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Centralized HTML report generation for EcoSystemiser.
 
 This module provides a unified approach to generating HTML reports,
@@ -13,7 +17,7 @@ from typing import Any, Dict, List, Optional
 class HTMLReportGenerator:
     """Generate HTML reports from analysis results with consistent formatting."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the report generator."""
         self.plotly_cdn = "https://cdn.plot.ly/plotly-latest.min.js"
         self.bootstrap_cdn = "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"

@@ -10,7 +10,7 @@ import os
 import sys
 
 
-def test_climate_response_validation():
+def test_climate_response_validation() -> None:
     """Test that ClimateResponse includes all required base fields."""
     logger.info("Testing ClimateResponse validation...")
 
@@ -57,7 +57,7 @@ def test_climate_response_validation():
         return False
 
 
-def test_job_manager():
+def test_job_manager() -> None:
     """Test the production-ready job manager."""
     logger.info("\nTesting JobManager...")
 
@@ -93,7 +93,7 @@ def test_job_manager():
     return True
 
 
-def test_epw_error_handling():
+def test_epw_error_handling() -> None:
     """Test EPW file parser error handling."""
     logger.error("\nTesting EPW error handling...")
 
@@ -128,7 +128,7 @@ def test_epw_error_handling():
     return True
 
 
-def test_time_gap_detection():
+def test_time_gap_detection() -> None:
     """Test improved time gap detection with explicit frequency."""
     logger.info("\nTesting time gap detection...")
 
@@ -169,7 +169,7 @@ def test_time_gap_detection():
     return True
 
 
-def test_factory_no_sys_path():
+def test_factory_no_sys_path() -> None:
     """Test that factory doesn't manipulate sys.path."""
     logger.info("\nTesting factory sys.path cleanup...")
 
@@ -195,7 +195,7 @@ def test_factory_no_sys_path():
     return True
 
 
-def main():
+def main() -> None:
     """Run all verification tests."""
     logger.info("=" * 60)
     logger.info("PRODUCTION FIXES VERIFICATION")

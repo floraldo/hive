@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Standardized Error Handling for Hive System
 Provides consistent error types, reporting, and recovery strategies

@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 class InspectorBridge:
     """Bridge to run inspect_run.py and integrate results with AI review"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize inspector bridge"""
         # Find the inspect_run.py script
         # Use resolve() to get absolute path on Windows

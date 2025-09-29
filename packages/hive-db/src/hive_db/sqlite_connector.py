@@ -79,7 +79,7 @@ def get_sqlite_connection(
 
 
 @contextmanager
-def sqlite_transaction(db_path: Optional[str] = None, config: Optional[Dict[str, Any]] = None, **kwargs):
+def sqlite_transaction(db_path: Optional[str] = None, config: Optional[Dict[str, Any]] = None, **kwargs) -> None:
     """
     Context manager for SQLite transactions.
 

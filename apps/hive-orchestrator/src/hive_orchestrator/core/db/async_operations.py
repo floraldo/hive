@@ -13,8 +13,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
 
 import aiosqlite
-from hive_db.async_pool import AsyncDatabaseManager, create_async_database_manager_async
 from hive_config.paths import DB_PATH
+from hive_db.async_pool import AsyncDatabaseManager, create_async_database_manager_async
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -32,7 +32,7 @@ class AsyncDatabaseOperations:
     - Circuit breaker pattern
     """
 
-    def __init__(self, db_manager: Optional[AsyncDatabaseManager] = None):
+    def __init__(self, db_manager: Optional[AsyncDatabaseManager] = None) -> None:
         """Initialize async database operations"""
         self.db_manager = db_manager
         self.db_path = DB_PATH
@@ -42,7 +42,7 @@ class AsyncDatabaseOperations:
         self._failure_threshold = 5
         self._initialize_prepared_statements()
 
-    def _initialize_prepared_statements(self):
+    def _initialize_prepared_statements(self) -> None:
         """Initialize commonly used prepared statements"""
         self._prepared_statements = {
             "get_task": "SELECT * FROM tasks WHERE task_id = ?",
@@ -73,17 +73,17 @@ class AsyncDatabaseOperations:
             """,
         }
 
-    async def initialize_async(self):
+    async def initialize_async(self) -> None:
         """Initialize the database manager if not provided"""
         if not self.db_manager:
             self.db_manager = await create_async_database_manager_async()
 
-    async def _check_circuit_breaker_async(self):
+    async def _check_circuit_breaker_async(self) -> None:
         """Check if circuit breaker is open"""
         if self._circuit_breaker_open:
             raise Exception("Circuit breaker is open - too many database failures")
 
-    async def _handle_failure_async(self):
+    async def _handle_failure_async(self) -> None:
         """Handle database operation failure"""
         self._failure_count += 1
         if self._failure_count >= self._failure_threshold:
@@ -92,14 +92,14 @@ class AsyncDatabaseOperations:
             # Reset after 30 seconds
             asyncio.create_task(self._reset_circuit_breaker_async())
 
-    async def _reset_circuit_breaker_async(self):
+    async def _reset_circuit_breaker_async(self) -> None:
         """Reset circuit breaker after cooldown"""
         await asyncio.sleep(30)
         self._circuit_breaker_open = False
         self._failure_count = 0
         logger.info("Circuit breaker reset")
 
-    async def _handle_success_async(self):
+    async def _handle_success_async(self) -> None:
         """Handle successful operation"""
         self._failure_count = max(0, self._failure_count - 1)
 
@@ -355,7 +355,7 @@ class AsyncDatabaseOperations:
 
     # Cleanup
 
-    async def close_async(self):
+    async def close_async(self) -> None:
         """Close all database connections"""
         if self.db_manager:
             await self.db_manager.close_all_pools_async()

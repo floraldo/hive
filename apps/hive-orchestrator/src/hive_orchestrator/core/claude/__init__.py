@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Unified Claude CLI Bridge Package
 Provides a single, robust interface for all Claude API interactions

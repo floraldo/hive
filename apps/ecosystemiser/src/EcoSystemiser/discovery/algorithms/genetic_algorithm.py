@@ -45,7 +45,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
     simulated binary crossover, and polynomial mutation.
     """
 
-    def __init__(self, config: GeneticAlgorithmConfig):
+    def __init__(self, config: GeneticAlgorithmConfig) -> None:
         """Initialize genetic algorithm.
 
         Args:
@@ -367,7 +367,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
     for solving multi-objective optimization problems.
     """
 
-    def __init__(self, config: GeneticAlgorithmConfig):
+    def __init__(self, config: GeneticAlgorithmConfig) -> None:
         """Initialize NSGA-II optimizer.
 
         Args:
@@ -585,7 +585,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return at_least_one_better
 
-    def _calculate_crowding_distance(self, evaluations: List[Dict[str, Any]], front: List[int]):
+    def _calculate_crowding_distance(self, evaluations: List[Dict[str, Any]], front: List[int]) -> None:
         """Calculate crowding distance for individuals in a front."""
         if len(front) <= 2:
             # Boundary solutions get infinite distance

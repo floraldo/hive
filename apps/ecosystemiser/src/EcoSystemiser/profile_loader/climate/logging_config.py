@@ -232,7 +232,7 @@ class LoggingContext:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Reset logging context"""
         for var, token in self.tokens:
             var.reset(token)

@@ -29,7 +29,7 @@ settings = get_settings()
 
 
 @asynccontextmanager
-async def lifespan_async(app: FastAPI):
+async def lifespan_async(app: FastAPI) -> None:
     """
     Application lifespan manager.
 
@@ -106,7 +106,7 @@ def create_app() -> FastAPI:
 
     # Add custom middleware for correlation IDs
     @app.middleware("http")
-    async def correlation_id_middleware_async(request, call_next):
+    async def correlation_id_middleware_async(request, call_next) -> None:
         """Add correlation ID to requests"""
         from ecosystemiser.core.errors import CorrelationIDMiddleware
         from ecosystemiser.profile_loader.logging_config import (

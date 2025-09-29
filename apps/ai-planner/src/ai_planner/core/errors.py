@@ -1,3 +1,5 @@
+import asyncio
+
 """
 AI Planner-specific error handling implementation.
 
@@ -11,7 +13,7 @@ Extends the generic error handling toolkit with AI Planner capabilities:
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from hive_errors import BaseError, BaseErrorReporter, RecoveryStatus, RecoveryStrategy
 from hive_logging import get_logger
@@ -90,10 +92,10 @@ class PlannerError(BaseError):
 # ===============================================================================
 
 
-class TaskProcessingError(PlannerError):
+class TaskProcessingError(BaseError):
     """Base class for task processing errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(
             message=message,
             component=kwargs.get("component", "task_processor"),
@@ -101,7 +103,7 @@ class TaskProcessingError(PlannerError):
         )
 
 
-class TaskValidationError(TaskProcessingError):
+class TaskValidationError(BaseError):
     """Error validating task data"""
 
     def __init__(
@@ -131,7 +133,7 @@ class TaskValidationError(TaskProcessingError):
         super().__init__(message=message, operation="validation", **kwargs)
 
 
-class TaskQueueError(TaskProcessingError):
+class TaskQueueError(BaseError):
     """Error with task queue operations"""
 
     def __init__(
@@ -166,10 +168,10 @@ class TaskQueueError(TaskProcessingError):
 # ===============================================================================
 
 
-class PlanGenerationError(PlannerError):
+class PlanGenerationError(BaseError):
     """Base class for plan generation errors"""
 
-    def __init__(self, message: str, **kwargs):
+    def __init__(self, message: str, **kwargs) -> None:
         super().__init__(
             message=message,
             component=kwargs.get("component", "plan_generator"),
@@ -177,7 +179,7 @@ class PlanGenerationError(PlannerError):
         )
 
 
-class ClaudeServiceError(PlanGenerationError):
+class ClaudeServiceError(BaseError):
     """Error with Claude AI service"""
 
     def __init__(
@@ -225,7 +227,7 @@ class ClaudeServiceError(PlanGenerationError):
         super().__init__(message=message, operation="claude_service", **kwargs)
 
 
-class PlanValidationError(PlanGenerationError):
+class PlanValidationError(BaseError):
     """Error validating generated plan"""
 
     def __init__(
@@ -260,7 +262,7 @@ class PlanValidationError(PlanGenerationError):
 # ===============================================================================
 
 
-class DatabaseConnectionError(PlannerError):
+class DatabaseConnectionError(BaseError):
     """Error connecting to AI Planner database"""
 
     def __init__(
@@ -304,7 +306,7 @@ class PlannerErrorReporter(BaseErrorReporter):
     and AI Planner-specific reporting patterns.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the AI Planner error reporter"""
         super().__init__()
         self.task_errors: List[TaskProcessingError] = []
@@ -409,18 +411,20 @@ def get_error_reporter() -> PlannerErrorReporter:
 class ExponentialBackoffStrategy(RecoveryStrategy):
     """Retry strategy with exponential backoff for AI Planner operations"""
 
-    def __init__(self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0):
+    def __init__(self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0) -> None:
         super().__init__("exponential_backoff", max_retries)
         self.base_delay = base_delay
         self.max_delay = max_delay
 
-    def attempt_recovery(self, error: Exception, context=None):
+    async def attempt_recovery_async(
+        self, error: Exception, context: Optional[Dict[str, Any]] = None
+    ) -> RecoveryStatus:
         """Attempt recovery by waiting with exponential backoff"""
         if not self.can_attempt_recovery():
             return RecoveryStatus.FAILED
 
         delay = min(self.base_delay * (2**self.attempt_count), self.max_delay)
-        time.sleep(delay)
+        await asyncio.sleep(delay)
         self.attempt_count += 1
 
         return RecoveryStatus.PARTIAL
@@ -431,7 +435,7 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
         return min(delay, self.max_delay)
 
 
-def with_recovery(strategy, operation):
+def with_recovery(strategy: RecoveryStrategy, operation: Callable[[], Any]) -> Any:
     """Execute operation with recovery strategy"""
     last_error = None
 

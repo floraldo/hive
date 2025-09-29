@@ -7,8 +7,6 @@ This module provides a single entry point for all profile services
 
 from typing import Any, Dict, List, Optional, Type
 
-from ecosystemiser.settings import get_settings
-
 from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
 from ecosystemiser.profile_loader.climate.service import ClimateService
 from ecosystemiser.profile_loader.demand.models import DemandRequest
@@ -18,6 +16,7 @@ from ecosystemiser.profile_loader.shared.models import (
     BaseProfileResponse,
 )
 from ecosystemiser.profile_loader.shared.service import BaseProfileService
+from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -31,7 +30,7 @@ class UnifiedProfileService:
     appropriate specialized service based on the request type.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         """Initialize unified service with all profile services.
 
         Args:
@@ -45,7 +44,7 @@ class UnifiedProfileService:
         self._init_services()
         logger.info(f"UnifiedProfileService initialized with {len(self.services)} services")
 
-    def _init_services(self):
+    def _init_services(self) -> None:
         """Initialize and register all available profile services."""
         try:
             # Climate service with DI
@@ -187,7 +186,7 @@ class UnifiedProfileService:
 
         return all_sources
 
-    async def shutdown_async(self):
+    async def shutdown_async(self) -> None:
         """Shutdown all services."""
         logger.info("Shutting down UnifiedProfileService")
         for service_type, service in self.services.items():

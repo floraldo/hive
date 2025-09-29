@@ -15,7 +15,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 
-def create_table_if_not_exists(conn: sqlite3.Connection, table_name: str, schema: str):
+def create_table_if_not_exists(conn: sqlite3.Connection, table_name: str, schema: str) -> None:
     """
     Create a table if it doesn't exist.
 
@@ -88,7 +88,7 @@ def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[Dict[str
         return []
 
 
-def execute_script(conn: sqlite3.Connection, script_path: Path):
+def execute_script(conn: sqlite3.Connection, script_path: Path) -> None:
     """
     Execute a SQL script file.
 
@@ -108,7 +108,7 @@ def execute_script(conn: sqlite3.Connection, script_path: Path):
         raise
 
 
-def backup_database(source_db: Path, backup_path: Path):
+def backup_database(source_db: Path, backup_path: Path) -> None:
     """
     Create a backup of a SQLite database.
 
@@ -129,7 +129,7 @@ def backup_database(source_db: Path, backup_path: Path):
         raise
 
 
-def vacuum_database(conn: sqlite3.Connection):
+def vacuum_database(conn: sqlite3.Connection) -> None:
     """
     Vacuum a database to reclaim space and optimize performance.
 
@@ -195,7 +195,7 @@ def get_database_info(conn: sqlite3.Connection) -> Dict[str, Any]:
 
 
 @contextmanager
-def database_transaction(conn: sqlite3.Connection, isolation_level: Optional[str] = None):
+def database_transaction(conn: sqlite3.Connection, isolation_level: Optional[str] = None) -> None:
     """
     Context manager for database transactions with automatic rollback on error.
 
@@ -317,7 +317,7 @@ def batch_insert(
         raise
 
 
-def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_version: Optional[int] = None):
+def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_version: Optional[int] = None) -> None:
     """
     Apply database migrations from a directory.
 

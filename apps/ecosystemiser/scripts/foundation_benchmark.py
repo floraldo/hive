@@ -22,7 +22,7 @@ try:
 
     logger = get_logger(__name__)
 
-    def test_config_inheritance():
+    def test_config_inheritance() -> None:
         """Test the inherit→extend pattern for configuration"""
         logger.info("Testing configuration inherit→extend pattern...")
         start_time = time.time()
@@ -50,7 +50,7 @@ try:
             logger.error(f"Config test failed: {e}")
             return False
 
-    def test_database_operations():
+    def test_database_operations() -> None:
         """Test basic database operations"""
         logger.info("Testing database operations...")
         start_time = time.time()
@@ -91,7 +91,7 @@ try:
             traceback.print_exc()
             return False
 
-    def test_logging_integration():
+    def test_logging_integration() -> None:
         """Test logging integration"""
         logger.info("Testing logging integration...")
         start_time = time.time()
@@ -114,7 +114,7 @@ try:
             logger.error(f"Logging test failed: {e}")
             return False
 
-    def benchmark_foundation():
+    def benchmark_foundation() -> None:
         """Run complete foundation benchmark"""
         logger.info("=" * 60)
         logger.info("EcoSystemiser Foundation Benchmark v3.0")

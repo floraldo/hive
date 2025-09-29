@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive AI - Advanced AI/ML Infrastructure for the Hive Platform
 
@@ -12,42 +16,42 @@ Built on the Hive platform's unassailable architecture for maximum
 reliability, performance, and maintainability.
 """
 
-from .core.config import AIConfig, ModelConfig, VectorConfig, PromptConfig
+from .core.config import AIConfig, ModelConfig, PromptConfig, VectorConfig
 from .core.exceptions import (
     AIError,
-    ModelError,
-    VectorError,
-    PromptError,
     CostLimitError,
+    ModelError,
     ModelUnavailableError,
+    PromptError,
+    VectorError,
 )
+from .models.client import ModelClient, ModelResponse
+from .models.metrics import ModelMetrics, TokenUsage
+from .models.pool import ModelPool
 
 # Model Management
 from .models.registry import ModelRegistry
-from .models.client import ModelClient, ModelResponse
-from .models.pool import ModelPool
-from .models.metrics import ModelMetrics, TokenUsage
-
-# Vector Database
-from .vector.store import VectorStore
-from .vector.embedding import EmbeddingManager
-from .vector.search import SemanticSearch
-from .vector.metrics import VectorMetrics
-
-# Prompt Engineering
-from .prompts.template import PromptTemplate, PromptChain
-from .prompts.optimizer import PromptOptimizer
-from .prompts.registry import PromptRegistry
+from .observability.cost import CostManager
+from .observability.health import ModelHealthChecker
 
 # Observability
 from .observability.metrics import AIMetricsCollector
-from .observability.health import ModelHealthChecker
-from .observability.cost import CostManager
+from .prompts.optimizer import PromptOptimizer
+from .prompts.registry import PromptRegistry
+
+# Prompt Engineering
+from .prompts.template import PromptChain, PromptTemplate
 
 # Resilience (extending hive-async patterns)
 from .resilience.circuit_breaker import AICircuitBreaker
 from .resilience.rate_limiter import RateLimiter
 from .resilience.timeout import AITimeoutManager
+from .vector.embedding import EmbeddingManager
+from .vector.metrics import VectorMetrics
+from .vector.search import SemanticSearch
+
+# Vector Database
+from .vector.store import VectorStore
 
 __version__ = "1.0.0"
 
@@ -63,7 +67,6 @@ __all__ = [
     "PromptError",
     "CostLimitError",
     "ModelUnavailableError",
-
     # Model management
     "ModelRegistry",
     "ModelClient",
@@ -71,24 +74,20 @@ __all__ = [
     "ModelPool",
     "ModelMetrics",
     "TokenUsage",
-
     # Vector database
     "VectorStore",
     "EmbeddingManager",
     "SemanticSearch",
     "VectorMetrics",
-
     # Prompt engineering
     "PromptTemplate",
     "PromptChain",
     "PromptOptimizer",
     "PromptRegistry",
-
     # Observability
     "AIMetricsCollector",
     "ModelHealthChecker",
     "CostManager",
-
     # Resilience
     "AICircuitBreaker",
     "RateLimiter",

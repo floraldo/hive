@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """Services module for EcoSystemiser."""
 
 from .job_service import JobService

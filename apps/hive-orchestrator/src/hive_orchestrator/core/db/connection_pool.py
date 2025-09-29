@@ -65,7 +65,7 @@ class ConnectionPool:
         # Initialize minimum connections
         self._initialize_pool()
 
-    def _initialize_pool(self):
+    def _initialize_pool(self) -> None:
         """Create initial connections for the pool."""
         for _ in range(self.min_connections):
             conn = self._create_connection()
@@ -112,7 +112,7 @@ class ConnectionPool:
             return False
 
     @contextmanager
-    def get_connection(self):
+    def get_connection(self) -> None:
         """
         Context manager for acquiring and releasing connections.
 
@@ -161,7 +161,7 @@ class ConnectionPool:
                     with self._lock:
                         self._connections_created -= 1
 
-    def close_all(self):
+    def close_all(self) -> None:
         """Close all connections in the pool."""
         while not self._pool.empty():
             try:
@@ -206,7 +206,7 @@ def get_pool() -> ConnectionPool:
 
 
 @contextmanager
-def get_pooled_connection():
+def get_pooled_connection() -> None:
     """
     Get a connection from the global pool.
 
@@ -222,7 +222,7 @@ def get_pooled_connection():
         yield conn
 
 
-def close_pool():
+def close_pool() -> None:
     """Close the global connection pool."""
     global _pool
 

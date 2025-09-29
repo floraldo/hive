@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Shared base models for all profile loaders.
 
@@ -77,7 +81,7 @@ class BaseProfileRequest(BaseModel):
     cache_ttl: Optional[int] = None  # seconds
 
     @validator("period")
-    def validate_period(cls, v):
+    def validate_period(cls, v) -> None:
         """Validate and normalize period specification."""
         if not isinstance(v, dict):
             raise ValueError("Period must be a dictionary")

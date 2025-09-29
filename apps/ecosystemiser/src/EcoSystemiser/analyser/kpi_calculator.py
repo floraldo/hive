@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 class KPICalculator:
     """Calculate key performance indicators from simulation results."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize KPI calculator."""
         self.results = None
         self.system_type = None

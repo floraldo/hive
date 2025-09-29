@@ -1,10 +1,14 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 EcoSystemiser Climate Profiles Module - Public API
 This is the main, user-facing entry point for accessing climate data.
 """
 
 import asyncio
-from typing import Dict, Any
+from typing import Any, Dict
 
 from .data_models import ClimateRequest, ClimateResponse
 from .service import ClimateService
@@ -30,7 +34,7 @@ def create_climate_service(config: Dict[str, Any]) -> ClimateService:
     return ClimateService(config)
 
 
-async def get_profile_async(req: ClimateRequest, service: ClimateService):
+async def get_profile_async(req: ClimateRequest, service: ClimateService) -> None:
     """
     Fetch and process a climate profile using dependency injection.
 
@@ -51,7 +55,7 @@ async def get_profile_async(req: ClimateRequest, service: ClimateService):
     return await service.process_request_async(req)
 
 
-def get_profile_sync(req: ClimateRequest, service: ClimateService):
+def get_profile_sync(req: ClimateRequest, service: ClimateService) -> None:
     """
     A synchronous wrapper for the get_profile function for environments
     where async is not available.

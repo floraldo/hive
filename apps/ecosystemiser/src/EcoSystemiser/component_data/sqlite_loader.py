@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class SQLiteLoader:
     """SQLite-based loader for component specifications."""
 
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Optional[Path] = None) -> None:
         """
         Initialize the SQLite loader.
 
@@ -35,12 +35,12 @@ class SQLiteLoader:
         self._init_database()
 
     @contextmanager
-    def _get_connection(self):
+    def _get_connection(self) -> None:
         """Context manager for database connections using shared service."""
         with get_ecosystemiser_connection() as conn:
             yield conn
 
-    def _init_database(self):
+    def _init_database(self) -> None:
         """Initialize the database schema if it doesn't exist."""
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -355,7 +355,7 @@ class SQLiteLoader:
 
             return specs
 
-    def export_to_yaml(self, output_dir: Path):
+    def export_to_yaml(self, output_dir: Path) -> None:
         """
         Export all component specs to YAML files for backup/migration.
 
@@ -383,7 +383,7 @@ class SQLiteLoader:
 
             logger.info(f"Exported {spec['type']}/{spec['name']} to {file_path}")
 
-    def import_from_yaml(self, yaml_dir: Path):
+    def import_from_yaml(self, yaml_dir: Path) -> None:
         """
         Import component specs from YAML files.
 

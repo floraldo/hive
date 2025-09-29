@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Model Management System for Hive AI.
 
@@ -5,10 +9,10 @@ Provides unified interface for AI model operations with
 multi-provider support, connection pooling, and metrics.
 """
 
-from .registry import ModelRegistry
 from .client import ModelClient
+from .metrics import ModelMetrics, ModelPerformanceStats, ModelUsageRecord
 from .pool import ModelPool, PoolStats
-from .metrics import ModelMetrics, ModelUsageRecord, ModelPerformanceStats
+from .registry import ModelRegistry
 
 __all__ = [
     # Core model management
@@ -16,7 +20,6 @@ __all__ = [
     "ModelClient",
     "ModelPool",
     "ModelMetrics",
-
     # Data classes and statistics
     "PoolStats",
     "ModelUsageRecord",

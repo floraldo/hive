@@ -6,17 +6,16 @@ and execution services (like SimulationService), preparing for future event-driv
 
 import json
 import uuid
+from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError
-
-from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 from ecosystemiser.core.bus import get_ecosystemiser_event_bus
 from ecosystemiser.core.events import SimulationEvent, StudyEvent
+from hive_logging import get_logger
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -74,7 +73,7 @@ class JobFacade:
     to easily transition to an asynchronous, event-driven model in the future.
     """
 
-    def __init__(self, max_workers: int = 4):
+    def __init__(self, max_workers: int = 4) -> None:
         """Initialize the job facade service.
 
         Args:
@@ -151,7 +150,11 @@ class JobFacade:
         """
         # Lazy import to avoid circular dependency
         if self._simulation_service is None:
-            from ecosystemiser.services.simulation_service import SimulationService, SimulationConfig, SimulationResult
+            from ecosystemiser.services.simulation_service import (
+                SimulationConfig,
+                SimulationResult,
+                SimulationService,
+            )
 
             self._simulation_service = SimulationService()
 
@@ -422,7 +425,7 @@ class JobFacade:
             return job
         return None
 
-    def run_simulation(self, config):
+    def run_simulation(self, config) -> None:
         """Direct simulation execution for backward compatibility.
 
         Args:
@@ -455,7 +458,7 @@ class JobFacade:
         else:
             raise RuntimeError(f"Unexpected job status: {result.status}")
 
-    def shutdown(self, wait: bool = True):
+    def shutdown(self, wait: bool = True) -> None:
         """Shutdown the job facade service.
 
         Args:

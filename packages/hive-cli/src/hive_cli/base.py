@@ -17,7 +17,7 @@ class HiveError(BaseError):
 class HiveCommand(click.Command):
     """Base command class with Hive-specific functionality."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.logger = get_logger(self.name or __name__)
 
@@ -38,7 +38,7 @@ class HiveCommand(click.Command):
 class HiveGroup(click.Group):
     """Base group class with Hive-specific functionality."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.logger = get_logger(self.name or __name__)
 
@@ -56,13 +56,13 @@ class HiveGroup(click.Group):
 class HiveContext:
     """Shared context for Hive CLI commands."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.config: Optional[Dict[str, Any]] = None
         self.debug: bool = False
         self.verbose: bool = False
         self.config_path: Optional[Path] = None
 
-    def load_config(self, config_path: Optional[Path] = None):
+    def load_config(self, config_path: Optional[Path] = None) -> None:
         """Load configuration from file."""
         if config_path:
             self.config_path = config_path

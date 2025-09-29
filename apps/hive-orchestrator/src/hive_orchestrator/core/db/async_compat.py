@@ -29,7 +29,7 @@ class AsyncEventLoopManager:
     maintaining thread safety and preventing event loop conflicts.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._thread_loops = {}
         self._lock = threading.Lock()
 
@@ -64,7 +64,7 @@ class AsyncEventLoopManager:
 
         return loop.run_until_complete(coro)
 
-    def _run_in_thread_pool(self, coro):
+    def _run_in_thread_pool(self, coro) -> None:
         """Run coroutine in a separate thread to avoid event loop conflicts."""
         import concurrent.futures
 
@@ -80,7 +80,7 @@ class AsyncEventLoopManager:
             future = executor.submit(run_in_new_loop)
             return future.result()
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up thread-local event loops."""
         with self._lock:
             for loop in self._thread_loops.values():
@@ -115,7 +115,7 @@ def sync_wrapper(async_func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @contextmanager
-def get_sync_async_connection():
+def get_sync_async_connection() -> None:
     """
     Sync context manager that provides async connection compatibility.
 
@@ -131,7 +131,7 @@ def get_sync_async_connection():
     class AsyncConnectionWrapper:
         """Wrapper that makes async connection look sync."""
 
-        def __init__(self, async_conn):
+        def __init__(self, async_conn) -> None:
             self._async_conn = async_conn
 
         def execute(self, sql, parameters=None):
@@ -181,7 +181,7 @@ def get_sync_async_connection():
     class AsyncCursorWrapper:
         """Wrapper that makes async cursor look sync."""
 
-        def __init__(self, async_cursor):
+        def __init__(self, async_cursor) -> None:
             self._async_cursor = async_cursor
 
         def fetchone(self):
@@ -225,7 +225,7 @@ def get_sync_async_connection():
         yield wrapped_conn
     finally:
         # Clean up the async context manager
-        async def _exit_async():
+        async def _exit_async() -> None:
             await async_cm.__aexit__(None, None, None)
 
         _loop_manager.run_async(_exit_async())
@@ -264,7 +264,7 @@ class AsyncToSyncAdapter:
 
     @staticmethod
     @sync_wrapper
-    async def execute_transaction_async(queries_and_params):
+    async def execute_transaction_async(queries_and_params) -> None:
         """Execute multiple queries in a transaction."""
         async with get_async_connection() as conn:
             try:
@@ -282,7 +282,7 @@ class AsyncToSyncAdapter:
                 raise
 
 
-def cleanup_async_compat():
+def cleanup_async_compat() -> None:
     """Clean up async compatibility resources."""
     _loop_manager.cleanup()
 

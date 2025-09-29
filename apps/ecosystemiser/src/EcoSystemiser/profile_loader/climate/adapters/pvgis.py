@@ -52,7 +52,7 @@ except ImportError:
     class QCReport:
         passed_checks: List[str] = field(default_factory=list)
 
-        def add_issue(self, issue: QCIssue):
+        def add_issue(self, issue: QCIssue) -> None:
             pass
 
     class QCProfile(ABC):
@@ -161,7 +161,7 @@ class PVGISAdapter(BaseAdapter):
         "PVGIS-NSRDB": {"regions": ["Americas"], "years": "2005-2015"},
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize PVGIS adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
@@ -237,7 +237,9 @@ class PVGISAdapter(BaseAdapter):
         else:
             raise ValueError(f"Unsupported resolution for PVGIS: {resolution}")
 
-    async def _transform_data_async(self, raw_data: Any, location: Tuple[float, float], variables: List[str]) -> xr.Dataset:
+    async def _transform_data_async(
+        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+    ) -> xr.Dataset:
         """Transform raw PVGIS data to xarray Dataset"""
         lat, lon = location
 
@@ -256,7 +258,7 @@ class PVGISAdapter(BaseAdapter):
 
         return ds
 
-    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict):
+    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict) -> None:
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValueError(f"Invalid latitude: {lat}")
@@ -754,7 +756,7 @@ class PVGISAdapter(BaseAdapter):
 class PVGISQCProfile:
     """QC profile for PVGIS solar data - co-located with adapter for better cohesion."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = "PVGIS"
         self.description = "Photovoltaic Geographical Information System - optimized for solar applications"
         self.known_issues = [
@@ -800,7 +802,7 @@ class PVGISQCProfile:
 class PVGISQCProfile(QCProfile):
     """QC profile for PVGIS solar data"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="PVGIS",
             description="Photovoltaic Geographical Information System - optimized for solar applications",

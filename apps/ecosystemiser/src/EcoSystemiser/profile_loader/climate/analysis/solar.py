@@ -202,7 +202,7 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
     return ds_solar
 
 
-def equation_of_time(day_of_year):
+def equation_of_time(day_of_year) -> None:
     """
     Calculate equation of time in minutes.
 

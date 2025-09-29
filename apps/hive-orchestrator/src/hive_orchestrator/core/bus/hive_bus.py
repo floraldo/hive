@@ -38,7 +38,7 @@ class HiveEventBus(BaseBus):
     - Task coordination patterns
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         """Initialize the Hive event bus
 
         Args:
@@ -48,7 +48,7 @@ class HiveEventBus(BaseBus):
         self.config = config if config is not None else {}
         self._ensure_hive_event_tables()
 
-    def _ensure_hive_event_tables(self):
+    def _ensure_hive_event_tables(self) -> None:
         """Ensure Hive event storage tables exist"""
         with get_pooled_connection() as conn:
             cursor = conn.cursor()
@@ -257,7 +257,7 @@ class HiveEventBus(BaseBus):
 
         return events
 
-    def _handle_subscriber_error(self, subscriber, event: BaseEvent):
+    def _handle_subscriber_error(self, subscriber, event: BaseEvent) -> None:
         """Handle subscriber callback errors with Hive-specific logging"""
         logger.error(
             f"Hive subscriber {subscriber.subscriber_name} failed to handle event {event.event_id}: "

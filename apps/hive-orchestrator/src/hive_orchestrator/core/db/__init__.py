@@ -1,3 +1,7 @@
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 """
 Hive Core DB - Internal state management database for the Hive orchestration system.
 

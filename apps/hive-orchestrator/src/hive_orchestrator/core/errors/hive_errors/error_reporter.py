@@ -76,7 +76,7 @@ class ErrorReporter:
         self.error_history: List[Dict[str, Any]] = []
         self.recovery_success_rate: Dict[str, float] = {}
 
-    def _setup_file_logger(self):
+    def _setup_file_logger(self) -> None:
         """Setup file-based error logging"""
         file_handler = logging.FileHandler(self.error_log_path)
         file_handler.setLevel(logging.ERROR)
@@ -84,7 +84,7 @@ class ErrorReporter:
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
-    def _setup_database(self):
+    def _setup_database(self) -> None:
         """Setup database for error persistence"""
         conn = sqlite3.connect(str(self.error_db_path))
         cursor = conn.cursor()
@@ -222,7 +222,7 @@ class ErrorReporter:
 
         return record
 
-    def _update_metrics(self, error_record: Dict[str, Any]):
+    def _update_metrics(self, error_record: Dict[str, Any]) -> None:
         """Update error metrics"""
         error_type = error_record["error_type"]
         component = error_record.get("component", "unknown")
@@ -236,7 +236,7 @@ class ErrorReporter:
         # Count total
         self.error_counts["total"] += 1
 
-    def _log_to_file(self, error_record: Dict[str, Any]):
+    def _log_to_file(self, error_record: Dict[str, Any]) -> None:
         """Log error to file"""
         try:
             with open(self.error_log_path, "a") as f:
@@ -244,7 +244,7 @@ class ErrorReporter:
         except Exception as e:
             logger.warning(f"Failed to write error to file: {e}")
 
-    def _log_to_database(self, error_record: Dict[str, Any]):
+    def _log_to_database(self, error_record: Dict[str, Any]) -> None:
         """Log error to database"""
         try:
             conn = sqlite3.connect(str(self.error_db_path))
@@ -274,7 +274,7 @@ class ErrorReporter:
         except Exception as e:
             logger.warning(f"Failed to write error to database: {e}")
 
-    def mark_error_resolved(self, error_id: str, resolution_notes: Optional[str] = None):
+    def mark_error_resolved(self, error_id: str, resolution_notes: Optional[str] = None) -> None:
         """Mark an error as resolved"""
         if not self.log_to_db:
             return
