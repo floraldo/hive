@@ -1,3 +1,8 @@
+import ast
+from pathlib import Path
+
+import toml
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -8,11 +13,6 @@ Architectural Validators - Core validation functions for Hive platform standards
 These validators are used by the Golden Tests to enforce architectural
 gravity across the entire platform.
 """
-
-import ast
-from pathlib import Path
-
-import toml
 
 
 def validate_app_contracts(project_root: Path) -> tuple[bool, list[str]]:
@@ -1842,6 +1842,90 @@ def validate_unified_tool_configuration(project_root: Path) -> tuple[bool, list[
     return len(violations) == 0, violations
 
 
+def validate_python_version_consistency(project_root: Path) -> tuple[bool, list[str]]:
+    """
+    Golden Rule 22: Python Version Consistency
+
+    Enforces that ALL pyproject.toml files require the same Python version (3.11+).
+    This prevents version drift that causes syntax incompatibilities and comma errors.
+
+    The Python 3.10→3.11 migration revealed that version inconsistencies cause:
+    - Different syntax parsing strictness
+    - Comma-related syntax errors
+    - Tool behavior differences (Ruff, Black)
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+    expected_python_version = "3.11"
+
+    root_toml = project_root / "pyproject.toml"
+    root_python_version = None
+
+    # Check root pyproject.toml for Python version
+    if root_toml.exists():
+        try:
+            root_config = toml.load(root_toml)
+
+            # Check for Python version in tool.poetry.dependencies or project.requires-python
+            if "tool" in root_config and "poetry" in root_config["tool"]:
+                deps = root_config["tool"]["poetry"].get("dependencies", {})
+                if "python" in deps:
+                    root_python_version = deps["python"]
+            elif "project" in root_config:
+                root_python_version = root_config["project"].get("requires-python")
+
+            if not root_python_version:
+                violations.append("Root pyproject.toml missing Python version requirement")
+            elif expected_python_version not in str(root_python_version):
+                violations.append(
+                    f"Root pyproject.toml Python version '{root_python_version}' "
+                    f"must require {expected_python_version}+"
+                )
+        except Exception as e:
+            violations.append(f"Error reading root pyproject.toml: {e}")
+    else:
+        violations.append("Root pyproject.toml does not exist")
+
+    # Check all sub-project pyproject.toml files
+    for toml_path in project_root.rglob("pyproject.toml"):
+        # Skip root
+        if toml_path == root_toml:
+            continue
+
+        # Skip venv and archive
+        if ".venv" in str(toml_path) or "archive" in str(toml_path):
+            continue
+
+        try:
+            config = toml.load(toml_path)
+            python_version = None
+
+            # Check for Python version
+            if "tool" in config and "poetry" in config["tool"]:
+                deps = config["tool"]["poetry"].get("dependencies", {})
+                if "python" in deps:
+                    python_version = deps["python"]
+            elif "project" in config:
+                python_version = config["project"].get("requires-python")
+
+            if not python_version:
+                rel_path = toml_path.relative_to(project_root)
+                violations.append(f"{rel_path} missing Python version requirement")
+            elif expected_python_version not in str(python_version):
+                rel_path = toml_path.relative_to(project_root)
+                violations.append(
+                    f"{rel_path} has Python '{python_version}' "
+                    f"but should require {expected_python_version}+ (like root)"
+                )
+        except Exception as e:
+            rel_path = toml_path.relative_to(project_root)
+            violations.append(f"Error reading {rel_path}: {e}")
+
+    return len(violations) == 0, violations
+
+
 def run_all_golden_rules(project_root: Path) -> tuple[bool, dict]:
     """
     Run all Golden Rules validation.
@@ -1871,6 +1955,7 @@ def run_all_golden_rules(project_root: Path) -> tuple[bool, dict]:
         ("Golden Rule 19: Test File Quality Standards", validate_test_file_quality),
         ("Golden Rule 20: PyProject Dependency Usage", validate_pyproject_dependency_usage),
         ("Golden Rule 21: Unified Tool Configuration", validate_unified_tool_configuration),
+        ("Golden Rule 22: Python Version Consistency", validate_python_version_consistency),
     ]
 
     for rule_name, validator_func in golden_rules:
