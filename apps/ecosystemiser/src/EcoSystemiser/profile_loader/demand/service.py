@@ -242,14 +242,14 @@ class DemandService(BaseProfileService):
         self, dataset: xr.Dataset, request: DemandRequest, profiles: dict[str, np.ndarray]
     ) -> DemandResponse:
         """Build demand response with metrics."""
-        # Calculate basic metrics,
+        # Calculate basic metrics
         electricity_vars = [var for var in dataset.data_vars if "power" in var.lower() or "electricity" in var.lower()]
-        peak_demand = (None,)
-        total_energy = (None,)
+        peak_demand = None
+        total_energy = None
         load_factor = None
 
         if electricity_vars and electricity_vars[0] in dataset:
-            power_data = (dataset[electricity_vars[0]].values,)
+            power_data = dataset[electricity_vars[0]].values
             peak_demand = float(np.max(power_data))
             total_energy = float(np.sum(power_data))  # Simplified calculation
             avg_demand = float(np.mean(power_data))
