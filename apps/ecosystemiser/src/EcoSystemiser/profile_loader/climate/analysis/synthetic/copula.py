@@ -158,7 +158,7 @@ class CopulaSyntheticGenerator:
         # Extract temporal information
         time_info = {
             "original_times": pd.to_datetime(ds.time.values),
-            "start_time": pd.to_datetime(ds.time.values[0])
+            "start_time": pd.to_datetime(ds.time.values[0]),
             "freq": pd.infer_freq(ds.time.values) or "H"
         },
 

@@ -39,7 +39,7 @@ class TestReviewEngine:
         """Create mock VectorStore."""
         mock = MagicMock(spec=VectorStore)
         mock.search = AsyncMock(
-            return_value=[{"text": "similar_code", "score": 0.95}, {"text": "pattern_match", "score": 0.88}]
+            return_value=[{"text": "similar_code", "score": 0.95}, {"text": "pattern_match", "score": 0.88}],
         )
         return mock
 
@@ -70,7 +70,7 @@ class TestReviewEngine:
         """Test file review with cache hit."""
         # Setup cache hit
         cached_result = ReviewResult(
-            file_path=Path("test.py"), analysis_results=[], overall_score=95.0, summary="Cached review"
+            file_path=Path("test.py"), analysis_results=[], overall_score=95.0, summary="Cached review",
         )
         mock_cache.get = AsyncMock(return_value=cached_result)
 
@@ -96,8 +96,8 @@ class TestReviewEngine:
                 for analyzer in engine.analyzers:
                     analyzer.analyze = AsyncMock(
                         return_value=AnalysisResult(
-                            analyzer_name=analyzer.__class__.__name__, violations=[], suggestions=[]
-                        )
+                            analyzer_name=analyzer.__class__.__name__, violations=[], suggestions=[],
+                        ),
                     )
 
                 result = await engine.review_file(test_file)
@@ -118,7 +118,7 @@ class TestReviewEngine:
                 side_effect=[
                     ReviewResult(file_path=f, analysis_results=[], overall_score=90.0, summary=f"Review for {f}")
                     for f in files
-                ]
+                ],
             )
 
             results = await engine.review_multiple_files(files)
@@ -138,7 +138,7 @@ class TestReviewEngine:
                     return_value={
                         "additional_insights": ["Consider using type hints"],
                         "similar_patterns": ["Found similar code in utils.py"],
-                    }
+                    },
                 )
 
                 result = await engine.review_file(Path("test.py"))
@@ -267,7 +267,7 @@ def complex_function(x, y, z):
         with patch("builtins.open", MagicMock(return_value=MagicMock(read=MagicMock(return_value=test_code)))):
             with patch("guardian_agent.review.engine.ModelClient") as mock_model:
                 mock_model.return_value.generate = AsyncMock(
-                    return_value={"content": "Code has high complexity", "usage": {"total_tokens": 50}}
+                    return_value={"content": "Code has high complexity", "usage": {"total_tokens": 50}},
                 )
 
                 engine = ReviewEngine(config)

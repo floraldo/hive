@@ -65,7 +65,7 @@ class LambdaOptimizer:
 
             # Pattern 1: sorted with simple key lambda
             sorted_pattern = re.compile(
-                r'sorted\([^,]+,\s*key=lambda\s+(\w+):\s*(\w+)\.get\(["\'](\w+)["\']\)(?:,\s*["\'][^"\']*["\']\))?\)'
+                r'sorted\([^,]+,\s*key=lambda\s+(\w+):\s*(\w+)\.get\(["\'](\w+)["\']\)(?:,\s*["\'][^"\']*["\']\))?\)',
             )
             for i, line in enumerate(lines, 1):
                 match = sorted_pattern.search(line)
@@ -230,7 +230,7 @@ Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                         # Apply the optimization
                         if opt.optimization_type == "operator.itemgetter":
                             new_line = re.sub(
-                                r'key=lambda\s+\w+:\s*\w+\.get\(["\'][^"\']+["\']\)', opt.suggested, original_line
+                                r'key=lambda\s+\w+:\s*\w+\.get\(["\'][^"\']+["\']\)', opt.suggested, original_line,
                             )
                             if new_line != original_line:
                                 lines[line_idx] = new_line

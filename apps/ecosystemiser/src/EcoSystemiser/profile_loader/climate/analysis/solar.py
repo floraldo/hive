@@ -135,7 +135,7 @@ def calculate_solar_position(
     elevation_da = xr.DataArray(
         elevation,
         coords={"time": time},
-        dims=["time"]
+        dims=["time"],
         attrs={
             "units": "degrees",
             "description": "Solar elevation angle above horizon",
@@ -145,7 +145,7 @@ def calculate_solar_position(
     azimuth_da = xr.DataArray(
         azimuth,
         coords={"time": time},
-        dims=["time"]
+        dims=["time"],
         attrs={
             "units": "degrees",
             "description": "Solar azimuth angle from North (clockwise)",
@@ -187,7 +187,7 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
     ds_solar["air_mass"] = xr.DataArray(
         am,
         coords={"time": ds.time},
-        dims=["time"]
+        dims=["time"],
         attrs={
             "units": "dimensionless",
             "description": "Relative optical air mass",

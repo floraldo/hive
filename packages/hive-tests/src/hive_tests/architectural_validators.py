@@ -313,7 +313,7 @@ def validate_dependency_direction(project_root: Path) -> tuple[bool, list[str]]:
                                 for line in content.split("\n"):
                                     if line.strip().startswith(app_import):
                                         violations.append(
-                                            f"Package '{package_name}' imports from app: {py_file.relative_to(project_root)}"
+                                            f"Package '{package_name}' imports from app: {py_file.relative_to(project_root)}",
                                         )
                                         break
 
@@ -383,7 +383,7 @@ def validate_dependency_direction(project_root: Path) -> tuple[bool, list[str]]:
                                         for import_line in import_lines:
                                             if ".core" not in import_line and ".client" not in import_line:
                                                 violations.append(
-                                                    f"App '{app_name}' directly imports from app '{other_app}' (non-core): {py_file.relative_to(project_root)}"
+                                                    f"App '{app_name}' directly imports from app '{other_app}' (non-core): {py_file.relative_to(project_root)}",
                                                 )
                                                 break
 
@@ -461,7 +461,7 @@ def validate_service_layer_discipline(project_root: Path) -> tuple[bool, list[st
                                 for indicator in business_logic_indicators:
                                     if indicator in content:
                                         violations.append(
-                                            f"Service layer contains business logic: {py_file.relative_to(project_root)}"
+                                            f"Service layer contains business logic: {py_file.relative_to(project_root)}",
                                         )
                                         break
 
@@ -477,7 +477,7 @@ def validate_service_layer_discipline(project_root: Path) -> tuple[bool, list[st
                                                 if not (next_line.startswith('"""') or next_line.startswith("'''")):
                                                     class_name = (line.strip().split()[1].split("(")[0].rstrip(":"),)
                                                     violations.append(
-                                                        f"Service class '{class_name}' missing docstring: {py_file.relative_to(project_root)}"
+                                                        f"Service class '{class_name}' missing docstring: {py_file.relative_to(project_root)}",
                                                     )
 
                             except Exception:
@@ -529,11 +529,11 @@ def validate_communication_patterns(project_root: Path) -> tuple[bool, list[str]
                             for daemon_name, daemon_config in contract["daemons"].items():
                                 if "restart_on_failure" not in daemon_config:
                                     violations.append(
-                                        f"Daemon '{daemon_name}' in {app_name} missing restart_on_failure setting"
+                                        f"Daemon '{daemon_name}' in {app_name} missing restart_on_failure setting",
                                     )
                                 if "command" not in daemon_config:
                                     violations.append(
-                                        f"Daemon '{daemon_name}' in {app_name} missing command specification"
+                                        f"Daemon '{daemon_name}' in {app_name} missing command specification",
                                     )
 
                     except Exception:
@@ -560,7 +560,7 @@ def validate_communication_patterns(project_root: Path) -> tuple[bool, list[str]
                         for pattern in forbidden_patterns:
                             if pattern in content:
                                 violations.append(
-                                    f"Forbidden IPC pattern '{pattern}' found: {py_file.relative_to(project_root)}"
+                                    f"Forbidden IPC pattern '{pattern}' found: {py_file.relative_to(project_root)}",
                                 )
 
                     except Exception:
@@ -610,27 +610,27 @@ def validate_interface_contracts(project_root: Path) -> tuple[bool, list[str]]:
                             # Check for docstring
                             if not ast.get_docstring(node):
                                 violations.append(
-                                    f"Public function '{node.name}' missing docstring: {py_file.relative_to(project_root)}:{node.lineno}"
+                                    f"Public function '{node.name}' missing docstring: {py_file.relative_to(project_root)}:{node.lineno}",
                                 )
 
                             # Check for type hints on parameters
                             for arg in node.args.args:
                                 if arg.arg != "self" and arg.arg != "cls" and not arg.annotation:
                                     violations.append(
-                                        f"Parameter '{arg.arg}' missing type hint in '{node.name}': {py_file.relative_to(project_root)}:{node.lineno}"
+                                        f"Parameter '{arg.arg}' missing type hint in '{node.name}': {py_file.relative_to(project_root)}:{node.lineno}",
                                     )
 
                             # Check for return type hint
                             if not node.returns and node.name != "__init__":
                                 violations.append(
-                                    f"Function '{node.name}' missing return type hint: {py_file.relative_to(project_root)}:{node.lineno}"
+                                    f"Function '{node.name}' missing return type hint: {py_file.relative_to(project_root)}:{node.lineno}",
                                 )
 
                     # Check async function naming
                     elif isinstance(node, ast.AsyncFunctionDef):
                         if not node.name.startswith("_") and not node.name.endswith("_async"):
                             violations.append(
-                                f"Async function '{node.name}' should end with '_async': {py_file.relative_to(project_root)}:{node.lineno}"
+                                f"Async function '{node.name}' should end with '_async': {py_file.relative_to(project_root)}:{node.lineno}",
                             )
 
             except Exception:
@@ -684,7 +684,7 @@ def validate_error_handling_standards(project_root: Path) -> tuple[bool, list[st
                         # Check if exception is re-raised or properly handled
                         if node.type is None:  # bare except
                             violations.append(
-                                f"Bare except without type: {py_file.relative_to(project_root)}:{node.lineno}"
+                                f"Bare except without type: {py_file.relative_to(project_root)}:{node.lineno}",
                             )
 
             except Exception:
@@ -863,7 +863,7 @@ def validate_logging_standards(project_root: Path) -> tuple[bool, list[str]]:
                                 and not (is_cli_tool and in_main_section)
                             ):
                                 violations.append(
-                                    f"Print statement in production code: {py_file.relative_to(project_root)}:{line_num}"
+                                    f"Print statement in production code: {py_file.relative_to(project_root)}:{line_num}",
                                 )
 
                 # Check if file actually uses logging (not just mentions it in comments)
@@ -891,7 +891,7 @@ def validate_logging_standards(project_root: Path) -> tuple[bool, list[str]]:
 
                         if not is_logging_infrastructure:
                             violations.append(
-                                f"Uses logging but doesn't import hive_logging: {py_file.relative_to(project_root)}"
+                                f"Uses logging but doesn't import hive_logging: {py_file.relative_to(project_root)}",
                             )
 
                 # Check for direct import logging violations (stricter enforcement)
@@ -909,7 +909,7 @@ def validate_logging_standards(project_root: Path) -> tuple[bool, list[str]]:
                             line_num += 1
                             if "import logging" in line and not line.strip().startswith("#"):
                                 violations.append(
-                                    f"Direct 'import logging' found (use hive_logging): {py_file.relative_to(project_root)}:{line_num}"
+                                    f"Direct 'import logging' found (use hive_logging): {py_file.relative_to(project_root)}:{line_num}",
                                 )
 
             except Exception:
@@ -973,7 +973,7 @@ def validate_inherit_extend_pattern(project_root: Path) -> tuple[bool, list[str]
                             # Check for proper import
                             if f"from {base_package}" not in content and f"import {base_package}" not in content:
                                 violations.append(
-                                    f"App '{app_name}' core/{module_name} doesn't import from {base_package}"
+                                    f"App '{app_name}' core/{module_name} doesn't import from {base_package}",
                                 )
                         except (FileNotFoundError, PermissionError, UnicodeDecodeError) as e:
                             logger.debug(f"Cannot read file {check_file}: {e}")
@@ -1026,7 +1026,7 @@ def validate_package_naming_consistency(project_root: Path) -> tuple[bool, list[
             declared_name = pyproject.get("tool", {}).get("poetry", {}).get("name", "")
             if declared_name != package_name:
                 violations.append(
-                    f"Package '{package_name}' directory name doesn't match pyproject.toml name '{declared_name}'"
+                    f"Package '{package_name}' directory name doesn't match pyproject.toml name '{declared_name}'",
                 )
 
             # Check that source directory matches package name (with underscores)
@@ -1081,7 +1081,7 @@ def validate_development_tools_consistency(project_root: Path) -> tuple[bool, li
                     if actual_version != expected_version and actual_version != "*":
                         rel_path = pyproject_file.relative_to(project_root)
                         violations.append(
-                            f"{rel_path}: {tool} version '{actual_version}' should be '{expected_version}'"
+                            f"{rel_path}: {tool} version '{actual_version}' should be '{expected_version}'",
                         )
 
         except Exception as e:
@@ -1657,7 +1657,7 @@ def validate_test_file_quality(project_root: Path) -> tuple[bool, list[str]]:
             # Test file should have either test functions or test classes
             if not has_test_functions and not has_test_classes:
                 violations.append(
-                    f"Test file {test_file.relative_to(project_root)} contains no test functions or test classes"
+                    f"Test file {test_file.relative_to(project_root)} contains no test functions or test classes",
                 )
 
             # Check for imports (test files should import something)
@@ -1776,7 +1776,7 @@ def validate_pyproject_dependency_usage(project_root: Path) -> tuple[bool, list[
                 component_name = f"{base_dir_name}/{component_dir.name}"
                 for unused_dep in unused_deps:
                     violations.append(
-                        f"{component_name}: Unused dependency '{unused_dep}' declared in pyproject.toml but not imported in code"
+                        f"{component_name}: Unused dependency '{unused_dep}' declared in pyproject.toml but not imported in code",
                     )
 
             except Exception as e:
@@ -1822,7 +1822,7 @@ def validate_unified_tool_configuration(project_root: Path) -> tuple[bool, list[
                         rel_path = toml_path.relative_to(project_root)
                         violations.append(
                             f"{rel_path} contains [tool.{tool_name}] section - "
-                            f"tool configs must be unified in root pyproject.toml"
+                            f"tool configs must be unified in root pyproject.toml",
                         )
         except Exception as e:
             violations.append(f"Error reading {toml_path}: {e}")
@@ -1881,7 +1881,7 @@ def validate_python_version_consistency(project_root: Path) -> tuple[bool, list[
             elif expected_python_version not in str(root_python_version):
                 violations.append(
                     f"Root pyproject.toml Python version '{root_python_version}' "
-                    f"must require {expected_python_version}+"
+                    f"must require {expected_python_version}+",
                 )
         except Exception as e:
             violations.append(f"Error reading root pyproject.toml: {e}")
@@ -1917,7 +1917,7 @@ def validate_python_version_consistency(project_root: Path) -> tuple[bool, list[
                 rel_path = toml_path.relative_to(project_root)
                 violations.append(
                     f"{rel_path} has Python '{python_version}' "
-                    f"but should require {expected_python_version}+ (like root)"
+                    f"but should require {expected_python_version}+ (like root)",
                 )
         except Exception as e:
             rel_path = toml_path.relative_to(project_root)

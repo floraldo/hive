@@ -59,14 +59,14 @@ class MaliciousDeploymentGenerator:
             # Accidentally leaked secrets
             f.write("2023-12-01T10:02:00Z [DEBUG] API_KEY=sk-1234567890abcdef1234567890abcdef\n")
             f.write(
-                "2023-12-01T10:03:00Z [ERROR] Authentication failed with token: bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9\n"
+                "2023-12-01T10:03:00Z [ERROR] Authentication failed with token: bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9\n",
             )
             f.write(
-                "2023-12-01T10:04:00Z [DEBUG] Database connection string: postgresql://admin:password123@prod-db:5432/app\n"
+                "2023-12-01T10:04:00Z [DEBUG] Database connection string: postgresql://admin:password123@prod-db:5432/app\n",
             )
             f.write("2023-12-01T10:05:00Z [INFO] AWS credentials loaded: aws_access_key_id=AKIAIOSFODNN7EXAMPLE\n")
             f.write(
-                "2023-12-01T10:06:00Z [DEBUG] Private key loaded: -----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA1234567890abcdef...\n"
+                "2023-12-01T10:06:00Z [DEBUG] Private key loaded: -----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA1234567890abcdef...\n",
             )
 
             # More normal entries
@@ -94,7 +94,7 @@ class MaliciousDeploymentGenerator:
         "trust_all_certificates": true,
         "insecure_mode": true
     }
-}"""
+}""",
             )
         configs.append(json_config)
 
@@ -116,7 +116,7 @@ cors:
 security:
   trust_all: true
   insecure: true
-"""
+""",
             )
         configs.append(yaml_config)
 

@@ -30,7 +30,7 @@ async def collect_baseline_metrics() -> dict[str, Any]:
     async_profiler = AsyncProfiler()
 
     analyzer = PerformanceAnalyzer(
-        metrics_collector=metrics_collector, system_monitor=system_monitor, async_profiler=async_profiler
+        metrics_collector=metrics_collector, system_monitor=system_monitor, async_profiler=async_profiler,
     )
 
     logger.info("Starting system monitoring...")
@@ -109,7 +109,7 @@ def compare_against_baseline(current: dict[str, Any], baseline: dict[str, Any]) 
 
         if regression_pct > REGRESSION_THRESHOLD:
             regressions.append(
-                f"Response Time: {baseline_rt:.3f}s → {current_rt:.3f}s ({regression_pct * 100:.1f}% SLOWER)"
+                f"Response Time: {baseline_rt:.3f}s → {current_rt:.3f}s ({regression_pct * 100:.1f}% SLOWER)",
             )
             passed = False
 
@@ -121,7 +121,7 @@ def compare_against_baseline(current: dict[str, Any], baseline: dict[str, Any]) 
 
         if regression_pct > REGRESSION_THRESHOLD:
             regressions.append(
-                f"Throughput: {baseline_tp:.2f} ops/s → {current_tp:.2f} ops/s ({regression_pct * 100:.1f}% SLOWER)"
+                f"Throughput: {baseline_tp:.2f} ops/s → {current_tp:.2f} ops/s ({regression_pct * 100:.1f}% SLOWER)",
             )
             passed = False
 
@@ -209,7 +209,7 @@ async def main():
         if passed:
             print("✅ PASSED - No performance regressions detected")
             print(
-                f"   Response Time: {baseline.get('avg_response_time', 0):.3f}s → {current.get('avg_response_time', 0):.3f}s"
+                f"   Response Time: {baseline.get('avg_response_time', 0):.3f}s → {current.get('avg_response_time', 0):.3f}s",
             )
             print(f"   Throughput: {baseline.get('throughput', 0):.2f} → {current.get('throughput', 0):.2f} ops/s")
             print(f"   Error Rate: {baseline.get('error_rate', 0):.2%} → {current.get('error_rate', 0):.2%}")

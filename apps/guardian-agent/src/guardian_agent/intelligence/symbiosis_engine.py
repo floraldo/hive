@@ -293,13 +293,13 @@ class SymbiosisEngine:
 
             # Generate comprehensive report
             analysis_report = {
-                "analysis_summary": {
+                "analysis_summary": {,
                     "total_patterns_discovered": len(patterns),
                     "cross_package_opportunities": len(cross_package_opportunities),
                     "optimization_opportunities": len(optimizations),
                     "high_priority_optimizations": len(
                         [
-                            o,
+                            o
                             for o in optimizations,
                             if o.priority in [OptimizationPriority.CRITICAL, OptimizationPriority.HIGH]
                         ]
@@ -356,11 +356,11 @@ class SymbiosisEngine:
 
             # Filter optimizations suitable for automation
             auto_implementable = [
-                opt,
+                opt
                 for opt in analysis_report["optimizations"]
                 if (
                     opt.can_auto_implement,
-                    and opt.oracle_confidence >= self.config.min_optimization_confidence,
+                    and opt.oracle_confidence >= self.config.min_optimization_confidence
                     and opt.status == OptimizationStatus.ANALYZED
                 )
             ]
@@ -564,7 +564,7 @@ class SymbiosisEngine:
         }
 
         for opt in optimizations:
-            plan_item = {
+            plan_item = {,
                 "optimization_id": opt.opportunity_id,
                 "title": opt.title,
                 "priority": opt.priority.value,

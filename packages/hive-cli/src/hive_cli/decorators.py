@@ -14,7 +14,7 @@ import click
 def config_option(f: Callable) -> Callable:
     """Add standard config file option."""
     return click.option("--config", "-c", type=click.Path(exists=True, path_type=Path), help="Configuration file path")(
-        f
+        f,
     )
 
 
@@ -31,7 +31,7 @@ def verbose_option(f: Callable) -> Callable:
 def output_format_option(f: Callable) -> Callable:
     """Add output format option."""
     return click.option(
-        "--output", "-o", type=click.Choice(["json", "yaml", "table", "text"]), default="table", help="Output format"
+        "--output", "-o", type=click.Choice(["json", "yaml", "table", "text"]), default="table", help="Output format",
     )(f)
 
 

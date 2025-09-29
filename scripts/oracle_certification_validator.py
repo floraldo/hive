@@ -179,7 +179,7 @@ class OracleCertificationMentor:
         for rule_name, result in validation_results.items():
             if not result["passed"]:
                 rule_impact = self.knowledge_base["golden_rules_impact"].get(
-                    rule_name, {"impact": 5.0, "category": "technical_excellence"}
+                    rule_name, {"impact": 5.0, "category": "technical_excellence"},
                 )
 
                 severity = self._calculate_severity(len(result["violations"]), rule_impact["impact"])
@@ -227,7 +227,7 @@ class OracleCertificationMentor:
                 innovation_score=min(10, score * 0.1),
                 gaps=gaps,
                 quick_wins=quick_wins,
-            )
+            ),
         ]
 
     def _calculate_severity(self, violation_count: int, impact_score: float) -> str:
@@ -302,7 +302,7 @@ class OracleCertificationMentor:
             high_impact_gaps = [gap for gap in scorecard.gaps if gap.impact_score >= 7.0]
             for gap in high_impact_gaps[:2]:  # Top 2 high-impact items
                 actions.append(
-                    f"Address {gap.rule_name}: {gap.effort_estimate} effort for {gap.impact_score} point gain"
+                    f"Address {gap.rule_name}: {gap.effort_estimate} effort for {gap.impact_score} point gain",
                 )
 
         return actions[:5]  # Return top 5 immediate actions

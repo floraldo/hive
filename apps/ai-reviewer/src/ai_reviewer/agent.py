@@ -94,7 +94,7 @@ class ReviewAgent:
             self.event_bus = None
 
     def _publish_task_event(
-        self, event_type: "TaskEventType", task_id: str, correlation_id: str = None, **additional_payload
+        self, event_type: "TaskEventType", task_id: str, correlation_id: str = None, **additional_payload,
     ) -> str:
         """Publish task events for explicit agent communication
 
@@ -112,7 +112,7 @@ class ReviewAgent:
 
         try:
             event = create_task_event(
-                event_type=event_type, task_id=task_id, source_agent="ai-reviewer", **additional_payload
+                event_type=event_type, task_id=task_id, source_agent="ai-reviewer", **additional_payload,
             )
 
             event_id = self.event_bus.publish(event, correlation_id=correlation_id)
@@ -135,7 +135,7 @@ class ReviewAgent:
                 f"Polling interval: {self.polling_interval}s\n",
                 f"Mode: {'TEST' if self.test_mode else 'PRODUCTION'}",
                 title="AI Reviewer Status",
-            )
+            ),
         )
 
         # Setup signal handlers for graceful shutdown
@@ -178,7 +178,7 @@ class ReviewAgent:
         """Review a single task"""
         try:
             console.logger.info(
-                f"\n[cyan]Reviewing task {task['id']}: {task.get('description', 'No description')}[/cyan]"
+                f"\n[cyan]Reviewing task {task['id']}: {task.get('description', 'No description')}[/cyan]",
             )
 
             # Retrieve task artifacts
@@ -269,7 +269,7 @@ class ReviewAgent:
                 f"{result.summary}\n\n",
                 f"Confidence: {result.confidence:.0%}",
                 title="Review Decision",
-            )
+            ),
         )
 
         # Issues and suggestions
@@ -384,7 +384,7 @@ class ReviewAgent:
                     f"Rejected: {self.stats['rejected']}\n",
                     f"Errors: {self.stats['errors']}",
                     title="AI Reviewer Session Complete",
-                )
+                ),
             )
 
         logger.info("AI Reviewer Agent stopped")
@@ -394,7 +394,7 @@ class ReviewAgent:
     # ================================================================================
 
     async def _publish_task_event_async(
-        self, event_type: "TaskEventType", task_id: str, correlation_id: str = None, **additional_payload
+        self, event_type: "TaskEventType", task_id: str, correlation_id: str = None, **additional_payload,
     ) -> str:
         """Async version of task event publishing."""
         if not self.event_bus or not create_task_event or not TaskEventType or not ASYNC_EVENTS_AVAILABLE:
@@ -402,7 +402,7 @@ class ReviewAgent:
 
         try:
             event = create_task_event(
-                event_type=event_type, task_id=task_id, source_agent="ai-reviewer", **additional_payload
+                event_type=event_type, task_id=task_id, source_agent="ai-reviewer", **additional_payload,
             )
 
             event_id = await publish_event_async(event, correlation_id=correlation_id)
@@ -470,7 +470,7 @@ class ReviewAgent:
         """Async version of reviewing a single task."""
         try:
             console.logger.info(
-                f"\n[cyan]Reviewing task {task['id']} (async): {task.get('description', 'No description')}[/cyan]"
+                f"\n[cyan]Reviewing task {task['id']} (async): {task.get('description', 'No description')}[/cyan]",
             )
 
             # Retrieve task artifacts (these could be made async in future enhancement)
@@ -482,7 +482,7 @@ class ReviewAgent:
                 logger.warning(f"No code files found for async task {task['id']}")
                 # Mark as needing escalation asynchronously
                 await self._update_task_status_async(
-                    task["id"], "escalated", {"reason": "No code files found for review"}
+                    task["id"], "escalated", {"reason": "No code files found for review"},
                 )
                 self.stats["escalated"] += 1
 
@@ -596,7 +596,7 @@ class ReviewAgent:
                 f"Async DB: {'✓' if ASYNC_DB_AVAILABLE else '✗'}\n",
                 f"Async Events: {'✓' if ASYNC_EVENTS_AVAILABLE else '✗'}",
                 title="AI Reviewer Status",
-            )
+            ),
         )
 
         # Setup signal handlers for graceful shutdown

@@ -115,7 +115,7 @@ class TestClaudeIntegration:
                     "workflow_phase": "analysis",
                     "required_skills": ["analysis"],
                     "deliverables": ["requirements.md"],
-                }
+                },
             ],
             "dependencies": {"critical_path": ["task-001"], "parallel_groups": [], "blocking_dependencies": {}},
             "workflow": {
@@ -252,7 +252,7 @@ class TestClaudeIntegration:
                         "dependencies": ["stripe", "redis", "postgres", "elasticsearch"],
                         "tech_stack": ["python", "react", "fastapi", "docker", "kubernetes"],
                         "constraints": ["PCI compliance", "GDPR compliance", "high availability"],
-                    }
+                    },
                 ),
                 "pending",
             ),

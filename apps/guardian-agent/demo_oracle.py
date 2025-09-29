@@ -88,7 +88,7 @@ async def demo_oracle_intelligence():
             "Guardian Agent → Oracle Evolution\n\n",
             "[green]From Reactive Protection to Proactive Wisdom[/green]",
             border_style="blue",
-        )
+        ),
     )
 
     # Initialize Oracle
@@ -129,7 +129,7 @@ async def demo_oracle_intelligence():
             "providing strategic intelligence and proactive insights\n",
             "for the entire Hive platform ecosystem.",
             border_style="green",
-        )
+        ),
     )
 
 
@@ -227,7 +227,7 @@ async def demo_analytics_engine(oracle: OracleService):
             console.print(f"[{severity_color}]● {insight.get('title', 'Unknown')}[/{severity_color}]")
             console.print(f"  {insight.get('description', 'No description')}")
             console.print(
-                f"  [dim]Confidence: {insight.get('confidence', 0):.0%} | Category: {insight.get('category', 'unknown')}[/dim]"
+                f"  [dim]Confidence: {insight.get('confidence', 0):.0%} | Category: {insight.get('category', 'unknown')}[/dim]",
             )
     else:
         console.print("📊 Platform is operating normally - no critical insights detected")
@@ -266,7 +266,7 @@ async def demo_mission_control(oracle: OracleService):
 
     for name, score, status in components:
         status_color = {"Excellent": "green", "Good": "blue", "Warning": "yellow", "Critical": "red"}.get(
-            status, "white"
+            status, "white",
         )
 
         health_table.add_row(name, f"{score}%", f"[{status_color}]{status}[/{status_color}]")
@@ -321,7 +321,7 @@ async def demo_strategic_recommendations(oracle: OracleService):
             console.print(f"\n{i}. [bold]{rec.get('title', 'Unknown')}[/bold]")
             console.print(f"   {rec.get('description', 'No description')}")
             console.print(
-                f"   [dim]Priority: {rec.get('priority', 'unknown').upper()} | Impact: {rec.get('expected_impact', 'unknown').upper()}[/dim]"
+                f"   [dim]Priority: {rec.get('priority', 'unknown').upper()} | Impact: {rec.get('expected_impact', 'unknown').upper()}[/dim]",
             )
 
             steps = rec.get("implementation_steps", [])

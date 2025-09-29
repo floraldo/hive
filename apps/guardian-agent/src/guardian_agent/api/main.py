@@ -112,7 +112,7 @@ async def trigger_review(request: ReviewRequest, background_tasks: BackgroundTas
                         "files": request.file_paths,
                         "results": results,
                         "timestamp": datetime.now().isoformat(),
-                    }
+                    },
                 )
 
                 execution_time = (datetime.now() - start_time).total_seconds()
@@ -158,7 +158,7 @@ async def get_review_status(review_id: str):
 
 @app.post("/webhooks/github")
 async def github_webhook(
-    request: Request, background_tasks: BackgroundTasks, x_hub_signature_256: str | None = Header(None)
+    request: Request, background_tasks: BackgroundTasks, x_hub_signature_256: str | None = Header(None),
 ):
     """Handle GitHub webhook events."""
     try:
@@ -212,7 +212,7 @@ async def submit_feedback(feedback: FeedbackRequest):
                 "feedback_type": feedback.feedback_type,
                 "feedback_text": feedback.feedback_text,
                 "timestamp": datetime.now().isoformat(),
-            }
+            },
         )
 
         metrics.increment(f"feedback_{feedback.feedback_type}")

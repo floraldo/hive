@@ -171,7 +171,7 @@ async def get_climate_single_async(
         error_response = {"error": str(e), "status_code": 400},
         return JSONResponse(
             content=error_response,
-            status_code=error_response["status_code"]
+            status_code=error_response["status_code"],
             headers={"X-Correlation-ID": correlation_id}
         )
     except Exception as e:
@@ -292,7 +292,7 @@ async def stream_climate_data_async(
     },
 
     return StreamingResponse(
-        generate_stream_async()
+        generate_stream_async(),
         media_type=content_type_map[format],
         headers={
             "X-Correlation-ID": correlation_id,
@@ -339,9 +339,9 @@ async def create_climate_job_async(
     # Convert to API response format,
     return JobResponse(
         job_id=job_data["id"],
-        status=JobStatus(job_data["status"])
+        status=JobStatus(job_data["status"]),
         created_at=datetime.fromisoformat(job_data["created_at"]),
-        updated_at=datetime.fromisoformat(job_data["updated_at"])
+        updated_at=datetime.fromisoformat(job_data["updated_at"]),
         progress=job_data.get("progress", 0)
     )
 
@@ -360,11 +360,11 @@ async def get_job_status_async(
     # Convert to API response format,
     return JobResponse(
         job_id=job_data["id"],
-        status=JobStatus(job_data["status"])
+        status=JobStatus(job_data["status"]),
         created_at=datetime.fromisoformat(job_data["created_at"]),
-        updated_at=datetime.fromisoformat(job_data["updated_at"])
+        updated_at=datetime.fromisoformat(job_data["updated_at"]),
         progress=job_data.get("progress", 0),
-        result_url=(f"/api/v2/climate/jobs/{job_id}/result" if job_data["status"] == "completed" else None)
+        result_url=(f"/api/v2/climate/jobs/{job_id}/result" if job_data["status"] == "completed" else None),
         error=job_data.get("error"),
         eta=datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None
     )
@@ -403,7 +403,7 @@ async def get_job_result_async(
                 yield json.dumps(result).encode() + b"\n",
 
             return StreamingResponse(
-                generate_result_stream_async()
+                generate_result_stream_async(),
                 media_type="application/x-ndjson",
                 headers={"X-Correlation-ID": correlation_id or ""}
             )
@@ -460,13 +460,13 @@ async def list_jobs_async(
         for job_data in jobs_data:
             job_response = JobResponse(
                 job_id=job_data["id"],
-                status=JobStatus(job_data["status"])
+                status=JobStatus(job_data["status"]),
                 created_at=datetime.fromisoformat(job_data["created_at"]),
-                updated_at=datetime.fromisoformat(job_data["updated_at"])
+                updated_at=datetime.fromisoformat(job_data["updated_at"]),
                 progress=job_data.get("progress", 0),
                 result_url=(
                     f"/api/v2/climate/jobs/{job_data['id']}/result" if job_data["status"] == "completed" else None
-                )
+                ),
                 error=job_data.get("error"),
                 eta=(datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None)
             ),
@@ -542,7 +542,7 @@ async def fetch_climate_data_async(request: ClimateRequest, context: dict) -> xr
         {
             "temp_air": (["time"], np.random.randn(8760) * 10 + 15),
             "ghi": (["time"], np.maximum(0, np.random.randn(8760) * 200 + 300))
-        }
+        },
         coords={"time": time}
     ),
 
@@ -783,7 +783,7 @@ async def analyze_climate_data_async(
 
         # Building variables,
         if options.get("building_metrics", False):
-            building_config = {
+            building_config = {,
                 "calculate_degree_days": True,
                 "calculate_wet_bulb": True,
                 "calculate_heat_index": True,
@@ -863,53 +863,53 @@ async def get_processing_options_async(config: Dict[str, Any]) -> None:
     """
 
     return {
-        "preprocessing": {
+        "preprocessing": {,
             "resampling": {
                 "enabled": config.preprocessing.auto_resample,
                 "default_resolution": config.preprocessing.default_resolution,
                 "available_resolutions": ["15min", "30min", "1H", "3H", "1D"]
             },
-            "quality_control": {
+            "quality_control": {,
                 "enabled": config.preprocessing.apply_qc,
                 "bounds_check": config.preprocessing.qc_bounds_check,
                 "consistency_check": config.preprocessing.qc_consistency_check
             },
-            "gap_filling": {
+            "gap_filling": {,
                 "enabled": config.preprocessing.fill_gaps,
                 "method": config.preprocessing.gap_fill_method,
                 "available_methods": ["smart", "linear", "pattern", "seasonal"],
                 "max_gap_hours": config.preprocessing.max_pattern_gap_hours
             },
-            "derivations": {
+            "derivations": {,
                 "basic_vars": config.preprocessing.derive_basic_vars,
                 "variables": ["dewpoint", "rel_humidity", "pressure"]
             }
         },
-        "postprocessing": {
+        "postprocessing": {,
             "building_metrics": {
-                "degree_days": {
+                "degree_days": {,
                     "enabled": config.postprocessing.calculate_degree_days,
                     "hdd_base": config.postprocessing.hdd_base_temp,
                     "cdd_base": config.postprocessing.cdd_base_temp
                 },
-                "comfort": {
+                "comfort": {,
                     "wet_bulb": config.postprocessing.calculate_wet_bulb,
                     "heat_index": config.postprocessing.calculate_heat_index
                 }
             },
-            "solar": {
+            "solar": {,
                 "clearness_index": config.postprocessing.calculate_clearness_index,
                 "solar_angles": config.postprocessing.calculate_solar_angles
             },
-            "statistics": {
+            "statistics": {,
                 "enabled": config.postprocessing.include_statistics,
                 "percentiles": config.postprocessing.stats_percentiles
             },
-            "extremes": {
+            "extremes": {,
                 "enabled": config.postprocessing.analyze_extremes,
                 "percentile": config.postprocessing.extreme_percentile
             },
-            "design_conditions": {
+            "design_conditions": {,
                 "enabled": config.postprocessing.calculate_design_conditions,
                 "percentiles": config.postprocessing.design_percentiles
             }

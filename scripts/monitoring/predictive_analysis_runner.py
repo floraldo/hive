@@ -9,7 +9,7 @@ Part of PROJECT VANGUARD Phase 2.1 - Predictive Failure Alerts
 
 import asyncio
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from hive_logging import get_logger
@@ -74,7 +74,7 @@ class PredictiveAnalysisRunner:
             alerts_generated = []
             for (service_name, metric_type), metrics in metrics_by_service.items():
                 alert = await self.alert_manager.analyze_metrics_async(
-                    service_name=service_name, metric_type=metric_type, metrics=metrics
+                    service_name=service_name, metric_type=metric_type, metrics=metrics,
                 )
 
                 if alert:
@@ -100,6 +100,10 @@ class PredictiveAnalysisRunner:
         except Exception as e:
             logger.error(f"Analysis run failed: {e}", exc_info=True)
             return {"success": False, "error": str(e), "timestamp": start_time.isoformat()}
+
+    async def run_analysis_cycle(self) -> dict:
+        """Alias for run_analysis_async for compatibility with service interface."""
+        return await self.run_analysis_async()
 
     async def _collect_metrics_async(self) -> dict[tuple[str, MetricType], list[MetricPoint]]:
         """
@@ -146,36 +150,28 @@ class PredictiveAnalysisRunner:
             List of error rate metric points
         """
         try:
-            # Import monitoring reporter
-            try:
-                from hive_errors.monitoring_error_reporter import MonitoringErrorReporter
-
-                # Get global instance if available
-                # In production, this would be injected via dependency injection
-                error_reporter = getattr(self, "_error_reporter", None)
-                if not error_reporter:
-                    logger.debug(f"No error reporter configured for {service_name}")
-                    return None
-
-                # Get error rate history
-                error_data = error_reporter.get_error_rate_history(service_name=service_name, hours=24)
-
-                if not error_data:
-                    logger.debug(f"No error data available for {service_name}")
-                    return None
-
-                # Convert to MetricPoint objects
-                metric_points = [
-                    MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
-                    for point in error_data
-                ]
-
-                logger.info(f"Collected {len(metric_points)} error rate points for {service_name}")
-                return metric_points
-
-            except ImportError:
-                logger.warning("MonitoringErrorReporter not available")
+            # Get global instance if available
+            # In production, this would be injected via dependency injection
+            error_reporter = getattr(self, "_error_reporter", None)
+            if not error_reporter:
+                logger.debug(f"No error reporter configured for {service_name}")
                 return None
+
+            # Get error rate history
+            error_data = error_reporter.get_error_rate_history(service_name=service_name, hours=24)
+
+            if not error_data:
+                logger.debug(f"No error data available for {service_name}")
+                return None
+
+            # Convert to MetricPoint objects
+            metric_points = [
+                MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
+                for point in error_data
+            ]
+
+            logger.info(f"Collected {len(metric_points)} error rate points for {service_name}")
+            return metric_points
 
         except Exception as e:
             logger.warning(f"Failed to collect error rates for {service_name}: {e}")
@@ -192,35 +188,27 @@ class PredictiveAnalysisRunner:
             List of CPU metric points
         """
         try:
-            # Import health monitor
-            try:
-                from hive_ai.observability.health import ModelHealthChecker
-
-                # Get health monitor instance if available
-                health_monitor = getattr(self, "_health_monitor", None)
-                if not health_monitor:
-                    logger.debug(f"No health monitor configured for {service_name}")
-                    return None
-
-                # Get CPU utilization history
-                cpu_data = health_monitor.get_metric_history(provider=service_name, metric_name="cpu_percent", hours=24)
-
-                if not cpu_data:
-                    logger.debug(f"No CPU data available for {service_name}")
-                    return None
-
-                # Convert to MetricPoint objects
-                metric_points = [
-                    MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
-                    for point in cpu_data
-                ]
-
-                logger.info(f"Collected {len(metric_points)} CPU metric points for {service_name}")
-                return metric_points
-
-            except ImportError:
-                logger.warning("ModelHealthChecker not available")
+            # Get health monitor instance if available
+            health_monitor = getattr(self, "_health_monitor", None)
+            if not health_monitor:
+                logger.debug(f"No health monitor configured for {service_name}")
                 return None
+
+            # Get CPU utilization history
+            cpu_data = health_monitor.get_metric_history(provider=service_name, metric_name="cpu_percent", hours=24)
+
+            if not cpu_data:
+                logger.debug(f"No CPU data available for {service_name}")
+                return None
+
+            # Convert to MetricPoint objects
+            metric_points = [
+                MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
+                for point in cpu_data
+            ]
+
+            logger.info(f"Collected {len(metric_points)} CPU metric points for {service_name}")
+            return metric_points
 
         except Exception as e:
             logger.warning(f"Failed to collect CPU metrics for {service_name}: {e}")
@@ -237,37 +225,29 @@ class PredictiveAnalysisRunner:
             List of latency metric points
         """
         try:
-            # Import health monitor for latency tracking
-            try:
-                from hive_ai.observability.health import ModelHealthChecker
-
-                # Get health monitor instance if available
-                health_monitor = getattr(self, "_health_monitor", None)
-                if not health_monitor:
-                    logger.debug(f"No health monitor configured for {service_name}")
-                    return None
-
-                # Get response time history (latency proxy)
-                latency_data = health_monitor.get_metric_history(
-                    provider=service_name, metric_name="response_time", hours=24
-                )
-
-                if not latency_data:
-                    logger.debug(f"No latency data available for {service_name}")
-                    return None
-
-                # Convert to MetricPoint objects
-                metric_points = [
-                    MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
-                    for point in latency_data
-                ]
-
-                logger.info(f"Collected {len(metric_points)} latency metric points for {service_name}")
-                return metric_points
-
-            except ImportError:
-                logger.warning("ModelHealthChecker not available")
+            # Get health monitor instance if available
+            health_monitor = getattr(self, "_health_monitor", None)
+            if not health_monitor:
+                logger.debug(f"No health monitor configured for {service_name}")
                 return None
+
+            # Get response time history (latency proxy)
+            latency_data = health_monitor.get_metric_history(
+                provider=service_name, metric_name="response_time", hours=24,
+            )
+
+            if not latency_data:
+                logger.debug(f"No latency data available for {service_name}")
+                return None
+
+            # Convert to MetricPoint objects
+            metric_points = [
+                MetricPoint(timestamp=point["timestamp"], value=point["value"], metadata=point["metadata"])
+                for point in latency_data
+            ]
+
+            logger.info(f"Collected {len(metric_points)} latency metric points for {service_name}")
+            return metric_points
 
         except Exception as e:
             logger.warning(f"Failed to collect latency metrics for {service_name}: {e}")
@@ -276,6 +256,10 @@ class PredictiveAnalysisRunner:
     def get_stats(self) -> dict:
         """Get runner statistics."""
         return {**self.run_stats, "alert_manager_stats": self.alert_manager.get_stats()}
+
+    def get_metrics(self) -> dict:
+        """Alias for get_stats for compatibility with service interface."""
+        return self.get_stats()
 
 
 async def main():
@@ -314,7 +298,7 @@ async def main():
             threshold=5.0,  # 5% error rate
             confidence_threshold=0.80,
             degradation_window_minutes=30,
-        )
+        ),
     )
 
     alert_manager.add_config(
@@ -324,7 +308,7 @@ async def main():
             threshold=85.0,  # 85% CPU
             confidence_threshold=0.85,
             degradation_window_minutes=15,
-        )
+        ),
     )
 
     alert_manager.add_config(
@@ -334,11 +318,19 @@ async def main():
             threshold=1000.0,  # 1 second
             confidence_threshold=0.75,
             degradation_window_minutes=30,
-        )
+        ),
     )
 
-    # Initialize runner
-    runner = PredictiveAnalysisRunner(alert_manager)
+    # Initialize orchestrator service (NEW: proper architecture)
+    try:
+        from hive_orchestrator.services.monitoring import PredictiveMonitoringService
+
+        service = PredictiveMonitoringService(alert_manager=alert_manager)
+        logger.info("Using orchestrator monitoring service (architecture-compliant)")
+    except ImportError:
+        # Fallback to standalone runner for backward compatibility
+        logger.warning("Orchestrator service not available, using standalone runner")
+        service = PredictiveAnalysisRunner(alert_manager)
 
     if args.continuous:
         # Continuous mode: run analysis periodically
@@ -346,7 +338,7 @@ async def main():
 
         try:
             while True:
-                result = await runner.run_analysis_async()
+                result = await service.run_analysis_cycle()
 
                 if args.output:
                     import json
@@ -361,7 +353,7 @@ async def main():
             logger.info("Continuous analysis stopped by user")
 
             # Print final statistics
-            stats = runner.get_stats()
+            stats = service.get_metrics()
             print("\n=== Final Statistics ===")
             print(f"Total Runs: {stats['total_runs']}")
             print(f"Total Alerts Generated: {stats['total_alerts_generated']}")
@@ -369,7 +361,7 @@ async def main():
 
     else:
         # Single run mode
-        result = await runner.run_analysis_async()
+        result = await service.run_analysis_cycle()
 
         if args.output:
             import json

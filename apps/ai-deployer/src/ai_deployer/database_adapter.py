@@ -53,7 +53,7 @@ class DatabaseAdapter:
                     FROM tasks
                     WHERE status = 'deployment_pending'
                     ORDER BY priority DESC, created_at ASC
-                """
+                """,
                 )
 
                 rows = cursor.fetchall()
@@ -119,7 +119,7 @@ class DatabaseAdapter:
                         UPDATE tasks,
                         SET status = ?, metadata = ?, updated_at = ?,
                         WHERE id = ?,
-                    """(status, metadata_json, datetime.now().isoformat(), task_id)
+                    """(status, metadata_json, datetime.now().isoformat(), task_id),
                     )
                 else:
                     # Update status only
@@ -128,7 +128,7 @@ class DatabaseAdapter:
                         UPDATE tasks
                         SET status = ?, updated_at = ?,
                         WHERE id = ?,
-                    """(status, datetime.now().isoformat(), task_id)
+                    """(status, datetime.now().isoformat(), task_id),
                     )
 
                 conn.commit()
@@ -166,7 +166,7 @@ class DatabaseAdapter:
                         status, estimated_duration,
                     FROM tasks
                     WHERE id = ?
-                """(task_id)
+                """(task_id),
                 )
 
                 row = cursor.fetchone()
@@ -218,7 +218,7 @@ class DatabaseAdapter:
                         timestamp TEXT NOT NULL,
                         FOREIGN KEY (task_id) REFERENCES tasks (id)
                     )
-                """
+                """,
                 )
 
                 # Insert event
@@ -227,7 +227,7 @@ class DatabaseAdapter:
                     INSERT INTO deployment_events
                     (task_id, event_type, details, timestamp)
                     VALUES (?, ?, ?, ?)
-                """(task_id, event_type, json.dumps(details), datetime.now().isoformat())
+                """(task_id, event_type, json.dumps(details), datetime.now().isoformat()),
                 )
 
                 conn.commit()
@@ -258,7 +258,7 @@ class DatabaseAdapter:
                     FROM deployment_events,
                     WHERE task_id = ?,
                     ORDER BY timestamp DESC,
-                """(task_id)
+                """(task_id),
                 )
 
                 rows = cursor.fetchall()
@@ -266,7 +266,7 @@ class DatabaseAdapter:
                 events = []
                 for row in rows:
                     events.append(
-                        {"event_type": row[0], "details": self._parse_json_field(row[1]), "timestamp": row[2]}
+                        {"event_type": row[0], "details": self._parse_json_field(row[1]), "timestamp": row[2]},
                     )
 
                 return events
@@ -293,7 +293,7 @@ class DatabaseAdapter:
                     FROM tasks,
                     WHERE status IN ('deployed', 'deployment_failed', 'deploying', 'deployment_pending')
                     GROUP BY status,
-                """
+                """,
                 )
 
                 status_counts = dict(cursor.fetchall())
@@ -305,7 +305,7 @@ class DatabaseAdapter:
                     FROM tasks,
                     WHERE status = 'deployed',
                     AND updated_at > datetime('now', '-24 hours')
-                """
+                """,
                 )
 
                 recent_deployments = cursor.fetchone()[0]

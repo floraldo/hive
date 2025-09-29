@@ -229,7 +229,7 @@ class LogIntelligenceAnalyzer:
                 "warning_count": len([e for e in self.log_entries if e.is_warning]),
                 "analysis_timestamp": datetime.now().isoformat(),
                 "time_window_hours": hours_back,
-            }
+            },
         )
 
     def _analyze_error_trends(self) -> None:
@@ -304,7 +304,7 @@ class LogIntelligenceAnalyzer:
                             "timestamp": entry.timestamp.isoformat(),
                             "source": entry.source,
                             "severity": "CRITICAL",
-                        }
+                        },
                     )
 
         self.analysis_results["critical_patterns"] = critical_matches
@@ -331,7 +331,7 @@ class LogIntelligenceAnalyzer:
                             "source": entry.source,
                             "metric_value": metric_value,
                             "severity": "HIGH" if metric_value and int(metric_value) > 5000 else "MEDIUM",
-                        }
+                        },
                     )
 
         self.analysis_results["performance_issues"] = performance_issues
@@ -352,7 +352,7 @@ class LogIntelligenceAnalyzer:
                             "timestamp": entry.timestamp.isoformat(),
                             "source": entry.source,
                             "severity": "HIGH",
-                        }
+                        },
                     )
 
         self.analysis_results["security_alerts"] = security_alerts
@@ -406,7 +406,7 @@ class LogIntelligenceAnalyzer:
                 f"- **Performance Issues**: {len(results['performance_issues'])}",
                 f"- **Security Alerts**: {len(results['security_alerts'])}",
                 "",
-            ]
+            ],
         )
 
         # Error Trends
@@ -422,7 +422,7 @@ class LogIntelligenceAnalyzer:
                     f"- **Previous Hour**: {trends['previous_hour_errors']} errors",
                     f"- **Trend**: {trend_emoji} {trends['trend_percentage']:+.1f}%",
                     "",
-                ]
+                ],
             )
 
             if abs(trends["trend_percentage"]) > 50:
@@ -430,7 +430,7 @@ class LogIntelligenceAnalyzer:
                     [
                         f"⚠️ **Alert**: Error rate changed by {trends['trend_percentage']:+.1f}% - investigation recommended",
                         "",
-                    ]
+                    ],
                 )
 
         # Critical Patterns
@@ -445,7 +445,7 @@ class LogIntelligenceAnalyzer:
                         f"- **Time**: {issue['timestamp']}",
                         f"- **Message**: `{issue['message']}`",
                         "",
-                    ]
+                    ],
                 )
 
         # Performance Issues
@@ -509,7 +509,7 @@ class LogIntelligenceAnalyzer:
                     "- Continue monitoring trends",
                     "- Review top error patterns for optimization",
                     "- Maintain current logging levels",
-                ]
+                ],
             )
 
         report_lines.extend(
@@ -519,7 +519,7 @@ class LogIntelligenceAnalyzer:
                 "",
                 "*This digest is generated automatically by the Log Intelligence System.*",
                 "*For real-time alerts, monitor the production monitoring dashboard.*",
-            ]
+            ],
         )
 
         return "\n".join(report_lines)
@@ -555,7 +555,7 @@ def main():
     parser.add_argument("--hours", type=int, default=24, help="Hours of history to analyze")
     parser.add_argument("--max-files", type=int, default=50, help="Maximum number of log files to process")
     parser.add_argument(
-        "--output-format", choices=["console", "json", "markdown"], default="console", help="Output format"
+        "--output-format", choices=["console", "json", "markdown"], default="console", help="Output format",
     )
 
     args = parser.parse_args()

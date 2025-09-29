@@ -258,7 +258,7 @@ class PlatformTestEnvironment:
             CREATE INDEX idx_events_created_at ON events (created_at);
             CREATE INDEX idx_simulations_study_status ON simulations (study_id, status);
             CREATE INDEX idx_performance_metrics_type_time ON performance_metrics (metric_type, measured_at);
-        """
+        """,
         )
         conn.commit()
         conn.close()
@@ -372,7 +372,7 @@ class EndToEndWorkflowTests:
             cursor = conn.execute(
                 """
                 SELECT COUNT(*) FROM runs WHERE status = 'failed'
-            """
+            """,
             )
             failed_runs = cursor.fetchone()[0]
             conn.close()
@@ -417,7 +417,7 @@ class EndToEndWorkflowTests:
                         "estimated_hours": 24,
                         "required_skills": ["python", "kafka", "tensorflow", "react", "docker"],
                         "dependencies": ["data_infrastructure", "ml_models"],
-                    }
+                    },
                 ),
             ),
         )
@@ -1233,7 +1233,7 @@ class CrossAppCommunicationTests:
                             "optimization_objective": "minimize_cost",
                             "time_horizon": 8760,
                         },
-                    }
+                    },
                 ),
             ),
         )
@@ -1355,7 +1355,7 @@ class CrossAppCommunicationTests:
                     {
                         "plan_id": plan_id,
                         "sub_tasks": [{"id": "task1", "title": "First task"}, {"id": "task2", "title": "Second task"}],
-                    }
+                    },
                 ),
                 "generated",
             ),
@@ -1445,7 +1445,7 @@ class CrossAppCommunicationTests:
                             {"id": "implement", "title": "Implementation"},
                             {"id": "test", "title": "Testing"},
                         ],
-                    }
+                    },
                 ),
                 "generated",
             ),
@@ -1555,13 +1555,13 @@ class PerformanceIntegrationTests:
                     "duration": duration,
                     "throughput": task_count / duration,
                     "success_rate": sum(results) / len(results),
-                }
+                },
             )
 
             success = all(results) and duration < 5.0  # Should complete in under 5 seconds
 
             print(
-                f"✅ Concurrent processing test: {'PASSED' if success else 'FAILED'} ({duration:.2f}s for {task_count} tasks)"
+                f"✅ Concurrent processing test: {'PASSED' if success else 'FAILED'} ({duration:.2f}s for {task_count} tasks)",
             )
             return success
 
@@ -1603,13 +1603,13 @@ class PerformanceIntegrationTests:
                     "duration": duration,
                     "ops_per_second": operations_count / duration,
                     "success_rate": sum(results) / len(results),
-                }
+                },
             )
 
             success = all(results) and duration < 3.0  # Should handle load efficiently
 
             print(
-                f"✅ Database pooling test: {'PASSED' if success else 'FAILED'} ({operations_count} ops in {duration:.2f}s)"
+                f"✅ Database pooling test: {'PASSED' if success else 'FAILED'} ({operations_count} ops in {duration:.2f}s)",
             )
             return success
 
@@ -1636,14 +1636,14 @@ class PerformanceIntegrationTests:
                         "baseline_time": baseline_time,
                         "optimized_time": optimized_time,
                         "improvement_factor": improvement_factor,
-                    }
+                    },
                 )
 
                 # Check if improvement meets claims (3-5x)
                 meets_claims = improvement_factor >= 3.0
 
                 print(
-                    f"✅ Performance improvement test: {'PASSED' if meets_claims else 'FAILED'} ({improvement_factor:.1f}x improvement)"
+                    f"✅ Performance improvement test: {'PASSED' if meets_claims else 'FAILED'} ({improvement_factor:.1f}x improvement)",
                 )
                 return meets_claims
             else:
@@ -2586,7 +2586,7 @@ class PlatformIntegrationTests:
                         "location": {"lat": 52.5, "lon": 13.4},
                         "time_range": {"start": "2023-01-01", "end": "2023-12-31"},
                         "variables": ["temperature", "solar_radiation", "wind_speed"],
-                    }
+                    },
                 ),
             ),
         )
@@ -2616,7 +2616,7 @@ class PlatformIntegrationTests:
                         "task_id": climate_task_id,
                         "data_type": "climate",
                         "processing_config": {"source": "ERA5", "resolution": "hourly"},
-                    }
+                    },
                 ),
                 "completed",
                 json.dumps(
@@ -2624,7 +2624,7 @@ class PlatformIntegrationTests:
                         "records_processed": 8760,  # Hours in a year
                         "data_quality": "high",
                         "missing_data_percentage": 0.02,
-                    }
+                    },
                 ),
             ),
         )
@@ -2653,7 +2653,7 @@ class PlatformIntegrationTests:
             """
             SELECT COUNT(*) FROM tasks
             WHERE task_type = 'climate_processing' AND status = 'completed'
-        """
+        """,
         )
 
         completed_climate_tasks = cursor.fetchone()[0]
@@ -2663,7 +2663,7 @@ class PlatformIntegrationTests:
             """
             SELECT COUNT(*) FROM simulations
             WHERE json_extract(config_data, '$.data_type') = 'climate'
-        """
+        """,
         )
 
         climate_simulations = cursor.fetchone()[0]
@@ -2715,7 +2715,7 @@ class PlatformIntegrationTests:
             """
             SELECT COUNT(*) FROM events
             WHERE json_extract(payload, '$.dashboard_test') = true
-        """
+        """,
         )
         events_count = cursor.fetchone()[0]
 
@@ -2726,7 +2726,7 @@ class PlatformIntegrationTests:
             FROM events
             WHERE json_extract(payload, '$.dashboard_test') = true
             GROUP BY event_type
-        """
+        """,
         )
 
         event_distribution = dict(cursor.fetchall())
@@ -2764,7 +2764,7 @@ class PlatformIntegrationTests:
                         "workflow_id": workflow_id,
                         "components": ["ai_planner", "ecosystemiser", "ai_reviewer"],
                         "status": "started",
-                    }
+                    },
                 ),
             ),
         )
@@ -2799,7 +2799,7 @@ class PlatformIntegrationTests:
                             "component": component,
                             "progress": (i + 1) * 33,  # 33%, 66%, 99%
                             "status": "in_progress",
-                        }
+                        },
                     ),
                 ),
             )

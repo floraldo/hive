@@ -271,7 +271,7 @@ class HiveStatus:
                     notes = ""
 
                 logger.info(
-                    f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | {assignee:8} | {duration:6} | {notes}"
+                    f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | {assignee:8} | {duration:6} | {notes}",
                 )
             logger.info()
 
@@ -341,7 +341,7 @@ class HiveStatus:
                     color = "green" if status == "success" else "red"
                     check = "✓" if self.use_emoji else "+"
                     logger.info(
-                        f"  {check} {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)"
+                        f"  {check} {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)",
                     )
                 elif evt_type == "task_complete":
                     check = "✅" if self.use_emoji else "OK"

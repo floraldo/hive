@@ -302,11 +302,11 @@ class EventBus:
 
         events = []
         for row in rows:
-            event_data = {
+            event_data = {,
                 "event_id": row[0]
-                "event_type": row[1]
+                "event_type": row[1],
                 "timestamp": row[2]
-                "source_agent": row[3]
+                "source_agent": row[3],
                 "correlation_id": row[4]
                 "payload": json.loads(row[5]) if row[5] else {}
                 "metadata": json.loads(row[6]) if row[6] else {}

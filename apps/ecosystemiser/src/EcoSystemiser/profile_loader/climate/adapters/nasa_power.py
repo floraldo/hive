@@ -107,7 +107,7 @@ class NASAPowerAdapter(BaseAdapter):
     REVERSE_MAPPING = {v: k for k, v in VARIABLE_MAPPING.items()}
 
     async def _fetch_raw_async(
-        self, location: tuple[float, float], variables: list[str], period: dict[str, Any], **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict[str, Any], **kwargs,
     ) -> Any | None:
         """Fetch raw data from NASA POWER API"""
         lat, lon = location
@@ -131,7 +131,7 @@ class NASAPowerAdapter(BaseAdapter):
         return data
 
     async def _transform_data_async(
-        self, raw_data: Any, location: tuple[float, float], variables: list[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str],
     ) -> xr.Dataset:
         """Transform raw NASA POWER data to xarray Dataset"""
         lat, lon = location
@@ -150,7 +150,7 @@ class NASAPowerAdapter(BaseAdapter):
                 "latitude": lat,
                 "longitude": lon,
                 "license": "NASA Open Data Policy",
-            }
+            },
         )
 
         return ds
@@ -199,7 +199,7 @@ class NASAPowerAdapter(BaseAdapter):
 
             # Use base class fetch method,
             return await super().fetch_async(
-                location=(lat, lon), variables=variables, period=period, resolution=resolution
+                location=(lat, lon), variables=variables, period=period, resolution=resolution,
             )
 
         except Exception as e:
@@ -212,7 +212,7 @@ class NASAPowerAdapter(BaseAdapter):
             raise error from e
 
     def build_request_params(
-        self, lat: float, lon: float, variables: list[str], period: dict[str, Any], resolution: str
+        self, lat: float, lon: float, variables: list[str], period: dict[str, Any], resolution: str,
     ) -> dict[str, Any]:
         """
         Build request parameters for NASA POWER API.
@@ -258,7 +258,7 @@ class NASAPowerAdapter(BaseAdapter):
         }
 
     def parse_response_to_dataset(
-        self, response_data: dict[str, Any], variables: list[str], lat: float, lon: float
+        self, response_data: dict[str, Any], variables: list[str], lat: float, lon: float,
     ) -> xr.Dataset:
         """
         Parse NASA POWER API response into xarray Dataset.
@@ -297,7 +297,7 @@ class NASAPowerAdapter(BaseAdapter):
 
             if not parameters:
                 raise DataParseError(
-                    self.ADAPTER_NAME, "No parameter data in NASA POWER response", field="properties.parameter"
+                    self.ADAPTER_NAME, "No parameter data in NASA POWER response", field="properties.parameter",
                 )
 
             # Get timestamps from first parameter
@@ -438,7 +438,7 @@ class NASAPowerAdapter(BaseAdapter):
             native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.NONE,
             requires_subscription=False,
-            free_tier_limits=None,  # No rate limits
+            free_tier_limits=None,  # No rate limits,
             quality=QualityFeatures(
                 gap_filling=True,  # Uses MERRA-2 reanalysis,
                 quality_flags=False,
@@ -446,7 +446,7 @@ class NASAPowerAdapter(BaseAdapter):
                 ensemble_members=False,
                 bias_correction=True,  # Satellite bias corrected
             ),
-            max_request_days=366,  # Max 1 year per request
+            max_request_days=366,  # Max 1 year per request,
             max_variables_per_request=20,
             batch_requests_supported=False,
             async_requests_required=False,
@@ -461,7 +461,7 @@ class NASAPowerAdapter(BaseAdapter):
         )
 
     async def _fetch_chunked_async(
-        self, lat: float, lon: float, variables: list[str], period: dict, resolution: str, chunk_years: int = 1
+        self, lat: float, lon: float, variables: list[str], period: dict, resolution: str, chunk_years: int = 1,
     ) -> xr.Dataset:
         """
         Fetch data in chunks for large date ranges.
@@ -481,7 +481,7 @@ class NASAPowerAdapter(BaseAdapter):
         chunks = split_date_range(start_date, end_date, chunk_years * 365)
         datasets = []
         for i, (chunk_start, chunk_end) in enumerate(chunks):
-            logger.info(f"Fetching chunk {i+1}/{len(chunks)}: {chunk_start} to {chunk_end}")
+            logger.info(f"Fetching chunk {i + 1}/{len(chunks)}: {chunk_start} to {chunk_end}")
 
             # Create period dict for this chunk
             chunk_period = {"start": chunk_start.strftime("%Y%m%d"), "end": chunk_end.strftime("%Y%m%d")}
@@ -500,7 +500,7 @@ class NASAPowerAdapter(BaseAdapter):
 
             # Log memory usage
             mem_usage = estimate_memory_usage(chunk_ds)
-            logger.debug(f"Chunk {i+1} memory usage: {mem_usage:.2f} MB")
+            logger.debug(f"Chunk {i + 1} memory usage: {mem_usage:.2f} MB")
 
         # Combine all chunks
         combined = concatenate_chunked_results(datasets, dim="time")
@@ -509,7 +509,7 @@ class NASAPowerAdapter(BaseAdapter):
         return combined
 
     async def _fetch_batched_async(
-        self, lat: float, lon: float, variables: list[str], period: dict[str, Any], resolution: str
+        self, lat: float, lon: float, variables: list[str], period: dict[str, Any], resolution: str,
     ) -> xr.Dataset:
         """
         Fetch data using smart batching to reduce API calls.
@@ -531,11 +531,11 @@ class NASAPowerAdapter(BaseAdapter):
 
         datasets = []
         for i, batch_vars in enumerate(batches):
-            logger.info(f"Fetching batch {i+1}/{len(batches)}: {batch_vars}")
+            logger.info(f"Fetching batch {i + 1}/{len(batches)}: {batch_vars}")
 
             # Fetch batch without batching enabled to prevent recursion
             batch_ds = await self.fetch_async(
-                lat=lat, lon=lon, variables=batch_vars, period=period, resolution=resolution, use_batch=False
+                lat=lat, lon=lon, variables=batch_vars, period=period, resolution=resolution, use_batch=False,
             )
 
             datasets.append(batch_ds)

@@ -43,17 +43,17 @@ class ClimateRequest(BaseProfileRequest):
 
     # Climate-specific extensions
     subset: dict[str, str] | None = Field(
-        default=None, description="Time subset specification: {'month':'07'} or {'start':'07-10','end':'07-24'}"
+        default=None, description="Time subset specification: {'month':'07'} or {'start':'07-10','end':'07-24'}",
     )
     synthetic_options: dict[str, Any] = (
         Field(default_factory=dict, description="Options for synthetic data generation"),
     )
     seed: int | None = (Field(default=None, description="Random seed for reproducible synthetic generation"),)
     baseline_period: tuple[str, str] | None = Field(
-        default=None, description="Baseline period for nonstationarity handling"
+        default=None, description="Baseline period for nonstationarity handling",
     )
     p_selection: int | None = Field(
-        default=None, description="Percentile selection for representative year (P50, P90, etc.)"
+        default=None, description="Percentile selection for representative year (P50, P90, etc.)",
     )
 
     @property

@@ -77,7 +77,7 @@ class GuardianConfig:
     # File patterns
     include_patterns: list[str] = field(default_factory=lambda: ["*.py", "*.js", "*.ts"])
     exclude_patterns: list[str] = field(
-        default_factory=lambda: ["*_test.py", "*.test.js", "__pycache__", ".git", "node_modules"]
+        default_factory=lambda: ["*_test.py", "*.test.js", "__pycache__", ".git", "node_modules"],
     )
 
     # Logging

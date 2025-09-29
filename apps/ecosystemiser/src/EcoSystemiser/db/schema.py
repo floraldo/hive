@@ -52,7 +52,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
             error_message TEXT,
             metadata JSON
         )
-    """
+    """,
     )
 
     # Simulation metrics table,
@@ -67,7 +67,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (simulation_id) REFERENCES simulations (simulation_id)
         ),
-    """
+    """,
     )
 
     # Create indexes,
@@ -76,7 +76,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
             """,
         CREATE INDEX IF NOT EXISTS idx_simulations_status,
         ON simulations(status, created_at)
-    """
+    """,
         ),
     )
 
@@ -85,7 +85,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
             """
         CREATE INDEX IF NOT EXISTS idx_simulation_metrics_sim,
         ON simulation_metrics(simulation_id, metric_name)
-    """
+    """,
         ),
     )
 
@@ -109,7 +109,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
             configuration JSON,
             metadata JSON
         )
-    """
+    """,
     )
 
     # Study simulations mapping,
@@ -124,7 +124,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
             FOREIGN KEY (study_id) REFERENCES studies (study_id)
             FOREIGN KEY (simulation_id) REFERENCES simulations (simulation_id)
         ),
-    """
+    """,
     )
 
     # Create indexes,
@@ -133,7 +133,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
             """,
         CREATE INDEX IF NOT EXISTS idx_studies_status,
         ON studies(status, created_at)
-    """
+    """,
         ),
     )
 
@@ -142,7 +142,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
             """
         CREATE INDEX IF NOT EXISTS idx_study_simulations,
         ON study_simulations(study_id, sequence_number)
-    """
+    """,
         ),
     )
 
@@ -166,7 +166,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
             error_message TEXT,
             metadata JSON
         )
-    """
+    """,
     )
 
     # Analysis results table,
@@ -181,7 +181,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (analysis_id) REFERENCES analysis_runs (analysis_id)
         ),
-    """
+    """,
     )
 
     # Create indexes,
@@ -190,7 +190,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
             """,
         CREATE INDEX IF NOT EXISTS idx_analysis_runs_source,
         ON analysis_runs(source_type, source_id)
-    """
+    """,
         ),
     )
 
@@ -199,7 +199,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
             """
         CREATE INDEX IF NOT EXISTS idx_analysis_results,
         ON analysis_results(analysis_id, strategy_name)
-    """
+    """,
         ),
     )
 
@@ -224,7 +224,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
             configuration JSON,
             metadata JSON
         )
-    """
+    """,
     )
 
     # Optimization iterations table,
@@ -240,7 +240,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (optimization_id) REFERENCES optimization_runs (optimization_id)
         ),
-    """
+    """,
     )
 
     # Create indexes,
@@ -249,7 +249,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
             """,
         CREATE INDEX IF NOT EXISTS idx_optimization_runs_status,
         ON optimization_runs(status, created_at)
-    """
+    """,
         ),
     )
 
@@ -258,7 +258,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
             """
         CREATE INDEX IF NOT EXISTS idx_optimization_iterations,
         ON optimization_iterations(optimization_id, generation, fitness)
-    """
+    """,
         ),
     )
 
@@ -277,7 +277,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """
+    """,
     )
 
     # Component specifications table,
@@ -298,7 +298,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
             FOREIGN KEY (component_type_id) REFERENCES component_types (id)
             UNIQUE(component_type_id, name, version)
         ),
-    """
+    """,
     )
 
     # Create indexes,
@@ -307,7 +307,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
             """,
         CREATE INDEX IF NOT EXISTS idx_component_type,
         ON component_specs (component_type_id)
-    """
+    """,
         ),
     )
 
@@ -316,7 +316,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
             """
         CREATE INDEX IF NOT EXISTS idx_is_default,
         ON component_specs (is_default)
-    """
+    """,
         ),
     )
 
@@ -337,7 +337,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
             metadata JSON,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """
+    """,
     )
 
     # Event subscriptions table,
@@ -351,7 +351,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
             active BOOLEAN DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """
+    """,
     )
 
     # Create indexes,
@@ -360,7 +360,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
             """,
         CREATE INDEX IF NOT EXISTS idx_ecosystemiser_events_type,
         ON ecosystemiser_events(event_type, timestamp)
-    """
+    """,
         ),
     )
 
@@ -369,7 +369,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
             """
         CREATE INDEX IF NOT EXISTS idx_ecosystemiser_events_correlation,
         ON ecosystemiser_events(correlation_id)
-    """
+    """,
         ),
     )
 
@@ -378,7 +378,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
             """
         CREATE INDEX IF NOT EXISTS idx_event_subscriptions,
         ON event_subscriptions(event_type, active)
-    """
+    """,
         ),
     )
 
@@ -399,7 +399,7 @@ def drop_all_tables(db_path: Path | None = None) -> None:
             """,
             SELECT name FROM sqlite_master,
             WHERE type='table' AND name NOT LIKE 'sqlite_%',
-        """
+        """,
         )
         tables = [row[0] for row in cursor.fetchall()]
 

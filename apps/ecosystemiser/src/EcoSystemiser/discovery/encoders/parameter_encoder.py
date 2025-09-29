@@ -272,7 +272,7 @@ class ParameterEncoder:
         """
         info = {}
         for param in self.spec.parameters:
-            info[param.name] = {
+            info[param.name] = {,
                 "component": param.component,
                 "parameter_path": param.parameter_path,
                 "bounds": param.bounds,
@@ -404,7 +404,7 @@ class SystemConfigEncoder(ParameterEncoder):
                     parameter_path=parameter_path,
                     bounds=bounds,
                     parameter_type=param_config.get("parameter_type", "continuous"),
-                    units=param_config.get("units")
+                    units=param_config.get("units"),
                     description=param_config.get("description", f"{param_name} for {component_name}"),
                     scaling=param_config.get("scaling", "linear")
                 ),

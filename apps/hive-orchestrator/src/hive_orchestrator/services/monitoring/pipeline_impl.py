@@ -134,13 +134,13 @@ class PipelineMonitor:
                     "duration_ms": duration_ms,
                     "success": success,
                     "error": error,
-                }
+                },
             )
 
             logger.info(f"Completed execution {execution_id}: success={success}, duration={duration_ms:.2f}ms")
 
     def record_stage_execution(
-        self, stage_name: str, duration_ms: float, success: bool, error: str | None = None
+        self, stage_name: str, duration_ms: float, success: bool, error: str | None = None,
     ) -> None:
         """Record execution of a pipeline stage"""
         with self.lock:
@@ -198,7 +198,7 @@ class PipelineMonitor:
 
             self.execution_history = new_history
             logger.info(
-                f"Cleared old history for pipeline {self.pipeline_name}, kept {len(self.execution_history)} records"
+                f"Cleared old history for pipeline {self.pipeline_name}, kept {len(self.execution_history)} records",
             )
 
     def get_health_status(self) -> dict[str, Any]:

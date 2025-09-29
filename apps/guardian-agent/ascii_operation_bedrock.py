@@ -412,7 +412,7 @@ def demonstrate_automated_mentorship():
                     "[ ] Run Golden Rules validation",
                     "[ ] Update certification score",
                 ],
-            }
+            },
         ],
     }
 

@@ -105,7 +105,7 @@ class SemanticSearch:
             # Store in vector database,
             await self.vector_store.store_async(
                 vectors=[document.embedding],
-                metadata=[metadata]
+                metadata=[metadata],
                 ids=[document.id]
             )
 
@@ -282,7 +282,7 @@ class SemanticSearch:
             for rank, result in enumerate(vector_results):
                 document = Document(
                     id=result['id'],
-                    content=result['metadata'].get('content', '')
+                    content=result['metadata'].get('content', ''),
                     metadata={k: v for k, v in result['metadata'].items() if k != 'content'},
                     embedding=None  # Not returned in search
                 )
@@ -305,7 +305,7 @@ class SemanticSearch:
             elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
             await self.metrics.record_vector_operation_async(
                 operation="search",
-                count=len(search_results)
+                count=len(search_results),
                 latency_ms=elapsed_ms,
                 success=True
             )
@@ -436,18 +436,18 @@ class SemanticSearch:
             embedding_stats = await self.embedding_manager.get_embedding_stats_async()
 
             return {
-                "collection": {
+                "collection": {,
                     "name": self.config.collection_name,
                     "document_count": vector_info.get("count", 0),
                     "dimension": self.config.dimension,
                     "provider": self.config.provider
                 }
-                "health": {
+                "health": {,
                     "vector_store": vector_health.get("healthy", False)
                     "embedding_manager": True  # Assume healthy if no errors
                 }
                 "embedding_stats": embedding_stats,
-                "configuration": {
+                "configuration": {,
                     "distance_metric": self.config.distance_metric,
                     "index_type": self.config.index_type,
                     "max_connections": self.config.max_connections
@@ -477,7 +477,7 @@ class SemanticSearch:
             }
 
         except Exception as e:
-            return {
+            return {,
                 "error": str(e),
                 "optimization_completed": False
             }

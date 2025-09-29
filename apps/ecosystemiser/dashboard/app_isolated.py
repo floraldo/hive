@@ -18,7 +18,7 @@ import streamlit as st
 
 # Page configuration
 st.set_page_config(
-    page_title="EcoSystemiser Climate Dashboard", page_icon="🌍", layout="wide", initial_sidebar_state="expanded"
+    page_title="EcoSystemiser Climate Dashboard", page_icon="🌍", layout="wide", initial_sidebar_state="expanded",
 )
 
 # Custom CSS for better styling
@@ -145,7 +145,7 @@ def plot_time_series(df: pd.DataFrame, variables: list[str], title: str = "Time 
                     y=df[var],
                     mode="lines",
                     name=var,
-                )
+                ),
             )
 
     fig.update_layout(title=title, xaxis_title="Time", yaxis_title="Value", hovermode="x unified", height=400)
@@ -223,7 +223,7 @@ def main() -> None:
         # Option 2: Upload file
         st.subheader("Or Upload File")
         uploaded_file = st.file_uploader(
-            "Choose a climate data file", type=["json", "csv"], help="Upload JSON or CSV file with climate data"
+            "Choose a climate data file", type=["json", "csv"], help="Upload JSON or CSV file with climate data",
         )
 
         if uploaded_file is not None:
@@ -273,7 +273,7 @@ def main() -> None:
 
         # Tabs for different views
         tab1, tab2, tab3, tab4, tab5 = st.tabs(
-            ["📈 Time Series", "📊 Statistics", "🔍 Data Explorer", "📉 Distributions", "🔗 Correlations"]
+            ["📈 Time Series", "📊 Statistics", "🔍 Data Explorer", "📉 Distributions", "🔗 Correlations"],
         )
 
         with tab1:
@@ -301,7 +301,7 @@ def main() -> None:
                                 "Missing %": f"{df[var].isna().sum() / len(df) * 100:.1f}%",
                                 "Unique Values": df[var].nunique(),
                                 "Data Type": str(df[var].dtype),
-                            }
+                            },
                         )
 
                 if quality_data:
@@ -396,7 +396,7 @@ def main() -> None:
            - Study correlations
 
         3. **Export**: Download filtered data as CSV for further analysis
-        """
+        """,
         )
 
 

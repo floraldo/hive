@@ -120,9 +120,9 @@ class EmbeddingManager:
                 logger.debug(f"Cache hit for embedding: {text[:50]}..."),
                 return EmbeddingResult(
                     text=text,
-                    vector=cached_result["vector"]
+                    vector=cached_result["vector"],
                     model=embedding_model,
-                    tokens_used=cached_result["tokens_used"]
+                    tokens_used=cached_result["tokens_used"],
                     cache_hit=True
                 )
 

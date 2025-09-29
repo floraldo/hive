@@ -73,7 +73,7 @@ class HiveCacheClient:
 
         if config.circuit_breaker_enabled:
             self._circuit_breaker = AsyncCircuitBreaker(
-                failure_threshold=config.circuit_breaker_threshold, recovery_timeout=config.circuit_breaker_timeout
+                failure_threshold=config.circuit_breaker_threshold, recovery_timeout=config.circuit_breaker_timeout,
             )
 
     async def initialize_async(self) -> None:
@@ -81,7 +81,7 @@ class HiveCacheClient:
         try:
             # Parse Redis URL and create connection pool
             self._redis_pool = redis.ConnectionPool.from_url(
-                self.config.redis_url, **self.config.get_redis_connection_kwargs()
+                self.config.redis_url, **self.config.get_redis_connection_kwargs(),
             )
 
             # Create reusable Redis client
@@ -135,7 +135,7 @@ class HiveCacheClient:
                 bytes_processed = len(result)
 
             await self._performance_monitor.end_operation_tracking_async(
-                start_id, success=True, bytes_processed=bytes_processed
+                start_id, success=True, bytes_processed=bytes_processed,
             )
             return result
         except Exception:
@@ -227,7 +227,7 @@ class HiveCacheClient:
         return xxhash.xxh64(key.encode()).hexdigest()
 
     async def set_async(
-        self, key: str, value: Any, ttl_async: int | None = None, namespace: str = "default", overwrite: bool = True
+        self, key: str, value: Any, ttl_async: int | None = None, namespace: str = "default", overwrite: bool = True,
     ) -> bool:
         """Set a value in cache with optional TTL.
 
@@ -314,7 +314,7 @@ class HiveCacheClient:
             raise CacheError(f"Failed to get_async cache key: {e}", operation="get_async", key=key)
 
     async def get_or_set_async(
-        self, key: str, factory: Callable, ttl_async: int | None = None, namespace: str = "default", *args, **kwargs
+        self, key: str, factory: Callable, ttl_async: int | None = None, namespace: str = "default", *args, **kwargs,
     ) -> Any:
         """Get value from cache or compute and set_async if missing.
 
@@ -484,7 +484,7 @@ class HiveCacheClient:
             raise CacheError(f"Failed to extend TTL: {e}", operation="extend_ttl_async", key=key)
 
     async def scan_keys_async(
-        self, pattern: str = "*", namespace: str = "default", count: int = 10
+        self, pattern: str = "*", namespace: str = "default", count: int = 10,
     ) -> AsyncGenerator[str, None]:
         """Scan keys matching a pattern.
 
@@ -558,7 +558,7 @@ class HiveCacheClient:
             raise CacheError(f"Failed to get_async multiple keys: {e}", operation="mget_async")
 
     async def mset_async(
-        self, mapping: dict[str, Any], ttl_async: int | None = None, namespace: str = "default"
+        self, mapping: dict[str, Any], ttl_async: int | None = None, namespace: str = "default",
     ) -> bool:
         """Set multiple values in cache.
 

@@ -7,16 +7,14 @@ formatting, and integration with the AI model system.
 
 from __future__ import annotations
 
-
 import hashlib
 import json
 import re
-from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Optional
 
 from hive_cache import CacheManager
-from hive_config import BaseConfig
 from hive_logging import get_logger
 
 from ..core.exceptions import PromptError
@@ -45,7 +43,7 @@ class PromptMetadata:
     description: str = ""
     author: str = ""
     version: str = "1.0.0"
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     created_at: str | None = None
     updated_at: str | None = None
 
@@ -61,7 +59,7 @@ class PromptTemplate(PromptTemplateInterface):
     def __init__(
         self,
         template: str,
-        variables: Optional[List[PromptVariable]] = None,
+        variables: Optional[list[PromptVariable]] = None,
         metadata: PromptMetadata | None = None,
         variable_prefix: str = "{{",
         variable_suffix: str = "}}",
@@ -93,7 +91,7 @@ class PromptTemplate(PromptTemplateInterface):
         for var_name in set(matches):
             if var_name not in self.variables:
                 self.variables[var_name] = PromptVariable(
-                    name=var_name, type="str", required=True, description=f"Auto-extracted variable: {var_name}"
+                    name=var_name, type="str", required=True, description=f"Auto-extracted variable: {var_name}",
                 )
 
         logger.debug(f"Extracted {len(self.variables)} variables from template")
@@ -168,7 +166,7 @@ class PromptTemplate(PromptTemplateInterface):
         if not self.validate_variables(**kwargs):
             missing = self.get_missing_variables(**kwargs)
             raise PromptError(
-                f"Template rendering failed: missing required variables",
+                "Template rendering failed: missing required variables",
                 template_name=self.metadata.name if self.metadata else "unknown",
                 missing_variables=missing,
             )
@@ -186,10 +184,10 @@ class PromptTemplate(PromptTemplateInterface):
 
         except Exception as e:
             raise PromptError(
-                f"Template rendering failed: {str(e)}", template_name=self.metadata.name if self.metadata else "unknown"
+                f"Template rendering failed: {str(e)}", template_name=self.metadata.name if self.metadata else "unknown",
             ) from e
 
-    def _render_internal(self, variables: Dict[str, Any]) -> str:
+    def _render_internal(self, variables: dict[str, Any]) -> str:
         """Internal rendering method."""
         result = self.template
 
@@ -256,17 +254,17 @@ class PromptTemplate(PromptTemplateInterface):
         validator = type_validators.get(expected_type.lower())
         return validator(value) if validator else True
 
-    def get_required_variables(self) -> List[str]:
+    def get_required_variables(self) -> list[str]:
         """Get list of required template variables."""
         return [var.name for var in self.variables.values() if var.required and var.default is None]
 
-    def get_missing_variables(self, **kwargs) -> List[str]:
+    def get_missing_variables(self, **kwargs) -> list[str]:
         """Get list of missing required variables."""
         provided = set(kwargs.keys())
         required = set(self.get_required_variables())
         return list(required - provided)
 
-    def get_all_variables(self) -> List[PromptVariable]:
+    def get_all_variables(self) -> list[PromptVariable]:
         """Get all variable definitions."""
         return list(self.variables.values())
 
@@ -283,7 +281,7 @@ class PromptTemplate(PromptTemplateInterface):
             return True
         return False
 
-    def clone(self, new_name: str | None = None) -> "PromptTemplate":
+    def clone(self, new_name: str | None = None) -> PromptTemplate:
         """Create a copy of this template."""
         new_metadata = None
         if self.metadata:
@@ -303,7 +301,7 @@ class PromptTemplate(PromptTemplateInterface):
             variable_suffix=self.variable_suffix,
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize template to dictionary."""
         return {
             "template": self.template,
@@ -333,7 +331,7 @@ class PromptTemplate(PromptTemplateInterface):
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PromptTemplate":
+    def from_dict(cls, data: dict[str, Any]) -> PromptTemplate:
         """Create template from dictionary."""
         variables = [
             PromptVariable(
@@ -367,7 +365,7 @@ class PromptChain:
     become inputs to the next template in the chain.
     """
 
-    def __init__(self, templates: List[PromptTemplate], name: str = "") -> None:
+    def __init__(self, templates: list[PromptTemplate], name: str = "") -> None:
         self.templates = templates
         self.name = name
         self._validate_chain()
@@ -390,9 +388,9 @@ class PromptChain:
 
     async def execute_async(
         self,
-        initial_variables: Dict[str, Any],
+        initial_variables: dict[str, Any],
         model_client: Any = None,  # ModelClient type - avoid circular import
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Execute the prompt chain with model generation.
 
@@ -432,7 +430,7 @@ class PromptChain:
         except Exception as e:
             raise PromptError(f"Prompt chain execution failed at step {i + 1}: {str(e)}") from e
 
-    def render_all(self, variables: Dict[str, Any]) -> List[str]:
+    def render_all(self, variables: dict[str, Any]) -> list[str]:
         """
         Render all templates with same variables (no chaining).
 
@@ -453,7 +451,7 @@ class PromptChain:
 
         return results
 
-    def get_required_variables(self) -> List[str]:
+    def get_required_variables(self) -> list[str]:
         """Get all required variables across all templates."""
         all_required = set()
         for template in self.templates:

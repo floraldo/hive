@@ -134,7 +134,7 @@ class TestAIPlannerQueenIntegration:
             CREATE INDEX idx_execution_plans_status ON execution_plans (status);
             CREATE INDEX idx_tasks_status_type ON tasks (status, task_type);
             CREATE INDEX idx_tasks_payload_parent ON tasks (json_extract(payload, '$.parent_plan_id'));
-        """
+        """,
         )
         conn.commit()
 
@@ -301,7 +301,7 @@ class TestAIPlannerQueenIntegration:
 
         # Test enhanced task retrieval
         with patch(
-            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection", lambda: sqlite3.connect(temp_db)
+            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection", lambda: sqlite3.connect(temp_db),
         ):
             tasks = db_enhanced.get_queued_tasks_with_planning_optimized(limit=10)
 
@@ -578,7 +578,7 @@ class TestAIPlannerQueenIntegration:
                 {"id": "1", "title": "Parallel Task 1", "dependencies": []},
                 {"id": "2", "title": "Parallel Task 2", "dependencies": []},
                 {"id": "3", "title": "Sequential Task", "dependencies": ["1", "2"]},
-            ]
+            ],
         }
 
         conn.execute(
@@ -606,7 +606,7 @@ class TestAIPlannerQueenIntegration:
 
         # Test enhanced task pickup with dependencies
         with patch(
-            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection", lambda: sqlite3.connect(temp_db)
+            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection", lambda: sqlite3.connect(temp_db),
         ):
             tasks = db_enhanced.get_queued_tasks_with_planning_optimized(limit=10)
 

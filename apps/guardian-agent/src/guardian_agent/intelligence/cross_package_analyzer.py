@@ -386,49 +386,49 @@ response = await pool.generate_async(
         """Map the capabilities provided by each hive package."""
 
         return {
-            "hive-cache": {
+            "hive-cache": {,
                 "primary_functions": ["caching", "performance", "resilience"],
                 "classes": ["ClaudeAPICache", "ModelResponseCache", "HttpCache"],
                 "use_cases": ["api_responses", "model_outputs", "expensive_computations"],
                 "performance_impact": "high",
                 "reliability_impact": "high",
             },
-            "hive-errors": {
+            "hive-errors": {,
                 "primary_functions": ["error_handling", "monitoring", "debugging"],
                 "classes": ["ValidationError", "ConnectionError", "ProcessingError"],
                 "use_cases": ["structured_exceptions", "error_categorization", "monitoring"],
                 "performance_impact": "low",
                 "reliability_impact": "high",
             },
-            "hive-async": {
+            "hive-async": {,
                 "primary_functions": ["concurrency", "resilience", "timeouts"],
                 "classes": ["async_retry", "TimeoutManager", "ExponentialBackoff"],
                 "use_cases": ["retry_logic", "timeout_handling", "concurrent_operations"],
                 "performance_impact": "medium",
                 "reliability_impact": "very_high",
             },
-            "hive-logging": {
+            "hive-logging": {,
                 "primary_functions": ["observability", "debugging", "monitoring"],
                 "classes": ["get_logger", "StructuredLogger"],
                 "use_cases": ["standardized_logging", "structured_output", "correlation_ids"],
                 "performance_impact": "low",
                 "reliability_impact": "medium",
             },
-            "hive-db": {
+            "hive-db": {,
                 "primary_functions": ["data_persistence", "transactions", "connections"],
                 "classes": ["get_async_session", "DatabaseManager"],
                 "use_cases": ["connection_pooling", "transaction_management", "async_queries"],
                 "performance_impact": "high",
                 "reliability_impact": "high",
             },
-            "hive-config": {
+            "hive-config": {,
                 "primary_functions": ["configuration", "environment_management"],
                 "classes": ["get_config", "ConfigManager"],
                 "use_cases": ["environment_variables", "configuration_validation"],
                 "performance_impact": "low",
                 "reliability_impact": "medium",
             },
-            "hive-ai": {
+            "hive-ai": {,
                 "primary_functions": ["ai_optimization", "model_management", "cost_control"],
                 "classes": ["ModelPool", "CostTracker", "ModelClient"],
                 "use_cases": ["model_routing", "cost_optimization", "fallback_handling"],
@@ -565,7 +565,7 @@ response = await pool.generate_async(
                 if (
                     isinstance(node.func, ast.Attribute)
                     and isinstance(node.func.value, ast.Name)
-                    and node.func.value.id == "time",
+and node.func.value.id == "time"
                     and node.func.attr == "sleep"
                 ):
                     # Look for retry patterns in surrounding context,
@@ -739,7 +739,7 @@ response = await pool.generate_async(
         # Check for AI model calls without optimization
         if (
             ("openai" in content or "anthropic" in content)
-            and "hive_ai" not in current_hive_imports,
+and "hive_ai" not in current_hive_imports
             and "hive_cache" not in current_hive_imports
         ):
             missing.append(

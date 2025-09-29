@@ -265,7 +265,7 @@ class CacheLatencyBenchmark:
                             max_ms=0,
                             operations=0,
                             duration_seconds=0,
-                        )
+                        ),
                     )
 
         finally:
@@ -324,7 +324,7 @@ class CacheLatencyBenchmark:
                     critical_issues.append(f"{result.name}: {result.p95_ms:.2f}ms P95")
 
                 print(
-                    f"  {result.name:<38} {result.mean_ms:>6.2f}ms {result.p95_ms:>6.2f}ms {result.p99_ms:>6.2f}ms {status}"
+                    f"  {result.name:<38} {result.mean_ms:>6.2f}ms {result.p95_ms:>6.2f}ms {result.p99_ms:>6.2f}ms {status}",
                 )
 
         # Analysis section

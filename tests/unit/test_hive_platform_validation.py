@@ -98,7 +98,7 @@ class PlatformValidationTests:
                 status TEXT DEFAULT 'pending',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             );
-        """
+        """,
         )
         conn.commit()
         conn.close()

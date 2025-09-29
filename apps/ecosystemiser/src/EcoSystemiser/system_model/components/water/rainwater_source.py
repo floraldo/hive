@@ -38,14 +38,14 @@ class RainwaterSourceTechnicalParams(GenerationTechnicalParams):
 
     # DETAILED fidelity parameters
     seasonal_collection_factors: Optional[list[float]] = Field(
-        None, description="Monthly collection efficiency factors"
+        None, description="Monthly collection efficiency factors",
     )
     water_quality_model: Optional[dict[str, Any]] = Field(None, description="Water quality degradation model")
 
     # RESEARCH fidelity parameters
     weather_dependency_model: Optional[dict[str, Any]] = Field(None, description="Advanced weather dependency modeling")
     contamination_model: Optional[dict[str, Any]] = Field(
-        None, description="Detailed contamination and treatment modeling"
+        None, description="Detailed contamination and treatment modeling",
     )
 
 

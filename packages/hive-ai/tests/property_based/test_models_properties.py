@@ -56,7 +56,7 @@ async def test_metrics_aggregation_properties(costs):
         token_usage = TokenUsage(prompt_tokens=10, completion_tokens=10, total_tokens=20, estimated_cost=cost)
 
         await metrics.record_model_usage_async(
-            model="test", provider="test", tokens=token_usage, latency_ms=100, success=True
+            model="test", provider="test", tokens=token_usage, latency_ms=100, success=True,
         )
 
     summary = metrics.get_metrics_summary()
@@ -78,7 +78,7 @@ async def test_metrics_aggregation_properties(costs):
         min_size=1,
         max_size=10,
         unique=True,
-    )
+    ),
 )
 def test_registry_model_count_properties(model_names):
     """Test properties of model registry operations."""
@@ -102,7 +102,7 @@ def test_registry_model_count_properties(model_names):
 
 @settings(max_examples=25, deadline=1000)
 @given(
-    prompt_length=st.integers(min_value=1, max_value=10000), cost_per_token=st.floats(min_value=0.00001, max_value=0.1)
+    prompt_length=st.integers(min_value=1, max_value=10000), cost_per_token=st.floats(min_value=0.00001, max_value=0.1),
 )
 def test_cost_estimation_properties(prompt_length, cost_per_token):
     """Test properties of cost estimation."""
@@ -137,13 +137,13 @@ async def test_success_rate_properties(success_count, failure_count):
     # Record successful operations
     for _ in range(success_count):
         await metrics.record_model_usage_async(
-            model="test", provider="test", tokens=TokenUsage(10, 10, 20, 0.001), latency_ms=100, success=True
+            model="test", provider="test", tokens=TokenUsage(10, 10, 20, 0.001), latency_ms=100, success=True,
         )
 
     # Record failed operations
     for _ in range(failure_count):
         await metrics.record_model_usage_async(
-            model="test", provider="test", tokens=TokenUsage(0, 0, 0, 0.0), latency_ms=200, success=False
+            model="test", provider="test", tokens=TokenUsage(0, 0, 0, 0.0), latency_ms=200, success=False,
         )
 
     summary = metrics.get_metrics_summary()

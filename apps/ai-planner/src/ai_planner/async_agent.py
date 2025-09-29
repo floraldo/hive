@@ -5,47 +5,27 @@ AsyncAIPlanner - High-Performance Async AI Planning Agent for V4.2
 Fully async AI planner agent with non-blocking operations, concurrent task processing
 and integration with the V4.0 async infrastructure.
 """
+
 from __future__ import annotations
 
-
 import asyncio
-import json
 import signal
-import subprocess
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, ListSet
+from typing import Any, List, Optional, Set
 
-# Import recovery strategies
-from ai_planner.core.errors import (
-    ClaudeServiceError,
-    DatabaseConnectionError,
-    ExponentialBackoffStrategy,
-    PlanGenerationError,
-    PlannerError,
-    PlanValidationError,
-    TaskProcessingError,
-    TaskQueueError,
-    TaskValidationError,
-    get_error_reporter,
-    with_recovery
-)
-from hive_logging import get_logger
-from hive_orchestrator.core.bus import (
-    TaskEventType,
-    WorkflowEventType,
-    create_task_event,
-    create_workflow_event,
-    get_async_event_bus,
-    publish_event_async
-)
+from hive_orchestrator.core.bus import get_async_event_bus
 
 # V4.0 Async infrastructure imports
 from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
+
+# Import recovery strategies
+from ai_planner.core.errors import ExponentialBackoffStrategy, get_error_reporter
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -53,9 +33,9 @@ logger = get_logger(__name__)
 class PlanningPriority(Enum):
     """Task planning priority levels"""
 
-    LOW = 1,
-    MEDIUM = 2,
-    HIGH = 3,
+    LOW = (1,)
+    MEDIUM = (2,)
+    HIGH = (3,)
     CRITICAL = 4
 
 
@@ -72,13 +52,8 @@ class AsyncClaudeService:
         self._semaphore = asyncio.Semaphore(5)  # Limit concurrent calls
 
     async def generate_execution_plan_async(
-        self,
-        task_description: str,
-        context_data: Dict[str, Any],
-        priority: int,
-        requestor: str,
-        use_cache: bool = True,
-    ) -> Dict[str, Any]:
+        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str, use_cache: bool = True,
+    ) -> dict[str, Any]:
         """
         Generate an execution plan asynchronously
 
@@ -114,19 +89,19 @@ class AsyncClaudeService:
                     "plan_id": plan_id,
                     "plan_name": f"Async Generated Plan: {task_description[:50]}",
                     "sub_tasks": sub_tasks,
-                    "metrics": {
+                    "metrics": {,
                         "total_estimated_duration": sum(task.get("estimated_duration", 30) for task in sub_tasks),
                         "complexity_breakdown": self._analyze_complexity(sub_tasks),
                         "confidence_score": 0.85 + (priority / 200),
                         "generation_time": 0.5 + (priority / 100),
-                        "async_generated": True
+                        "async_generated": True,
                     },
-                    "context": {
+                    "context": {,
                         "requestor": requestor,
                         "priority": priority,
                         "cache_used": use_cache,
-                        "generation_timestamp": datetime.now(timezone.utc).isoformat()
-                    }
+                        "generation_timestamp": datetime.now(UTC).isoformat(),
+                    },
                 }
             else:
                 # Use actual Claude API integration asynchronously
@@ -171,7 +146,7 @@ class AsyncClaudeService:
 
     async def _generate_mock_subtasks_async(
         self, task_description: str, complexity: str, priority: int,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[dict[str, Any]]:
         """Generate realistic mock subtasks"""
         base_tasks = [
             {
@@ -179,22 +154,22 @@ class AsyncClaudeService:
                 "description": f"Analyze requirements for: {task_description}",
                 "workflow_phase": "analysis",
                 "required_skills": ["analysis", "planning"],
-                "estimated_duration": 15 if complexity == "low" else 30
+                "estimated_duration": 15 if complexity == "low" else 30,
             },
             {
                 "title": "Design implementation approach",
                 "description": "Design the technical approach and architecture",
                 "workflow_phase": "design",
                 "required_skills": ["architecture", "design"],
-                "estimated_duration": 20 if complexity == "low" else 45
+                "estimated_duration": 20 if complexity == "low" else 45,
             },
             {
                 "title": "Implement core functionality",
                 "description": "Implement the main functionality",
                 "workflow_phase": "implementation",
                 "required_skills": ["development", "coding"],
-                "estimated_duration": 30 if complexity == "low" else 90
-            }
+                "estimated_duration": 30 if complexity == "low" else 90,
+            },
         ]
 
         if complexity == "high":
@@ -205,15 +180,15 @@ class AsyncClaudeService:
                         "description": "Create unit and integration tests",
                         "workflow_phase": "testing",
                         "required_skills": ["testing", "quality_assurance"],
-                        "estimated_duration": 45
+                        "estimated_duration": 45,
                     },
                     {
                         "title": "Performance optimization",
                         "description": "Optimize performance and scalability",
                         "workflow_phase": "optimization",
                         "required_skills": ["performance", "optimization"],
-                        "estimated_duration": 30
-                    }
+                        "estimated_duration": 30,
+                    },
                 ],
             )
 
@@ -232,7 +207,7 @@ class AsyncClaudeService:
 
         return base_tasks
 
-    def _analyze_complexity(self, sub_tasks: List[Dict[str, Any]]) -> Dict[str, int]:
+    def _analyze_complexity(self, sub_tasks: List[dict[str, Any]]) -> dict[str, int]:
         """Analyze complexity breakdown of subtasks"""
         breakdown = {"low": 0, "medium": 0, "high": 0}
         for task in sub_tasks:
@@ -241,13 +216,8 @@ class AsyncClaudeService:
         return breakdown
 
     async def _call_claude_for_planning_async(
-        self,
-        task_description: str,
-        context_data: Dict[str, Any],
-        priority: int,
-        requestor: str,
-        use_cache: bool = True,
-    ) -> Dict[str, Any]:
+        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str, use_cache: bool = True,
+    ) -> dict[str, Any]:
         """Call Claude CLI asynchronously for intelligent planning"""
         from ai_planner.claude_bridge import RobustClaudePlannerBridge
 
@@ -264,27 +234,31 @@ class AsyncClaudeService:
         # Execute Claude CLI asynchronously
         try:
             process = await asyncio.create_subprocess_exec(
-                claude_cmd, "--print", "--dangerously-skip-permissions", prompt,
+                claude_cmd,
+                "--print",
+                "--dangerously-skip-permissions",
+                prompt,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 stdin=asyncio.subprocess.DEVNULL,
             )
 
             stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=120  # 2 minute timeout for planning,
+                process.communicate(),
+                timeout=120,  # 2 minute timeout for planning,
             )
 
             if process.returncode != 0:
-                error_msg = stderr.decode('utf-8') if stderr else "Unknown error"
+                error_msg = stderr.decode("utf-8") if stderr else "Unknown error"
                 logger.error(f"Claude CLI failed with code {process.returncode}: {error_msg}")
                 # Fall back to bridge's fallback mode
                 bridge = RobustClaudePlannerBridge(mock_mode=False)
                 return bridge._create_fallback_response(task_description, f"Claude CLI error: {error_msg}")
 
-            claude_output = stdout.decode('utf-8').strip()
+            claude_output = stdout.decode("utf-8").strip()
 
             # Parse and validate response using bridge's parsing logic
-            bridge = RobustClaudePlannerBridge(mock_mode=False),
+            bridge = (RobustClaudePlannerBridge(mock_mode=False),)
             response_json = bridge._extract_json_from_response(claude_output)
 
             if not response_json:
@@ -293,6 +267,7 @@ class AsyncClaudeService:
             # Validate response against schema
             try:
                 from ai_planner.claude_bridge import ClaudePlanningResponse
+
                 validated_response = ClaudePlanningResponse(**response_json)
                 logger.info(f"Claude planning successful: {validated_response.plan_name}")
                 return self._convert_claude_response_to_async_format(validated_response.dict(), requestor, priority)
@@ -316,7 +291,7 @@ class AsyncClaudeService:
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
             Path("claude.cmd"),
-            Path("claude")
+            Path("claude"),
         ]
 
         for path in possible_paths:
@@ -326,7 +301,8 @@ class AsyncClaudeService:
         # Check system PATH asynchronously
         try:
             process = await asyncio.create_subprocess_exec(
-                "where" if sys.platform == "win32" else "which", "claude",
+                "where" if sys.platform == "win32" else "which",
+                "claude",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -334,7 +310,7 @@ class AsyncClaudeService:
             stdout, stderr = await process.communicate()
 
             if process.returncode == 0:
-                claude_path = stdout.decode('utf-8').strip().split('\n')[0]
+                claude_path = stdout.decode("utf-8").strip().split("\n")[0]
                 if claude_path:
                     return claude_path
         except Exception as e:
@@ -343,11 +319,7 @@ class AsyncClaudeService:
         return None
 
     def _create_planning_prompt(
-        self,
-        task_description: str,
-        context_data: Dict[str, Any],
-        priority: int,
-        requestor: str,
+        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str,
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
         from ai_planner.claude_bridge import RobustClaudePlannerBridge
@@ -356,24 +328,28 @@ class AsyncClaudeService:
         bridge = RobustClaudePlannerBridge(mock_mode=False)
         return bridge._create_planning_prompt(task_description, context_data, priority, requestor)
 
-    def _convert_claude_response_to_async_format(self, claude_response: Dict[str, Any], requestor: str = "system", priority: int = 50) -> Dict[str, Any]:
+    def _convert_claude_response_to_async_format(
+        self, claude_response: dict[str, Any], requestor: str = "system", priority: int = 50,
+    ) -> dict[str, Any]:
         """Convert Claude bridge response to async service format"""
         # Extract sub_tasks and convert to async format
         sub_tasks = []
         for task in claude_response.get("sub_tasks", []):
-            sub_tasks.append({
-                "id": task.get("id"),
-                "title": task.get("title"),
-                "description": task.get("description"),
-                "workflow_phase": task.get("workflow_phase"),
-                "required_skills": task.get("required_skills", []),
-                "estimated_duration": task.get("estimated_duration", 30),
-                "assignee": task.get("assignee", "auto"),
-                "complexity": task.get("complexity", "medium"),
-                "deliverables": task.get("deliverables", []),
-                "dependencies": task.get("dependencies", []),
-                "priority": task.get("priority", 50)
-            })
+            sub_tasks.append(
+                {
+                    "id": task.get("id"),
+                    "title": task.get("title"),
+                    "description": task.get("description"),
+                    "workflow_phase": task.get("workflow_phase"),
+                    "required_skills": task.get("required_skills", []),
+                    "estimated_duration": task.get("estimated_duration", 30),
+                    "assignee": task.get("assignee", "auto"),
+                    "complexity": task.get("complexity", "medium"),
+                    "deliverables": task.get("deliverables", []),
+                    "dependencies": task.get("dependencies", []),
+                    "priority": task.get("priority", 50),
+                },
+            )
 
         # Convert metrics
         metrics = claude_response.get("metrics", {})
@@ -382,19 +358,19 @@ class AsyncClaudeService:
             "plan_id": claude_response.get("plan_id"),
             "plan_name": claude_response.get("plan_name"),
             "sub_tasks": sub_tasks,
-            "metrics": {
+            "metrics": {,
                 "total_estimated_duration": metrics.get("total_estimated_duration", 0),
                 "complexity_breakdown": metrics.get("complexity_breakdown", {}),
                 "confidence_score": metrics.get("confidence_score", 0.8),
                 "generation_time": 2.0,  # Estimated time for real Claude call
-                "async_generated": True
+                "async_generated": True,
             },
-            "context": {
+            "context": {,
                 "requestor": requestor,
                 "priority": priority,
                 "cache_used": False,  # Real calls don't use cache yet,
-                "generation_timestamp": datetime.now(timezone.utc).isoformat()
-            }
+                "generation_timestamp": datetime.now(UTC).isoformat(),
+            },
         }
 
 
@@ -436,7 +412,7 @@ class AsyncAIPlanner:
             "average_planning_time": 0,
             "concurrent_peak": 0,
             "errors": 0,
-            "cache_hits": 0
+            "cache_hits": 0,
         }
 
         # Error handling
@@ -463,7 +439,7 @@ class AsyncAIPlanner:
         # Initialize async Claude service
         from ai_planner.core.config import get_claude_config, get_rate_limit_config
 
-        config = get_claude_config(mock_mode=self.mock_mode),
+        config = (get_claude_config(mock_mode=self.mock_mode),)
         rate_config = get_rate_limit_config()
         self.claude_service = AsyncClaudeService(config=config, rate_config=rate_config)
         logger.info("Async Claude service initialized")
@@ -480,17 +456,12 @@ class AsyncAIPlanner:
             await self.db_ops.register_worker_async(
                 worker_id=self.agent_id,
                 role="ai_planner",
-                capabilities=[
-                    "async_planning",
-                    "task_decomposition",
-                    "workflow_generation",
-                    "intelligent_analysis"
-                ],
+                capabilities=["async_planning", "task_decomposition", "workflow_generation", "intelligent_analysis"],
                 metadata={
                     "version": "4.2.0",
                     "type": "AsyncAIPlanner",
                     "max_concurrent": self.max_concurrent_plans,
-                    "performance": "3-5x"
+                    "performance": "3-5x",
                 },
             )
             logger.info("AsyncAIPlanner registered as worker")
@@ -502,7 +473,7 @@ class AsyncAIPlanner:
         logger.info(f"Received signal {signum}, initiating graceful shutdown")
         self.shutdown_event.set()
 
-    async def get_next_planning_task_async(self) -> Optional[Dict[str, Any]]:
+    async def get_next_planning_task_async(self) -> Optional[dict[str, Any]]:
         """Get the next task requiring planning"""
         try:
             # Get tasks needing planning
@@ -525,7 +496,7 @@ class AsyncAIPlanner:
             logger.error(f"Error getting next planning task: {e}")
             return None
 
-    async def generate_plan_async(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def generate_plan_async(self, task: dict[str, Any]) -> dict[str, Any]:
         """Generate execution plan for a task asynchronously"""
         task_id = task["id"]
 
@@ -544,7 +515,7 @@ class AsyncAIPlanner:
                 await self.db_ops.update_task_status_async(
                     task_id,
                     "planning_in_progress",
-                    {"planner_id": self.agent_id, "planning_start": datetime.now(timezone.utc).isoformat()},
+                    {"planner_id": self.agent_id, "planning_start": datetime.now(UTC).isoformat()},
                 )
 
                 # Generate plan using async Claude service
@@ -552,7 +523,7 @@ class AsyncAIPlanner:
                     "task_type": task.get("task_type", "unknown"),
                     "complexity": task.get("complexity", "medium"),
                     "existing_context": task.get("context", {}),
-                    "dependencies": task.get("depends_on", [])
+                    "dependencies": task.get("depends_on", []),
                 }
 
                 plan_result = await asyncio.wait_for(
@@ -580,10 +551,10 @@ class AsyncAIPlanner:
                             "workflow_phase": subtask.get("workflow_phase"),
                             "required_skills": subtask.get("required_skills", []),
                             "estimated_duration": subtask.get("estimated_duration"),
-                            "deliverables": subtask.get("deliverables", [])
+                            "deliverables": subtask.get("deliverables", []),
                         },
                         depends_on=subtask.get("dependencies", []),
-                        assignee=subtask.get("assignee", "auto")
+                        assignee=subtask.get("assignee", "auto"),
                     )
                     subtask_ids.append(subtask_id)
 
@@ -598,8 +569,8 @@ class AsyncAIPlanner:
                         "subtask_ids": subtask_ids,
                         "planning_time": planning_time,
                         "planning_metrics": plan_result["metrics"],
-                        "planned_at": datetime.now(timezone.utc).isoformat(),
-                        "planner_id": self.agent_id
+                        "planned_at": datetime.now(UTC).isoformat(),
+                        "planner_id": self.agent_id,
                     },
                 )
 
@@ -620,19 +591,17 @@ class AsyncAIPlanner:
                         "plan_name": plan_result["plan_name"],
                         "subtask_count": len(subtask_ids),
                         "planning_time": planning_time,
-                        "planner_id": self.agent_id
+                        "planner_id": self.agent_id,
                     },
                 )
 
-                logger.info(
-                    f"# OK Plan generated for {task_id}: " f"{len(subtask_ids)} subtasks in {planning_time:.1f}s",
-                )
+                logger.info(f"# OK Plan generated for {task_id}: {len(subtask_ids)} subtasks in {planning_time:.1f}s")
 
                 return {
                     "success": True,
                     "plan_id": plan_result["plan_id"],
                     "subtask_count": len(subtask_ids),
-                    "planning_time": planning_time
+                    "planning_time": planning_time,
                 }
 
             except asyncio.TimeoutError:
@@ -673,7 +642,7 @@ class AsyncAIPlanner:
 
         # Wait for all planning tasks to complete
         if planning_tasks:
-            results = await asyncio.gather(*planning_tasks, return_exceptions=True),
+            results = (await asyncio.gather(*planning_tasks, return_exceptions=True),)
 
             successful_plans = len([r for r in results if isinstance(r, dict) and r.get("success")])
 
@@ -743,7 +712,7 @@ class AsyncAIPlanner:
 
         # Final metrics
         logger.info(
-            f"Shutdown complete. Final metrics: ",
+            "Shutdown complete. Final metrics: ",
             f"Plans: {self.metrics['plans_generated']}, ",
             f"Avg Time: {self.metrics['average_planning_time']:.1f}s, ",
             f"Errors: {self.metrics['errors']}",
@@ -756,7 +725,7 @@ async def main_async() -> None:
 
     parser = argparse.ArgumentParser(description="AsyncAIPlanner - V4.2 High-Performance Planning Agent")
     parser.add_argument("--mock", action="store_true", help="Run in mock mode")
-    parser.add_argument("--test", action="store_true", help="Run in test mode"),
+    (parser.add_argument("--test", action="store_true", help="Run in test mode"),)
 
     args = parser.parse_args()
 

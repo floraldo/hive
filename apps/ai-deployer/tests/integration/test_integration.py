@@ -43,7 +43,7 @@ class TestDeploymentIntegration:
         mock_ssh_strategy.strategy = DeploymentStrategy.DIRECT
         mock_ssh_strategy.pre_deployment_checks = AsyncMock(return_value={"success": True, "errors": []})
         mock_ssh_strategy.deploy = AsyncMock(
-            return_value={"success": True, "metrics": {"deployment_time": 30.5, "files_deployed": 42}}
+            return_value={"success": True, "metrics": {"deployment_time": 30.5, "files_deployed": 42}},
         )
         mock_ssh_strategy.post_deployment_actions = AsyncMock()
 
@@ -79,7 +79,7 @@ class TestDeploymentIntegration:
         mock_ssh_strategy.pre_deployment_checks = AsyncMock(return_value={"success": True, "errors": []})
         mock_ssh_strategy.deploy = AsyncMock(return_value={"success": False, "error": "Service startup failed"})
         mock_ssh_strategy.rollback = AsyncMock(
-            return_value={"success": True, "rollback_info": {"backup_restored": True}}
+            return_value={"success": True, "rollback_info": {"backup_restored": True}},
         )
 
         orchestrator.strategies[DeploymentStrategy.DIRECT] = mock_ssh_strategy
@@ -115,7 +115,7 @@ class TestDeploymentIntegration:
                 strategy=DeploymentStrategy.DIRECT,
                 deployment_id="test-deploy-123",
                 metrics={"deployment_time": 25.0},
-            )
+            ),
         )
         mock_orchestrator.check_health = AsyncMock(return_value=Mock(healthy=True, message="Healthy"))
 
@@ -170,7 +170,7 @@ class TestDeploymentIntegration:
                     '{"env": "test"}',
                     "deployment_pending",
                     1800,
-                ]
+                ],
             ]
             mock_cursor.rowcount = 1
 
@@ -189,7 +189,7 @@ class TestDeploymentIntegration:
 
             # Record deployment event
             event_result = adapter.record_deployment_event(
-                "test-task-001", "deployment_completed", {"duration": 30.5, "success": True}
+                "test-task-001", "deployment_completed", {"duration": 30.5, "success": True},
             )
             assert event_result is True
 
@@ -270,8 +270,8 @@ class TestDeploymentIntegration:
             mock_orchestrator = Mock()
             mock_orchestrator.deploy = AsyncMock(
                 return_value=DeploymentResult(
-                    success=True, strategy=DeploymentStrategy.DIRECT, deployment_id="event-test-123"
-                )
+                    success=True, strategy=DeploymentStrategy.DIRECT, deployment_id="event-test-123",
+                ),
             )
             mock_orchestrator.check_health = AsyncMock(return_value=Mock(healthy=True))
             agent.orchestrator = mock_orchestrator
@@ -367,7 +367,7 @@ class TestDeploymentIntegration:
                     "bytes_transferred": 1024 * 1024 * 5,  # 5MB,
                     "services_restarted": 3,
                 },
-            }
+            },
         )
         mock_strategy.post_deployment_actions = AsyncMock()
 

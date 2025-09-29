@@ -109,7 +109,7 @@ class CertificationTestConductor:
 
                 cmd_args = shlex.split(command)
                 proc = subprocess.Popen(
-                    cmd_args, stdout=stdout_file, stderr=stderr_file, preexec_fn=os.setsid if os.name != "nt" else None
+                    cmd_args, stdout=stdout_file, stderr=stderr_file, preexec_fn=os.setsid if os.name != "nt" else None,
                 )
                 self.processes[name] = proc
                 self.log(f"{name} started with PID {proc.pid}", "SUCCESS")
@@ -198,7 +198,7 @@ class CertificationTestConductor:
         # Simulate human decision (rework)
         time.sleep(3)
         exit_code, stdout, stderr = self.run_command(
-            'python scripts/hive_complete_review.py 2 "rework" "Please add comprehensive error handling"'
+            'python scripts/hive_complete_review.py 2 "rework" "Please add comprehensive error handling"',
         )
 
         if exit_code != 0:

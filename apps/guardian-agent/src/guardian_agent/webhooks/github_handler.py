@@ -22,7 +22,7 @@ class GitHubWebhookHandler:
     """
 
     def __init__(
-        self, config: GuardianConfig | None = None, github_token: str | None = None, webhook_secret: str | None = None
+        self, config: GuardianConfig | None = None, github_token: str | None = None, webhook_secret: str | None = None,
     ) -> None:
         """Initialize the webhook handler."""
         self.config = config or GuardianConfig()
@@ -151,7 +151,7 @@ class GitHubWebhookHandler:
                 "additions": 10,
                 "deletions": 5,
                 "patch": "@@ -1,5 +1,10 @@\n+def new_function():\n+    pass\n",
-            }
+            },
         ]
 
     def _should_review_file(self, filename: str) -> bool:
@@ -199,7 +199,7 @@ class GitHubWebhookHandler:
                     "line": violation.line_number,
                     "side": "RIGHT",
                     "body": f"**{violation.severity.value.upper()}**: {violation.message}",
-                }
+                },
             )
 
         for suggestion in review_result.all_suggestions[:3]:  # Limit suggestions
@@ -209,13 +209,13 @@ class GitHubWebhookHandler:
                     "line": suggestion.line_range[0],
                     "side": "RIGHT",
                     "body": f"💡 **Suggestion**: {suggestion.message}",
-                }
+                },
             )
 
         return comments
 
     async def _post_review_comment(
-        self, repo: str, pr_number: int, commit_sha: str, review_results: list[dict[str, Any]]
+        self, repo: str, pr_number: int, commit_sha: str, review_results: list[dict[str, Any]],
     ) -> None:
         """Post review comment to PR."""
         # Format overall review
@@ -243,7 +243,7 @@ class GitHubWebhookHandler:
                 f"**Files Reviewed**: {len(review_results)}",
                 f"**Total Issues**: {total_violations}",
                 "",
-            ]
+            ],
         )
 
         # File summaries

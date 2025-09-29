@@ -118,8 +118,8 @@ def process():
         something()
     except:
         pass  # Bare except
-"""
-            }
+""",
+            },
         }
         mock_task.metadata = {}
 

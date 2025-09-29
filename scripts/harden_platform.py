@@ -182,7 +182,7 @@ class HardenPlatform:
 
                     # Remove DI fallback blocks
                     content = re.sub(
-                        r"if\s+config\s+is\s+None:\s*\n\s+config\s*=\s*load_config\(\)", "", content, flags=re.MULTILINE
+                        r"if\s+config\s+is\s+None:\s*\n\s+config\s*=\s*load_config\(\)", "", content, flags=re.MULTILINE,
                     )
 
                     if content != original_content:

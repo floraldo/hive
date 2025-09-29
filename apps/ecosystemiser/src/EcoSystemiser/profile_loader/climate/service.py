@@ -255,13 +255,13 @@ class LocationResolver:
                     "regions": [
                         {"bounds": (30, -130, 70, 30), "score": 0.9},  # North America/Europe,
                         {"bounds": (-60, -180, 60, 180), "score": 0.7},  # Global with lower quality
-                    ]
+                    ],
                 },
                 "pvgis": {
                     "regions": [
                         {"bounds": (30, -25, 75, 75), "score": 0.95},  # Europe/Africa/Asia
                         {"bounds": (-60, -180, 30, -30), "score": 0.8},  # Americas
-                    ]
+                    ],
                 },
             },
         )
@@ -412,7 +412,7 @@ class ClimateService(BaseProfileService):
         # Validate period,
         if not req.period:
             raise TemporalError(
-                "Period must be specified", recovery_suggestion="Provide either 'year' or 'start'/'end' dates"
+                "Period must be specified", recovery_suggestion="Provide either 'year' or 'start'/'end' dates",
             )
 
         # Validate source if specified
@@ -520,7 +520,7 @@ class ClimateService(BaseProfileService):
             return None
 
     async def _fetch_data_with_fallback_async(
-        self, lat: float, lon: float, req: ClimateRequest, preferred_adapters: list[str]
+        self, lat: float, lon: float, req: ClimateRequest, preferred_adapters: list[str],
     ) -> xr.Dataset:
         """
         Fetch data with intelligent fallback using simple adapter factory.
@@ -590,7 +590,7 @@ class ClimateService(BaseProfileService):
         )
 
     async def _fetch_from_adapter_async(
-        self, adapter_name: str, lat: float, lon: float, req: ClimateRequest
+        self, adapter_name: str, lat: float, lon: float, req: ClimateRequest,
     ) -> xr.Dataset:
         """
         Fetch data from specific adapter using adapter factory.
@@ -610,11 +610,11 @@ class ClimateService(BaseProfileService):
         # Call fetch method directly (all adapters have async fetch)
         if hasattr(adapter, "fetch"):
             ds = await adapter.fetch(
-                lat=lat, lon=lon, variables=req.variables, period=req.period, resolution=req.resolution
+                lat=lat, lon=lon, variables=req.variables, period=req.period, resolution=req.resolution,
             )
         else:
             raise AdapterError(
-                adapter_name, "Adapter does not have fetch method", recovery_suggestion="Check adapter implementation"
+                adapter_name, "Adapter does not have fetch method", recovery_suggestion="Check adapter implementation",
             )
 
         if ds is None or len(ds.data_vars) == 0:
@@ -685,7 +685,7 @@ class ClimateService(BaseProfileService):
         ds_avg = ds.groupby("time.dayofyear").mean()
         year = pd.Timestamp.now().year
         time_index = pd.date_range(
-            start=f"{year}-01-01", end=f"{year}-12-31 23:00:00", freq=pd.infer_freq(ds.time.values) or "1H"
+            start=f"{year}-01-01", end=f"{year}-12-31 23:00:00", freq=pd.infer_freq(ds.time.values) or "1H",
         )
         doy_values = time_index.dayofyear
         ds_reconstructed = ds_avg.sel(dayofyear=doy_values)
@@ -711,7 +711,7 @@ class ClimateService(BaseProfileService):
         custom_weights = (tmy_options.get("weights", None),)
 
         tmy_dataset, selection_metadata = generator.generate(
-            historical_data=ds, target_year=target_year, weights=custom_weights, min_data_years=min_years
+            historical_data=ds, target_year=target_year, weights=custom_weights, min_data_years=min_years,
         )
 
         tmy_dataset.attrs["tmy_selection"] = (selection_metadata,)
@@ -755,7 +755,7 @@ class ClimateService(BaseProfileService):
         return ds
 
     def _cache_and_respond(
-        self, ds: xr.Dataset, req: ClimateRequest, processing_report: dict[str, Any]
+        self, ds: xr.Dataset, req: ClimateRequest, processing_report: dict[str, Any],
     ) -> ClimateResponse:
         """Cache data and build response"""
         try:

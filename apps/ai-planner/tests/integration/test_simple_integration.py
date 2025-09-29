@@ -32,7 +32,7 @@ try:
 
         # Test plan generation
         plan = bridge.generate_execution_plan(
-            task_description="Build a simple web API", context_data={"files_affected": 3}
+            task_description="Build a simple web API", context_data={"files_affected": 3},
         )
 
         assert plan is not None

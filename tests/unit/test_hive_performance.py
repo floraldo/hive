@@ -477,7 +477,7 @@ class TestSystemMonitor:
     @patch("hive_performance.system_monitor.psutil.disk_io_counters")
     @patch("hive_performance.system_monitor.psutil.net_io_counters")
     async def test_collect_system_metrics(
-        self, mock_net, mock_disk_io, mock_disk, mock_memory, mock_cpu, system_monitor
+        self, mock_net, mock_disk_io, mock_disk, mock_memory, mock_cpu, system_monitor,
     ):
         """Test system metrics collection."""
         # Setup mocks
@@ -491,11 +491,11 @@ class TestSystemMonitor:
         mock_memory.return_value = mock_mem
 
         mock_disk_usage.return_value = MagicMock(
-            total=1024 * 1024 * 1024 * 1024, used=512 * 1024 * 1024 * 1024, free=512 * 1024 * 1024 * 1024
+            total=1024 * 1024 * 1024 * 1024, used=512 * 1024 * 1024 * 1024, free=512 * 1024 * 1024 * 1024,
         )
 
         mock_disk_io.return_value = MagicMock(
-            read_bytes=1024 * 1024, write_bytes=2 * 1024 * 1024, read_count=100, write_count=200
+            read_bytes=1024 * 1024, write_bytes=2 * 1024 * 1024, read_count=100, write_count=200,
         )
 
         mock_net.return_value = MagicMock(

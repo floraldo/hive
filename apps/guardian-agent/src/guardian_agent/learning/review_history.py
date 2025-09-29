@@ -47,7 +47,7 @@ class ReviewHistory:
                     review_data TEXT,
                     metadata TEXT
                 )
-            """
+            """,
             )
 
             # Violations table
@@ -65,7 +65,7 @@ class ReviewHistory:
                     fix_confirmed BOOLEAN DEFAULT 0,
                     FOREIGN KEY (review_id) REFERENCES reviews(id)
                 )
-            """
+            """,
             )
 
             # Feedback table
@@ -82,7 +82,7 @@ class ReviewHistory:
                     FOREIGN KEY (review_id) REFERENCES reviews(id),
                     FOREIGN KEY (violation_id) REFERENCES violations(id)
                 )
-            """
+            """,
             )
 
             # Patterns table for learned patterns
@@ -97,7 +97,7 @@ class ReviewHistory:
                     last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
                     metadata TEXT
                 )
-            """
+            """,
             )
 
             # Team preferences table
@@ -111,7 +111,7 @@ class ReviewHistory:
                     examples TEXT,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
-            """
+            """,
             )
 
             conn.commit()
@@ -153,7 +153,7 @@ class ReviewHistory:
                         {
                             "summary": review_result.summary,
                             "violations_by_severity": {k.value: v for k, v in review_result.violations_count.items()},
-                        }
+                        },
                     ),
                     json.dumps(review_result.metadata),
                 ),
@@ -186,7 +186,7 @@ class ReviewHistory:
         return review_id
 
     async def store_feedback(
-        self, review_id: int, feedback_type: str, feedback_text: str, violation_id: int | None = None
+        self, review_id: int, feedback_type: str, feedback_text: str, violation_id: int | None = None,
     ) -> None:
         """
         Store feedback on a review.
@@ -254,7 +254,7 @@ class ReviewHistory:
                         "score": row[3],
                         "feedback_count": row[-2],
                         "positive_ratio": row[-1],
-                    }
+                    },
                 )
 
             return reviews
@@ -343,7 +343,7 @@ class ReviewHistory:
                 FROM team_preferences,
                 WHERE confidence > 0.6,
                 ORDER BY confidence DESC
-            """
+            """,
             )
 
             preferences = {}

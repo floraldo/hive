@@ -121,7 +121,7 @@ class AlertValidationTracker:
 
         logger.info(
             f"Recorded alert {alert_id}: {service_name}/{metric_type} "
-            f"(confidence={confidence:.2f}, severity={severity})"
+            f"(confidence={confidence:.2f}, severity={severity})",
         )
 
     def record_incident(
@@ -162,7 +162,7 @@ class AlertValidationTracker:
         self._save_database()
 
         logger.info(
-            f"Recorded incident {incident_id}: {service_name}/{metric_type} (predicted={related_alert_id is not None})"
+            f"Recorded incident {incident_id}: {service_name}/{metric_type} (predicted={related_alert_id is not None})",
         )
 
     def validate_alert(self, alert_id: str, outcome: str, notes: str | None = None) -> None:
@@ -350,24 +350,24 @@ class AlertValidationTracker:
             recommendations.append(
                 f"False positive rate ({fp_rate:.1f}%) exceeds target (10%). "
                 "Consider increasing confidence_threshold or z_score_threshold "
-                "in predictive_alerts.py"
+                "in predictive_alerts.py",
             )
 
         if stats["precision"] < 0.90:
             recommendations.append(
                 f"Precision ({stats['precision']:.2f}) below target (0.90). "
-                "Increase threshold parameters to reduce false positives."
+                "Increase threshold parameters to reduce false positives.",
             )
 
         if stats["recall"] < 0.70:
             recommendations.append(
                 f"Recall ({stats['recall']:.2f}) below target (0.70). "
-                "Decrease threshold parameters to catch more true issues."
+                "Decrease threshold parameters to catch more true issues.",
             )
 
         if stats["total_alerts"] < 10:
             recommendations.append(
-                "Insufficient data for reliable statistics. Continue monitoring to accumulate more validation data."
+                "Insufficient data for reliable statistics. Continue monitoring to accumulate more validation data.",
             )
 
         if not recommendations:
@@ -407,7 +407,7 @@ def main():
     parser.add_argument("--output", type=str, help="Output file for report", default="data/validation_report.json")
     parser.add_argument("--detect-fn", action="store_true", help="Detect false negatives")
     parser.add_argument(
-        "--lookback-hours", type=int, default=24, help="Hours to look back for false negative detection"
+        "--lookback-hours", type=int, default=24, help="Hours to look back for false negative detection",
     )
 
     args = parser.parse_args()

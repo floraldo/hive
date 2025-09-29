@@ -135,7 +135,7 @@ def generate_replacement_pattern(file_path: Path, analysis: dict) -> tuple[str, 
                 "# Configure all Hive paths centrally",
                 "from hive_config import setup_hive_paths",
                 "setup_hive_paths()",
-            ]
+            ],
         )
 
         old_text = "\n".join(old_block)
@@ -176,7 +176,7 @@ def main():
         print(f"  ... and {len(updates_needed) - 10} more")
 
     print(
-        f"\nThis would eliminate approximately {sum(len(a['syspath_lines']) for _, a in updates_needed)} lines of duplicated path setup code."
+        f"\nThis would eliminate approximately {sum(len(a['syspath_lines']) for _, a in updates_needed)} lines of duplicated path setup code.",
     )
 
     return len(updates_needed)

@@ -317,7 +317,7 @@ def run_milp_validation():
 
         # Overall validation
         results["validation_passed"] = (
-            rule_result.status == "optimal",
+rule_result.status == "optimal"
             and results.get("milp_success", False)
             and results.get("optimization_valid", False)
         )

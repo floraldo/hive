@@ -264,7 +264,7 @@ class SerializationBenchmark:
                         critical_issues.append(f"{result.name}: {result.p95_ms:.3f}ms P95")
 
                     print(
-                        f"    {result.name:<46} {result.mean_ms:>6.3f}ms {result.p95_ms:>6.3f}ms {result.p99_ms:>6.3f}ms {result.ops_per_second:>10,.0f} {status}"
+                        f"    {result.name:<46} {result.mean_ms:>6.3f}ms {result.p95_ms:>6.3f}ms {result.p99_ms:>6.3f}ms {result.ops_per_second:>10,.0f} {status}",
                     )
 
         # Analysis and recommendations
@@ -290,10 +290,10 @@ class SerializationBenchmark:
 
                 print("\nSERIALIZATION COMPARISON:")
                 print(
-                    f"  Fastest: {fastest_serialize.name} ({fastest_serialize.p95_ms:.3f}ms P95, {fastest_serialize.ops_per_second:,.0f} ops/sec)"
+                    f"  Fastest: {fastest_serialize.name} ({fastest_serialize.p95_ms:.3f}ms P95, {fastest_serialize.ops_per_second:,.0f} ops/sec)",
                 )
                 print(
-                    f"  Slowest: {slowest_serialize.name} ({slowest_serialize.p95_ms:.3f}ms P95, {slowest_serialize.ops_per_second:,.0f} ops/sec)"
+                    f"  Slowest: {slowest_serialize.name} ({slowest_serialize.p95_ms:.3f}ms P95, {slowest_serialize.ops_per_second:,.0f} ops/sec)",
                 )
                 print(f"  Speed difference: {slowest_serialize.p95_ms / fastest_serialize.p95_ms:.1f}x slower")
 
@@ -303,10 +303,10 @@ class SerializationBenchmark:
 
                 print("\nDESERIALIZATION COMPARISON:")
                 print(
-                    f"  Fastest: {fastest_deserialize.name} ({fastest_deserialize.p95_ms:.3f}ms P95, {fastest_deserialize.ops_per_second:,.0f} ops/sec)"
+                    f"  Fastest: {fastest_deserialize.name} ({fastest_deserialize.p95_ms:.3f}ms P95, {fastest_deserialize.ops_per_second:,.0f} ops/sec)",
                 )
                 print(
-                    f"  Slowest: {slowest_deserialize.name} ({slowest_deserialize.p95_ms:.3f}ms P95, {slowest_deserialize.ops_per_second:,.0f} ops/sec)"
+                    f"  Slowest: {slowest_deserialize.name} ({slowest_deserialize.p95_ms:.3f}ms P95, {slowest_deserialize.ops_per_second:,.0f} ops/sec)",
                 )
                 print(f"  Speed difference: {slowest_deserialize.p95_ms / fastest_deserialize.p95_ms:.1f}x slower")
 

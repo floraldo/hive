@@ -57,7 +57,7 @@ class HiveError(BaseError):
             "component": self.component,
             "operation": self.operation,
             "details": self.details,
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
             "recovery_suggestions": self.recovery_suggestions
         }
 

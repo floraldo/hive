@@ -125,7 +125,7 @@ class AsyncQueen:
                     "high_performance",
                     "workflow_management",
                     "concurrent_execution"
-                ]
+                ],
                 metadata={
                     "version": "4.0.0",
                     "type": "AsyncQueen",
@@ -588,7 +588,7 @@ class AsyncQueen:
                 await asyncio.gather(
                     self.process_queued_tasks_async()
                     self.monitor_workers_async()
-                    self.recover_zombie_tasks_async()
+                    self.recover_zombie_tasks_async(),
                     return_exceptions=True
                 )
 

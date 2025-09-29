@@ -136,7 +136,7 @@ class InputValidator:
         is_valid = len(violations) == 0 or (self.security_level == SecurityLevel.BASIC and not injection_found)
 
         return ValidationResult(
-            is_valid=is_valid, sanitized_input=sanitized, violations=violations, risk_level=risk_level
+            is_valid=is_valid, sanitized_input=sanitized, violations=violations, risk_level=risk_level,
         )
 
     def _sanitize_prompt(self, prompt: str) -> str:

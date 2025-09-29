@@ -68,7 +68,7 @@ class CodeAnalyzer:
                     file_path=file_path,
                     line_number=e.lineno or 0,
                     column=e.offset,
-                )
+                ),
             )
         except Exception as e:
             logger.error("Failed to analyze %s: %s", file_path, e)
@@ -102,7 +102,7 @@ class CodeAnalyzer:
                             file_path=file_path,
                             line_number=node.lineno,
                             fix_suggestion=f"Consider breaking '{node.name}' into smaller functions",
-                        )
+                        ),
                     )
 
         return violations
@@ -146,7 +146,7 @@ class CodeAnalyzer:
                             file_path=file_path,
                             line_number=node.lineno,
                             fix_suggestion=f"Consider splitting '{node.name}' into smaller functions",
-                        )
+                        ),
                     )
 
                 # Check parameter count
@@ -160,7 +160,7 @@ class CodeAnalyzer:
                             file_path=file_path,
                             line_number=node.lineno,
                             fix_suggestion="Consider using a configuration object or splitting the function",
-                        )
+                        ),
                     )
 
         return violations
@@ -196,7 +196,7 @@ class CodeAnalyzer:
                             file_path=file_path,
                             line_number=node.lineno,
                             fix_suggestion=self._to_pascal_case(node.name),
-                        )
+                        ),
                     )
 
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -211,7 +211,7 @@ class CodeAnalyzer:
                             file_path=file_path,
                             line_number=node.lineno,
                             fix_suggestion=self._to_snake_case(node.name),
-                        )
+                        ),
                     )
 
         return violations
@@ -271,7 +271,7 @@ class CodeAnalyzer:
                             line_range=(node.lineno, node.lineno + 10),
                             confidence=0.7,
                             rationale="Duplicate code increases maintenance burden",
-                        )
+                        ),
                     )
                 else:
                     function_bodies[body_str] = node.name
@@ -295,7 +295,7 @@ class CodeAnalyzer:
                             confidence=0.9,
                             example=f"def {node.name}(...) -> None:",
                             rationale="Type hints improve code maintainability and IDE support",
-                        )
+                        ),
                     )
 
                 # Check for missing parameter types
@@ -310,7 +310,7 @@ class CodeAnalyzer:
                                 confidence=0.9,
                                 example=f"{arg.arg}: str",
                                 rationale="Type hints help prevent type-related bugs",
-                            )
+                            ),
                         )
 
         return suggestions

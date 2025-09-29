@@ -37,7 +37,7 @@ async def lifespan_async(app: FastAPI) -> None:
     """
     # Startup,
     logger.info(
-        "Starting EcoSystemiser Climate Platform", version=settings.api.version, environment=settings.environment
+        "Starting EcoSystemiser Climate Platform", version=settings.api.version, environment=settings.environment,
     )
 
     # Initialize observability,
@@ -170,7 +170,7 @@ if __name__ == "__main__":
             "disable_existing_loggers": False,
             "formatters": {"default": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
             "handlers": {
-                "default": {"formatter": "default", "class": "logging.StreamHandler", "stream": "ext://sys.stdout"}
+                "default": {"formatter": "default", "class": "logging.StreamHandler", "stream": "ext://sys.stdout"},
             },
             "root": {"level": settings.observability.log_level, "handlers": ["default"]},
         },

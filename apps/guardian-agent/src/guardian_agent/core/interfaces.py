@@ -135,7 +135,7 @@ class ReviewResult:
                         f"### {icon} {violation.severity.value.upper()}: {violation.message}",
                         f"- **Type**: {violation.type.value}",
                         f"- **Location**: Line {violation.line_number}",
-                    ]
+                    ],
                 )
 
                 if violation.snippet:
@@ -156,7 +156,7 @@ class ReviewResult:
                         f"- **Category**: {suggestion.category}",
                         f"- **Lines**: {suggestion.line_range[0]}-{suggestion.line_range[1]}",
                         f"- **Confidence**: {suggestion.confidence:.0%}",
-                    ]
+                    ],
                 )
 
                 if suggestion.rationale:

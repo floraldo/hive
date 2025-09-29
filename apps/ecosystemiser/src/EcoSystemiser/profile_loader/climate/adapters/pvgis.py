@@ -65,14 +65,14 @@ except ImportError:
             temporal_resolution_limits: Dict[str, str],
             spatial_accuracy: str | None = None
         ):
-            self.name = name,
-            self.description = description,
-            self.known_issues = known_issues,
-            self.recommended_variables = recommended_variables,
-            self.temporal_resolution_limits = temporal_resolution_limits,
+            self.name = name
+            self.description = description
+            self.known_issues = known_issues
+            self.recommended_variables = recommended_variables
+            self.temporal_resolution_limits = temporal_resolution_limits
             self.spatial_accuracy = spatial_accuracy
 
-        @abstractmethod,
+        @abstractmethod
         def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
             pass
 
@@ -81,7 +81,6 @@ logger = get_logger(__name__)
 
 class PVGISAdapter(BaseAdapter):
     """Adapter for PVGIS solar radiation data API"""
-from __future__ import annotations
     ADAPTER_NAME = "pvgis"
     ADAPTER_VERSION = "0.1.0"
     BASE_URL = "https://re.jrc.ec.europa.eu/api/v5_2"
@@ -158,7 +157,7 @@ from __future__ import annotations
         "PVGIS-SARAH2": {"regions": ["Europe", "Africa", "Asia"], "years": "2005-2020"},
         "PVGIS-ERA5": {"regions": ["Global"], "years": "2005-2020"},
         "PVGIS-NSRDB": {"regions": ["Americas"], "years": "2005-2015"}
-    },
+    }
 
     def __init__(self) -> None:
         """Initialize PVGIS adapter"""
@@ -192,7 +191,7 @@ from __future__ import annotations
         "visibility",
         "soil_temp",
         "soil_moisture"
-    },
+    }
 
     async def _fetch_raw_async(
         self,
@@ -205,7 +204,7 @@ from __future__ import annotations
         lat, lon = location
 
         # Filter out unsupported variables and warn,
-        supported_vars = [],
+        supported_vars = []
         for var in variables:
             if var in self.UNSUPPORTED_VARIABLES:
                 self.logger.warning(f"Variable '{var}' is not supported by PVGIS seriescalc endpoint"),
@@ -349,7 +348,7 @@ from __future__ import annotations
 
         # Validate year constraints for different databases,
         if database == "PVGIS-NSRDB" and (start_date.year < 2005 or start_date.year > 2015):
-            raise ValueError(f"PVGIS-NSRDB only supports years 2005-2015, requested: {start_date.year}"),
+            raise ValueError(f"PVGIS-NSRDB only supports years 2005-2015, requested: {start_date.year}")
         elif database in ["PVGIS-SARAH2", "PVGIS-ERA5"] and start_date.year < 2005:
             raise ValueError(f"{database} only supports years from 2005 onwards, requested: {start_date.year}")
 
@@ -409,7 +408,7 @@ from __future__ import annotations
             "raddatabase": database,
             "outputformat": "json",
             "browser": 0,
-        },
+        }
 
         logger.info(f"Fetching PVGIS daily data for {lat},{lon} using {database}")
 
@@ -504,7 +503,7 @@ from __future__ import annotations
                     "ghi": ["G(i)", "G(h)", "GHI"],  # Try inclined, then horizontal,
                     "dni": ["DNI", "Gb(n)", "BNI"],
                     "dhi": ["DHI", "Gd(h)", "DIF"],
-                },
+                }
 
                 if canonical_name in fallback_mappings:
                     for fallback_col in fallback_mappings[canonical_name]:
@@ -605,14 +604,14 @@ from __future__ import annotations
 
         # Map variables,
         for canonical_name in variables:
-            pvgis_cols = {
+            pvgis_cols = {,
                 "ghi": "G(h)",
                 "dni": "Gb(n)",
                 "dhi": "Gd(h)",
                 "temp_air": "T2m",
                 "wind_speed": "WS10m",
                 "rel_humidity": "RH"
-            },
+            }
 
             if canonical_name in pvgis_cols and pvgis_cols[canonical_name] in df.columns:
                 ds[canonical_name] = xr.DataArray(
@@ -655,9 +654,9 @@ from __future__ import annotations
         # PVGIS generally uses standard units, minimal conversion needed
         conversions = {
             # Solar elevation to zenith angle,
-            "solar_zenith": lambda x: 90,
-            - x
-        },
+            "solar_zenith": lambda x: 90 - x
+
+        }
 
         if canonical_name in conversions:
             return conversions[canonical_name](data)
@@ -677,12 +676,12 @@ from __future__ import annotations
             "pressure": "Pa",
             "rel_humidity": "%",
             "solar_zenith": "degrees"
-        },
+        }
 
         return {
             "units": units_map.get(canonical_name, "unknown"),
             "long_name": canonical_name.replace("_", " ").title()
-        },
+        }
 
     def get_capabilities(self) -> AdapterCapabilities:
         """Return PVGIS adapter capabilities"""
@@ -692,12 +691,12 @@ from __future__ import annotations
             description="European Commission's solar radiation and PV performance database",
             temporal=TemporalCoverage(
                 start_date=date(2005, 1, 1),
-                end_date=date(2020, 12, 31)
+                end_date=date(2020, 12, 31),
                 historical_years=16,
                 forecast_days=0,
                 real_time=False,
                 delay_hours=None,  # Historical data only
-            )
+            ),
             spatial=SpatialCoverage(
                 global_coverage=True,  # Through ERA5 database,
                 regions=["Europe", "Africa", "Asia", "Americas"],
@@ -705,20 +704,20 @@ from __future__ import annotations
                 station_based=False,
                 grid_based=True,
                 custom_locations=True
-            )
+            ),
             supported_variables=list(self.VARIABLE_MAPPING.keys()),
             primary_variables=[
                 "ghi",  # Primary strength: solar irradiance (on inclined plane),
                 "temp_air",  # Temperature,
                 "solar_elevation",  # Solar position
-            ]
+            ],
             derived_variables=["pv_power"],  # Can calculate PV output,
             supported_frequencies=[
                 DataFrequency.HOURLY,
                 DataFrequency.DAILY,
                 DataFrequency.MONTHLY,
                 DataFrequency.TMY
-            ]
+            ],
             native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.NONE,
             requires_subscription=False,
@@ -729,7 +728,7 @@ from __future__ import annotations
                 uncertainty_estimates=True,  # Provides uncertainty for PV calculations,
                 ensemble_members=False,
                 bias_correction=True
-            )
+            ),
             max_request_days=366,  # 1 year at a time,
             max_variables_per_request=None,
             batch_requests_supported=False,
@@ -741,7 +740,7 @@ from __future__ import annotations
                 "PV system performance calculations",
                 "Horizon profile integration",
                 "High-resolution solar data for Europe/Africa",
-            ]
+            ],
             data_products=["Hourly", "Daily", "Monthly", "TMY", "PV Performance"]
         ),
 
@@ -757,7 +756,7 @@ class PVGISQCProfile:
             "Regional variations in satellite data quality",
             "May not include latest years of data",
             "Optimized for PV applications, may not suit other uses"
-        ],
+        ]
         self.recommended_variables = ["ghi", "dni", "dhi", "temp_air", "wind_speed"]
         self.temporal_resolution_limits = {"solar": "hourly", "temp_air": "hourly"}
         self.spatial_accuracy = "Varies by region: 1-5km resolution"
@@ -804,9 +803,9 @@ class PVGISQCProfile(QCProfile):
                 "Regional variations in satellite data quality",
                 "May not include latest years of data",
                 "Optimized for PV applications, may not suit other uses"
-            ]
+            ],
             recommended_variables=["ghi", "dni", "dhi", "temp_air", "wind_speed"],
-            temporal_resolution_limits={"solar": "hourly", "temp_air": "hourly"}
+            temporal_resolution_limits={"solar": "hourly", "temp_air": "hourly"},
             spatial_accuracy="Varies by region: 1-5km resolution"
         )
 
@@ -828,7 +827,7 @@ class PVGISQCProfile(QCProfile):
                         type="data_completeness",
                         message=f"Unexpected missing data in PVGIS {var}: {missing_percent:.1f}%",
                         severity=QCSeverity.MEDIUM,
-                        affected_variables=[var]
+                        affected_variables=[var],
                         suggested_action="Verify PVGIS data completeness for this location/period"
                     )
                     report.add_issue(issue)

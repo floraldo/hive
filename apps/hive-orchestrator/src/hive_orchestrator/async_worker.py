@@ -86,7 +86,7 @@ class AsyncWorker:
 
         # Performance metrics,
         self.metrics = {
-            "start_time": datetime.now(timezone.utc)
+            "start_time": datetime.now(timezone.utc),
             "operations": 0,
             "file_operations": 0,
             "subprocess_calls": 0,
@@ -127,7 +127,7 @@ class AsyncWorker:
                     "async_execution",
                     "high_performance",
                     "non_blocking_io"
-                ]
+                ],
                 metadata={
                     "version": "4.0.0",
                     "type": "AsyncWorker",
@@ -190,7 +190,7 @@ class AsyncWorker:
             return {
                 "status": "simulated",
                 "output": f"Simulated response for: {prompt[:100]}",
-                "files_created": []
+                "files_created": [],
                 "files_modified": []
             }
 
@@ -230,14 +230,14 @@ class AsyncWorker:
 
             # Parse output
             if process.returncode == 0:
-                return {
+                return {,
                     "status": "success",
                     "output": stdout.decode() if stdout else "",
-                    "files_created": self._parse_created_files(stdout.decode() if stdout else "")
+                    "files_created": self._parse_created_files(stdout.decode() if stdout else ""),
                     "files_modified": self._parse_modified_files(stdout.decode() if stdout else "")
                 }
             else:
-                return {
+                return {,
                     "status": "error",
                     "error": stderr.decode() if stderr else "Unknown error",
                     "return_code": process.returncode
@@ -317,7 +317,7 @@ class AsyncWorker:
                 event_type=f"worker.{self.phase}.completed",
                 task_id=self.task_id,
                 worker_id=self.worker_id,
-                result=result.get("status")
+                result=result.get("status"),
                 priority=2
             )
 
@@ -327,7 +327,7 @@ class AsyncWorker:
             self.log.error(f"Phase execution failed: {e}")
             return {
                 "status": "error",
-                "error": str(e)
+                "error": str(e),
                 "phase": self.phase
             }
 
@@ -445,24 +445,24 @@ class AsyncWorker:
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)  # 1 minute timeout for tests
 
             if process.returncode == 0:
-                return {
+                return {,
                     "passed": True,
                     "output": stdout.decode() if stdout else ""
                 }
             else:
-                return {
+                return {,
                     "passed": False,
                     "output": stdout.decode() if stdout else "",
                     "error": stderr.decode() if stderr else ""
                 }
 
         except asyncio.TimeoutError:
-            return {
+            return {,
                 "passed": False,
                 "error": "Test execution timed out after 1 minute"
             }
         except Exception as e:
-            return {
+            return {,
                 "passed": False,
                 "error": str(e)
             }
@@ -478,13 +478,13 @@ class AsyncWorker:
             # Save result
             await self.db_ops.update_run_async(
                 run_id=self.run_id,
-                status=result.get("status", "unknown")
+                status=result.get("status", "unknown"),
                 result=result,
                 metadata={
                     "execution_time": execution_time,
-                    "operations": self.metrics["operations"]
+                    "operations": self.metrics["operations"],
                     "file_operations": self.metrics["file_operations"]
-                    "subprocess_calls": self.metrics["subprocess_calls"]
+                    "subprocess_calls": self.metrics["subprocess_calls"],
                     "db_operations": self.metrics["db_operations"]
                 }
             )

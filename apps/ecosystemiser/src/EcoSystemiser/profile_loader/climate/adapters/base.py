@@ -232,7 +232,7 @@ class SharedHTTPClient:
         before_sleep=before_sleep_log(logger, "WARNING"),
     )
     async def get_async(
-        self, url: str, params: dict | None = None, headers: dict | None = None, **kwargs
+        self, url: str, params: dict | None = None, headers: dict | None = None, **kwargs,
     ) -> httpx.Response:
         """Make GET request with retry and rate limiting"""
         if self.rate_limiter:
@@ -248,7 +248,7 @@ class SharedHTTPClient:
         before_sleep=before_sleep_log(logger, "WARNING"),
     )
     async def post_async(
-        self, url: str, json: dict | None = None, data: Any | None = None, headers: dict | None = None, **kwargs
+        self, url: str, json: dict | None = None, data: Any | None = None, headers: dict | None = None, **kwargs,
     ) -> httpx.Response:
         """Make POST request with retry and rate limiting"""
         if self.rate_limiter:
@@ -305,7 +305,7 @@ class BaseAdapter(ABC):
         self.cache_misses = 0
 
     async def fetch_async(
-        self, location: tuple[float, float], variables: list[str], period: dict[str, Any], **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict[str, Any], **kwargs,
     ) -> xr.Dataset | None:
         """
         Main entry point for fetching climate data.,
@@ -353,14 +353,14 @@ class BaseAdapter(ABC):
 
     @abstractmethod
     async def _fetch_raw_async(
-        self, location: tuple[float, float], variables: list[str], period: dict[str, Any], **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict[str, Any], **kwargs,
     ) -> Any | None:
         """Fetch raw data from the specific source"""
         pass
 
     @abstractmethod
     async def _transform_data_async(
-        self, raw_data: Any, location: tuple[float, float], variables: list[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str],
     ) -> xr.Dataset:
         """Transform raw data to xarray Dataset"""
         pass

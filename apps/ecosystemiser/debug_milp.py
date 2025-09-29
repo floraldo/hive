@@ -27,7 +27,7 @@ def create_debug_system() -> System:
             import_tariff=0.30,
             feed_in_tariff=0.05,  # Changed to feed_in_tariff,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     grid = Grid("Grid", grid_params, N)
 
@@ -40,7 +40,7 @@ def create_debug_system() -> System:
             efficiency_roundtrip=0.95,
             initial_soc_pct=0.5,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     battery = Battery("Battery", battery_params, N)
 

@@ -344,7 +344,7 @@ class Settings(BaseSettings):
         from ecosystemiser.profile_loader.climate.config_models import RateLimitConfig
 
         return RateLimitConfig(
-            requests_per_minute=self.rate_limit.requests_per_minute, burst_size=self.rate_limit.burst_size
+            requests_per_minute=self.rate_limit.requests_per_minute, burst_size=self.rate_limit.burst_size,
         )
 
     model_config = ConfigDict(

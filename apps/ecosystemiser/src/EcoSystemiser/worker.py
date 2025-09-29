@@ -28,7 +28,7 @@ class WorkerSettings:
     # Redis connection
     redis_settings = RedisSettings(
         host=settings.queue.redis_url.split("://")[1].split(":")[0],
-        port=int(settings.queue.redis_url.split(":")[-1].split("/")[0])
+        port=int(settings.queue.redis_url.split(":")[-1].split("/")[0]),
         database=0
     )
 

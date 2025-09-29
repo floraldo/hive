@@ -71,7 +71,7 @@ def create_yearly_system() -> System:
             import_tariff=0.25,  # $/kWh,
             feed_in_tariff=0.08,  # $/kWh,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     grid = Grid("Grid", grid_params, N)
 
@@ -84,7 +84,7 @@ def create_yearly_system() -> System:
             efficiency_roundtrip=0.95,
             initial_soc_pct=0.5,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     battery = Battery("Battery", battery_params, N)
 
@@ -94,7 +94,7 @@ def create_yearly_system() -> System:
             capacity_nominal=40.0,  # kW - legacy value,
             efficiency_nominal=1.0,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     solar = SolarPV("SolarPV", solar_params, N)
     solar.profile = solar_profile
@@ -106,7 +106,7 @@ def create_yearly_system() -> System:
             peak_demand=15.0,
             load_profile_type="variable",
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     demand = PowerDemand("PowerDemand", demand_params, N)
     demand.profile = demand_profile
@@ -274,7 +274,7 @@ def test_rule_based_yearly():
                     "energy_balance": balance_results,
                     "yearly_performance": performance,
                     "validation_passed": balance_results["energy_balance_ok"],
-                }
+                },
             )
 
             # Log summary
@@ -330,8 +330,8 @@ def test_milp_yearly():
         # Create components (same as yearly but smaller N)
         grid_params = GridParams(
             technical=GridTechnicalParams(
-                capacity_nominal=800.0, import_tariff=0.25, feed_in_tariff=0.08, fidelity_level=FidelityLevel.SIMPLE
-            )
+                capacity_nominal=800.0, import_tariff=0.25, feed_in_tariff=0.08, fidelity_level=FidelityLevel.SIMPLE,
+            ),
         )
         grid = Grid("Grid", grid_params, N_subset)
 
@@ -343,14 +343,14 @@ def test_milp_yearly():
                 efficiency_roundtrip=0.95,
                 initial_soc_pct=0.5,
                 fidelity_level=FidelityLevel.SIMPLE,
-            )
+            ),
         )
         battery = Battery("Battery", battery_params, N_subset)
 
         solar_params = SolarPVParams(
             technical=SolarPVTechnicalParams(
-                capacity_nominal=40.0, efficiency_nominal=1.0, fidelity_level=FidelityLevel.SIMPLE
-            )
+                capacity_nominal=40.0, efficiency_nominal=1.0, fidelity_level=FidelityLevel.SIMPLE,
+            ),
         )
         solar = SolarPV("SolarPV", solar_params, N_subset)
         solar.profile = solar_profile
@@ -361,7 +361,7 @@ def test_milp_yearly():
                 peak_demand=15.0,
                 load_profile_type="variable",
                 fidelity_level=FidelityLevel.SIMPLE,
-            )
+            ),
         )
         demand = PowerDemand("PowerDemand", demand_params, N_subset)
         demand.profile = demand_profile
@@ -409,7 +409,7 @@ def test_milp_yearly():
                     "energy_balance": balance_results,
                     "performance": performance,
                     "validation_passed": balance_results["energy_balance_ok"],
-                }
+                },
             )
 
             logger.info("\\n" + "=" * 60)

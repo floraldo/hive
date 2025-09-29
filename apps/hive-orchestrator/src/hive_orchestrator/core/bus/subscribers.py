@@ -151,14 +151,14 @@ class SubscriberRegistry:
 
 
 def create_subscriber(
-    pattern: str, callback: Callable[[Event], None], subscriber_name: str = "anonymous"
+    pattern: str, callback: Callable[[Event], None], subscriber_name: str = "anonymous",
 ) -> EventSubscriber:
     """Create a synchronous event subscriber"""
     return EventSubscriber(pattern=pattern, callback=callback, subscriber_name=subscriber_name)
 
 
 def create_async_subscriber(
-    pattern: str, callback: Callable[[Event], Any], subscriber_name: str = "anonymous"
+    pattern: str, callback: Callable[[Event], Any], subscriber_name: str = "anonymous",
 ) -> AsyncEventSubscriber:
     """Create an asynchronous event subscriber"""
     return AsyncEventSubscriber(pattern=pattern, callback=callback, subscriber_name=subscriber_name)

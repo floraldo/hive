@@ -83,7 +83,7 @@ async def demonstrate_genesis_phase2():
     print("Per-Package Analysis:")
     for package in packages:
         print(
-            f"  {package['name']:<15}: {package['patterns']:>2} patterns, {package['optimization_opportunities']} opportunities"
+            f"  {package['name']:<15}: {package['patterns']:>2} patterns, {package['optimization_opportunities']} opportunities",
         )
 
     # Phase 2B: Cross-Package Optimization Detection
@@ -154,7 +154,7 @@ async def demonstrate_genesis_phase2():
         print(f"{i}. {opt['title']}")
         print(f"   Type: {opt['type'].replace('_', ' ').title()}")
         print(
-            f"   Priority: {priority_icon} | Confidence: {opt['oracle_confidence']:.1%} | Implementation: {auto_icon}"
+            f"   Priority: {priority_icon} | Confidence: {opt['oracle_confidence']:.1%} | Implementation: {auto_icon}",
         )
         print(f"   Packages: {', '.join(opt['affected_packages'])}")
         print(f"   Effort: {opt['estimated_effort_hours']} hours")
@@ -304,7 +304,7 @@ async def demonstrate_genesis_phase2():
     for package, health in ecosystem_health["package_health"].items():
         status_icon = "HEALTHY" if health["score"] >= 85 else "ATTENTION" if health["score"] >= 75 else "CRITICAL"
         print(
-            f"  {package:<15}: {health['score']:>5.1f} ({status_icon}) | Optimizations: {health['optimizations']} | Issues: {health['issues']}"
+            f"  {package:<15}: {health['score']:>5.1f} ({status_icon}) | Optimizations: {health['optimizations']} | Issues: {health['issues']}",
         )
 
     print()

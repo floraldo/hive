@@ -77,7 +77,7 @@ class AsyncPerformanceValidator:
                 duration_ms REAL,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-        """
+        """,
         )
         conn.commit()
         conn.close()
@@ -126,7 +126,7 @@ class AsyncPerformanceValidator:
                     db_perf.improvement_factor,
                     event_perf.improvement_factor,
                     mixed_perf.improvement_factor,
-                ]
+                ],
             )
 
             self._print_detailed_results()

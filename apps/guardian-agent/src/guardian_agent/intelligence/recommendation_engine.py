@@ -166,7 +166,7 @@ class RecommendationEngine:
         """Load recommendation templates and patterns."""
 
         return {
-            "high_ai_costs": {
+            "high_ai_costs": {,
                 "type": RecommendationType.COST_OPTIMIZATION,
                 "title_template": "AI Costs Optimization: {model} Usage",
                 "description_template": "AI costs for {model} have increased by {percentage}% over {period}",
@@ -180,7 +180,7 @@ class RecommendationEngine:
                 "estimated_effort": "3-5 days",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            "performance_degradation": {
+            "performance_degradation": {,
                 "type": RecommendationType.PREDICTIVE_MAINTENANCE,
                 "title_template": "Performance Degradation Alert: {service}",
                 "description_template": "{service} showing {percentage}% performance degradation over {period}",
@@ -194,7 +194,7 @@ class RecommendationEngine:
                 "estimated_effort": "2-4 days",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            "cicd_bottleneck": {
+            "cicd_bottleneck": {,
                 "type": RecommendationType.DEVELOPER_PRODUCTIVITY,
                 "title_template": "CI/CD Pipeline Optimization: {pipeline}",
                 "description_template": "{pipeline} pipeline is the slowest, averaging {time} minutes",
@@ -208,7 +208,7 @@ class RecommendationEngine:
                 "estimated_effort": "1-2 days",
                 "expected_impact": ImpactLevel.MEDIUM,
             },
-            "golden_rules_violations": {
+            "golden_rules_violations": {,
                 "type": RecommendationType.ARCHITECTURAL_IMPROVEMENT,
                 "title_template": "Code Quality Improvement: Golden Rules Violations",
                 "description_template": "Golden Rules violations trending upward: {violation_count} violations",
@@ -222,7 +222,7 @@ class RecommendationEngine:
                 "estimated_effort": "1 week",
                 "expected_impact": ImpactLevel.MEDIUM,
             },
-            "resource_exhaustion": {
+            "resource_exhaustion": {,
                 "type": RecommendationType.CAPACITY_PLANNING,
                 "title_template": "Resource Capacity Alert: {resource}",
                 "description_template": "{resource} usage at {percentage}% - exhaustion predicted in {timeframe}",
@@ -237,7 +237,7 @@ class RecommendationEngine:
                 "expected_impact": ImpactLevel.HIGH,
             },
             # New architectural compliance templates,
-            "global_state_violations": {
+            "global_state_violations": {,
                 "type": RecommendationType.ARCHITECTURAL_IMPROVEMENT,
                 "title_template": "Critical: Global State Access Violations in {package}",
                 "description_template": "Package {package} has {violation_count} global state access violations - high architectural risk",
@@ -251,7 +251,7 @@ class RecommendationEngine:
                 "estimated_effort": "1-2 weeks",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            "test_coverage_gaps": {
+            "test_coverage_gaps": {,
                 "type": RecommendationType.ARCHITECTURAL_IMPROVEMENT,
                 "title_template": "Test Coverage Gaps: {package} Missing {missing_count} Test Files",
                 "description_template": "Package {package} has {missing_count} source files without corresponding tests",
@@ -265,7 +265,7 @@ class RecommendationEngine:
                 "estimated_effort": "3-5 days",
                 "expected_impact": ImpactLevel.MEDIUM,
             },
-            "package_discipline_violations": {
+            "package_discipline_violations": {,
                 "type": RecommendationType.ARCHITECTURAL_IMPROVEMENT,
                 "title_template": "Package Discipline: Business Logic in Infrastructure Package {package}",
                 "description_template": "Package {package} contains business logic that should be moved to application layer",
@@ -279,7 +279,7 @@ class RecommendationEngine:
                 "estimated_effort": "1-2 weeks",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            "dependency_direction_violations": {
+            "dependency_direction_violations": {,
                 "type": RecommendationType.ARCHITECTURAL_IMPROVEMENT,
                 "title_template": "Dependency Direction: Package {package} Imports from Applications",
                 "description_template": "Package {package} has forbidden dependencies on application modules",
@@ -293,7 +293,7 @@ class RecommendationEngine:
                 "estimated_effort": "1-2 weeks",
                 "expected_impact": ImpactLevel.TRANSFORMATIONAL,
             },
-            "interface_contract_violations": {
+            "interface_contract_violations": {,
                 "type": RecommendationType.ARCHITECTURAL_IMPROVEMENT,
                 "title_template": "Interface Contracts: {package} Missing Type Hints and Documentation",
                 "description_template": "Package {package} has {violation_count} functions missing proper type hints or documentation",
@@ -308,7 +308,7 @@ class RecommendationEngine:
                 "expected_impact": ImpactLevel.MEDIUM,
             },
             # Business strategy and product recommendation templates,
-            "feature_deprecation": {
+            "feature_deprecation": {,
                 "type": RecommendationType.PRODUCT_STRATEGY,
                 "title_template": "Feature Deprecation Recommendation: {feature}",
                 "description_template": "Feature '{feature}' has {adoption_rate:.1f}% adoption but costs ${cost:.0f}/month - recommend deprecation",
@@ -322,7 +322,7 @@ class RecommendationEngine:
                 "estimated_effort": "2-3 weeks",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            "feature_promotion": {
+            "feature_promotion": {,
                 "type": RecommendationType.PRODUCT_STRATEGY,
                 "title_template": "Feature Promotion Opportunity: {feature}",
                 "description_template": "Feature '{feature}' has high ROI ({roi_score:.1f}) but only {adoption_rate:.1f}% adoption - promote to increase value",
@@ -336,7 +336,7 @@ class RecommendationEngine:
                 "estimated_effort": "1-2 weeks",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            "user_experience_optimization": {
+            "user_experience_optimization": {,
                 "type": RecommendationType.USER_EXPERIENCE,
                 "title_template": "UX Critical: {workflow} Workflow Optimization",
                 "description_template": "Workflow '{workflow}' has {completion_time:.1f}min completion time vs {benchmark:.1f}min benchmark - {abandonment_rate:.0f}% abandonment",
@@ -350,7 +350,7 @@ class RecommendationEngine:
                 "estimated_effort": "2-4 weeks",
                 "expected_impact": ImpactLevel.TRANSFORMATIONAL,
             },
-            "customer_health_alert": {
+            "customer_health_alert": {,
                 "type": RecommendationType.CUSTOMER_SUCCESS,
                 "title_template": "Customer Health Alert: {customer} Needs Immediate Attention",
                 "description_template": "Customer '{customer}' showing {error_increase:.0f}% increase in API errors over {duration}h - proactive support required",
@@ -364,7 +364,7 @@ class RecommendationEngine:
                 "estimated_effort": "1-2 days",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            "conversion_optimization": {
+            "conversion_optimization": {,
                 "type": RecommendationType.REVENUE_OPTIMIZATION,
                 "title_template": "Conversion Rate Optimization: Trial to Paid",
                 "description_template": "Trial-to-paid conversion at {conversion_rate:.1f}% vs {benchmark:.1f}% benchmark - {potential_revenue:.0f} monthly revenue at risk",
@@ -378,7 +378,7 @@ class RecommendationEngine:
                 "estimated_effort": "3-6 weeks",
                 "expected_impact": ImpactLevel.TRANSFORMATIONAL,
             },
-            "revenue_leakage": {
+            "revenue_leakage": {,
                 "type": RecommendationType.REVENUE_OPTIMIZATION,
                 "title_template": "Revenue Leakage: High CAC with Low LTV",
                 "description_template": "LTV:CAC ratio at {ltv_cac_ratio:.1f} vs 3.0+ target - ${potential_loss:.0f}/month revenue inefficiency",
@@ -392,7 +392,7 @@ class RecommendationEngine:
                 "estimated_effort": "4-8 weeks",
                 "expected_impact": ImpactLevel.TRANSFORMATIONAL,
             },
-            "feature_cost_optimization": {
+            "feature_cost_optimization": {,
                 "type": RecommendationType.COST_OPTIMIZATION,
                 "title_template": "Feature Cost Optimization: {feature} Resource Usage",
                 "description_template": "Feature '{feature}' costs ${cost:.0f}/month but has {satisfaction:.1f}/5.0 user satisfaction - optimize for efficiency",
@@ -406,7 +406,7 @@ class RecommendationEngine:
                 "estimated_effort": "2-4 weeks",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            "customer_expansion_opportunity": {
+            "customer_expansion_opportunity": {,
                 "type": RecommendationType.BUSINESS_INTELLIGENCE,
                 "title_template": "Customer Expansion: {segment} Segment Growth Opportunity",
                 "description_template": "{segment} customers show {usage_growth:.0f}% usage growth and {satisfaction:.1f} NPS - prime for expansion",
@@ -750,7 +750,7 @@ class RecommendationEngine:
 
         # Look for security-related anomalies,
         security_anomalies = [
-            a,
+            a
             for a in anomalies,
             if "error" in a.metric_name.lower() or "security" in a.metric_name.lower() or a.deviation_score > 4.0,
         ]  # Very high deviation
@@ -1151,8 +1151,8 @@ class RecommendationEngine:
             # 4. Customer health alerts,
             for metric in customer_metrics:
                 if (
-                    metric.metric_type == MetricType.CUSTOMER_SATISFACTION,
-                    and "error_rate_change" in metric.unit,
+metric.metric_type == MetricType.CUSTOMER_SATISFACTION
+                    and "error_rate_change" in metric.unit
                     and metric.tags.get("alert_level") == "critical"
                 ):
                     customer = metric.tags.get("customer", "Unknown")
@@ -1186,7 +1186,7 @@ class RecommendationEngine:
             # 5. Conversion optimization,
             for metric in business_metrics:
                 if (
-                    metric.metric_type == MetricType.CONVERSION_RATE,
+metric.metric_type == MetricType.CONVERSION_RATE
                     and metric.tags.get("performance") == "below_benchmark"
                 ):
                     conversion_rate = float(metric.value)

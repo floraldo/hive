@@ -76,7 +76,7 @@ def setup_sample_tasks():
                     "command_template": "python -c \"print('EcoSystemiser health check: OK')\"",
                     "next_phase_on_success": "completed",
                     "next_phase_on_failure": "failed",
-                }
+                },
             },
             "payload": {"app_name": "ecosystemiser", "task_name": "health-check"},
         },
@@ -124,7 +124,7 @@ def setup_sample_tasks():
                     "command_template": 'python apps/ecosystemiser/hive_adapter.py --task fetch-climate-data --payload \'{{"location": "{location}", "start_date": "{start_date}", "end_date": "{end_date}", "source": "{source}", "variables": {variables}}}\'',
                     "next_phase_on_success": "completed",
                     "next_phase_on_failure": "failed",
-                }
+                },
             },
             "payload": {
                 "location": "51.5074,-0.1278",  # London coordinates

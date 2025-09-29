@@ -38,7 +38,7 @@ class HeatBufferTechnicalParams(StorageTechnicalParams):
     # STANDARD fidelity parameters
     heat_loss_coefficient: float = Field(0.001, description="Heat loss coefficient per timestep [fraction/hour]")
     temperature_range: dict[str, float] | None = Field(
-        None, description="Operating temperature range {min_temp, max_temp} [°C]"
+        None, description="Operating temperature range {min_temp, max_temp} [°C]",
     )
 
     # DETAILED fidelity parameters

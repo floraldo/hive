@@ -31,7 +31,7 @@ class PowerDemandTechnicalParams(DemandTechnicalParams):
 
     # DETAILED fidelity parameters
     demand_flexibility: dict[str, float] | None = Field(
-        None, description="Demand response capabilities {shift_capacity_kw, shed_capacity_kw}"
+        None, description="Demand response capabilities {shift_capacity_kw, shed_capacity_kw}",
     )
 
     # RESEARCH fidelity parameters

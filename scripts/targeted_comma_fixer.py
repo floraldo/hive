@@ -22,7 +22,7 @@ def fix_dictionary_patterns(content: str) -> str:
 
     # Pattern 2: Handle function call results like row[0], row[1], etc.
     content = re.sub(
-        r'(\s*"[^"]+"\s*:\s*[a-zA-Z_][a-zA-Z0-9_]*\[[^\]]+\])(\n\s*"[^"]+"\s*:)', r"\1,\2", content, flags=re.MULTILINE
+        r'(\s*"[^"]+"\s*:\s*[a-zA-Z_][a-zA-Z0-9_]*\[[^\]]+\])(\n\s*"[^"]+"\s*:)', r"\1,\2", content, flags=re.MULTILINE,
     )
 
     # Pattern 3: Handle method call results like self._parse_json_field(row[7])

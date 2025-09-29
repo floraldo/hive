@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 
 def find_extreme_events(
-    ds: xr.Dataset, variable: str = "temp_air", threshold_percentile: float = 95, min_duration_hours: int = 24
+    ds: xr.Dataset, variable: str = "temp_air", threshold_percentile: float = 95, min_duration_hours: int = 24,
 ) -> list[dict]:
     """
     Find extreme events (hot/cold spells, high wind, etc).
@@ -81,7 +81,7 @@ def find_extreme_events(
                             "max_value": max(event_values),
                             "mean_value": np.mean(event_values),
                             "min_value": min(event_values),
-                        }
+                        },
                     )
                 event_values = []
 
@@ -90,7 +90,7 @@ def find_extreme_events(
 
 
 def identify_heat_waves(
-    ds: xr.Dataset, temp_threshold: float = 32, min_duration_days: int = 3, night_relief_threshold: float = 20
+    ds: xr.Dataset, temp_threshold: float = 32, min_duration_days: int = 3, night_relief_threshold: float = 20,
 ) -> list[dict]:
     """
     Identify heat wave events using temperature criteria.
@@ -151,7 +151,7 @@ def identify_heat_waves(
                             "mean_max_temp": np.mean(wave_temps_max),
                             "mean_min_temp": np.mean(wave_temps_min),
                             "severity_index": np.mean(wave_temps_max) - temp_threshold,
-                        }
+                        },
                     ),
                 )
 
@@ -211,7 +211,7 @@ def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration
                             "min_temp": min(snap_temps),
                             "mean_min_temp": np.mean(snap_temps),
                             "severity_index": temp_threshold - np.mean(snap_temps),
-                        }
+                        },
                     ),
                 )
 
@@ -256,7 +256,7 @@ def calculate_percentiles(ds: xr.Dataset, variables: list[str] | None = None, pe
 
 
 def calculate_return_periods(
-    ds: xr.Dataset, variable: str, return_years: list[int] = None, extreme_type: str = "max"
+    ds: xr.Dataset, variable: str, return_years: list[int] = None, extreme_type: str = "max",
 ) -> dict:
     """
     Estimate return period values using simple statistical methods.

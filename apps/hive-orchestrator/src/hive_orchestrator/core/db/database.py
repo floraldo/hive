@@ -580,7 +580,7 @@ def get_run(run_id: str) -> Optional[Dict[str, Any]]:
             run["result"] = {
                 "status": run.get("status", "failed")
                 "data": result_data,
-                "error_message": run.get("error_message")
+                "error_message": run.get("error_message"),
                 "output_log": run.get("output_log")
             }
             return run

@@ -86,7 +86,7 @@ def main():
     if not args.quick:
         total_count += 1
         if run_command(
-            f"cd {project_root} && python -m pytest --collect-only -q", "Test collection validation", check_only=True
+            f"cd {project_root} && python -m pytest --collect-only -q", "Test collection validation", check_only=True,
         ):
             success_count += 1
 

@@ -51,7 +51,7 @@ cost_manager = CostManager(
         daily_limit=config.cost_control.daily_limit,
         monthly_limit=config.cost_control.monthly_limit,
         per_operation_limit=config.cost_control.per_operation_limit,
-    )
+    ),
 )
 
 # Add custom cost calculator
@@ -187,7 +187,7 @@ async def send_bulk_notifications(request: BulkNotificationRequest, background_t
         total_estimated_cost = len(request.notifications) * 0.005
 
         can_proceed, reason = await cost_manager.check_budget(
-            ResourceCost(ResourceType.CUSTOM, len(request.notifications), 0.005)
+            ResourceCost(ResourceType.CUSTOM, len(request.notifications), 0.005),
         )
 
         if not can_proceed:
@@ -204,7 +204,7 @@ async def send_bulk_notifications(request: BulkNotificationRequest, background_t
                             "recipient": notification.recipient,
                             "status": "queued",
                             "notification_id": f"bulk_{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                        }
+                        },
                     )
                 except Exception as e:
                     results.append({"recipient": notification.recipient, "status": "failed", "error": str(e)})
@@ -244,7 +244,7 @@ async def list_templates():
                 "description": "Scheduled report notification",
                 "variables": ["report_name", "period", "summary"],
             },
-        ]
+        ],
     }
 
 

@@ -90,7 +90,7 @@ def get_queued_tasks_with_planning(limit: int = 10, task_type: str | None = None
 
     tasks = []
     for row in cursor.fetchall():
-        task = {
+        task = {,
             "id": row[0],
             "title": row[1],
             "description": row[2],

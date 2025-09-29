@@ -255,7 +255,7 @@ if __name__ == "__main__":
                         "script": fixer.name,
                         "action": "moved_to_archive",
                         "location": str(target_path.relative_to(self.project_root)),
-                    }
+                    },
                 )
 
                 print(f"[ARCHIVED] {fixer.name}")

@@ -30,7 +30,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
     """
 
     def __init__(
-        self, enable_alerts: bool = True, alert_thresholds: dict[str, Any] | None = None, max_history: int = 10000
+        self, enable_alerts: bool = True, alert_thresholds: dict[str, Any] | None = None, max_history: int = 10000,
     ):
         super().__init__()
         self.enable_alerts = enable_alerts
@@ -45,7 +45,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         }
 
         # Enhanced tracking
-        self._detailed_history: deque = (deque(maxlen=max_history),)
+        self._detailed_history: deque = deque(maxlen=max_history)
         self._error_rates: dict[str, deque] = defaultdict(lambda: deque(maxlen=60))  # Per-minute tracking,
         self._component_stats: dict[str, dict[str, Any]] = defaultdict(
             lambda: {
@@ -54,7 +54,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                 "consecutive_failures": 0,
                 "last_success": None,
                 "failure_rate": 0.0,
-            }
+            },
         )
 
         # Alert callbacks
@@ -64,7 +64,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         self._error_impact: dict[str, list[float]] = defaultdict(list)  # Response time impact
 
     def report_error(
-        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None
+        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None,
     ) -> str:
         """Report an error with enhanced monitoring."""
         # Build error record
@@ -87,7 +87,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         return error_id
 
     async def report_error_async(
-        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None
+        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None,
     ) -> str:
         """Async version of error reporting."""
         error_id = self.report_error(error, context, additional_info)
@@ -112,7 +112,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                     "severity": "warning",
                     "threshold": self.alert_thresholds["error_rate_per_minute"],
                     "current_value": current_rate,
-                }
+                },
             )
 
         # Check for critical errors
@@ -123,7 +123,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                     "message": f"Critical error in {error_record.get('component', 'unknown')}: {error_record['message']}",
                     "severity": "critical",
                     "error_record": error_record,
-                }
+                },
             )
 
         # Check component failure rates
@@ -137,7 +137,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                     "severity": "warning",
                     "component": component,
                     "failure_rate": component_stats["failure_rate"],
-                }
+                },
             )
 
         # Check consecutive failures
@@ -149,7 +149,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                     "severity": "critical",
                     "component": component,
                     "consecutive_failures": component_stats["consecutive_failures"],
-                }
+                },
             )
 
         # Trigger alerts
@@ -183,11 +183,55 @@ class MonitoringErrorReporter(BaseErrorReporter):
                 logger.error(f"Error in alert callback: {e}")
 
     async def _trigger_async_alerts_async(
-        self, error: Exception, context: dict[str, Any] | None, additional_info: dict[str, Any] | None
+        self, error: Exception, context: dict[str, Any] | None, additional_info: dict[str, Any] | None,
     ) -> None:
         """Trigger async alert callbacks."""
         # This would integrate with async monitoring systems
         pass
+
+    def _update_metrics(self, error_record: dict[str, Any]) -> None:
+        """Update error metrics from error record."""
+        component = error_record.get("context", {}).get("component") or error_record.get("component", "unknown")
+        error_type = error_record["error_type"]
+        logger.debug(f"Updated metrics for {component}: {error_type}")
+
+    def _update_component_stats(self, error_record: dict[str, Any]) -> None:
+        """Update component statistics from error record."""
+        component = error_record.get("context", {}).get("component") or error_record.get("component", "unknown")
+        stats = self._component_stats[component]
+        stats["total_errors"] += 1
+        stats["last_error"] = error_record["timestamp"]
+        stats["consecutive_failures"] += 1
+        alpha = 0.1
+        stats["failure_rate"] = alpha * 1.0 + (1 - alpha) * stats["failure_rate"]
+        logger.debug(f"Updated component stats for {component}: {stats['total_errors']} total errors")
+
+    def _track_error_rates(self, error_record: dict[str, Any]) -> None:
+        """Track error rates over time."""
+        timestamp = datetime.fromisoformat(error_record["timestamp"])
+        minute_key = timestamp.strftime("%Y-%m-%d %H:%M")
+        component = error_record.get("context", {}).get("component") or error_record.get("component", "unknown")
+        self._error_rates[component].append(minute_key)
+        logger.debug(f"Tracked error rate for {component} at {minute_key}")
+
+    def _get_current_error_rate(self) -> float:
+        """Get current error rate per minute across all components."""
+        current_minute = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+        error_count = 0
+        for component_errors in self._error_rates.values():
+            error_count += sum(1 for minute in component_errors if minute == current_minute)
+        return float(error_count)
+
+    def _get_component_status(self, health_score: float, consecutive_failures: int) -> str:
+        """Determine component status from metrics."""
+        if consecutive_failures >= self.alert_thresholds["consecutive_failures"]:
+            return "critical"
+        elif health_score < 0.5:
+            return "degraded"
+        elif health_score < 0.8:
+            return "warning"
+        else:
+            return "healthy"
 
     def record_success(self, component: str, response_time: float | None = None) -> None:
         """Record successful operation for component health tracking."""
@@ -295,7 +339,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         current_rate = self._get_current_error_rate()
         if current_rate > self.alert_thresholds["error_rate_per_minute"]:
             report["alert_summary"]["active_alerts"].append(
-                {"type": "high_error_rate", "severity": "warning", "current_value": current_rate}
+                {"type": "high_error_rate", "severity": "warning", "current_value": current_rate},
             )
 
         return report
@@ -342,7 +386,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                         error.get("component", "unknown"),
                         error["message"],
                         error.get("operation", "unknown"),
-                    ]
+                    ],
                 )
 
             return output.getvalue()
@@ -419,12 +463,12 @@ class MonitoringErrorReporter(BaseErrorReporter):
                         "metric_type": "error_rate",
                         "unit": "errors_per_hour",
                     },
-                }
+                },
             )
 
         logger.debug(
             f"Retrieved {len(metric_points)} error rate metric points for "
-            f"{'service=' + service_name if service_name else 'all services'}"
+            f"{'service=' + service_name if service_name else 'all services'}",
         )
 
         return metric_points

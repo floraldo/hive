@@ -686,7 +686,7 @@ class MissionControlDashboard:
         try:
             # Get cost metrics from the last 24 hours and month
             cost_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.AI_COST], start_time=datetime.utcnow() - timedelta(days=30), limit=10000
+                metric_types=[MetricType.AI_COST], start_time=datetime.utcnow() - timedelta(days=30), limit=10000,
             )
 
             if not cost_metrics:
@@ -782,7 +782,7 @@ class MissionControlDashboard:
         try:
             # Get CI/CD metrics
             cicd_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.CI_CD_METRICS], start_time=datetime.utcnow() - timedelta(days=7), limit=1000
+                metric_types=[MetricType.CI_CD_METRICS], start_time=datetime.utcnow() - timedelta(days=7), limit=1000,
             )
 
             # Calculate metrics (simplified implementation)
@@ -845,7 +845,7 @@ class MissionControlDashboard:
             )
 
             debt_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.TECHNICAL_DEBT], start_time=datetime.utcnow() - timedelta(hours=24), limit=50
+                metric_types=[MetricType.TECHNICAL_DEBT], start_time=datetime.utcnow() - timedelta(hours=24), limit=50,
             )
 
             # Calculate overall compliance
@@ -1006,7 +1006,7 @@ class MissionControlDashboard:
 
             # Get retention metrics
             retention_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.USER_RETENTION], start_time=datetime.utcnow() - timedelta(days=7), limit=50
+                metric_types=[MetricType.USER_RETENTION], start_time=datetime.utcnow() - timedelta(days=7), limit=50,
             )
 
             # Get satisfaction metrics
@@ -1018,7 +1018,7 @@ class MissionControlDashboard:
 
             # Get support metrics
             support_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.SUPPORT_METRICS], start_time=datetime.utcnow() - timedelta(days=7), limit=100
+                metric_types=[MetricType.SUPPORT_METRICS], start_time=datetime.utcnow() - timedelta(days=7), limit=100,
             )
 
             # Calculate engagement metrics
@@ -1134,7 +1134,7 @@ class MissionControlDashboard:
         try:
             # Get feature adoption metrics
             feature_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.FEATURE_ADOPTION], start_time=datetime.utcnow() - timedelta(days=7), limit=100
+                metric_types=[MetricType.FEATURE_ADOPTION], start_time=datetime.utcnow() - timedelta(days=7), limit=100,
             )
 
             features = []
@@ -1278,7 +1278,7 @@ class MissionControlDashboard:
 
             if ltv_cac_ratio < 3:
                 cost_optimization_opportunities.append(
-                    "Low LTV:CAC ratio - reduce acquisition costs or increase retention"
+                    "Low LTV:CAC ratio - reduce acquisition costs or increase retention",
                 )
 
             return RevenueCorrelationData(
@@ -1357,7 +1357,7 @@ class MissionControlDashboard:
             total_missing_tests = sum(c.missing_tests for c in component_scorecards)
             components_production_ready = len([c for c in component_scorecards if c.deployment_readiness >= 80])
             components_needing_immediate_action = len(
-                [c for c in component_scorecards if c.action_required == "immediate"]
+                [c for c in component_scorecards if c.action_required == "immediate"],
             )
 
             # Generate high priority issues list
@@ -1366,7 +1366,7 @@ class MissionControlDashboard:
                     high_priority_issues.append(f"{scorecard.name}: {scorecard.certification_gap}")
                 if scorecard.golden_rules_violations > 0:
                     high_priority_issues.append(
-                        f"{scorecard.name}: {scorecard.golden_rules_violations} Golden Rules violations"
+                        f"{scorecard.name}: {scorecard.golden_rules_violations} Golden Rules violations",
                     )
                 if scorecard.test_coverage < 70:
                     high_priority_issues.append(f"{scorecard.name}: Low test coverage ({scorecard.test_coverage:.1f}%)")
@@ -1561,12 +1561,12 @@ class MissionControlDashboard:
         for scorecard in critical_scorecards[:3]:  # Top 3 critical components
             if scorecard.golden_rules_violations > 0:
                 recommendations.append(
-                    f"CRITICAL: Fix {scorecard.golden_rules_violations} Golden Rules violations in {scorecard.name}"
+                    f"CRITICAL: Fix {scorecard.golden_rules_violations} Golden Rules violations in {scorecard.name}",
                 )
 
             if scorecard.test_coverage < 70:
                 recommendations.append(
-                    f"HIGH: Increase test coverage in {scorecard.name} from {scorecard.test_coverage:.1f}% to 90%"
+                    f"HIGH: Increase test coverage in {scorecard.name} from {scorecard.test_coverage:.1f}% to 90%",
                 )
 
             if scorecard.deployment_readiness < 80:

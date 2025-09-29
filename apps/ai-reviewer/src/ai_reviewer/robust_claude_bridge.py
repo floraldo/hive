@@ -77,14 +77,14 @@ class RobustClaudeBridge:
         # Try system PATH
         claude_path = (
             subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"]
+                ["where" if os.name == "nt" else "which", "claude"],
                 capture_output=True,
                 text=True
             )
             .stdout.strip()
             .split("\n")[0]
             if subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"]
+                ["where" if os.name == "nt" else "which", "claude"],
                 capture_output=True,
                 text=True
             ).returncode,
@@ -127,8 +127,8 @@ class RobustClaudeBridge:
             mock_response = ClaudeReviewResponse(
                 decision="approve" if "test" in task_description.lower() else "rework",
                 summary="Mock review for testing purposes",
-                issues=([] if "good" in str(code_files).lower() else ["Mock issue found"])
-                suggestions=["Mock suggestion for improvement"]
+                issues=([] if "good" in str(code_files).lower() else ["Mock issue found"]),
+                suggestions=["Mock suggestion for improvement"],
                 quality_score=75,
                 metrics=ReviewMetrics(
                     code_quality=80,
@@ -136,7 +136,7 @@ class RobustClaudeBridge:
                     testing=70,
                     architecture=75,
                     documentation=65
-                )
+                ),
                 confidence=0.9
             )
             return mock_response.dict()
@@ -157,7 +157,7 @@ class RobustClaudeBridge:
             # Execute Claude CLI with --print flag to ensure it exits after responding
             # Add --dangerously-skip-permissions for automated environments
             result = subprocess.run(
-                [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt]
+                [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt],
                 capture_output=True,
                 text=True,
                 timeout=45
@@ -226,13 +226,13 @@ Code Files:
 {objective_context}
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
-{{
+{{,
   "decision": "approve" or "reject" or "rework" or "escalate",
   "summary": "One sentence summary of your review",
   "issues": ["List of specific issues found", "Or empty list if none"],
   "suggestions": ["List of improvement suggestions", "Or empty list if none"],
   "quality_score": 75,
-  "metrics": {{
+  "metrics": {{,
     "code_quality": 80,
     "security": 85,
     "testing": 70,
@@ -354,7 +354,7 @@ Respond with ONLY the JSON object, no other text."""
                 testing=quality_score - 10,
                 architecture=quality_score,
                 documentation=quality_score - 15
-            )
+            ),
             confidence=0.5,  # Lower confidence for parsed responses
         )
 
@@ -366,8 +366,8 @@ Respond with ONLY the JSON object, no other text."""
         response = ClaudeReviewResponse(
             decision="escalate",
             summary=f"Escalated: {reason}",
-            issues=[reason]
-            suggestions=["Manual review required"]
+            issues=[reason],
+            suggestions=["Manual review required"],
             quality_score=0,
             metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
             confidence=0.0

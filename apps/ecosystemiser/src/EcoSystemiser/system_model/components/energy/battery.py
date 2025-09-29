@@ -33,10 +33,10 @@ class BatteryTechnicalParams(StorageTechnicalParams):
 
     # Battery-specific additions (DETAILED fidelity)
     temperature_coefficient_capacity: float | None = Field(
-        None, description="Temperature coefficient for capacity (%/°C)"
+        None, description="Temperature coefficient for capacity (%/°C)",
     )
     temperature_coefficient_charge: float | None = Field(
-        None, description="Temperature coefficient for charging (%/°C)"
+        None, description="Temperature coefficient for charging (%/°C)",
     )
 
     # STANDARD fidelity additions

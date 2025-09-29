@@ -341,11 +341,11 @@ def generate_summary(results: dict[str, Any], total_duration: float) -> dict[str
                             "name": f"{suite_name}.{test_name}",
                             "avg_ms": test_data["avg_ms"],
                             "operations": test_data.get("operations", 1),
-                        }
+                        },
                     )
                 elif "duration_ms" in test_data:
                     operations.append(
-                        {"name": f"{suite_name}.{test_name}", "avg_ms": test_data["duration_ms"], "operations": 1}
+                        {"name": f"{suite_name}.{test_name}", "avg_ms": test_data["duration_ms"], "operations": 1},
                     )
 
     # Sort operations by performance

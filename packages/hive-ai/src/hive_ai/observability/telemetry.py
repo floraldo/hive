@@ -131,7 +131,7 @@ class TelemetryBuffer:
             self.total_events += 1
 
     async def get_recent_events_async(
-        self, count: int = 100, event_type: EventType | None = None
+        self, count: int = 100, event_type: EventType | None = None,
     ) -> list[TelemetryEvent]:
         """Get recent events from buffer.
 

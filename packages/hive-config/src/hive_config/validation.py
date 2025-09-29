@@ -44,7 +44,7 @@ def validate_python_environment() -> dict[str, any]:
     # Check Python version compatibility
     if not results["python_version"]["compatible"]:
         results["issues"].append(
-            f"Python {results['python_version']['current']} is not supported. Minimum required: Python 3.8"
+            f"Python {results['python_version']['current']} is not supported. Minimum required: Python 3.8",
         )
     elif not results["python_version"]["recommended"]:
         results["recommendations"].append("Consider upgrading to Python 3.11+ for better performance and features")
@@ -249,7 +249,7 @@ def format_validation_report(results: dict[str, any], include_details: bool = Tr
         py_env = results["python_environment"]
         lines.append("Python Environment:")
         lines.append(
-            f"  Version: {py_env['python_version']['current']} ({'✅' if py_env['python_version']['compatible'] else '❌'})"
+            f"  Version: {py_env['python_version']['current']} ({'✅' if py_env['python_version']['compatible'] else '❌'})",
         )
         lines.append(f"  Virtual Env: {'✅' if py_env['virtual_environment']['active'] else '⚠️'}")
 

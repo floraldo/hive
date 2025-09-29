@@ -68,7 +68,7 @@ class TaskExecutionError(BaseError):
         super().__init__(
             message=f"Task {task_id} failed on worker {worker_id}: {reason}",
             operation="execute_task",
-            details={"task_id": task_id, "worker_id": worker_id}
+            details={"task_id": task_id, "worker_id": worker_id},
             recovery_suggestions=[
                 "Retry task on different worker",
                 "Check worker health status",
@@ -86,7 +86,7 @@ class TaskTimeoutError(BaseError):
         super().__init__(
             message=f"Task {task_id} timed out after {timeout_seconds} seconds",
             operation="execute_task",
-            details={"task_id": task_id, "timeout_seconds": timeout_seconds}
+            details={"task_id": task_id, "timeout_seconds": timeout_seconds},
             recovery_suggestions=[
                 "Increase task timeout",
                 "Break task into smaller parts",
@@ -111,7 +111,7 @@ class WorkerSpawnError(BaseError):
         super().__init__(
             message=f"Failed to spawn {worker_type} worker: {reason}",
             operation="spawn_worker",
-            details={"worker_type": worker_type}
+            details={"worker_type": worker_type},
             recovery_suggestions=[
                 "Check system resources",
                 "Verify worker configuration",
@@ -129,7 +129,7 @@ class WorkerCommunicationError(BaseError):
         super().__init__(
             message=f"Communication failed with worker {worker_id} during {operation}: {reason}",
             operation="worker_communication",
-            details={"worker_id": worker_id, "failed_operation": operation}
+            details={"worker_id": worker_id, "failed_operation": operation},
             recovery_suggestions=[
                 "Check worker health status",
                 "Retry communication",
@@ -151,7 +151,7 @@ class WorkerOverloadError(BaseError):
                 "worker_id": worker_id,
                 "current_load": current_load,
                 "max_load": max_load
-            }
+            },
             recovery_suggestions=[
                 "Spawn additional workers",
                 "Redistribute tasks",
@@ -176,7 +176,7 @@ class EventPublishError(BaseError):
         super().__init__(
             message=f"Failed to publish {event_type} event: {reason}",
             operation="publish_event",
-            details={"event_type": event_type}
+            details={"event_type": event_type},
             recovery_suggestions=[
                 "Check event bus health",
                 "Verify event format",
@@ -194,7 +194,7 @@ class EventSubscribeError(BaseError):
         super().__init__(
             message=f"Failed to subscribe {subscriber} to pattern '{pattern}': {reason}",
             operation="subscribe_events",
-            details={"pattern": pattern, "subscriber": subscriber}
+            details={"pattern": pattern, "subscriber": subscriber},
             recovery_suggestions=[
                 "Check subscription pattern format",
                 "Verify subscriber callback",
@@ -219,7 +219,7 @@ class ClaudeRateLimitError(BaseError):
         super().__init__(
             message=f"Claude API rate limit exceeded, wait {wait_time:.1f} seconds",
             operation="claude_api_call",
-            details={"wait_time": wait_time}
+            details={"wait_time": wait_time},
             recovery_suggestions=[
                 "Wait before retrying",
                 "Implement exponential backoff",

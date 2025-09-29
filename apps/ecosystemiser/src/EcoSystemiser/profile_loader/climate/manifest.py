@@ -14,7 +14,7 @@ import xarray as xr
 
 
 def build_manifest(
-    *adapter_name: str, adapter_version: str, req: dict, qc_report: dict, source_meta: dict, ds: xr.Dataset = None
+    *adapter_name: str, adapter_version: str, req: dict, qc_report: dict, source_meta: dict, ds: xr.Dataset = None,
 ) -> dict[str, Any]:
     """
     Build manifest for climate data provenance.
@@ -61,7 +61,7 @@ def build_manifest(
                     "start": str(ds.time.min().values),
                     "end": str(ds.time.max().values),
                     "n_timesteps": len(ds.time),
-                }
+                },
             },
         )
 

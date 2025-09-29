@@ -46,7 +46,7 @@ class ClaudeService:
         self.mock_mode = getattr(config, "mock_mode", True)
 
     def generate_execution_plan(
-        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str, use_cache: bool = True
+        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str, use_cache: bool = True,
     ) -> dict[str, Any]:
         """Generate an execution plan for a task.
 
@@ -76,7 +76,7 @@ class ClaudeService:
                     "required_skills": ["analysis"],
                     "deliverables": ["requirements_doc"],
                     "dependencies": [],
-                }
+                },
             ],
             "metrics": {"total_estimated_duration": 30, "complexity_breakdown": {"medium": 1}, "confidence_score": 0.8},
         }
@@ -94,7 +94,7 @@ class ClaudeBridgeConfig:
 
 
 def get_claude_service(
-    config: Optional[dict[str, Any]] = None, rate_config: Optional[dict[str, Any]] = None
+    config: Optional[dict[str, Any]] = None, rate_config: Optional[dict[str, Any]] = None,
 ) -> ClaudeService:
     """Get a Claude service instance with optional configuration.
 
@@ -278,7 +278,7 @@ class AIPlanner:
                 WHERE status = 'pending',
                 ORDER BY priority DESC, created_at ASC,
                 LIMIT 1,
-            """
+            """,
             )
 
             result = cursor.fetchone()
@@ -418,7 +418,7 @@ class AIPlanner:
                 "task_id": task["id"],
                 "created_at": datetime.now(UTC).isoformat(),
                 "status": "generated",
-                "metadata": {
+                "metadata": {,
                     "generator": "ai-planner-v2-claude",
                     "agent_id": self.agent_id,
                     "generation_method": "claude-powered",
@@ -428,7 +428,7 @@ class AIPlanner:
 
             logger.info(f"Claude plan generated: {enhanced_plan['plan_name']}")
             logger.info(
-                f"Sub-tasks: {len(enhanced_plan['sub_tasks'])}, Duration: {enhanced_plan['metrics']['total_estimated_duration']}min"
+                f"Sub-tasks: {len(enhanced_plan['sub_tasks'])}, Duration: {enhanced_plan['metrics']['total_estimated_duration']}min",
             )
 
             # Publish plan generation success event,
@@ -505,7 +505,7 @@ class AIPlanner:
                 "type": "analysis",
                 "estimated_duration": 5,
                 "dependencies": [],
-            }
+            },
         )
         step_id += 1
 
@@ -519,7 +519,7 @@ class AIPlanner:
                     "type": "design",
                     "estimated_duration": 20,
                     "dependencies": [1],
-                }
+                },
             )
             step_id += 1
 
@@ -532,7 +532,7 @@ class AIPlanner:
                     "type": "implementation",
                     "estimated_duration": 30,
                     "dependencies": [1],
-                }
+                },
             )
             step_id += 1
 
@@ -545,7 +545,7 @@ class AIPlanner:
                     "type": "implementation",
                     "estimated_duration": 25,
                     "dependencies": [1],
-                }
+                },
             )
             step_id += 1
 
@@ -558,7 +558,7 @@ class AIPlanner:
                 "type": "validation",
                 "estimated_duration": 15,
                 "dependencies": list(range(2, step_id)),
-            }
+            },
         )
 
         return steps
@@ -650,7 +650,7 @@ class AIPlanner:
                     logger.debug(f"Rollback failed: {rollback_error}")
 
             error = DatabaseConnectionError(
-                message="Failed to save execution plan to database", original_error=e, retry_count=0
+                message="Failed to save execution plan to database", original_error=e, retry_count=0,
             )
             self.error_reporter.report_error(error)
             return False
@@ -698,7 +698,7 @@ class AIPlanner:
 
         except Exception as e:
             error = DatabaseConnectionError(
-                message=f"Failed to update task status to {status}", original_error=e, retry_count=0
+                message=f"Failed to update task status to {status}", original_error=e, retry_count=0,
             )
             self.error_reporter.report_error(error)
             return False
@@ -881,7 +881,7 @@ class AIPlanner:
                         WHERE status = 'pending',
                         ORDER BY priority DESC, created_at ASC,
                         LIMIT 1,
-                    """
+                    """,
                     )
 
                     result = await cursor.fetchone()
@@ -918,7 +918,7 @@ class AIPlanner:
                 return None
 
         async def update_task_status_async(
-            self, task_id: str, status: str, completion_data: dict | None = None
+            self, task_id: str, status: str, completion_data: dict | None = None,
         ) -> bool:
             """
             Async version of update_task_status.
@@ -1083,7 +1083,7 @@ class WorkflowEventType(Enum):
 
 
 def create_workflow_event(
-    event_type: WorkflowEventType, workflow_id: str, task_id: str, source_agent: str, **kwargs
+    event_type: WorkflowEventType, workflow_id: str, task_id: str, source_agent: str, **kwargs,
 ) -> dict[str, Any]:
     """Create a workflow event.
 

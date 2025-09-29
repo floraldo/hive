@@ -73,7 +73,7 @@ class TestCorePerformance:
                         name TEXT,
                         value REAL
                     )
-                """
+                """,
                 )
 
                 # Insert data

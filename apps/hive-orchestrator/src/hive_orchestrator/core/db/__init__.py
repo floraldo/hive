@@ -150,5 +150,5 @@ if ASYNC_AVAILABLE:
             "get_task_async",
             "get_queued_tasks_async",
             "create_run_async",
-        ]
+        ],
     )

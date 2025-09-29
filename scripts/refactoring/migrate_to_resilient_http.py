@@ -48,7 +48,7 @@ class HttpCallMigrator(ast.NodeTransformer):
                     # Transform: requests.get(...) → client.get(...)
                     new_call = ast.Call(
                         func=ast.Attribute(
-                            value=ast.Name(id="http_client", ctx=ast.Load()), attr=node.func.attr, ctx=ast.Load()
+                            value=ast.Name(id="http_client", ctx=ast.Load()), attr=node.func.attr, ctx=ast.Load(),
                         ),
                         args=node.args,
                         keywords=node.keywords,
@@ -220,7 +220,7 @@ def generate_migration_report(files: list[tuple[Path, int]]) -> str:
             "  2. Run with --execute to perform migration",
             "  3. Test each migrated service",
             "  4. Monitor circuit breaker statistics",
-        ]
+        ],
     )
 
     return "\n".join(lines)
@@ -232,10 +232,10 @@ def main():
 
     parser = argparse.ArgumentParser(description="Migrate requests calls to ResilientHttpClient")
     parser.add_argument(
-        "--root", type=Path, default=Path.cwd(), help="Root directory to scan (default: current directory)"
+        "--root", type=Path, default=Path.cwd(), help="Root directory to scan (default: current directory)",
     )
     parser.add_argument(
-        "--exclude", nargs="*", default=["tests/", "archive/", "docs/"], help="Patterns to exclude from migration"
+        "--exclude", nargs="*", default=["tests/", "archive/", "docs/"], help="Patterns to exclude from migration",
     )
     parser.add_argument("--execute", action="store_true", help="Execute migration (default is dry-run)")
     parser.add_argument("--file", type=Path, help="Migrate specific file")

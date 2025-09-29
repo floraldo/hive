@@ -192,7 +192,7 @@ class PoolOptimizer:
                     current_value=current_max,
                     recommended_value=int(peak_in_use * 1.5),  # 50% headroom
                     expected_improvement="Reduced acquisition times, better response under load",
-                )
+                ),
             )
 
         # Oversized pool detection
@@ -207,7 +207,7 @@ class PoolOptimizer:
                     current_value=current_max,
                     recommended_value=max(int(peak_in_use * 1.3), current_min),  # 30% headroom
                     expected_improvement="Reduced memory footprint, lower maintenance overhead",
-                )
+                ),
             )
 
         # Min size optimization
@@ -222,7 +222,7 @@ class PoolOptimizer:
                     current_value=current_min,
                     recommended_value=int(avg_in_use * 0.8),  # Just below average
                     expected_improvement="Faster connection acquisition, reduced creation overhead",
-                )
+                ),
             )
 
         elif avg_in_use < current_min * 0.5 and current_min > 2:  # Min too high
@@ -236,7 +236,7 @@ class PoolOptimizer:
                     current_value=current_min,
                     recommended_value=max(int(avg_in_use * 1.2), 2),  # 20% above avg, min 2
                     expected_improvement="Reduced idle connection overhead",
-                )
+                ),
             )
 
         # Acquisition time analysis
@@ -260,7 +260,7 @@ class PoolOptimizer:
                         current_value=f"{avg_acquisition_ms:.1f}ms avg",
                         recommended_value="<50ms p95",
                         expected_improvement="Faster request response times",
-                    )
+                    ),
                 )
 
         # Churn analysis
@@ -280,7 +280,7 @@ class PoolOptimizer:
                         current_value=f"{reuse_rate * 100:.1f}% reuse",
                         recommended_value=">90% reuse",
                         expected_improvement="Reduced overhead from connection creation",
-                    )
+                    ),
                 )
 
         # Error analysis
@@ -298,7 +298,7 @@ class PoolOptimizer:
                         current_value=f"{metrics[-1].errors} errors",
                         recommended_value="<0.5% error rate",
                         expected_improvement="Increased reliability",
-                    )
+                    ),
                 )
 
         return recommendations

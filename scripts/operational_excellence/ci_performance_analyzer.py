@@ -116,7 +116,7 @@ class CIPerfomanceAnalyzer:
                         "status": run["status"],
                         "conclusion": run["conclusion"],
                         "created_at": run["created_at"],
-                    }
+                    },
                 )
 
                 workflows[workflow_name]["total_duration"] += duration
@@ -143,7 +143,7 @@ class CIPerfomanceAnalyzer:
                         "success_rate": data["success_rate"],
                         "failure_count": data["failure_count"],
                         "slowest_duration_minutes": data["runs"][0]["duration"] / 60 if data["runs"] else 0,
-                    }
+                    },
                 )
 
     def analyze_job_bottlenecks(self, sample_runs: int = 20) -> None:
@@ -190,7 +190,7 @@ class CIPerfomanceAnalyzer:
                         "failure_rate": failure_rate,
                         "total_runs": stats["total_runs"],
                         "is_bottleneck": avg_duration > 300,  # 5+ minutes
-                    }
+                    },
                 )
 
         # Sort by average duration
@@ -216,7 +216,7 @@ class CIPerfomanceAnalyzer:
 
                 if issues:
                     self.analysis_results["dockerfile_issues"].append(
-                        {"file": str(dockerfile_path.relative_to(Path.cwd())), "issues": issues}
+                        {"file": str(dockerfile_path.relative_to(Path.cwd())), "issues": issues},
                     )
 
             except Exception as e:
@@ -243,7 +243,7 @@ class CIPerfomanceAnalyzer:
                         "issue": "COPY . . before dependency installation breaks layer caching",
                         "severity": "high",
                         "recommendation": "Copy dependency files first, install deps, then copy source code",
-                    }
+                    },
                 )
 
             # Check for dependency installation
@@ -258,7 +258,7 @@ class CIPerfomanceAnalyzer:
                         "issue": "pip install without --no-cache-dir increases image size",
                         "severity": "medium",
                         "recommendation": "Add --no-cache-dir flag to pip install commands",
-                    }
+                    },
                 )
 
             # Check for apt-get without cleanup
@@ -271,7 +271,7 @@ class CIPerfomanceAnalyzer:
                             "issue": "apt-get install without cleanup increases image size",
                             "severity": "medium",
                             "recommendation": "Add apt-get clean && rm -rf /var/lib/apt/lists/* after apt-get install",
-                        }
+                        },
                     )
 
             # Check for multiple RUN commands that could be combined
@@ -284,7 +284,7 @@ class CIPerfomanceAnalyzer:
                             "issue": "Multiple consecutive RUN commands create unnecessary layers",
                             "severity": "low",
                             "recommendation": "Combine RUN commands with && to reduce layers",
-                        }
+                        },
                     )
 
         return issues
@@ -304,7 +304,7 @@ class CIPerfomanceAnalyzer:
                     "issue": f"Workflow averages {workflow['avg_duration_minutes']:.1f} minutes",
                     "recommendation": "Consider parallelizing jobs or optimizing slow steps",
                     "priority": "high" if workflow["avg_duration_minutes"] > 20 else "medium",
-                }
+                },
             )
 
         # Job-level recommendations
@@ -325,7 +325,7 @@ class CIPerfomanceAnalyzer:
                     "issue": f"Job averages {job['avg_duration_minutes']:.1f} minutes",
                     "recommendation": recommendation,
                     "priority": "high" if job["avg_duration_minutes"] > 15 else "medium",
-                }
+                },
             )
 
         # Dockerfile recommendations
@@ -340,7 +340,7 @@ class CIPerfomanceAnalyzer:
                         "issue": f"{len(high_severity_issues)} high-severity optimization issues",
                         "recommendation": "Fix layer caching and dependency installation order",
                         "priority": "high",
-                    }
+                    },
                 )
 
         self.analysis_results["optimization_recommendations"] = recommendations
@@ -352,7 +352,7 @@ class CIPerfomanceAnalyzer:
         # Executive Summary
         total_workflows = len(self.analysis_results["workflow_performance"])
         slow_workflows = len(
-            [w for w in self.analysis_results["workflow_performance"] if w["avg_duration_minutes"] > 10]
+            [w for w in self.analysis_results["workflow_performance"] if w["avg_duration_minutes"] > 10],
         )
         bottleneck_jobs = len([j for j in self.analysis_results["job_bottlenecks"] if j["is_bottleneck"]])
         dockerfile_issues = sum(len(d["issues"]) for d in self.analysis_results["dockerfile_issues"])
@@ -372,7 +372,7 @@ class CIPerfomanceAnalyzer:
                 f"- **Dockerfile Issues**: {dockerfile_issues}",
                 f"- **Optimization Opportunities**: {len(self.analysis_results['optimization_recommendations'])}",
                 "",
-            ]
+            ],
         )
 
         # Workflow Performance
@@ -381,7 +381,7 @@ class CIPerfomanceAnalyzer:
 
             # Top 5 slowest workflows
             slowest = sorted(
-                self.analysis_results["workflow_performance"], key=lambda x: x["avg_duration_minutes"], reverse=True
+                self.analysis_results["workflow_performance"], key=lambda x: x["avg_duration_minutes"], reverse=True,
             )[:5]
 
             report_lines.extend(["### Slowest Workflows", ""])
@@ -396,7 +396,7 @@ class CIPerfomanceAnalyzer:
                 )
                 report_lines.append(
                     f"{status_emoji} **{workflow['name']}**: {workflow['avg_duration_minutes']:.1f}min avg "
-                    f"({workflow['success_rate']:.1f}% success rate, {workflow['run_count']} runs)"
+                    f"({workflow['success_rate']:.1f}% success rate, {workflow['run_count']} runs)",
                 )
 
             report_lines.append("")
@@ -411,7 +411,7 @@ class CIPerfomanceAnalyzer:
                 )
                 report_lines.append(
                     f"{status_emoji} **{job['name']}**: {job['avg_duration_minutes']:.1f}min avg "
-                    f"(max: {job['max_duration_minutes']:.1f}min, {job['failure_rate']:.1f}% failure rate)"
+                    f"(max: {job['max_duration_minutes']:.1f}min, {job['failure_rate']:.1f}% failure rate)",
                 )
 
             report_lines.append("")
@@ -477,7 +477,7 @@ class CIPerfomanceAnalyzer:
                 f"- **Total CI/CD Minutes (30 days)**: {total_minutes:.0f} minutes",
                 f"- **Estimated Monthly Cost**: ${estimated_cost:.2f}",
                 "",
-            ]
+            ],
         )
 
         if slow_workflows > 0 or bottleneck_jobs > 0:
@@ -497,7 +497,7 @@ class CIPerfomanceAnalyzer:
                 "---",
                 "",
                 "*This analysis helps optimize CI/CD performance and reduce costs while maintaining quality.*",
-            ]
+            ],
         )
 
         return "\n".join(report_lines)

@@ -179,7 +179,7 @@ class WorkflowOrchestrator:
             agent_id=agent_id,
             task_id=task_id,
             task_sequence_id=task_sequence_id,
-            dependencies=dependencies or []
+            dependencies=dependencies or [],
             timeout_seconds=timeout_seconds
         )
         return self.add_step(step)
@@ -357,7 +357,7 @@ class WorkflowOrchestrator:
                     success=self.status == WorkflowStatus.COMPLETED,
                     additional_metadata={
                         "completed_steps": len(self.completed_steps),
-                        "failed_steps": len(self.failed_steps)
+                        "failed_steps": len(self.failed_steps),
                         "success_rate": success_rate,
                         "duration_seconds": duration
                     }
@@ -370,9 +370,9 @@ class WorkflowOrchestrator:
                 start_time=self.start_time,
                 end_time=self.end_time,
                 duration_seconds=duration,
-                completed_steps=len(self.completed_steps)
+                completed_steps=len(self.completed_steps),
                 failed_steps=len(self.failed_steps),
-                total_steps=len(self.steps)
+                total_steps=len(self.steps),
                 step_results=self.step_results.copy(),
                 metadata={"execution_strategy": self.config.execution_strategy.value, "success_rate": success_rate}
             )
@@ -398,7 +398,7 @@ class WorkflowOrchestrator:
                     error_type=type(e).__name__,
                     additional_metadata={
                         "completed_steps": len(self.completed_steps),
-                        "failed_steps": len(self.failed_steps)
+                        "failed_steps": len(self.failed_steps),
                         "duration_seconds": duration,
                         "error": error_msg
                     }
@@ -518,9 +518,9 @@ class WorkflowOrchestrator:
         """Create a workflow checkpoint."""
         checkpoint = {
             "timestamp": datetime.utcnow().isoformat(),
-            "completed_steps": list(self.completed_steps)
+            "completed_steps": list(self.completed_steps),
             "failed_steps": list(self.failed_steps),
-            "step_results": self.step_results.copy()
+            "step_results": self.step_results.copy(),
             "workflow_status": self.status.value
         }
 
@@ -568,17 +568,17 @@ class WorkflowOrchestrator:
             "workflow_id": self.id,
             "name": self.config.name,
             "status": self.status.value,
-            "created_at": self.created_at.isoformat()
+            "created_at": self.created_at.isoformat(),
             "start_time": self.start_time.isoformat() if self.start_time else None,
             "end_time": self.end_time.isoformat() if self.end_time else None,
             "duration_seconds": duration,
-            "total_steps": len(self.steps)
+            "total_steps": len(self.steps),
             "completed_steps": len(self.completed_steps),
-            "failed_steps": len(self.failed_steps)
+            "failed_steps": len(self.failed_steps),
             "running_steps": len(self.running_steps),
             "success_rate": len(self.completed_steps) / len(self.steps) if self.steps else 0,
             "agents": len(self.agents),
-            "tasks": len(self.tasks)
+            "tasks": len(self.tasks),
             "task_sequences": len(self.task_sequences),
             "checkpoints": len(self.checkpoints)
         }
@@ -586,32 +586,32 @@ class WorkflowOrchestrator:
     async def export_workflow_data_async(self) -> Dict[str, Any]:
         """Export complete workflow data for analysis or persistence."""
         return {
-            "workflow_info": {
+            "workflow_info": {,
                 "id": self.id,
                 "name": self.config.name,
                 "description": self.config.description,
                 "created_at": self.created_at.isoformat(),
-                "config": {
+                "config": {,
                     "execution_strategy": self.config.execution_strategy.value,
                     "max_concurrent_steps": self.config.max_concurrent_steps,
                     "global_timeout_seconds": self.config.global_timeout_seconds,
                     "failure_tolerance": self.config.failure_tolerance
                 }
             }
-            "execution_data": {
+            "execution_data": {,
                 "status": self.status.value,
                 "start_time": self.start_time.isoformat() if self.start_time else None,
                 "end_time": self.end_time.isoformat() if self.end_time else None,
                 "completed_steps": list(self.completed_steps),
-                "failed_steps": list(self.failed_steps)
+                "failed_steps": list(self.failed_steps),
                 "step_results": self.step_results
             }
-            "components": {
+            "components": {,
                 "agents": [await agent.export_state_async() for agent in self.agents.values()]
                 "tasks": [task.get_status_info() for task in self.tasks.values()],
-                "task_sequences": [seq.get_status_summary() for seq in self.task_sequences.values()]
+                "task_sequences": [seq.get_status_summary() for seq in self.task_sequences.values()],
                 "steps": {
-                    step_id: {
+                    step_id: {,
                         "id": step.id,
                         "name": step.name,
                         "agent_id": step.agent_id,

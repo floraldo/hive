@@ -53,7 +53,7 @@ def create_simple_golden_system(N=24):
         else:
             # Repeat pattern if needed
             solar_profile = np.tile(
-                profiles_df["solar_generation_weather_adjusted"].values, (N // len(profiles_df) + 1)
+                profiles_df["solar_generation_weather_adjusted"].values, (N // len(profiles_df) + 1),
             )[:N]
             demand_profile = np.tile(profiles_df["total_electrical_demand_kw"].values, (N // len(profiles_df) + 1))[:N]
 
@@ -68,8 +68,8 @@ def create_simple_golden_system(N=24):
     logger.info("Creating grid component...")
     grid_params = GridParams(
         technical=GridTechnicalParams(
-            capacity_nominal=100.0, import_tariff=0.25, export_tariff=0.10, fidelity_level=FidelityLevel.SIMPLE
-        )
+            capacity_nominal=100.0, import_tariff=0.25, export_tariff=0.10, fidelity_level=FidelityLevel.SIMPLE,
+        ),
     )
     grid = Grid("Grid", grid_params, N)
 
@@ -82,15 +82,15 @@ def create_simple_golden_system(N=24):
             efficiency_roundtrip=0.95,
             initial_soc_pct=0.5,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     battery = Battery("Battery", battery_params, N)
 
     logger.info("Creating solar PV component...")
     solar_params = SolarPVParams(
         technical=SolarPVTechnicalParams(
-            capacity_nominal=50.0, efficiency_nominal=1.0, fidelity_level=FidelityLevel.SIMPLE
-        )
+            capacity_nominal=50.0, efficiency_nominal=1.0, fidelity_level=FidelityLevel.SIMPLE,
+        ),
     )
     solar = SolarPV("SolarPV", solar_params, N)
     solar.profile = solar_normalized
@@ -98,8 +98,8 @@ def create_simple_golden_system(N=24):
     logger.info("Creating power demand component...")
     demand_params = PowerDemandParams(
         technical=PowerDemandTechnicalParams(
-            capacity_nominal=12.5, peak_demand=12.5, load_profile_type="variable", fidelity_level=FidelityLevel.SIMPLE
-        )
+            capacity_nominal=12.5, peak_demand=12.5, load_profile_type="variable", fidelity_level=FidelityLevel.SIMPLE,
+        ),
     )
     demand = PowerDemand("PowerDemand", demand_params, N)
     demand.profile = demand_normalized
@@ -163,7 +163,7 @@ def create_synthetic_profiles(N):
                 0.0,
                 0.0,
                 0.0,  # Evening/night
-            ]
+            ],
         )
 
         # Daily demand pattern (base electrical + some thermal)
@@ -193,7 +193,7 @@ def create_synthetic_profiles(N):
                 0.4,
                 0.4,
                 0.4,  # Night baseload
-            ]
+            ],
         )
 
         solar_profile.extend(daily_solar)
@@ -337,7 +337,7 @@ def run_solver_validation(N=24):
                     "physics_violations": len(physics_violations),
                     "system_behavior_valid": behavior_valid,
                     "behavior_checks": behavior_checks,
-                }
+                },
             )
 
             # Overall validation
@@ -349,7 +349,7 @@ def run_solver_validation(N=24):
             logger.info("=" * 60)
             logger.info(f"Energy Balance: {'PASS' if energy_valid else 'FAIL'} (max imbalance: {max_imbalance:.2e})")
             logger.info(
-                f"Physics Constraints: {'PASS' if physics_valid else 'FAIL'} ({len(physics_violations)} violations)"
+                f"Physics Constraints: {'PASS' if physics_valid else 'FAIL'} ({len(physics_violations)} violations)",
             )
             logger.info(f"System Behavior: {'PASS' if behavior_valid else 'FAIL'}")
             logger.info(f"Overall Result: {'PASS' if results['validation_passed'] else 'FAIL'}")

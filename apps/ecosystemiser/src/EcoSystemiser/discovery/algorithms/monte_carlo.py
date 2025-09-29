@@ -264,7 +264,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                                 "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
                                 "error": str(e),
-                            }
+                            },
                         )
         else:
             for i, sample in enumerate(population):
@@ -281,7 +281,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                                 "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
                                 "error": str(e),
-                            }
+                            },
                         ),
                     )
 
@@ -708,7 +708,7 @@ class UncertaintyAnalyzer:
         self.engine = MonteCarloEngine(config)
 
     def run_uncertainty_analysis(
-        self, fitness_function: Callable, parameter_uncertainties: dict[str, dict[str, Any]]
+        self, fitness_function: Callable, parameter_uncertainties: dict[str, dict[str, Any]],
     ) -> dict[str, Any]:
         """Run complete uncertainty analysis.
 
@@ -737,7 +737,7 @@ class UncertaintyAnalyzer:
         )
 
     def run_sensitivity_study(
-        self, fitness_function: Callable, parameter_ranges: dict[str, tuple[float, float]], n_samples: int = 1000
+        self, fitness_function: Callable, parameter_ranges: dict[str, tuple[float, float]], n_samples: int = 1000,
     ) -> dict[str, Any]:
         """Run sensitivity analysis study.
 
@@ -766,7 +766,7 @@ class UncertaintyAnalyzer:
             {
                 "sensitivity_indices": result["uncertainty_analysis"].get("sensitivity", {}),
                 "parameter_ranking": self._rank_parameters_by_sensitivity(
-                    result["uncertainty_analysis"].get("sensitivity", {})
+                    result["uncertainty_analysis"].get("sensitivity", {}),
                 ),
                 "summary": result["summary"],
             },
@@ -790,7 +790,7 @@ class UncertaintyAnalyzer:
                                 "sensitivity_index": sensitivity_index,
                                 "pearson_correlation": sensitivity_data.get("pearson_correlation", 0),
                                 "p_value": sensitivity_data.get("pearson_p_value", 1),
-                            }
+                            },
                         )
 
                 # Sort by sensitivity index (descending),
@@ -808,7 +808,7 @@ class UncertaintyAnalyzer:
                     "total_samples": result.evaluations,
                     "execution_time": result.execution_time,
                     "convergence": result.status == OptimizationStatus.CONVERGED,
-                }
+                },
             },
         )
 

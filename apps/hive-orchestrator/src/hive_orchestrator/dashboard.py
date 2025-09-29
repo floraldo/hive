@@ -88,7 +88,7 @@ class HiveDashboard:
                     "assigned_worker": row[5],
                     "created_at": row[6],
                     "updated_at": row[7],
-                }
+                },
             )
 
         return tasks
@@ -105,7 +105,7 @@ class HiveDashboard:
             WHERE status = 'escalated',
             ORDER BY priority DESC, created_at ASC,
             LIMIT 5
-        """
+        """,
         )
 
         escalated = []
@@ -122,7 +122,7 @@ class HiveDashboard:
                     "created_at": row[3],
                     "ai_score": review.get("overall_score", 0),
                     "reason": result_data.get("escalation_reason", "Review needed"),
-                }
+                },
             )
 
         return escalated
@@ -138,7 +138,7 @@ class HiveDashboard:
                    last_heartbeat, registered_at,
             FROM workers,
             ORDER BY last_heartbeat DESC,
-        """
+        """,
         )
 
         workers = []
@@ -151,7 +151,7 @@ class HiveDashboard:
                     "current_task_id": row[3],
                     "last_heartbeat": row[4],
                     "registered_at": row[5],
-                }
+                },
             )
 
         return workers
@@ -185,7 +185,7 @@ class HiveDashboard:
                     "phase": row[5],
                     "started_at": row[6],
                     "completed_at": row[7],
-                }
+                },
             )
 
         return runs
@@ -428,7 +428,7 @@ class HiveDashboard:
         # Header
         header_text = Text.from_markup(
             "[bold cyan]HIVE FLEET COMMAND DASHBOARD[/bold cyan]\n"
-            + f"[dim]Real-time System Monitor • Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/dim]"
+            + f"[dim]Real-time System Monitor • Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/dim]",
         )
         layout["header"].update(Panel(header_text, box=box.DOUBLE))
 
@@ -449,7 +449,7 @@ class HiveDashboard:
 
         # Footer
         footer_text = Text.from_markup(
-            "[dim]Press Ctrl+C to exit • Refreshes every 2 seconds • Database: hive/db/hive-internal.db[/dim]"
+            "[dim]Press Ctrl+C to exit • Refreshes every 2 seconds • Database: hive/db/hive-internal.db[/dim]",
         )
         layout["footer"].update(Panel(footer_text, box=box.ROUNDED))
 

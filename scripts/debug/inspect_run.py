@@ -143,13 +143,13 @@ class RunInspector:
                         try:
                             issues = json.loads(result.stdout) if result.stdout else []
                             linter_results.append(
-                                {"file": file_path, "status": "issues", "issues": issues, "issue_count": len(issues)}
+                                {"file": file_path, "status": "issues", "issues": issues, "issue_count": len(issues)},
                             )
                             self.report["issues"].extend(
                                 [
                                     f"Linter: {issue.get('message', 'Unknown issue')} at {file_path}:{issue.get('location', {}).get('row', '?')}"
                                     for issue in issues[:5]  # Limit to first 5 issues
-                                ]
+                                ],
                             )
                         except json.JSONDecodeError:
                             # Fallback to text output
@@ -159,13 +159,13 @@ class RunInspector:
                     # Ruff not available, try basic Python syntax check
                     try:
                         result = subprocess.run(
-                            ["python", "-m", "py_compile", file_path], capture_output=True, text=True, timeout=5
+                            ["python", "-m", "py_compile", file_path], capture_output=True, text=True, timeout=5,
                         )
                         if result.returncode == 0:
                             linter_results.append({"file": file_path, "status": "syntax_ok"})
                         else:
                             linter_results.append(
-                                {"file": file_path, "status": "syntax_error", "error": result.stderr[:200]}
+                                {"file": file_path, "status": "syntax_error", "error": result.stderr[:200]},
                             )
                             self.report["issues"].append(f"Syntax error in {file_path}")
                     except Exception as e:

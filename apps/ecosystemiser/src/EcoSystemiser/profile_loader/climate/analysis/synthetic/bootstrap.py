@@ -40,7 +40,7 @@ def multivariate_block_bootstrap(
         np.random.seed(seed)
 
     logger.info(
-        f"Generating synthetic data: block={block}, seasons={season_bins}, overlap={overlap_hours}h, seed={seed}"
+        f"Generating synthetic data: block={block}, seasons={season_bins}, overlap={overlap_hours}h, seed={seed}",
     )
 
     # Convert block size to timedelta

@@ -35,7 +35,7 @@ except ImportError:
 
     class CircuitBreaker:
         def __init__(
-            self, failure_threshold: int = 5, recovery_timeout: int = 60, expected_exception: type = Exception
+            self, failure_threshold: int = 5, recovery_timeout: int = 60, expected_exception: type = Exception,
         ):
             self.failure_threshold = failure_threshold
             self.recovery_timeout = recovery_timeout

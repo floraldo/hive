@@ -71,7 +71,7 @@ class ScriptsAnalyzer:
 
             # Count TODOs
             todo_count = len(
-                [line for line in lines if any(marker in line.upper() for marker in ["TODO", "FIXME", "XXX", "HACK"])]
+                [line for line in lines if any(marker in line.upper() for marker in ["TODO", "FIXME", "XXX", "HACK"])],
             )
 
             # Check if executable
@@ -395,7 +395,7 @@ def main():
     print(f"   - {len(redundancy_groups)} redundancy groups identified")
     print(f"   - {sum(len(g.redundant_scripts) for g in redundancy_groups)} scripts can be consolidated")
     print(
-        f"   - Potential reduction: {sum(len(g.redundant_scripts) for g in redundancy_groups) / len(metadata_map) * 100:.1f}%"
+        f"   - Potential reduction: {sum(len(g.redundant_scripts) for g in redundancy_groups) / len(metadata_map) * 100:.1f}%",
     )
 
     print("\nNext Steps:")

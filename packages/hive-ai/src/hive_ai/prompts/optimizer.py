@@ -242,7 +242,7 @@ Context-aware prompt:""",
             raise PromptError(f"Prompt optimization failed: {str(e)}") from e
 
     def _parse_optimization_response(
-        self, response: str, original_prompt: str, strategy: OptimizationStrategy
+        self, response: str, original_prompt: str, strategy: OptimizationStrategy,
     ) -> OptimizationResult:
         """Parse AI response into optimization result."""
         # Simple parsing - in production, this would be more sophisticated
@@ -401,7 +401,7 @@ Context-aware prompt:""",
         success_rate = len(valid_responses) / len(responses) if responses else 0.0
 
         metrics.append(
-            PerformanceMetric(name="success_rate", value=success_rate, description="Percentage of successful responses")
+            PerformanceMetric(name="success_rate", value=success_rate, description="Percentage of successful responses"),
         )
 
         if valid_responses:
@@ -409,8 +409,8 @@ Context-aware prompt:""",
             avg_length = statistics.mean(len(r) for r in valid_responses)
             metrics.append(
                 PerformanceMetric(
-                    name="avg_response_length", value=avg_length, description="Average response length in characters"
-                )
+                    name="avg_response_length", value=avg_length, description="Average response length in characters",
+                ),
             )
 
             # Response variability (creativity indicator)
@@ -421,7 +421,7 @@ Context-aware prompt:""",
                         name="response_variability",
                         value=length_variance,
                         description="Variance in response lengths (creativity indicator)",
-                    )
+                    ),
                 )
 
         # Custom criteria evaluation would go here
@@ -430,7 +430,7 @@ Context-aware prompt:""",
         return metrics
 
     def _determine_winner(
-        self, metrics_a: list[PerformanceMetric], metrics_b: list[PerformanceMetric]
+        self, metrics_a: list[PerformanceMetric], metrics_b: list[PerformanceMetric],
     ) -> tuple[str, float]:
         """Determine winner and confidence level."""
         # Simple scoring based on success rate
@@ -465,7 +465,7 @@ Context-aware prompt:""",
             return "TIE", confidence
 
     async def batch_optimize_async(
-        self, prompts: list[str], strategy: OptimizationStrategy = OptimizationStrategy.CLARITY
+        self, prompts: list[str], strategy: OptimizationStrategy = OptimizationStrategy.CLARITY,
     ) -> list[OptimizationResult]:
         """
         Optimize multiple prompts in batch.

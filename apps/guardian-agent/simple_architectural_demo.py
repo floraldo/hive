@@ -164,7 +164,7 @@ The Oracle has successfully evolved from Guardian to strategic intelligence:
 
 The Oracle will continue to evolve, ensuring the entire Hive ecosystem
 maintains architectural discipline and technical excellence.
-"""
+""",
     )
 
     print("The Oracle is ready. The platform intelligence revolution begins now.")

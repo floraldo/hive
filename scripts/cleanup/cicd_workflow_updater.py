@@ -108,7 +108,7 @@ class WorkflowUpdater:
                         "file": str(workflow_file.relative_to(self.project_root)),
                         "updates": updates_in_file,
                         "backup": str(backup_path.relative_to(self.project_root)),
-                    }
+                    },
                 )
 
                 print(f"[UPDATED] {workflow_file.name}: {updates_in_file} changes")

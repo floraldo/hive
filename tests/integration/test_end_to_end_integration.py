@@ -154,7 +154,7 @@ class EndToEndIntegrationTest:
             CREATE INDEX idx_tasks_status_type ON tasks (status, task_type);
             CREATE INDEX idx_tasks_payload_parent ON tasks (json_extract(payload, '$.parent_plan_id'));
             CREATE INDEX idx_runs_task_status ON runs (task_id, status);
-        """
+        """,
         )
         conn.commit()
         conn.close()
@@ -325,7 +325,7 @@ class EndToEndIntegrationTest:
             )
             SELECT * FROM ready_subtasks
             ORDER BY priority DESC, created_at ASC
-        """
+        """,
         )
 
         rows = cursor.fetchall()
@@ -507,7 +507,7 @@ class EndToEndIntegrationTest:
         print("\n📋 Step 1: Creating planning task...")
         task_description = "Implement complete authentication system with JWT tokens"
         planning_task_id = self.create_planning_task(
-            task_description, priority=75, context={"complexity": "high", "estimated_hours": 8}
+            task_description, priority=75, context={"complexity": "high", "estimated_hours": 8},
         )
         print(f"✅ Created planning task: {planning_task_id}")
 
@@ -535,7 +535,7 @@ class EndToEndIntegrationTest:
                 completion = self.check_plan_completion(plan_id)
                 if completion["complete"]:
                     print(
-                        f"   🎉 Plan completed! {completion['completed_tasks']}/{completion['total_tasks']} tasks done"
+                        f"   🎉 Plan completed! {completion['completed_tasks']}/{completion['total_tasks']} tasks done",
                     )
                     break
                 else:
@@ -557,7 +557,7 @@ class EndToEndIntegrationTest:
             # Check progress
             completion = self.check_plan_completion(plan_id)
             print(
-                f"   📊 Plan progress: {completion['progress']:.1f}% ({completion['completed_tasks']}/{completion['total_tasks']})"
+                f"   📊 Plan progress: {completion['progress']:.1f}% ({completion['completed_tasks']}/{completion['total_tasks']})",
             )
 
         # Step 4: Verify final state

@@ -101,7 +101,7 @@ class GoldenRulesAutoFixer:
                         backup_created=backup_path is not None,
                         success=False,
                         error_message=str(e),
-                    )
+                    ),
                 )
 
         return self.results
@@ -168,7 +168,7 @@ class GoldenRulesAutoFixer:
                     if matches > 0:
                         modified_content = re.sub(pattern, new_name, modified_content)
                         changes_made.append(
-                            f"Renamed async function '{old_name}' to '{new_name}' ({matches} occurrences)"
+                            f"Renamed async function '{old_name}' to '{new_name}' ({matches} occurrences)",
                         )
 
             # Apply changes
@@ -186,7 +186,7 @@ class GoldenRulesAutoFixer:
                         changes_made=changes_made,
                         backup_created=self.create_backups and not self.dry_run,
                         success=True,
-                    )
+                    ),
                 )
 
         except Exception as e:
@@ -200,7 +200,7 @@ class GoldenRulesAutoFixer:
                     backup_created=False,
                     success=False,
                     error_message=f"Error fixing async naming: {e}",
-                )
+                ),
             )
 
     def _fix_print_statements(self, file_path: Path) -> None:
@@ -297,7 +297,7 @@ class GoldenRulesAutoFixer:
                         changes_made=changes_made,
                         backup_created=self.create_backups and not self.dry_run,
                         success=True,
-                    )
+                    ),
                 )
 
         except Exception as e:
@@ -311,7 +311,7 @@ class GoldenRulesAutoFixer:
                     backup_created=False,
                     success=False,
                     error_message=f"Error fixing print statements: {e}",
-                )
+                ),
             )
 
     def _fix_exception_inheritance(self, file_path: Path) -> None:
@@ -363,7 +363,7 @@ class GoldenRulesAutoFixer:
                         # Has inheritance but not from valid bases - replace first base
                         old_base = base_names[0]
                         modified_content = modified_content.replace(
-                            f"class {class_name}({old_base}", f"class {class_name}(BaseError"
+                            f"class {class_name}({old_base}", f"class {class_name}(BaseError",
                         )
                         (changes_made.append(f"Changed {class_name} to inherit from BaseError instead of {old_base}"),)
                         needs_base_error_import = True
@@ -400,7 +400,7 @@ class GoldenRulesAutoFixer:
                         changes_made=changes_made,
                         backup_created=self.create_backups and not self.dry_run,
                         success=True,
-                    )
+                    ),
                 )
 
         except Exception as e:
@@ -414,7 +414,7 @@ class GoldenRulesAutoFixer:
                     backup_created=False,
                     success=False,
                     error_message=f"Error fixing exception inheritance: {e}",
-                )
+                ),
             )
 
     def generate_report(self) -> str:
@@ -502,7 +502,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Automated Golden Rules violation fixer")
     parser.add_argument(
-        "--dry-run", action="store_true", default=True, help="Show what would be fixed without making changes"
+        "--dry-run", action="store_true", default=True, help="Show what would be fixed without making changes",
     )
     parser.add_argument("--execute", action="store_true", help="Actually apply the fixes (overrides --dry-run)")
     parser.add_argument("--rules", nargs="+", help="Specific rules to fix (e.g., rule-14 rule-9)")

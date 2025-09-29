@@ -256,7 +256,7 @@ class PoolConfigManager:
             raise
 
     def update_config(
-        self, service_name: str, new_config: dict[str, Any], change_reason: str = "", skip_validation: bool = False
+        self, service_name: str, new_config: dict[str, Any], change_reason: str = "", skip_validation: bool = False,
     ) -> bool:
         """
         Update configuration with validation and history tracking.
@@ -302,7 +302,7 @@ class PoolConfigManager:
 
             logger.info(
                 f"Updated config for {service_name} "
-                f"(version {current_config.version if current_config else 0} → {new_version})"
+                f"(version {current_config.version if current_config else 0} → {new_version})",
             )
 
             # Save to history
@@ -315,7 +315,7 @@ class PoolConfigManager:
             return False
 
     def diff_configs(
-        self, service_name: str, old_config: dict[str, Any], new_config: dict[str, Any]
+        self, service_name: str, old_config: dict[str, Any], new_config: dict[str, Any],
     ) -> dict[str, tuple[Any, Any]]:
         """
         Generate diff between two configurations.

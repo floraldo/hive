@@ -721,7 +721,7 @@ class TMYGenerator:
                 tmy_months[month] = month_data,
                 selection_metadata["selected_months"][month] = {
                     "selected_year": selected_year,
-                    "quality": {
+                    "quality": {,
                         "completeness": quality.completeness,
                         "representativeness": quality.representativeness,
                         "extremes_score": quality.extremes_score,

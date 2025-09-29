@@ -230,7 +230,7 @@ class TestInterfaces:
     def test_model_response_property(self, content, model, tokens, cost):
         """Property-based test for ModelResponse invariants."""
         response = ModelResponse(
-            content=content, model=model, tokens_used=tokens, cost=cost, latency_ms=1000, metadata={}
+            content=content, model=model, tokens_used=tokens, cost=cost, latency_ms=1000, metadata={},
         )
 
         assert response.tokens_used >= 0
@@ -259,7 +259,7 @@ class TestConfigIntegration:
                 temperature=0.5,
                 max_tokens=2048,
                 cost_per_token=0.00001,
-            )
+            ),
         }
 
         vector_config = VectorConfig(provider="chroma", dimension=768, distance_metric="euclidean")

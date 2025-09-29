@@ -102,7 +102,7 @@ def test_service_layer_decoupling():
             # Allow type imports from simulation_service but with a comment explaining why
             if "from ecosystemiser.services.simulation_service" in content and "# Import only types" not in content:
                 violations.append(
-                    "study_service.py: Import from simulation_service should have comment explaining it's for types only"
+                    "study_service.py: Import from simulation_service should have comment explaining it's for types only",
                 )
 
     assert len(violations) == 0, "Service decoupling violations:\n" + "\n".join(violations)

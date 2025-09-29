@@ -225,7 +225,7 @@ if __name__ == '__main__':
 
         # Start the service in background
         proc = subprocess.Popen(
-            ["python", str(hello_service_path)], cwd=Path.cwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ["python", str(hello_service_path)], cwd=Path.cwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
 
         background_processes.append(proc)

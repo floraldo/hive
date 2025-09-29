@@ -99,7 +99,7 @@ app = FastAPI(
         "name": "EcoSystemiser Support",
         "email": "support@ecosystemiser.com",
         "url": "https://docs.ecosystemiser.com",
-    }
+    },
     license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
 )
 
@@ -142,7 +142,7 @@ async def root_async() -> None:
                 endpoints=[],
                 description="Automated report generation and export"
             )
-        }
+        },
         uptime=get_uptime(),
         build_info={
             "version": settings.api.version,
@@ -205,7 +205,7 @@ async def solver_status_async() -> None:
         module="solver",
         status="not_implemented",
         version="1.0.0-planned",
-        capabilities=["linear_programming", "mixed_integer", "nonlinear"]
+        capabilities=["linear_programming", "mixed_integer", "nonlinear"],
         solver_type="multi_engine",
         optimization_engines=["GLPK", "CBC", "IPOPT", "HiGHS"]
     )
@@ -224,13 +224,13 @@ async def analyser_status_async() -> None:
         module="analyser",
         status="not_implemented",
         version="1.0.0-planned",
-        capabilities=["technical_kpi", "economic", "sensitivity", "scenario"]
+        capabilities=["technical_kpi", "economic", "sensitivity", "scenario"],
         analysis_strategies=[
             "technical_kpi",
             "economic",
             "sensitivity",
             "optimization_post"
-        ]
+        ],
         supported_formats=["json", "html", "pdf", "excel"]
     )
 
@@ -248,7 +248,7 @@ async def reporting_status_async() -> None:
         module="reporting",
         status="not_implemented",
         version="1.0.0-planned",
-        capabilities=["html_reports", "pdf_export", "interactive_dashboard"]
+        capabilities=["html_reports", "pdf_export", "interactive_dashboard"],
         report_types=["comprehensive", "executive_summary", "technical_detail"],
         export_formats=["html", "pdf", "excel", "powerpoint"]
     )
@@ -281,7 +281,7 @@ async def climate_error_handler_async(request: Request, exc: ClimateError) -> No
     """Handle platform-specific errors with structured response"""
     error_response = APIError(
         error=exc.__class__.__name__,
-        message=str(exc)
+        message=str(exc),
         details=exc.details if hasattr(exc, "details") else None,
         correlation_id=request.headers.get("X-Correlation-ID")
     ),
@@ -389,7 +389,7 @@ async def get_metrics_async() -> None:
         cpu_usage=cpu_percent,
         memory_usage=memory.percent,
         disk_usage=disk.percent,
-        active_connections=len(psutil.net_connections())
+        active_connections=len(psutil.net_connections()),
         request_rate=0.0,  # Would be tracked by middleware,
         error_rate=0.0,  # Would be tracked by middleware,
         uptime_seconds=int(time.time() - STARTUP_TIME)
@@ -423,13 +423,13 @@ async def get_version_async() -> None:
     return {
         "version": settings.api.version,
         "api_version": "v3",
-        "build_info": {
+        "build_info": {,
             "python_version": sys.version,
             "platform": sys.platform,
             "architecture": "v3.0 hardened",
             "build_date": datetime.utcnow().isoformat()
         },
-        "features": {
+        "features": {,
             "profile_loader": True,
             "solver": False,
             "analyser": False,

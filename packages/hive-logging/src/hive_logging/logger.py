@@ -54,7 +54,7 @@ def setup_logging(
     else:
         if json_format and not HAS_JSON_LOGGER:
             logger.warning(
-                "JSON logging requested but python-json-logger not available, falling back to standard format"
+                "JSON logging requested but python-json-logger not available, falling back to standard format",
             )
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
@@ -82,7 +82,7 @@ def setup_logging(
         logger.addHandler(file_handler)
 
     logging.info(
-        f"Logging configured for '{name}' at level {log_level}. File logging: {log_to_file}, JSON format: {json_format and HAS_JSON_LOGGER}"
+        f"Logging configured for '{name}' at level {log_level}. File logging: {log_to_file}, JSON format: {json_format and HAS_JSON_LOGGER}",
     )
 
 

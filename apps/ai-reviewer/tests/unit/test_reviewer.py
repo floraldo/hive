@@ -95,7 +95,7 @@ def test_process_data():
 def add(x: int, y: int) -> int:
     \"\"\"Add two integers.\"\"\",
     return x + y
-"""
+""",
         }
         score = engine._score_code_quality(good_code)
         assert score > 80  # Good code should score high
@@ -115,7 +115,7 @@ def very_long_function_that_does_too_many_things():
                     if i > 30:
                         logger.info(i)
     """
-            + "\n".join(["    pass"] * 50)  # Make it very long
+            + "\n".join(["    pass"] * 50),  # Make it very long
         }
         score = engine._score_code_quality(bad_code)
         assert score < 70  # Bad code should score low
@@ -141,7 +141,7 @@ def function_one():
 def function_two():
     """This function does something else."""
     pass
-'''
+''',
         }
         score = engine._score_documentation(well_documented)
         assert score == 100
@@ -153,7 +153,7 @@ def function_one():
 
 def function_two():
     pass
-"""
+""",
         }
         score = engine._score_documentation(poorly_documented)
         assert score == 0
@@ -166,7 +166,7 @@ import json
 
 def process_data(data):
     return json.loads(data)
-"""
+""",
         }
         score = engine._score_security(secure_code)
         assert score == 100
@@ -178,7 +178,7 @@ def run_command(cmd):
     exec(cmd)
     os.system(cmd)
     password = "hardcoded123"
-"""
+""",
         }
         score = engine._score_security(insecure_code)
         assert score < 60
@@ -195,7 +195,7 @@ def process():
     except:
         pass
 """
-            + "x" * 150  # Long line
+            + "x" * 150,  # Long line
         }
 
         issues = engine._detect_issues(problematic_code, None)
@@ -213,7 +213,7 @@ def process():
 
         # Medium score should suggest rework
         medium_metrics = QualityMetrics(
-            code_quality=70, test_coverage=60, documentation=50, security=75, architecture=70
+            code_quality=70, test_coverage=60, documentation=50, security=75, architecture=70,
         )
         decision = engine._make_decision(medium_metrics, [])
         assert decision == ReviewDecision.REWORK
@@ -344,11 +344,11 @@ def do_stuff(x):
                         logger.info("big number")
     except:
         pass  # Ignore all errors
-"""
+""",
         }
 
         result = engine.review_task(
-            task_id="poor-001", task_description="Process user input", code_files=poor_code, test_results=None
+            task_id="poor-001", task_description="Process user input", code_files=poor_code, test_results=None,
         )
 
         assert result.decision in [ReviewDecision.REJECT, ReviewDecision.ESCALATE]

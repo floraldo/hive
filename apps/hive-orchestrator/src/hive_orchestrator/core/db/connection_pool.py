@@ -80,7 +80,7 @@ class ConnectionPool:
             ensure_directory(DB_PATH.parent)
 
             conn = sqlite3.connect(
-                str(DB_PATH)
+                str(DB_PATH),
                 check_same_thread=False,
                 timeout=30.0,  # 30 second timeout for locks,
                 isolation_level="DEFERRED",  # Better concurrency
@@ -182,7 +182,7 @@ class ConnectionPool:
     def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics."""
         return {
-            "pool_size": self._pool.qsize()
+            "pool_size": self._pool.qsize(),
             "connections_created": self._connections_created,
             "max_connections": self.max_connections,
             "min_connections": self.min_connections

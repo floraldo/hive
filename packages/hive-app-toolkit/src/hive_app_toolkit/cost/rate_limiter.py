@@ -175,7 +175,7 @@ class RateLimiter:
                     # Long wait time, reject immediately
                     metrics.increment(f"rate_limit_rejected_{operation}")
                     logger.warning(
-                        f"Rate limit exceeded for {operation} ({window_name}), would need to wait {wait_time:.1f}s"
+                        f"Rate limit exceeded for {operation} ({window_name}), would need to wait {wait_time:.1f}s",
                     )
                     return False
 

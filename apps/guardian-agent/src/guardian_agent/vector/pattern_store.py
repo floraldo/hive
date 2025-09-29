@@ -81,7 +81,7 @@ class PatternStore:
 
         # Add to vector store
         await self.vector_store.add(
-            embedding=embedding, metadata={"pattern_id": pattern_id, "type": pattern_type, **(metadata or {})}
+            embedding=embedding, metadata={"pattern_id": pattern_id, "type": pattern_type, **(metadata or {})},
         )
 
         # Persist to disk
@@ -92,7 +92,7 @@ class PatternStore:
         logger.info("Added pattern %s of type %s", pattern_id, pattern_type)
 
     async def search_similar_patterns(
-        self, query_embedding: np.ndarray, k: int = 5, pattern_type: str | None = None, threshold: float = 0.8
+        self, query_embedding: np.ndarray, k: int = 5, pattern_type: str | None = None, threshold: float = 0.8,
     ) -> list[dict[str, Any]]:
         """
         Search for similar patterns.
@@ -130,7 +130,7 @@ class PatternStore:
                         "type": self.patterns[pattern_id]["type"],
                         "similarity": result.get("similarity", 0),
                         "metadata": self.patterns[pattern_id].get("metadata", {}),
-                    }
+                    },
                 )
 
         return enriched_results
@@ -147,7 +147,7 @@ class PatternStore:
             List of detected anti-patterns
         """
         return await self.search_similar_patterns(
-            query_embedding=code_embedding, k=10, pattern_type="anti_pattern", threshold=threshold
+            query_embedding=code_embedding, k=10, pattern_type="anti_pattern", threshold=threshold,
         )
 
     async def find_best_practices(self, code_embedding: np.ndarray, context: str | None = None) -> list[dict[str, Any]]:
@@ -162,7 +162,7 @@ class PatternStore:
             List of relevant best practices
         """
         results = await self.search_similar_patterns(
-            query_embedding=code_embedding, k=5, pattern_type="best_practice", threshold=0.7
+            query_embedding=code_embedding, k=5, pattern_type="best_practice", threshold=0.7,
         )
 
         # Filter by context if provided
@@ -184,7 +184,7 @@ class PatternStore:
         """
         # Search for similar violations with fixes
         results = await self.search_similar_patterns(
-            query_embedding=violation_embedding, k=3, pattern_type="fix", threshold=0.8
+            query_embedding=violation_embedding, k=3, pattern_type="fix", threshold=0.8,
         )
 
         # Filter by violation type

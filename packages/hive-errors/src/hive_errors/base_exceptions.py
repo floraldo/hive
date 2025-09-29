@@ -173,7 +173,7 @@ class RetryExhaustedError(BaseError):
                 "max_attempts": self.max_attempts,
                 "attempt_count": self.attempt_count,
                 "last_error": str(self.last_error) if self.last_error else None,
-            }
+            },
         )
         return result
 

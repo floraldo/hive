@@ -237,11 +237,11 @@ class HiveEventBus(BaseBus):
 
         events = []
         for row in rows:
-            event_data = {
+            event_data = {,
                 "event_id": row[0]
-                "event_type": row[1]
+                "event_type": row[1],
                 "timestamp": row[2]
-                "source": row[3]
+                "source": row[3],
                 "correlation_id": row[4]
                 "payload": json.loads(row[7]) if row[7] else {}
                 "metadata": json.loads(row[8]) if row[8] else {}

@@ -46,7 +46,7 @@ class E2ETestRunner:
         """Log with timestamp"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         symbol = {"INFO": "[INFO]", "SUCCESS": "[PASS]", "ERROR": "[FAIL]", "WARN": "[WARN]", "TEST": "[TEST]"}.get(
-            level, "[INFO]"
+            level, "[INFO]",
         )
         logger.info(f"[{timestamp}] {symbol} {message}")
 
@@ -90,7 +90,7 @@ class E2ETestRunner:
 
         try:
             result = subprocess.run(
-                [sys.executable, "scripts/seed_test_tasks.py"], cwd=project_root, capture_output=True, text=True
+                [sys.executable, "scripts/seed_test_tasks.py"], cwd=project_root, capture_output=True, text=True,
             )
 
             if result.returncode != 0:
@@ -118,7 +118,7 @@ class E2ETestRunner:
         self.log("=== PHASE 2: Starting Services ===", "TEST")
 
         services = [
-            ("queen", [sys.executable, "scripts/hive_queen.py"])
+            ("queen", [sys.executable, "scripts/hive_queen.py"]),
             # Note: AI reviewer needs anthropic module and API key
             # For testing, it will run but may not fully function without API key
             # ("reviewer", [sys.executable, "scripts/ai_reviewer_daemon.py", "--once"])

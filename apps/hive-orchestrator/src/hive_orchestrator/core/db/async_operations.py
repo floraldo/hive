@@ -336,7 +336,7 @@ class AsyncDatabaseOperations:
             List of task dictionaries (None for not found)
         """
         tasks = await asyncio.gather(
-            *[self.get_task_async(task_id) for task_id in task_ids]
+            *[self.get_task_async(task_id) for task_id in task_ids],
             return_exceptions=True
         )
 

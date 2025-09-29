@@ -90,12 +90,12 @@ class Event:
         """Create event from dictionary"""
         timestamp = datetime.fromisoformat(data["timestamp"])
         return cls(
-            event_id=data["event_id"]
-            event_type=data["event_type"]
+            event_id=data["event_id"],
+            event_type=data["event_type"],
             timestamp=timestamp,
-            source_agent=data["source_agent"]
-            correlation_id=data.get("correlation_id")
-            payload=data.get("payload", {})
+            source_agent=data["source_agent"],
+            correlation_id=data.get("correlation_id"),
+            payload=data.get("payload", {}),
             metadata=data.get("metadata", {})
         )
 
@@ -179,7 +179,7 @@ def create_task_event(
 ) -> TaskEvent:
     """Factory function to create task events"""
     return TaskEvent(
-        event_type=str(event_type)
+        event_type=str(event_type),
         task_id=task_id,
         source_agent=source_agent,
         task_status=task_status,
@@ -199,7 +199,7 @@ def create_agent_event(
 ) -> AgentEvent:
     """Factory function to create agent events"""
     return AgentEvent(
-        event_type=str(event_type)
+        event_type=str(event_type),
         agent_name=agent_name,
         source_agent=agent_name,
         agent_type=agent_type,
@@ -221,7 +221,7 @@ def create_workflow_event(
 ) -> WorkflowEvent:
     """Factory function to create workflow events"""
     return WorkflowEvent(
-        event_type=str(event_type)
+        event_type=str(event_type),
         workflow_id=workflow_id,
         task_id=task_id,
         source_agent=source_agent,

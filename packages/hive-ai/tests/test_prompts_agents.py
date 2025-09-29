@@ -36,7 +36,7 @@ def prompt_template_data(draw):
             min_size=0,
             max_size=5,
             unique=True,
-        )
+        ),
     )
 
     template_parts = ["This is a test prompt"]
@@ -66,7 +66,7 @@ class TestPromptTemplate:
     def test_template_creation_simple(self):
         """Test simple template creation."""
         template = PromptTemplate(
-            template="Hello {{ name }}!", variables=[PromptVariable(name="name", type="str", required=True)]
+            template="Hello {{ name }}!", variables=[PromptVariable(name="name", type="str", required=True)],
         )
 
         assert template.template == "Hello {{ name }}!"
@@ -89,7 +89,7 @@ class TestPromptTemplate:
     def test_template_render_missing_variable(self):
         """Test template rendering with missing variable."""
         template = PromptTemplate(
-            template="Hello {{ name }}!", variables=[PromptVariable(name="name", type="str", required=True)]
+            template="Hello {{ name }}!", variables=[PromptVariable(name="name", type="str", required=True)],
         )
 
         with pytest.raises(PromptError, match="missing required variables"):
@@ -98,7 +98,7 @@ class TestPromptTemplate:
     def test_template_variable_validation(self):
         """Test variable type validation."""
         template = PromptTemplate(
-            template="Number: {{ num }}", variables=[PromptVariable(name="num", type="int", required=True)]
+            template="Number: {{ num }}", variables=[PromptVariable(name="num", type="int", required=True)],
         )
 
         # Valid integer
@@ -261,8 +261,8 @@ class TestPromptOptimizer:
         client = Mock()
         client.generate_async = AsyncMock(
             return_value=Mock(
-                content="Optimized prompt: The improved version\n\nImprovements:\n1. Better clarity\n2. More specific\n\nOptimized prompt:"
-            )
+                content="Optimized prompt: The improved version\n\nImprovements:\n1. Better clarity\n2. More specific\n\nOptimized prompt:",
+            ),
         )
         return client
 
@@ -330,7 +330,7 @@ class TestPromptRegistry:
     async def test_register_template_async(self, registry):
         """Test template registration."""
         template = PromptTemplate(
-            template="Test {{ var }}", metadata=PromptMetadata(name="test_template", description="A test template")
+            template="Test {{ var }}", metadata=PromptMetadata(name="test_template", description="A test template"),
         )
 
         template_name = await registry.register_template_async(template)
@@ -374,13 +374,13 @@ class TestPromptRegistry:
     async def test_clone_template_async(self, registry):
         """Test template cloning."""
         original = PromptTemplate(
-            template="Original {{ var }}", metadata=PromptMetadata(name="original", description="original template")
+            template="Original {{ var }}", metadata=PromptMetadata(name="original", description="original template"),
         )
 
         await registry.register_template_async(original)
 
         cloned_name = await registry.clone_template_async(
-            "original", "cloned", modifications={"template": "Cloned {{ var }}"}
+            "original", "cloned", modifications={"template": "Cloned {{ var }}"},
         )
 
         assert cloned_name == "cloned"
@@ -393,7 +393,7 @@ class TestPromptRegistry:
         """Test template export and import."""
         # Register a template
         template = PromptTemplate(
-            template="Export test {{ var }}", metadata=PromptMetadata(name="export_test", description="for export")
+            template="Export test {{ var }}", metadata=PromptMetadata(name="export_test", description="for export"),
         )
         await registry.register_template_async(template)
 
@@ -595,7 +595,7 @@ class TestSimpleTaskAgent:
         """Mock ModelClient for testing."""
         client = Mock()
         client.generate_async = AsyncMock(
-            return_value=Mock(content="Task completed successfully", tokens_used=25, cost=0.0005)
+            return_value=Mock(content="Task completed successfully", tokens_used=25, cost=0.0005),
         )
         return client
 
@@ -635,7 +635,7 @@ class TestWorkflowOrchestrator:
         """Mock ModelClient for testing."""
         client = Mock()
         client.generate_async = AsyncMock(
-            return_value=Mock(content="Workflow step completed", tokens_used=30, cost=0.0006)
+            return_value=Mock(content="Workflow step completed", tokens_used=30, cost=0.0006),
         )
         return client
 
@@ -706,7 +706,7 @@ class TestWorkflowOrchestrator:
 
         # Create step
         step_id = workflow.create_step(
-            name="test_step", agent_id=agent_id, task_id=task_id, dependencies=[], timeout_seconds=60
+            name="test_step", agent_id=agent_id, task_id=task_id, dependencies=[], timeout_seconds=60,
         )
 
         assert step_id in workflow.steps
@@ -750,8 +750,8 @@ class TestIntegrationScenarios:
         mock_client = Mock()
         mock_client.generate_async = AsyncMock(
             return_value=Mock(
-                content="Analysis complete: The data shows clear trends in the focus area.", tokens_used=45, cost=0.0009
-            )
+                content="Analysis complete: The data shows clear trends in the focus area.", tokens_used=45, cost=0.0009,
+            ),
         )
 
         # Create simple task agent with rendered prompt
@@ -805,7 +805,7 @@ class TestIntegrationScenarios:
                 # Create step with dependencies (sequential)
                 dependencies = [f"step_{i - 1}"] if i > 0 else []
                 step_id = workflow.create_step(
-                    name=f"step_{i}", agent_id=agent_id, task_id=task_id, dependencies=dependencies
+                    name=f"step_{i}", agent_id=agent_id, task_id=task_id, dependencies=dependencies,
                 )
 
             # Workflow should initialize successfully

@@ -201,7 +201,7 @@ class AdvancedTimeoutManager:
         logger.debug(f"Operation {operation_name} completed in {duration:.3f}s (timeout: {timeout:.1f}s)")
 
     async def _record_timeout_async(
-        self, operation_name: str, duration: float, timeout: float, retry_attempt: int
+        self, operation_name: str, duration: float, timeout: float, retry_attempt: int,
     ) -> None:
         """Record timeout occurrence."""
         metrics = self._operation_metrics[operation_name]
@@ -298,7 +298,7 @@ class AdvancedTimeoutManager:
                     "count": metrics.consecutive_timeouts,
                     "severity": "critical",
                     "message": f"Operation {operation_name} has {metrics.consecutive_timeouts} consecutive timeouts",
-                }
+                },
             )
 
         # High timeout rate for operation
@@ -312,7 +312,7 @@ class AdvancedTimeoutManager:
                         "timeout_rate": timeout_rate,
                         "severity": "warning",
                         "message": f"Operation {operation_name} has high timeout rate: {timeout_rate:.1%}",
-                    }
+                    },
                 )
 
         # Trigger alerts if any
@@ -368,7 +368,7 @@ class AdvancedTimeoutManager:
                         "current_rate": timeout_rate,
                         "recommendation": "Consider increasing timeout or optimizing operation performance",
                         "priority": "high" if timeout_rate > 0.5 else "medium",
-                    }
+                    },
                 )
 
             # Underutilized timeout
@@ -383,7 +383,7 @@ class AdvancedTimeoutManager:
                             "recommended_timeout": metrics.p99_duration * 2,
                             "recommendation": "Timeout may be unnecessarily high - consider reducing",
                             "priority": "low",
-                        }
+                        },
                     )
 
             # Highly variable performance
@@ -398,7 +398,7 @@ class AdvancedTimeoutManager:
                             "variance": variance,
                             "recommendation": "Operation has highly variable performance - investigate bottlenecks",
                             "priority": "medium",
-                        }
+                        },
                     )
 
         return recommendations

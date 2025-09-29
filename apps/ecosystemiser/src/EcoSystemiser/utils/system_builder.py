@@ -33,7 +33,7 @@ class SystemBuilder:
         available_components = list(COMPONENT_REGISTRY.keys())
         (
             logger.info(
-                f"Initialized SystemBuilder with {len(available_components)} registered components: {available_components}"
+                f"Initialized SystemBuilder with {len(available_components)} registered components: {available_components}",
             ),
         )
 
