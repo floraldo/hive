@@ -2,7 +2,16 @@
 
 All notable changes to the EcoSystemiser platform will be documented in this file.
 
-## [3.0.0] - 2025-09-29
+## [3.0.0-alpha] - 2025-09-29
+
+### Status: Alpha Release - 89% Test Pass Rate
+**Test Results:** 16 out of 18 tests passing
+- ✅ All architectural validation tests passing
+- ✅ All system integration tests passing
+- ✅ Mixed fidelity support working
+- ✅ Multi-objective optimization working
+- ✅ Rolling horizon solver working
+- ❌ 2 tests failing (Redis dependency, E2E integration)
 
 ### Added
 - Comprehensive climate service with multiple data adapters
@@ -21,12 +30,21 @@ All notable changes to the EcoSystemiser platform will be documented in this fil
 - Modernized type hints for Python 3.11+
 - Updated dependencies to latest stable versions
 
-### Fixed
-- Multiple syntax errors in dictionary definitions
-- Missing commas in function arguments
-- Type hint compatibility issues
-- Import errors in various modules
-- Indentation issues in adapter classes
+### Fixed - Syntax Error Resolution (20+ files)
+- cache_client.py: Fixed trailing comma in initialization
+- advanced_timeout.py: Fixed malformed ternary operator
+- monte_carlo.py: Fixed 10+ missing commas in function calls
+- heat_demand.py: Added missing Optional import
+- heat_pump.py: Fixed malformed ternary and missing Optional import
+- file_epw.py: Fixed multiple missing commas in method signatures
+- run_full_demo.py: Fixed malformed type hint
+- app.py: Fixed missing commas in return tuples
+- Multiple other files: Fixed trailing commas after statements
+
+### Known Limitations
+- run_full_demo.py: Blocked by remaining syntax errors in analyser/service.py
+- Some discovery engine modules have outstanding syntax errors
+- 2 integration tests require external dependencies (Redis)
 
 ### Known Issues
 - ERA5 adapter has unresolved syntax errors (temporarily disabled)
