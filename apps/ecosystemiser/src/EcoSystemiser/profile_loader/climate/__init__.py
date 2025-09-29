@@ -47,7 +47,6 @@ async def get_profile_async(req: ClimateRequest, service: ClimateService) -> Non
 
     Example:
         from ecosystemiser.settings import get_settings
-
         config = get_settings()
         service = create_climate_service(config)
         profile = await get_profile_async(request, service)
@@ -57,7 +56,7 @@ async def get_profile_async(req: ClimateRequest, service: ClimateService) -> Non
 
 def get_profile_sync(req: ClimateRequest, service: ClimateService) -> None:
     """
-    A synchronous wrapper for the get_profile function for environments
+    A synchronous wrapper for the get_profile function for environments,
     where async is not available.
 
     Args:
@@ -69,7 +68,6 @@ def get_profile_sync(req: ClimateRequest, service: ClimateService) -> None:
 
     Example:
         from ecosystemiser.settings import get_settings
-
         config = get_settings()
         service = create_climate_service(config)
         profile = get_profile_sync(request, service)

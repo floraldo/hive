@@ -16,7 +16,8 @@ All new code should import directly from ecosystemiser.core.errors.
 from typing import Any
 
 # Import everything from the new core module
-from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Profile errors; Solver errors; Component errors; Database errors; Event bus errors; Error reporter,
+from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Profile errors; Solver errors; Component errors; Database errors; Event bus errors; Error reporter
+    ComponentValidationError,
     DatabaseError,
     EcoSystemiserError,
     SimulationConfigError,
@@ -32,7 +33,7 @@ TimeoutError = SolverConvergenceError
 
 
 # ValidationError needs special handling for field parameter compatibility
-class ValidationError(BaseError):
+class ValidationError(ComponentValidationError):
     """Legacy ValidationError with field parameter support"""
 
     def __init__(self, message: str, field: str | None = None, **kwargs) -> None:

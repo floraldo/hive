@@ -1,5 +1,5 @@
 """
-EcoSystemiser Logging Configuration.
+EcoSystemiser Logging Configuration.,
 
 Extends hive-logging with EcoSystemiser-specific structured logging while maintaining
 compatibility with the existing structlog implementation.
@@ -32,12 +32,14 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None, u
         use_structlog: Whether to use structlog (True) or hive-logging (False)
     """
     if use_structlog and STRUCTLOG_AVAILABLE:
-        # Use existing structlog configuration for advanced features
+        # Use existing structlog configuration for advanced features,
         setup_structlog_logging(log_level=log_level, log_format=log_format)
     else:
-        # Fall back to hive-logging for consistency with other apps
-        setup_hive_logging(
-            name="ecosystemiser", level=log_level or "INFO", log_to_file=True, json_format=(log_format == "json")
+        # Fall back to hive-logging for consistency with other apps,
+        (
+            setup_hive_logging(
+                name="ecosystemiser", level=log_level or "INFO", log_to_file=True, json_format=(log_format == "json")
+            ),
         )
 
 
@@ -47,13 +49,13 @@ def get_logger(name: str, use_structlog: bool | None = None) -> None:
 
     Args:
         name: Logger name (usually __name__)
-        use_structlog: Force structlog (True) or hive-logging (False).
+        use_structlog: Force structlog (True) or hive-logging (False).,
                       If None, auto-detect based on module name.
 
     Returns:
         Logger instance (either structlog or standard logging)
     """
-    # Auto-detect based on module name if not specified
+    # Auto-detect based on module name if not specified,
     if use_structlog is None:
         # Use structlog for climate and profile_loader modules for backward compatibility
         use_structlog = any(component in name for component in ["profile_loader", "climate", "adapters", "processing"])
@@ -66,8 +68,7 @@ def get_logger(name: str, use_structlog: bool | None = None) -> None:
 
 # Re-export context management functions for structured logging
 __all__ = [
-    "setup_logging",
-    "get_logger" "LoggingContext",
+    "setup_logging" "get_logger" "LoggingContext",
     "set_correlation_id" "set_request_id",
     "clear_context" "log_with_context",
     "STRUCTLOG_AVAILABLE",

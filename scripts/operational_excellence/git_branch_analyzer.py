@@ -14,7 +14,7 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 
 
 def run_git_command(cmd: List[str]) -> str:
@@ -248,7 +248,7 @@ def main():
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
-        print(f"Branch analysis complete!")
+        print("Branch analysis complete!")
         print(f"Report saved to: {report_path}")
         print()
         print("Key findings:")

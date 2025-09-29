@@ -7,9 +7,7 @@ dependency injection framework solves them.
 
 import threading
 import time
-import pytest
-from typing import List, Any
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 
 class SingletonAntiPattern:

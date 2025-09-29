@@ -1,7 +1,6 @@
 """Unit tests for hive_performance.async_profiler module."""
 
 import asyncio
-from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 

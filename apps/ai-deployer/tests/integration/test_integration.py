@@ -3,7 +3,7 @@ Integration tests for the complete AI Deployer system
 """
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from ai_deployer import DatabaseAdapter, DeploymentAgent, DeploymentOrchestrator

@@ -1,7 +1,6 @@
 """Unit tests for hive_service_discovery.exceptions module."""
 
 import pytest
-from unittest.mock import Mock, patch
 
 
 class TestServiceDiscoveryExceptions:
@@ -11,6 +10,7 @@ class TestServiceDiscoveryExceptions:
         """Test base exception can be imported."""
         try:
             from hive_service_discovery.exceptions import ServiceDiscoveryError
+
             assert ServiceDiscoveryError is not None
             assert issubclass(ServiceDiscoveryError, Exception)
         except ImportError:
@@ -19,17 +19,14 @@ class TestServiceDiscoveryExceptions:
     def test_registration_exceptions(self):
         """Test service registration exceptions."""
         try:
-            from hive_service_discovery.exceptions import (
-                ServiceRegistrationError,
-                DuplicateServiceError
-            )
+            from hive_service_discovery.exceptions import ServiceRegistrationError, DuplicateServiceError
 
             # Test registration error
             error = ServiceRegistrationError("Failed to register service")
             assert str(error) == "Failed to register service"
 
             # Test duplicate service error
-            if 'DuplicateServiceError' in locals():
+            if "DuplicateServiceError" in locals():
                 dup_error = DuplicateServiceError("service-1", "Service already exists")
                 assert "service-1" in str(dup_error)
 
@@ -39,13 +36,10 @@ class TestServiceDiscoveryExceptions:
     def test_discovery_exceptions(self):
         """Test service discovery exceptions."""
         try:
-            from hive_service_discovery.exceptions import (
-                ServiceDiscoveryError,
-                ServiceNotFoundError
-            )
+            from hive_service_discovery.exceptions import ServiceDiscoveryError, ServiceNotFoundError
 
             # Test service not found error
-            if 'ServiceNotFoundError' in locals():
+            if "ServiceNotFoundError" in locals():
                 error = ServiceNotFoundError("test-service")
                 assert "test-service" in str(error)
 
@@ -55,18 +49,15 @@ class TestServiceDiscoveryExceptions:
     def test_health_check_exceptions(self):
         """Test health check exceptions."""
         try:
-            from hive_service_discovery.exceptions import (
-                HealthCheckError,
-                ServiceUnhealthyError
-            )
+            from hive_service_discovery.exceptions import HealthCheckError, ServiceUnhealthyError
 
             # Test health check error
-            if 'HealthCheckError' in locals():
+            if "HealthCheckError" in locals():
                 error = HealthCheckError("Health check failed")
                 assert "Health check failed" in str(error)
 
             # Test service unhealthy error
-            if 'ServiceUnhealthyError' in locals():
+            if "ServiceUnhealthyError" in locals():
                 error = ServiceUnhealthyError("service-1", "Service is down")
                 assert "service-1" in str(error)
 
@@ -76,18 +67,15 @@ class TestServiceDiscoveryExceptions:
     def test_load_balancer_exceptions(self):
         """Test load balancer exceptions."""
         try:
-            from hive_service_discovery.exceptions import (
-                LoadBalancerError,
-                NoHealthyServicesError
-            )
+            from hive_service_discovery.exceptions import LoadBalancerError, NoHealthyServicesError
 
             # Test load balancer error
-            if 'LoadBalancerError' in locals():
+            if "LoadBalancerError" in locals():
                 error = LoadBalancerError("Load balancing failed")
                 assert "Load balancing failed" in str(error)
 
             # Test no healthy services error
-            if 'NoHealthyServicesError' in locals():
+            if "NoHealthyServicesError" in locals():
                 error = NoHealthyServicesError("test-service")
                 assert "test-service" in str(error)
 
@@ -97,18 +85,15 @@ class TestServiceDiscoveryExceptions:
     def test_connection_exceptions(self):
         """Test connection related exceptions."""
         try:
-            from hive_service_discovery.exceptions import (
-                ConnectionError,
-                TimeoutError
-            )
+            from hive_service_discovery.exceptions import ConnectionError, TimeoutError
 
             # Test connection error
-            if 'ConnectionError' in locals():
+            if "ConnectionError" in locals():
                 error = ConnectionError("Failed to connect to registry")
                 assert "Failed to connect" in str(error)
 
             # Test timeout error
-            if 'TimeoutError' in locals():
+            if "TimeoutError" in locals():
                 error = TimeoutError("Request timed out")
                 assert "timed out" in str(error)
 
@@ -121,16 +106,16 @@ class TestServiceDiscoveryExceptions:
             from hive_service_discovery.exceptions import (
                 ServiceDiscoveryError,
                 ServiceRegistrationError,
-                ServiceNotFoundError
+                ServiceNotFoundError,
             )
 
             # Test inheritance
             assert issubclass(ServiceDiscoveryError, Exception)
 
-            if 'ServiceRegistrationError' in locals():
+            if "ServiceRegistrationError" in locals():
                 assert issubclass(ServiceRegistrationError, ServiceDiscoveryError)
 
-            if 'ServiceNotFoundError' in locals():
+            if "ServiceNotFoundError" in locals():
                 assert issubclass(ServiceNotFoundError, ServiceDiscoveryError)
 
         except ImportError:

@@ -15,12 +15,12 @@ from ecosystemiser.core.bus import get_ecosystemiser_event_bus
 from ecosystemiser.core.events import SimulationEvent, StudyEvent
 from ecosystemiser.discovery.algorithms.genetic_algorithm import (
     GeneticAlgorithm,
-    GeneticAlgorithmConfig
+    GeneticAlgorithmConfig,
     NSGAIIOptimizer
 )
 from ecosystemiser.discovery.algorithms.monte_carlo import (
     MonteCarloConfig,
-    MonteCarloEngine
+    MonteCarloEngine,
     UncertaintyAnalyzer
 )
 from ecosystemiser.discovery.encoders.constraint_handler import (
@@ -29,7 +29,7 @@ from ecosystemiser.discovery.encoders.constraint_handler import (
 )
 from ecosystemiser.discovery.encoders.parameter_encoder import (
     EncodingSpec,
-    ParameterSpec
+    ParameterSpec,
     SystemConfigEncoder
 )
 from ecosystemiser.services.job_facade import JobFacade
@@ -50,7 +50,7 @@ from __future__ import annotations
 
     component_name: str
     parameter_path: str  # dot notation e.g., "technical.capacity_nominal"
-    values: List[float, int | str]
+    values: List[float, int | str],
 
 
 class FidelitySweepSpec(BaseModel):
@@ -58,11 +58,11 @@ class FidelitySweepSpec(BaseModel):
 
     component_names: List[str] = Field(default_factory=list, description="Components to sweep, empty means all")
     fidelity_levels: List[str] = Field(
-        default_factory=lambda: ["SIMPLE", "STANDARD"]
+        default_factory=lambda: ["SIMPLE", "STANDARD"],
         description="Fidelity levels to test"
     )
     mixed_fidelity_configs: Optional[List[Dict[str, str]]] = Field(
-        default=None
+        default=None,
         description="Pre-defined mixed fidelity configurations as {component: fidelity_level}"
     )
 
@@ -111,7 +111,7 @@ class StudyResult(BaseModel):
     best_result: Optional[Dict[str, Any]] = None
     all_results: Optional[List[Dict[str, Any]]] = None
     summary_statistics: Optional[Dict[str, Any]] = None
-    execution_time: float
+    execution_time: float,
 
 
 class StudyService:
@@ -121,7 +121,7 @@ class StudyService:
         """Initialize study service.
 
         Args:
-            job_facade: Optional job facade, creates default if None
+            job_facade: Optional job facade, creates default if None,
         """
         self.job_facade = job_facade or JobFacade()
         self.event_bus = get_ecosystemiser_event_bus()
@@ -133,16 +133,15 @@ class StudyService:
             config: Study configuration
 
         Returns:
-            StudyResult with aggregated results
+            StudyResult with aggregated results,
         """
         logger.info(f"Starting {config.study_type} study: {config.study_id}")
-
         start_time = datetime.now()
 
         # Publish study started event
         event_bus = get_ecosystemiser_event_bus()
         study_started_event = StudyEvent.started(
-            study_id=config.study_id
+            study_id=config.study_id,
             config={
                 "study_type": config.study_type,
                 "results_path": str(config.output_dir) if config.output_dir else None
@@ -155,7 +154,7 @@ class StudyService:
             logger.debug(f"Could not publish study started event: {e}")
 
         try:
-            # Generate simulation configurations based on study type
+            # Generate simulation configurations based on study type,
             if config.study_type == "parametric":
                 simulation_configs = self._generate_parametric_configs(config)
             elif config.study_type == "fidelity":
@@ -175,7 +174,7 @@ class StudyService:
             # Process results
             study_result = self._process_results(results, config)
 
-            # Add execution time
+            # Add execution time,
             study_result.execution_time = (datetime.now() - start_time).total_seconds()
 
             logger.info(
@@ -184,14 +183,14 @@ class StudyService:
 
             # Publish study completed event
             study_completed_event = StudyEvent.completed(
-                study_id=config.study_id
+                study_id=config.study_id,
                 results={
                     "study_type": config.study_type,
                     "results_path": (str(config.output_dir) if config.output_dir else None),
                     "total_simulations": study_result.num_simulations,
                     "completed_simulations": study_result.successful_simulations
                 }
-                duration_seconds=study_result.execution_time
+                duration_seconds=study_result.execution_time,
                 source_agent="StudyService"
             )
             try:
@@ -205,7 +204,7 @@ class StudyService:
             # Publish study failed event
             execution_time = (datetime.now() - start_time).total_seconds()
             study_failed_event = StudyEvent.failed(
-                study_id=config.study_id
+                study_id=config.study_id,
                 error_message=str(e)
                 error_details={
                     "study_type": config.study_type,
@@ -219,8 +218,8 @@ class StudyService:
             except Exception as e_pub:
                 logger.debug(f"Could not publish study failed event: {e_pub}")
 
-            logger.error(f"Study failed: {config.study_id} - {str(e)}")
-            raise
+            logger.error(f"Study failed: {config.study_id} - {str(e)}"),
+            raise,
 
     def _generate_parametric_configs(self, config: StudyConfig) -> List[SimulationConfig]:
         """Generate simulation configurations for parametric sweep.
@@ -229,11 +228,11 @@ class StudyService:
             config: Study configuration
 
         Returns:
-            List of simulation configurations
+            List of simulation configurations,
         """
         configs = []
 
-        # Generate all combinations of parameter values
+        # Generate all combinations of parameter values,
         if not config.parameter_sweeps:
             return [config.base_config]
 
@@ -244,7 +243,7 @@ class StudyService:
             param_values.append(sweep.values)
             param_specs.append(sweep)
 
-        # Generate all combinations
+        # Generate all combinations,
         for combo_idx, combo in enumerate(itertools.product(*param_values)):
             # Create a copy of base config
             sim_config = config.base_config.model_copy(deep=True)
@@ -255,40 +254,40 @@ class StudyService:
             for spec, value in zip(param_specs, combo):
                 param_settings[f"{spec.component_name}.{spec.parameter_path}"] = value
 
-            # Store parameter settings in output config for tracking
+            # Store parameter settings in output config for tracking,
             sim_config.output_config["parameter_settings"] = param_settings
             sim_config.output_config["combo_index"] = combo_idx
 
             configs.append(sim_config)
 
-        logger.info(f"Generated {len(configs)} parametric configurations")
+        logger.info(f"Generated {len(configs)} parametric configurations"),
         return configs
 
     def _generate_fidelity_configs(self, config: StudyConfig) -> List[SimulationConfig]:
-        """Generate simulation configurations for fidelity sweep.
+        """Generate simulation configurations for fidelity sweep.,
 
-        This method now supports true mixed-fidelity studies where different
+        This method now supports true mixed-fidelity studies where different,
         components can have different fidelity levels within the same simulation.
 
         Args:
             config: Study configuration
 
         Returns:
-            List of simulation configurations with mixed-fidelity settings
+            List of simulation configurations with mixed-fidelity settings,
         """
         configs = []
 
         if not config.fidelity_sweep:
             return [config.base_config]
 
-        # Check if we have pre-defined mixed fidelity configurations
+        # Check if we have pre-defined mixed fidelity configurations,
         if config.fidelity_sweep.mixed_fidelity_configs:
-            # Use pre-defined mixed fidelity configurations
+            # Use pre-defined mixed fidelity configurations,
             for mix_idx, mixed_config in enumerate(config.fidelity_sweep.mixed_fidelity_configs):
                 sim_config = config.base_config.model_copy(deep=True)
                 sim_config.simulation_id = f"{config.study_id}_mixed_fidelity_{mix_idx}"
 
-                # Store the mixed fidelity configuration
+                # Store the mixed fidelity configuration,
                 sim_config.output_config["mixed_fidelity_config"] = mixed_config
                 sim_config.output_config["config_index"] = mix_idx
 
@@ -307,7 +306,7 @@ class StudyService:
 
             if not target_components:
                 logger.warning("No components specified for fidelity sweep, using uniform fidelity")
-                # Fall back to uniform fidelity for each level
+                # Fall back to uniform fidelity for each level,
                 for fidelity_idx, fidelity in enumerate(fidelity_levels):
                     sim_config = config.base_config.model_copy(deep=True)
                     sim_config.simulation_id = f"{config.study_id}_uniform_fidelity_{fidelity}"
@@ -316,18 +315,16 @@ class StudyService:
                     sim_config.output_config["fidelity_index"] = fidelity_idx
                     configs.append(sim_config)
             else:
-                # Generate all combinations of fidelity levels for specified components
+                # Generate all combinations of fidelity levels for specified components,
                 if len(target_components) == 1:
                     # Single component sweep - test each fidelity level
                     component = target_components[0]
                     for fidelity_idx, fidelity in enumerate(fidelity_levels):
                         sim_config = config.base_config.model_copy(deep=True)
                         sim_config.simulation_id = f"{config.study_id}_{component}_fidelity_{fidelity}"
-
                         mixed_config = {component: fidelity}
                         sim_config.output_config["mixed_fidelity_config"] = mixed_config
                         sim_config.output_config["fidelity_index"] = fidelity_idx
-
                         component_fidelity_overrides = {component: {"fidelity_level": fidelity}}
                         sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
                         configs.append(sim_config)
@@ -338,35 +335,32 @@ class StudyService:
                     lowest_fidelity = fidelity_levels[0]
                     sim_config = config.base_config.model_copy(deep=True)
                     sim_config.simulation_id = f"{config.study_id}_all_{lowest_fidelity}"
-
                     mixed_config = {comp: lowest_fidelity for comp in target_components}
                     sim_config.output_config["mixed_fidelity_config"] = mixed_config
                     component_fidelity_overrides = {
                         comp: {"fidelity_level": lowest_fidelity} for comp in target_components
-                    }
+                    },
                     sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
                     configs.append(sim_config)
 
-                    # 2. All at highest fidelity
+                    # 2. All at highest fidelity,
                     if len(fidelity_levels) > 1:
                         highest_fidelity = fidelity_levels[-1]
                         sim_config = config.base_config.model_copy(deep=True)
                         sim_config.simulation_id = f"{config.study_id}_all_{highest_fidelity}"
-
                         mixed_config = {comp: highest_fidelity for comp in target_components}
                         sim_config.output_config["mixed_fidelity_config"] = mixed_config
                         component_fidelity_overrides = {
                             comp: {"fidelity_level": highest_fidelity} for comp in target_components
-                        }
+                        },
                         sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
                         configs.append(sim_config)
 
-                    # 3. Mixed configurations - one component at high fidelity, others at low
+                    # 3. Mixed configurations - one component at high fidelity, others at low,
                     if len(fidelity_levels) > 1 and len(target_components) > 1:
                         for focus_component in target_components:
                             sim_config = config.base_config.model_copy(deep=True)
                             sim_config.simulation_id = f"{config.study_id}_{focus_component}_high_others_low"
-
                             mixed_config = {}
                             for comp in target_components:
                                 mixed_config[comp] = highest_fidelity if comp == focus_component else lowest_fidelity
@@ -374,20 +368,20 @@ class StudyService:
                             sim_config.output_config["mixed_fidelity_config"] = mixed_config
                             component_fidelity_overrides = {
                                 comp: {"fidelity_level": fidelity} for comp, fidelity in mixed_config.items()
-                            }
+                            },
                             sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
                             configs.append(sim_config)
 
                 else:
-                    # Too many components for full exploration - use sampling
+                    # Too many components for full exploration - use sampling,
                     logger.info(
                         f"Too many components ({len(target_components)}) for full fidelity exploration, using sampling"
                     )
 
-                    # Sample representative configurations
+                    # Sample representative configurations,
                     import random
 
-                    random.seed(42)  # Reproducible sampling
+                    random.seed(42)  # Reproducible sampling,
 
                     for sample_idx in range(min(10, len(fidelity_levels) * 3)):  # Max 10 samples
                         sim_config = config.base_config.model_copy(deep=True)
@@ -402,11 +396,11 @@ class StudyService:
                         sim_config.output_config["sample_index"] = sample_idx
                         component_fidelity_overrides = {
                             comp: {"fidelity_level": fidelity} for comp, fidelity in mixed_config.items()
-                        }
+                        },
                         sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
                         configs.append(sim_config)
 
-        logger.info(f"Generated {len(configs)} mixed-fidelity configurations")
+        logger.info(f"Generated {len(configs)} mixed-fidelity configurations"),
         for i, cfg in enumerate(configs):
             mixed_config = cfg.output_config.get("mixed_fidelity_config", {})
             logger.debug(f"Config {i}: {mixed_config}")
@@ -420,18 +414,18 @@ class StudyService:
             config: Study configuration
 
         Returns:
-            StudyResult with optimization results
+            StudyResult with optimization results,
         """
         # This would implement optimization algorithms
-        # For now, return empty result
+        # For now, return empty result,
         logger.warning("Optimization studies not yet fully implemented")
 
         return StudyResult(
-            study_id=config.study_id
+            study_id=config.study_id,
             study_type="optimization"
-            num_simulations=0
+            num_simulations=0,
             successful_simulations=0
-            failed_simulations=0
+            failed_simulations=0,
             execution_time=0.0
         )
 
@@ -442,7 +436,7 @@ class StudyService:
             config: Study configuration
 
         Returns:
-            StudyResult with optimization results
+            StudyResult with optimization results,
         """
         logger.info(f"Starting genetic algorithm study: {config.study_id}")
         start_time = datetime.now()
@@ -459,23 +453,22 @@ class StudyService:
 
             # Configure genetic algorithm
             ga_config_data = config.ga_config or {}
-
             ga_config = GeneticAlgorithmConfig(
-                dimensions=encoder.spec.dimensions
-                bounds=encoder.spec.bounds
+                dimensions=encoder.spec.dimensions,
+                bounds=encoder.spec.bounds,
                 objectives=(
                     config.optimization_objective.split(",") if config.optimization_objective else ["total_cost"]
                 )
-                population_size=ga_config_data.get("population_size", 50)
+                population_size=ga_config_data.get("population_size", 50),
                 max_generations=ga_config_data.get("max_generations", 100)
-                mutation_rate=ga_config_data.get("mutation_rate", 0.1)
+                mutation_rate=ga_config_data.get("mutation_rate", 0.1),
                 crossover_rate=ga_config_data.get("crossover_rate", 0.9)
-                parallel_evaluation=config.parallel_execution
+                parallel_evaluation=config.parallel_execution,
                 max_workers=config.max_workers
                 verbose=True
             )
 
-            # Choose algorithm based on objectives
+            # Choose algorithm based on objectives,
             if config.multi_objective or len(ga_config.objectives) > 1:
                 algorithm = NSGAIIOptimizer(ga_config)
                 logger.info("Using NSGA-II for multi-objective optimization")
@@ -490,11 +483,11 @@ class StudyService:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return StudyResult(
-                study_id=config.study_id
+                study_id=config.study_id,
                 study_type="genetic_algorithm"
-                num_simulations=result.evaluations
+                num_simulations=result.evaluations,
                 successful_simulations=result.evaluations,  # Assuming all evaluations are valid
-                failed_simulations=0
+                failed_simulations=0,
                 best_result={
                     "best_solution": (result.best_solution.tolist() if result.best_solution is not None else None),
                     "best_fitness": result.best_fitness,
@@ -511,21 +504,21 @@ class StudyService:
                     "pareto_front_size": (len(result.pareto_front) if result.pareto_front else 1)
                 }
                 execution_time=execution_time
-            )
+            ),
 
         except Exception as e:
             logger.error(f"Genetic algorithm study failed: {e}")
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return StudyResult(
-                study_id=config.study_id
+                study_id=config.study_id,
                 study_type="genetic_algorithm"
-                num_simulations=0
+                num_simulations=0,
                 successful_simulations=0
-                failed_simulations=1
+                failed_simulations=1,
                 execution_time=execution_time
                 summary_statistics={"error": str(e)}
-            )
+            ),
 
     def _run_monte_carlo_study(self, config: StudyConfig) -> StudyResult:
         """Run a Monte Carlo uncertainty analysis study.
@@ -534,7 +527,7 @@ class StudyService:
             config: Study configuration
 
         Returns:
-            StudyResult with uncertainty analysis results
+            StudyResult with uncertainty analysis results,
         """
         logger.info(f"Starting Monte Carlo study: {config.study_id}")
         start_time = datetime.now()
@@ -548,28 +541,27 @@ class StudyService:
 
             # Configure Monte Carlo
             mc_config_data = config.mc_config or {}
-
             mc_config = MonteCarloConfig(
-                dimensions=encoder.spec.dimensions
-                bounds=encoder.spec.bounds
+                dimensions=encoder.spec.dimensions,
+                bounds=encoder.spec.bounds,
                 objectives=(
                     config.optimization_objective.split(",") if config.optimization_objective else ["total_cost"]
                 )
-                max_evaluations=mc_config_data.get("n_samples", 1000)
+                max_evaluations=mc_config_data.get("n_samples", 1000),
                 sampling_method=mc_config_data.get("sampling_method", "lhs")
-                uncertainty_variables=config.uncertainty_variables or {}
+                uncertainty_variables=config.uncertainty_variables or {},
                 confidence_levels=mc_config_data.get("confidence_levels", [0.05, 0.25, 0.50, 0.75, 0.95])
-                sensitivity_analysis=mc_config_data.get("sensitivity_analysis", True)
+                sensitivity_analysis=mc_config_data.get("sensitivity_analysis", True),
                 risk_analysis=mc_config_data.get("risk_analysis", True)
-                parallel_evaluation=config.parallel_execution
+                parallel_evaluation=config.parallel_execution,
                 max_workers=config.max_workers
-                save_all_samples=config.save_all_results
+                save_all_samples=config.save_all_results,
                 sample_storage_path=(
                     str(config.output_directory / "monte_carlo_samples") if config.save_all_results else None
                 )
             )
 
-            # Run uncertainty analysis
+            # Run uncertainty analysis,
             if config.uncertainty_variables:
                 analyzer = UncertaintyAnalyzer(mc_config)
                 result = analyzer.run_uncertainty_analysis(fitness_function, config.uncertainty_variables)
@@ -584,15 +576,15 @@ class StudyService:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return StudyResult(
-                study_id=config.study_id
+                study_id=config.study_id,
                 study_type="monte_carlo"
-                num_simulations=mc_config.max_evaluations
+                num_simulations=mc_config.max_evaluations,
                 successful_simulations=mc_config.max_evaluations,  # Assuming all evaluations are valid
-                failed_simulations=0
+                failed_simulations=0,
                 best_result={
                     "best_solution": (
                         opt_result.best_solution.tolist() if opt_result.best_solution is not None else None
-                    )
+                    ),
                     "best_fitness": opt_result.best_fitness,
                     "best_objectives": opt_result.best_objectives,
                     "uncertainty_analysis": uncertainty_analysis
@@ -601,26 +593,26 @@ class StudyService:
                     "sampling_method": mc_config.sampling_method,
                     "total_samples": mc_config.max_evaluations,
                     "statistics": uncertainty_analysis.get("statistics", {}),
-                    "confidence_intervals": uncertainty_analysis.get("confidence_intervals", {}),
+                    "confidence_intervals": uncertainty_analysis.get("confidence_intervals", {})
                     "sensitivity_indices": uncertainty_analysis.get("sensitivity", {}),
                     "risk_metrics": uncertainty_analysis.get("risk", {})
                 }
                 execution_time=execution_time
-            )
+            ),
 
         except Exception as e:
             logger.error(f"Monte Carlo study failed: {e}")
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return StudyResult(
-                study_id=config.study_id
+                study_id=config.study_id,
                 study_type="monte_carlo"
-                num_simulations=0
+                num_simulations=0,
                 successful_simulations=0
-                failed_simulations=1
+                failed_simulations=1,
                 execution_time=execution_time
                 summary_statistics={"error": str(e)}
-            )
+            ),
 
     def _create_parameter_encoder(self, config: StudyConfig) -> SystemConfigEncoder:
         """Create parameter encoder for optimization studies.
@@ -629,13 +621,13 @@ class StudyService:
             config: Study configuration
 
         Returns:
-            SystemConfigEncoder instance
+            SystemConfigEncoder instance,
         """
         if config.optimization_variables:
-            # Use custom parameter definitions
+            # Use custom parameter definitions,
             return SystemConfigEncoder.from_parameter_list(config.optimization_variables)
         else:
-            # Auto-detect from system configuration
+            # Auto-detect from system configuration,
             return SystemConfigEncoder.from_config(
                 config.base_config.system_config_path
                 component_selection=None,  # Optimize all available components
@@ -649,12 +641,12 @@ class StudyService:
             encoder: Parameter encoder
 
         Returns:
-            Fitness function that evaluates parameter vectors
+            Fitness function that evaluates parameter vectors,
         """
 
         def fitness_function(parameter_vector: np.ndarray) -> Dict[str, Any]:
             try:
-                # Load base system configuration
+                # Load base system configuration,
                 with open(config.base_config.system_config_path, "r") as f:
                     base_system_config = yaml.safe_load(f)
 
@@ -676,44 +668,44 @@ class StudyService:
                 # Run simulation using JobFacade (uses self.job_facade from parent class)
                 # Note: We need to pass the job facade reference through closure
                 job_result = self.job_facade.submit_simulation_job(
-                    config=sim_config.dict()
+                    config=sim_config.dict(),
                     correlation_id=f"opt_{hash(tuple(parameter_vector))}"
                     blocking=True,  # Synchronous for now
                 )
 
-                # Extract simulation result from job result
+                # Extract simulation result from job result,
                 if job_result.status.value == "completed" and job_result.result:
                     # Convert the result dict back to SimulationResult
                     result = SimulationResult(**job_result.result)
                 elif job_result.status.value in ["failed", "timeout"]:
-                    # Handle job failure
+                    # Handle job failure,
                     temp_config_path.unlink(missing_ok=True)
                     return {
-                        "objectives": [float("inf")],
-                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                        "objectives": [float("inf")]
+                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
                         "fitness": float("inf"),
                         "valid": False,
                         "error": job_result.error or "Simulation job failed"
                     }
                 else:
-                    # Unexpected status
+                    # Unexpected status,
                     temp_config_path.unlink(missing_ok=True)
                     return {
-                        "objectives": [float("inf")],
-                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                        "objectives": [float("inf")]
+                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
                         "fitness": float("inf"),
                         "valid": False,
                         "error": f"Unexpected job status: {job_result.status.value}"
                     }
 
-                # Clean up temporary file
+                # Clean up temporary file,
                 temp_config_path.unlink(missing_ok=True)
 
-                # Extract objectives
+                # Extract objectives,
                 if result.status in ["optimal", "feasible"]:
                     objectives = []
 
-                    # Extract objective values based on configuration
+                    # Extract objective values based on configuration,
                     if config.optimization_objective:
                         objective_names = config.optimization_objective.split(",")
                         for obj_name in objective_names:
@@ -726,41 +718,41 @@ class StudyService:
                                 logger.warning(f"Objective {obj_name} not found in results")
                                 objectives.append(float("inf"))
                     else:
-                        # Default to total cost
+                        # Default to total cost,
                         if result.solver_metrics:
                             objectives.append(result.solver_metrics.get("objective_value", float("inf")))
                         else:
-                            objectives.append(float("inf"))
+                            objectives.append(float("inf")),
 
                     return {
                         "objectives": objectives,
-                        "fitness": (objectives[0] if len(objectives) == 1 else sum(objectives)),
+                        "fitness": (objectives[0] if len(objectives) == 1 else sum(objectives))
                         "valid": True,
-                        "simulation_result": {,
+                        "simulation_result": {
                             "status": result.status,
                             "kpis": result.kpis,
                             "solver_metrics": result.solver_metrics
                         }
                     }
                 else:
-                    # Simulation failed
+                    # Simulation failed,
                     return {
-                        "objectives": [float("inf")],
-                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                        "objectives": [float("inf")]
+                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
                         "fitness": float("inf"),
                         "valid": False,
                         "error": result.error or "Simulation failed"
-                    }
+                    },
 
             except Exception as e:
                 logger.error(f"Fitness evaluation failed: {e}")
                 return {
-                    "objectives": [float("inf")],
-                    * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                    "objectives": [float("inf")]
+                    * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
                     "fitness": float("inf"),
                     "valid": False,
                     "error": str(e)
-                }
+                },
 
         return fitness_function
 
@@ -772,7 +764,7 @@ class StudyService:
             encoder: Parameter encoder
 
         Returns:
-            ConstraintHandler instance
+            ConstraintHandler instance,
         """
         if config.optimization_constraints:
             # Create custom constraints
@@ -783,14 +775,14 @@ class StudyService:
                 constraint_name = constraint_def.get("name", "custom_constraint")
 
                 # This would need to be expanded based on constraint definitions
-                # For now, create simple parameter bounds constraints
+                # For now, create simple parameter bounds constraints,
                 if constraint_type == "bounds":
                     param_name = constraint_def.get("parameter")
                     min_val = constraint_def.get("min", 0)
                     max_val = constraint_def.get("max", 1000)
 
                     def bounds_constraint(x: np.ndarray) -> float:
-                        # Find parameter index
+                        # Find parameter index,
                         for i, param in enumerate(encoder.spec.parameters):
                             if param.name == param_name:
                                 return max(0, min_val - x[i]) + max(0, x[i] - max_val)
@@ -812,19 +804,19 @@ class StudyService:
             study_config: Study configuration
 
         Returns:
-            List of simulation results
+            List of simulation results,
         """
         results = []
 
         if study_config.parallel_execution and len(configs) > 1:
-            # Run simulations in parallel
-            logger.info(f"Running {len(configs)} simulations in parallel with {study_config.max_workers} workers")
+            # Run simulations in parallel,
+            logger.info(f"Running {len(configs)} simulations in parallel with {study_config.max_workers} workers"),
 
             with ProcessPoolExecutor(max_workers=study_config.max_workers) as executor:
                 # Submit all simulations
                 future_to_config = {executor.submit(self._run_single_simulation, cfg): cfg for cfg in configs}
 
-                # Collect results as they complete
+                # Collect results as they complete,
                 for future in as_completed(future_to_config):
                     try:
                         result = future.result()
@@ -835,14 +827,14 @@ class StudyService:
                         cfg = future_to_config[future]
                         results.append(
                             SimulationResult(
-                                simulation_id=cfg.simulation_id
+                                simulation_id=cfg.simulation_id,
                                 status="error"
                                 error=str(e)
                             )
                         )
         else:
-            # Run simulations sequentially
-            logger.info(f"Running {len(configs)} simulations sequentially")
+            # Run simulations sequentially,
+            logger.info(f"Running {len(configs)} simulations sequentially"),
 
             for cfg in configs:
                 try:
@@ -852,11 +844,11 @@ class StudyService:
                     logger.error(f"Simulation {cfg.simulation_id} failed: {e}")
                     results.append(
                         SimulationResult(
-                            simulation_id=cfg.simulation_id
+                            simulation_id=cfg.simulation_id,
                             status="error"
                             error=str(e)
                         )
-                    )
+                    ),
 
         return results
 
@@ -882,7 +874,7 @@ class StudyService:
             config: Study configuration
 
         Returns:
-            Aggregated study result
+            Aggregated study result,
         """
         successful = [r for r in results if r.status in ["optimal", "feasible"]]
         failed = [r for r in results if r.status == "error"]
@@ -902,19 +894,19 @@ class StudyService:
                     best_result = successful[0]  # Fallback to first result
             elif config.study_type == "fidelity":
                 # For mixed-fidelity studies, find the configuration with the best trade-off
-                # between accuracy and computational cost
+                # between accuracy and computational cost,
                 if successful:
                     # Score each result based on accuracy and efficiency
                     scored_results = []
                     for result in successful:
                         # Get solve time and objective value
                         solve_time = (
-                            result.solver_metrics.get("solve_time", float("inf"))
+                            result.solver_metrics.get("solve_time", float("inf")),
                             if result.solver_metrics
                             else float("inf")
                         )
                         objective_value = (
-                            result.solver_metrics.get("objective_value", float("inf"))
+                            result.solver_metrics.get("objective_value", float("inf")),
                             if result.solver_metrics
                             else float("inf")
                         )
@@ -924,7 +916,7 @@ class StudyService:
 
                         scored_results.append((result, efficiency_score))
 
-                    # Sort by efficiency score (best trade-off)
+                    # Sort by efficiency score (best trade-off),
                     scored_results.sort(key=lambda x: x[1])
                     best_result = scored_results[0][0]  # Best efficiency
                 else:
@@ -939,16 +931,16 @@ class StudyService:
             all_results = [r.model_dump() for r in results]
 
         return StudyResult(
-            study_id=config.study_id
+            study_id=config.study_id,
             study_type=config.study_type
-            num_simulations=len(results)
+            num_simulations=len(results),
             successful_simulations=len(successful)
-            failed_simulations=len(failed)
+            failed_simulations=len(failed),
             best_result=best_result.model_dump() if best_result else None
-            all_results=all_results
+            all_results=all_results,
             summary_statistics=summary_stats
             execution_time=0.0,  # Will be set by caller
-        )
+        ),
 
     def _calculate_summary_statistics(self, results: List[SimulationResult], config: StudyConfig) -> Dict[str, Any]:
         """Calculate summary statistics from successful results.
@@ -958,7 +950,7 @@ class StudyService:
             config: Study configuration
 
         Returns:
-            Dictionary of summary statistics
+            Dictionary of summary statistics,
         """
         if not results:
             return {}
@@ -974,7 +966,7 @@ class StudyService:
                         kpi_values[key] = []
                     kpi_values[key].append(value)
 
-        # Calculate statistics for each KPI
+        # Calculate statistics for each KPI,
         for kpi, values in kpi_values.items():
             if values:
                 stats[f"{kpi}_mean"] = float(np.mean(values))
@@ -993,44 +985,44 @@ class StudyService:
     def run_fidelity_comparison(
         self
         base_config_path: Path,
-        components: Optional[List[str]] = None
+        components: Optional[List[str]] = None,
         mixed_fidelity_configs: Optional[List[Dict[str, str]]] = None
     ) -> StudyResult:
         """Convenience method to run a fidelity comparison study.
 
         Args:
-            base_config_path: Path to base system configuration
-            components: Optional list of components to vary fidelity
+            base_config_path: Path to base system configuration,
+            components: Optional list of components to vary fidelity,
             mixed_fidelity_configs: Optional pre-defined mixed fidelity configurations
 
         Returns:
-            StudyResult with fidelity comparison
+            StudyResult with fidelity comparison,
         """
-        # Load base configuration
+        # Load base configuration,
         with open(base_config_path, "r") as f:
             system_config = yaml.safe_load(f)
 
         # Create base simulation config
         base_sim_config = SimulationConfig(
-            simulation_id="fidelity_base"
+            simulation_id="fidelity_base",
             system_config_path=str(base_config_path)
-            solver_type="milp"
+            solver_type="milp",
             output_config={"directory": "fidelity_study"}
         )
 
         # Create study config with mixed-fidelity support
         study_config = StudyConfig(
-            study_id=f"fidelity_comparison_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            study_id=f"fidelity_comparison_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             study_type="fidelity"
-            base_config=base_sim_config
+            base_config=base_sim_config,
             fidelity_sweep=FidelitySweepSpec(
-                component_names=components or []
-                fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"]
+                component_names=components or [],
+                fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"],
                 mixed_fidelity_configs=mixed_fidelity_configs
             )
-            parallel_execution=True
+            parallel_execution=True,
             save_all_results=True
-        )
+        ),
 
         return self.run_study(study_config)
 
@@ -1043,7 +1035,7 @@ class StudyService:
                           Example: [{"battery": "RESEARCH", "solar_pv": "STANDARD"}]
 
         Returns:
-            StudyResult with mixed-fidelity comparison
+            StudyResult with mixed-fidelity comparison,
         """
         return self.run_fidelity_comparison(base_config_path=base_config_path, mixed_fidelity_configs=mixed_configs)
 
@@ -1055,13 +1047,13 @@ class StudyService:
             parameter_specs: List of parameter specifications
 
         Returns:
-            StudyResult with sensitivity analysis
+            StudyResult with sensitivity analysis,
         """
         # Create base simulation config
         base_sim_config = SimulationConfig(
-            simulation_id="sensitivity_base"
+            simulation_id="sensitivity_base",
             system_config_path=str(base_config_path)
-            solver_type="milp"
+            solver_type="milp",
             output_config={"directory": "sensitivity_study"}
         )
 
@@ -1072,126 +1064,126 @@ class StudyService:
 
         # Create study config
         study_config = StudyConfig(
-            study_id=f"sensitivity_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            study_id=f"sensitivity_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             study_type="parametric"
-            base_config=base_sim_config
+            base_config=base_sim_config,
             parameter_sweeps=sweeps
-            parallel_execution=True
+            parallel_execution=True,
             save_all_results=True
-        )
+        ),
 
         return self.run_study(study_config)
 
     def run_genetic_algorithm_optimization(
         self
         base_config_path: Path,
-        optimization_variables: List[Dict[str, Any]]
-        objectives: str = "minimize_cost"
-        multi_objective: bool = False
+        optimization_variables: List[Dict[str, Any]],
+        objectives: str = "minimize_cost",
+        multi_objective: bool = False,
         **ga_kwargs
     ) -> StudyResult:
         """Convenience method to run genetic algorithm optimization.
 
         Args:
-            base_config_path: Path to base system configuration
-            optimization_variables: List of parameter definitions for optimization
-            objectives: Comma-separated list of objectives to optimize
-            multi_objective: Use NSGA-II for multi-objective optimization
+            base_config_path: Path to base system configuration,
+            optimization_variables: List of parameter definitions for optimization,
+            objectives: Comma-separated list of objectives to optimize,
+            multi_objective: Use NSGA-II for multi-objective optimization,
             **ga_kwargs: Additional GA configuration parameters
 
         Returns:
-            StudyResult with optimization results
+            StudyResult with optimization results,
         """
         # Create base simulation config
         base_sim_config = SimulationConfig(
-            simulation_id="ga_optimization"
+            simulation_id="ga_optimization",
             system_config_path=str(base_config_path)
-            solver_type="milp"
+            solver_type="milp",
             output_config={"directory": "ga_optimization"}
         )
 
         # Create study config
         study_config = StudyConfig(
-            study_id=f"ga_optimization_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            study_id=f"ga_optimization_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             study_type="genetic_algorithm"
-            base_config=base_sim_config
+            base_config=base_sim_config,
             optimization_objective=objectives
-            optimization_variables=optimization_variables
+            optimization_variables=optimization_variables,
             multi_objective=multi_objective
-            ga_config=ga_kwargs
+            ga_config=ga_kwargs,
             parallel_execution=True
             save_all_results=True
-        )
+        ),
 
         return self.run_study(study_config)
 
     def run_monte_carlo_uncertainty(
         self
         base_config_path: Path,
-        uncertainty_variables: Dict[str, Dict[str, Any]]
-        objectives: str = "total_cost"
-        n_samples: int = 1000
+        uncertainty_variables: Dict[str, Dict[str, Any]],
+        objectives: str = "total_cost",
+        n_samples: int = 1000,
         **mc_kwargs
     ) -> StudyResult:
         """Convenience method to run Monte Carlo uncertainty analysis.
 
         Args:
-            base_config_path: Path to base system configuration
-            uncertainty_variables: Dictionary of uncertain parameter definitions
-            objectives: Comma-separated list of objectives to analyze
-            n_samples: Number of Monte Carlo samples
+            base_config_path: Path to base system configuration,
+            uncertainty_variables: Dictionary of uncertain parameter definitions,
+            objectives: Comma-separated list of objectives to analyze,
+            n_samples: Number of Monte Carlo samples,
             **mc_kwargs: Additional MC configuration parameters
 
         Returns:
-            StudyResult with uncertainty analysis results
+            StudyResult with uncertainty analysis results,
         """
         # Create base simulation config
         base_sim_config = SimulationConfig(
-            simulation_id="mc_uncertainty"
+            simulation_id="mc_uncertainty",
             system_config_path=str(base_config_path)
-            solver_type="milp"
+            solver_type="milp",
             output_config={"directory": "mc_uncertainty"}
         )
 
         # Create study config
         study_config = StudyConfig(
-            study_id=f"mc_uncertainty_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            study_id=f"mc_uncertainty_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             study_type="monte_carlo"
-            base_config=base_sim_config
+            base_config=base_sim_config,
             optimization_objective=objectives
-            uncertainty_variables=uncertainty_variables
-            mc_config={"n_samples": n_samples, **mc_kwargs}
-            parallel_execution=True
+            uncertainty_variables=uncertainty_variables,
+            mc_config={"n_samples": n_samples, **mc_kwargs},
+            parallel_execution=True,
             save_all_results=True
-        )
+        ),
 
         return self.run_study(study_config)
 
     def run_design_space_exploration(
         self
         base_config_path: Path,
-        design_variables: List[Dict[str, Any]]
-        objectives: str = "minimize_cost,maximize_renewable"
-        exploration_method: str = "nsga2"
+        design_variables: List[Dict[str, Any]],
+        objectives: str = "minimize_cost,maximize_renewable",
+        exploration_method: str = "nsga2",
         **kwargs
     ) -> StudyResult:
         """Convenience method for comprehensive design space exploration.
 
         Args:
-            base_config_path: Path to base system configuration
-            design_variables: List of design variable definitions
-            objectives: Multi-objective optimization targets
-            exploration_method: Method to use (nsga2, monte_carlo)
+            base_config_path: Path to base system configuration,
+            design_variables: List of design variable definitions,
+            objectives: Multi-objective optimization targets,
+            exploration_method: Method to use (nsga2, monte_carlo),
             **kwargs: Method-specific configuration
 
         Returns:
-            StudyResult with design space exploration results
+            StudyResult with design space exploration results,
         """
         if exploration_method.lower() == "nsga2":
             return self.run_genetic_algorithm_optimization(
-                base_config_path=base_config_path
+                base_config_path=base_config_path,
                 optimization_variables=design_variables
-                objectives=objectives
+                objectives=objectives,
                 multi_objective=True
                 **kwargs
             )
@@ -1203,12 +1195,12 @@ class StudyService:
                 bounds = var.get("bounds", (0, 100))
                 uncertainty_vars[var_name] = {
                     "distribution": "uniform",
-                    "parameters": {"a": bounds[0], "b": bounds[1]}
-                    "bounds": bounds
-                }
+                    "parameters": {"a": bounds[0], "b": bounds[1]},
+                    "bounds": bounds,
+                },
 
             return self.run_monte_carlo_uncertainty(
-                base_config_path=base_config_path
+                base_config_path=base_config_path,
                 uncertainty_variables=uncertainty_vars
                 objectives=objectives
                 **kwargs

@@ -119,29 +119,29 @@ def find_available_port(ssh: SSHClient, start_port: int, max_search: int) -> int
 
 
 def run_remote_command(
-    ssh_client: SSHClient
-    command: str
-    config: Dict[str, Any]
-    sudo: bool = False
-    check: bool = True
+    ssh_client: SSHClient,
+    command: str,
+    config: Dict[str, Any],
+    sudo: bool = False,
+    check: bool = True,
     log_output: bool = True
 ) -> Tuple[int, str, str]:
     """
     Executes a command on the remote server using the provided SSH client.
 
     Args:
-        ssh_client: An initialized and connected SSHClient instance.
-        command: The shell command to execute.
-        config: The application configuration dictionary.
-        sudo: If True, executes the command using sudo.
-        check: If True, raise an exception if the command returns a non-zero exit code.
+        ssh_client: An initialized and connected SSHClient instance.,
+        command: The shell command to execute.,
+        config: The application configuration dictionary.,
+        sudo: If True, executes the command using sudo.,
+        check: If True, raise an exception if the command returns a non-zero exit code.,
         log_output: If True, logs stdout and stderr.
 
     Returns:
         A tuple containing (exit_code, stdout, stderr).
 
     Raises:
-        Exception: If 'check' is True and the command returns a non-zero exit code.
+        Exception: If 'check' is True and the command returns a non-zero exit code.,
     """
     sudo_prefix = "sudo " if sudo else ""
     logging.debug(f"Running remote command: {sudo_prefix}{command}")
@@ -149,19 +149,19 @@ def run_remote_command(
     exit_code, stdout, stderr = ssh_client.execute_command(command, sudo=sudo)
 
     if exit_code != 0:
-        logging.warning(f"Remote command failed (Exit Code: {exit_code}): {sudo_prefix}{command}")
+        logging.warning(f"Remote command failed (Exit Code: {exit_code}): {sudo_prefix}{command}"),
         if stdout and log_output:
-            logging.warning(f"  STDOUT: {stdout}")
+            logging.warning(f"  STDOUT: {stdout}"),
         if stderr and log_output:
-            logging.warning(f"  STDERR: {stderr}")
+            logging.warning(f"  STDERR: {stderr}"),
         if check:
             raise Exception(
                 f"Remote command failed with exit code {exit_code}: {sudo_prefix}{command}. Stderr: {stderr}"
             )
     else:
-        logging.debug(f"Remote command succeeded (Exit Code: 0): {sudo_prefix}{command}")
+        logging.debug(f"Remote command succeeded (Exit Code: 0): {sudo_prefix}{command}"),
         if stdout and log_output:
-            logging.debug(f"  STDOUT: {stdout}")
+            logging.debug(f"  STDOUT: {stdout}"),
         if stderr and log_output:
             logging.debug(f"  STDERR: {stderr}")
 
@@ -169,20 +169,20 @@ def run_remote_command(
 
 
 def upload_directory(
-    ssh_client: SSHClient
-    local_dir: str
-    remote_dir: str
-    config: Dict[str, Any]
+    ssh_client: SSHClient,
+    local_dir: str,
+    remote_dir: str,
+    config: Dict[str, Any],
     sudo_upload: bool = False
 ) -> bool:
     """
     Uploads a local directory to a remote server via SFTP.
 
     Args:
-        ssh_client: An initialized and connected SSHClient instance.
-        local_dir: The path to the local directory to upload.
-        remote_dir: The path to the destination directory on the remote server.
-        config: The application configuration dictionary.
+        ssh_client: An initialized and connected SSHClient instance.,
+        local_dir: The path to the local directory to upload.,
+        remote_dir: The path to the destination directory on the remote server.,
+        config: The application configuration dictionary.,
         sudo_upload: If True, attempts to use sudo for creating the remote directory.
 
     Returns:
@@ -190,7 +190,7 @@ def upload_directory(
     """
     local_path = Path(local_dir)
     if not local_path.is_dir():
-        logging.error(f"Local directory not found: {local_dir}")
+        logging.error(f"Local directory not found: {local_dir}"),
         return False
 
     # Parse .deployignore patterns
@@ -202,20 +202,20 @@ def upload_directory(
         if not ssh_client.sftp:
             ssh_client.sftp = ssh_client.client.open_sftp()
 
-        logging.info(f"Creating remote directory (if needed): {remote_dir}")
+        logging.info(f"Creating remote directory (if needed): {remote_dir}"),
         # Use run_remote_command for directory creation
         exit_code, _, stderr = run_remote_command(
             ssh_client
-            f"mkdir -p '{remote_dir}'"
+            f"mkdir -p '{remote_dir}'",
             config
-            sudo=sudo_upload
-            check=False
+            sudo=sudo_upload,
+            check=False,
             log_output=False
         )
         if exit_code != 0:
             # Check if error is "File exists" - that's okay
             if "File exists" not in stderr:
-                logging.error(f"Failed to create remote directory {remote_dir}: {stderr}")
+                logging.error(f"Failed to create remote directory {remote_dir}: {stderr}"),
                 return False
 
         # Walk through the local directory
@@ -226,20 +226,20 @@ def upload_directory(
 
             # Check if this directory should be ignored
             if relative_path_str != "." and should_ignore_path(relative_path_str + "/", ignore_patterns):
-                logging.debug(f"Ignoring directory: {relative_path_str}")
+                logging.debug(f"Ignoring directory: {relative_path_str}"),
                 dirs.clear()  # Don't walk into subdirectories
                 continue
 
             remote_root = os.path.join(remote_dir, str(relative_path)).replace("\\\\", "/")
 
-            if relative_path != Path("."):  # Don't try to create the base dir again
-                logging.debug(f"Creating remote subdirectory: {remote_root}")
+            if relative_path != Path("."):  # Don't try to create the base dir again,
+                logging.debug(f"Creating remote subdirectory: {remote_root}"),
                 exit_code, _, stderr = run_remote_command(
                     ssh_client
-                    f"mkdir -p '{remote_root}'"
+                    f"mkdir -p '{remote_root}'",
                     config
-                    sudo=sudo_upload
-                    check=False
+                    sudo=sudo_upload,
+                    check=False,
                     log_output=False
                 )
                 # Again, ignore "File exists" type errors
@@ -251,7 +251,7 @@ def upload_directory(
                 # Check if this file should be ignored
                 file_relative_path = os.path.join(relative_path_str, filename).replace("\\\\", "/")
                 if should_ignore_path(file_relative_path, ignore_patterns):
-                    logging.debug(f"Ignoring file: {file_relative_path}")
+                    logging.debug(f"Ignoring file: {file_relative_path}"),
                     continue
 
                 local_file_path = os.path.join(root, filename)
@@ -266,7 +266,7 @@ def upload_directory(
         return True
 
     except Exception as e:
-        logging.error(f"Error during directory upload: {e}", exc_info=True)
+        logging.error(f"Error during directory upload: {e}", exc_info=True),
         return False
 
 

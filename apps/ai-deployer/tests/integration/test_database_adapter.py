@@ -2,9 +2,7 @@
 Tests for the database adapter
 """
 
-import json
-from datetime import datetime
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from ai_deployer.database_adapter import DatabaseAdapter, DeploymentDatabaseError

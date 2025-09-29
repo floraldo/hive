@@ -8,7 +8,7 @@ integrity and catch configuration issues early.
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Tuple
 
 from hive_logging import get_logger
 
@@ -48,7 +48,7 @@ def validate_python_environment() -> Dict[str, any]:
             f"Python {results['python_version']['current']} is not supported. " f"Minimum required: Python 3.8"
         )
     elif not results["python_version"]["recommended"]:
-        results["recommendations"].append(f"Consider upgrading to Python 3.11+ for better performance and features")
+        results["recommendations"].append("Consider upgrading to Python 3.11+ for better performance and features")
 
     # Check for virtual environment
     in_venv = hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
@@ -208,7 +208,7 @@ def run_comprehensive_validation() -> Tuple[bool, Dict[str, any]]:
         Tuple of (all_passed: bool, results: dict)
     """
     validation_results = {
-        "timestamp": str(Path.cwd() / "validation_timestamp"),  # Simple timestamp
+        "timestamp": str(Path.cwd() / "validation_timestamp"),  # Simple timestamp,
         "overall_status": "PENDING",
         "python_environment": validate_python_environment(),
         "project_structure": validate_project_structure(),
@@ -264,14 +264,14 @@ def format_validation_report(results: Dict[str, any], include_details: bool = Tr
     # Header
     status = results["overall_status"]
     status_symbol = "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️"
-    lines.append(f"Hive System Validation Report")
+    lines.append("Hive System Validation Report")
     lines.append(f"Status: {status_symbol} {status}")
     lines.append("=" * 50)
 
     if include_details:
         # Python Environment
         py_env = results["python_environment"]
-        lines.append(f"Python Environment:")
+        lines.append("Python Environment:")
         lines.append(
             f"  Version: {py_env['python_version']['current']} ({'✅' if py_env['python_version']['compatible'] else '❌'})"
         )

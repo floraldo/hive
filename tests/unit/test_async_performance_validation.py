@@ -11,14 +11,13 @@ import asyncio
 import concurrent.futures
 import json
 import sqlite3
-import tempfile
-import time
-from pathlib import Path
-from typing import Dict, Any, List, Tuple
-from dataclasses import dataclass
 import statistics
 import sys
-import os
+import tempfile
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List
 
 
 @dataclass
@@ -135,12 +134,12 @@ class AsyncPerformanceValidator:
 
             # Validate 5x improvement claim
             if overall_improvement >= 3.0:  # At least 3x improvement
-                print(f"\n🎉 ASYNC PERFORMANCE VALIDATION PASSED!")
+                print("\n🎉 ASYNC PERFORMANCE VALIDATION PASSED!")
                 print(f"✨ Overall improvement: {overall_improvement:.1f}x (exceeds 3x minimum)")
-                print(f"🚀 Ready for production with proven performance gains")
+                print("🚀 Ready for production with proven performance gains")
                 return True
             else:
-                print(f"\n❌ ASYNC PERFORMANCE VALIDATION FAILED")
+                print("\n❌ ASYNC PERFORMANCE VALIDATION FAILED")
                 print(f"📉 Overall improvement: {overall_improvement:.1f}x (below 3x minimum)")
                 return False
 
@@ -507,7 +506,7 @@ class AsyncPerformanceValidator:
         max_improvement = max(improvements)
         min_improvement = min(improvements)
 
-        print(f"\n📈 SUMMARY STATISTICS:")
+        print("\n📈 SUMMARY STATISTICS:")
         print(f"   Average Improvement: {avg_improvement:.1f}x")
         print(f"   Best Improvement: {max_improvement:.1f}x")
         print(f"   Worst Improvement: {min_improvement:.1f}x")
@@ -533,7 +532,7 @@ class AsyncPerformanceValidator:
 
         conn.close()
 
-        print(f"\n📊 DATA VALIDATION:")
+        print("\n📊 DATA VALIDATION:")
         print(f"   Tasks Created: {task_count}")
         print(f"   Events Processed: {event_count}")
         print(f"   Performance Logs: {log_count}")
@@ -552,17 +551,17 @@ def main():
         success = validator.run_all_performance_tests()
 
         if success:
-            print(f"\n🎯 PERFORMANCE VALIDATION CONCLUSION:")
-            print(f"✅ Async infrastructure delivers significant performance improvements")
-            print(f"🚀 Ready for production deployment with proven 3-5x performance gains")
+            print("\n🎯 PERFORMANCE VALIDATION CONCLUSION:")
+            print("✅ Async infrastructure delivers significant performance improvements")
+            print("🚀 Ready for production deployment with proven 3-5x performance gains")
             sys.exit(0)
         else:
-            print(f"\n❌ PERFORMANCE VALIDATION FAILED")
-            print(f"🔧 Async infrastructure needs optimization before production")
+            print("\n❌ PERFORMANCE VALIDATION FAILED")
+            print("🔧 Async infrastructure needs optimization before production")
             sys.exit(1)
 
     except KeyboardInterrupt:
-        print(f"\n⚠️ Performance validation interrupted by user")
+        print("\n⚠️ Performance validation interrupted by user")
         sys.exit(1)
 
     except Exception as e:

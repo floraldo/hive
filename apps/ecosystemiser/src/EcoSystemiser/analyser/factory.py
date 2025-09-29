@@ -12,10 +12,10 @@ logger = get_logger(__name__)
 
 
 class AnalyserFactory:
-    """Factory for creating analysis strategy instances.
+    """Factory for creating analysis strategy instances.,
 
     This factory enables dynamic creation of analysis strategies,
-    supporting both built-in strategies and custom implementations.
+    supporting both built-in strategies and custom implementations.,
     """
 
     # Registry of available strategy classes
@@ -34,7 +34,7 @@ class AnalyserFactory:
             strategy_class: Class implementing BaseAnalysis
 
         Raises:
-            TypeError: If strategy_class doesn't inherit from BaseAnalysis
+            TypeError: If strategy_class doesn't inherit from BaseAnalysis,
         """
         if not issubclass(strategy_class, BaseAnalysis):
             raise TypeError(f"Strategy class must inherit from BaseAnalysis, " f"got {strategy_class}")
@@ -54,15 +54,14 @@ class AnalyserFactory:
             Instance of the requested strategy
 
         Raises:
-            ValueError: If strategy name is not registered
+            ValueError: If strategy name is not registered,
         """
         if name not in cls._strategies:
             available = ", ".join(cls._strategies.keys())
             raise ValueError(f"Unknown strategy: {name}. " f"Available strategies: {available}")
-
         strategy_class = cls._strategies[name]
 
-        # Create instance with configuration if supported
+        # Create instance with configuration if supported,
         if config:
             # Check if the strategy accepts configuration
             try:
@@ -85,7 +84,7 @@ class AnalyserFactory:
             config: Optional configuration dictionary with strategy-specific configs
 
         Returns:
-            Dictionary mapping strategy names to instances
+            Dictionary mapping strategy names to instances,
         """
         strategies = {}
         config = config or {}
@@ -101,7 +100,7 @@ class AnalyserFactory:
         """Get information about available strategies.
 
         Returns:
-            Dictionary mapping strategy names to descriptions
+            Dictionary mapping strategy names to descriptions,
         """
         info = {}
         for name, strategy_class in cls._strategies.items():
@@ -121,7 +120,7 @@ class AnalyserFactory:
             system_type: Type of system ('energy', 'water', 'mixed')
 
         Returns:
-            Dictionary of relevant strategy instances
+            Dictionary of relevant strategy instances,
         """
         strategies = {}
 
@@ -131,7 +130,7 @@ class AnalyserFactory:
             strategies["sensitivity"] = cls.create_strategy("sensitivity")
 
         elif system_type == "water":
-            # For water systems, still use technical KPIs (it handles water metrics)
+            # For water systems, still use technical KPIs (it handles water metrics),
             strategies["technical_kpi"] = cls.create_strategy("technical_kpi")
             strategies["economic"] = cls.create_strategy("economic")
 

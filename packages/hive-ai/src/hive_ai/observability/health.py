@@ -79,9 +79,9 @@ class ModelHealthChecker:
 
     def __init__(
         self
-        registry: ModelRegistry
-        check_interval: int = 300,  # 5 minutes
-        degradation_threshold: float = 0.8,  # 80% success rate
+        registry: ModelRegistry,
+        check_interval: int = 300,  # 5 minutes,
+        degradation_threshold: float = 0.8,  # 80% success rate,
         unhealthy_threshold: float = 0.5   # 50% success rate
     ):
         self.registry = registry
@@ -92,7 +92,7 @@ class ModelHealthChecker:
         self.cache = CacheManager("model_health")
 
         # Health state storage
-        self._provider_health: Dict[str, ProviderHealth] = {}
+        self._provider_health: Dict[str, ProviderHealth] = {},
         self._model_health: Dict[str, ModelHealth] = {}
 
         # Health check history
@@ -109,24 +109,24 @@ class ModelHealthChecker:
         """Load default health check configurations for different providers."""
         return {
             "anthropic": {
-                "timeout_seconds": 10
-                "test_prompt": "Hello, respond with 'OK' if you're working."
-                "expected_response_pattern": "OK"
-                "max_response_time_ms": 5000
+                "timeout_seconds": 10,
+                "test_prompt": "Hello, respond with 'OK' if you're working.",
+                "expected_response_pattern": "OK",
+                "max_response_time_ms": 5000,
                 "min_success_rate": 0.9
             }
             "openai": {
-                "timeout_seconds": 10
-                "test_prompt": "Say 'OK' to confirm you're operational."
-                "expected_response_pattern": "OK"
-                "max_response_time_ms": 8000
+                "timeout_seconds": 10,
+                "test_prompt": "Say 'OK' to confirm you're operational.",
+                "expected_response_pattern": "OK",
+                "max_response_time_ms": 8000,
                 "min_success_rate": 0.9
             }
             "local": {
-                "timeout_seconds": 30
-                "test_prompt": "Respond with 'OK' if functional."
-                "expected_response_pattern": "OK"
-                "max_response_time_ms": 15000
+                "timeout_seconds": 30,
+                "test_prompt": "Respond with 'OK' if functional.",
+                "expected_response_pattern": "OK",
+                "max_response_time_ms": 15000,
                 "min_success_rate": 0.8
             }
         }
@@ -231,7 +231,7 @@ class ModelHealthChecker:
                 overall_status
                 response_time_ms
                 {
-                    "connectivity": connectivity_result.__dict__
+                    "connectivity": connectivity_result.__dict__,
                     "functionality": functional_result.__dict__
                 }
             )
@@ -259,7 +259,7 @@ class ModelHealthChecker:
 
     async def _check_connectivity_async(
         self
-        provider_instance: Any
+        provider_instance: Any,
         config: Dict[str, Any]
     ) -> HealthCheckResult:
         """Check basic connectivity to provider."""
@@ -276,18 +276,18 @@ class ModelHealthChecker:
                 response_time_ms = (time.time() - start_time) * 1000
 
                 return HealthCheckResult(
-                    status=HealthStatus.HEALTHY if is_healthy else HealthStatus.UNHEALTHY
+                    status=HealthStatus.HEALTHY if is_healthy else HealthStatus.UNHEALTHY,
                     response_time_ms=response_time_ms
-                    timestamp=datetime.utcnow()
+                    timestamp=datetime.utcnow(),
                     details={"check_type": "connectivity"}
                 )
 
             else:
                 # No connectivity check available
                 return HealthCheckResult(
-                    status=HealthStatus.UNKNOWN
+                    status=HealthStatus.UNKNOWN,
                     response_time_ms=0
-                    timestamp=datetime.utcnow()
+                    timestamp=datetime.utcnow(),
                     details={"check_type": "connectivity", "method": "unavailable"}
                 )
 
@@ -295,17 +295,17 @@ class ModelHealthChecker:
             response_time_ms = (time.time() - start_time) * 1000
 
             return HealthCheckResult(
-                status=HealthStatus.UNHEALTHY
+                status=HealthStatus.UNHEALTHY,
                 response_time_ms=response_time_ms
-                timestamp=datetime.utcnow()
-                details={"check_type": "connectivity"}
+                timestamp=datetime.utcnow(),
+                details={"check_type": "connectivity"},
                 error_message=str(e)
             )
 
     async def _check_functionality_async(
         self
-        provider_name: str
-        provider_instance: Any
+        provider_name: str,
+        provider_instance: Any,
         config: Dict[str, Any]
     ) -> HealthCheckResult:
         """Check functional capability of provider."""
@@ -316,9 +316,9 @@ class ModelHealthChecker:
             test_model = self._get_test_model(provider_name)
             if not test_model:
                 return HealthCheckResult(
-                    status=HealthStatus.UNKNOWN
+                    status=HealthStatus.UNKNOWN,
                     response_time_ms=0
-                    timestamp=datetime.utcnow()
+                    timestamp=datetime.utcnow(),
                     details={"check_type": "functional", "reason": "no_test_model"}
                 )
 
@@ -354,15 +354,15 @@ class ModelHealthChecker:
                 status = HealthStatus.DEGRADED
 
             return HealthCheckResult(
-                status=status
+                status=status,
                 response_time_ms=response_time_ms
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
                 details={
-                    "check_type": "functional"
-                    "test_model": test_model
-                    "response_valid": is_valid_response
-                    "performance_ok": is_performant
-                    "response_length": len(response.content) if response and response.content else 0
+                    "check_type": "functional",
+                    "test_model": test_model,
+                    "response_valid": is_valid_response,
+                    "performance_ok": is_performant,
+                    "response_length": len(response.content) if response and response.content else 0,
                 }
             )
 
@@ -370,10 +370,10 @@ class ModelHealthChecker:
             response_time_ms = (time.time() - start_time) * 1000
 
             return HealthCheckResult(
-                status=HealthStatus.UNHEALTHY
+                status=HealthStatus.UNHEALTHY,
                 response_time_ms=response_time_ms
-                timestamp=datetime.utcnow()
-                details={"check_type": "functional"}
+                timestamp=datetime.utcnow(),
+                details={"check_type": "functional"},
                 error_message=str(e)
             )
 
@@ -398,22 +398,22 @@ class ModelHealthChecker:
 
     def _determine_provider_status(
         self
-        connectivity: HealthCheckResult
+        connectivity: HealthCheckResult,
         functionality: HealthCheckResult
     ) -> HealthStatus:
         """Determine overall provider status from check results."""
         # If either check is unhealthy, provider is unhealthy
-        if (connectivity.status == HealthStatus.UNHEALTHY or
+        if (connectivity.status == HealthStatus.UNHEALTHY or,
             functionality.status == HealthStatus.UNHEALTHY):
             return HealthStatus.UNHEALTHY
 
         # If either check is degraded, provider is degraded
-        if (connectivity.status == HealthStatus.DEGRADED or
+        if (connectivity.status == HealthStatus.DEGRADED or,
             functionality.status == HealthStatus.DEGRADED):
             return HealthStatus.DEGRADED
 
         # If either check is unknown, provider status is degraded
-        if (connectivity.status == HealthStatus.UNKNOWN or
+        if (connectivity.status == HealthStatus.UNKNOWN or,
             functionality.status == HealthStatus.UNKNOWN):
             return HealthStatus.DEGRADED
 
@@ -422,9 +422,9 @@ class ModelHealthChecker:
 
     def _update_provider_health(
         self
-        provider: str
-        status: HealthStatus
-        response_time_ms: float
+        provider: str,
+        status: HealthStatus,
+        response_time_ms: float,
         details: Dict[str, Any]
     ) -> ProviderHealth:
         """Update provider health state and history."""
@@ -432,9 +432,9 @@ class ModelHealthChecker:
 
         # Create health check result
         check_result = HealthCheckResult(
-            status=status
-            response_time_ms=response_time_ms
-            timestamp=now
+            status=status,
+            response_time_ms=response_time_ms,
+            timestamp=now,
             details=details
         )
 
@@ -449,30 +449,30 @@ class ModelHealthChecker:
             self._health_history[provider] = self._health_history[provider][-100:]
 
         # Calculate availability and error rate
-        recent_checks = self._health_history[provider][-20:]  # Last 20 checks
+        recent_checks = self._health_history[provider][-20:]  # Last 20 checks,
         availability = self._calculate_availability(recent_checks)
         error_rate = self._calculate_error_rate(recent_checks)
 
         # Update or create provider health
         if provider not in self._provider_health:
             self._provider_health[provider] = ProviderHealth(
-                provider_name=provider
-                status=status
-                last_check=now
-                response_time_ms=response_time_ms
-                availability_percentage=availability
-                error_rate=error_rate
-                recent_checks=recent_checks[-5:],  # Keep last 5 for details
+                provider_name=provider,
+                status=status,
+                last_check=now,
+                response_time_ms=response_time_ms,
+                availability_percentage=availability,
+                error_rate=error_rate,
+                recent_checks=recent_checks[-5:],  # Keep last 5 for details,
                 metadata=details
             )
         else:
-            health = self._provider_health[provider]
-            health.status = status
-            health.last_check = now
-            health.response_time_ms = response_time_ms
-            health.availability_percentage = availability
-            health.error_rate = error_rate
-            health.recent_checks = recent_checks[-5:]
+            health = self._provider_health[provider],
+            health.status = status,
+            health.last_check = now,
+            health.response_time_ms = response_time_ms,
+            health.availability_percentage = availability,
+            health.error_rate = error_rate,
+            health.recent_checks = recent_checks[-5:],
             health.metadata = details
 
         return self._provider_health[provider]
@@ -526,17 +526,17 @@ class ModelHealthChecker:
 
             # Update model health tracking
             health = ModelHealth(
-                model_name=model_name
-                provider=model_config.provider
-                status=model_status
-                last_successful_request=None,  # Would track from metrics
-                recent_error_count=0,  # Would track from metrics
-                avg_response_time_ms=provider_health.response_time_ms
-                success_rate=provider_health.availability_percentage / 100
+                model_name=model_name,
+                provider=model_config.provider,
+                status=model_status,
+                last_successful_request=None,  # Would track from metrics,
+                recent_error_count=0,  # Would track from metrics,
+                avg_response_time_ms=provider_health.response_time_ms,
+                success_rate=provider_health.availability_percentage / 100,
                 performance_trend="stable"  # Would analyze from historical data
             )
 
-            self._model_health[model_name] = health
+            self._model_health[model_name] = health,
             return health
 
         except Exception as e:
@@ -546,7 +546,7 @@ class ModelHealthChecker:
 
     def _determine_model_status(
         self
-        provider_health: ProviderHealth
+        provider_health: ProviderHealth,
         model_name: str
     ) -> HealthStatus:
         """Determine model status based on provider health and model-specific factors."""
@@ -566,9 +566,9 @@ class ModelHealthChecker:
         provider_summary = {}
         for provider, health in self._provider_health.items():
             provider_summary[provider] = {
-                "status": health.status.value
-                "availability": health.availability_percentage
-                "last_check": health.last_check.isoformat()
+                "status": health.status.value,
+                "availability": health.availability_percentage,
+                "last_check": health.last_check.isoformat(),
                 "response_time_ms": health.response_time_ms
             }
 
@@ -576,9 +576,9 @@ class ModelHealthChecker:
         model_summary = {}
         for model, health in self._model_health.items():
             model_summary[model] = {
-                "status": health.status.value
-                "provider": health.provider
-                "success_rate": health.success_rate
+                "status": health.status.value,
+                "provider": health.provider,
+                "success_rate": health.success_rate,
                 "avg_response_time_ms": health.avg_response_time_ms
             }
 
@@ -599,14 +599,14 @@ class ModelHealthChecker:
             system_health = HealthStatus.DEGRADED
 
         return {
-            "overall_status": system_health.value
+            "overall_status": system_health.value,
             "timestamp": now.isoformat()
-            "monitoring_active": self._monitoring_active
+            "monitoring_active": self._monitoring_active,
             "providers": provider_summary
-            "models": model_summary
+            "models": model_summary,
             "statistics": {
-                "total_providers": total_providers
-                "healthy_providers": healthy_providers
+                "total_providers": total_providers,
+                "healthy_providers": healthy_providers,
                 "degraded_providers": sum(
                     1 for health in self._provider_health.values()
                     if health.status == HealthStatus.DEGRADED
@@ -630,33 +630,33 @@ class ModelHealthChecker:
             # Unhealthy provider alert
             if health.status == HealthStatus.UNHEALTHY:
                 alerts.append({
-                    "type": "provider_unhealthy"
+                    "type": "provider_unhealthy",
                     "severity": "critical"
-                    "provider": provider
+                    "provider": provider,
                     "message": f"Provider {provider} is unhealthy"
-                    "details": health.metadata
+                    "details": health.metadata,
                     "timestamp": health.last_check.isoformat()
                 })
 
             # Low availability alert
             elif health.availability_percentage < 80:
                 alerts.append({
-                    "type": "low_availability"
+                    "type": "low_availability",
                     "severity": "warning"
-                    "provider": provider
+                    "provider": provider,
                     "message": f"Provider {provider} availability is {health.availability_percentage:.1f}%"
-                    "availability": health.availability_percentage
+                    "availability": health.availability_percentage,
                     "timestamp": health.last_check.isoformat()
                 })
 
             # High response time alert
             elif health.response_time_ms > 10000:
                 alerts.append({
-                    "type": "high_latency"
+                    "type": "high_latency",
                     "severity": "warning"
-                    "provider": provider
+                    "provider": provider,
                     "message": f"Provider {provider} response time is {health.response_time_ms:.1f}ms"
-                    "response_time_ms": health.response_time_ms
+                    "response_time_ms": health.response_time_ms,
                     "timestamp": health.last_check.isoformat()
                 })
 

@@ -42,11 +42,11 @@ class BaseEvent:
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary for serialization"""
         return {
-            "event_id": self.event_id
+            "event_id": self.event_id,
             "event_type": self.event_type
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
             "source": self.source
-            "payload": self.payload
+            "payload": self.payload,
             "metadata": self.metadata
             "correlation_id": self.correlation_id
         }
@@ -57,11 +57,11 @@ class BaseEvent:
         timestamp = datetime.fromisoformat(data["timestamp"])
 
         return cls(
-            event_id=data["event_id"]
+            event_id=data["event_id"],
             event_type=data["event_type"]
-            timestamp=timestamp
+            timestamp=timestamp,
             source=data["source"]
-            payload=data.get("payload", {})
+            payload=data.get("payload", {}),
             metadata=data.get("metadata", {})
             correlation_id=data.get("correlation_id")
         )

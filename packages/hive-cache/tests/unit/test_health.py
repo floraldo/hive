@@ -1,7 +1,5 @@
 """Unit tests for hive_cache.health module."""
 
-from unittest.mock import AsyncMock, Mock
-
 import pytest
 
 

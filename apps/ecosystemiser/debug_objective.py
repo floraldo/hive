@@ -4,6 +4,9 @@
 from pathlib import Path
 
 import cvxpy as cp
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 eco_path = Path(__file__).parent / "src"
 

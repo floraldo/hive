@@ -6,13 +6,13 @@ This script provides objective analysis of a run's output to support
 the Queen's intelligent decision-making during the review phase.
 """
 
-import sys
+import argparse
 import json
 import subprocess
-import argparse
-from pathlib import Path
-from typing import Dict, Any, List, Optional
+import sys
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 # Add package paths
 sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-core-db" / "src"))

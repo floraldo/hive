@@ -10,11 +10,10 @@ import json
 import sqlite3
 import subprocess
 import time
-import requests
-import tempfile
-import shutil
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
+
+import requests
 
 
 def run_certification_test():
@@ -97,8 +96,8 @@ def run_certification_test():
         conn.close()
 
         print(f"[OK] Certification task created: ID {task_id}")
-        print(f"  Status: deployment_pending")
-        print(f"  Priority: 10 (Critical)")
+        print("  Status: deployment_pending")
+        print("  Priority: 10 (Critical)")
 
         # Step 2: Execute autonomous workflow (simulation)
         print("\n2. AUTONOMOUS WORKFLOW EXECUTION")

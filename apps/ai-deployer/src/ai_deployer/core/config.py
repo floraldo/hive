@@ -10,7 +10,6 @@ AI Deployer Configuration Management.
 Extends hive-config with deployer-specific settings following the inherit→extend pattern.
 """
 
-from typing import Dict, List
 
 try:
     from hive_config import HiveConfig
@@ -67,7 +66,7 @@ class DeploymentConfig(BaseModel):
     max_concurrent_deployments: int = 3
     deployment_timeout_minutes: int = 30
     enable_rollback: bool = True
-    notification_webhooks: List[str] = Field(default_factory=list)
+    notification_webhooks: list[str] = Field(default_factory=list)
 
     # Strategy-specific configs
     ssh: SSHDeploymentConfig = SSHDeploymentConfig()

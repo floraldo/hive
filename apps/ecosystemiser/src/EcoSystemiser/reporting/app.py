@@ -21,18 +21,18 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         config: Optional configuration dictionary
 
     Returns:
-        Configured Flask application
+        Configured Flask application,
     """
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
-    # Apply configuration
+    # Apply configuration,
     if config:
         app.config.update(config)
     else:
         app.config["SECRET_KEY"] = "ecosystemiser-reporting-key"
         app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
-    # Initialize services
+    # Initialize services,
     app.analyser = AnalyserService()
     app.reporting_service = ReportingService()
 
@@ -45,15 +45,14 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     def upload():
         """Handle results file upload and processing."""
         if request.method == "POST":
-            # Check if file was uploaded
+            # Check if file was uploaded,
             if "results_file" not in request.files:
                 return jsonify({"error": "No file uploaded"}), 400
-
             file = request.files["results_file"]
             if file.filename == "":
                 return jsonify({"error": "No file selected"}), 400
 
-            # Save uploaded file temporarily
+            # Save uploaded file temporarily,
             with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
                 content = file.read().decode("utf-8")
                 json_data = json.loads(content)  # Validate JSON
@@ -68,23 +67,23 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
                 session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
                 app.config[f"results_{session_id}"] = {
                     "raw": json_data,
-                    "analysis": analysis_results,
-                }
+                    "analysis": analysis_results
+                },
 
                 return jsonify(
                     {
                         "success": True,
                         "session_id": session_id,
-                        "summary": analysis_results.get("summary", {}),
+                        "summary": analysis_results.get("summary", {})
                     }
-                )
+                ),
 
             except Exception as e:
                 logger.error(f"Error processing file: {e}")
                 return jsonify({"error": str(e)}), 500
 
             finally:
-                # Clean up temporary file
+                # Clean up temporary file,
                 Path(tmp_path).unlink(missing_ok=True)
 
         return render_template("upload.html")
@@ -97,12 +96,11 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if session_key not in app.config:
             return (
                 render_template(
-                    "error.html",
-                    error="Session not found. Please upload results again.",
-                ),
-                404,
+                    "error.html"
+                    error="Session not found. Please upload results again."
+                )
+                404
             )
-
         data = app.config[session_key]
         analysis_results = data["analysis"]
 
@@ -110,10 +108,9 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         report_config = ReportConfig(
             report_type="standard", title=f"Analysis Report - {session_id}", include_plots=True, output_format="html"
         )
-
         report_result = app.reporting_service.generate_report(analysis_results=analysis_results, config=report_config)
 
-        # Return the HTML content directly
+        # Return the HTML content directly,
         return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/report/ga/<study_id>")
@@ -128,25 +125,24 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             study_file = results_dir / f"{study_id}.json"
             if not study_file.exists():
                 return (
-                    render_template("error.html", error=f"Study results not found: {study_id}"),
-                    404,
+                    render_template("error.html", error=f"Study results not found: {study_id}")
+                    404
                 )
 
-        # Load study results
+        # Load study results,
         with open(study_file) as f:
             study_data = json.load(f)
 
         # Use ReportingService to generate GA report
         report_config = ReportConfig(
             report_type="genetic_algorithm",
-            title=f"Genetic Algorithm Optimization - {study_id}",
+            title=f"Genetic Algorithm Optimization - {study_id}"
             include_plots=True,
-            output_format="html",
+            output_format="html"
         )
-
         report_result = app.reporting_service.generate_report(analysis_results=study_data, config=report_config)
 
-        # Return the HTML content directly
+        # Return the HTML content directly,
         return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/report/mc/<study_id>")
@@ -161,25 +157,24 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             study_file = results_dir / f"{study_id}.json"
             if not study_file.exists():
                 return (
-                    render_template("error.html", error=f"Study results not found: {study_id}"),
-                    404,
+                    render_template("error.html", error=f"Study results not found: {study_id}")
+                    404
                 )
 
-        # Load study results
+        # Load study results,
         with open(study_file) as f:
             study_data = json.load(f)
 
         # Use ReportingService to generate MC report
         report_config = ReportConfig(
             report_type="monte_carlo",
-            title=f"Monte Carlo Uncertainty Analysis - {study_id}",
+            title=f"Monte Carlo Uncertainty Analysis - {study_id}"
             include_plots=True,
-            output_format="html",
+            output_format="html"
         )
-
         report_result = app.reporting_service.generate_report(analysis_results=study_data, config=report_config)
 
-        # Return the HTML content directly
+        # Return the HTML content directly,
         return Response(report_result.html_content, mimetype="text/html")
 
     @app.route("/api/study/<study_id>")
@@ -191,8 +186,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         patterns = [
             f"ga_optimization_{study_id}.json",
             f"mc_uncertainty_{study_id}.json",
-            f"{study_id}.json",
-        ]
+            f"{study_id}.json"
+        ],
 
         for pattern in patterns:
             study_file = results_dir / pattern
@@ -209,7 +204,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             return jsonify({"error": "No JSON data provided"}), 400
 
         try:
-            # Save JSON to temporary file
+            # Save JSON to temporary file,
             with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
                 json.dump(request.json, tmp)
                 tmp_path = tmp.name
@@ -218,7 +213,6 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             strategies = request.args.getlist("strategies")
             if not strategies:
                 strategies = None  # Use all strategies
-
             analysis_results = app.analyser.analyse(tmp_path, strategies)
 
             return jsonify(analysis_results)
@@ -242,7 +236,6 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
             if not plot_func:
                 return jsonify({"error": f"Unknown plot type: {plot_type}"}), 400
-
             plot_data = plot_func(data)
             return jsonify(plot_data)
 
@@ -257,7 +250,6 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         session_key = f"results_{session_id}"
         if session_key not in app.config:
             return jsonify({"error": "Session not found"}), 404
-
         data = app.config[session_key]
         data["raw"]
         analysis_results = data["analysis"]
@@ -265,25 +257,23 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         # Generate report using ReportingService
         report_config = ReportConfig(
             report_type="standard",
-            title=f"EcoSystemiser Analysis Report - {session_id}",
+            title=f"EcoSystemiser Analysis Report - {session_id}"
             include_plots=True,
-            output_format="html",
+            output_format="html"
         )
-
         report_result = app.reporting_service.generate_report(analysis_results=analysis_results, config=report_config)
-
         html = report_result.html_content
 
-        # Save to temporary file and send
+        # Save to temporary file and send,
         with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as tmp:
             tmp.write(html)
             tmp_path = tmp.name
 
         return send_file(
-            tmp_path,
+            tmp_path
             as_attachment=True,
-            download_name=f"ecosystemiser_report_{session_id}.html",
-            mimetype="text/html",
+            download_name=f"ecosystemiser_report_{session_id}.html"
+            mimetype="text/html"
         )
 
     @app.errorhandler(404)
@@ -300,7 +290,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     return app
 
 
-# Note: generate_plots function removed - now handled by ReportingService
+# Note: generate_plots function removed - now handled by ReportingService,
 
 
 def run_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = False) -> None:
@@ -309,7 +299,7 @@ def run_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = False) -
     Args:
         host: Host to bind to
         port: Port to bind to
-        debug: Enable debug mode
+        debug: Enable debug mode,
     """
     app = create_app()
     logger.info(f"Starting EcoSystemiser Reporting Server on {host}:{port}")

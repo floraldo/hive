@@ -7,9 +7,7 @@ Run the Queen orchestrator as a module with proper Python paths.
 This is the recommended way to run Queen on Windows.
 """
 
-import os
 import sys
-from pathlib import Path
 
 # Now import HiveCore and Queen
 from hive_orchestrator.hive_core import HiveCore

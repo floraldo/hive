@@ -9,17 +9,13 @@ command with zero human intervention.
 Mission: Create and deploy a simple Flask "Hello World" service autonomously.
 """
 
-import asyncio
 import json
-import os
-import signal
 import sqlite3
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import pytest
 import requests
@@ -30,11 +26,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from hive_logging import get_logger, setup_logging
 
 # Set up logging for the test
-setup_logging(
-    name="zero-touch-certification",
-    log_to_file=True,
-    log_file_path="logs/zero_touch_certification.log"
-)
+setup_logging(name="zero-touch-certification", log_to_file=True, log_file_path="logs/zero_touch_certification.log")
 
 logger = get_logger(__name__)
 
@@ -68,6 +60,7 @@ class HiveAutonomousAgency:
         if not self.db_path.exists():
             logger.info("Initializing database...")
             from hive_orchestrator.core.db import initialize_database
+
             initialize_database()
 
         # Clean up any existing containers
@@ -97,26 +90,25 @@ class HiveAutonomousAgency:
             "8. Build and deploy the application as a Docker container on port 8000"
         )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO tasks (
                 id, title, description, task_type, status, priority,
                 created_at, created_by, metadata
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            task_id,
-            "Build and Deploy QR Code Generator Service",
-            task_description,
-            "autonomous_development",
-            "planning_pending",  # This triggers the Planner
-            100,  # High priority
-            datetime.now().isoformat(),
-            "zero-touch-certification",
-            json.dumps({
-                "certification_test": True,
-                "expected_port": 8000,
-                "container_name": self.container_name
-            })
-        ))
+        """,
+            (
+                task_id,
+                "Build and Deploy QR Code Generator Service",
+                task_description,
+                "autonomous_development",
+                "planning_pending",  # This triggers the Planner
+                100,  # High priority
+                datetime.now().isoformat(),
+                "zero-touch-certification",
+                json.dumps({"certification_test": True, "expected_port": 8000, "container_name": self.container_name}),
+            ),
+        )
 
         conn.commit()
         conn.close()
@@ -132,17 +124,13 @@ class HiveAutonomousAgency:
             ("queen", ["python", "-m", "hive_orchestrator.queen", "--mock"]),
             ("planner", ["python", "-m", "ai_planner.async_agent", "--mock"]),
             ("reviewer", ["python", "-m", "ai_reviewer.async_agent", "--mock"]),
-            ("deployer", ["python", "-m", "ai_deployer.agent", "--mock"])
+            ("deployer", ["python", "-m", "ai_deployer.agent", "--mock"]),
         ]
 
         for name, cmd in daemons:
             try:
                 process = subprocess.Popen(
-                    cmd,
-                    cwd=self.project_root,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True
+                    cmd, cwd=self.project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
                 )
                 self.processes[name] = process
                 logger.info(f"Started {name} daemon (PID: {process.pid})")
@@ -178,7 +166,7 @@ class HiveAutonomousAgency:
             "review_started": False,
             "review_completed": False,
             "deployment_started": False,
-            "deployment_completed": False
+            "deployment_completed": False,
         }
 
         while time.time() - start_time < timeout:
@@ -210,11 +198,14 @@ class HiveAutonomousAgency:
                         milestones["plan_created"] = True
 
                 # Check for subtasks
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT COUNT(*) as count FROM tasks
                     WHERE metadata LIKE ?
                     AND id != ?
-                """, (f'%"parent_task_id": "{task_id}"%', task_id))
+                """,
+                    (f'%"parent_task_id": "{task_id}"%', task_id),
+                )
 
                 subtask_count = cursor.fetchone()["count"]
                 if subtask_count > 0 and not milestones["subtasks_created"]:
@@ -223,12 +214,15 @@ class HiveAutonomousAgency:
 
                 # Check subtask progress
                 if milestones["subtasks_created"]:
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         SELECT status, COUNT(*) as count FROM tasks
                         WHERE metadata LIKE ?
                         AND id != ?
                         GROUP BY status
-                    """, (f'%"parent_task_id": "{task_id}"%', task_id))
+                    """,
+                        (f'%"parent_task_id": "{task_id}"%', task_id),
+                    )
 
                     subtask_statuses = {row["status"]: row["count"] for row in cursor.fetchall()}
 
@@ -300,11 +294,7 @@ class HiveAutonomousAgency:
 
             # Test with valid input
             test_payload = {"text": "Hive Autonomous Agency - Certification Test"}
-            response = requests.post(
-                f"{base_url}/generate",
-                json=test_payload,
-                timeout=10
-            )
+            response = requests.post(f"{base_url}/generate", json=test_payload, timeout=10)
 
             if response.status_code != 200:
                 logger.error(f"QR generation failed: {response.status_code}")
@@ -317,6 +307,7 @@ class HiveAutonomousAgency:
 
             # Verify it's base64 encoded
             import base64
+
             try:
                 decoded = base64.b64decode(response_data["qr_code"])
                 logger.info(f"OK QR code generated, size: {len(decoded)} bytes")
@@ -327,16 +318,12 @@ class HiveAutonomousAgency:
             # Test error handling with missing field
             logger.info(f"Testing POST {base_url}/generate with invalid input")
             invalid_payload = {"invalid": "field"}
-            error_response = requests.post(
-                f"{base_url}/generate",
-                json=invalid_payload,
-                timeout=10
-            )
+            error_response = requests.post(f"{base_url}/generate", json=invalid_payload, timeout=10)
 
             if error_response.status_code != 422:
                 logger.warning(f"Expected 422 for invalid input, got: {error_response.status_code}")
 
-            logger.info(f"OK Error handling working properly")
+            logger.info("OK Error handling working properly")
 
             logger.info("=" * 80)
             logger.info("CERTIFICATION PASSED - Application Successfully Deployed!")
@@ -374,9 +361,7 @@ class HiveAutonomousAgency:
         try:
             # Check if container exists
             result = subprocess.run(
-                ["docker", "ps", "-a", "-q", "-f", f"name={self.container_name}"],
-                capture_output=True,
-                text=True
+                ["docker", "ps", "-a", "-q", "-f", f"name={self.container_name}"], capture_output=True, text=True
             )
 
             if result.stdout.strip():
@@ -424,6 +409,7 @@ class HiveAutonomousAgency:
         except Exception as e:
             logger.error(f"Certification failed with error: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 

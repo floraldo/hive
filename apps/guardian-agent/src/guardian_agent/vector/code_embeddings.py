@@ -3,7 +3,7 @@
 import ast
 import hashlib
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from hive_ai.vector import EmbeddingModel
 from hive_cache import CacheClient
@@ -59,12 +59,13 @@ class CodeEmbeddingGenerator:
         try:
             tree = ast.parse(content)
             structure_info = self._extract_structure(tree)
-        except:
+        except (SyntaxError, ValueError, TypeError):
+            # Code may not be valid Python - proceed without AST info
             structure_info = {}
 
         # Generate chunks with sliding window
         for i in range(0, len(lines), chunk_size - overlap):
-            chunk_lines = lines[i:i + chunk_size]
+            chunk_lines = lines[i : i + chunk_size]
             chunk_content = "\n".join(chunk_lines)
 
             # Skip empty or trivial chunks
@@ -172,18 +173,22 @@ class CodeEmbeddingGenerator:
 
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
-                structure["classes"].append({
-                    "name": node.name,
-                    "line": node.lineno,
-                    "methods": [m.name for m in node.body if isinstance(m, ast.FunctionDef)],
-                })
+                structure["classes"].append(
+                    {
+                        "name": node.name,
+                        "line": node.lineno,
+                        "methods": [m.name for m in node.body if isinstance(m, ast.FunctionDef)],
+                    }
+                )
             elif isinstance(node, ast.FunctionDef):
                 # Only top-level functions
-                structure["functions"].append({
-                    "name": node.name,
-                    "line": node.lineno,
-                    "is_async": isinstance(node, ast.AsyncFunctionDef),
-                })
+                structure["functions"].append(
+                    {
+                        "name": node.name,
+                        "line": node.lineno,
+                        "is_async": isinstance(node, ast.AsyncFunctionDef),
+                    }
+                )
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
@@ -204,14 +209,10 @@ class CodeEmbeddingGenerator:
         """Build enriched context for embedding generation."""
         # Include structural context
         relevant_functions = [
-            f["name"] for f in structure_info.get("functions", [])
-            if start_line <= f["line"] <= end_line
+            f["name"] for f in structure_info.get("functions", []) if start_line <= f["line"] <= end_line
         ]
 
-        relevant_classes = [
-            c["name"] for c in structure_info.get("classes", [])
-            if start_line <= c["line"] <= end_line
-        ]
+        relevant_classes = [c["name"] for c in structure_info.get("classes", []) if start_line <= c["line"] <= end_line]
 
         context_parts = [
             f"File: {file_path.name}",

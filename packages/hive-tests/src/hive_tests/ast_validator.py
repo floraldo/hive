@@ -23,9 +23,7 @@ import ast
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
-
-import toml
+from typing import Dict, List, Set, Tuple
 
 
 @dataclass
@@ -81,7 +79,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 file_path=self.context.path,
                 line_number=line_num,
                 message=message,
-                severity=severity
+                severity=severity,
             )
         )
 
@@ -130,7 +128,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     "rule-6",
                     "Dependency Direction",
                     node.lineno,
-                    f"Invalid app import: {alias.name}. Apps should only import from packages or other apps' core/ modules."
+                    f"Invalid app import: {alias.name}. Apps should only import from packages or other apps' core/ modules.",
                 )
 
     def _validate_dependency_direction_from(self, node: ast.ImportFrom) -> None:
@@ -148,7 +146,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 "rule-6",
                 "Dependency Direction",
                 node.lineno,
-                f"Invalid app import: from {node.module}. Use service layer (core/) or shared packages."
+                f"Invalid app import: from {node.module}. Use service layer (core/) or shared packages.",
             )
 
     def _validate_no_unsafe_calls(self, node: ast.Call) -> None:
@@ -156,7 +154,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         unsafe_calls = {
             "eval": "Use ast.literal_eval() or safer alternatives",
             "exec": "Avoid dynamic code execution",
-            "compile": "Avoid dynamic code compilation"
+            "compile": "Avoid dynamic code compilation",
         }
 
         if isinstance(node.func, ast.Name) and node.func.id in unsafe_calls:
@@ -164,7 +162,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 "rule-17",
                 "No Unsafe Function Calls",
                 node.lineno,
-                f"Unsafe function call: {node.func.id}(). {unsafe_calls[node.func.id]}"
+                f"Unsafe function call: {node.func.id}(). {unsafe_calls[node.func.id]}",
             )
 
         # Check for os.system and subprocess with shell=True
@@ -174,7 +172,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     "rule-17",
                     "No Unsafe Function Calls",
                     node.lineno,
-                    "Avoid os.system(). Use subprocess.run() with explicit arguments."
+                    "Avoid os.system(). Use subprocess.run() with explicit arguments.",
                 )
 
             # Check subprocess.run with shell=True
@@ -193,7 +191,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                             "rule-17",
                             "No Unsafe Function Calls",
                             node.lineno,
-                            f"Avoid {node.func.attr}() with shell=True. Use explicit argument lists."
+                            f"Avoid {node.func.attr}() with shell=True. Use explicit argument lists.",
                         )
 
     def _validate_async_sync_mixing(self, node: ast.Call) -> None:
@@ -205,7 +203,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         blocking_calls = {
             "requests": ["get", "post", "put", "delete", "patch", "head", "options"],
             "time": ["sleep"],
-            "urllib": ["urlopen"]
+            "urllib": ["urlopen"],
         }
 
         if isinstance(node.func, ast.Attribute):
@@ -218,7 +216,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                         "rule-19",
                         "No Synchronous Calls in Async Code",
                         node.lineno,
-                        f"Blocking call {module}.{func}() in async function. Use async alternatives."
+                        f"Blocking call {module}.{func}() in async function. Use async alternatives.",
                     )
 
         # Direct blocking calls
@@ -228,7 +226,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     "rule-19",
                     "No Synchronous Calls in Async Code",
                     node.lineno,
-                    "Use aiofiles.open() instead of open() in async functions."
+                    "Use aiofiles.open() instead of open() in async functions.",
                 )
 
     def _validate_print_statements(self, node: ast.Call) -> None:
@@ -283,7 +281,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 "Interface Contracts",
                 node.lineno,
                 f"Function {node.name}() missing return type annotation.",
-                severity="warning"  # Start as warning for gradual adoption
+                severity="warning",  # Start as warning for gradual adoption
             )
 
         # Check parameter type annotations
@@ -294,7 +292,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     "Interface Contracts",
                     node.lineno,
                     f"Parameter '{arg.arg}' in {node.name}() missing type annotation.",
-                    severity="warning"
+                    severity="warning",
                 )
 
     def _validate_interface_contracts_async(self, node: ast.AsyncFunctionDef) -> None:
@@ -306,7 +304,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
             body=node.body,
             decorator_list=node.decorator_list,
             returns=node.returns,
-            lineno=node.lineno
+            lineno=node.lineno,
         )
         self._validate_interface_contracts(sync_node)
 
@@ -323,7 +321,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     "rule-8",
                     "Error Handling Standards",
                     node.lineno,
-                    f"Exception class {node.name} should inherit from BaseError or standard exceptions."
+                    f"Exception class {node.name} should inherit from BaseError or standard exceptions.",
                 )
 
     def _validate_async_naming(self, node) -> None:
@@ -344,7 +342,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     "rule-14",
                     "Async Pattern Consistency",
                     node.lineno,
-                    f"Async function {node.name}() should end with '_async' or start with 'a' for clarity."
+                    f"Async function {node.name}() should end with '_async' or start with 'a' for clarity.",
                 )
 
     def _validate_no_unsafe_imports(self, node: ast.Import) -> None:
@@ -357,7 +355,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     "rule-17",
                     "No Unsafe Function Calls",
                     node.lineno,
-                    f"Unsafe import: {alias.name}. Consider safer alternatives like json."
+                    f"Unsafe import: {alias.name}. Consider safer alternatives like json.",
                 )
 
     def _validate_no_unsafe_imports_from(self, node: ast.ImportFrom) -> None:
@@ -367,7 +365,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 "rule-17",
                 "No Unsafe Function Calls",
                 node.lineno,
-                f"Unsafe import: from {node.module}. Consider safer alternatives."
+                f"Unsafe import: from {node.module}. Consider safer alternatives.",
             )
 
     # Helper methods
@@ -441,7 +439,7 @@ class EnhancedValidator:
                     visitor = GoldenRuleVisitor(context, self.project_root)
                     visitor.visit(context.ast_tree)
                     self.violations.extend(visitor.violations)
-            except Exception as e:
+            except Exception:
                 # Skip files that can't be parsed
                 continue
 
@@ -532,7 +530,7 @@ class EnhancedValidator:
             is_init_file=is_init_file,
             package_name=package_name,
             app_name=app_name,
-            suppressions=suppressions
+            suppressions=suppressions,
         )
 
     def _validate_app_contracts(self) -> None:
@@ -551,7 +549,7 @@ class EnhancedValidator:
                             rule_name="App Contract Compliance",
                             file_path=app_dir,
                             line_number=1,
-                            message=f"App '{app_dir.name}' missing hive-app.toml"
+                            message=f"App '{app_dir.name}' missing hive-app.toml",
                         )
                     )
 
@@ -571,7 +569,7 @@ class EnhancedValidator:
                                 rule_name="Co-located Tests Pattern",
                                 file_path=component_dir,
                                 line_number=1,
-                                message=f"{base_dir.name}/{component_dir.name} missing tests/ directory"
+                                message=f"{base_dir.name}/{component_dir.name} missing tests/ directory",
                             )
                         )
 
@@ -591,7 +589,7 @@ class EnhancedValidator:
                                 rule_name="Documentation Hygiene",
                                 file_path=component_dir,
                                 line_number=1,
-                                message=f"{base_dir.name}/{component_dir.name} missing or empty README.md"
+                                message=f"{base_dir.name}/{component_dir.name} missing or empty README.md",
                             )
                         )
 
@@ -632,7 +630,7 @@ class EnhancedValidator:
                                     rule_name="hive-models Purity",
                                     file_path=py_file,
                                     line_number=node.lineno,
-                                    message=f"Invalid import in hive-models: {module}. Only data definitions allowed."
+                                    message=f"Invalid import in hive-models: {module}. Only data definitions allowed.",
                                 )
                             )
             except:

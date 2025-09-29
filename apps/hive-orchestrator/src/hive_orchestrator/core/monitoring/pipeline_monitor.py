@@ -7,7 +7,6 @@ autonomous task execution pipeline to ensure reliable operation.
 """
 
 import asyncio
-import json
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
@@ -432,19 +431,19 @@ class PipelineMonitor:
             [
                 "📊 PIPELINE FLOW SUMMARY",
                 "-" * 30,
-                f"Planning Queue -> AI Planner:",
+                "Planning Queue -> AI Planner:",
                 f"  📝 Pending: {metrics.pending_planning_tasks}",
                 f"  🤖 Processing: {metrics.assigned_planning_tasks}",
                 f"  OK Completed: {metrics.completed_planning_tasks}",
                 f"  FAIL Failed: {metrics.failed_planning_tasks}",
                 "",
-                f"Execution Plans:",
+                "Execution Plans:",
                 f"  📋 Generated: {metrics.generated_plans}",
                 f"  🔄 Executing: {metrics.executing_plans}",
                 f"  OK Completed: {metrics.completed_plans}",
                 f"  FAIL Failed: {metrics.failed_plans}",
                 "",
-                f"Subtask Execution:",
+                "Subtask Execution:",
                 f"  📥 Queued: {metrics.queued_subtasks}",
                 f"  👤 Assigned: {metrics.assigned_subtasks}",
                 f"  ⚙️ In Progress: {metrics.in_progress_subtasks}",

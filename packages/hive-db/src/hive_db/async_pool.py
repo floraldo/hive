@@ -45,10 +45,10 @@ def create_async_sqlite_pool(
     Create an async SQLite connection pool using the generic hive-async pool.
 
     Args:
-        db_path: Path to the SQLite database file
-        min_connections: Minimum connections to maintain
-        max_connections: Maximum connections allowed
-        connection_timeout: Timeout for acquiring connections
+        db_path: Path to the SQLite database file,
+        min_connections: Minimum connections to maintain,
+        max_connections: Maximum connections allowed,
+        connection_timeout: Timeout for acquiring connections,
         max_idle_time: Maximum idle time before connection recycling
 
     Returns:

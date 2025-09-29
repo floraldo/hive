@@ -115,28 +115,28 @@ class WorkflowOrchestrator:
         self.status = WorkflowStatus.CREATED
 
         # Execution tracking
-        self.start_time: datetime | None = None
-        self.end_time: datetime | None = None
+        self.start_time: datetime | None = None,
+        self.end_time: datetime | None = None,
         self.current_iteration = 0
 
         # Workflow components
-        self.agents: Dict[str, BaseAgent] = {}
-        self.tasks: Dict[str, BaseTask] = {}
-        self.task_sequences: Dict[str, TaskSequence] = {}
+        self.agents: Dict[str, BaseAgent] = {},
+        self.tasks: Dict[str, BaseTask] = {},
+        self.task_sequences: Dict[str, TaskSequence] = {},
         self.steps: Dict[str, WorkflowStep] = {}
 
         # Execution state
-        self.step_results: Dict[str, Any] = {}
-        self.failed_steps: Set[str] = set()
-        self.completed_steps: Set[str] = set()
+        self.step_results: Dict[str, Any] = {},
+        self.failed_steps: Set[str] = set(),
+        self.completed_steps: Set[str] = set(),
         self.running_steps: Set[str] = set()
 
         # Communication
-        self.message_broker: List[AgentMessage] = []
+        self.message_broker: List[AgentMessage] = [],
         self.message_handlers: Dict[str, Callable] = {}
 
         # Checkpointing
-        self.checkpoints: List[Dict[str, Any]] = []
+        self.checkpoints: List[Dict[str, Any]] = [],
         self.cache = CacheManager(f"workflow_{self.id}")
 
     def add_agent(self, agent: BaseAgent) -> str:
@@ -165,20 +165,20 @@ class WorkflowOrchestrator:
 
     def create_step(
         self
-        name: str
-        agent_id: str
-        task_id: str | None = None
-        task_sequence_id: str | None = None
-        dependencies: Optional[List[str]] = None
+        name: str,
+        agent_id: str,
+        task_id: str | None = None,
+        task_sequence_id: str | None = None,
+        dependencies: Optional[List[str]] = None,
         timeout_seconds: int = 300
     ) -> str:
         """Create and add a workflow step."""
         step = WorkflowStep(
-            id=str(uuid.uuid4())
+            id=str(uuid.uuid4()),
             name=name
-            agent_id=agent_id
+            agent_id=agent_id,
             task_id=task_id
-            task_sequence_id=task_sequence_id
+            task_sequence_id=task_sequence_id,
             dependencies=dependencies or []
             timeout_seconds=timeout_seconds
         )
@@ -317,12 +317,12 @@ class WorkflowOrchestrator:
             # Start metrics tracking
             if self.metrics:
                 operation_id = self.metrics.start_operation(
-                    operation_type="workflow_execution"
-                    model="workflow_orchestrator"
-                    provider="hive_ai"
+                    operation_type="workflow_execution",
+                    model="workflow_orchestrator",
+                    provider="hive_ai",
                     metadata={
-                        "workflow_id": self.id
-                        "workflow_name": self.config.name
+                        "workflow_id": self.id,
+                        "workflow_name": self.config.name,
                         "total_steps": len(self.steps)
                     }
                 )
@@ -354,26 +354,26 @@ class WorkflowOrchestrator:
             if self.metrics and operation_id:
                 self.metrics.end_operation(
                     operation_id
-                    success=self.status == WorkflowStatus.COMPLETED
+                    success=self.status == WorkflowStatus.COMPLETED,
                     additional_metadata={
-                        "completed_steps": len(self.completed_steps)
+                        "completed_steps": len(self.completed_steps),
                         "failed_steps": len(self.failed_steps)
-                        "success_rate": success_rate
+                        "success_rate": success_rate,
                         "duration_seconds": duration
                     }
                 )
 
             # Create result
             result = WorkflowResult(
-                workflow_id=self.id
-                status=self.status
-                start_time=self.start_time
-                end_time=self.end_time
-                duration_seconds=duration
+                workflow_id=self.id,
+                status=self.status,
+                start_time=self.start_time,
+                end_time=self.end_time,
+                duration_seconds=duration,
                 completed_steps=len(self.completed_steps)
-                failed_steps=len(self.failed_steps)
+                failed_steps=len(self.failed_steps),
                 total_steps=len(self.steps)
-                step_results=self.step_results.copy()
+                step_results=self.step_results.copy(),
                 metadata={"execution_strategy": self.config.execution_strategy.value, "success_rate": success_rate}
             )
 
@@ -394,12 +394,12 @@ class WorkflowOrchestrator:
                 duration = (self.end_time - self.start_time).total_seconds()
                 self.metrics.end_operation(
                     operation_id
-                    success=False
+                    success=False,
                     error_type=type(e).__name__
                     additional_metadata={
-                        "completed_steps": len(self.completed_steps)
+                        "completed_steps": len(self.completed_steps),
                         "failed_steps": len(self.failed_steps)
-                        "duration_seconds": duration
+                        "duration_seconds": duration,
                         "error": error_msg
                     }
                 )
@@ -517,9 +517,9 @@ class WorkflowOrchestrator:
     async def _create_checkpoint_async(self) -> None:
         """Create a workflow checkpoint."""
         checkpoint = {
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
             "completed_steps": list(self.completed_steps)
-            "failed_steps": list(self.failed_steps)
+            "failed_steps": list(self.failed_steps),
             "step_results": self.step_results.copy()
             "workflow_status": self.status.value
         }
@@ -565,21 +565,21 @@ class WorkflowOrchestrator:
             duration = (end_time - self.start_time).total_seconds()
 
         return {
-            "workflow_id": self.id
+            "workflow_id": self.id,
             "name": self.config.name
-            "status": self.status.value
+            "status": self.status.value,
             "created_at": self.created_at.isoformat()
-            "start_time": self.start_time.isoformat() if self.start_time else None
+            "start_time": self.start_time.isoformat() if self.start_time else None,
             "end_time": self.end_time.isoformat() if self.end_time else None
-            "duration_seconds": duration
+            "duration_seconds": duration,
             "total_steps": len(self.steps)
-            "completed_steps": len(self.completed_steps)
+            "completed_steps": len(self.completed_steps),
             "failed_steps": len(self.failed_steps)
-            "running_steps": len(self.running_steps)
+            "running_steps": len(self.running_steps),
             "success_rate": len(self.completed_steps) / len(self.steps) if self.steps else 0
-            "agents": len(self.agents)
+            "agents": len(self.agents),
             "tasks": len(self.tasks)
-            "task_sequences": len(self.task_sequences)
+            "task_sequences": len(self.task_sequences),
             "checkpoints": len(self.checkpoints)
         }
 
@@ -587,37 +587,37 @@ class WorkflowOrchestrator:
         """Export complete workflow data for analysis or persistence."""
         return {
             "workflow_info": {
-                "id": self.id
-                "name": self.config.name
-                "description": self.config.description
-                "created_at": self.created_at.isoformat()
+                "id": self.id,
+                "name": self.config.name,
+                "description": self.config.description,
+                "created_at": self.created_at.isoformat(),
                 "config": {
-                    "execution_strategy": self.config.execution_strategy.value
-                    "max_concurrent_steps": self.config.max_concurrent_steps
-                    "global_timeout_seconds": self.config.global_timeout_seconds
+                    "execution_strategy": self.config.execution_strategy.value,
+                    "max_concurrent_steps": self.config.max_concurrent_steps,
+                    "global_timeout_seconds": self.config.global_timeout_seconds,
                     "failure_tolerance": self.config.failure_tolerance
                 }
             }
             "execution_data": {
-                "status": self.status.value
-                "start_time": self.start_time.isoformat() if self.start_time else None
+                "status": self.status.value,
+                "start_time": self.start_time.isoformat() if self.start_time else None,
                 "end_time": self.end_time.isoformat() if self.end_time else None
-                "completed_steps": list(self.completed_steps)
+                "completed_steps": list(self.completed_steps),
                 "failed_steps": list(self.failed_steps)
                 "step_results": self.step_results
             }
             "components": {
                 "agents": [await agent.export_state_async() for agent in self.agents.values()]
-                "tasks": [task.get_status_info() for task in self.tasks.values()]
+                "tasks": [task.get_status_info() for task in self.tasks.values()],
                 "task_sequences": [seq.get_status_summary() for seq in self.task_sequences.values()]
                 "steps": {
                     step_id: {
-                        "id": step.id
-                        "name": step.name
-                        "agent_id": step.agent_id
-                        "task_id": step.task_id
-                        "task_sequence_id": step.task_sequence_id
-                        "dependencies": step.dependencies
+                        "id": step.id,
+                        "name": step.name,
+                        "agent_id": step.agent_id,
+                        "task_id": step.task_id,
+                        "task_sequence_id": step.task_sequence_id,
+                        "dependencies": step.dependencies,
                         "metadata": step.metadata
                     }
                     for step_id, step in self.steps.items()

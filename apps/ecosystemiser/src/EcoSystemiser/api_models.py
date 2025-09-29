@@ -7,7 +7,7 @@ logger = get_logger(__name__)
 
 
 """
-Comprehensive Pydantic models for EcoSystemiser API.
+Comprehensive Pydantic models for EcoSystemiser API.,
 
 Provides type-safe request/response models with validation for all API endpoints.
 """
@@ -223,7 +223,7 @@ class JobInfo(BaseModel):
     result_url: str | None = None
     error: Optional[dict[str, Any]] = None
     eta: datetime | None = None
-    priority: JobPriority
+    priority: JobPriority,
 
 
 class JobListResponse(BaseModel):

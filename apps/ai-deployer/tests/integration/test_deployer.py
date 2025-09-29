@@ -2,12 +2,11 @@
 Tests for the deployment orchestrator
 """
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from ai_deployer.deployer import (
     DeploymentOrchestrator,
-    DeploymentResult,
     DeploymentStrategy,
     HealthStatus,
 )

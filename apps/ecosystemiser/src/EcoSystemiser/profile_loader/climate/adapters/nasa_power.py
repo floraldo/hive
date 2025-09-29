@@ -9,28 +9,28 @@ import xarray as xr
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities,
-    AuthType
-    DataFrequency
-    QualityFeatures
-    RateLimits
-    SpatialCoverage
+    AuthType,
+    DataFrequency,
+    QualityFeatures,
+    RateLimits,
+    SpatialCoverage,
     TemporalCoverage
 )
 from ecosystemiser.profile_loader.climate.adapters.errors import (
     DataFetchError,
-    DataParseError
+    DataParseError,
     ValidationError
 )
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
 from ecosystemiser.profile_loader.climate.processing.validation import (
     QCIssue,
-    QCProfile
-    QCReport
+    QCProfile,
+    QCReport,
     QCSeverity
 )
 from ecosystemiser.profile_loader.climate.utils.chunking import (
     concatenate_chunked_results,
-    estimate_memory_usage
+    estimate_memory_usage,
     split_date_range
 )
 from hive_logging import get_logger
@@ -41,25 +41,23 @@ logger = get_logger(__name__)
 class NASAPowerAdapter(BaseAdapter):
     """Adapter for NASA POWER climate data API"""
 from __future__ import annotations
-
-
     ADAPTER_NAME = "nasa_power"
     ADAPTER_VERSION = "0.1.0"
     BASE_URL = "https://power.larc.nasa.gov/api/temporal/hourly/point"
 
     # Mapping from canonical names to NASA POWER parameter codes
     VARIABLE_MAPPING = {
-        # Temperature parameters
+        # Temperature parameters,
         "temp_air": "T2M",  # Air temperature at 2 meters (degC),
         "temp_air_max": "T2M_MAX",  # Maximum air temperature at 2 meters (degC),
         "temp_air_min": "T2M_MIN",  # Minimum air temperature at 2 meters (degC),
         "dewpoint": "T2MDEW",  # Dew point temperature at 2 meters (degC),
         "temp_air_range": "T2M_RANGE",  # Temperature range at 2 meters (degC),
         "earth_skin_temp": "TS",  # Earth skin temperature (degC)
-        # Humidity parameters
+        # Humidity parameters,
         "rel_humidity": "RH2M",  # Relative humidity at 2 meters (%),
         "specific_humidity": "QV2M",  # Specific humidity at 2 meters (g/kg)
-        # Wind parameters
+        # Wind parameters,
         "wind_speed": "WS10M",  # Wind speed at 10 meters (m/s),
         "wind_speed_max": "WS10M_MAX",  # Maximum wind speed at 10 meters (m/s),
         "wind_speed_min": "WS10M_MIN",  # Minimum wind speed at 10 meters (m/s),
@@ -68,7 +66,7 @@ from __future__ import annotations
         "wind_speed_50m_min": "WS50M_MIN",  # Minimum wind speed at 50 meters (m/s),
         "wind_dir": "WD10M",  # Wind direction at 10 meters (degrees),
         "wind_dir_50m": "WD50M",  # Wind direction at 50 meters (degrees)
-        # Solar radiation parameters (W/m2)
+        # Solar radiation parameters (W/m2),
         "ghi": "ALLSKY_SFC_SW_DWN",  # Global horizontal irradiance,
         "dni": "DNI",  # Direct normal irradiance,
         "dhi": "DIFF",  # Diffuse horizontal irradiance,
@@ -79,32 +77,32 @@ from __future__ import annotations
         "par_clearsky": "CLRSKY_SFC_PAR_TOT",  # Clear sky PAR,
         "uv": "ALLSKY_SFC_UVA",  # UV-A irradiance,
         "uvb": "ALLSKY_SFC_UVB",  # UV-B irradiance
-        # Longwave radiation parameters
+        # Longwave radiation parameters,
         "lw_down": "ALLSKY_SFC_LW_DWN",  # Longwave radiation downward,
         "lw_up": "ALLSKY_SFC_LW_UP",  # Longwave radiation upward (estimated),
         "lw_net": "ALLSKY_SFC_LW_NET",  # Net longwave radiation
-        # Precipitation parameters
+        # Precipitation parameters,
         "precip": "PRECTOTCORR",  # Corrected precipitation (mm/hour),
         "precip_land": "PRECTOTLAND",  # Precipitation over land (mm/hour),
         "snow": "SNOW",  # Snowfall (mm water equivalent)
-        # Pressure parameters
+        # Pressure parameters,
         "pressure": "PS",  # Surface pressure (kPa)
-        # Cloud parameters
+        # Cloud parameters,
         "cloud_cover": "CLOUD_AMT",  # Cloud amount (%),
         "cloud_cover_low": "CLDTT",  # Cloud transmittance (%)
-        # Atmospheric parameters
+        # Atmospheric parameters,
         "wind_shear": "WS_SHEAR",  # Wind shear between 10m and 50m,
         "atmospheric_water": "TQV",  # Total column water vapor (g/cm2),
         "ozone": "TO3",  # Total ozone (Dobson Units),
         "aerosol_optical_depth": "AOD",  # Aerosol optical depth
-        # Evapotranspiration and soil parameters
+        # Evapotranspiration and soil parameters,
         "evapotranspiration": "EVPTRNS",  # Evapotranspiration energy flux (MJ/m2/day),
         "evaporation": "EVAP",  # Evaporation from wet soil (mm/day),
         "soil_temp_0_10cm": "T0_10CM",  # Soil temperature 0-10cm depth (degC),
         "soil_temp_10_40cm": "T10_40CM",  # Soil temperature 10-40cm depth (degC),
         "soil_temp_40_100cm": "T40_100CM",  # Soil temperature 40-100cm depth (degC),
         "soil_temp_100_200cm": "T100_200CM",  # Soil temperature 100-200cm depth (degC)
-        # Additional meteorological parameters
+        # Additional meteorological parameters,
         "frost_days": "FROST_DAYS",  # Number of frost days,
         "wet_bulb_temp": "T2MWET",  # Wet bulb temperature at 2m (degC),
         "heating_degree_days": "T2M_HDD",  # Heating degree days base 18.3degC,
@@ -117,15 +115,15 @@ from __future__ import annotations
 
     async def _fetch_raw_async(
         self
-        location: Tuple[float, float]
-        variables: List[str]
-        period: Dict[str, Any]
+        location: Tuple[float, float],
+        variables: List[str],
+        period: Dict[str, Any],
         **kwargs
     ) -> Any | None:
         """Fetch raw data from NASA POWER API"""
         lat, lon = location
 
-        # Validate request
+        # Validate request,
         self._validate_request(lat, lon, variables, period)
 
         # Build request parameters
@@ -137,10 +135,10 @@ from __future__ import annotations
         # Parse JSON response
         data = response.json()
 
-        # Validate response structure
+        # Validate response structure,
         if "properties" not in data:
             raise DataParseError(
-                self.ADAPTER_NAME
+                self.ADAPTER_NAME,
                 "Invalid NASA POWER response structure"
                 field="properties"
             )
@@ -159,14 +157,14 @@ from __future__ import annotations
         # Optimize memory usage
         ds = self._optimize_dataset_memory(ds)
 
-        # Add metadata
+        # Add metadata,
         ds.attrs.update(
             {
                 "source": "NASA POWER",
                 "adapter_version": self.ADAPTER_VERSION,
                 "latitude": lat,
                 "longitude": lon,
-                "license": "NASA Open Data Policy"
+                "license": "NASA Open Data Policy",
             }
         )
 
@@ -175,85 +173,85 @@ from __future__ import annotations
     async def fetch_async(
         self
         *
-        lat: float
-        lon: float
-        variables: List[str]
-        period: Dict[str, Any]
-        resolution: str
-        chunk_years: int = 1,  # Maximum years per request
+        lat: float,
+        lon: float,
+        variables: List[str],
+        period: Dict[str, Any],
+        resolution: str,
+        chunk_years: int = 1,  # Maximum years per request,
         use_batch: bool = False,  # Enable batch processing
     ) -> xr.Dataset:
         """
         Fetch climate data from NASA POWER API.
 
         Args:
-            lat: Latitude (-90 to 90)
-            lon: Longitude (-180 to 180)
-            variables: List of canonical variable names
-            period: Time period (e.g., {"year": 2019})
+            lat: Latitude (-90 to 90),
+            lon: Longitude (-180 to 180),
+            variables: List of canonical variable names,
+            period: Time period (e.g., {"year": 2019}),
             resolution: Time resolution (NASA POWER provides hourly)
 
         Returns:
             xarray.Dataset with UTC time index and canonical variable names
 
         Raises:
-            DataFetchError: If API request fails
-            DataParseError: If response cannot be parsed
-            ValidationError: If parameters are invalid
+            DataFetchError: If API request fails,
+            DataParseError: If response cannot be parsed,
+            ValidationError: If parameters are invalid,
         """
         try:
-            # Check if we need to chunk the request
+            # Check if we need to chunk the request,
             start_date, end_date = self._parse_period(period)
             days_diff = (end_date - start_date).days
 
-            # If request is large, process in chunks
+            # If request is large, process in chunks,
             if days_diff > (chunk_years * 365):
-                logger.info(f"Large date range detected ({days_diff} days), processing in chunks")
+                logger.info(f"Large date range detected ({days_diff} days), processing in chunks"),
                 return await self._fetch_chunked_async(lat, lon, variables, period, resolution, chunk_years)
 
-            # Use batch processing if enabled and beneficial
+            # Use batch processing if enabled and beneficial,
             if use_batch and len(variables) > 5:
                 return await self._fetch_batched_async(lat, lon, variables, period, resolution)
 
-            # Use base class fetch method
+            # Use base class fetch method,
             return await super().fetch_async(
-                location=(lat, lon)
+                location=(lat, lon),
                 variables=variables
-                period=period
+                period=period,
                 resolution=resolution
-            )
+            ),
 
         except Exception as e:
             # Wrap unexpected errors
             error = DataFetchError(
-                self.ADAPTER_NAME
-                f"Unexpected error fetching NASA POWER data: {str(e)}"
+                self.ADAPTER_NAME,
+                f"Unexpected error fetching NASA POWER data: {str(e)}",
                 details={"lat": lat, "lon": lon, "variables": variables}
-            )
-            raise error
+            ),
+            raise error,
 
     def build_request_params(
         self
         lat: float,
-        lon: float
-        variables: List[str]
-        period: Dict[str, Any]
+        lon: float,
+        variables: List[str],
+        period: Dict[str, Any],
         resolution: str
     ) -> Dict[str, Any]:
         """
         Build request parameters for NASA POWER API.
 
         Args:
-            lat: Latitude
-            lon: Longitude
-            variables: List of variables to fetch
-            period: Time period specification
+            lat: Latitude,
+            lon: Longitude,
+            variables: List of variables to fetch,
+            period: Time period specification,
             resolution: Time resolution
 
         Returns:
-            Dictionary of request parameters
+            Dictionary of request parameters,
         """
-        # Parse period
+        # Parse period,
         start_date, end_date = self._parse_period(period)
 
         # Map canonical variables to NASA POWER parameters
@@ -266,11 +264,11 @@ from __future__ import annotations
 
         if not nasa_params:
             raise ValidationError(
-                f"No valid variables for NASA POWER from: {variables}"
-                field="variables"
+                f"No valid variables for NASA POWER from: {variables}",
+                field="variables",
                 value=variables
                 recovery_suggestion=f"Available variables: {list(self.VARIABLE_MAPPING.keys())}"
-            )
+            ),
 
         return {
             "start": start_date.strftime("%Y%m%d"),
@@ -280,27 +278,27 @@ from __future__ import annotations
             "parameters": ",".join(nasa_params),
             "community": "RE",
             "format": "JSON",
-            "time_standard": "UTC"
-        }
+            "time_standard": "UTC",
+        },
 
     def parse_response_to_dataset(
         self
-        response_data: Dict[str, Any]
-        variables: List[str]
-        lat: float
+        response_data: Dict[str, Any],
+        variables: List[str],
+        lat: float,
         lon: float
     ) -> xr.Dataset:
         """
         Parse NASA POWER API response into xarray Dataset.
 
         Args:
-            response_data: Parsed API response
-            variables: Requested variables
-            lat: Latitude
+            response_data: Parsed API response,
+            variables: Requested variables,
+            lat: Latitude,
             lon: Longitude
 
         Returns:
-            xarray Dataset with canonical variable names
+            xarray Dataset with canonical variable names,
         """
         return self._json_to_xarray(response_data, variables)
 
@@ -327,7 +325,7 @@ from __future__ import annotations
 
             if not parameters:
                 raise DataParseError(
-                    self.ADAPTER_NAME
+                    self.ADAPTER_NAME,
                     "No parameter data in NASA POWER response"
                     field="properties.parameter"
                 )
@@ -353,12 +351,12 @@ from __future__ import annotations
                         # Create DataArray with proper metadata
                         da = xr.DataArray(
                             data_array
-                            dims=["time"]
+                            dims=["time"],
                             coords={"time": timestamps}
                             name=canonical_name
                         )
 
-                        # Add units
+                        # Add units,
                         if canonical_name in CANONICAL_VARIABLES:
                             da.attrs["units"] = CANONICAL_VARIABLES[canonical_name]["unit"]
                             da.attrs["type"] = CANONICAL_VARIABLES[canonical_name]["type"]
@@ -370,7 +368,7 @@ from __future__ import annotations
 
             if not data_vars:
                 raise DataParseError(
-                    self.ADAPTER_NAME
+                    self.ADAPTER_NAME,
                     f"No matching variables found in response for: {requested_vars}"
                     details={"available_params": list(parameters.keys())}
                 )
@@ -384,15 +382,15 @@ from __future__ import annotations
             return ds
 
         except DataParseError:
-            # Re-raise our custom exceptions
-            raise
+            # Re-raise our custom exceptions,
+            raise,
         except Exception as e:
-            # Wrap unexpected parsing errors
+            # Wrap unexpected parsing errors,
             raise DataParseError(
-                self.ADAPTER_NAME
+                self.ADAPTER_NAME,
                 f"Failed to parse NASA POWER response: {str(e)}"
                 details={"variables": requested_vars}
-            )
+            ),
 
     def _convert_units(self, da: xr.DataArray, canonical_name: str, nasa_param: str) -> xr.DataArray:
         """Convert units from NASA POWER to canonical units if needed"""
@@ -400,7 +398,7 @@ from __future__ import annotations
         # NASA POWER specific unit conversions
         conversions = {
             "PS": lambda x: x * 1000,  # kPa to Pa
-        }
+        },
 
         if nasa_param in conversions:
             da.data = conversions[nasa_param](da.data)
@@ -420,7 +418,7 @@ from __future__ import annotations
         """Optimize dataset memory usage by converting to appropriate dtypes"""
         import numpy as np
 
-        # Convert data variables to float32 for memory efficiency
+        # Convert data variables to float32 for memory efficiency,
         for var in ds.data_vars:
             if ds[var].dtype == np.float64:
                 ds[var] = ds[var].astype(np.float32)
@@ -431,7 +429,7 @@ from __future__ import annotations
         """Initialize NASA POWER adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
-            HTTPConfig
+            HTTPConfig,
             RateLimitConfig
         )
 
@@ -440,103 +438,102 @@ from __future__ import annotations
 
         # Configure caching
         cache_config = CacheConfig(
-            memory_ttl=900,  # 15 minutes
+            memory_ttl=900,  # 15 minutes,
             disk_ttl=7200,  # 2 hours
         )
 
         super().__init__(
-            name=self.ADAPTER_NAME
-            rate_limit_config=rate_config
+            name=self.ADAPTER_NAME,
+            rate_limit_config=rate_config,
             cache_config=cache_config
         )
 
     def get_capabilities(self) -> AdapterCapabilities:
         """Return NASA POWER adapter capabilities"""
         return AdapterCapabilities(
-            name="NASA POWER"
+            name="NASA POWER",
             version=self.ADAPTER_VERSION
-            description="NASA's Prediction Of Worldwide Energy Resources - global meteorological and solar data"
+            description="NASA's Prediction Of Worldwide Energy Resources - global meteorological and solar data",
             temporal=TemporalCoverage(
-                start_date=date(1981, 1, 1)
+                start_date=date(1981, 1, 1),
                 end_date=None,  # Present
-                historical_years=43
+                historical_years=43,
                 forecast_days=0
-                real_time=False
+                real_time=False,
                 delay_hours=24,  # Typically 1 day delay
             )
             spatial=SpatialCoverage(
-                global_coverage=True
-                regions=None
-                resolution_km=50,  # 0.5deg x 0.5deg
-                station_based=False
-                grid_based=True
+                global_coverage=True,
+                regions=None,
+                resolution_km=50,  # 0.5deg x 0.5deg,
+                station_based=False,
+                grid_based=True,
                 custom_locations=True
             )
-            supported_variables=list(self.VARIABLE_MAPPING.keys())
+            supported_variables=list(self.VARIABLE_MAPPING.keys()),
             primary_variables=[
                 "ghi"
-                "dni"
-                "dhi",  # Solar radiation - primary strength
+                "dni",
+                "dhi",  # Solar radiation - primary strength,
                 "temp_air"
                 "wind_speed",  # Also good for these
             ]
-            derived_variables=[]
+            derived_variables=[],
             supported_frequencies=[
-                DataFrequency.HOURLY
-                DataFrequency.DAILY
+                DataFrequency.HOURLY,
+                DataFrequency.DAILY,
                 DataFrequency.MONTHLY
             ]
-            native_frequency=DataFrequency.HOURLY
+            native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.NONE
-            requires_subscription=False
+            requires_subscription=False,
             free_tier_limits=None,  # No rate limits
             quality=QualityFeatures(
-                gap_filling=True,  # Uses MERRA-2 reanalysis
-                quality_flags=False
-                uncertainty_estimates=False
-                ensemble_members=False
+                gap_filling=True,  # Uses MERRA-2 reanalysis,
+                quality_flags=False,
+                uncertainty_estimates=False,
+                ensemble_members=False,
                 bias_correction=True,  # Satellite bias corrected
             )
-            max_request_days=366,  # Max 1 year per request
-            max_variables_per_request=20
-            batch_requests_supported=False
-            async_requests_required=False
+            max_request_days=366,  # Max 1 year per request,
+            max_variables_per_request=20,
+            batch_requests_supported=False,
+            async_requests_required=False,
             special_features=[
-                "Global coverage since 1981"
-                "No authentication required"
-                "Satellite-derived with reanalysis"
-                "Optimized for renewable energy"
-                "MERRA-2 reanalysis based"
+                "Global coverage since 1981",
+                "No authentication required",
+                "Satellite-derived with reanalysis",
+                "Optimized for renewable energy",
+                "MERRA-2 reanalysis based",
             ]
             data_products=["Hourly", "Daily", "Monthly", "Climatology"]
-        )
+        ),
 
     async def _fetch_chunked_async(
         self
         lat: float,
-        lon: float
-        variables: List[str]
-        period: Dict
-        resolution: str
+        lon: float,
+        variables: List[str],
+        period: Dict,
+        resolution: str,
         chunk_years: int = 1
     ) -> xr.Dataset:
         """
         Fetch data in chunks for large date ranges.
 
         Args:
-            lat: Latitude
-            lon: Longitude
-            variables: Variables to fetch
-            period: Time period
-            resolution: Time resolution
+            lat: Latitude,
+            lon: Longitude,
+            variables: Variables to fetch,
+            period: Time period,
+            resolution: Time resolution,
             chunk_years: Years per chunk
 
         Returns:
-            Combined dataset from all chunks
+            Combined dataset from all chunks,
         """
         start_date, end_date = self._parse_period(period)
         chunks = split_date_range(start_date, end_date, chunk_years * 365)
-
         datasets = []
         for i, (chunk_start, chunk_end) in enumerate(chunks):
             logger.info(f"Fetching chunk {i+1}/{len(chunks)}: {chunk_start} to {chunk_end}")
@@ -544,16 +541,16 @@ from __future__ import annotations
             # Create period dict for this chunk
             chunk_period = {
                 "start": chunk_start.strftime("%Y%m%d"),
-                "end": chunk_end.strftime("%Y%m%d")
+                "end": chunk_end.strftime("%Y%m%d"),
             }
 
             # Fetch chunk (recursive call without chunking)
             chunk_ds = await self.fetch_async(
-                lat=lat
-                lon=lon
-                variables=variables
-                period=chunk_period
-                resolution=resolution
+                lat=lat,
+                lon=lon,
+                variables=variables,
+                period=chunk_period,
+                resolution=resolution,
                 chunk_years=999,  # Prevent infinite recursion
             )
 
@@ -565,30 +562,30 @@ from __future__ import annotations
 
         # Combine all chunks
         combined = concatenate_chunked_results(datasets, dim="time")
-        logger.info(f"Successfully combined {len(chunks)} chunks")
+        logger.info(f"Successfully combined {len(chunks)} chunks"),
 
         return combined
 
     async def _fetch_batched_async(
         self
         lat: float,
-        lon: float
-        variables: List[str]
-        period: Dict[str, Any]
+        lon: float,
+        variables: List[str],
+        period: Dict[str, Any],
         resolution: str
     ) -> xr.Dataset:
         """
         Fetch data using smart batching to reduce API calls.
 
         Args:
-            lat: Latitude
-            lon: Longitude
-            variables: Variables to fetch
-            period: Time period
+            lat: Latitude,
+            lon: Longitude,
+            variables: Variables to fetch,
+            period: Time period,
             resolution: Time resolution
 
         Returns:
-            Combined dataset from batched requests
+            Combined dataset from batched requests,
         """
         # Group variables into optimal batches
         # NASA POWER can handle multiple variables per request
@@ -601,23 +598,23 @@ from __future__ import annotations
 
             # Fetch batch without batching enabled to prevent recursion
             batch_ds = await self.fetch_async(
-                lat=lat
-                lon=lon
-                variables=batch_vars
-                period=period
-                resolution=resolution
+                lat=lat,
+                lon=lon,
+                variables=batch_vars,
+                period=period,
+                resolution=resolution,
                 use_batch=False
             )
 
             datasets.append(batch_ds)
 
-        # Merge all datasets
+        # Merge all datasets,
         if len(datasets) == 1:
             return datasets[0]
 
         # Combine along variable dimension
         combined = xr.merge(datasets)
-        logger.info(f"Successfully combined {len(batches)} batches")
+        logger.info(f"Successfully combined {len(batches)} batches"),
 
         return combined
 
@@ -630,19 +627,19 @@ class NASAPowerQCProfile(QCProfile):
         self.name = "NASA POWER"
         self.description = "NASA's Prediction Of Worldwide Energy Resources - satellite-derived with MERRA-2 reanalysis"
         self.known_issues = [
-            "Solar radiation slightly overestimated in tropical regions"
-            "Temperature may show warm bias in arid regions"
-            "Precipitation estimates less reliable than ground stations"
+            "Solar radiation slightly overestimated in tropical regions",
+            "Temperature may show warm bias in arid regions",
+            "Precipitation estimates less reliable than ground stations",
             "Limited accuracy for mountainous terrain due to 0.5deg resolution"
-        ]
+        ],
         self.recommended_variables = [
             "temp_air"
-            "ghi"
+            "ghi",
             "dni"
-            "dhi"
+            "dhi",
             "wind_speed"
             "pressure"
-        ]
+        ],
         self.temporal_resolution_limits = {"all": "hourly"}  # NASA POWER provides hourly data
         self.spatial_accuracy = "0.5deg x 0.5deg (~50km resolution)"
 
@@ -655,16 +652,16 @@ class NASAPowerQCProfile(QCProfile):
             ghi_data = ds["ghi"].values
             if np.nanmean(ghi_data) > 250:  # High average GHI
                 issue = QCIssue(
-                    type="source_bias"
-                    message="NASA POWER may overestimate solar radiation in tropical regions"
-                    severity=QCSeverity.LOW
-                    affected_variables=["ghi", "dni", "dhi"]
-                    metadata={"latitude": lat, "avg_ghi": float(np.nanmean(ghi_data))}
+                    type="source_bias",
+                    message="NASA POWER may overestimate solar radiation in tropical regions",
+                    severity=QCSeverity.LOW,
+                    affected_variables=["ghi", "dni", "dhi"],
+                    metadata={"latitude": lat, "avg_ghi": float(np.nanmean(ghi_data))},
                     suggested_action="Consider validation against ground measurements if available"
-                )
+                ),
                 report.add_issue(issue)
 
-        # Check temperature bias in arid regions (simplified check)
+        # Check temperature bias in arid regions (simplified check),
         if "temp_air" in ds and "rel_humidity" in ds:
             temp_data = ds["temp_air"].values
             humidity_data = ds["rel_humidity"].values
@@ -673,28 +670,28 @@ class NASAPowerQCProfile(QCProfile):
             arid_mask = (temp_data > 30) & (humidity_data < 30)
             if np.sum(arid_mask & ~np.isnan(temp_data)) > len(temp_data) * 0.3:  # >30% arid conditions
                 issue = QCIssue(
-                    type="source_bias"
-                    message="NASA POWER may show warm bias in arid regions"
-                    severity=QCSeverity.LOW
-                    affected_variables=["temp_air"]
+                    type="source_bias",
+                    message="NASA POWER may show warm bias in arid regions",
+                    severity=QCSeverity.LOW,
+                    affected_variables=["temp_air"],
                     suggested_action="Consider local validation for extreme arid conditions"
                 )
                 report.add_issue(issue)
 
-        # Check for precipitation data quality warning
+        # Check for precipitation data quality warning,
         if "precip" in ds:
-            precip_data = ds["precip"].values
+            precip_data = ds["precip"].values,
             n_precip_events = np.sum(precip_data > 0.1)  # >0.1 mm/h
 
             if n_precip_events > 0:
                 issue = QCIssue(
-                    type="source_limitation"
-                    message="NASA POWER precipitation estimates have lower accuracy than ground stations"
-                    severity=QCSeverity.LOW
-                    affected_variables=["precip"]
-                    metadata={"precip_events": int(n_precip_events)}
+                    type="source_limitation",
+                    message="NASA POWER precipitation estimates have lower accuracy than ground stations",
+                    severity=QCSeverity.LOW,
+                    affected_variables=["precip"],
+                    metadata={"precip_events": int(n_precip_events)},
                     suggested_action="Use ground-based precipitation data when available"
-                )
+                ),
                 report.add_issue(issue)
 
         report.passed_checks.append("nasa_power_specific_validation")

@@ -85,22 +85,22 @@ class AsyncConfigLoader:
         Initialize async configuration loader
 
         Args:
-            enable_hot_reload: Enable file watching for configuration changes
+            enable_hot_reload: Enable file watching for configuration changes,
                               (requires watchdog package)
-            cache_configs: Enable configuration caching for performance
-            secure_loader: SecureConfigLoader instance for encrypted configs
+            cache_configs: Enable configuration caching for performance,
+            secure_loader: SecureConfigLoader instance for encrypted configs,
         """
         self.enable_hot_reload = enable_hot_reload
         self.cache_configs = cache_configs
         self.secure_loader = secure_loader or SecureConfigLoader()
 
         # Configuration cache
-        self._config_cache: Dict[str, Dict[str, Any]] = {}
+        self._config_cache: Dict[str, Dict[str, Any]] = ({},)
         self._file_timestamps: Dict[str, float] = {}
 
         # Hot-reload infrastructure (only if enabled and available)
-        self._observer: Observer | None = None
-        self._watched_paths: Set[str] = set()
+        self._observer: Observer | None = (None,)
+        self._watched_paths: Set[str] = (set(),)
         self._reload_callbacks: List[callable] = []
 
         # Validate hot-reload capability
@@ -343,8 +343,8 @@ def create_async_config_loader(
     Create an AsyncConfigLoader with optional secure configuration support
 
     Args:
-        enable_hot_reload: Enable file watching (requires watchdog package)
-        cache_configs: Enable configuration caching
+        enable_hot_reload: Enable file watching (requires watchdog package),
+        cache_configs: Enable configuration caching,
         master_key: Master key for encrypted configuration files
 
     Returns:

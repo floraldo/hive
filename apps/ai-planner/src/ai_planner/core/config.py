@@ -8,7 +8,6 @@ AI Planner Configuration Management.
 Extends hive-config with planner-specific settings following the inherit→extend pattern.
 """
 
-from typing import Dict, List, Optional
 
 try:
     from hive_config import HiveConfig
@@ -27,7 +26,7 @@ except ImportError:
         return HiveConfig()
 
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ClaudeIntegrationConfig(BaseModel):

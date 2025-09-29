@@ -5,20 +5,16 @@ Tests VectorStore, EmbeddingManager, SemanticSearch, and VectorMetrics
 with property-based testing.
 """
 
-import asyncio
-from datetime import datetime
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
-import numpy as np
 import pytest
 from hive_ai.core.config import AIConfig, VectorConfig
 from hive_ai.core.exceptions import VectorError
 from hive_ai.vector.embedding import EmbeddingManager, EmbeddingResult
-from hive_ai.vector.metrics import VectorMetrics, VectorOperationRecord
+from hive_ai.vector.metrics import VectorMetrics
 from hive_ai.vector.search import Document, SearchResult, SemanticSearch
-from hive_ai.vector.store import ChromaProvider, VectorStore
-from hypothesis import assume, given, settings
+from hive_ai.vector.store import VectorStore
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 
@@ -47,7 +43,8 @@ def document_data(draw):
         "content": draw(st.text(min_size=10, max_size=1000)),
         "metadata": draw(
             st.dictionaries(
-                st.text(min_size=1, max_size=20), st.one_of(st.text(), st.integers(), st.floats(allow_nan=False))
+                st.text(min_size=1, max_size=20),
+                st.one_of(st.text(), st.integers(), st.floats(allow_nan=False)),
             )
         ),
     }
@@ -67,11 +64,23 @@ class TestVectorStore:
         provider = Mock()
         provider.store_vectors_async = AsyncMock(return_value=["id1", "id2"])
         provider.search_vectors_async = AsyncMock(
-            return_value=[{"id": "id1", "distance": 0.1, "metadata": {"content": "test content"}, "score": 0.9}]
+            return_value=[
+                {
+                    "id": "id1",
+                    "distance": 0.1,
+                    "metadata": {"content": "test content"},
+                    "score": 0.9,
+                }
+            ]
         )
         provider.delete_vectors_async = AsyncMock(return_value=True)
         provider.get_collection_info_async = AsyncMock(
-            return_value={"name": "test_collection", "count": 100, "dimension": 128, "provider": "chroma"}
+            return_value={
+                "name": "test_collection",
+                "count": 100,
+                "dimension": 128,
+                "provider": "chroma",
+            }
         )
         provider.health_check_async = AsyncMock(return_value=True)
         return provider
@@ -157,7 +166,8 @@ class TestVectorStore:
         assert health["collection"] == "test_collection"
 
     @given(
-        vector_data(dimension=128), st.lists(st.dictionaries(st.text(min_size=1), st.text()), min_size=1, max_size=1)
+        vector_data(dimension=128),
+        st.lists(st.dictionaries(st.text(min_size=1), st.text()), min_size=1, max_size=1),
     )
     @pytest.mark.asyncio
     async def test_store_vectors_property_async(self, vector, metadata_list):
@@ -355,13 +365,21 @@ class TestSemanticSearch:
         manager = Mock()
         manager.generate_embedding_async = AsyncMock(
             return_value=EmbeddingResult(
-                text="test", vector=[0.1] * 128, model="test-model", tokens_used=10, cache_hit=False
+                text="test",
+                vector=[0.1] * 128,
+                model="test-model",
+                tokens_used=10,
+                cache_hit=False,
             )
         )
         manager.generate_batch_embeddings_async = AsyncMock(
             return_value=[
                 EmbeddingResult(
-                    text="doc content", vector=[0.1] * 128, model="test-model", tokens_used=10, cache_hit=False
+                    text="doc content",
+                    vector=[0.1] * 128,
+                    model="test-model",
+                    tokens_used=10,
+                    cache_hit=False,
                 )
             ]
         )
@@ -453,11 +471,19 @@ class TestSemanticSearch:
         search.embedding_manager = Mock()
         search.embedding_manager.generate_embedding_async = AsyncMock(
             return_value=EmbeddingResult(
-                text=doc_data["content"], vector=[0.1] * 128, model="test", tokens_used=10, cache_hit=False
+                text=doc_data["content"],
+                vector=[0.1] * 128,
+                model="test",
+                tokens_used=10,
+                cache_hit=False,
             )
         )
 
-        document = Document(id=doc_data["id"], content=doc_data["content"], metadata=doc_data["metadata"])
+        document = Document(
+            id=doc_data["id"],
+            content=doc_data["content"],
+            metadata=doc_data["metadata"],
+        )
 
         try:
             result = await search.index_document_async(document)
@@ -479,7 +505,11 @@ class TestVectorMetrics:
     async def test_record_vector_operation_async(self, metrics):
         """Test recording vector operations."""
         await metrics.record_vector_operation_async(
-            operation="search", count=5, latency_ms=1500, success=True, collection="test_collection"
+            operation="search",
+            count=5,
+            latency_ms=1500,
+            success=True,
+            collection="test_collection",
         )
 
         summary = metrics.get_metrics_summary()
@@ -493,7 +523,10 @@ class TestVectorMetrics:
         # Record multiple search operations
         for i in range(5):
             await metrics.record_vector_operation_async(
-                operation="search", count=10, latency_ms=1000 + i * 100, success=i < 4  # One failure
+                operation="search",
+                count=10,
+                latency_ms=1000 + i * 100,
+                success=i < 4,  # One failure
             )
 
         stats = await metrics.get_operation_performance_async("search")
@@ -523,7 +556,11 @@ class TestVectorMetrics:
 
         # Record operations for specific collection
         await metrics.record_vector_operation_async(
-            operation="search", count=5, latency_ms=1000, success=True, collection=collection_name
+            operation="search",
+            count=5,
+            latency_ms=1000,
+            success=True,
+            collection=collection_name,
         )
 
         collection_metrics = await metrics.get_collection_metrics_async(collection_name)
@@ -611,7 +648,10 @@ class TestVectorIntegration:
                 {
                     "id": "doc1",
                     "distance": 0.1,
-                    "metadata": {"content": "Python programming guide", "category": "tech"},
+                    "metadata": {
+                        "content": "Python programming guide",
+                        "category": "tech",
+                    },
                     "score": 0.9,
                 },
                 {
@@ -626,7 +666,11 @@ class TestVectorIntegration:
         search.embedding_manager = Mock()
         search.embedding_manager.generate_embedding_async = AsyncMock(
             return_value=EmbeddingResult(
-                text="test", vector=[0.1] * 128, model="test-model", tokens_used=10, cache_hit=False
+                text="test",
+                vector=[0.1] * 128,
+                model="test-model",
+                tokens_used=10,
+                cache_hit=False,
             )
         )
         search.embedding_manager.generate_batch_embeddings_async = AsyncMock(
@@ -639,14 +683,22 @@ class TestVectorIntegration:
                     cache_hit=False,
                 ),
                 EmbeddingResult(
-                    text="JavaScript tutorial", vector=[0.2] * 128, model="test-model", tokens_used=12, cache_hit=False
+                    text="JavaScript tutorial",
+                    vector=[0.2] * 128,
+                    model="test-model",
+                    tokens_used=12,
+                    cache_hit=False,
                 ),
             ]
         )
 
         # Test document indexing
         documents = [
-            Document(id="doc1", content="Python programming guide", metadata={"category": "tech"}),
+            Document(
+                id="doc1",
+                content="Python programming guide",
+                metadata={"category": "tech"},
+            ),
             Document(id="doc2", content="JavaScript tutorial", metadata={"category": "tech"}),
         ]
 
@@ -665,7 +717,10 @@ class TestVectorIntegration:
             st.tuples(
                 st.text(min_size=5, max_size=100),  # content
                 st.dictionaries(
-                    st.text(min_size=1, max_size=10), st.text(min_size=1, max_size=20), min_size=0, max_size=3
+                    st.text(min_size=1, max_size=10),
+                    st.text(min_size=1, max_size=20),
+                    min_size=0,
+                    max_size=3,
                 ),  # metadata
             ),
             min_size=1,
@@ -684,7 +739,13 @@ class TestVectorIntegration:
         search.vector_store.search_async = AsyncMock(return_value=[])
         search.embedding_manager = Mock()
         search.embedding_manager.generate_embedding_async = AsyncMock(
-            return_value=EmbeddingResult(text="query", vector=[0.1] * 128, model="test", tokens_used=5, cache_hit=False)
+            return_value=EmbeddingResult(
+                text="query",
+                vector=[0.1] * 128,
+                model="test",
+                tokens_used=5,
+                cache_hit=False,
+            )
         )
 
         try:

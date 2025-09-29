@@ -12,7 +12,7 @@ enabling provider independence and testability.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, AsyncIterable, Dict, List, Optional, Protocol
+from typing import Any, AsyncIterable, Dict, List, Optional
 
 
 class ModelType(Enum):
@@ -121,13 +121,16 @@ class VectorStoreInterface(ABC):
 
     @abstractmethod
     async def store_async(
-        self, vectors: List[List[float]], metadata: List[Dict[str, Any]], ids: Optional[List[str]] = None
+        self,
+        vectors: List[List[float]],
+        metadata: List[Dict[str, Any]],
+        ids: Optional[List[str]] = None,
     ) -> List[str]:
         """Store vectors with metadata.
 
         Args:
-            vectors: List of vector embeddings to store.
-            metadata: Corresponding metadata for each vector.
+            vectors: List of vector embeddings to store.,
+            metadata: Corresponding metadata for each vector.,
             ids: Optional custom IDs for vectors. Generated if not provided.
 
         Returns:
@@ -137,13 +140,16 @@ class VectorStoreInterface(ABC):
 
     @abstractmethod
     async def search_async(
-        self, query_vector: List[float], top_k: int = 10, filter_metadata: Optional[Dict[str, Any]] = None
+        self,
+        query_vector: List[float],
+        top_k: int = 10,
+        filter_metadata: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Search for similar vectors.
 
         Args:
-            query_vector: Vector to find similarities for.
-            top_k: Maximum number of results to return.
+            query_vector: Vector to find similarities for.,
+            top_k: Maximum number of results to return.,
             filter_metadata: Optional metadata filters to apply.
 
         Returns:

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -13,9 +11,8 @@ Provides reusable recovery mechanisms that can be used
 to build resilient systems.
 """
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from enum import Enum
-from typing import Any, Callable
 
 
 class RecoveryStatus(Enum):
@@ -61,7 +58,7 @@ class RetryStrategy(RecoveryStrategy):
             self.operation()
             return RecoveryStatus.SUCCESS
 
-        except Exception as e:
+        except Exception:
             if self.attempt_count >= self.max_attempts:
                 return RecoveryStatus.FAILED
             else:

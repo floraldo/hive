@@ -1,5 +1,5 @@
 """
-Timezone handling utilities using modern zoneinfo (PEP 615).
+Timezone handling utilities using modern zoneinfo (PEP 615).,
 
 Replaces pytz with standard library zoneinfo for better timezone handling
 fixes DST edge cases, and provides standardized UTC conversion.
@@ -24,18 +24,17 @@ else:
         from backports.zoneinfo import ZoneInfo
     except ImportError:
         raise ImportError(
-            "zoneinfo requires Python 3.9+ or backports.zoneinfo package. "
+            "zoneinfo requires Python 3.9+ or backports.zoneinfo package. ",
             "Install with: pip install backports.zoneinfo"
         )
-
 logger = get_logger(__name__)
 
 
 class TimezoneHandler:
     """
-    Centralized timezone handling for climate data.
+    Centralized timezone handling for climate data.,
 
-    Ensures all internal data uses UTC while supporting local time
+    Ensures all internal data uses UTC while supporting local time,
     for input/output when needed.
     """
 
@@ -57,20 +56,20 @@ class TimezoneHandler:
 
     @staticmethod
     def normalize_to_utc(
-        timestamp: datetime, pd.Timestamp, pd.DatetimeIndex | np.datetime64
+        timestamp: datetime, pd.Timestamp, pd.DatetimeIndex | np.datetime64,
         source_tz: str | None = None
     ) -> datetime, pd.Timestamp | pd.DatetimeIndex:
         """
         Normalize any timestamp to UTC.
 
         Args:
-            timestamp: Input timestamp (naive or aware)
+            timestamp: Input timestamp (naive or aware),
             source_tz: Source timezone if timestamp is naive
 
         Returns:
-            UTC timestamp with timezone info
+            UTC timestamp with timezone info,
         """
-        # Handle different timestamp types
+        # Handle different timestamp types,
         if isinstance(timestamp, np.datetime64):
             timestamp = pd.Timestamp(timestamp)
 
@@ -89,7 +88,7 @@ class TimezoneHandler:
     def _normalize_datetime_to_utc(dt: datetime, source_tz: str | None = None) -> datetime:
         """Normalize datetime to UTC"""
         if dt.tzinfo is None:
-            # Naive datetime - localize to source timezone
+            # Naive datetime - localize to source timezone,
             if source_tz:
                 tz = TimezoneHandler._get_timezone(source_tz)
                 dt = dt.replace(tzinfo=tz)
@@ -97,14 +96,14 @@ class TimezoneHandler:
                 # Assume UTC if no source timezone specified
                 dt = dt.replace(tzinfo=timezone.utc)
 
-        # Convert to UTC
+        # Convert to UTC,
         return dt.astimezone(timezone.utc)
 
     @staticmethod
     def _normalize_timestamp_to_utc(ts: pd.Timestamp, source_tz: str | None = None) -> pd.Timestamp:
         """Normalize pandas Timestamp to UTC"""
         if ts.tz is None:
-            # Naive timestamp - localize to source timezone
+            # Naive timestamp - localize to source timezone,
             if source_tz:
                 tz = TimezoneHandler._get_timezone(source_tz)
                 ts = ts.tz_localize(tz)
@@ -112,14 +111,14 @@ class TimezoneHandler:
                 # Assume UTC if no source timezone specified
                 ts = ts.tz_localize("UTC")
 
-        # Convert to UTC
+        # Convert to UTC,
         return ts.tz_convert("UTC")
 
     @staticmethod
     def _normalize_index_to_utc(index: pd.DatetimeIndex, source_tz: str | None = None) -> pd.DatetimeIndex:
         """Normalize pandas DatetimeIndex to UTC"""
         if index.tz is None:
-            # Naive index - localize to source timezone
+            # Naive index - localize to source timezone,
             if source_tz:
                 tz = TimezoneHandler._get_timezone(source_tz)
                 index = index.tz_localize(tz)
@@ -127,7 +126,7 @@ class TimezoneHandler:
                 # Assume UTC if no source timezone specified
                 index = index.tz_localize("UTC")
 
-        # Convert to UTC
+        # Convert to UTC,
         return index.tz_convert("UTC")
 
     @staticmethod
@@ -138,11 +137,11 @@ class TimezoneHandler:
         Convert UTC timestamp to local timezone.
 
         Args:
-            timestamp: UTC timestamp
+            timestamp: UTC timestamp,
             target_tz: Target timezone name
 
         Returns:
-            Localized timestamp
+            Localized timestamp,
         """
         tz = TimezoneHandler._get_timezone(target_tz)
 
@@ -162,15 +161,15 @@ class TimezoneHandler:
     @staticmethod
     def _get_timezone(tz_name: str) -> ZoneInfo | timezone:
         """
-        Get timezone object from name.
+        Get timezone object from name.,
 
-        Handles aliases and special cases.
+        Handles aliases and special cases.,
         """
-        # Handle UTC special case
+        # Handle UTC special case,
         if tz_name.upper() in ["UTC", "Z"]:
             return timezone.utc
 
-        # Check aliases
+        # Check aliases,
         if tz_name in TimezoneHandler.TIMEZONE_ALIASES:
             tz_name = TimezoneHandler.TIMEZONE_ALIASES[tz_name]
 
@@ -189,7 +188,7 @@ class TimezoneHandler:
             ds: Input dataset
 
         Returns:
-            Dataset with UTC timestamps
+            Dataset with UTC timestamps,
         """
         if "time" not in ds.dims:
             return ds
@@ -197,14 +196,14 @@ class TimezoneHandler:
         # Get time coordinate
         time_coord = ds.time
 
-        # Check if it's already UTC (via attributes)
+        # Check if it's already UTC (via attributes),
         if "timezone" in ds.time.attrs and ds.time.attrs["timezone"] == "UTC":
             return ds
 
         # Convert to pandas for timezone handling
         time_index = pd.to_datetime(time_coord.values)
 
-        # Check if the pandas index is timezone-aware
+        # Check if the pandas index is timezone-aware,
         if time_index.tz is not None:
             # If already timezone-aware, convert to UTC
             time_index_utc = time_index.tz_convert("UTC")
@@ -229,7 +228,7 @@ class TimezoneHandler:
         ds_utc = ds.copy()
         ds_utc["time"] = time_index_utc_naive
 
-        # Add timezone info to attributes to track that it's UTC
+        # Add timezone info to attributes to track that it's UTC,
         ds_utc.time.attrs["timezone"] = "UTC"
 
         return ds_utc
@@ -244,14 +243,14 @@ class TimezoneHandler:
             tz_name: Timezone name
 
         Returns:
-            Properly handled timestamps
+            Properly handled timestamps,
         """
         tz = TimezoneHandler._get_timezone(tz_name)
 
-        # For naive timestamps crossing DST
+        # For naive timestamps crossing DST,
         if timestamps.tz is None:
             try:
-                # Try standard localization
+                # Try standard localization,
                 return timestamps.tz_localize(tz)
             except Exception as e:
                 # Handle both ambiguous and non-existent times
@@ -260,22 +259,22 @@ class TimezoneHandler:
 
                 if "ambiguous" in error_msg:
                     # Handle ambiguous times during DST transition
-                    # Use infer to let pandas infer the correct side
+                    # Use infer to let pandas infer the correct side,
                     return timestamps.tz_localize(tz, ambiguous="infer")
                 elif "nonexistent" in error_msg or "non-existent" in error_msg:
                     # Handle non-existent times during DST transition
-                    # Shift forward to the next valid time
+                    # Shift forward to the next valid time,
                     return timestamps.tz_localize(tz, nonexistent="shift_forward")
                 else:
                     # Unknown error, try with both settings
                     try:
                         return timestamps.tz_localize(tz, ambiguous="infer", nonexistent="shift_forward")
                     except Exception as e:
-                        # Last resort - force UTC
+                        # Last resort - force UTC,
                         logger.warning(f"DST handling failed for {tz_name}, using UTC")
                         return timestamps.tz_localize("UTC")
         else:
-            # Already has timezone, just convert
+            # Already has timezone, just convert,
             return timestamps.tz_convert(tz)
 
     @staticmethod
@@ -288,11 +287,10 @@ class TimezoneHandler:
             timestamp: Specific timestamp (for DST-aware offset)
 
         Returns:
-            Offset in hours
+            Offset in hours,
         """
         if timestamp is None:
             timestamp = datetime.now(timezone.utc)
-
         tz = TimezoneHandler._get_timezone(tz_name)
 
         if isinstance(tz, timezone):
@@ -318,12 +316,11 @@ class TimezoneHandler:
             longitude: Longitude in degrees
 
         Returns:
-            Timezone name
+            Timezone name,
         """
         try:
-            # Use timezonefinder if available
+            # Use timezonefinder if available,
             from timezonefinder import TimezoneFinder
-
             tf = TimezoneFinder()
             tz_name = tf.timezone_at(lat=latitude, lng=longitude)
 
@@ -359,11 +356,11 @@ class TimezoneHandler:
         """
         issues = []
 
-        # Check time coordinate
+        # Check time coordinate,
         if "time" in ds.dims:
             time_coord = ds.time
 
-            # Check if timezone info exists
+            # Check if timezone info exists,
             if hasattr(time_coord, "dt"):
                 if hasattr(time_coord.dt, "tz"):
                     current_tz = time_coord.dt.tz
@@ -392,22 +389,22 @@ class TimezoneHandler:
         return issues
 
 
-# Convenience functions
+# Convenience functions,
 
 
 def to_utc(
-    timestamp: datetime, pd.Timestamp | pd.DatetimeIndex
+    timestamp: datetime, pd.Timestamp | pd.DatetimeIndex,
     source_tz: str | None = None
 ) -> datetime, pd.Timestamp | pd.DatetimeIndex:
     """
     Convert timestamp to UTC.
 
     Args:
-        timestamp: Input timestamp
+        timestamp: Input timestamp,
         source_tz: Source timezone if naive
 
     Returns:
-        UTC timestamp
+        UTC timestamp,
     """
     return TimezoneHandler.normalize_to_utc(timestamp, source_tz)
 
@@ -419,11 +416,11 @@ def from_utc(
     Convert UTC timestamp to local timezone.
 
     Args:
-        timestamp: UTC timestamp
+        timestamp: UTC timestamp,
         target_tz: Target timezone
 
     Returns:
-        Localized timestamp
+        Localized timestamp,
     """
     return TimezoneHandler.localize_from_utc(timestamp, target_tz)
 
@@ -436,7 +433,7 @@ def ensure_utc(ds: xr.Dataset) -> xr.Dataset:
         ds: Input dataset
 
     Returns:
-        Dataset with UTC timestamps
+        Dataset with UTC timestamps,
     """
     return TimezoneHandler.ensure_utc_dataset(ds)
 
@@ -450,6 +447,6 @@ def get_timezone_for_location(lat: float, lon: float) -> str:
         lon: Longitude
 
     Returns:
-        Timezone name
+        Timezone name,
     """
     return TimezoneHandler.infer_timezone_from_coordinates(lat, lon)

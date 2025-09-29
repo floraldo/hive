@@ -217,7 +217,7 @@ def kill_processes() -> None:
             except subprocess.TimeoutExpired:
                 logger.warning(f"  [WARN] Timeout while processing {process_name}")
             except FileNotFoundError:
-                logger.info(f"  [INFO] Process management commands not available (tasklist/wmic)")
+                logger.info("  [INFO] Process management commands not available (tasklist/wmic)")
                 break
             except Exception as e:
                 logger.warning(f"  [WARN] Could not kill {process_name}: {e}")

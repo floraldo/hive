@@ -14,24 +14,18 @@ Designed to run in CI/CD to catch breaking changes and ensure platform reliabili
 """
 
 import asyncio
+import concurrent.futures
 import json
-import pytest
+import os
 import sqlite3
+import sys
 import tempfile
 import time
 import uuid
-import threading
-import concurrent.futures
-import subprocess
-import psutil
-import signal
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
-from unittest.mock import Mock, patch, MagicMock
-from dataclasses import dataclass, asdict
-import os
-import sys
+from typing import Any, Dict, List
 
 # Test imports
 test_root = Path(__file__).parent.parent
@@ -125,7 +119,7 @@ class PlatformTestEnvironment:
         os.environ.pop("HIVE_TEST_MODE", None)
         os.environ.pop("HIVE_TEST_DB_PATH", None)
 
-        print(f"🧹 Test environment cleaned up")
+        print("🧹 Test environment cleaned up")
 
     def _init_test_database(self):
         """Initialize comprehensive test database schema"""
@@ -3040,7 +3034,7 @@ class ComprehensiveIntegrationTestSuite:
 
         # Performance metrics
         if self.env.metrics.performance_samples:
-            print(f"\n📊 Performance Metrics:")
+            print("\n📊 Performance Metrics:")
             for sample in self.env.metrics.performance_samples:
                 test_name = sample.get("test", "unknown")
                 if "throughput" in sample:

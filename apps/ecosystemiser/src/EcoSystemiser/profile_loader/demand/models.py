@@ -5,7 +5,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 """
-Demand profile data models.
+Demand profile data models.,
 
 This module defines data structures specific to demand/load profiles
 for electricity, heating, cooling, and other energy demands.
@@ -15,7 +15,7 @@ from typing import Any, Dict, List, LiteralTuple
 
 from ecosystemiser.profile_loader.shared.models import (
     BaseProfileRequest,
-    BaseProfileResponse
+    BaseProfileResponse,
     ProfileMode
 )
 from pydantic import BaseModel, Field
@@ -26,25 +26,25 @@ DemandType = Literal["electricity", "heating", "cooling", "hot_water", "process_
 # Building types for standard profiles
 BuildingType = Literal[
     "residential_single"
-    "residential_multi"
+    "residential_multi",
     "office"
-    "retail"
+    "retail",
     "industrial"
-    "warehouse"
+    "warehouse",
     "school"
-    "hospital"
+    "hospital",
     "hotel"
-    "restaurant"
+    "restaurant",
     "data_center"
     "mixed_use"
-]
+],
 
 
 class DemandRequest(BaseProfileRequest):
     """
-    Request for demand profile data.
+    Request for demand profile data.,
 
-    Extends BaseProfileRequest with demand-specific parameters.
+    Extends BaseProfileRequest with demand-specific parameters.,
     """
 
     # Demand-specific fields
@@ -61,10 +61,10 @@ class DemandRequest(BaseProfileRequest):
     # Demand-specific sources
     source: Optional[
         Literal[
-            "standard_profile",  # Standard load profiles
-            "smart_meter",  # Smart meter data
-            "scada",  # SCADA system data
-            "simulation",  # Building simulation
+            "standard_profile",  # Standard load profiles,
+            "smart_meter",  # Smart meter data,
+            "scada",  # SCADA system data,
+            "simulation",  # Building simulation,
             "benchmark",  # Benchmark profiles
         ]
     ] = None
@@ -79,9 +79,9 @@ class DemandRequest(BaseProfileRequest):
 
 class DemandResponse(BaseProfileResponse):
     """
-    Response containing demand profile data.
+    Response containing demand profile data.,
 
-    Extends BaseProfileResponse with demand-specific metrics.
+    Extends BaseProfileResponse with demand-specific metrics.,
     """
 
     # Demand-specific metrics
@@ -98,25 +98,25 @@ class DemandResponse(BaseProfileResponse):
 
 # Common demand profile variables
 DEMAND_VARIABLES = {
-    # Power/demand variables
-    "power_kw": {"unit": "kW", "type": "state"}
-    "power_mw": {"unit": "MW", "type": "state"}
-    "reactive_power_kvar": {"unit": "kVAR", "type": "state"}
+    # Power/demand variables,
+    "power_kw": {"unit": "kW", "type": "state"},
+    "power_mw": {"unit": "MW", "type": "state"},
+    "reactive_power_kvar": {"unit": "kVAR", "type": "state"},
     "apparent_power_kva": {"unit": "kVA", "type": "state"}
-    # Energy variables
-    "energy_kwh": {"unit": "kWh", "type": "cumulative"}
+    # Energy variables,
+    "energy_kwh": {"unit": "kWh", "type": "cumulative"},
     "energy_mwh": {"unit": "MWh", "type": "cumulative"}
-    # Thermal demands
-    "heating_demand_kw": {"unit": "kW", "type": "state"}
-    "cooling_demand_kw": {"unit": "kW", "type": "state"}
+    # Thermal demands,
+    "heating_demand_kw": {"unit": "kW", "type": "state"},
+    "cooling_demand_kw": {"unit": "kW", "type": "state"},
     "hot_water_demand_kw": {"unit": "kW", "type": "state"}
-    # Grid interaction
-    "import_kw": {"unit": "kW", "type": "state"}
-    "export_kw": {"unit": "kW", "type": "state"}
+    # Grid interaction,
+    "import_kw": {"unit": "kW", "type": "state"},
+    "export_kw": {"unit": "kW", "type": "state"},
     "net_demand_kw": {"unit": "kW", "type": "state"}
-    # Power quality
-    "voltage_v": {"unit": "V", "type": "state"}
-    "current_a": {"unit": "A", "type": "state"}
-    "power_factor": {"unit": "dimensionless", "type": "state"}
+    # Power quality,
+    "voltage_v": {"unit": "V", "type": "state"},
+    "current_a": {"unit": "A", "type": "state"},
+    "power_factor": {"unit": "dimensionless", "type": "state"},
     "frequency_hz": {"unit": "Hz", "type": "state"}
 }

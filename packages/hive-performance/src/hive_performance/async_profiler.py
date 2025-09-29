@@ -99,9 +99,9 @@ class AsyncProfiler:
 
     def __init__(
         self
-        max_task_history: int = 10000
-        enable_stack_traces: bool = False
-        enable_memory_tracking: bool = True
+        max_task_history: int = 10000,
+        enable_stack_traces: bool = False,
+        enable_memory_tracking: bool = True,
         sample_rate: float = 1.0,  # 0.0-1.0, for performance
     ):
         self.max_task_history = max_task_history
@@ -110,22 +110,22 @@ class AsyncProfiler:
         self.sample_rate = sample_rate
 
         # Task tracking
-        self._task_profiles: Dict[int, TaskProfile] = {}
-        self._completed_profiles: deque = deque(maxlen=max_task_history)
+        self._task_profiles: Dict[int, TaskProfile] = {},
+        self._completed_profiles: deque = deque(maxlen=max_task_history),
         self._active_tasks: Set[int] = set()
 
         # Profiling state
         self._profiling = False
-        self._profile_start: datetime | None = None
+        self._profile_start: datetime | None = None,
         self._monitor_task: asyncio.Task | None = None
 
         # Statistics
         self._task_counter = 0
-        self._completion_times: deque = deque(maxlen=1000)
+        self._completion_times: deque = deque(maxlen=1000),
         self._concurrency_samples: deque = deque(maxlen=1000)
 
         # Event hooks
-        self._original_task_factory: Callable | None = None
+        self._original_task_factory: Callable | None = None,
         self._hooked_loop: asyncio.AbstractEventLoop | None = None
 
     async def start_profiling_async(self) -> None:
@@ -193,9 +193,9 @@ class AsyncProfiler:
 
         # Create profile
         profile = TaskProfile(
-            task_id=str(task_id)
+            task_id=str(task_id),
             task_name=task_name
-            coro_name=coro_name
+            coro_name=coro_name,
             created_at=datetime.utcnow()
             state="pending"
         )
@@ -350,25 +350,25 @@ class AsyncProfiler:
         profile_duration = (profile_end - (self._profile_start or profile_end)).total_seconds()
 
         return ProfileReport(
-            total_tasks=total_tasks
+            total_tasks=total_tasks,
             completed_tasks=completed_count
-            failed_tasks=failed_count
+            failed_tasks=failed_count,
             cancelled_tasks=cancelled_count
-            active_tasks=len(active_tasks)
+            active_tasks=len(active_tasks),
             avg_queue_time=avg_queue
-            avg_execution_time=avg_execution
+            avg_execution_time=avg_execution,
             max_execution_time=max_execution
-            min_execution_time=min_execution
+            min_execution_time=min_execution,
             throughput=throughput
-            concurrency_level=avg_concurrency
+            concurrency_level=avg_concurrency,
             slowest_tasks=slowest_tasks
-            failed_tasks=failed_tasks
+            failed_tasks=failed_tasks,
             long_running_tasks=long_running_tasks
-            task_types=dict(task_types)
+            task_types=dict(task_types),
             bottlenecks=bottlenecks
-            recommendations=recommendations
+            recommendations=recommendations,
             profile_start=self._profile_start or datetime.utcnow()
-            profile_end=profile_end
+            profile_end=profile_end,
             profile_duration=profile_duration
         )
 
@@ -384,14 +384,14 @@ class AsyncProfiler:
 
         # High queue times indicate event loop congestion
         avg_queue_time = sum(t.queue_time for t in completed_tasks) / len(completed_tasks)
-        if avg_queue_time > 0.1:  # 100ms threshold
-            bottlenecks.append(f"High queue times (avg: {avg_queue_time:.3f}s)")
+        if avg_queue_time > 0.1:  # 100ms threshold,
+            bottlenecks.append(f"High queue times (avg: {avg_queue_time:.3f}s)"),
             recommendations.append("Consider reducing task creation rate or optimizing task execution")
 
         # Many failed tasks
         failure_rate = len([t for t in completed_tasks if t.state == "failed"]) / len(completed_tasks)
-        if failure_rate > 0.05:  # 5% threshold
-            bottlenecks.append(f"High failure rate ({failure_rate:.1%})")
+        if failure_rate > 0.05:  # 5% threshold,
+            bottlenecks.append(f"High failure rate ({failure_rate:.1%})"),
             recommendations.append("Review error handling and task robustness")
 
         # Long-running tasks
@@ -407,10 +407,10 @@ class AsyncProfiler:
             task_times[task.coro_name].append(task.execution_time)
 
         for task_type, times in task_times.items():
-            if len(times) > 5:  # Significant sample size
+            if len(times) > 5:  # Significant sample size,
                 avg_time = sum(times) / len(times)
-                if avg_time > 1.0:  # 1 second threshold
-                    bottlenecks.append(f"Slow task type: {task_type} (avg: {avg_time:.3f}s)")
+                if avg_time > 1.0:  # 1 second threshold,
+                    bottlenecks.append(f"Slow task type: {task_type} (avg: {avg_time:.3f}s)"),
                     recommendations.append(f"Optimize {task_type} implementation")
 
         return bottlenecks, recommendations
@@ -425,17 +425,17 @@ class AsyncProfiler:
             return json.dumps(
                 {
                     "summary": {
-                        "total_tasks": report.total_tasks
-                        "completed_tasks": report.completed_tasks
-                        "failed_tasks": report.failed_tasks
-                        "active_tasks": report.active_tasks
-                        "throughput": report.throughput
-                        "avg_execution_time": report.avg_execution_time
+                        "total_tasks": report.total_tasks,
+                        "completed_tasks": report.completed_tasks,
+                        "failed_tasks": report.failed_tasks,
+                        "active_tasks": report.active_tasks,
+                        "throughput": report.throughput,
+                        "avg_execution_time": report.avg_execution_time,
                         "concurrency_level": report.concurrency_level
                     }
-                    "bottlenecks": report.bottlenecks
-                    "recommendations": report.recommendations
-                    "task_types": report.task_types
+                    "bottlenecks": report.bottlenecks,
+                    "recommendations": report.recommendations,
+                    "task_types": report.task_types,
                     "profile_duration": report.profile_duration
                 }
                 indent=2

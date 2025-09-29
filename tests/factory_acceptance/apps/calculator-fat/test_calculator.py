@@ -5,8 +5,8 @@ Designed to catch bugs and validate fixes through iterations
 """
 
 import unittest
+
 import requests
-import json
 
 
 class TestCalculator(unittest.TestCase):
@@ -80,7 +80,9 @@ class TestCalculator(unittest.TestCase):
     def test_missing_parameters(self):
         """Test error handling for missing parameters"""
         response = requests.post(
-            f"{self.BASE_URL}/api/add", json={"a": 5}, headers={"Content-Type": "application/json"}  # Missing 'b'
+            f"{self.BASE_URL}/api/add",
+            json={"a": 5},
+            headers={"Content-Type": "application/json"},  # Missing 'b'
         )
         self.assertEqual(response.status_code, 400)
 

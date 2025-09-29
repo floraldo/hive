@@ -2,22 +2,22 @@
 """Performance audit script to identify optimization opportunities."""
 
 import ast
-import os
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
+
 
 def check_n_plus_one_queries(file_path: Path) -> List[str]:
     """Check for potential N+1 query patterns."""
     issues = []
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Look for loops with database queries
     patterns = [
-        r'for.*in.*:\s*\n.*(?:SELECT|INSERT|UPDATE|DELETE)',
-        r'while.*:\s*\n.*(?:SELECT|INSERT|UPDATE|DELETE)',
+        r"for.*in.*:\s*\n.*(?:SELECT|INSERT|UPDATE|DELETE)",
+        r"while.*:\s*\n.*(?:SELECT|INSERT|UPDATE|DELETE)",
         r'\.execute\(["\']SELECT.*["\'].*\).*\n.*for',
     ]
 
@@ -27,42 +27,44 @@ def check_n_plus_one_queries(file_path: Path) -> List[str]:
 
     return issues
 
+
 def check_memory_leaks(file_path: Path) -> List[str]:
     """Check for potential memory leaks."""
     issues = []
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Check for growing lists without cleanup
-    if '.append(' in content:
+    if ".append(" in content:
         # Check if there's corresponding cleanup
-        lines = content.split('\n')
+        lines = content.split("\n")
         for i, line in enumerate(lines):
-            if '.append(' in line and not any(cleanup in content for cleanup in ['.clear()', '.pop()', 'del ', '= []']):
+            if ".append(" in line and not any(cleanup in content for cleanup in [".clear()", ".pop()", "del ", "= []"]):
                 # Check if it's in a class that might accumulate
-                if i > 0 and 'self.' in line:
+                if i > 0 and "self." in line:
                     issues.append(f"Potential memory leak (growing list) in {file_path}:{i+1}")
 
     # Check for unclosed resources
     patterns = [
-        (r'open\(', 'close()'),
-        (r'connect\(', 'close()'),
-        (r'Session\(', 'close()'),
+        (r"open\(", "close()"),
+        (r"connect\(", "close()"),
+        (r"Session\(", "close()"),
     ]
 
     for open_pattern, close_pattern in patterns:
-        if re.search(open_pattern, content) and close_pattern not in content and 'with ' not in content:
+        if re.search(open_pattern, content) and close_pattern not in content and "with " not in content:
             issues.append(f"Potential unclosed resource in {file_path}")
 
     return issues
+
 
 def check_inefficient_operations(file_path: Path) -> List[str]:
     """Check for inefficient operations."""
     issues = []
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -80,7 +82,7 @@ def check_inefficient_operations(file_path: Path) -> List[str]:
 
                 # Check for repeated function calls in loop condition
                 if isinstance(node.iter, ast.Call):
-                    if isinstance(node.iter.func, ast.Name) and node.iter.func.id in ['range', 'len']:
+                    if isinstance(node.iter.func, ast.Name) and node.iter.func.id in ["range", "len"]:
                         # This is fine
                         pass
                     else:
@@ -102,42 +104,44 @@ def check_inefficient_operations(file_path: Path) -> List[str]:
         for issue in visitor.issues:
             issues.append(f"{file_path}: {issue}")
 
-    except Exception as e:
+    except Exception:
         # Parsing errors, skip file
         pass
 
     return issues
 
+
 def check_missing_indexes(file_path: Path) -> List[str]:
     """Check for queries that might benefit from indexes."""
     issues = []
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Look for WHERE clauses without corresponding indexes
-    where_patterns = re.findall(r'WHERE\s+(\w+)\s*=', content, re.IGNORECASE)
+    where_patterns = re.findall(r"WHERE\s+(\w+)\s*=", content, re.IGNORECASE)
 
     # Check if these columns have indexes
     for column in where_patterns:
-        if column not in ['id', 'task_id', 'status', 'priority']:  # Known indexed columns
-            if f'idx_{column}' not in content and f'INDEX.*{column}' not in content:
+        if column not in ["id", "task_id", "status", "priority"]:  # Known indexed columns
+            if f"idx_{column}" not in content and f"INDEX.*{column}" not in content:
                 issues.append(f"Column '{column}' used in WHERE clause might need index in {file_path}")
 
     return issues
+
 
 def check_caching_opportunities(file_path: Path) -> List[str]:
     """Identify opportunities for caching."""
     issues = []
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Look for repeated expensive operations
     patterns = [
-        (r'json\.loads\(.*\)', 'JSON parsing'),
-        (r'\.split\(.*\).*\.split\(', 'Multiple string splits'),
-        (r'for.*in.*:\s*\n.*re\.(search|match|compile)', 'Regex in loop'),
+        (r"json\.loads\(.*\)", "JSON parsing"),
+        (r"\.split\(.*\).*\.split\(", "Multiple string splits"),
+        (r"for.*in.*:\s*\n.*re\.(search|match|compile)", "Regex in loop"),
     ]
 
     for pattern, operation in patterns:
@@ -146,32 +150,28 @@ def check_caching_opportunities(file_path: Path) -> List[str]:
 
     return issues
 
+
 def audit_performance(root_dir: Path) -> Dict[str, List[str]]:
     """Run performance audit on Python files."""
-    results = {
-        'n_plus_one': [],
-        'memory_leaks': [],
-        'inefficient_ops': [],
-        'missing_indexes': [],
-        'caching': []
-    }
+    results = {"n_plus_one": [], "memory_leaks": [], "inefficient_ops": [], "missing_indexes": [], "caching": []}
 
-    for py_file in root_dir.rglob('*.py'):
+    for py_file in root_dir.rglob("*.py"):
         # Skip test files and vendored code
-        if 'test' in py_file.parts or '__pycache__' in str(py_file):
+        if "test" in py_file.parts or "__pycache__" in str(py_file):
             continue
 
-        results['n_plus_one'].extend(check_n_plus_one_queries(py_file))
-        results['memory_leaks'].extend(check_memory_leaks(py_file))
-        results['inefficient_ops'].extend(check_inefficient_operations(py_file))
+        results["n_plus_one"].extend(check_n_plus_one_queries(py_file))
+        results["memory_leaks"].extend(check_memory_leaks(py_file))
+        results["inefficient_ops"].extend(check_inefficient_operations(py_file))
 
         # Only check database files for indexes
-        if 'db' in str(py_file) or 'database' in str(py_file):
-            results['missing_indexes'].extend(check_missing_indexes(py_file))
+        if "db" in str(py_file) or "database" in str(py_file):
+            results["missing_indexes"].extend(check_missing_indexes(py_file))
 
-        results['caching'].extend(check_caching_opportunities(py_file))
+        results["caching"].extend(check_caching_opportunities(py_file))
 
     return results
+
 
 def main() -> None:
     """Main performance audit function."""
@@ -201,18 +201,19 @@ def main() -> None:
         print("✅ No major performance issues detected!")
     else:
         print("\nRecommendations:")
-        if results['n_plus_one']:
+        if results["n_plus_one"]:
             print("  1. Use batch queries or joins to avoid N+1 patterns")
-        if results['memory_leaks']:
+        if results["memory_leaks"]:
             print("  2. Ensure proper resource cleanup and list management")
-        if results['inefficient_ops']:
+        if results["inefficient_ops"]:
             print("  3. Optimize loop operations and avoid repeated calculations")
-        if results['missing_indexes']:
+        if results["missing_indexes"]:
             print("  4. Add database indexes for frequently queried columns")
-        if results['caching']:
+        if results["caching"]:
             print("  5. Implement caching for expensive repeated operations")
 
     print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

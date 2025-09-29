@@ -1,5 +1,3 @@
-import asyncio
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -82,7 +80,7 @@ class HiveStatus:
                 with open(task_file, "r") as f:
                     task = json.load(f)
                     tasks[task["id"]] = task
-            except (json.JSONDecodeError, KeyError, IOError) as e:
+            except (json.JSONDecodeError, KeyError, IOError):
                 # Silently skip corrupted task files
                 pass
 
@@ -96,7 +94,7 @@ class HiveStatus:
                 with open(index_file, "r") as f:
                     data = json.load(f)
                     return data.get("queue", [])
-            except (json.JSONDecodeError, IOError) as e:
+            except (json.JSONDecodeError, IOError):
                 # Silently skip if queue file not readable
                 pass
         return []
@@ -114,7 +112,7 @@ class HiveStatus:
             try:
                 with open(result_files[-1], "r") as f:
                     return json.load(f)
-            except (json.JSONDecodeError, IOError, IndexError) as e:
+            except (json.JSONDecodeError, IOError, IndexError):
                 # Silently skip if result file not readable
                 pass
 
@@ -139,11 +137,11 @@ class HiveStatus:
                 for line in f:
                     try:
                         events.append(json.loads(line))
-                    except (json.JSONDecodeError, ValueError) as e:
+                    except (json.JSONDecodeError, ValueError):
                         # Skip malformed event lines
                         pass
                 self.last_event_pos = f.tell()
-        except (IOError, OSError) as e:
+        except (IOError, OSError):
             # Event file not accessible
             pass
 
@@ -164,7 +162,7 @@ class HiveStatus:
                 return f"{delta.seconds // 60}m"
             else:
                 return f"{delta.seconds}s"
-        except (ValueError, TypeError, AttributeError) as e:
+        except (ValueError, TypeError, AttributeError):
             return "?"
 
     def format_duration(self, ms: int) -> str:
@@ -399,7 +397,6 @@ def main() -> None:
     """Main entry point"""
     # For production, pass environment variables via config
     # For now, using defaults which enable emoji by default
-    import os
 
     config = {}
     # Default to emoji enabled, disable only if explicitly set to "0"

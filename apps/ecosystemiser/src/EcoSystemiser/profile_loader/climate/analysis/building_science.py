@@ -1,5 +1,5 @@
 """
-Building science analytics and derived variables for HVAC and energy system design.
+Building science analytics and derived variables for HVAC and energy system design.,
 
 This module combines building load analysis, design conditions calculation, and
 building-specific derived variables for comprehensive building energy analysis.
@@ -25,71 +25,71 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
         ds: Climate dataset
 
     Returns:
-        Dictionary with building load analysis
+        Dictionary with building load analysis,
     """
     analysis = {"heating": {}, "cooling": {}, "solar": {}, "ventilation": {}}
 
-    # Heating analysis
+    # Heating analysis,
     if "temp_air" in ds:
         temp = ds["temp_air"]
 
-        # Heating indicators
+        # Heating indicators,
         analysis["heating"]["hours_below_18C"] = int((temp < 18).sum())
         analysis["heating"]["hours_below_15C"] = int((temp < 15).sum())
         analysis["heating"]["hours_below_10C"] = int((temp < 10).sum())
         analysis["heating"]["min_temperature"] = float(temp.min())
 
-        # Calculate HDD if not already present
+        # Calculate HDD if not already present,
         if "time" in temp.dims:
             daily_temp = temp.resample(time="1D").mean()
             hdd = (18 - daily_temp).clip(min=0)
             analysis["heating"]["annual_hdd_base18"] = float(hdd.sum())
 
-    # Cooling analysis
+    # Cooling analysis,
     if "temp_air" in ds and "rel_humidity" in ds:
         temp = ds["temp_air"]
         rh = ds["rel_humidity"]
 
-        # Cooling indicators
+        # Cooling indicators,
         analysis["cooling"]["hours_above_24C"] = int((temp > 24).sum())
         analysis["cooling"]["hours_above_26C"] = int((temp > 26).sum())
         analysis["cooling"]["hours_above_30C"] = int((temp > 30).sum())
         analysis["cooling"]["max_temperature"] = float(temp.max())
 
-        # High humidity hours (for dehumidification load)
+        # High humidity hours (for dehumidification load),
         analysis["cooling"]["hours_rh_above_60"] = int((rh > 60).sum())
         analysis["cooling"]["hours_rh_above_70"] = int((rh > 70).sum())
 
-        # Calculate CDD if not already present
+        # Calculate CDD if not already present,
         if "time" in temp.dims:
             daily_temp = temp.resample(time="1D").mean()
             cdd = (daily_temp - 24).clip(min=0)
             analysis["cooling"]["annual_cdd_base24"] = float(cdd.sum())
 
-    # Solar analysis
+    # Solar analysis,
     if "ghi" in ds:
         ghi = ds["ghi"]
 
         analysis["solar"]["peak_ghi"] = float(ghi.max())
         analysis["solar"]["mean_ghi"] = float(ghi.mean())
 
-        # Peak sun hours (equivalent hours at 1000 W/m2)
+        # Peak sun hours (equivalent hours at 1000 W/m2),
         if "time" in ghi.dims:
             daily_energy = ghi.resample(time="1D").sum() / 1000  # kWh/m2/day
             analysis["solar"]["mean_peak_sun_hours"] = float(daily_energy.mean())
             analysis["solar"]["annual_insolation"] = float(daily_energy.sum())
 
-    # Ventilation analysis
+    # Ventilation analysis,
     if "wind_speed" in ds:
         wind = ds["wind_speed"]
 
         analysis["ventilation"]["mean_wind_speed"] = float(wind.mean())
         analysis["ventilation"]["max_wind_speed"] = float(wind.max())
 
-        # Natural ventilation potential (moderate wind speeds)
+        # Natural ventilation potential (moderate wind speeds),
         analysis["ventilation"]["hours_2_to_6_ms"] = int(((wind >= 2) & (wind <= 6)).sum())
 
-    # Add coincidence analysis if we have temp and solar
+    # Add coincidence analysis if we have temp and solar,
     if "temp_air" in ds and "ghi" in ds:
         # Peak cooling typically coincides with high solar
         hot_hours = ds["temp_air"] > ds["temp_air"].quantile(0.95)
@@ -98,7 +98,7 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
         analysis["coincidence"] = {
             "hot_sunny_hours": int((hot_hours & high_solar).sum()),
             "hot_cloudy_hours": int((hot_hours & ~high_solar).sum())
-        }
+        },
 
     return analysis
 
@@ -112,11 +112,11 @@ def get_design_conditions(ds: xr.Dataset, percentiles: List[float] = [0.4, 1, 2,
         percentiles: Design percentiles (e.g., 0.4% for extreme, 99.6% for common)
 
     Returns:
-        Dictionary with design conditions
+        Dictionary with design conditions,
     """
     design = {"heating": {}, "cooling": {}, "humidity": {}}
 
-    # Temperature design conditions
+    # Temperature design conditions,
     if "temp_air" in ds:
         temp = ds["temp_air"].values
         temp_sorted = np.sort(temp[~np.isnan(temp)])
@@ -126,12 +126,12 @@ def get_design_conditions(ds: xr.Dataset, percentiles: List[float] = [0.4, 1, 2,
             idx = int(n * p / 100)
             if p < 50:  # Heating design (cold percentiles)
                 design["heating"][f"temp_{p}pct"] = float(temp_sorted[idx])
-            else:  # Cooling design (hot percentiles)
+            else:  # Cooling design (hot percentiles),
                 design["cooling"][f"temp_{p}pct"] = float(temp_sorted[idx])
 
-    # Coincident wet bulb for cooling design
+    # Coincident wet bulb for cooling design,
     if "temp_air" in ds and "temp_wetbulb" in ds:
-        # Find wet bulb at design dry bulb conditions
+        # Find wet bulb at design dry bulb conditions,
         for p in [99, 99.6]:
             if f"temp_{p}pct" in design["cooling"]:
                 design_temp = design["cooling"][f"temp_{p}pct"]
@@ -141,7 +141,7 @@ def get_design_conditions(ds: xr.Dataset, percentiles: List[float] = [0.4, 1, 2,
                     coincident_wb = ds["temp_wetbulb"].values[mask].mean()
                     design["cooling"][f"wetbulb_at_{p}pct"] = float(coincident_wb)
 
-    # Humidity extremes
+    # Humidity extremes,
     if "dewpoint" in ds:
         dp = ds["dewpoint"].values
         dp_sorted = np.sort(dp[~np.isnan(dp)])
@@ -154,12 +154,11 @@ def get_design_conditions(ds: xr.Dataset, percentiles: List[float] = [0.4, 1, 2,
             else:
                 design["humidity"][f"dewpoint_{p}pct"] = float(dp_sorted[idx])
 
-    # Add mean coincident values
+    # Add mean coincident values,
     if "temp_air" in ds and "rel_humidity" in ds:
         # Mean coincident humidity at peak temperatures
         hot_hours = ds["temp_air"] > ds["temp_air"].quantile(0.99)
         design["cooling"]["mean_rh_at_peak"] = float(ds["rel_humidity"].where(hot_hours).mean())
-
         cold_hours = ds["temp_air"] < ds["temp_air"].quantile(0.01)
         design["heating"]["mean_rh_at_peak"] = float(ds["rel_humidity"].where(cold_hours).mean())
 
@@ -176,7 +175,7 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
         variables: Variables to analyze (default: temp, solar, wind)
 
     Returns:
-        Dictionary with peak timing information
+        Dictionary with peak timing information,
     """
     if variables is None:
         variables = ["temp_air", "ghi", "wind_speed", "cooling_load", "heating_load"]
@@ -185,7 +184,7 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
 
     for var in variables:
         if var not in ds and var in ["cooling_load", "heating_load"]:
-            # Estimate loads if not present
+            # Estimate loads if not present,
             if "temp_air" in ds:
                 if var == "cooling_load":
                     load = (ds["temp_air"] - 24).clip(min=0)
@@ -202,13 +201,13 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
 
             peaks[var] = {
                 "peak_value": float(data.max()),
-                "peak_time": peak_time.isoformat(),
+                "peak_time": peak_time.isoformat()
                 "peak_hour": peak_time.hour,
                 "peak_month": peak_time.month,
                 "peak_day_of_year": peak_time.dayofyear
             }
 
-            # Calculate typical peak timing (mode of peak hours)
+            # Calculate typical peak timing (mode of peak hours),
             if window == "1D":
                 daily_max = data.resample(time="1D").max()
                 daily_max_time = data.resample(time="1D").apply(
@@ -225,7 +224,7 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
             monthly_max = data.resample(time="1M").max()
             peaks[var]["peak_month_value"] = {
                 int(m.month): float(v) for m, v in zip(pd.DatetimeIndex(monthly_max.time.values), monthly_max.values)
-            }
+            },
 
     return peaks
 
@@ -240,7 +239,7 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
         by_month: Whether to separate by month
 
     Returns:
-        Dictionary with diurnal profiles
+        Dictionary with diurnal profiles,
     """
     if variables is None:
         variables = ["temp_air", "ghi", "wind_speed", "rel_humidity"]
@@ -250,7 +249,6 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
     for var in variables:
         if var not in ds or "time" not in ds[var].dims:
             continue
-
         data = ds[var]
 
         if by_month:
@@ -258,12 +256,12 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
             monthly_hourly = data.groupby([data.time.dt.month, data.time.dt.hour]).mean()
 
             profiles[var] = {
-                "monthly_hourly": {,
+                "monthly_hourly": {
                     f"month_{m:02d}": {
                         f"hour_{h:02d}": float(monthly_hourly.sel(month=m, hour=h))
                         for h in range(24)
                         if (m, h) in monthly_hourly.coords
-                    }
+                    },
                     for m in range(1, 13)
                 }
             }
@@ -271,12 +269,12 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
             # Overall hourly profile
             hourly_mean = data.groupby(data.time.dt.hour).mean()
             profiles[var] = {
-                "hourly_mean": {,
+                "hourly_mean": {
                     f"hour_{h:02d}": float(hourly_mean.sel(hour=h)) for h in range(24) if h in hourly_mean.coords
                 }
             }
 
-        # Add daily statistics
+        # Add daily statistics,
         if "time" in data.dims:
             daily_range = data.resample(time="1D").max() - data.resample(time="1D").min()
             profiles[var]["mean_daily_range"] = float(daily_range.mean())
@@ -287,7 +285,7 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
 
 def calculate_simultaneity(ds: xr.Dataset) -> Dict:
     """
-    Calculate simultaneity factors between different loads.
+    Calculate simultaneity factors between different loads.,
 
     Useful for understanding coincidence of peak loads.
 
@@ -295,13 +293,13 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
         ds: Climate dataset
 
     Returns:
-        Dictionary with simultaneity factors
+        Dictionary with simultaneity factors,
     """
     simultaneity = {}
 
-    # Temperature and solar coincidence
+    # Temperature and solar coincidence,
     if "temp_air" in ds and "ghi" in ds:
-        # Correlation during daytime hours
+        # Correlation during daytime hours,
         if "time" in ds.dims:
             daytime = pd.DatetimeIndex(ds.time.values).hour.isin(range(6, 19))
             corr = np.corrcoef(ds["temp_air"].values[daytime], ds["ghi"].values[daytime])[0, 1]
@@ -310,14 +308,13 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
         # Peak coincidence
         temp_peak_time = ds.time[ds["temp_air"].argmax()]
         solar_peak_time = ds.time[ds["ghi"].argmax()]
-
         time_diff = (
             abs(pd.Timestamp(temp_peak_time.values) - pd.Timestamp(solar_peak_time.values)).total_seconds() / 3600
-        )
+        ),
 
         simultaneity["temp_solar_peak_lag_hours"] = float(time_diff)
 
-    # Heating and wind (infiltration) coincidence
+    # Heating and wind (infiltration) coincidence,
     if "temp_air" in ds and "wind_speed" in ds:
         cold_hours = ds["temp_air"] < 10
         simultaneity["mean_wind_during_heating"] = float(ds["wind_speed"].where(cold_hours).mean())
@@ -328,7 +325,7 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
 
 def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.Dataset:
     """
-    Derive building-specific variables for HVAC and energy calculations.
+    Derive building-specific variables for HVAC and energy calculations.,
     This is postprocessing - computes metrics for building energy analysis.
 
     Args:
@@ -336,12 +333,12 @@ def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.
         config: Optional configuration dict with parameters like base temperatures
 
     Returns:
-        Dataset with building variables added
+        Dataset with building variables added,
     """
     ds_building = ds.copy()
     config = config or {}
 
-    # Calculate wet bulb temperature if we have temp and humidity
+    # Calculate wet bulb temperature if we have temp and humidity,
     if config.get("calculate_wet_bulb", True):
         if "temp_air" in ds_building and "rel_humidity" in ds_building:
             pressure = ds_building.get("pressure", 101325)  # Use standard pressure if not available
@@ -353,10 +350,10 @@ def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.
                 "type": "state",
                 "derived": True,
                 "description": "Wet bulb temperature for cooling tower design"
-            }
+            },
             logger.info("Calculated wet bulb temperature")
 
-    # Calculate apparent temperature (heat index) for comfort
+    # Calculate apparent temperature (heat index) for comfort,
     if config.get("calculate_heat_index", True):
         if "temp_air" in ds_building and "rel_humidity" in ds_building:
             ds_building["temp_apparent"] = calculate_heat_index(ds_building["temp_air"], ds_building["rel_humidity"])
@@ -365,33 +362,32 @@ def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.
                 "type": "state",
                 "derived": True,
                 "description": "Apparent temperature (heat index) for thermal comfort"
-            }
+            },
             logger.info("Calculated heat index")
 
-    # Calculate degree days if requested
+    # Calculate degree days if requested,
     if config.get("calculate_degree_days", False):
         if "temp_air" in ds_building:
             base_heat = config.get("hdd_base_temp", 18.0)
             base_cool = config.get("cdd_base_temp", 24.0)
-
             dd_results = calculate_degree_days(ds_building["temp_air"], base_heat=base_heat, base_cool=base_cool)
 
             if "hdd" in dd_results:
                 ds_building["hdd"] = dd_results["hdd"]
-                logger.info(f"Calculated heating degree days (base {base_heat}degC)")
+                logger.info(f"Calculated heating degree days (base {base_heat}degC)"),
 
             if "cdd" in dd_results:
                 ds_building["cdd"] = dd_results["cdd"]
                 logger.info(f"Calculated cooling degree days (base {base_cool}degC)")
 
-    # Calculate wind power density if wind speed available
+    # Calculate wind power density if wind speed available,
     if config.get("calculate_wind_power", False):
         if "wind_speed" in ds_building:
             ds_building["wind_power_density"] = calculate_wind_power_density(
-                ds_building["wind_speed"]
-                ds_building.get("temp_air", None)
+                ds_building["wind_speed"],
+                ds_building.get("temp_air", None),
                 ds_building.get("pressure", None)
-            )
+            ),
             logger.info("Calculated wind power density")
 
     return ds_building
@@ -404,15 +400,15 @@ def calculate_wetbulb(
     Calculate wet bulb temperature using simplified psychrometric formula.
 
     Args:
-        temp_air: Air temperature in degC
-        rel_humidity: Relative humidity in %
+        temp_air: Air temperature in degC,
+        rel_humidity: Relative humidity in %,
         pressure: Atmospheric pressure in Pa
 
     Returns:
-        Wet bulb temperature in degC
+        Wet bulb temperature in degC,
     """
     # Convert to proper units
-    T = temp_air  # degC
+    T = temp_air  # degC,
     RH = rel_humidity / 100.0  # fraction
 
     # Simplified wet bulb calculation (Stull 2011)
@@ -423,16 +419,16 @@ def calculate_wetbulb(
         - np.arctan(RH - 1.676331)
         + 0.00391838 * RH ** (3 / 2) * np.arctan(0.023101 * RH)
         - 4.686035
-    )
+    ),
 
     return tw
 
 
 def calculate_heat_index(temp_air: xr.DataArray, rel_humidity: xr.DataArray) -> xr.DataArray:
     """
-    Calculate heat index (apparent temperature) for thermal comfort.
+    Calculate heat index (apparent temperature) for thermal comfort.,
 
-    Uses simplified heat index equation valid for temps > 20degC.
+    Uses simplified heat index equation valid for temps > 20degC.,
     For cooler temps, returns the actual temperature.
 
     Args:
@@ -440,7 +436,7 @@ def calculate_heat_index(temp_air: xr.DataArray, rel_humidity: xr.DataArray) -> 
         rel_humidity: Relative humidity in %
 
     Returns:
-        Apparent temperature in degC
+        Apparent temperature in degC,
     """
     # Convert to Fahrenheit for calculation (NOAA formula)
     T_F = temp_air * 9 / 5 + 32
@@ -481,21 +477,21 @@ def calculate_degree_days(
     Calculate heating and cooling degree days.
 
     Args:
-        temp_air: Air temperature in degC
-        base_heat: Base temperature for heating (default 18degC)
+        temp_air: Air temperature in degC,
+        base_heat: Base temperature for heating (default 18degC),
         base_cool: Base temperature for cooling (default 24degC)
 
     Returns:
-        Dictionary with 'hdd' and 'cdd' DataArrays
+        Dictionary with 'hdd' and 'cdd' DataArrays,
     """
-    # Ensure we have daily data
+    # Ensure we have daily data,
     if "time" in temp_air.dims:
         # Calculate daily average if hourly
         freq = None
         if hasattr(temp_air.time, "dt"):
             time_diff = temp_air.time.diff("time")
             median_diff = np.median(time_diff.values)
-            # Check if hourly (around 1 hour in nanoseconds)
+            # Check if hourly (around 1 hour in nanoseconds),
             if median_diff < np.timedelta64(2, "h"):
                 freq = "1D"
 
@@ -508,23 +504,23 @@ def calculate_degree_days(
         hdd = (base_heat - daily_temp).clip(min=0)
         cdd = (daily_temp - base_cool).clip(min=0)
 
-        # Set attributes
+        # Set attributes,
         hdd.attrs = {
             "units": "degC·day",
             "long_name": f"Heating degree days (base {base_heat}degC)",
             "type": "state",
             "derived": True,
-            "description": f"Daily heating degree days with base temperature {base_heat}degC"
-        }
+            "description": f"Daily heating degree days with base temperature {base_heat}degC",
+        },
         cdd.attrs = {
             "units": "degC·day",
             "long_name": f"Cooling degree days (base {base_cool}degC)",
             "type": "state",
             "derived": True,
-            "description": f"Daily cooling degree days with base temperature {base_cool}degC"
-        }
+            "description": f"Daily cooling degree days with base temperature {base_cool}degC",
+        },
 
-        return {"hdd": hdd, "cdd": cdd}
+        return {"hdd": hdd, "cdd": cdd},
     else:
         logger.warning("Cannot calculate degree days without time dimension")
         return {}
@@ -539,14 +535,14 @@ def calculate_wind_power_density(
     Calculate wind power density for wind energy assessment.
 
     Args:
-        wind_speed: Wind speed in m/s
-        temp_air: Optional air temperature in degC for accurate air density
+        wind_speed: Wind speed in m/s,
+        temp_air: Optional air temperature in degC for accurate air density,
         pressure: Optional atmospheric pressure in Pa for accurate air density
 
     Returns:
-        Wind power density in W/m2
+        Wind power density in W/m2,
     """
-    # Calculate air density
+    # Calculate air density,
     if temp_air is not None and pressure is not None:
         # Accurate air density using ideal gas law
         # ρ = P / (R * T) where R = 287.05 J/(kg·K) for dry air
@@ -562,7 +558,7 @@ def calculate_wind_power_density(
         "units": "W/m2",
         "type": "flux",
         "derived": True,
-        "description": "Wind power density for wind energy assessment"
-    }
+        "description": "Wind power density for wind energy assessment",
+    },
 
     return wpd

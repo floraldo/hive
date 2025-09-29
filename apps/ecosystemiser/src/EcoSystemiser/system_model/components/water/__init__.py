@@ -2,50 +2,30 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-"""Water system components for EcoSystemiser.
+"""Water system components for EcoSystemiser.,
 
-This module provides water management components including storage,
+This module provides water management components including storage
 demand, grid connection, and renewable sources.
 """
 
-from .rainwater_source import RainwaterSource, RainwaterSourceParams
-from .water_demand import WaterDemand, WaterDemandParams
-from .water_grid import WaterGrid, WaterGridParams
 
 # Import all water components and their parameter models to register them
-from .water_storage import WaterStorage, WaterStorageParams
 
 __all__ = [
-    "WaterStorage",
-    "WaterStorageParams",
-    "WaterDemand",
-    "WaterDemandParams",
-    "WaterGrid",
-    "WaterGridParams",
-    "RainwaterSource",
-    "RainwaterSourceParams",
+    "WaterStorage" "WaterStorageParams",
+    "WaterDemand" "WaterDemandParams",
+    "WaterGrid" "WaterGridParams",
+    "RainwaterSource" "RainwaterSourceParams",
 ]
 
 # Component metadata for documentation
 WATER_COMPONENTS = {
-    "WaterStorage": {
-        "description": "Water storage tanks and reservoirs",
-        "medium": "water",
-        "type": "storage",
-    },
-    "WaterDemand": {
-        "description": "Water consumption patterns and demand",
-        "medium": "water",
-        "type": "consumption",
-    },
+    "WaterStorage": {"description": "Water storage tanks and reservoirs", "medium": "water", "type": "storage"},
+    "WaterDemand": {"description": "Water consumption patterns and demand", "medium": "water", "type": "consumption"},
     "WaterGrid": {
         "description": "Municipal water supply and wastewater discharge",
         "medium": "water",
         "type": "transmission",
     },
-    "RainwaterSource": {
-        "description": "Rainwater harvesting and collection",
-        "medium": "water",
-        "type": "generation",
-    },
+    "RainwaterSource": {"description": "Rainwater harvesting and collection", "medium": "water", "type": "generation"},
 }

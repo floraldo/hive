@@ -20,8 +20,8 @@ async def gather_with_concurrency_async(
     use hive_orchestrator.tasks.TaskManager.
 
     Args:
-        *coros: Coroutines to execute
-        max_concurrent: Maximum number of concurrent executions
+        *coros: Coroutines to execute,
+        max_concurrent: Maximum number of concurrent executions,
         return_exceptions: Whether to return exceptions as results
 
     Returns:

@@ -21,7 +21,7 @@ def aggregate_policy(var_type: Literal["state", "flux"]) -> str:
         var_type: Type of variable
 
     Returns:
-        Aggregation method name
+        Aggregation method name,
     """
     if var_type == "state":
         return "mean"
@@ -38,12 +38,12 @@ def resample_timeseries(
     Resample time series data with specified policies.
 
     Args:
-        data: Time series data (DataFrame or Dataset)
-        target_freq: Target frequency
+        data: Time series data (DataFrame or Dataset),
+        target_freq: Target frequency,
         policy_map: Map of variable names to aggregation policies
 
     Returns:
-        Resampled data
+        Resampled data,
     """
     if isinstance(data, pd.DataFrame):
         resampled = {}
@@ -97,7 +97,7 @@ def qc_bounds(data: pd.Series | np.ndarray, bounds: tuple, clip: bool = True) ->
         clip: Whether to clip or just flag
 
     Returns:
-        Processed data
+        Processed data,
     """
     min_val, max_val = bounds
 
@@ -122,7 +122,7 @@ def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Seri
         limit: Maximum gap size to fill
 
     Returns:
-        Filled time series
+        Filled time series,
     """
     if method == "linear":
         return data.interpolate(method="linear", limit=limit)
@@ -134,7 +134,6 @@ def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Seri
         # Simple seasonal filling
         month = data.index.month
         hour = data.index.hour if hasattr(data.index, "hour") else 0
-
         filled = data.copy()
         for i, val in enumerate(data):
             if pd.isna(val):
@@ -142,7 +141,6 @@ def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Seri
                 mask = month == month[i]
                 if hasattr(data.index, "hour"):
                     mask = mask & (hour == hour[i])
-
                 similar_values = data[mask].dropna()
                 if len(similar_values) > 0:
                     filled.iloc[i] = similar_values.median()
@@ -154,9 +152,9 @@ def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Seri
 
 def zero_night_irradiance(ds: xr.Dataset, var_name: str) -> xr.Dataset:
     """
-    Set solar irradiance to zero during night hours using proper solar position calculations.
+    Set solar irradiance to zero during night hours using proper solar position calculations.,
 
-    Uses solar elevation angle to determine if sun is above horizon.
+    Uses solar elevation angle to determine if sun is above horizon.,
     Much more accurate than fixed hour-based approach.
 
     Args:
@@ -164,11 +162,10 @@ def zero_night_irradiance(ds: xr.Dataset, var_name: str) -> xr.Dataset:
         var_name: Name of solar radiation variable
 
     Returns:
-        Dataset with night values zeroed
+        Dataset with night values zeroed,
     """
     if var_name not in ds:
         return ds
-
     ds_copy = ds.copy()
 
     # Get latitude from dataset attributes
@@ -178,7 +175,7 @@ def zero_night_irradiance(ds: xr.Dataset, var_name: str) -> xr.Dataset:
     times = pd.DatetimeIndex(ds.time.values)
     night_mask = calculate_night_mask(times, lat)
 
-    # Set night values to zero
+    # Set night values to zero,
     ds_copy[var_name].values[night_mask] = 0
 
     return ds_copy
@@ -210,9 +207,9 @@ def calculate_night_mask(times: pd.DatetimeIndex, lat: float) -> np.ndarray:
 
 def calculate_solar_elevation(times: np.ndarray | pd.DatetimeIndex, lat: float) -> np.ndarray:
     """
-    Calculate solar elevation angle using vectorized operations.
+    Calculate solar elevation angle using vectorized operations.,
 
-    Based on simplified solar position algorithm.
+    Based on simplified solar position algorithm.,
     Accurate to within ~1deg for most applications.
 
     Args:
@@ -220,9 +217,9 @@ def calculate_solar_elevation(times: np.ndarray | pd.DatetimeIndex, lat: float) 
         lat: Latitude in degrees
 
     Returns:
-        Array of solar elevation angles in degrees
+        Array of solar elevation angles in degrees,
     """
-    # Convert numpy datetime64 to pandas for easier manipulation
+    # Convert numpy datetime64 to pandas for easier manipulation,
     if isinstance(times, np.ndarray):
         dt_index = pd.DatetimeIndex(times)
     else:

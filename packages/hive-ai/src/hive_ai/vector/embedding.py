@@ -51,8 +51,8 @@ class EmbeddingManager:
 
         # Default embedding models by provider
         self._default_models = {
-            "openai": "text-embedding-ada-002"
-            "anthropic": "claude-3-sonnet",  # Fallback, Anthropic doesn't have embedding models
+            "openai": "text-embedding-ada-002",
+            "anthropic": "claude-3-sonnet",  # Fallback, Anthropic doesn't have embedding models,
             "local": "sentence-transformers/all-MiniLM-L6-v2"
         }
 
@@ -97,15 +97,15 @@ class EmbeddingManager:
         Generate embedding for single text.
 
         Args:
-            text: Text to embed
-            model: Specific model to use (auto-select if None)
+            text: Text to embed,
+            model: Specific model to use (auto-select if None),
             use_cache: Whether to use cached embeddings
 
         Returns:
             EmbeddingResult with vector and metadata
 
         Raises:
-            VectorError: Embedding generation failed
+            VectorError: Embedding generation failed,
         """
         if not text.strip():
             raise VectorError("Cannot generate embedding for empty text", operation="generate_embedding")
@@ -117,11 +117,11 @@ class EmbeddingManager:
         if use_cache:
             cached_result = self.cache.get(cache_key)
             if cached_result is not None:
-                logger.debug(f"Cache hit for embedding: {text[:50]}...")
+                logger.debug(f"Cache hit for embedding: {text[:50]}..."),
                 return EmbeddingResult(
-                    text=text
+                    text=text,
                     vector=cached_result["vector"]
-                    model=embedding_model
+                    model=embedding_model,
                     tokens_used=cached_result["tokens_used"]
                     cache_hit=True
                 )
@@ -148,7 +148,7 @@ class EmbeddingManager:
             if use_cache:
                 self.cache.set(cache_key, {"vector": vector, "tokens_used": tokens_used}, ttl=3600)  # Cache for 1 hour
 
-            logger.debug(f"Generated embedding for text: {text[:50]}... (dim: {len(vector)})")
+            logger.debug(f"Generated embedding for text: {text[:50]}... (dim: {len(vector)})"),
             return result
 
         except Exception as e:
@@ -202,27 +202,27 @@ class EmbeddingManager:
 
     async def generate_batch_embeddings_async(
         self
-        texts: List[str]
-        model: str | None = None
-        batch_size: int = 32
-        use_cache: bool = True
+        texts: List[str],
+        model: str | None = None,
+        batch_size: int = 32,
+        use_cache: bool = True,
         max_concurrency: int = 5
     ) -> List[EmbeddingResult]:
         """
         Generate embeddings for multiple texts efficiently.
 
         Args:
-            texts: List of texts to embed
-            model: Specific model to use
-            batch_size: Number of texts to process per batch
-            use_cache: Whether to use cached embeddings
+            texts: List of texts to embed,
+            model: Specific model to use,
+            batch_size: Number of texts to process per batch,
+            use_cache: Whether to use cached embeddings,
             max_concurrency: Maximum concurrent operations
 
         Returns:
             List of EmbeddingResults
 
         Raises:
-            VectorError: Batch embedding generation failed
+            VectorError: Batch embedding generation failed,
         """
         if not texts:
             return []
@@ -269,16 +269,16 @@ class EmbeddingManager:
         Find most similar texts using embedding similarity.
 
         Args:
-            query_text: Text to find similarities for
-            candidate_texts: List of texts to compare against
-            top_k: Number of top results to return
+            query_text: Text to find similarities for,
+            candidate_texts: List of texts to compare against,
+            top_k: Number of top results to return,
             model: Embedding model to use
 
         Returns:
             List of similarity results with scores
 
         Raises:
-            VectorError: Similarity search failed
+            VectorError: Similarity search failed,
         """
         if not candidate_texts:
             return []
@@ -296,15 +296,15 @@ class EmbeddingManager:
                 similarity = self._calculate_cosine_similarity(query_result.vector, candidate_result.vector)
                 similarities.append(
                     {
-                        "index": i
-                        "text": candidate_result.text
-                        "similarity": similarity
-                        "model": candidate_result.model
+                        "index": i,
+                        "text": candidate_result.text,
+                        "similarity": similarity,
+                        "model": candidate_result.model,
                     }
                 )
 
             # Sort by similarity and return top k
-            similarities.sort(key=lambda x: x["similarity"], reverse=True)
+            similarities.sort(key=lambda x: x["similarity"], reverse=True),
             return similarities[:top_k]
 
         except Exception as e:
@@ -333,16 +333,16 @@ class EmbeddingManager:
     async def get_embedding_stats_async(self) -> Dict[str, Any]:
         """Get embedding generation statistics."""
         cache_stats = {
-            "cache_size": self.cache.size() if hasattr(self.cache, "size") else 0
+            "cache_size": self.cache.size() if hasattr(self.cache, "size") else 0,
             "cache_hit_rate": "N/A",  # Would need tracking to calculate
         }
 
         available_models = self.registry.get_models_by_type("embedding")
 
         return {
-            "available_embedding_models": available_models
+            "available_embedding_models": available_models,
             "default_model": self._get_embedding_model()
-            "cache_stats": cache_stats
+            "cache_stats": cache_stats,
             "supported_providers": list(self._default_models.keys())
         }
 

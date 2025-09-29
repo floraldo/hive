@@ -47,7 +47,7 @@ class ModelRegistry:
                     f"Provider '{provider_name}' not registered",
                     model="",
                     provider=provider_name,
-                    available_models=self.list_available_models(),
+                    available_models=self.list_available_models()
                 )
 
             # Create provider instance
@@ -62,10 +62,10 @@ class ModelRegistry:
             return self.config.get_model_config(model_name)
         except ValueError as e:
             raise ModelUnavailableError(
-                str(e),
+                str(e)
                 model=model_name,
                 provider="",
-                available_models=self.list_available_models(),
+                available_models=self.list_available_models()
             )
 
     def list_available_models(self) -> List[str]:

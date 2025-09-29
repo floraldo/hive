@@ -1,9 +1,10 @@
 """Base classes for optimization algorithms."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, ListTuple
+from typing import Any
 
 import numpy as np
 from hive_logging import get_logger
@@ -28,15 +29,15 @@ class OptimizationResult:
 
     best_solution: np.ndarray | None = None
     best_fitness: float | None = None
-    best_objectives: Optional[List[float]] = None
-    pareto_front: Optional[List[np.ndarray]] = None
-    pareto_objectives: Optional[List[List[float]]] = None
-    convergence_history: Optional[List[float]] = None
+    best_objectives: Optional[list[float]] = None
+    pareto_front: Optional[list[np.ndarray]] = None
+    pareto_objectives: Optional[list[list[float]]] = None
+    convergence_history: Optional[list[float]] = None
     status: OptimizationStatus = OptimizationStatus.NOT_STARTED
     iterations: int = 0
     evaluations: int = 0
     execution_time: float = 0.0
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self) -> None:
         if self.metadata is None:
@@ -49,9 +50,9 @@ class OptimizationConfig:
 
     # Problem definition
     dimensions: int
-    bounds: List[Tuple[float, float]]  # (min, max) for each dimension
-    objectives: List[str]  # List of objective names
-    constraints: Optional[List[Callable]] = None
+    bounds: list[tuple[float, float]]  # (min, max) for each dimension
+    objectives: list[str]  # List of objective names
+    constraints: Optional[list[Callable]] = None
 
     # Algorithm parameters
     population_size: int = 50
@@ -76,17 +77,17 @@ class OptimizationConfig:
 
 
 class BaseOptimizationAlgorithm(ABC):
-    """Abstract base class for all optimization algorithms.
+    """Abstract base class for all optimization algorithms.,
 
-    This class defines the interface that all optimization algorithms
-    must implement to be compatible with the Discovery Engine.
+    This class defines the interface that all optimization algorithms,
+    must implement to be compatible with the Discovery Engine.,
     """
 
     def __init__(self, config: OptimizationConfig) -> None:
         """Initialize the optimization algorithm.
 
         Args:
-            config: Optimization configuration
+            config: Optimization configuration,
         """
         self.config = config
         self.status = OptimizationStatus.NOT_STARTED
@@ -94,7 +95,7 @@ class BaseOptimizationAlgorithm(ABC):
         self.current_evaluations = 0
         self.convergence_history = []
 
-        # Set random seed for reproducibility
+        # Set random seed for reproducibility,
         if config.seed is not None:
             np.random.seed(config.seed)
 
@@ -108,7 +109,7 @@ class BaseOptimizationAlgorithm(ABC):
         pass
 
     @abstractmethod
-    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> List[Dict[str, Any]]:
+    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
         """Evaluate the fitness of a population.
 
         Args:
@@ -116,12 +117,12 @@ class BaseOptimizationAlgorithm(ABC):
             fitness_function: Function to evaluate fitness
 
         Returns:
-            List of evaluation results containing objectives and metadata
+            List of evaluation results containing objectives and metadata,
         """
         pass
 
     @abstractmethod
-    def update_population(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def update_population(self, population: np.ndarray, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Update the population based on evaluation results.
 
         Args:
@@ -129,19 +130,19 @@ class BaseOptimizationAlgorithm(ABC):
             evaluations: Evaluation results
 
         Returns:
-            Updated population
+            Updated population,
         """
         pass
 
     @abstractmethod
-    def check_convergence(self, evaluations: List[Dict[str, Any]]) -> bool:
+    def check_convergence(self, evaluations: list[dict[str, Any]]) -> bool:
         """Check if the algorithm has converged.
 
         Args:
             evaluations: Current evaluation results
 
         Returns:
-            True if converged, False otherwise
+            True if converged, False otherwise,
         """
         pass
 
@@ -152,7 +153,7 @@ class BaseOptimizationAlgorithm(ABC):
             fitness_function: Function to optimize
 
         Returns:
-            Optimization result
+            Optimization result,
         """
         import time
 
@@ -165,7 +166,7 @@ class BaseOptimizationAlgorithm(ABC):
             population = self.initialize_population()
             logger.info(f"Initialized population with {len(population)} individuals")
 
-            # Main optimization loop
+            # Main optimization loop,
             for generation in range(self.config.max_generations):
                 self.current_generation = generation
 
@@ -180,7 +181,7 @@ class BaseOptimizationAlgorithm(ABC):
                 if self.config.verbose and generation % 10 == 0:
                     logger.info(f"Generation {generation}: Best fitness = {best_fitness:.6f}")
 
-                # Check termination criteria
+                # Check termination criteria,
                 if self._should_terminate(evaluations, start_time):
                     break
 
@@ -210,22 +211,22 @@ class BaseOptimizationAlgorithm(ABC):
                 execution_time=time.time() - start_time,
                 iterations=self.current_generation,
                 evaluations=self.current_evaluations,
-                metadata={"error": str(e)}
+                metadata={"error": str(e)},
             )
 
-    def _get_best_fitness(self, evaluations: List[Dict[str, Any]]) -> float:
+    def _get_best_fitness(self, evaluations: list[dict[str, Any]]) -> float:
         """Get the best fitness from current evaluations.
 
         Args:
             evaluations: Current evaluation results
 
         Returns:
-            Best fitness value
+            Best fitness value,
         """
         if not evaluations:
             return float("inf")
 
-        # For single objective, return minimum
+        # For single objective, return minimum,
         if len(self.config.objectives) == 1:
             fitnesses = [eval_result.get("fitness", float("inf")) for eval_result in evaluations]
             return min(fitnesses)
@@ -236,11 +237,11 @@ class BaseOptimizationAlgorithm(ABC):
             for eval_result in evaluations:
                 objectives = eval_result.get("objectives", [])
                 if objectives:
-                    avg_objectives.append(np.mean(objectives))
+                    (avg_objectives.append(np.mean(objectives)),)
 
             return min(avg_objectives) if avg_objectives else float("inf")
 
-    def _should_terminate(self, evaluations: List[Dict[str, Any]], start_time: float) -> bool:
+    def _should_terminate(self, evaluations: list[dict[str, Any]], start_time: float) -> bool:
         """Check if optimization should terminate.
 
         Args:
@@ -248,23 +249,23 @@ class BaseOptimizationAlgorithm(ABC):
             start_time: Optimization start time
 
         Returns:
-            True if should terminate
+            True if should terminate,
         """
-        # Check convergence
+        # Check convergence,
         if self.check_convergence(evaluations):
             self.status = OptimizationStatus.CONVERGED
             return True
 
-        # Check maximum evaluations
+        # Check maximum evaluations,
         if self.config.max_evaluations and self.current_evaluations >= self.config.max_evaluations:
             return True
 
-        # Check time limit
+        # Check time limit,
         if self.config.time_limit and time.time() - start_time >= self.config.time_limit:
             self.status = OptimizationStatus.TERMINATED
             return True
 
-        # Check target fitness
+        # Check target fitness,
         if self.config.target_fitness:
             best_fitness = self._get_best_fitness(evaluations)
             if best_fitness <= self.config.target_fitness:
@@ -274,36 +275,30 @@ class BaseOptimizationAlgorithm(ABC):
         return False
 
     def _create_result(
-        self,
-        population: np.ndarray,
-        evaluations: List[Dict[str, Any]],
-        start_time: float
+        self, population: np.ndarray, evaluations: list[dict[str, Any]], start_time: float
     ) -> OptimizationResult:
         """Create optimization result.
 
         Args:
-            population: Final population
-            evaluations: Final evaluations
+            population: Final population,
+            evaluations: Final evaluations,
             start_time: Optimization start time
 
         Returns:
-            Optimization result
+            Optimization result,
         """
         if not evaluations:
             return OptimizationResult(
                 status=self.status,
                 execution_time=time.time() - start_time,
                 iterations=self.current_generation,
-                evaluations=self.current_evaluations
+                evaluations=self.current_evaluations,
             )
 
-        # Find best solution
+        # Find best solution,
         if len(self.config.objectives) == 1:
             # Single objective - find minimum
-            best_idx = min(
-                range(len(evaluations)),
-                key=lambda i: evaluations[i].get("fitness", float("inf"))
-            )
+            best_idx = (min(range(len(evaluations)), key=lambda i: evaluations[i].get("fitness", float("inf"))),)
 
             return OptimizationResult(
                 best_solution=population[best_idx],
@@ -316,8 +311,8 @@ class BaseOptimizationAlgorithm(ABC):
                 execution_time=time.time() - start_time,
                 metadata={
                     "final_population_size": len(population),
-                    "convergence_generations": len(self.convergence_history)
-                }
+                    "convergence_generations": len(self.convergence_history),
+                },
             )
         else:
             # Multi-objective - return Pareto front
@@ -328,31 +323,33 @@ class BaseOptimizationAlgorithm(ABC):
             # Best solution is the one with minimum distance to ideal point
             best_idx = self._find_best_compromise_solution(evaluations, pareto_indices)
 
-            return OptimizationResult(
-                best_solution=population[best_idx] if best_idx is not None else None,
-                best_fitness=(evaluations[best_idx].get("fitness") if best_idx is not None else None),
-                best_objectives=(evaluations[best_idx].get("objectives") if best_idx is not None else None),
-                pareto_front=pareto_solutions,
-                pareto_objectives=pareto_objectives,
-                convergence_history=self.convergence_history,
-                status=self.status,
-                iterations=self.current_generation,
-                evaluations=self.current_evaluations,
-                execution_time=time.time() - start_time,
-                metadata={
-                    "pareto_front_size": len(pareto_solutions),
-                    "final_population_size": len(population)
-                }
+            return (
+                OptimizationResult(
+                    best_solution=population[best_idx] if best_idx is not None else None,
+                    best_fitness=(evaluations[best_idx].get("fitness") if best_idx is not None else None),
+                    best_objectives=(evaluations[best_idx].get("objectives") if best_idx is not None else None),
+                    pareto_front=pareto_solutions,
+                    pareto_objectives=pareto_objectives,
+                    convergence_history=self.convergence_history,
+                    status=self.status,
+                    iterations=self.current_generation,
+                    evaluations=self.current_evaluations,
+                    execution_time=time.time() - start_time,
+                    metadata={
+                        "pareto_front_size": len(pareto_solutions),
+                        "final_population_size": len(population),
+                    },
+                ),
             )
 
-    def _find_pareto_front(self, evaluations: List[Dict[str, Any]]) -> List[int]:
+    def _find_pareto_front(self, evaluations: list[dict[str, Any]]) -> list[int]:
         """Find Pareto front indices from evaluations.
 
         Args:
             evaluations: Evaluation results
 
         Returns:
-            List of indices belonging to Pareto front
+            List of indices belonging to Pareto front,
         """
         objectives_list = []
         valid_indices = []
@@ -374,7 +371,7 @@ class BaseOptimizationAlgorithm(ABC):
 
             for j in range(len(objectives_array)):
                 if i != j:
-                    # Check if j dominates i (assuming minimization)
+                    # Check if j dominates i (assuming minimization),
                     if np.all(objectives_array[j] <= objectives_array[i]) and np.any(
                         objectives_array[j] < objectives_array[i]
                     ):
@@ -387,16 +384,16 @@ class BaseOptimizationAlgorithm(ABC):
         return pareto_indices
 
     def _find_best_compromise_solution(
-        self, evaluations: List[Dict[str, Any]], pareto_indices: List[int]
+        self, evaluations: list[dict[str, Any]], pareto_indices: list[int]
     ) -> int | None:
         """Find best compromise solution from Pareto front.
 
         Args:
-            evaluations: Evaluation results
+            evaluations: Evaluation results,
             pareto_indices: Indices of Pareto front solutions
 
         Returns:
-            Index of best compromise solution
+            Index of best compromise solution,
         """
         if not pareto_indices:
             return None
@@ -418,7 +415,6 @@ class BaseOptimizationAlgorithm(ABC):
         # Normalize objectives
         range_values = nadir_point - ideal_point
         range_values[range_values == 0] = 1  # Avoid division by zero
-
         normalized_objectives = (objectives_array - ideal_point) / range_values
 
         # Find solution closest to origin (compromise solution)
@@ -434,7 +430,7 @@ class BaseOptimizationAlgorithm(ABC):
             population: Population to validate
 
         Returns:
-            Population with bounds enforced
+            Population with bounds enforced,
         """
         bounded_population = population.copy()
 

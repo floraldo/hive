@@ -7,20 +7,14 @@ enabling monitoring of workflow patterns, agent activity, and system health.
 """
 
 import asyncio
-import json
 import sys
-import time
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 
-from rich.columns import Columns
 from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
 
 try:
     from hive_logging import get_logger

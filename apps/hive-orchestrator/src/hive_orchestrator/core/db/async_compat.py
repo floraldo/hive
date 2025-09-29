@@ -10,7 +10,7 @@ import asyncio
 import functools
 import threading
 from contextlib import contextmanager
-from typing import Any, Callable, TypeVar, Union
+from typing import Any, Callable, TypeVar
 
 from hive_logging import get_logger
 
@@ -277,7 +277,7 @@ class AsyncToSyncAdapter:
                     results.append(cursor.rowcount)
                 await conn.commit()
                 return results
-            except Exception as e:
+            except Exception:
                 await conn.rollback()
                 raise
 

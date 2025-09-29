@@ -1,7 +1,6 @@
 """Unit tests for hive_cache.performance_cache module."""
 
 import time
-from unittest.mock import Mock, patch
 
 import pytest
 

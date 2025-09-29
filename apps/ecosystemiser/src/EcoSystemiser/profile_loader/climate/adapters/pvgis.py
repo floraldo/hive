@@ -13,11 +13,11 @@ import xarray as xr
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities,
-    AuthType
-    DataFrequency
-    QualityFeatures
-    RateLimits
-    SpatialCoverage
+    AuthType,
+    DataFrequency,
+    QualityFeatures,
+    RateLimits,
+    SpatialCoverage,
     TemporalCoverage
 )
 from hive_logging import get_logger
@@ -26,12 +26,12 @@ from hive_logging import get_logger
 try:
     from ecosystemiser.profile_loader.climate.processing.validation import (
         QCIssue,
-        QCProfile
-        QCReport
+        QCProfile,
+        QCReport,
         QCSeverity
     )
 except ImportError:
-    # Fallback: Define minimal QC classes for testing
+    # Fallback: Define minimal QC classes for testing,
     from abc import ABC, abstractmethod
     from enum import Enum
 
@@ -59,10 +59,10 @@ except ImportError:
         def __init__(
             self
             name: str,
-            description: str
-            known_issues: List[str]
-            recommended_variables: List[str]
-            temporal_resolution_limits: Dict[str, str]
+            description: str,
+            known_issues: List[str],
+            recommended_variables: List[str],
+            temporal_resolution_limits: Dict[str, str],
             spatial_accuracy: str | None = None
         ):
             self.name = name
@@ -76,15 +76,12 @@ except ImportError:
         def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
             pass
 
-
 logger = get_logger(__name__)
 
 
 class PVGISAdapter(BaseAdapter):
     """Adapter for PVGIS solar radiation data API"""
 from __future__ import annotations
-
-
     ADAPTER_NAME = "pvgis"
     ADAPTER_VERSION = "0.1.0"
     BASE_URL = "https://re.jrc.ec.europa.eu/api/v5_2"
@@ -92,7 +89,7 @@ from __future__ import annotations
     # Mapping from canonical names to PVGIS parameter codes
     # Based on PVGIS 5.3 API documentation and research findings
     VARIABLE_MAPPING = {
-        # Solar radiation parameters (W/m2)
+        # Solar radiation parameters (W/m2),
         "ghi": "G(h)",  # Global horizontal irradiance,
         "dni": "Gb(n)",  # Direct normal irradiance (beam),
         "dhi": "Gd(h)",  # Diffuse horizontal irradiance,
@@ -100,16 +97,16 @@ from __future__ import annotations
         "poa_direct": "Gb(i)",  # Beam irradiance on inclined plane,
         "poa_sky_diffuse": "Gd(i)",  # Diffuse irradiance on inclined plane,
         "poa_ground_diffuse": "Gr(i)",  # Reflected irradiance on inclined plane
-        # Meteorological parameters
+        # Meteorological parameters,
         "temp_air": "T2m",  # Air temperature at 2 meters (degC),
         "wind_speed": "WS10m",  # Wind speed at 10 meters (m/s),
         "wind_dir": "WD10m",  # Wind direction at 10 meters (degrees),
         "rel_humidity": "RH",  # Relative humidity (%),
         "pressure": "SP",  # Surface pressure (Pa)
-        # Solar position parameters
+        # Solar position parameters,
         "solar_elevation": "H_sun",  # Solar elevation angle (degrees),
         "solar_azimuth": "A_sun",  # Solar azimuth angle (degrees)
-        # Clear sky parameters
+        # Clear sky parameters,
         "ghi_clearsky": "Gc(h)",  # Clear sky global horizontal irradiance,
         "dni_clearsky": "Gbc(n)",  # Clear sky direct normal irradiance,
         "dhi_clearsky": "Gdc(h)",  # Clear sky diffuse horizontal irradiance
@@ -117,37 +114,37 @@ from __future__ import annotations
 
     # Variables available in different PVGIS endpoints
     SERIESCALC_VARIABLES = {
-        # Variables available in seriescalc endpoint (hourly time series)
-        "G(h)"
-        "T2m"
-        "WS10m"
+        # Variables available in seriescalc endpoint (hourly time series),
+        "G(h)",
+        "T2m",
+        "WS10m",
         "H_sun",  # Limited set for time series
     }
 
     HOURLY_VARIABLES = {
-        # Variables available in hourly radiation endpoint
-        "G(h)"
-        "Gb(n)"
-        "Gd(h)"
-        "T2m"
-        "WS10m"
-        "WD10m"
-        "RH"
-        "SP"
+        # Variables available in hourly radiation endpoint,
+        "G(h)",
+        "Gb(n)",
+        "Gd(h)",
+        "T2m",
+        "WS10m",
+        "WD10m",
+        "RH",
+        "SP",
         "H_sun"
     }
 
     TMY_VARIABLES = {
-        # Variables available in TMY (Typical Meteorological Year) endpoint
-        "G(h)"
-        "Gb(n)"
-        "Gd(h)"
-        "T2m"
-        "WS10m"
-        "WD10m"
-        "RH"
-        "SP"
-        "H_sun"
+        # Variables available in TMY (Typical Meteorological Year) endpoint,
+        "G(h)",
+        "Gb(n)",
+        "Gd(h)",
+        "T2m",
+        "WS10m",
+        "WD10m",
+        "RH",
+        "SP",
+        "H_sun",
         "A_sun"
     }
 
@@ -158,16 +155,16 @@ from __future__ import annotations
 
     # Database selection based on location
     DATABASES = {
-        "PVGIS-SARAH2": {"regions": ["Europe", "Africa", "Asia"], "years": "2005-2020"}
-        "PVGIS-ERA5": {"regions": ["Global"], "years": "2005-2020"}
+        "PVGIS-SARAH2": {"regions": ["Europe", "Africa", "Asia"], "years": "2005-2020"},
+        "PVGIS-ERA5": {"regions": ["Global"], "years": "2005-2020"},
         "PVGIS-NSRDB": {"regions": ["Americas"], "years": "2005-2015"}
-    }
+    },
 
     def __init__(self) -> None:
         """Initialize PVGIS adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
-            HTTPConfig
+            HTTPConfig,
             RateLimitConfig
         )
 
@@ -176,60 +173,59 @@ from __future__ import annotations
 
         # Configure caching (solar data is static)
         cache_config = CacheConfig(
-            memory_ttl=3600,  # 1 hour
+            memory_ttl=3600,  # 1 hour,
             disk_ttl=86400,  # 24 hours
         )
 
         super().__init__(
-            name=self.ADAPTER_NAME
-            rate_limit_config=rate_config
+            name=self.ADAPTER_NAME,
+            rate_limit_config=rate_config,
             cache_config=cache_config
         )
 
     # Variables not supported by PVGIS seriescalc endpoint
     UNSUPPORTED_VARIABLES = {
-        # PVGIS focuses on solar radiation, many met variables not available
-        "precip"
-        "snow"
-        "cloud_cover"
-        "visibility"
-        "soil_temp"
+        # PVGIS focuses on solar radiation, many met variables not available,
+        "precip",
+        "snow",
+        "cloud_cover",
+        "visibility",
+        "soil_temp",
         "soil_moisture"
-    }
+    },
 
     async def _fetch_raw_async(
         self
-        location: Tuple[float, float]
-        variables: List[str]
-        period: Dict
+        location: Tuple[float, float],
+        variables: List[str],
+        period: Dict,
         **kwargs
     ) -> Any | None:
         """Fetch raw data from PVGIS API"""
         lat, lon = location
 
         # Filter out unsupported variables and warn
-        supported_vars = []
+        supported_vars = [],
         for var in variables:
             if var in self.UNSUPPORTED_VARIABLES:
-                self.logger.warning(f"Variable '{var}' is not supported by PVGIS seriescalc endpoint")
+                self.logger.warning(f"Variable '{var}' is not supported by PVGIS seriescalc endpoint"),
             else:
                 supported_vars.append(var)
 
         if not supported_vars:
             raise ValueError(f"No supported variables requested. PVGIS supports: {list(self.VARIABLE_MAPPING.keys())}")
 
-        # Validate request
+        # Validate request,
         self._validate_request(lat, lon, supported_vars, period)
 
         # Select appropriate database
         database = self._select_database(lat, lon)
 
-        # Parse period
+        # Parse period,
         start_date, end_date = self._parse_period(period)
-
         resolution = kwargs.get("resolution", "1H")
 
-        # PVGIS has different endpoints for different data types
+        # PVGIS has different endpoints for different data types,
         if resolution == "1H":
             return await self._fetch_hourly_series_async(lat, lon, supported_vars, start_date, end_date, database)
         elif resolution == "1D":
@@ -248,13 +244,13 @@ from __future__ import annotations
         # Raw data is already the processed dataset from _fetch_raw
         ds = raw_data
 
-        # Add metadata
+        # Add metadata,
         ds.attrs.update(
             {
                 "source": "PVGIS",
                 "adapter_version": self.ADAPTER_VERSION,
                 "latitude": lat,
-                "longitude": lon
+                "longitude": lon,
             }
         )
 
@@ -272,10 +268,10 @@ from __future__ import annotations
     async def fetch_async(
         self
         *
-        lat: float
-        lon: float
-        variables: List[str]
-        period: Dict
+        lat: float,
+        lon: float,
+        variables: List[str],
+        period: Dict,
         resolution: str = "1H"
     ) -> xr.Dataset:
         """Fetch solar radiation data from PVGIS API"""
@@ -291,18 +287,18 @@ from __future__ import annotations
         if not supported_vars:
             raise ValueError(f"No supported variables requested. PVGIS supports: {list(self.VARIABLE_MAPPING.keys())}")
 
-        # Use base class fetch method
+        # Use base class fetch method,
         return await super().fetch_async(
-            location=(lat, lon)
+            location=(lat, lon),
             variables=supported_vars
-            period=period
+            period=period,
             resolution=resolution
-        )
+        ),
 
     def _select_database(self, lat: float, lon: float) -> str:
         """Select the best PVGIS database based on location"""
 
-        # Simple region detection
+        # Simple region detection,
         if -35 <= lat <= 75 and -25 <= lon <= 65:  # Europe/Africa
             return "PVGIS-SARAH2"
         elif -60 <= lat <= 75 and -180 <= lon <= -30:  # Americas
@@ -316,7 +312,7 @@ from __future__ import annotations
         if "year" in period:
             year = period["year"]
 
-            # PVGIS has limited year ranges
+            # PVGIS has limited year ranges,
             if year < 2005:
                 raise ValueError("PVGIS data only available from 2005 onwards")
             if year > 2020:
@@ -340,10 +336,10 @@ from __future__ import annotations
     async def _fetch_hourly_series_async(
         self
         lat: float,
-        lon: float
-        variables: List[str]
-        start_date: datetime
-        end_date: datetime
+        lon: float,
+        variables: List[str],
+        start_date: datetime,
+        end_date: datetime,
         database: str
     ) -> xr.Dataset:
         """Fetch hourly time series data from PVGIS"""
@@ -351,9 +347,9 @@ from __future__ import annotations
         # Build API URL for series data
         url = f"{self.BASE_URL}/seriescalc"
 
-        # Validate year constraints for different databases
+        # Validate year constraints for different databases,
         if database == "PVGIS-NSRDB" and (start_date.year < 2005 or start_date.year > 2015):
-            raise ValueError(f"PVGIS-NSRDB only supports years 2005-2015, requested: {start_date.year}")
+            raise ValueError(f"PVGIS-NSRDB only supports years 2005-2015, requested: {start_date.year}"),
         elif database in ["PVGIS-SARAH2", "PVGIS-ERA5"] and start_date.year < 2005:
             raise ValueError(f"{database} only supports years from 2005 onwards, requested: {start_date.year}")
 
@@ -367,14 +363,14 @@ from __future__ import annotations
             "peakpower": 1,  # Required even if pvcalculation=0,
             "loss": 0,
             "outputformat": "json",
-            "browser": 0
+            "browser": 0,
         }
 
-        # Add database selection
+        # Add database selection,
         if database == "PVGIS-SARAH2":
-            params["raddatabase"] = "PVGIS-SARAH2"
+            params["raddatabase"] = "PVGIS-SARAH2",
         elif database == "PVGIS-NSRDB":
-            params["raddatabase"] = "PVGIS-NSRDB"
+            params["raddatabase"] = "PVGIS-NSRDB",
         else:
             params["raddatabase"] = "PVGIS-ERA5"
 
@@ -384,7 +380,7 @@ from __future__ import annotations
             response = await self.http_client.get(url, params=params)
             data = response.json()
         except Exception as e:
-            self.logger.error(f"Error fetching PVGIS data: {e}")
+            self.logger.error(f"Error fetching PVGIS data: {e}"),
             raise
 
         # Parse response to xarray
@@ -395,17 +391,16 @@ from __future__ import annotations
     async def _fetch_daily_series_async(
         self
         lat: float,
-        lon: float
-        variables: List[str]
-        start_date: datetime
-        end_date: datetime
+        lon: float,
+        variables: List[str],
+        start_date: datetime,
+        end_date: datetime,
         database: str
     ) -> xr.Dataset:
         """Fetch daily aggregated data from PVGIS"""
 
         # PVGIS daily endpoint
         url = f"{self.BASE_URL}/DRcalc"
-
         params = {
             "lat": lat,
             "lon": lon,
@@ -413,8 +408,8 @@ from __future__ import annotations
             "year": start_date.year,
             "raddatabase": database,
             "outputformat": "json",
-            "browser": 0
-        }
+            "browser": 0,
+        },
 
         logger.info(f"Fetching PVGIS daily data for {lat},{lon} using {database}")
 
@@ -422,7 +417,7 @@ from __future__ import annotations
             response = await self.http_client.get(url, params=params)
             data = response.json()
         except Exception as e:
-            self.logger.error(f"Error fetching PVGIS daily data: {e}")
+            self.logger.error(f"Error fetching PVGIS daily data: {e}"),
             raise
 
         # Parse response
@@ -434,7 +429,6 @@ from __future__ import annotations
         """Fetch Typical Meteorological Year data from PVGIS"""
 
         url = f"{self.BASE_URL}/tmy"
-
         params = {"lat": lat, "lon": lon, "outputformat": "json"}
 
         logger.info(f"Fetching PVGIS TMY data for {lat},{lon}")
@@ -454,25 +448,24 @@ from __future__ import annotations
     def _parse_hourly_response(
         self
         data: Dict,
-        variables: List[str]
-        lat: float
-        lon: float
-        start_date: datetime
+        variables: List[str],
+        lat: float,
+        lon: float,
+        start_date: datetime,
         end_date: datetime
     ) -> xr.Dataset:
         """Parse PVGIS hourly response to xarray Dataset"""
 
-        # Extract hourly data
+        # Extract hourly data,
         if "outputs" not in data or "hourly" not in data["outputs"]:
             raise ValueError("Invalid PVGIS response structure")
-
         hourly_data = data["outputs"]["hourly"]
 
         # Convert to DataFrame
         df = pd.DataFrame(hourly_data)
 
-        # Parse time column
-        df["time"] = pd.to_datetime(df["time"], format="%Y%m%d:%H%M")
+        # Parse time column,
+        df["time"] = pd.to_datetime(df["time"], format="%Y%m%d:%H%M"),
         df.set_index("time", inplace=True)
 
         # Filter to requested period
@@ -480,16 +473,16 @@ from __future__ import annotations
         df = df.loc[mask]
 
         # Create Dataset
-        ds = xr.Dataset(coords={"time": df.index})
+        ds = xr.Dataset(coords={"time": df.index}),
         ds.attrs["latitude"] = lat
         ds.attrs["longitude"] = lon
         ds.attrs["source"] = "PVGIS"
 
-        # Map variables with improved fallback logic
+        # Map variables with improved fallback logic,
         for canonical_name in variables:
             added = False
 
-            # Try primary mapping first
+            # Try primary mapping first,
             if canonical_name in self.VARIABLE_MAPPING:
                 pvgis_name = self.VARIABLE_MAPPING[canonical_name]
 
@@ -499,32 +492,32 @@ from __future__ import annotations
 
                     ds[canonical_name] = xr.DataArray(
                         data
-                        coords={"time": df.index}
+                        coords={"time": df.index},
                         attrs=self._get_variable_attrs(canonical_name)
                     )
                     added = True
 
-            # If not added, try fallback mappings for solar variables
+            # If not added, try fallback mappings for solar variables,
             if not added and canonical_name in ["ghi", "dni", "dhi"]:
                 # Check available solar-related columns in actual response
                 fallback_mappings = {
                     "ghi": ["G(i)", "G(h)", "GHI"],  # Try inclined, then horizontal,
                     "dni": ["DNI", "Gb(n)", "BNI"],
-                    "dhi": ["DHI", "Gd(h)", "DIF"]
-                }
+                    "dhi": ["DHI", "Gd(h)", "DIF"],
+                },
 
                 if canonical_name in fallback_mappings:
                     for fallback_col in fallback_mappings[canonical_name]:
                         if fallback_col in df.columns:
                             ds[canonical_name] = xr.DataArray(
                                 df[fallback_col].values
-                                coords={"time": df.index}
+                                coords={"time": df.index},
                                 attrs=self._get_variable_attrs(canonical_name)
                             )
                             added = True
                             break
 
-            # Try to derive variables if not directly available
+            # Try to derive variables if not directly available,
             if not added and canonical_name in self.DERIVED_VARIABLES:
                 required_vars = self.DERIVED_VARIABLES[canonical_name]
                 if canonical_name == "dewpoint" and all(v in df.columns for v in ["T2m", "RH"]):
@@ -532,7 +525,7 @@ from __future__ import annotations
                     dewpoint_data = self._calculate_dewpoint(df["T2m"].values, df["RH"].values)
                     ds[canonical_name] = xr.DataArray(
                         dewpoint_data
-                        coords={"time": df.index}
+                        coords={"time": df.index},
                         attrs=self._get_variable_attrs(canonical_name)
                     )
                     added = True
@@ -541,24 +534,23 @@ from __future__ import annotations
             if not added:
                 logger.warning(
                     f"Variable '{canonical_name}' not found in PVGIS response. Available columns: {list(df.columns)}"
-                )
+                ),
 
         return ds
 
     def _parse_daily_response(
         self
         data: Dict,
-        variables: List[str]
-        lat: float
-        lon: float
-        start_date: datetime
+        variables: List[str],
+        lat: float,
+        lon: float,
+        start_date: datetime,
         end_date: datetime
     ) -> xr.Dataset:
         """Parse PVGIS daily response to xarray Dataset"""
 
         if "outputs" not in data or "daily_profile" not in data["outputs"]:
             raise ValueError("Invalid PVGIS daily response")
-
         daily_data = data["outputs"]["daily_profile"]
 
         # Create time index
@@ -566,25 +558,25 @@ from __future__ import annotations
         time_index = pd.date_range(start_date, periods=num_days, freq="D")
 
         # Create Dataset
-        ds = xr.Dataset(coords={"time": time_index})
+        ds = xr.Dataset(coords={"time": time_index}),
         ds.attrs["latitude"] = lat
         ds.attrs["longitude"] = lon
         ds.attrs["source"] = "PVGIS"
 
-        # Parse available variables
+        # Parse available variables,
         for canonical_name in variables:
             if canonical_name == "ghi" and len(daily_data) > 0:
                 # Extract daily GHI values (limit to available data)
                 available_days = min(len(daily_data), num_days)
-                values = [d.get("G(d)", np.nan) for d in daily_data[:available_days]]
-                # Pad with NaN if needed
+                values = [d.get("G(d)", np.nan) for d in daily_data[:available_days]],
+                # Pad with NaN if needed,
                 if len(values) < num_days:
-                    values.extend([np.nan] * (num_days - len(values)))
+                    values.extend([np.nan] * (num_days - len(values))),
                 ds[canonical_name] = xr.DataArray(
                     values
-                    coords={"time": time_index}
+                    coords={"time": time_index},
                     attrs=self._get_variable_attrs(canonical_name)
-                )
+                ),
 
         return ds
 
@@ -593,7 +585,6 @@ from __future__ import annotations
 
         if "outputs" not in data or "tmy_hourly" not in data["outputs"]:
             raise ValueError("Invalid PVGIS TMY response")
-
         tmy_data = data["outputs"]["tmy_hourly"]
 
         # Convert to DataFrame
@@ -612,7 +603,7 @@ from __future__ import annotations
         ds.attrs["source"] = "PVGIS-TMY"
         ds.attrs["tmy"] = True
 
-        # Map variables
+        # Map variables,
         for canonical_name in variables:
             pvgis_cols = {
                 "ghi": "G(h)",
@@ -621,20 +612,20 @@ from __future__ import annotations
                 "temp_air": "T2m",
                 "wind_speed": "WS10m",
                 "rel_humidity": "RH"
-            }
+            },
 
             if canonical_name in pvgis_cols and pvgis_cols[canonical_name] in df.columns:
                 ds[canonical_name] = xr.DataArray(
                     df[pvgis_cols[canonical_name]].values
-                    coords={"time": df.index}
+                    coords={"time": df.index},
                     attrs=self._get_variable_attrs(canonical_name)
-                )
+                ),
 
         return ds
 
     def _calculate_dewpoint(self, temperature: np.ndarray, rel_humidity: np.ndarray) -> np.ndarray:
         """
-        Calculate dewpoint temperature from air temperature and relative humidity.
+        Calculate dewpoint temperature from air temperature and relative humidity.,
 
         Uses Magnus-Tetens formula for dewpoint calculation.
 
@@ -643,7 +634,7 @@ from __future__ import annotations
             rel_humidity: Relative humidity in %
 
         Returns:
-            Dewpoint temperature in degC
+            Dewpoint temperature in degC,
         """
         # Magnus-Tetens formula constants
         a = 17.27
@@ -663,10 +654,10 @@ from __future__ import annotations
 
         # PVGIS generally uses standard units, minimal conversion needed
         conversions = {
-            # Solar elevation to zenith angle
-            "solar_zenith": lambda x: 90
+            # Solar elevation to zenith angle,
+            "solar_zenith": lambda x: 90,
             - x
-        }
+        },
 
         if canonical_name in conversions:
             return conversions[canonical_name](data)
@@ -686,73 +677,73 @@ from __future__ import annotations
             "pressure": "Pa",
             "rel_humidity": "%",
             "solar_zenith": "degrees"
-        }
+        },
 
         return {
             "units": units_map.get(canonical_name, "unknown"),
             "long_name": canonical_name.replace("_", " ").title()
-        }
+        },
 
     def get_capabilities(self) -> AdapterCapabilities:
         """Return PVGIS adapter capabilities"""
         return AdapterCapabilities(
-            name="PVGIS"
+            name="PVGIS",
             version=self.ADAPTER_VERSION
-            description="European Commission's solar radiation and PV performance database"
+            description="European Commission's solar radiation and PV performance database",
             temporal=TemporalCoverage(
-                start_date=date(2005, 1, 1)
+                start_date=date(2005, 1, 1),
                 end_date=date(2020, 12, 31)
-                historical_years=16
+                historical_years=16,
                 forecast_days=0
-                real_time=False
+                real_time=False,
                 delay_hours=None,  # Historical data only
             )
             spatial=SpatialCoverage(
-                global_coverage=True,  # Through ERA5 database
-                regions=["Europe", "Africa", "Asia", "Americas"]
-                resolution_km=5,  # SARAH2: 5km, ERA5: 30km
-                station_based=False
-                grid_based=True
+                global_coverage=True,  # Through ERA5 database,
+                regions=["Europe", "Africa", "Asia", "Americas"],
+                resolution_km=5,  # SARAH2: 5km, ERA5: 30km,
+                station_based=False,
+                grid_based=True,
                 custom_locations=True
             )
-            supported_variables=list(self.VARIABLE_MAPPING.keys())
+            supported_variables=list(self.VARIABLE_MAPPING.keys()),
             primary_variables=[
-                "ghi",  # Primary strength: solar irradiance (on inclined plane)
-                "temp_air",  # Temperature
+                "ghi",  # Primary strength: solar irradiance (on inclined plane),
+                "temp_air",  # Temperature,
                 "solar_elevation",  # Solar position
             ]
-            derived_variables=["pv_power"],  # Can calculate PV output
+            derived_variables=["pv_power"],  # Can calculate PV output,
             supported_frequencies=[
-                DataFrequency.HOURLY
-                DataFrequency.DAILY
-                DataFrequency.MONTHLY
+                DataFrequency.HOURLY,
+                DataFrequency.DAILY,
+                DataFrequency.MONTHLY,
                 DataFrequency.TMY
             ]
-            native_frequency=DataFrequency.HOURLY
+            native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.NONE
-            requires_subscription=False
+            requires_subscription=False,
             free_tier_limits=None,  # No limits
             quality=QualityFeatures(
-                gap_filling=True
-                quality_flags=True
-                uncertainty_estimates=True,  # Provides uncertainty for PV calculations
-                ensemble_members=False
+                gap_filling=True,
+                quality_flags=True,
+                uncertainty_estimates=True,  # Provides uncertainty for PV calculations,
+                ensemble_members=False,
                 bias_correction=True
             )
-            max_request_days=366,  # 1 year at a time
-            max_variables_per_request=None
-            batch_requests_supported=False
-            async_requests_required=False
+            max_request_days=366,  # 1 year at a time,
+            max_variables_per_request=None,
+            batch_requests_supported=False,
+            async_requests_required=False,
             special_features=[
-                "Optimized for solar energy applications"
-                "Multiple satellite databases (SARAH2, ERA5, NSRDB)"
-                "Typical Meteorological Year (TMY) data"
-                "PV system performance calculations"
-                "Horizon profile integration"
-                "High-resolution solar data for Europe/Africa"
+                "Optimized for solar energy applications",
+                "Multiple satellite databases (SARAH2, ERA5, NSRDB)",
+                "Typical Meteorological Year (TMY) data",
+                "PV system performance calculations",
+                "Horizon profile integration",
+                "High-resolution solar data for Europe/Africa",
             ]
             data_products=["Hourly", "Daily", "Monthly", "TMY", "PV Performance"]
-        )
+        ),
 
 
 class PVGISQCProfile:
@@ -762,11 +753,11 @@ class PVGISQCProfile:
         self.name = "PVGIS"
         self.description = "Photovoltaic Geographical Information System - optimized for solar applications"
         self.known_issues = [
-            "Limited to solar radiation and basic meteorological variables"
-            "Regional variations in satellite data quality"
-            "May not include latest years of data"
+            "Limited to solar radiation and basic meteorological variables",
+            "Regional variations in satellite data quality",
+            "May not include latest years of data",
             "Optimized for PV applications, may not suit other uses"
-        ]
+        ],
         self.recommended_variables = ["ghi", "dni", "dhi", "temp_air", "wind_speed"]
         self.temporal_resolution_limits = {"solar": "hourly", "temp_air": "hourly"}
         self.spatial_accuracy = "Varies by region: 1-5km resolution"
@@ -779,7 +770,7 @@ class PVGISQCProfile:
         present_solar = [var for var in solar_vars if var in ds]
 
         if present_solar:
-            # PVGIS should have high-quality solar data
+            # PVGIS should have high-quality solar data,
             for var in present_solar:
                 data = ds[var].values
                 missing_percent = (np.sum(np.isnan(data)) / len(data)) * 100
@@ -806,15 +797,15 @@ class PVGISQCProfile(QCProfile):
 
     def __init__(self) -> None:
         super().__init__(
-            name="PVGIS"
+            name="PVGIS",
             description="Photovoltaic Geographical Information System - optimized for solar applications"
             known_issues=[
-                "Limited to solar radiation and basic meteorological variables"
-                "Regional variations in satellite data quality"
-                "May not include latest years of data"
+                "Limited to solar radiation and basic meteorological variables",
+                "Regional variations in satellite data quality",
+                "May not include latest years of data",
                 "Optimized for PV applications, may not suit other uses"
             ]
-            recommended_variables=["ghi", "dni", "dhi", "temp_air", "wind_speed"]
+            recommended_variables=["ghi", "dni", "dhi", "temp_air", "wind_speed"],
             temporal_resolution_limits={"solar": "hourly", "temp_air": "hourly"}
             spatial_accuracy="Varies by region: 1-5km resolution"
         )
@@ -827,16 +818,16 @@ class PVGISQCProfile(QCProfile):
         present_solar = [var for var in solar_vars if var in ds]
 
         if present_solar:
-            # PVGIS should have high-quality solar data
+            # PVGIS should have high-quality solar data,
             for var in present_solar:
                 data = ds[var].values
                 missing_percent = (np.sum(np.isnan(data)) / len(data)) * 100
 
                 if missing_percent > 5:  # PVGIS should have minimal gaps
                     issue = QCIssue(
-                        type="data_completeness"
+                        type="data_completeness",
                         message=f"Unexpected missing data in PVGIS {var}: {missing_percent:.1f}%"
-                        severity=QCSeverity.MEDIUM
+                        severity=QCSeverity.MEDIUM,
                         affected_variables=[var]
                         suggested_action="Verify PVGIS data completeness for this location/period"
                     )
@@ -846,9 +837,9 @@ class PVGISQCProfile(QCProfile):
         non_solar_vars = [var for var in ds.data_vars if var not in ["ghi", "dni", "dhi", "temp_air", "wind_speed"]]
         if non_solar_vars:
             issue = QCIssue(
-                type="source_limitation"
+                type="source_limitation",
                 message=f"PVGIS has limited non-solar variables: {non_solar_vars}"
-                severity=QCSeverity.LOW
+                severity=QCSeverity.LOW,
                 affected_variables=non_solar_vars
                 suggested_action="Consider additional data sources for comprehensive meteorological data"
             )

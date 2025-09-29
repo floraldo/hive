@@ -2,13 +2,13 @@
 Core performance benchmarks for standard operations.
 """
 
-import pytest
+import asyncio
+import json
 import sqlite3
 import tempfile
-import json
-import asyncio
 from pathlib import Path
-from typing import List, Dict, Any
+
+import pytest
 
 
 class TestCorePerformance:
@@ -38,14 +38,14 @@ class TestCorePerformance:
         """Benchmark file I/O operations."""
 
         def file_operations():
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
                 temp_file = f.name
                 # Write data
                 json.dump(sample_data, f)
 
             try:
                 # Read data back
-                with open(temp_file, 'r') as f:
+                with open(temp_file, "r") as f:
                     loaded_data = json.load(f)
                 return len(loaded_data)
             finally:
@@ -58,7 +58,7 @@ class TestCorePerformance:
         """Benchmark basic SQLite operations."""
 
         def sqlite_operations():
-            with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+            with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
                 db_path = f.name
 
             try:
@@ -66,25 +66,27 @@ class TestCorePerformance:
                 cursor = conn.cursor()
 
                 # Create table
-                cursor.execute('''
+                cursor.execute(
+                    """
                     CREATE TABLE test_data (
                         id INTEGER PRIMARY KEY,
                         name TEXT,
                         value REAL
                     )
-                ''')
+                """
+                )
 
                 # Insert data
                 for item in sample_data[:100]:  # Use smaller dataset for performance
                     cursor.execute(
-                        'INSERT INTO test_data (id, name, value) VALUES (?, ?, ?)',
-                        (item['id'], item['name'], item['value'])
+                        "INSERT INTO test_data (id, name, value) VALUES (?, ?, ?)",
+                        (item["id"], item["name"], item["value"]),
                     )
 
                 conn.commit()
 
                 # Query data
-                cursor.execute('SELECT COUNT(*) FROM test_data')
+                cursor.execute("SELECT COUNT(*) FROM test_data")
                 count = cursor.fetchone()[0]
 
                 conn.close()
@@ -107,7 +109,7 @@ class TestCorePerformance:
             evens = [x for x in numbers if x % 2 == 0]
 
             # Square the numbers
-            squares = [x ** 2 for x in evens]
+            squares = [x**2 for x in evens]
 
             return len(squares)
 
@@ -119,7 +121,7 @@ class TestCorePerformance:
 
         def dict_operations():
             # Create dictionary from data
-            data_dict = {item['id']: item for item in sample_data}
+            data_dict = {item["id"]: item for item in sample_data}
 
             # Lookup operations
             lookup_results = []
@@ -129,7 +131,7 @@ class TestCorePerformance:
 
             # Update operations
             for item in lookup_results:
-                data_dict[item['id']]['value'] *= 2
+                data_dict[item["id"]]["value"] *= 2
 
             return len(data_dict)
 

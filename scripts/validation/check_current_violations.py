@@ -3,7 +3,6 @@
 Check current violations for commit readiness
 """
 import sys
-from collections import defaultdict
 from pathlib import Path
 
 # Add the hive-tests package to the path

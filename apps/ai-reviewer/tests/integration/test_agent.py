@@ -2,9 +2,8 @@
 Tests for the AI Reviewer autonomous agent
 """
 
-import asyncio
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from ai_reviewer.agent import ReviewAgent

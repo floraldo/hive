@@ -7,7 +7,6 @@ Safe to run multiple times - checks for existing indexes.
 """
 
 import sys
-import sqlite3
 from pathlib import Path
 
 # Add packages path
@@ -98,7 +97,7 @@ def add_performance_indexes():
     print(f"Indexes created: {created}")
     print(f"Indexes skipped: {skipped}")
     print(f"Errors: {errors}")
-    print(f"\nDatabase Statistics:")
+    print("\nDatabase Statistics:")
     print(f"  Tasks: {task_count}")
     print(f"  Planning Queue: {planning_count}")
     print(f"  Execution Plans: {plan_count}")

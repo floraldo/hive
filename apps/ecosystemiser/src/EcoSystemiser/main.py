@@ -1,5 +1,5 @@
 """
-Main entry point for EcoSystemiser Platform.
+Main entry point for EcoSystemiser Platform.,
 
 This module provides the FastAPI application and API routers for all modules:
 - Profile Loader (climate, demand)
@@ -27,7 +27,7 @@ from ecosystemiser.api_models import (
     PlatformInfo,
     ReportingStatus,
     SolverStatus,
-    SystemMetrics,
+    SystemMetrics
 )
 from ecosystemiser.core.errors import ProfileError as ClimateError
 from ecosystemiser.observability import init_observability
@@ -46,51 +46,51 @@ logger = get_logger(__name__)
 async def lifespan_async(app: FastAPI) -> None:
     """Application lifespan manager"""
     logger.info("Starting EcoSystemiser Platform")
-    # Initialize observability
+    # Initialize observability,
     init_observability()
 
     # Future: Initialize module connections
     # await initialize_solver()
-    # await initialize_analyser()
+    # await initialize_analyser(),
 
     yield
 
-    # Cleanup
+    # Cleanup,
     logger.info("Shutting down EcoSystemiser Platform")
     # Future: Cleanup module connections
 
 
 # OpenAPI documentation tags
 tags_metadata = [
-    {"name": "Platform", "description": "Platform information and health checks"},
+    {"name": "Platform", "description": "Platform information and health checks"}
     {
         "name": "Profile Loader",
-        "description": "Climate and demand profile data loading with multiple adapters",
-    },
+        "description": "Climate and demand profile data loading with multiple adapters"
+    }
     {
         "name": "Climate Data",
-        "description": "Climate data endpoints with batch processing and streaming",
-    },
+        "description": "Climate data endpoints with batch processing and streaming"
+    }
     {
         "name": "Solver",
-        "description": "Optimization solver for energy system analysis (planned)",
-    },
+        "description": "Optimization solver for energy system analysis (planned)"
+    }
     {
         "name": "Analyser",
-        "description": "Post-processing analytics and visualization (planned)",
-    },
+        "description": "Post-processing analytics and visualization (planned)"
+    }
     {
         "name": "Reporting",
-        "description": "Automated report generation and export (planned)",
-    },
-    {"name": "Monitoring", "description": "System monitoring and metrics"},
-    {"name": "Legacy", "description": "Legacy API redirects and migration support"},
+        "description": "Automated report generation and export (planned)"
+    }
+    {"name": "Monitoring", "description": "System monitoring and metrics"}
+    {"name": "Legacy", "description": "Legacy API redirects and migration support"}
 ]
 
 # Create FastAPI app with enhanced OpenAPI documentation
 app = FastAPI(
     title=settings.api.title,
-    description=settings.api.description
+    description=settings.api.description,
     + "\n\n## Features\n- Climate data loading with multiple adapters\n- Async job processing\n- Streaming responses for large datasets\n- Comprehensive monitoring and health checks\n- Production-grade error handling",
     version=settings.api.version,
     lifespan=lifespan,
@@ -98,18 +98,18 @@ app = FastAPI(
     contact={
         "name": "EcoSystemiser Support",
         "email": "support@ecosystemiser.com",
-        "url": "https://docs.ecosystemiser.com",
-    },
-    license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
+        "url": "https://docs.ecosystemiser.com"
+    }
+    license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
 )
 
 # Configure CORS
 app.add_middleware(
-    CORSMiddleware,
+    CORSMiddleware
     allow_origins=settings.api.cors_origins,
-    allow_methods=settings.api.cors_methods,
+    allow_methods=settings.api.cors_methods
     allow_headers=settings.api.cors_headers,
-    allow_credentials=True,
+    allow_credentials=True
 )
 
 
@@ -119,36 +119,36 @@ async def root_async() -> None:
     """Root endpoint with platform information"""
     return PlatformInfo(
         platform="EcoSystemiser",
-        version=settings.api.version,
+        version=settings.api.version
         modules={
             "profile_loader": ModuleInfo(
                 status=ModuleStatus.ACTIVE,
                 endpoints=["/api/v3/profile/climate", "/api/v3/profile/demand"],
                 version="2.0.0",
-                description="Climate and demand profile data loader with multiple adapters",
-            ),
+                description="Climate and demand profile data loader with multiple adapters"
+            )
             "solver": ModuleInfo(
                 status=ModuleStatus.PLANNED,
                 endpoints=[],
-                description="Optimization solver for energy system analysis",
-            ),
+                description="Optimization solver for energy system analysis"
+            )
             "analyser": ModuleInfo(
                 status=ModuleStatus.PLANNED,
                 endpoints=[],
-                description="Post-processing analytics and visualization",
-            ),
+                description="Post-processing analytics and visualization"
+            )
             "reporting": ModuleInfo(
                 status=ModuleStatus.PLANNED,
                 endpoints=[],
-                description="Automated report generation and export",
-            ),
-        },
+                description="Automated report generation and export"
+            )
+        }
         uptime=get_uptime(),
         build_info={
             "version": settings.api.version,
-            "build_date": datetime.utcnow().isoformat(),
-            "environment": "development" if settings.debug else "production",
-        },
+            "build_date": datetime.utcnow().isoformat()
+            "environment": "development" if settings.debug else "production"
+        }
     )
 
 
@@ -157,19 +157,19 @@ async def health_async() -> None:
     """Enhanced health check endpoint with system status"""
     checks = {
         "database": check_database_health_async(),
-        "profile_loader": check_profile_loader_health_async(),
+        "profile_loader": check_profile_loader_health_async()
         "cache": check_cache_health_async(),
-        "filesystem": check_filesystem_health_async(),
+        "filesystem": check_filesystem_health_async()
     }
 
     overall_status = "healthy" if all(checks.values()) else "degraded"
 
     return HealthCheck(
         status=overall_status,
-        platform="EcoSystemiser",
+        platform="EcoSystemiser"
         timestamp=datetime.utcnow(),
-        version=settings.api.version,
-        checks=checks,
+        version=settings.api.version
+        checks=checks
     )
 
 
@@ -180,7 +180,7 @@ api_v3 = APIRouter(prefix="/api/v3")
 profile_router = APIRouter(prefix="/profile", tags=["Profile Loader"])
 
 try:
-    # Import climate API endpoints
+    # Import climate API endpoints,
     from ecosystemiser.profile_loader.climate.api import router
 
     profile_router.include_router(router, prefix="/climate", tags=["Climate"])
@@ -203,11 +203,11 @@ async def solver_status_async() -> None:
     """Get solver module status"""
     return SolverStatus(
         module="solver",
-        status="not_implemented",
+        status="not_implemented"
         version="1.0.0-planned",
-        capabilities=["linear_programming", "mixed_integer", "nonlinear"],
+        capabilities=["linear_programming", "mixed_integer", "nonlinear"]
         solver_type="multi_engine",
-        optimization_engines=["GLPK", "CBC", "IPOPT", "HiGHS"],
+        optimization_engines=["GLPK", "CBC", "IPOPT", "HiGHS"]
     )
 
 
@@ -222,16 +222,16 @@ async def analyser_status_async() -> None:
     """Get analyser module status"""
     return AnalyserStatus(
         module="analyser",
-        status="not_implemented",
+        status="not_implemented"
         version="1.0.0-planned",
-        capabilities=["technical_kpi", "economic", "sensitivity", "scenario"],
+        capabilities=["technical_kpi", "economic", "sensitivity", "scenario"]
         analysis_strategies=[
-            "technical_kpi",
+            "technical_kpi"
             "economic",
-            "sensitivity",
-            "optimization_post",
-        ],
-        supported_formats=["json", "html", "pdf", "excel"],
+            "sensitivity"
+            "optimization_post"
+        ]
+        supported_formats=["json", "html", "pdf", "excel"]
     )
 
 
@@ -246,11 +246,11 @@ async def reporting_status_async() -> None:
     """Get reporting module status"""
     return ReportingStatus(
         module="reporting",
-        status="not_implemented",
+        status="not_implemented"
         version="1.0.0-planned",
-        capabilities=["html_reports", "pdf_export", "interactive_dashboard"],
+        capabilities=["html_reports", "pdf_export", "interactive_dashboard"]
         report_types=["comprehensive", "executive_summary", "technical_detail"],
-        export_formats=["html", "pdf", "excel", "powerpoint"],
+        export_formats=["html", "pdf", "excel", "powerpoint"]
     )
 
 
@@ -266,10 +266,10 @@ async def legacy_v2_redirect_async(path: str) -> None:
     """Redirect v2 API calls to v3 with migration guidance"""
     redirect_response = LegacyRedirect(
         message="API v2 deprecated, please use v3",
-        redirect=f"/api/v3/{path}",
+        redirect=f"/api/v3/{path}"
         deprecated_version="v2",
-        current_version="v3",
-        migration_guide="https://docs.ecosystemiser.com/api/migration-v2-to-v3",
+        current_version="v3"
+        migration_guide="https://docs.ecosystemiser.com/api/migration-v2-to-v3"
     )
 
     return JSONResponse(status_code=301, content=redirect_response.model_dump())
@@ -281,14 +281,14 @@ async def climate_error_handler_async(request: Request, exc: ClimateError) -> No
     """Handle platform-specific errors with structured response"""
     error_response = APIError(
         error=exc.__class__.__name__,
-        message=str(exc),
+        message=str(exc)
         details=exc.details if hasattr(exc, "details") else None,
-        correlation_id=request.headers.get("X-Correlation-ID"),
-    )
+        correlation_id=request.headers.get("X-Correlation-ID")
+    ),
 
     return JSONResponse(
         status_code=exc.status_code if hasattr(exc, "status_code") else 500,
-        content=error_response.model_dump(),
+        content=error_response.model_dump()
     )
 
 
@@ -296,12 +296,11 @@ async def climate_error_handler_async(request: Request, exc: ClimateError) -> No
 async def general_error_handler_async(request: Request, exc: Exception) -> None:
     """Handle unexpected errors with structured response"""
     logger.error(f"Unexpected error: {exc}", exc_info=True)
-
     error_response = APIError(
         error="InternalServerError",
         message="An unexpected error occurred",
-        correlation_id=request.headers.get("X-Correlation-ID"),
-    )
+        correlation_id=request.headers.get("X-Correlation-ID")
+    ),
 
     return JSONResponse(status_code=500, content=error_response.model_dump())
 
@@ -352,7 +351,7 @@ def check_cache_health_async() -> bool:
     """Check cache system health"""
     try:
         # Basic cache health check - for now just return True
-        # In production, this would check Redis or other cache backend
+        # In production, this would check Redis or other cache backend,
         return True
     except Exception as e:
         logger.error(f"Cache health check failed: {e}")
@@ -365,7 +364,7 @@ def check_filesystem_health_async() -> bool:
         import os
         import tempfile
 
-        # Test write access to temp directory
+        # Test write access to temp directory,
         with tempfile.NamedTemporaryFile(delete=True) as tmp:
             tmp.write(b"health_check")
             tmp.flush()
@@ -386,15 +385,14 @@ async def get_metrics_async() -> None:
     cpu_percent = psutil.cpu_percent(interval=1)
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage("/")
-
     system_metrics = SystemMetrics(
         cpu_usage=cpu_percent,
         memory_usage=memory.percent,
         disk_usage=disk.percent,
-        active_connections=len(psutil.net_connections()),
-        request_rate=0.0,  # Would be tracked by middleware
+        active_connections=len(psutil.net_connections())
+        request_rate=0.0,  # Would be tracked by middleware,
         error_rate=0.0,  # Would be tracked by middleware
-        uptime_seconds=int(time.time() - STARTUP_TIME),
+        uptime_seconds=int(time.time() - STARTUP_TIME)
     )
 
     # Mock performance metrics (would come from APM in production)
@@ -403,20 +401,19 @@ async def get_metrics_async() -> None:
         p95_response_time=0.250,
         p99_response_time=0.500,
         requests_per_second=10.0,
-        cache_hit_rate=85.0,
+        cache_hit_rate=85.0
     )
-
     health_checks = {
         "database": check_database_health_async(),
-        "profile_loader": check_profile_loader_health_async(),
+        "profile_loader": check_profile_loader_health_async()
         "cache": check_cache_health_async(),
-        "filesystem": check_filesystem_health_async(),
-    }
+        "filesystem": check_filesystem_health_async()
+    },
 
     return MonitoringResponse(
         system_metrics=system_metrics,
-        performance_metrics=performance_metrics,
-        health_checks=health_checks,
+        performance_metrics=performance_metrics
+        health_checks=health_checks
     )
 
 
@@ -430,7 +427,7 @@ async def get_version_async() -> None:
             "python_version": sys.version,
             "platform": sys.platform,
             "architecture": "v3.0 hardened",
-            "build_date": datetime.utcnow().isoformat(),
+            "build_date": datetime.utcnow().isoformat()
         },
         "features": {
             "profile_loader": True,
@@ -439,17 +436,17 @@ async def get_version_async() -> None:
             "reporting": False,
             "async_jobs": True,
             "streaming": True,
-            "batch_processing": True,
-        },
-    }
+            "batch_processing": True
+        }
+    },
 
 
 if __name__ == "__main__":
-    # Run the application
+    # Run the application,
     uvicorn.run(
-        "main:app",
+        "main:app"
         host="0.0.0.0",
-        port=8000,
+        port=8000
         reload=settings.debug,
-        log_level=settings.observability.log_level.lower(),
+        log_level=settings.observability.log_level.lower()
     )

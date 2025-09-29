@@ -60,19 +60,19 @@ class SSHClient:
             logging.info(f"Connecting to {self.host}:{self.port} as {self.username}")
 
             connect_kwargs = {
-                "hostname": self.host
-                "port": self.port
-                "username": self.username
+                "hostname": self.host,
+                "port": self.port,
+                "username": self.username,
                 "timeout": self.connect_timeout
             }
 
             if self.password:
-                connect_kwargs["password"] = self.password
+                connect_kwargs["password"] = self.password,
             elif self.key_filename:
                 connect_kwargs["key_filename"] = self.key_filename
 
             self.client.connect(**connect_kwargs)
-            logging.info("SSH connection established")
+            logging.info("SSH connection established"),
             return True
 
         except paramiko.AuthenticationException as e:

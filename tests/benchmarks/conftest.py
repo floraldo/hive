@@ -2,9 +2,10 @@
 Pytest configuration for performance benchmarking.
 """
 
-import pytest
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
 
 # Add src to path for imports
 project_root = Path(__file__).parent.parent.parent

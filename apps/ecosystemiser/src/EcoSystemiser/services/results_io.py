@@ -23,34 +23,32 @@ class ResultsIO:
     def save_results(
         self, system, simulation_id: str, output_dir: Path, format: str = "json", metadata: dict | None = None
     ) -> Path:
-        """Save simulation results to file.,
-
+        """Save simulation results to file.
         Args:
             system: Solved system object,
             simulation_id: Unique simulation identifier,
             output_dir: Directory for output files,
-            format: Output format ('json', 'parquet', 'csv', 'pickle')
+            format: Output format ('json', 'parquet', 'csv', 'pickle'),
             metadata: Additional metadata to save,
-
         Returns:
-            Path to saved results file
+            Path to saved results file,
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate filename with timestamp
-        timestamp = (datetime.now().strftime("%Y%m%d_%H%M%S"),)
-        filename = (f"{simulation_id}_{timestamp}.{format}",)
+        timestamp = (datetime.now().strftime("%Y%m%d_%H%M%S"))
+        filename = (f"{simulation_id}_{timestamp}.{format}")
         output_path = output_dir / filename
 
         # Extract results from system
         results = self._extract_system_results(system)
 
-        # Add metadata
+        # Add metadata,
         if metadata:
             results["metadata"] = metadata
 
-        # Save based on format
+        # Save based on format,
         if format == "json":
             self._save_json(results, output_path)
         elif format == "parquet":
@@ -69,10 +67,9 @@ class ResultsIO:
         """Load simulation results from file.
 
         Args:
-            file_path: Path to results file,
-
+            file_path: Path to results file
         Returns:
-            Dictionary containing results
+            Dictionary containing results,
         """
         file_path = Path(file_path)
 
@@ -97,24 +94,23 @@ class ResultsIO:
         """Extract results from system object.
 
         Args:
-            system: Solved system object,
-
+            system: Solved system object
         Returns:
-            Dictionary containing all results
+            Dictionary containing all results,
         """
         results = {
             "system_id": system.system_id,
             "timesteps": system.N,
             "components": {},
             "flows": {},
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat()
         }
 
-        # Extract component states
+        # Extract component states,
         for comp_name, component in system.components.items():
             comp_data = {"type": component.type, "medium": component.medium}
 
-            # Extract storage levels - Enhanced CVXPY handling
+            # Extract storage levels - Enhanced CVXPY handling,
             if component.type == "storage" and hasattr(component, "E"):
                 if isinstance(component.E, np.ndarray):
                     comp_data["E"] = component.E.tolist()
@@ -131,39 +127,39 @@ class ResultsIO:
                 else:
                     comp_data["E"] = (
                         component.E.tolist() if hasattr(component.E, "tolist") else [component.E] * system.N
-                    )
+                    ),
 
                 comp_data["E_max"] = float(component.E_max) if hasattr(component, "E_max") else None
 
-            # Extract generation profiles
+            # Extract generation profiles,
             if component.type == "generation" and hasattr(component, "profile"):
                 if isinstance(component.profile, np.ndarray):
                     comp_data["profile"] = component.profile.tolist()
 
-            # Extract economic parameters if available
+            # Extract economic parameters if available,
             if hasattr(component, "economic") and component.economic:
                 comp_data["economic"] = {
                     "capex": component.economic.capex,
                     "opex_fix": component.economic.opex_fix,
-                    "opex_var": component.economic.opex_var,
-                }
+                    "opex_var": component.economic.opex_var
+                },
 
             results["components"][comp_name] = comp_data
 
-        # Extract flows
+        # Extract flows,
         for flow_name, flow_data in system.flows.items():
             flow_result = {
                 "source": flow_data["source"],
                 "target": flow_data["target"],
-                "type": flow_data["type"],
+                "type": flow_data["type"]
             }
 
-            # Convert flow values - Enhanced CVXPY handling
+            # Convert flow values - Enhanced CVXPY handling,
             if "value" in flow_data:
                 flow_value = flow_data["value"]
 
                 if isinstance(flow_value, np.ndarray):
-                    # Direct numpy array
+                    # Direct numpy array,
                     flow_result["value"] = flow_value.tolist()
                 elif hasattr(flow_value, "value"):  # CVXPY variable
                     if flow_value.value is not None:
@@ -172,17 +168,17 @@ class ResultsIO:
                         if isinstance(cvxpy_value, np.ndarray):
                             flow_result["value"] = cvxpy_value.tolist()
                         else:
-                            # Scalar CVXPY variable - broadcast to timestep array
+                            # Scalar CVXPY variable - broadcast to timestep array,
                             flow_result["value"] = [float(cvxpy_value)] * system.N
                     else:
-                        # CVXPY variable with None value - populate with zeros
+                        # CVXPY variable with None value - populate with zeros,
                         logger.warning(f"CVXPY variable {flow_name} has None value, using zeros")
                         flow_result["value"] = [0.0] * system.N
                 elif hasattr(flow_value, "__iter__") and not isinstance(flow_value, str):
-                    # Generic iterable (list, tuple, etc.)
+                    # Generic iterable (list, tuple, etc.),
                     flow_result["value"] = list(flow_value)
                 else:
-                    # Scalar value - broadcast to timestep array
+                    # Scalar value - broadcast to timestep array,
                     flow_result["value"] = [float(flow_value)] * system.N
 
             results["flows"][flow_name] = flow_result
@@ -199,11 +195,11 @@ class ResultsIO:
         # Convert to DataFrame format
         flows_df = self._flows_to_dataframe(results["flows"])
 
-        # Save using pandas/pyarrow
+        # Save using pandas/pyarrow,
         flows_df.to_parquet(path, engine="pyarrow", compression="snappy")
 
         # Save metadata separately
-        metadata_path = (path.with_suffix(".meta.json"),)
+        metadata_path = (path.with_suffix(".meta.json"))
         metadata = {k: v for k, v in results.items() if k != "flows"}
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
@@ -215,7 +211,7 @@ class ResultsIO:
         flows_df.to_csv(path, index=False)
 
         # Save metadata separately
-        metadata_path = (path.with_suffix(".meta.json"),)
+        metadata_path = (path.with_suffix(".meta.json"))
         metadata = {k: v for k, v in results.items() if k != "flows"}
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
@@ -233,7 +229,7 @@ class ResultsIO:
     def _load_parquet(self, path: Path) -> dict:
         """Load results from Parquet."""
         # Load flows
-        flows_df = (pd.read_parquet(path),)
+        flows_df = (pd.read_parquet(path))
         results = {"flows": self._dataframe_to_flows(flows_df)}
 
         # Load metadata if exists
@@ -248,7 +244,7 @@ class ResultsIO:
     def _load_csv(self, path: Path) -> dict:
         """Load results from CSV."""
         # Load flows
-        flows_df = (pd.read_csv(path),)
+        flows_df = (pd.read_csv(path))
         results = {"flows": self._dataframe_to_flows(flows_df)}
 
         # Load metadata if exists
@@ -269,10 +265,9 @@ class ResultsIO:
         """Convert flows dictionary to DataFrame format.
 
         Args:
-            flows: Dictionary of flow data,
-
+            flows: Dictionary of flow data
         Returns:
-            DataFrame with flow time series
+            DataFrame with flow time series,
         """
         data = []
 
@@ -282,24 +277,22 @@ class ResultsIO:
                     data.append(
                         {
                             "timestep": t,
-                            "flow_name": flow_name,
+                            "flow_name": flow_name
                             "source": flow_info["source"],
-                            "target": flow_info["target"],
+                            "target": flow_info["target"]
                             "type": flow_info["type"],
-                            "value": value,
+                            "value": value
                         }
                     )
 
         return pd.DataFrame(data)
 
     def _dataframe_to_flows(self, df: pd.DataFrame) -> dict:
-        """Convert DataFrame back to flows dictionary.,
-
+        """Convert DataFrame back to flows dictionary.
         Args:
-            df: DataFrame with flow data,
-
+            df: DataFrame with flow data
         Returns:
-            Dictionary of flows
+            Dictionary of flows,
         """
         flows = {}
 
@@ -310,8 +303,8 @@ class ResultsIO:
                 "source": flow_df["source"].iloc[0],
                 "target": flow_df["target"].iloc[0],
                 "type": flow_df["type"].iloc[0],
-                "value": flow_df["value"].tolist(),
-            }
+                "value": flow_df["value"].tolist()
+            },
 
         return flows
 
@@ -319,14 +312,13 @@ class ResultsIO:
         """Create a summary DataFrame from results.
 
         Args:
-            results: Results dictionary,
-
+            results: Results dictionary
         Returns:
-            Summary DataFrame
+            Summary DataFrame,
         """
         summary_data = []
 
-        # Summarize flows
+        # Summarize flows,
         if "flows" in results:
             for flow_name, flow_info in results["flows"].items():
                 if "value" in flow_info and isinstance(flow_info["value"], list):
@@ -334,16 +326,16 @@ class ResultsIO:
                     summary_data.append(
                         {
                             "category": "Flow",
-                            "name": flow_name,
+                            "name": flow_name
                             "source": flow_info["source"],
-                            "target": flow_info["target"],
+                            "target": flow_info["target"]
                             "mean": np.mean(values),
-                            "max": np.max(values),
-                            "total": np.sum(values),
+                            "max": np.max(values)
+                            "total": np.sum(values)
                         }
                     )
 
-        # Summarize components
+        # Summarize components,
         if "components" in results:
             for comp_name, comp_data in results["components"].items():
                 if "E" in comp_data:
@@ -351,13 +343,13 @@ class ResultsIO:
                     summary_data.append(
                         {
                             "category": "Storage",
-                            "name": comp_name,
+                            "name": comp_name
                             "source": "-",
-                            "target": "-",
+                            "target": "-"
                             "mean": np.mean(levels),
-                            "max": np.max(levels),
-                            "total": "-",
+                            "max": np.max(levels)
+                            "total": "-"
                         }
-                    )
+                    ),
 
         return pd.DataFrame(summary_data)

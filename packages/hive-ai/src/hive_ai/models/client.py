@@ -86,19 +86,19 @@ class ModelClient:
         Generate completion from AI model.
 
         Args:
-            prompt: Input prompt for generation
-            model: Model name (uses default if not specified)
-            temperature: Sampling temperature override
-            max_tokens: Maximum tokens override
+            prompt: Input prompt for generation,
+            model: Model name (uses default if not specified),
+            temperature: Sampling temperature override,
+            max_tokens: Maximum tokens override,
             **kwargs: Additional provider-specific parameters
 
         Returns:
             ModelResponse with content and metadata
 
         Raises:
-            ModelError: Model or provider errors
-            CostLimitError: Cost limit exceeded
-            ModelUnavailableError: Model not available
+            ModelError: Model or provider errors,
+            CostLimitError: Cost limit exceeded,
+            ModelUnavailableError: Model not available,
         """
         model_name = model or self.config.default_model
         model_config = self.registry.get_model_config(model_name)
@@ -142,10 +142,10 @@ class ModelClient:
 
             # Record successful metrics
             token_usage = TokenUsage(
-                prompt_tokens=response.tokens_used // 2,  # Rough split
+                prompt_tokens=response.tokens_used // 2,  # Rough split,
                 completion_tokens=response.tokens_used // 2,
                 total_tokens=response.tokens_used,
-                estimated_cost=response.cost,
+                estimated_cost=response.cost
             )
 
             await self.metrics.record_model_usage_async(
@@ -153,7 +153,7 @@ class ModelClient:
                 provider=model_config.provider,
                 tokens=token_usage,
                 latency_ms=latency_ms,
-                success=True,
+                success=True
             )
 
             logger.info(
@@ -172,42 +172,42 @@ class ModelClient:
                 provider=model_config.provider,
                 tokens=TokenUsage(0, 0, 0, 0.0),
                 latency_ms=latency_ms,
-                success=False,
+                success=False
             )
 
             logger.error(f"Model generation failed: {model_name} " f"({latency_ms}ms) - {str(e)}")
 
             raise ModelError(
                 f"Generation failed for model '{model_name}': {str(e)}"
-                model=model_name
+                model=model_name,
                 provider=model_config.provider
             ) from e
 
     async def generate_stream_async(
         self
-        prompt: str
-        model: str | None = None
-        temperature: float | None = None
-        max_tokens: int | None = None
+        prompt: str,
+        model: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
         **kwargs
     ) -> AsyncIterable[str]:
         """
         Generate streaming completion from AI model.
 
         Args:
-            prompt: Input prompt for generation
-            model: Model name (uses default if not specified)
-            temperature: Sampling temperature override
-            max_tokens: Maximum tokens override
+            prompt: Input prompt for generation,
+            model: Model name (uses default if not specified),
+            temperature: Sampling temperature override,
+            max_tokens: Maximum tokens override,
             **kwargs: Additional provider-specific parameters
 
         Yields:
             String chunks from streaming response
 
         Raises:
-            ModelError: Model or provider errors
-            CostLimitError: Cost limit exceeded
-            ModelUnavailableError: Model not available
+            ModelError: Model or provider errors,
+            CostLimitError: Cost limit exceeded,
+            ModelUnavailableError: Model not available,
         """
         model_name = model or self.config.default_model
         model_config = self.registry.get_model_config(model_name)
@@ -260,14 +260,14 @@ class ModelClient:
                 provider=model_config.provider,
                 tokens=TokenUsage(0, 0, 0, 0.0),
                 latency_ms=latency_ms,
-                success=False,
+                success=False
             )
 
             logger.error(f"Streaming generation failed: {model_name} - {str(e)}")
 
             raise ModelError(
                 f"Streaming generation failed for model '{model_name}': {str(e)}"
-                model=model_name
+                model=model_name,
                 provider=model_config.provider
             ) from e
 
@@ -280,11 +280,11 @@ class ModelClient:
             is_healthy = self.registry.validate_model_available(model_name)
 
             models_info[model_name] = {
-                "provider": config.provider
-                "type": config.model_type
-                "max_tokens": config.max_tokens
-                "cost_per_token": config.cost_per_token
-                "healthy": is_healthy
+                "provider": config.provider,
+                "type": config.model_type,
+                "max_tokens": config.max_tokens,
+                "cost_per_token": config.cost_per_token,
+                "healthy": is_healthy,
                 "temperature": config.temperature
             }
 
@@ -300,8 +300,8 @@ class ModelClient:
         registry_stats = self.registry.get_registry_stats()
 
         return {
-            "healthy": registry_stats["health_percentage"] > 50
+            "healthy": registry_stats["health_percentage"] > 50,
             "provider_health": health_status
-            "registry_stats": registry_stats
+            "registry_stats": registry_stats,
             "circuit_breakers": {provider: cb.get_stats() for provider, cb in self._circuit_breakers.items()}
         }

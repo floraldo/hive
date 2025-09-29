@@ -34,8 +34,8 @@ class BaseErrorReporter(ABC):
         Report an error with context.
 
         Args:
-            error: The exception to report
-            context: Error context information
+            error: The exception to report,
+            context: Error context information,
             additional_info: Additional information about the error
 
         Returns:

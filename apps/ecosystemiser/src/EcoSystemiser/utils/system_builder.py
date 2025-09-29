@@ -8,10 +8,7 @@ import yaml
 from ecosystemiser.component_data.repository import ComponentRepository
 
 # Import all components to ensure they are registered
-from ecosystemiser.system_model.components.shared.registry import (
-    COMPONENT_REGISTRY,
-    get_component_class,
-)
+from ecosystemiser.system_model.components.shared.registry import COMPONENT_REGISTRY, get_component_class
 from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
@@ -26,22 +23,24 @@ class SystemBuilder:
 
         Args:
             config_path: Path to system configuration YAML
-            component_repo: Repository for component data
+            component_repo: Repository for component data,
         """
         self.config_path = Path(config_path)
         self.component_repo = component_repo
 
         # Log available components from registry
         available_components = list(COMPONENT_REGISTRY.keys())
-        logger.info(
-            f"Initialized SystemBuilder with {len(available_components)} registered components: {available_components}"
+        (
+            logger.info(
+                f"Initialized SystemBuilder with {len(available_components)} registered components: {available_components}"
+            ),
         )
 
     def list_available_components(self) -> dict[str, str]:
         """List all available component types and their descriptions.
 
         Returns:
-            Dictionary mapping component type to description
+            Dictionary mapping component type to description,
         """
         available = {}
         for comp_type, comp_class in COMPONENT_REGISTRY.items():
@@ -55,28 +54,28 @@ class SystemBuilder:
         """Build complete system from configuration.
 
         Returns:
-            Configured System object
+            Configured System object,
         """
-        # Load system configuration
+        # Load system configuration,
         with open(self.config_path) as f:
             config = yaml.safe_load(f)
 
-        # Validate configuration structure
+        # Validate configuration structure,
         self._validate_config(config)
 
         # Create system
         system = System(config["system_id"], config.get("timesteps", 24))
 
-        # Add components
+        # Add components,
         for comp_config in config["components"]:
             component = self._create_component(comp_config, system.N)
             system.add_component(component)
 
-        # Create connections
+        # Create connections,
         for conn in config["connections"]:
-            system.connect(conn["from"], conn["to"], conn["type"], conn.get("bidirectional", False))
+            (system.connect(conn["from"], conn["to"], conn["type"], conn.get("bidirectional", False)),)
 
-        logger.info(f"Built system '{system.system_id}' with {len(system.components)} components")
+        (logger.info(f"Built system '{system.system_id}' with {len(system.components)} components"),)
         return system
 
     def _validate_config(self, config: dict[str, Any]) -> None:
@@ -86,7 +85,7 @@ class SystemBuilder:
             config: System configuration dictionary
 
         Raises:
-            ValueError: If configuration is invalid
+            ValueError: If configuration is invalid,
         """
         required_keys = ["system_id", "components", "connections"]
         for key in required_keys:
@@ -107,13 +106,13 @@ class SystemBuilder:
             n: Number of timesteps
 
         Returns:
-            Component instance
+            Component instance,
         """
         name = comp_config.get("name")
         if not name:
             raise ValueError("Component must have a 'name'")
 
-        # Determine if using component library or inline definition
+        # Determine if using component library or inline definition,
         if "component_id" in comp_config:
             # Load from component library
             comp_data = self.component_repo.get_component_data(comp_config["component_id"])
@@ -132,7 +131,6 @@ class SystemBuilder:
             comp_class_name = comp_config.get("component_class")
             if not comp_class_name:
                 raise ValueError(f"Component {name} must specify 'component_class'")
-
             params_dict = comp_config.get("params", {})
 
         # Get component class from registry (DYNAMIC - NO HARDCODING!)
@@ -142,7 +140,7 @@ class SystemBuilder:
             available = list(COMPONENT_REGISTRY.keys())
             raise ValueError(f"Unknown component class: {comp_class_name}. Available: {available}") from e
 
-        # Get the parameter class from the component
+        # Get the parameter class from the component,
         if hasattr(ComponentClass, "PARAMS_MODEL"):
             ParamsModel = ComponentClass.PARAMS_MODEL
         else:
@@ -160,7 +158,7 @@ class SystemBuilder:
         except Exception as e:
             raise ValueError(f"Invalid parameters for {comp_class_name} component '{name}': {e}")
 
-        # Create component using registry pattern
+        # Create component using registry pattern,
         return ComponentClass(name, params, n)
 
     def assign_profiles(self, system: System, profiles: dict[str, Any]) -> None:
@@ -168,10 +166,10 @@ class SystemBuilder:
 
         Args:
             system: System object
-            profiles: Dictionary of profile data
+            profiles: Dictionary of profile data,
         """
         for comp_name, component in system.components.items():
-            # Check if component needs a profile
+            # Check if component needs a profile,
             if hasattr(component, "technical") and component.technical:
                 profile_name = getattr(component.technical, "profile_name", None)
 
@@ -184,7 +182,7 @@ class SystemBuilder:
                     elif isinstance(profile_data, list):
                         component.profile = np.array(profile_data)
                     else:
-                        logger.warning(f"Profile {profile_name} has unexpected type: {type(profile_data)}")
+                        (logger.warning(f"Profile {profile_name} has unexpected type: {type(profile_data)}"),)
 
                     logger.debug(f"Assigned profile '{profile_name}' to component '{comp_name}'")
 
@@ -195,7 +193,7 @@ class SystemBuilder:
             N: Number of timesteps
 
         Returns:
-            Minimal test system with 4 components
+            Minimal test system with 4 components,
         """
         import numpy as np
 
@@ -206,7 +204,6 @@ class SystemBuilder:
         for t in range(N):
             if 6 <= t <= 18:  # Daylight hours
                 solar_profile[t] = np.sin((t - 6) * np.pi / 12) * 5.0
-
         demand_profile = np.ones(N) * 1.0  # 1 kW baseload
         demand_profile[7:9] = 2.0  # Morning peak
         demand_profile[18:21] = 2.5  # Evening peak
@@ -216,23 +213,20 @@ class SystemBuilder:
         grid_params = grid_class.PARAMS_MODEL(P_max=100, import_tariff=0.25, feed_in_tariff=0.08)
         grid = grid_class("Grid", grid_params, N)
         system.add_component(grid)
-
         battery_class = get_component_class("Battery")
         battery_params = battery_class.PARAMS_MODEL(P_max=5, E_max=10, E_init=5, eta_charge=0.95, eta_discharge=0.95)
         battery = battery_class("Battery", battery_params, N)
         system.add_component(battery)
-
         solar_class = get_component_class("SolarPV")
         solar_params = solar_class.PARAMS_MODEL(P_profile=solar_profile.tolist(), P_max=10)
         solar = solar_class("SolarPV", solar_params, N)
         system.add_component(solar)
-
         demand_class = get_component_class("PowerDemand")
         demand_params = demand_class.PARAMS_MODEL(P_profile=demand_profile.tolist(), P_max=5)
         demand = demand_class("PowerDemand", demand_params, N)
         system.add_component(demand)
 
-        # Create connections
+        # Create connections,
         system.connect("Grid", "PowerDemand", "electricity")
         system.connect("Grid", "Battery", "electricity")
         system.connect("SolarPV", "PowerDemand", "electricity")

@@ -4,17 +4,14 @@ Comprehensive tests for hive-ai model management components.
 Tests ModelRegistry, ModelClient, ModelPool, and ModelMetrics with property-based testing.
 """
 
-import asyncio
-from datetime import datetime, timedelta
-from typing import Any, Dict
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from hive_ai.core.config import AIConfig, ModelConfig
-from hive_ai.core.exceptions import CostLimitError, ModelError, ModelUnavailableError
+from hive_ai.core.exceptions import CostLimitError, ModelUnavailableError
 from hive_ai.core.interfaces import ModelResponse, TokenUsage
 from hive_ai.models.client import ModelClient
-from hive_ai.models.metrics import ModelMetrics, ModelPerformanceStats, ModelUsageRecord
+from hive_ai.models.metrics import ModelMetrics
 from hive_ai.models.pool import ModelPool, PoolStats
 from hive_ai.models.registry import ModelRegistry
 from hypothesis import given, settings
@@ -124,7 +121,12 @@ class TestModelClient:
         mock_provider = Mock()
         mock_provider.generate_async = AsyncMock(
             return_value=ModelResponse(
-                content="Test response", model="test-model", tokens_used=50, cost=0.0005, latency_ms=1000, metadata={}
+                content="Test response",
+                model="test-model",
+                tokens_used=50,
+                cost=0.0005,
+                latency_ms=1000,
+                metadata={},
             )
         )
         registry.get_provider_for_model.return_value = mock_provider
@@ -240,10 +242,19 @@ class TestModelMetrics:
     @pytest.mark.asyncio
     async def test_record_model_usage_async(self, metrics):
         """Test recording model usage."""
-        tokens = TokenUsage(prompt_tokens=25, completion_tokens=25, total_tokens=50, estimated_cost=0.0005)
+        tokens = TokenUsage(
+            prompt_tokens=25,
+            completion_tokens=25,
+            total_tokens=50,
+            estimated_cost=0.0005,
+        )
 
         await metrics.record_model_usage_async(
-            model="test-model", provider="test-provider", tokens=tokens, latency_ms=1000, success=True
+            model="test-model",
+            provider="test-provider",
+            tokens=tokens,
+            latency_ms=1000,
+            success=True,
         )
 
         summary = metrics.get_metrics_summary()
@@ -295,7 +306,11 @@ class TestModelMetrics:
         for cost in costs:
             tokens = TokenUsage(10, 10, 20, cost)
             await metrics.record_model_usage_async(
-                model="test", provider="test", tokens=tokens, latency_ms=1000, success=True
+                model="test",
+                provider="test",
+                tokens=tokens,
+                latency_ms=1000,
+                success=True,
             )
             total_expected_cost += cost
 
@@ -466,11 +481,18 @@ class TestModelIntegration:
 
         for model, tokens, cost in operations:
             token_usage = TokenUsage(
-                prompt_tokens=tokens // 2, completion_tokens=tokens // 2, total_tokens=tokens, estimated_cost=cost
+                prompt_tokens=tokens // 2,
+                completion_tokens=tokens // 2,
+                total_tokens=tokens,
+                estimated_cost=cost,
             )
 
             await metrics.record_model_usage_async(
-                model=model, provider="test", tokens=token_usage, latency_ms=1000, success=True
+                model=model,
+                provider="test",
+                tokens=token_usage,
+                latency_ms=1000,
+                success=True,
             )
 
             total_expected_cost += cost

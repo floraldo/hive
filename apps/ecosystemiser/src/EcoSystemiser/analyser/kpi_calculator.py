@@ -23,20 +23,20 @@ class KPICalculator:
             system: Solved System object
 
         Returns:
-            Dictionary of calculated KPIs
+            Dictionary of calculated KPIs,
         """
         kpis = {}
 
-        # Determine system type
+        # Determine system type,
         self.system_type = self._detect_system_type(system)
 
         if self.system_type == "energy":
-            kpis.update(self._calculate_energy_kpis(system))
+            (kpis.update(self._calculate_energy_kpis(system)),)
         elif self.system_type == "water":
             kpis.update(self._calculate_water_kpis(system))
 
-        # Add common KPIs
-        kpis.update(self._calculate_common_kpis(system))
+        # Add common KPIs,
+        (kpis.update(self._calculate_common_kpis(system)),)
 
         return kpis
 
@@ -47,9 +47,9 @@ class KPICalculator:
             results_path: Path to results file (JSON or Parquet)
 
         Returns:
-            Dictionary of calculated KPIs
+            Dictionary of calculated KPIs,
         """
-        # Load results
+        # Load results,
         if results_path.suffix == ".json":
             with open(results_path) as f:
                 self.results = json.load(f)
@@ -60,7 +60,7 @@ class KPICalculator:
         else:
             raise ValueError(f"Unsupported file format: {results_path.suffix}")
 
-        # Calculate KPIs based on loaded data
+        # Calculate KPIs based on loaded data,
         return self._calculate_kpis_from_dict(self.results)
 
     def _detect_system_type(self, system) -> str:
@@ -70,7 +70,7 @@ class KPICalculator:
             system: System object
 
         Returns:
-            'energy' or 'water'
+            'energy' or 'water',
         """
         # Check component types and media
         media_counts = {}
@@ -78,7 +78,7 @@ class KPICalculator:
             media = comp.medium
             media_counts[media] = media_counts.get(media, 0) + 1
 
-        # Determine dominant medium
+        # Determine dominant medium,
         if media_counts.get("electricity", 0) > media_counts.get("water", 0):
             return "energy"
         else:
@@ -91,7 +91,7 @@ class KPICalculator:
             system: Energy system object
 
         Returns:
-            Dictionary of energy KPIs
+            Dictionary of energy KPIs,
         """
         kpis = {}
 
@@ -103,7 +103,7 @@ class KPICalculator:
 
         for comp in system.components.values():
             if comp.type == "transmission" and comp.medium == "electricity":
-                # Grid import (draw) - Enhanced extraction
+                # Grid import (draw) - Enhanced extraction,
                 if "P_draw" in comp.flows.get("source", {}):
                     flow = comp.flows["source"]["P_draw"]["value"]
                     if isinstance(flow, np.ndarray) and flow.size > 0:
@@ -118,7 +118,7 @@ class KPICalculator:
                         total_import = float(np.sum(import_values))
                         peak_import = float(np.max(import_values))
 
-                # Grid export (feed) - Enhanced extraction
+                # Grid export (feed) - Enhanced extraction,
                 if "P_feed" in comp.flows.get("sink", {}):
                     flow = comp.flows["sink"]["P_feed"]["value"]
                     if isinstance(flow, np.ndarray) and flow.size > 0:
@@ -146,7 +146,7 @@ class KPICalculator:
         for comp in system.components.values():
             if comp.type == "generation":
                 if hasattr(comp, "profile") and comp.profile is not None:
-                    # Handle different profile types
+                    # Handle different profile types,
                     if isinstance(comp.profile, np.ndarray):
                         gen_values = np.maximum(0, comp.profile)  # Ensure non-negative
                         gen = float(np.sum(gen_values))
@@ -186,18 +186,18 @@ class KPICalculator:
             kpis["self_consumption_rate"] = 0.0
             kpis["renewable_fraction"] = 0.0
 
-        # Self-sufficiency: How much of demand is met by local generation
+        # Self-sufficiency: How much of demand is met by local generation,
         if total_demand > 0:
             self_sufficient_energy = max(0, min(total_generation, total_demand))
             kpis["self_sufficiency_rate"] = float(self_sufficient_energy / total_demand)
         else:
             kpis["self_sufficiency_rate"] = 0.0
 
-        # Additional energy balance validation
+        # Additional energy balance validation,
         kpis["total_demand_kwh"] = float(total_demand)
         kpis["energy_balance_error"] = float(abs((total_generation + total_import) - (total_demand + total_export)))
 
-        # Storage utilization - Enhanced CVXPY handling
+        # Storage utilization - Enhanced CVXPY handling,
         for comp in system.components.values():
             if comp.type == "storage" and comp.medium == "electricity":
                 energy_levels = None
@@ -206,14 +206,14 @@ class KPICalculator:
                     if isinstance(comp.E, np.ndarray):
                         energy_levels = comp.E
                     elif hasattr(comp.E, "value") and comp.E.value is not None:
-                        # Handle CVXPY variables
+                        # Handle CVXPY variables,
                         if isinstance(comp.E.value, np.ndarray):
                             energy_levels = comp.E.value
                         else:
                             energy_levels = np.array([comp.E.value] * system.N)
 
                 if energy_levels is not None and len(energy_levels) > 0:
-                    # Ensure energy levels are within physical bounds
+                    # Ensure energy levels are within physical bounds,
                     if hasattr(comp, "E_max") and comp.E_max > 0:
                         energy_levels = np.clip(energy_levels, 0, comp.E_max)
                         kpis[f"{comp.name}_avg_soc"] = float(np.mean(energy_levels) / comp.E_max)
@@ -231,7 +231,7 @@ class KPICalculator:
             system: Water system object
 
         Returns:
-            Dictionary of water KPIs
+            Dictionary of water KPIs,
         """
         kpis = {}
 
@@ -257,7 +257,7 @@ class KPICalculator:
 
         kpis["total_rainwater_harvested_m3"] = float(total_rainwater)
 
-        # Water storage utilization
+        # Water storage utilization,
         for comp in system.components.values():
             if comp.type == "storage" and comp.medium == "water":
                 if hasattr(comp, "E") and isinstance(comp.E, np.ndarray):
@@ -285,7 +285,7 @@ class KPICalculator:
         kpis["total_overflow_m3"] = float(total_overflow)
         kpis["total_evaporation_m3"] = float(total_evaporation)
 
-        # Water self-sufficiency
+        # Water self-sufficiency,
         if total_rainwater > 0:
             kpis["rainwater_utilization_rate"] = float((total_rainwater - total_overflow) / total_rainwater)
 
@@ -298,7 +298,7 @@ class KPICalculator:
             system: System object
 
         Returns:
-            Dictionary of common KPIs
+            Dictionary of common KPIs,
         """
         kpis = {}
 
@@ -323,7 +323,7 @@ class KPICalculator:
 
         kpis["total_embodied_co2_kg"] = float(total_embodied_co2)
 
-        # System complexity metrics
+        # System complexity metrics,
         kpis["num_components"] = len(system.components)
         kpis["num_connections"] = len(system.flows)
 
@@ -336,7 +336,7 @@ class KPICalculator:
             energy_levels: Array of energy levels over time
 
         Returns:
-            Number of equivalent full cycles
+            Number of equivalent full cycles,
         """
         if len(energy_levels) < 2:
             return 0.0
@@ -362,11 +362,11 @@ class KPICalculator:
             results_dict: Dictionary containing simulation results
 
         Returns:
-            Dictionary of calculated KPIs
+            Dictionary of calculated KPIs,
         """
         kpis = {}
 
-        # Extract flow-based KPIs
+        # Extract flow-based KPIs,
         if "flows" in results_dict:
             for flow_name, flow_data in results_dict["flows"].items():
                 if "value" in flow_data and isinstance(flow_data["value"], list):
@@ -375,7 +375,7 @@ class KPICalculator:
                     kpis[f"{flow_name}_mean"] = float(np.mean(values))
                     kpis[f"{flow_name}_peak"] = float(np.max(values))
 
-        # Extract component state KPIs
+        # Extract component state KPIs,
         if "components" in results_dict:
             for comp_name, comp_data in results_dict["components"].items():
                 if "E" in comp_data and isinstance(comp_data["E"], list):
@@ -391,7 +391,7 @@ class KPICalculator:
             kpis: Dictionary of calculated KPIs
 
         Returns:
-            Formatted summary report string
+            Formatted summary report string,
         """
         report = []
         report.append("=" * 60)
@@ -399,14 +399,16 @@ class KPICalculator:
         report.append("=" * 60)
 
         # Group KPIs by category
-        categories = {
-            "Grid Interaction": ["grid_import", "grid_export", "net_grid"],
-            "Renewable Generation": ["solar", "generation", "renewable"],
-            "Storage": ["soc", "cycles", "level"],
-            "Economic": ["capex", "opex", "cost"],
-            "Environmental": ["co2", "carbon"],
-            "Water": ["water", "rainwater", "overflow", "evaporation"],
-        }
+        categories = (
+            {
+                "Grid Interaction": ["grid_import", "grid_export", "net_grid"],
+                "Renewable Generation": ["solar", "generation", "renewable"],
+                "Storage": ["soc", "cycles", "level"],
+                "Economic": ["capex", "opex", "cost"],
+                "Environmental": ["co2", "carbon"],
+                "Water": ["water", "rainwater", "overflow", "evaporation"],
+            },
+        )
 
         for category, keywords in categories.items():
             category_kpis = {k: v for k, v in kpis.items() if any(kw in k.lower() for kw in keywords)}
@@ -417,7 +419,7 @@ class KPICalculator:
                 for key, value in category_kpis.items():
                     # Format the key nicely
                     display_key = key.replace("_", " ").title()
-                    # Format the value based on type
+                    # Format the value based on type,
                     if "rate" in key or "fraction" in key:
                         display_value = f"{value:.1%}"
                     elif "eur" in key or "cost" in key:

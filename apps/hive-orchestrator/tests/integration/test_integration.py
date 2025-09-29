@@ -4,10 +4,6 @@ Integration tests for Hive Orchestrator components.
 Tests the interaction between CLI, database, and core functionality.
 """
 
-import json
-import os
-import sqlite3
-import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -182,7 +178,7 @@ class TestHiveOrchestratorIntegration:
         # This tests that the modules can be imported and basic functions work together
 
         # Test that we can import all main components
-        from hive_orchestrator import clean_hive, cli, dashboard
+        from hive_orchestrator import cli
 
         # Verify CLI commands are registered
         assert "status" in [cmd.name for cmd in cli.cli.commands.values()]

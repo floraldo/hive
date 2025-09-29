@@ -343,13 +343,13 @@ class CacheLatencyBenchmark:
             fastest = min(all_results_flat, key=lambda x: x.p95_ms)
             slowest = max(all_results_flat, key=lambda x: x.p95_ms)
 
-            print(f"\n📊 PERFORMANCE COMPARISON:")
+            print("\n📊 PERFORMANCE COMPARISON:")
             print(f"  Fastest operation: {fastest.name} ({fastest.p95_ms:.2f}ms P95)")
             print(f"  Slowest operation: {slowest.name} ({slowest.p95_ms:.2f}ms P95)")
             print(f"  Performance gap: {slowest.p95_ms / fastest.p95_ms:.1f}x slower")
 
-        print(f"\n🎯 TARGET: < 1ms P95 latency for local Redis operations")
-        print(f"📋 CURRENT ISSUE: ~20ms P95 latency in V4.2 certification")
+        print("\n🎯 TARGET: < 1ms P95 latency for local Redis operations")
+        print("📋 CURRENT ISSUE: ~20ms P95 latency in V4.2 certification")
 
 
 async def main():

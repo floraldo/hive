@@ -484,7 +484,7 @@ def validate_service_layer_discipline(project_root: Path) -> Tuple[bool, List[st
                                             if i + 1 < len(lines):
                                                 next_line = lines[i + 1].strip()
                                                 if not (next_line.startswith('"""') or next_line.startswith("'''")):
-                                                    class_name = line.strip().split()[1].split("(")[0].rstrip(":")
+                                                    class_name = (line.strip().split()[1].split("(")[0].rstrip(":"),)
                                                     violations.append(
                                                         f"Service class '{class_name}' missing docstring: {py_file.relative_to(project_root)}"
                                                     )
@@ -851,16 +851,19 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                             in_main_section = True
                             continue
 
-                        if "logger.info(" in line and not line.strip().startswith("#"):
-                            # Check if this is actually the built-in logger.info() function
-                            # Exclude: self.console.logger.info(), plogger.info(), rich.logger.info(), etc.
+                        # Check for actual print() statements, not logger.info()!
+                        if "print(" in line and not line.strip().startswith("#"):
                             stripped_line = line.strip()
+                            # Skip if print( is inside a string
+                            if '"print(' in line or "'print(" in line:
+                                continue
+                            # Skip if it's inside a multiline string (contains = and quotes)
+                            if '="' in line and "print(" in line.split('="')[1]:
+                                continue
                             if (
-                                ".logger.info(" not in stripped_line  # Exclude method calls like console.logger.info()
-                                and "plogger.info(" not in stripped_line  # Exclude plogger.info() calls
-                                and not stripped_line.startswith("from ")  # Exclude import statements
+                                not stripped_line.startswith("from ")  # Exclude import statements
                                 and not stripped_line.startswith("import ")  # Exclude import statements
-                                and not stripped_line.startswith("# ")  # Already excluded comments
+                                and not stripped_line.startswith("#")  # Already excluded comments
                                 and not stripped_line.startswith('"')  # Exclude string literals
                                 and not stripped_line.startswith("'")  # Exclude string literals
                                 and not (is_cli_tool and in_main_section)  # Exclude CLI tool main sections
@@ -938,8 +941,8 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
 
     # Define the expected core module patterns
     expected_patterns = {
-        "errors": "hive_errors",  # Should have errors.py extending hive_errors
-        "bus": "hive_bus",  # Should have bus.py extending hive_bus
+        "errors": "hive_errors",  # Should have errors.py extending hive_errors,
+        "bus": "hive_bus",  # Should have bus.py extending hive_bus,
         "db": "hive_db",  # Should have db.py extending hive_db
     }
 
@@ -1743,12 +1746,12 @@ def validate_pyproject_dependency_usage(project_root: Path) -> Tuple[bool, List[
 
                 # Filter out common exceptions that might not be directly imported
                 exceptions = {
-                    "click",  # CLI tool, might be used via decorators
-                    "uvicorn",  # Server runner
-                    "pytest",  # Test framework
-                    "black",  # Code formatter
-                    "mypy",  # Type checker
-                    "ruff",  # Linter
+                    "click",  # CLI tool, might be used via decorators,
+                    "uvicorn",  # Server runner,
+                    "pytest",  # Test framework,
+                    "black",  # Code formatter,
+                    "mypy",  # Type checker,
+                    "ruff",  # Linter,
                     "isort",  # Import sorter
                 }
 

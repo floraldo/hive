@@ -21,13 +21,13 @@ class EnhancedResultsIO:
 
     def save_results_structured(
         self,
-        system,
+        system
         simulation_id: str,
         output_dir: Path,
         study_id: str | None = None,
-        metadata: dict | None = None,
+        metadata: dict | None = None
     ) -> Path:
-        """Save simulation results in structured directory format.
+        """Save simulation results in structured directory format.,
 
         Creates directory structure:
         output_dir/
@@ -38,14 +38,14 @@ class EnhancedResultsIO:
         │   └── kpis.json                  # Calculated KPIs and summary
 
         Args:
-            system: Solved system object
-            simulation_id: Unique simulation identifier
-            output_dir: Base directory for structured storage
-            study_id: Optional study identifier for grouping runs
+            system: Solved system object,
+            simulation_id: Unique simulation identifier,
+            output_dir: Base directory for structured storage,
+            study_id: Optional study identifier for grouping runs,
             metadata: Additional metadata to save
 
         Returns:
-            Path to created run directory
+            Path to created run directory,
         """
         output_dir = Path(output_dir)
         study_id = study_id or "default_study"
@@ -78,7 +78,7 @@ class EnhancedResultsIO:
             "timestamp": datetime.now().isoformat(),
             "solver_type": getattr(system, "solver_type", "unknown"),
             "metadata": metadata or {},
-            # Add system configuration if available
+            # Add system configuration if available,
             "system_config": getattr(system, "config", {}),
         }
 
@@ -89,10 +89,8 @@ class EnhancedResultsIO:
         # Calculate and save KPIs
         try:
             from ecosystemiser.analyser.kpi_calculator import KPICalculator
-
             kpi_calc = KPICalculator()
             kpis = kpi_calc.calculate_from_system(system)
-
             kpi_data = {
                 "run_id": run_id,
                 "calculation_timestamp": datetime.now().isoformat(),
@@ -101,7 +99,7 @@ class EnhancedResultsIO:
                     "total_flows": len(results["flows"]),
                     "total_components": len(results["components"]),
                     "simulation_status": "completed",
-                },
+                }
             }
 
             kpis_path = run_dir / "kpis.json"
@@ -109,7 +107,7 @@ class EnhancedResultsIO:
                 json.dump(kpi_data, f, indent=2, default=str)
 
         except Exception as e:
-            logger.warning(f"Failed to calculate KPIs: {e}")
+            logger.warning(f"Failed to calculate KPIs: {e}"),
             # Save minimal KPI data
             kpi_data = {
                 "run_id": run_id,
@@ -120,7 +118,7 @@ class EnhancedResultsIO:
                     "total_flows": len(results["flows"]),
                     "total_components": len(results["components"]),
                     "simulation_status": "completed_with_kpi_errors",
-                },
+                }
             }
 
             kpis_path = run_dir / "kpis.json"
@@ -128,9 +126,9 @@ class EnhancedResultsIO:
                 json.dump(kpi_data, f, indent=2, default=str)
 
         logger.info(f"Structured results saved to {run_dir}")
-        logger.info(f"  - Flows: {flows_path} ({flows_data.shape[0]} records)")
-        logger.info(f"  - Components: {components_path} ({components_data.shape[0]} records)")
-        logger.info(f"  - Config: {config_path}")
+        logger.info(f"  - Flows: {flows_path} ({flows_data.shape[0]} records)"),
+        logger.info(f"  - Components: {components_path} ({components_data.shape[0]} records)"),
+        logger.info(f"  - Config: {config_path}"),
         logger.info(f"  - KPIs: {kpis_path}")
 
         return run_dir
@@ -142,14 +140,14 @@ class EnhancedResultsIO:
             "timesteps": system.N,
             "components": {},
             "flows": {},
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat()
         }
 
-        # Extract component states with enhanced CVXPY handling
+        # Extract component states with enhanced CVXPY handling,
         for comp_name, component in system.components.items():
             comp_data = {"type": component.type, "medium": component.medium}
 
-            # Extract storage levels
+            # Extract storage levels,
             if component.type == "storage" and hasattr(component, "E"):
                 if isinstance(component.E, np.ndarray):
                     comp_data["E"] = component.E.tolist()
@@ -164,7 +162,7 @@ class EnhancedResultsIO:
 
                 comp_data["E_max"] = float(component.E_max) if hasattr(component, "E_max") else None
 
-            # Extract generation profiles
+            # Extract generation profiles,
             if component.type == "generation" and hasattr(component, "profile"):
                 if isinstance(component.profile, np.ndarray):
                     comp_data["profile"] = component.profile.tolist()
@@ -179,15 +177,15 @@ class EnhancedResultsIO:
 
             results["components"][comp_name] = comp_data
 
-        # Extract flows with enhanced CVXPY handling
+        # Extract flows with enhanced CVXPY handling,
         for flow_name, flow_data in system.flows.items():
             flow_result = {
                 "source": flow_data["source"],
                 "target": flow_data["target"],
-                "type": flow_data["type"],
+                "type": flow_data["type"]
             }
 
-            # Enhanced flow value extraction
+            # Enhanced flow value extraction,
             if "value" in flow_data:
                 flow_value = flow_data["value"]
 
@@ -222,17 +220,16 @@ class EnhancedResultsIO:
                     data.append(
                         {
                             "timestep": t,
-                            "flow_name": flow_name,
+                            "flow_name": flow_name
                             "source": flow_info["source"],
-                            "target": flow_info["target"],
+                            "target": flow_info["target"]
                             "type": flow_info["type"],
-                            "value": value,
+                            "value": value
                         }
                     )
-
         df = pd.DataFrame(data)
 
-        # Optimize data types for storage efficiency
+        # Optimize data types for storage efficiency,
         if not df.empty:
             df["timestep"] = df["timestep"].astype("uint16")  # Max 65535 timesteps
             df["value"] = df["value"].astype("float32")  # Sufficient precision for energy flows
@@ -248,39 +245,38 @@ class EnhancedResultsIO:
         data = []
 
         for comp_name, comp_data in components.items():
-            # Storage levels
+            # Storage levels,
             if "E" in comp_data and comp_data["E"]:
                 for t, energy in enumerate(comp_data["E"]):
                     data.append(
                         {
                             "timestep": t,
-                            "component_name": comp_name,
+                            "component_name": comp_name
                             "type": comp_data["type"],
-                            "medium": comp_data["medium"],
+                            "medium": comp_data["medium"]
                             "variable": "energy_level",
-                            "value": energy,
-                            "unit": "kWh",
+                            "value": energy
+                            "unit": "kWh"
                         }
                     )
 
-            # Generation profiles
+            # Generation profiles,
             if "profile" in comp_data and comp_data["profile"]:
                 for t, generation in enumerate(comp_data["profile"]):
                     data.append(
                         {
                             "timestep": t,
-                            "component_name": comp_name,
+                            "component_name": comp_name
                             "type": comp_data["type"],
-                            "medium": comp_data["medium"],
+                            "medium": comp_data["medium"]
                             "variable": "generation",
-                            "value": generation,
-                            "unit": "kW",
+                            "value": generation
+                            "unit": "kW"
                         }
                     )
-
         df = pd.DataFrame(data)
 
-        # Optimize data types for storage efficiency
+        # Optimize data types for storage efficiency,
         if not df.empty:
             df["timestep"] = df["timestep"].astype("uint16")
             df["value"] = df["value"].astype("float32")
@@ -299,13 +295,12 @@ class EnhancedResultsIO:
             run_dir: Path to run directory
 
         Returns:
-            Dictionary containing all results and metadata
+            Dictionary containing all results and metadata,
         """
         run_dir = Path(run_dir)
 
         if not run_dir.exists():
             raise FileNotFoundError(f"Run directory not found: {run_dir}")
-
         results = {}
 
         # Load configuration
@@ -348,8 +343,8 @@ class EnhancedResultsIO:
                 "source": flow_df["source"].iloc[0],
                 "target": flow_df["target"].iloc[0],
                 "type": flow_df["type"].iloc[0],
-                "value": flow_df["value"].tolist(),
-            }
+                "value": flow_df["value"].tolist()
+            },
 
         return flows
 
@@ -359,10 +354,9 @@ class EnhancedResultsIO:
 
         for comp_name in df["component_name"].unique():
             comp_df = df[df["component_name"] == comp_name]
-
             comp_data = {
                 "type": comp_df["type"].iloc[0],
-                "medium": comp_df["medium"].iloc[0],
+                "medium": comp_df["medium"].iloc[0]
             }
 
             # Extract energy levels
@@ -386,7 +380,7 @@ class EnhancedResultsIO:
             run_dir: Path to run directory
 
         Returns:
-            Summary dictionary suitable for database storage
+            Summary dictionary suitable for database storage,
         """
         run_dir = Path(run_dir)
         summary = {}
@@ -400,11 +394,11 @@ class EnhancedResultsIO:
                     summary.update(
                         {
                             "run_id": config.get("run_id"),
-                            "study_id": config.get("study_id"),
+                            "study_id": config.get("study_id")
                             "system_id": config.get("system_id"),
-                            "timesteps": config.get("timesteps"),
+                            "timesteps": config.get("timesteps")
                             "timestamp": config.get("timestamp"),
-                            "solver_type": config.get("solver_type", "unknown"),
+                            "solver_type": config.get("solver_type", "unknown")
                         }
                     )
 
@@ -415,22 +409,22 @@ class EnhancedResultsIO:
                     kpi_data = json.load(f)
                     kpis = kpi_data.get("kpis", {})
 
-                    # Extract key metrics for database indexing
+                    # Extract key metrics for database indexing,
                     summary.update(
                         {
                             "total_cost": kpis.get("total_cost"),
-                            "total_co2": kpis.get("total_co2"),
+                            "total_co2": kpis.get("total_co2")
                             "self_consumption_rate": kpis.get("self_consumption_rate"),
-                            "self_sufficiency_rate": kpis.get("self_sufficiency_rate"),
+                            "self_sufficiency_rate": kpis.get("self_sufficiency_rate")
                             "renewable_fraction": kpis.get("renewable_fraction"),
-                            "total_generation_kwh": kpis.get("total_generation_kwh"),
+                            "total_generation_kwh": kpis.get("total_generation_kwh")
                             "total_demand_kwh": kpis.get("total_demand_kwh"),
-                            "net_grid_usage_kwh": kpis.get("net_grid_usage_kwh"),
-                            "simulation_status": kpi_data.get("summary", {}).get("simulation_status", "unknown"),
+                            "net_grid_usage_kwh": kpis.get("net_grid_usage_kwh")
+                            "simulation_status": kpi_data.get("summary", {}).get("simulation_status", "unknown")
                         }
                     )
 
-            # Add file paths for reference
+            # Add file paths for reference,
             summary["results_path"] = str(run_dir)
             summary["flows_path"] = str(run_dir / "flows.parquet")
             summary["components_path"] = str(run_dir / "components.parquet")

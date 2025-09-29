@@ -12,15 +12,13 @@ Test Implementation: Calculator Service with Intentional Issues
 - Validates final working version
 """
 
-import json
 import subprocess
-import time
-import requests
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List
-import traceback
+
+import requests
 
 # Import the FAT framework
 sys.path.insert(0, str(Path(__file__).parent))
@@ -547,9 +545,9 @@ def simulate_rework_cycle(test_case):
                 print(f"   [FAIL] Tests failed in iteration {iteration}, applying fixes...")
                 # Extract failure info for feedback
                 if "FAILED" in test_result.stderr:
-                    print(f"   [FEEDBACK] Analyzing test failures for next iteration...")
+                    print("   [FEEDBACK] Analyzing test failures for next iteration...")
             else:
-                print(f"   [FAIL] Maximum iterations reached without full success")
+                print("   [FAIL] Maximum iterations reached without full success")
 
     return iterations
 
@@ -746,7 +744,7 @@ if __name__ == "__main__":
     result = run_failure_rework_test()
 
     if result["success"]:
-        print(f"\n[SUCCESS] Failure and Rework Test completed successfully!")
+        print("\n[SUCCESS] Failure and Rework Test completed successfully!")
         exit(0)
     else:
         print(f"\n[FAILURE] Failure and Rework Test failed: {result['error']}")

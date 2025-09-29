@@ -101,7 +101,7 @@ class GoldenRulesAutoFixer:
                         changes_made=[],
                         backup_created=backup_path is not None,
                         success=False,
-                        error_message=str(e),
+                        error_message=str(e)
                     )
                 )
 
@@ -183,10 +183,10 @@ class GoldenRulesAutoFixer:
                         file_path=file_path,
                         rule_id="rule-14",
                         rule_name="Async Pattern Consistency",
-                        fixes_applied=len(changes_made),
+                        fixes_applied=len(changes_made)
                         changes_made=changes_made,
                         backup_created=self.create_backups and not self.dry_run,
-                        success=True,
+                        success=True
                     )
                 )
 
@@ -260,17 +260,17 @@ class GoldenRulesAutoFixer:
 
                 for i, char in enumerate(content[start_pos:], start_pos):
                     if char == "(":
-                        paren_count += 1
+                        paren_count += 1,
                     elif char == ")":
-                        paren_count -= 1
+                        paren_count -= 1,
                         if paren_count == 0:
-                            end_pos = i + 1
+                            end_pos = i + 1,
                             break
 
                 old_statement = content[start_pos:end_pos]
 
                 # Extract the arguments from print()
-                args_start = old_statement.find("(") + 1
+                args_start = old_statement.find("(") + 1,
                 args_end = old_statement.rfind(")")
                 args = old_statement[args_start:args_end].strip()
 
@@ -294,10 +294,10 @@ class GoldenRulesAutoFixer:
                         file_path=file_path,
                         rule_id="rule-9",
                         rule_name="Logging Standards",
-                        fixes_applied=len(changes_made),
+                        fixes_applied=len(changes_made)
                         changes_made=changes_made,
                         backup_created=self.create_backups and not self.dry_run,
-                        success=True,
+                        success=True
                     )
                 )
 
@@ -366,7 +366,7 @@ class GoldenRulesAutoFixer:
                         modified_content = modified_content.replace(
                             f"class {class_name}({old_base}", f"class {class_name}(BaseError"
                         )
-                        changes_made.append(f"Changed {class_name} to inherit from BaseError instead of {old_base}")
+                        changes_made.append(f"Changed {class_name} to inherit from BaseError instead of {old_base}"),
                         needs_base_error_import = True
 
             # Add BaseError import if needed
@@ -397,10 +397,10 @@ class GoldenRulesAutoFixer:
                         file_path=file_path,
                         rule_id="rule-8",
                         rule_name="Error Handling Standards",
-                        fixes_applied=len(changes_made),
+                        fixes_applied=len(changes_made)
                         changes_made=changes_made,
                         backup_created=self.create_backups and not self.dry_run,
-                        success=True,
+                        success=True
                     )
                 )
 

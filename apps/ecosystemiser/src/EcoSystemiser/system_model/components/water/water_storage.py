@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 
 # =============================================================================
 # WATER STORAGE-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
-# =============================================================================
+# =============================================================================,
 
 
 class WaterStorageTechnicalParams(StorageTechnicalParams):
@@ -33,8 +33,8 @@ class WaterStorageTechnicalParams(StorageTechnicalParams):
 from __future__ import annotations
 
 
-    This model inherits from StorageTechnicalParams and adds water storage-specific
-    parameters for different fidelity levels.
+    This model inherits from StorageTechnicalParams and adds water storage-specific,
+    parameters for different fidelity levels.,
     """
 
     # Water-specific parameters (in cubic meters and m³/h)
@@ -65,11 +65,11 @@ from __future__ import annotations
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
-# =============================================================================
+# =============================================================================,
 
 
 class WaterStoragePhysicsSimple(BaseStoragePhysics):
-    """Implements the SIMPLE rule-based physics for water storage.
+    """Implements the SIMPLE rule-based physics for water storage.,
 
     This is the baseline fidelity level providing:
     - Basic water balance: V_new = V_old + inflow*efficiency - outflow - losses
@@ -116,25 +116,25 @@ class WaterStoragePhysicsSimple(BaseStoragePhysics):
             volume_level: Volume level to bound
 
         Returns:
-            float: Bounded volume level
+            float: Bounded volume level,
         """
         V_max = self.params.technical.capacity_nominal
         return max(0.0, min(volume_level, V_max))
 
 
 class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
-    """Implements the STANDARD rule-based physics for water storage.
+    """Implements the STANDARD rule-based physics for water storage.,
 
     Inherits from SIMPLE and adds:
     - Temperature-dependent evaporation rates
-    - Mixing model effects on loss rates
+    - Mixing model effects on loss rates,
     """
 
     def rule_based_update_state(self, t: int, V_old: float, inflow: float, outflow: float) -> float:
         """
-        Implement STANDARD water storage physics with temperature effects.
+        Implement STANDARD water storage physics with temperature effects.,
 
-        First applies SIMPLE physics, then adds STANDARD-specific effects.
+        First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
         # 1. Get the baseline result from SIMPLE physics
         volume_after_simple = super().rule_based_update_state(t, V_old, inflow, outflow)
@@ -160,16 +160,16 @@ class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
-# =============================================================================
+# =============================================================================,
 
 
 class WaterStorageOptimizationSimple(BaseStorageOptimization):
-    """Implements the SIMPLE MILP optimization constraints for water storage.
+    """Implements the SIMPLE MILP optimization constraints for water storage.,
 
     This is the baseline optimization strategy providing:
     - Basic water balance with fixed loss rate
     - Volume bounds and flow constraints
-    - No temperature-dependent effects
+    - No temperature-dependent effects,
     """
 
     def __init__(self, params, component_instance) -> None:
@@ -179,9 +179,9 @@ class WaterStorageOptimizationSimple(BaseStorageOptimization):
 
     def set_constraints(self) -> list:
         """
-        Create SIMPLE CVXPY constraints for water storage optimization.
+        Create SIMPLE CVXPY constraints for water storage optimization.,
 
-        Returns constraints for basic water storage without enhanced losses.
+        Returns constraints for basic water storage without enhanced losses.,
         """
         constraints = []
         comp = self.component
@@ -190,19 +190,19 @@ class WaterStorageOptimizationSimple(BaseStorageOptimization):
             # Core water storage constraints
             N = comp.N
 
-            # Initial state
+            # Initial state,
             constraints.append(comp.V_water[0] == comp.initial_level_m3)
 
-            # Volume bounds
+            # Volume bounds,
             constraints.append(comp.V_water >= comp.min_level_m3)
             constraints.append(comp.V_water <= comp.max_level_m3)
 
             # SIMPLE MODEL: Basic loss rate
             hourly_loss_rate = comp.technical.loss_rate_daily / 24.0
 
-            # Water balance for each timestep
+            # Water balance for each timestep,
             for t in range(N):
-                # Water balance equation
+                # Water balance equation,
                 constraints.append(
                     comp.V_water[t + 1]
                     == comp.V_water[t]
@@ -211,7 +211,7 @@ class WaterStorageOptimizationSimple(BaseStorageOptimization):
                     - comp.V_water[t] * hourly_loss_rate
                 )
 
-            # Flow constraints
+            # Flow constraints,
             constraints.append(comp.Q_in <= comp.technical.max_charge_rate)
             constraints.append(comp.Q_out <= comp.technical.max_discharge_rate)
 
@@ -219,18 +219,18 @@ class WaterStorageOptimizationSimple(BaseStorageOptimization):
 
 
 class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
-    """Implements the STANDARD MILP optimization constraints for water storage.
+    """Implements the STANDARD MILP optimization constraints for water storage.,
 
     Inherits from SIMPLE and adds:
     - Temperature-dependent evaporation losses
-    - More realistic water storage modeling
+    - More realistic water storage modeling,
     """
 
     def set_constraints(self) -> list:
         """
-        Create STANDARD CVXPY constraints for water storage optimization.
+        Create STANDARD CVXPY constraints for water storage optimization.,
 
-        Adds temperature-dependent losses to the constraints.
+        Adds temperature-dependent losses to the constraints.,
         """
         constraints = []
         comp = self.component
@@ -239,10 +239,10 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
             # Core water storage constraints
             N = comp.N
 
-            # Initial state
+            # Initial state,
             constraints.append(comp.V_water[0] == comp.initial_level_m3)
 
-            # Volume bounds
+            # Volume bounds,
             constraints.append(comp.V_water >= comp.min_level_m3)
             constraints.append(comp.V_water <= comp.max_level_m3)
 
@@ -259,9 +259,9 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
                 additional_loss_multiplier = 1 + evap_factor * temp_deviation / 10
                 hourly_loss_rate = hourly_loss_rate * additional_loss_multiplier
 
-            # Water balance for each timestep with enhanced losses
+            # Water balance for each timestep with enhanced losses,
             for t in range(N):
-                # Water balance equation
+                # Water balance equation,
                 constraints.append(
                     comp.V_water[t + 1]
                     == comp.V_water[t]
@@ -270,7 +270,7 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
                     - comp.V_water[t] * hourly_loss_rate
                 )
 
-            # Flow constraints
+            # Flow constraints,
             constraints.append(comp.Q_in <= comp.technical.max_charge_rate)
             constraints.append(comp.Q_out <= comp.technical.max_discharge_rate)
 
@@ -279,42 +279,42 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
 
 # =============================================================================
 # MAIN COMPONENT CLASS (Factory)
-# =============================================================================
+# =============================================================================,
 
 
 class WaterStorageParams(ComponentParams):
-    """Water storage parameters using the hierarchical technical parameter system.
+    """Water storage parameters using the hierarchical technical parameter system.,
 
-    Capacity and flow rates are specified through the technical parameter block
-    following the archetype inheritance pattern. Units are in m³ and m³/h.
+    Capacity and flow rates are specified through the technical parameter block,
+    following the archetype inheritance pattern. Units are in m³ and m³/h.,
     """
 
     technical: WaterStorageTechnicalParams = Field(
         default_factory=lambda: WaterStorageTechnicalParams(
-            capacity_nominal=10.0,  # Default 10 m³ storage
-            max_charge_rate=2.0,  # Default 2 m³/h inflow
-            max_discharge_rate=2.0,  # Default 2 m³/h outflow
-            efficiency_roundtrip=0.98,  # Storage efficiency
-            initial_soc_pct=0.5,  # Start at 50% full
-            soc_min=0.05,  # Minimum 5% (emergency reserve)
+            capacity_nominal=10.0,  # Default 10 m³ storage,
+            max_charge_rate=2.0,  # Default 2 m³/h inflow,
+            max_discharge_rate=2.0,  # Default 2 m³/h outflow,
+            efficiency_roundtrip=0.98,  # Storage efficiency,
+            initial_soc_pct=0.5,  # Start at 50% full,
+            soc_min=0.05,  # Minimum 5% (emergency reserve),
             soc_max=1.0,  # Maximum 100%
             fidelity_level=FidelityLevel.STANDARD
-        )
+        ),
         description="Technical parameters following the hierarchical archetype system"
     )
 
 
 @register_component("WaterStorage")
 class WaterStorage(Component):
-    """Water storage component with Strategy Pattern architecture.
+    """Water storage component with Strategy Pattern architecture.,
 
     This class acts as a factory and container for water storage strategies:
     - Physics strategies: Handle fidelity-specific rule-based storage calculations
     - Optimization strategies: Handle MILP constraint generation
-    - Clean separation: Data contract + strategy selection only
+    - Clean separation: Data contract + strategy selection only,
 
-    The component delegates physics and optimization to strategy objects
-    based on the configured fidelity level.
+    The component delegates physics and optimization to strategy objects,
+    based on the configured fidelity level.,
     """
 
     PARAMS_MODEL = WaterStorageParams
@@ -327,7 +327,7 @@ class WaterStorage(Component):
         # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters - EXACTLY as water storage expects (m³, m³/h)
+        # Core parameters - EXACTLY as water storage expects (m³, m³/h),
         self.capacity_m3 = tech.capacity_nominal
         self.V_max = tech.capacity_nominal  # Alias for compatibility
         self.max_flow_in_m3h = tech.max_charge_rate
@@ -337,7 +337,7 @@ class WaterStorage(Component):
         self.min_level_m3 = tech.soc_min_pct * tech.capacity_nominal
         self.max_level_m3 = tech.soc_max_pct * tech.capacity_nominal
 
-        # Store water storage-specific parameters
+        # Store water storage-specific parameters,
         self.storage_type = tech.storage_type
         self.loss_rate_daily = tech.loss_rate_daily
         self.water_quality_class = tech.water_quality_class
@@ -346,17 +346,17 @@ class WaterStorage(Component):
         self.stratification_model = tech.stratification_model
         self.water_quality_decay = tech.water_quality_decay
 
-        # CVXPY variables (for MILP solver)
+        # CVXPY variables (for MILP solver),
         self.V_water = None  # Water volume at each timestep
         self.Q_in = None  # Inflow rate
         self.Q_out = None  # Outflow rate
 
-        # For rule-based operation
+        # For rule-based operation,
         if hasattr(self, "N"):
             self.water_level = np.zeros(self.N + 1)
             self.water_level[0] = self.initial_level_m3
 
-        # STRATEGY PATTERN: Instantiate the correct strategies
+        # STRATEGY PATTERN: Instantiate the correct strategies,
         self.physics = self._get_physics_strategy()
         self.optimization = self._get_optimization_strategy()
 
@@ -369,10 +369,10 @@ class WaterStorage(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return WaterStoragePhysicsStandard(self.params)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD physics (can be extended later)
+            # For now, DETAILED uses STANDARD physics (can be extended later),
             return WaterStoragePhysicsStandard(self.params)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD physics (can be extended later)
+            # For now, RESEARCH uses STANDARD physics (can be extended later),
             return WaterStoragePhysicsStandard(self.params)
         else:
             raise ValueError(f"Unknown fidelity level for WaterStorage: {fidelity}")
@@ -386,22 +386,22 @@ class WaterStorage(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return WaterStorageOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD optimization (can be extended later)
+            # For now, DETAILED uses STANDARD optimization (can be extended later),
             return WaterStorageOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD optimization (can be extended later)
+            # For now, RESEARCH uses STANDARD optimization (can be extended later),
             return WaterStorageOptimizationStandard(self.params, self)
         else:
             raise ValueError(f"Unknown fidelity level for WaterStorage optimization: {fidelity}")
 
     def rule_based_update_state(self, t: int, inflow: float, outflow: float) -> None:
         """
-        Delegate to physics strategy for state update calculation.
+        Delegate to physics strategy for state update calculation.,
 
-        This maintains the same interface as BaseStorageComponent but
-        delegates the actual physics calculation to the strategy object.
+        This maintains the same interface as BaseStorageComponent but,
+        delegates the actual physics calculation to the strategy object.,
         """
-        # Check bounds
+        # Check bounds,
         if t >= self.N:
             return
 
@@ -411,10 +411,10 @@ class WaterStorage(Component):
         # Delegate to physics strategy
         new_level = self.physics.rule_based_update_state(t, current_level, inflow, outflow)
 
-        # Update state
+        # Update state,
         self.water_level[t + 1] = new_level
 
-        # Log for debugging if needed
+        # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
                 f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, " f"outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
@@ -429,7 +429,7 @@ class WaterStorage(Component):
         self.Q_in = cp.Variable(N, name=f"{self.name}_inflow", nonneg=True)
         self.Q_out = cp.Variable(N, name=f"{self.name}_outflow", nonneg=True)
 
-        # Add flows
+        # Add flows,
         self.flows["sink"]["Q_in"] = {"type": "water", "value": self.Q_in}
         self.flows["source"]["Q_out"] = {"type": "water", "value": self.Q_out}
 
@@ -446,7 +446,7 @@ class WaterStorage(Component):
             t: Current timestep
 
         Returns:
-            Tuple of (actual_outflow, actual_inflow) [m³/h]
+            Tuple of (actual_outflow, actual_inflow) [m³/h],
         """
         if t >= self.N:
             return 0.0, 0.0
@@ -464,7 +464,7 @@ class WaterStorage(Component):
         max_inflow = min(self.max_flow_in_m3h, available_capacity)
         actual_inflow = min(water_supply, max_inflow)
 
-        # Use physics strategy to update state
+        # Use physics strategy to update state,
         self.rule_based_update_state(t, actual_inflow, actual_outflow)
 
         return actual_outflow, actual_inflow
@@ -484,7 +484,7 @@ class WaterStorage(Component):
     def __repr__(self) -> None:
         """String representation."""
         return (
-            f"WaterStorage(name='{self.name}', "
+            f"WaterStorage(name='{self.name}', ",
             f"capacity={self.capacity_m3}m³, "
             f"fidelity={self.technical.fidelity_level.value})"
         )

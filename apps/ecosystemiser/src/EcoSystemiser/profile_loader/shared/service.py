@@ -7,7 +7,7 @@ logger = get_logger(__name__)
 
 
 """
-Unified profile service interface for all profile types.
+Unified profile service interface for all profile types.,
 
 This module defines the common service interface that all profile loaders
 (climate, demand, etc.) should implement for consistency.
@@ -25,10 +25,10 @@ from ecosystemiser.profile_loader.shared.models import (
 
 class BaseProfileService(ABC):
     """
-    Abstract base class for all profile services.
+    Abstract base class for all profile services.,
 
-    This defines the unified interface that all profile loaders should implement
-    ensuring consistency between climate, demand, and future profile types.
+    This defines the unified interface that all profile loaders should implement,
+    ensuring consistency between climate, demand, and future profile types.,
     """
 
     @abstractmethod
@@ -43,7 +43,7 @@ class BaseProfileService(ABC):
             Tuple of (xarray Dataset, Response metadata)
 
         Raises:
-            ProfileServiceError: If request processing fails
+            ProfileServiceError: If request processing fails,
         """
         pass
 
@@ -59,7 +59,7 @@ class BaseProfileService(ABC):
             Tuple of (xarray Dataset, Response metadata)
 
         Raises:
-            ProfileServiceError: If request processing fails
+            ProfileServiceError: If request processing fails,
         """
         pass
 
@@ -82,7 +82,7 @@ class BaseProfileService(ABC):
         Get list of available data sources for this profile type.
 
         Returns:
-            List of source identifiers
+            List of source identifiers,
         """
         pass
 
@@ -95,7 +95,7 @@ class BaseProfileService(ABC):
             source: Optional source filter
 
         Returns:
-            Dictionary mapping variable names to metadata
+            Dictionary mapping variable names to metadata,
         """
         pass
 
@@ -108,7 +108,7 @@ class BaseProfileService(ABC):
             source: Source identifier
 
         Returns:
-            Coverage information including spatial/temporal bounds
+            Coverage information including spatial/temporal bounds,
         """
         pass
 
@@ -117,18 +117,18 @@ class BaseProfileService(ABC):
         Get information about this service.
 
         Returns:
-            Service metadata including capabilities and version
+            Service metadata including capabilities and version,
         """
         return {
             "service_type": self.__class__.__name__,
             "version": "1.0.0",
             "available_sources": self.get_available_sources(),
-            "capabilities": {,
+            "capabilities": {
                 "async_processing": True,
                 "caching": True,
                 "validation": True
             }
-        }
+        },
 
 
 class ProfileServiceError(Exception):
@@ -137,7 +137,7 @@ class ProfileServiceError(Exception):
     def __init__(
         self
         message: str,
-        error_code: str | None = None
+        error_code: str | None = None,
         details: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message)

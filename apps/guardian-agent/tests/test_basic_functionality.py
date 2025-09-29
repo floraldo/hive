@@ -1,13 +1,11 @@
 """Basic functionality tests for Guardian Agent."""
 
-import asyncio
 from pathlib import Path
 
 import pytest
-
+from guardian_agent.analyzers.code_analyzer import CodeAnalyzer
 from guardian_agent.core.config import GuardianConfig
 from guardian_agent.core.interfaces import Severity, ViolationType
-from guardian_agent.analyzers.code_analyzer import CodeAnalyzer
 
 
 @pytest.mark.asyncio
@@ -41,10 +39,7 @@ def complex_function(x, y, z):
     assert len(result.violations) > 0
 
     # Should detect high complexity
-    complexity_violations = [
-        v for v in result.violations
-        if v.rule == "high-complexity"
-    ]
+    complexity_violations = [v for v in result.violations if v.rule == "high-complexity"]
     assert len(complexity_violations) > 0
 
 
@@ -67,10 +62,7 @@ def process_data(data):
     result = await analyzer.analyze(Path("test.py"), code_without_types)
 
     # Should suggest type hints
-    type_suggestions = [
-        s for s in result.suggestions
-        if s.category == "type-hints"
-    ]
+    type_suggestions = [s for s in result.suggestions if s.category == "type-hints"]
     assert len(type_suggestions) > 0
 
 
@@ -95,10 +87,10 @@ def test_config_loading():
 def test_review_result_markdown_generation():
     """Test ReviewResult markdown generation."""
     from guardian_agent.core.interfaces import (
-        ReviewResult,
         AnalysisResult,
-        Violation,
+        ReviewResult,
         Suggestion,
+        Violation,
     )
 
     # Create a sample review result

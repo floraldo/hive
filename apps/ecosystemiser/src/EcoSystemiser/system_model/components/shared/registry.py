@@ -1,4 +1,4 @@
-"""Component Registry System for Dynamic Component Discovery.
+"""Component Registry System for Dynamic Component Discovery.,
 
 This module implements a self-registering component pattern that allows
 components to automatically register themselves for dynamic instantiation.
@@ -13,10 +13,11 @@ COMPONENT_REGISTRY: dict[str, type["Component"]] = {}
 
 
 def register_component(name: str) -> None:
-    """
-    A class decorator that registers a component blueprint in the global registry.
+    (
+        """
+    A class decorator that registers a component blueprint in the global registry.,
 
-    This decorator enables plug-and-play extensibility. New components simply
+    This decorator enables plug-and-play extensibility. New components simply,
     need to use this decorator and they become available to the system.
 
     Args:
@@ -29,14 +30,15 @@ def register_component(name: str) -> None:
         @register_component("Battery")
         class Battery(Component):
             pass
-    """
+    """,
+    )
 
     def decorator(cls: type["Component"]):
         if name in COMPONENT_REGISTRY:
             raise ValueError(
-                f"Component '{name}' is already registered. "
-                f"Existing: {COMPONENT_REGISTRY[name]}, "
-                f"Attempted: {cls}"
+                f"Component '{name}' is already registered. ",
+                f"Existing: {COMPONENT_REGISTRY[name]}, ",
+                f"Attempted: {cls}",
             )
         COMPONENT_REGISTRY[name] = cls
         logger.debug(f"Registered component: {name} -> {cls.__name__}")
@@ -56,7 +58,7 @@ def get_component_class(name: str) -> type["Component"]:
         The component class
 
     Raises:
-        ValueError: If the component name is not found in the registry
+        ValueError: If the component name is not found in the registry,
     """
     if name not in COMPONENT_REGISTRY:
         available = list(COMPONENT_REGISTRY.keys())
@@ -69,7 +71,7 @@ def list_registered_components() -> dict[str, str]:
     Lists all registered components with their class names.
 
     Returns:
-        Dictionary mapping component names to their class names
+        Dictionary mapping component names to their class names,
     """
     return {name: cls.__name__ for name, cls in COMPONENT_REGISTRY.items()}
 
@@ -82,7 +84,7 @@ def is_component_registered(name: str) -> bool:
         name: The component name to check
 
     Returns:
-        True if the component is registered, False otherwise
+        True if the component is registered, False otherwise,
     """
     return name in COMPONENT_REGISTRY
 
@@ -91,7 +93,7 @@ def clear_registry() -> None:
     """
     Clears the component registry (useful for testing).
 
-    Warning: This should only be used in test environments.
+    Warning: This should only be used in test environments.,
     """
     global COMPONENT_REGISTRY
     COMPONENT_REGISTRY.clear()

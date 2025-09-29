@@ -7,8 +7,8 @@ This implementation provides efficient shortest path calculation in weighted gra
 """
 
 import heapq
-from typing import Dict, List, Tuple, Optional, Set
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Set, Tuple
 
 
 @dataclass

@@ -70,9 +70,9 @@ async def run_async_with_retry_async(func: Callable, config: AsyncRetryConfig | 
     retry_strategy = AsyncRetrying(
         stop=stop_after_attempt(config.max_attempts),
         wait=wait_exponential(multiplier=config.multiplier, min=config.min_wait, max=config.max_wait),
-        retry=retry_condition,
+        retry=retry_condition
         before_sleep=(before_sleep_log(logger, "WARNING") if config.log_before_sleep else None),
-        after=after_log(logger, "INFO") if config.log_after_attempt else None,
+        after=after_log(logger, "INFO") if config.log_after_attempt else None
     )
 
     try:

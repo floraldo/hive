@@ -1,6 +1,6 @@
-"""Enhanced StudyService with complete parametric sweep implementation.
+"""Enhanced StudyService with complete parametric sweep implementation.,
 
-This module extends the StudyService with full parameter application support,
+This module extends the StudyService with full parameter application support
 enabling true exploration of design spaces for the intelligent co-pilot vision.
 """
 
@@ -18,13 +18,13 @@ def apply_parameter_to_config(
     """Apply a parameter value to a system configuration dictionary.
 
     Args:
-        config_dict: System configuration dictionary
-        component_name: Name of the component to modify
-        parameter_path: Dot-notation path to parameter (e.g., "technical.capacity_nominal")
+        config_dict: System configuration dictionary,
+        component_name: Name of the component to modify,
+        parameter_path: Dot-notation path to parameter (e.g., "technical.capacity_nominal"),
         value: New value for the parameter
 
     Returns:
-        Modified configuration dictionary
+        Modified configuration dictionary,
     """
     # Deep copy to avoid modifying original
     config = copy.deepcopy(config_dict)
@@ -41,7 +41,7 @@ def apply_parameter_to_config(
             path_parts = parameter_path.split(".")
             current = component
 
-            # Navigate to the parent of the final key
+            # Navigate to the parent of the final key,
             for part in path_parts[:-1]:
                 if part not in current:
                     current[part] = {}
@@ -52,7 +52,7 @@ def apply_parameter_to_config(
             old_value = current.get(final_key, "NOT_SET")
             current[final_key] = value
 
-            logger.debug(f"Updated {component_name}.{parameter_path}: {old_value} -> {value}")
+            logger.debug(f"Updated {component_name}.{parameter_path}: {old_value} -> {value}"),
             break
 
     if not component_found:
@@ -69,16 +69,16 @@ def generate_parameter_report(parameter_settings: dict[str, Any], results: dict[
         results: Simulation results including KPIs
 
     Returns:
-        Report dictionary with parameter influence analysis
+        Report dictionary with parameter influence analysis,
     """
     report = {
         "parameters": parameter_settings,
-        "kpis": results.get("kpis", {}),
+        "kpis": results.get("kpis", {})
         "solver_metrics": results.get("solver_metrics", {}),
-        "sensitivity_score": 0.0,
+        "sensitivity_score": 0.0
     }
 
-    # Calculate sensitivity score based on KPI variance
+    # Calculate sensitivity score based on KPI variance,
     if "kpis" in results:
         # Simple sensitivity metric: sum of normalized KPI values
         kpi_values = [v for v in results["kpis"].values() if isinstance(v, (int, float))]
@@ -98,15 +98,14 @@ class ParametricSweepEnhancement:
         """Create a sweep of battery capacity values.
 
         Args:
-            base_capacity: Base battery capacity in kWh
-            num_points: Number of points to sweep
+            base_capacity: Base battery capacity in kWh,
+            num_points: Number of points to sweep,
             range_factor: Factor to determine sweep range (e.g., 2.0 = 0.5x to 2x base)
 
         Returns:
-            List of capacity values to sweep
+            List of capacity values to sweep,
         """
         import numpy as np
-
         min_capacity = base_capacity / range_factor
         max_capacity = base_capacity * range_factor
 
@@ -121,11 +120,11 @@ class ParametricSweepEnhancement:
             num_points: Number of points to sweep
 
         Returns:
-            List of capacity values to sweep
+            List of capacity values to sweep,
         """
         import numpy as np
 
-        # Solar typically sweeps from 0 to 2x base capacity
+        # Solar typically sweeps from 0 to 2x base capacity,
         return list(np.linspace(0, base_capacity * 2, num_points))
 
     @staticmethod
@@ -150,14 +149,14 @@ class ParametricSweepEnhancement:
             study_result: Complete study result with all simulations
 
         Returns:
-            Analysis report with parameter sensitivities
+            Analysis report with parameter sensitivities,
         """
         analysis = {
             "parameter_sensitivities": {},
             "optimal_configuration": None,
             "pareto_frontier": [],
-            "recommendations": [],
-        }
+            "recommendations": []
+        },
 
         if not study_result.get("all_results"):
             return analysis
@@ -182,7 +181,7 @@ class ParametricSweepEnhancement:
                         kpi_values[kpi_name] = []
                     kpi_values[kpi_name].append(kpi_value)
 
-        # Calculate sensitivities
+        # Calculate sensitivities,
         import numpy as np
 
         for param_name, values in param_values.items():
@@ -191,7 +190,7 @@ class ParametricSweepEnhancement:
 
                 for kpi_name, kpi_vals in kpi_values.items():
                     if len(kpi_vals) == len(values):
-                        # Calculate correlation coefficient
+                        # Calculate correlation coefficient,
                         if all(isinstance(v, (int, float)) for v in values):
                             correlation = np.corrcoef(values, kpi_vals)[0, 1]
                             param_sensitivity[kpi_name] = float(correlation)
@@ -211,7 +210,7 @@ class ParametricSweepEnhancement:
 
         analysis["optimal_configuration"] = best_config
 
-        # Generate recommendations
+        # Generate recommendations,
         if analysis["parameter_sensitivities"]:
             # Find most influential parameters
             max_sensitivity = 0

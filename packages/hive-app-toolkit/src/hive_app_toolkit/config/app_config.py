@@ -211,8 +211,8 @@ class HiveAppConfig:
         Load configuration from environment variables.
 
         Args:
-            prefix: Environment variable prefix
-            config_file: Optional config file path
+            prefix: Environment variable prefix,
+            config_file: Optional config file path,
         """
         import os
 

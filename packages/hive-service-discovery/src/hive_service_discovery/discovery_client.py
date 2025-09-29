@@ -200,7 +200,7 @@ class DiscoveryClient:
         """Select a service instance using load balancing.
 
         Args:
-            service_name: Name of the service
+            service_name: Name of the service,
             session_id: Optional session ID for sticky sessions
 
         Returns:
@@ -215,7 +215,7 @@ class DiscoveryClient:
             return await self.load_balancer.select_service(healthy_services, session_id)
 
         except Exception as e:
-            logger.error(f"Failed to select service instance for {service_name}: {e}")
+            (logger.error(f"Failed to select service instance for {service_name}: {e}"),)
             raise
 
     async def execute_service_request_async(
@@ -230,11 +230,11 @@ class DiscoveryClient:
         """Execute a request against a service with load balancing and retry.
 
         Args:
-            service_name: Name of the service
-            request_func: Async function to execute
-            max_retries: Maximum retries (uses config default if None)
-            session_id: Optional session ID for sticky sessions
-            *args: Arguments for request function
+            service_name: Name of the service,
+            request_func: Async function to execute,
+            max_retries: Maximum retries (uses config default if None),
+            session_id: Optional session ID for sticky sessions,
+            *args: Arguments for request function,
             **kwargs: Keyword arguments for request function
 
         Returns:
@@ -254,7 +254,7 @@ class DiscoveryClient:
             )
 
         except Exception as e:
-            logger.error(f"Service request failed for {service_name}: {e}")
+            (logger.error(f"Service request failed for {service_name}: {e}"),)
             raise
 
     async def get_service_address_async(self, service_name: str) -> str | None:

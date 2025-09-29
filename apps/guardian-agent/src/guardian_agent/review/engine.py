@@ -1,11 +1,10 @@
 """Main review engine orchestrating the code review process."""
 
-import asyncio
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from hive_ai import ModelClient, PromptTemplate, VectorStore
+from hive_ai import ModelClient, VectorStore
 from hive_async import AsyncExecutor
 from hive_cache import CacheClient
 from hive_logging import get_logger
@@ -17,7 +16,6 @@ from guardian_agent.core.interfaces import (
     AnalysisResult,
     ReviewResult,
     Severity,
-    Violation,
 )
 from guardian_agent.prompts.review_prompts import ReviewPromptBuilder
 
@@ -112,7 +110,7 @@ class ReviewEngine:
 
         # Read file content
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             logger.error("Failed to read file %s: %s", file_path, e)
@@ -252,10 +250,7 @@ class ReviewEngine:
 
         # Count auto-fixable violations
         auto_fixable_count = sum(
-            1
-            for result in analysis_results
-            for violation in result.violations
-            if violation.fix_suggestion
+            1 for result in analysis_results for violation in result.violations if violation.fix_suggestion
         )
 
         # Calculate suggestions count

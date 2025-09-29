@@ -8,7 +8,7 @@ AI Reviewer Configuration Management.
 Extends hive-config with reviewer-specific settings following the inherit→extend pattern.
 """
 
-from typing import Dict, List, Optional
+from typing import List
 
 try:
     from hive_config import HiveConfig

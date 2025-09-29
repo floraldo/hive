@@ -1,12 +1,10 @@
 """Tests for HiveCacheClient."""
 
-import asyncio
 import time
-from unittest.mock import AsyncMock, patch
 
 import pytest
 from hive_cache import CacheConfig, HiveCacheClient
-from hive_cache.exceptions import CacheConnectionError, CacheError
+from hive_cache.exceptions import CacheConnectionError
 
 
 @pytest.fixture

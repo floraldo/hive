@@ -11,7 +11,7 @@ for any event-driven system.
 
 import threading
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List
 
 from .base_events import BaseEvent
 from .subscribers import BaseSubscriber
@@ -58,8 +58,8 @@ class BaseBus(ABC):
         Subscribe to events matching a pattern.
 
         Args:
-            event_pattern: Event type pattern (supports wildcards)
-            callback: Function to call when event matches
+            event_pattern: Event type pattern (supports wildcards),
+            callback: Function to call when event matches,
             subscriber_name: Name of the subscribing entity
 
         Returns:
@@ -100,7 +100,7 @@ class BaseBus(ABC):
                     for subscriber in subscribers:
                         try:
                             subscriber.handle_event(event)
-                        except Exception as e:
+                        except Exception:
                             # Subclasses can override error handling
                             self._handle_subscriber_error(subscriber, event)
 

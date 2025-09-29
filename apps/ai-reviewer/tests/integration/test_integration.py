@@ -2,9 +2,8 @@
 Integration tests for the complete AI Reviewer system
 """
 
-import asyncio
 from datetime import datetime
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from ai_reviewer import ReviewAgent, ReviewEngine

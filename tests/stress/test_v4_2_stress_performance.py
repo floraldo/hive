@@ -3,10 +3,7 @@
 import asyncio
 import statistics
 import time
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Dict, List
 
 import pytest
 
@@ -394,7 +391,9 @@ class TestV42StressPerformance:
 
         # Run extended endurance test
         results = await stress_runner.run_stress_test(
-            sustained_operation, duration_seconds=120, concurrent_workers=25  # 2 minutes sustained load
+            sustained_operation,
+            duration_seconds=120,
+            concurrent_workers=25,  # 2 minutes sustained load
         )
 
         # Verify endurance

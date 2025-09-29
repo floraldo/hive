@@ -6,21 +6,18 @@ Tests the complete autonomous task execution flow in a simulated environment
 to validate that all components work together correctly.
 """
 
-import asyncio
 import json
-import pytest
+import os
 import sqlite3
+
+# Test imports
+import sys
 import tempfile
 import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, List
-from unittest.mock import Mock, patch, MagicMock
-
-# Test imports
-import sys
-import os
+from typing import Any, Dict, List
 
 # Add paths for test imports
 test_root = Path(__file__).parent.parent
@@ -576,15 +573,15 @@ class EndToEndIntegrationTest:
             self.test_stats["tasks_completed"] == 3
         ), f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
 
-        print(f"✅ All assertions passed!")
-        print(f"📊 Final Statistics:")
+        print("✅ All assertions passed!")
+        print("📊 Final Statistics:")
         print(f"   Planning tasks created: {self.test_stats['tasks_created']}")
         print(f"   Execution plans generated: {self.test_stats['plans_generated']}")
         print(f"   Subtasks created: {self.test_stats['subtasks_created']}")
         print(f"   Tasks completed: {self.test_stats['tasks_completed']}")
         print(f"   Errors: {len(self.test_stats['errors'])}")
 
-        print(f"\n🎉 End-to-End Integration Test PASSED!")
+        print("\n🎉 End-to-End Integration Test PASSED!")
 
     def test_dependency_resolution(self):
         """Test that dependencies are properly resolved"""
@@ -640,7 +637,7 @@ class EndToEndIntegrationTest:
         completion = self.check_plan_completion(plan_id)
         assert completion["failed_tasks"] == 1, f"Should have 1 failed task but got {completion['failed_tasks']}"
 
-        print(f"✅ Error recovery test passed! Failed tasks properly tracked.")
+        print("✅ Error recovery test passed! Failed tasks properly tracked.")
 
     def run_all_tests(self):
         """Run all integration tests"""
@@ -648,7 +645,7 @@ class EndToEndIntegrationTest:
             self.test_complete_pipeline()
             self.test_dependency_resolution()
             self.test_error_recovery()
-            print(f"\n🏆 ALL INTEGRATION TESTS PASSED!")
+            print("\n🏆 ALL INTEGRATION TESTS PASSED!")
             return True
         except Exception as e:
             print(f"\n❌ INTEGRATION TEST FAILED: {e}")

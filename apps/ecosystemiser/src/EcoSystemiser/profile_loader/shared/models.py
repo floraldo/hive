@@ -5,7 +5,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 """
-Shared base models for all profile loaders.
+Shared base models for all profile loaders.,
 
 This module defines common data structures that can be inherited
 by specific profile types (climate, demand, etc.).
@@ -46,9 +46,9 @@ class DataFrequency(Enum):
 
 class BaseProfileRequest(BaseModel):
     """
-    Base class for all profile data requests.
+    Base class for all profile data requests.,
 
-    Common attributes for any time series profile request.
+    Common attributes for any time series profile request.,
     """
 
     # Location - can be coordinates, ID, or name
@@ -88,11 +88,11 @@ class BaseProfileRequest(BaseModel):
         if not isinstance(v, dict):
             raise ValueError("Period must be a dictionary")
 
-        # Import here to avoid circular imports
+        # Import here to avoid circular imports,
         from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
 
         try:
-            # Validate by attempting to normalize
+            # Validate by attempting to normalize,
             DateTimeProcessor.normalize_period(v)
             return v  # Return original for now, normalization happens at processing time
         except Exception as e:
@@ -104,7 +104,7 @@ class BaseProfileRequest(BaseModel):
         if v is None:
             return v
 
-        # Import here to avoid circular imports
+        # Import here to avoid circular imports,
         from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
 
         try:
@@ -115,19 +115,21 @@ class BaseProfileRequest(BaseModel):
 
     def to_dict(self) -> dict[str, Any]:
         """Convert request to dictionary."""
-        return {
-            "location": self.location,
-            "period": self.period,
-            "variables": self.variables,
-            "resolution": self.resolution,
-            "mode": (self.mode.value if isinstance(self.mode, ProfileMode) else self.mode),
-            "source": self.source,
-            "timezone": self.timezone,
-            "metadata": self.metadata,
-            "request_id": self.request_id,
-            "use_cache": self.use_cache,
-            "cache_ttl": self.cache_ttl,
-        }
+        return (
+            {
+                "location": self.location,
+                "period": self.period,
+                "variables": self.variables,
+                "resolution": self.resolution,
+                "mode": (self.mode.value if isinstance(self.mode, ProfileMode) else self.mode),
+                "source": self.source,
+                "timezone": self.timezone,
+                "metadata": self.metadata,
+                "request_id": self.request_id,
+                "use_cache": self.use_cache,
+                "cache_ttl": self.cache_ttl,
+            },
+        )
 
     def get_normalized_period(self) -> dict[str, pd.Timestamp]:
         """Get normalized period with pandas Timestamps."""
@@ -144,9 +146,9 @@ class BaseProfileRequest(BaseModel):
 
 class BaseProfileResponse(BaseModel):
     """
-    Base class for profile data responses.
+    Base class for profile data responses.,
 
-    Common structure for returning profile data with metadata.
+    Common structure for returning profile data with metadata.,
     """
 
     # Data shape (time_steps, variables)
@@ -188,28 +190,30 @@ class BaseProfileResponse(BaseModel):
 
     def to_dict(self) -> dict[str, Any]:
         """Convert response to dictionary."""
-        return {
-            "shape": self.shape,
-            "start_time": self.start_time.isoformat() if self.start_time else None,
-            "end_time": self.end_time.isoformat() if self.end_time else None,
-            "variables": self.variables,
-            "source": self.source,
-            "processing_steps": self.processing_steps,
-            "quality": self.quality,
-            "cached": self.cached,
-            "cache_key": self.cache_key,
-            "path_parquet": self.path_parquet,
-            "path_csv": self.path_csv,
-            "metadata": self.metadata,
-            "manifest": self.manifest,
-            "processing_time_ms": self.processing_time_ms,
-            "warnings": self.warnings,
-        }
+        return (
+            {
+                "shape": self.shape,
+                "start_time": self.start_time.isoformat() if self.start_time else None,
+                "end_time": self.end_time.isoformat() if self.end_time else None,
+                "variables": self.variables,
+                "source": self.source,
+                "processing_steps": self.processing_steps,
+                "quality": self.quality,
+                "cached": self.cached,
+                "cache_key": self.cache_key,
+                "path_parquet": self.path_parquet,
+                "path_csv": self.path_csv,
+                "metadata": self.metadata,
+                "manifest": self.manifest,
+                "processing_time_ms": self.processing_time_ms,
+                "warnings": self.warnings,
+            },
+        )
 
 
 class DataQuality(BaseModel):
     """
-    Data quality metrics common to all profiles.
+    Data quality metrics common to all profiles.,
     """
 
     completeness: float  # Percentage of non-null values
@@ -222,7 +226,7 @@ class DataQuality(BaseModel):
 
 class LocationInfo(BaseModel):
     """
-    Standard location information.
+    Standard location information.,
     """
 
     latitude: float

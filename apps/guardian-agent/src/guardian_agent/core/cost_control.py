@@ -293,7 +293,8 @@ class ReviewSizeLimiter:
                 try:
                     with open(file_path, encoding="utf-8", errors="ignore") as f:
                         total_lines += sum(1 for _ in f)
-                except:
+                except (OSError, UnicodeDecodeError):
+                    # Skip files that can't be read
                     pass
 
         if total_lines > self.max_total_lines:

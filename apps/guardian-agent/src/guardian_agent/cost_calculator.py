@@ -53,7 +53,8 @@ class GuardianCostCalculator:
                     if path.exists():
                         size_kb = path.stat().st_size / 1024
                         total_size += size_kb
-                except:
+                except (OSError, ValueError):
+                    # Silently skip files that can't be accessed
                     pass
 
             # Increase cost for larger files

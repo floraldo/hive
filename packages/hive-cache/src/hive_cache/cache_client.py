@@ -64,18 +64,18 @@ from __future__ import annotations
             "errors": 0,
             "circuit_breaker_opens": 0,
         }
-        self._last_health_check = None
+        self._last_health_check = None,
         self._health_status = {"healthy": True, "last_check": None, "errors": []}
 
         # Performance monitoring
         self._performance_monitor = (
             MetricsCollector(
-                collection_interval=self.config.performance_monitor_interval
-                if hasattr(self.config, "performance_monitor_interval")
+                collection_interval=self.config.performance_monitor_interval,
+                if hasattr(self.config, "performance_monitor_interval"),
                 else 5.0,
                 max_history=1000,
                 enable_system_metrics=True,
-                enable_async_metrics=True,
+                enable_async_metrics=True
             )
             if config.enable_performance_monitoring
             else None
@@ -249,10 +249,10 @@ from __future__ import annotations
         """Set a value in cache with optional TTL.
 
         Args:
-            key: Cache key
-            value: Value to cache
-            ttl_async: Time to live in seconds (uses default if None)
-            namespace: Cache namespace
+            key: Cache key,
+            value: Value to cache,
+            ttl_async: Time to live in seconds (uses default if None),
+            namespace: Cache namespace,
             overwrite: Whether to overwrite existing key
 
         Returns:
@@ -332,21 +332,21 @@ from __future__ import annotations
 
     async def get_or_set_async(
         self
-        key: str
-        factory: Callable
-        ttl_async: int | None = None
-        namespace: str = "default"
+        key: str,
+        factory: Callable,
+        ttl_async: int | None = None,
+        namespace: str = "default",
         *args
         **kwargs
     ) -> Any:
         """Get value from cache or compute and set_async if missing.
 
         Args:
-            key: Cache key
-            factory: Function to compute value if missing
-            ttl_async: Time to live in seconds
-            namespace: Cache namespace
-            *args: Arguments for factory function
+            key: Cache key,
+            factory: Function to compute value if missing,
+            ttl_async: Time to live in seconds,
+            namespace: Cache namespace,
+            *args: Arguments for factory function,
             **kwargs: Keyword arguments for factory function
 
         Returns:
@@ -512,8 +512,8 @@ from __future__ import annotations
         """Scan keys matching a pattern.
 
         Args:
-            pattern: Key pattern
-            namespace: Cache namespace
+            pattern: Key pattern,
+            namespace: Cache namespace,
             count: Number of keys to return per iteration
 
         Yields:
@@ -586,8 +586,8 @@ from __future__ import annotations
         """Set multiple values in cache.
 
         Args:
-            mapping: Dictionary of key-value pairs
-            ttl_async: Time to live in seconds
+            mapping: Dictionary of key-value pairs,
+            ttl_async: Time to live in seconds,
             namespace: Cache namespace
 
         Returns:
@@ -641,11 +641,11 @@ from __future__ import annotations
             response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
             self._health_status = {
-                "healthy": True
+                "healthy": True,
                 "last_check": datetime.utcnow().isoformat()
-                "response_time_ms": round(response_time, 2)
+                "response_time_ms": round(response_time, 2),
                 "ping_result": ping_result
-                "set_get_test": get_result == b"test_value"
+                "set_get_test": get_result == b"test_value",
                 "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled"
                 "errors": []
             }
@@ -655,9 +655,9 @@ from __future__ import annotations
 
         except Exception as e:
             self._health_status = {
-                "healthy": False
+                "healthy": False,
                 "last_check": datetime.utcnow().isoformat()
-                "errors": [str(e)]
+                "errors": [str(e)],
                 "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled"
             }
             return self._health_status
@@ -673,9 +673,9 @@ from __future__ import annotations
 
         return {
             **self._metrics
-            "hit_rate_percent": round(hit_rate, 2)
+            "hit_rate_percent": round(hit_rate, 2),
             "total_operations": total_operations
-            "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled"
+            "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
             "last_health_check": self._last_health_check
         }
 
@@ -699,12 +699,12 @@ from __future__ import annotations
             operation_metrics = self._performance_monitor.get_metrics(operation_name)
             if operation_metrics:
                 metrics[operation_name] = {
-                    "total_operations": len(operation_metrics)
+                    "total_operations": len(operation_metrics),
                     "avg_execution_time": sum(m.execution_time for m in operation_metrics) / len(operation_metrics)
-                    "avg_memory_usage": sum(m.memory_usage for m in operation_metrics) / len(operation_metrics)
+                    "avg_memory_usage": sum(m.memory_usage for m in operation_metrics) / len(operation_metrics),
                     "avg_operations_per_second": sum(m.operations_per_second for m in operation_metrics)
                     / len(operation_metrics)
-                    "total_bytes_processed": sum(m.bytes_processed for m in operation_metrics)
+                    "total_bytes_processed": sum(m.bytes_processed for m in operation_metrics),
                     "error_rate": sum(m.error_count for m in operation_metrics) / len(operation_metrics)
                     if operation_metrics
                     else 0.0

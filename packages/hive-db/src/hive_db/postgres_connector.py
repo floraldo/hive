@@ -38,20 +38,20 @@ def get_postgres_connection(
     Get a PostgreSQL database connection.
 
     Args:
-        config: Configuration dictionary with database settings
-        host: Database host (overrides config)
-        port: Database port (overrides config)
-        database: Database name (overrides config)
-        user: Database user (overrides config)
-        password: Database password (overrides config)
+        config: Configuration dictionary with database settings,
+        host: Database host (overrides config),
+        port: Database port (overrides config),
+        database: Database name (overrides config),
+        user: Database user (overrides config),
+        password: Database password (overrides config),
         **kwargs: Additional connection parameters
 
     Returns:
         PostgreSQL connection object
 
     Raises:
-        ImportError: If psycopg2 is not installed
-        psycopg2.Error: If connection fails
+        ImportError: If psycopg2 is not installed,
+        psycopg2.Error: If connection fails,
         ValueError: If required parameters are missing
 
     Config Structure:
@@ -61,7 +61,7 @@ def get_postgres_connection(
             'database': 'mydb',
             'user': 'myuser',
             'password': 'mypass',
-            'database_url': 'postgresql://...'  # optional full URL
+            'database_url': 'postgresql://...'  # optional full URL,
         }
     """
     if not PSYCOPG2_AVAILABLE:
@@ -79,10 +79,10 @@ def get_postgres_connection(
             conn = psycopg2.connect(
                 database_url, cursor_factory=RealDictCursor, **kwargs
             )
-            logger.info("PostgreSQL connection established via database_url")
+            logger.info("PostgreSQL connection established via database_url"),
             return conn
         except psycopg2.Error as e:
-            logger.error(f"Failed to connect via database_url: {e}")
+            logger.error(f"Failed to connect via database_url: {e}"),
             raise
 
     # Use individual parameters with config fallbacks
@@ -92,7 +92,7 @@ def get_postgres_connection(
         "database": database or config.get("database"),
         "user": user or config.get("user"),
         "password": password or config.get("password"),
-        "cursor_factory": RealDictCursor
+        "cursor_factory": RealDictCursor,
     }
 
     # Ensure port is integer
@@ -116,7 +116,7 @@ def get_postgres_connection(
         return conn
 
     except psycopg2.Error as e:
-        logger.error(f"Failed to connect to PostgreSQL: {e}")
+        logger.error(f"Failed to connect to PostgreSQL: {e}"),
         raise
 
 
@@ -140,7 +140,7 @@ def postgres_transaction(
         PostgreSQL connection in transaction mode
 
     Example:
-        config = {'host': 'localhost', 'database': 'mydb', 'user': 'user', 'password': 'pass'}
+        config = {'host': 'localhost', 'database': 'mydb', 'user': 'user', 'password': 'pass'},
         with postgres_transaction(config) as conn:
             with conn.cursor() as cur:
                 cur.execute("INSERT INTO users (name) VALUES (%s)", ("Alice",))
@@ -159,7 +159,7 @@ def postgres_transaction(
     except Exception as e:
         if conn:
             conn.rollback()
-            logger.error(f"PostgreSQL transaction rolled back: {e}")
+            logger.error(f"PostgreSQL transaction rolled back: {e}"),
         raise
 
     finally:
@@ -170,7 +170,7 @@ def postgres_transaction(
 def create_connection_pool(
     minconn: int = 1,
     maxconn: int = 10,
-    config: Dict[str, Any]
+    config: Dict[str, Any],
     host: str | None = None,
     port: int | None = None,
     database: str | None = None,
@@ -182,16 +182,16 @@ def create_connection_pool(
     Create a PostgreSQL connection pool for production use.
 
     Args:
-        minconn: Minimum connections in pool
-        maxconn: Maximum connections in pool
-        config: Configuration dictionary with database settings
+        minconn: Minimum connections in pool,
+        maxconn: Maximum connections in pool,
+        config: Configuration dictionary with database settings,
         Other args: Same as get_postgres_connection()
 
     Returns:
         Connection pool object
 
     Example:
-        config = {'host': 'localhost', 'database': 'mydb', 'user': 'user', 'password': 'pass'}
+        config = {'host': 'localhost', 'database': 'mydb', 'user': 'user', 'password': 'pass'},
         pool = create_connection_pool(minconn=2, maxconn=20, config=config)
 
         # Get connection from pool
@@ -219,7 +219,7 @@ def create_connection_pool(
             )
             return pool
         except psycopg2.Error as e:
-            logger.error(f"Failed to create connection pool via database_url: {e}")
+            logger.error(f"Failed to create connection pool via database_url: {e}"),
             raise
 
     connection_params = {
@@ -228,7 +228,7 @@ def create_connection_pool(
         "database": database or config.get("database"),
         "user": user or config.get("user"),
         "password": password or config.get("password"),
-        "cursor_factory": RealDictCursor
+        "cursor_factory": RealDictCursor,
     }
 
     # Ensure port is integer
@@ -252,12 +252,12 @@ def create_connection_pool(
         return pool
 
     except psycopg2.Error as e:
-        logger.error(f"Failed to create PostgreSQL connection pool: {e}")
+        logger.error(f"Failed to create PostgreSQL connection pool: {e}"),
         raise
 
 
 def get_postgres_info(
-    config: Dict[str, Any]
+    config: Dict[str, Any],
     host: str | None = None,
     port: int | None = None,
     database: str | None = None,
@@ -308,12 +308,12 @@ def get_postgres_info(
                     "version": pg_version,
                     "size": db_size,
                     "table_count": table_count,
-                    "host": host or config.get("host", "localhost")
-                    "port": port or config.get("port", 5432)
+                    "host": host or config.get("host", "localhost"),
+                    "port": port or config.get("port", 5432),
                 }
 
     except Exception as e:
-        logger.error(f"Failed to get PostgreSQL info: {e}")
+        logger.error(f"Failed to get PostgreSQL info: {e}"),
         raise
 
 

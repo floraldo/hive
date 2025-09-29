@@ -3,7 +3,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 """
-EcoSystemiser - Intelligent Energy System Design & Optimization Platform
+EcoSystemiser - Intelligent Energy System Design & Optimization Platform,
 
 A comprehensive platform for designing, optimizing, and analyzing
 sustainable energy systems with advanced Discovery Engine capabilities.

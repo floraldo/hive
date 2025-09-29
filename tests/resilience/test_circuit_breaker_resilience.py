@@ -13,13 +13,10 @@ Part of the Production Shield Initiative for foundational chaos engineering.
 
 import asyncio
 import time
-from typing import Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from typing import Dict
 
 import aiohttp
 import pytest
-from aiohttp import web
-from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 # Import circuit breaker implementation from the proper location
 try:
@@ -107,7 +104,9 @@ class ServiceWithCircuitBreaker:
     def __init__(self, dependency_service: MockFailingService):
         self.dependency = dependency_service
         self.circuit_breaker = CircuitBreaker(
-            failure_threshold=3, recovery_timeout=5, expected_exception=aiohttp.ClientError  # Short timeout for testing
+            failure_threshold=3,
+            recovery_timeout=5,
+            expected_exception=aiohttp.ClientError,  # Short timeout for testing
         )
         self.fallback_responses = 0
 

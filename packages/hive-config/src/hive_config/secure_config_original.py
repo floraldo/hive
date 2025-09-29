@@ -49,9 +49,9 @@ class SecureConfigLoader:
         try:
             # Use PBKDF2 to derive a key from the master key
             kdf = PBKDF2(
-                algorithm=hashes.SHA256()
+                algorithm=hashes.SHA256(),
                 length=32
-                salt=b"hive-platform-v3",  # Static salt for deterministic key derivation
+                salt=b"hive-platform-v3",  # Static salt for deterministic key derivation,
                 iterations=100000
             )
             key = base64.urlsafe_b64encode(kdf.derive(self.master_key.encode()))

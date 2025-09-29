@@ -1,12 +1,11 @@
 """Unit tests for AsyncAIPlanner V4.2."""
 
 import asyncio
-import pytest
 import time
 import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Dict, Any, List
+
+import pytest
 
 # Import the components we're testing
 from ai_planner.async_agent import (
@@ -83,9 +82,7 @@ class TestAsyncClaudeService:
         priority = 80
         requestor = "test_user"
 
-        result = await claude_service.generate_execution_plan_async(
-            task_description, context_data, priority, requestor
-        )
+        result = await claude_service.generate_execution_plan_async(task_description, context_data, priority, requestor)
 
         # Verify result structure
         assert isinstance(result, dict)
@@ -115,9 +112,7 @@ class TestAsyncClaudeService:
         # Make multiple rapid calls
         tasks = []
         for i in range(3):  # Small number to avoid long test times
-            task = claude_service.generate_execution_plan_async(
-                f"Task {i}", {}, 50, "test_user"
-            )
+            task = claude_service.generate_execution_plan_async(f"Task {i}", {}, 50, "test_user")
             tasks.append(task)
 
         results = await asyncio.gather(*tasks)
@@ -140,9 +135,7 @@ class TestAsyncClaudeService:
         start_time = time.time()
 
         tasks = [
-            claude_service.generate_execution_plan_async(
-                f"Concurrent task {i}", {}, 50, "test_user"
-            )
+            claude_service.generate_execution_plan_async(f"Concurrent task {i}", {}, 50, "test_user")
             for i in range(num_tasks)
         ]
 
@@ -160,15 +153,12 @@ class TestAsyncClaudeService:
     async def test_complexity_analysis(self, claude_service):
         """Test complexity analysis for different task types."""
         # Test simple task
-        simple_result = await claude_service.generate_execution_plan_async(
-            "Print hello world", {}, 30, "test_user"
-        )
+        simple_result = await claude_service.generate_execution_plan_async("Print hello world", {}, 30, "test_user")
         simple_breakdown = simple_result["complexity_breakdown"]
 
         # Test complex task
         complex_result = await claude_service.generate_execution_plan_async(
-            "Build a distributed microservices architecture with Docker, Kubernetes, and CI/CD",
-            {}, 90, "test_user"
+            "Build a distributed microservices architecture with Docker, Kubernetes, and CI/CD", {}, 90, "test_user"
         )
         complex_breakdown = complex_result["complexity_breakdown"]
 
@@ -189,8 +179,8 @@ class TestAsyncAIPlanner:
         assert async_planner.results_cache == {}
 
     @pytest.mark.asyncio
-    @patch('ai_planner.async_agent.get_async_db_operations')
-    @patch('ai_planner.async_agent.get_async_event_bus')
+    @patch("ai_planner.async_agent.get_async_db_operations")
+    @patch("ai_planner.async_agent.get_async_event_bus")
     async def test_planner_initialize_async(self, mock_get_bus, mock_get_db, async_planner):
         """Test async initialization."""
         mock_get_db.return_value = AsyncMock()
@@ -203,7 +193,7 @@ class TestAsyncAIPlanner:
         assert async_planner.claude_service is not None
 
     @pytest.mark.asyncio
-    @patch('ai_planner.async_agent.get_async_db_operations')
+    @patch("ai_planner.async_agent.get_async_db_operations")
     async def test_get_next_planning_task_async(self, mock_get_db, async_planner):
         """Test getting next task from queue."""
         # Setup mock database
@@ -213,7 +203,7 @@ class TestAsyncAIPlanner:
             "description": "Test task",
             "priority": 80,
             "status": "pending",
-            "requestor": "test_user"
+            "requestor": "test_user",
         }
         mock_db.execute_query_async.return_value = [mock_task]
         mock_get_db.return_value = mock_db
@@ -228,8 +218,8 @@ class TestAsyncAIPlanner:
         assert task["description"] == "Test task"
 
     @pytest.mark.asyncio
-    @patch('ai_planner.async_agent.get_async_db_operations')
-    @patch('ai_planner.async_agent.get_async_event_bus')
+    @patch("ai_planner.async_agent.get_async_db_operations")
+    @patch("ai_planner.async_agent.get_async_event_bus")
     async def test_generate_plan_async(self, mock_get_bus, mock_get_db, async_planner):
         """Test plan generation end-to-end."""
         # Setup mocks
@@ -249,7 +239,7 @@ class TestAsyncAIPlanner:
             "description": "Create a web application",
             "priority": 80,
             "requestor": "test_user",
-            "context_data": {"framework": "FastAPI"}
+            "context_data": {"framework": "FastAPI"},
         }
 
         # Generate plan
@@ -269,8 +259,8 @@ class TestAsyncAIPlanner:
         mock_bus.publish_async.assert_called()
 
     @pytest.mark.asyncio
-    @patch('ai_planner.async_agent.get_async_db_operations')
-    @patch('ai_planner.async_agent.get_async_event_bus')
+    @patch("ai_planner.async_agent.get_async_db_operations")
+    @patch("ai_planner.async_agent.get_async_event_bus")
     async def test_concurrent_plan_generation(self, mock_get_bus, mock_get_db, async_planner):
         """Test concurrent plan generation capabilities."""
         # Setup mocks
@@ -291,7 +281,7 @@ class TestAsyncAIPlanner:
                 "description": f"Test task {i}",
                 "priority": 70 + i,
                 "requestor": "test_user",
-                "context_data": {}
+                "context_data": {},
             }
             for i in range(5)
         ]
@@ -313,7 +303,7 @@ class TestAsyncAIPlanner:
         assert end_time - start_time < 5.0  # Should complete quickly in mock mode
 
     @pytest.mark.asyncio
-    @patch('ai_planner.async_agent.get_async_db_operations')
+    @patch("ai_planner.async_agent.get_async_db_operations")
     async def test_error_handling_database_failure(self, mock_get_db, async_planner):
         """Test error handling when database operations fail."""
         # Setup mock to fail
@@ -328,7 +318,7 @@ class TestAsyncAIPlanner:
             "description": "Test task",
             "priority": 80,
             "requestor": "test_user",
-            "context_data": {}
+            "context_data": {},
         }
 
         # Should handle error gracefully
@@ -339,8 +329,8 @@ class TestAsyncAIPlanner:
         assert "Database connection failed" in result["error"]
 
     @pytest.mark.asyncio
-    @patch('ai_planner.async_agent.get_async_db_operations')
-    @patch('ai_planner.async_agent.get_async_event_bus')
+    @patch("ai_planner.async_agent.get_async_db_operations")
+    @patch("ai_planner.async_agent.get_async_event_bus")
     async def test_performance_monitoring(self, mock_get_bus, mock_get_db, async_planner):
         """Test performance monitoring capabilities."""
         # Setup mocks
@@ -358,7 +348,7 @@ class TestAsyncAIPlanner:
                 "description": f"Test task {i}",
                 "priority": 70,
                 "requestor": "test_user",
-                "context_data": {}
+                "context_data": {},
             }
             for i in range(3)
         ]
@@ -373,7 +363,7 @@ class TestAsyncAIPlanner:
         assert async_planner.performance_metrics["failed_tasks"] == 0
 
     @pytest.mark.asyncio
-    @patch('ai_planner.async_agent.get_async_db_operations')
+    @patch("ai_planner.async_agent.get_async_db_operations")
     async def test_queue_management(self, mock_get_db, async_planner):
         """Test task queue management."""
         mock_db = AsyncMock()
@@ -386,11 +376,7 @@ class TestAsyncAIPlanner:
 
         # Add tasks to queue
         for i in range(5):
-            task = {
-                "id": f"task_{i}",
-                "description": f"Test task {i}",
-                "priority": 70 + i
-            }
+            task = {"id": f"task_{i}", "description": f"Test task {i}", "priority": 70 + i}
             await async_planner.processing_queue.put(task)
 
         assert async_planner.processing_queue.qsize() == 5
@@ -408,13 +394,13 @@ class TestAsyncAIPlanner:
         low_priority_task = {
             "id": "low_task",
             "priority": PlanningPriority.LOW.value,
-            "description": "Low priority task"
+            "description": "Low priority task",
         }
 
         high_priority_task = {
             "id": "high_task",
             "priority": PlanningPriority.CRITICAL.value,
-            "description": "High priority task"
+            "description": "High priority task",
         }
 
         # Both should be processable (detailed priority queue testing would require more complex setup)
@@ -425,8 +411,8 @@ class TestAsyncPlannerIntegration:
     """Integration tests for AsyncAIPlanner components working together."""
 
     @pytest.mark.asyncio
-    @patch('ai_planner.async_agent.get_async_db_operations')
-    @patch('ai_planner.async_agent.get_async_event_bus')
+    @patch("ai_planner.async_agent.get_async_db_operations")
+    @patch("ai_planner.async_agent.get_async_event_bus")
     async def test_full_planning_workflow(self, mock_get_bus, mock_get_db):
         """Test complete planning workflow from task receipt to plan delivery."""
         # Setup comprehensive mocks
@@ -453,8 +439,8 @@ class TestAsyncPlannerIntegration:
                 "framework": "FastAPI",
                 "database": "PostgreSQL",
                 "authentication": "JWT",
-                "deployment": "Docker"
-            }
+                "deployment": "Docker",
+            },
         }
 
         # Execute planning workflow

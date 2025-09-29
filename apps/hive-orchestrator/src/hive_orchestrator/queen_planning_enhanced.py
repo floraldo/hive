@@ -7,16 +7,14 @@ Provides reliable task handoff, status synchronization, and error recovery.
 """
 
 import asyncio
-import json
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Hive logging system
 from hive_logging import get_logger
 
 from .core import db as hive_core_db
-from .core.db import database_enhanced_optimized as db_enhanced
 from .core.db.planning_integration import (
     async_planning_integration,
     planning_integration,

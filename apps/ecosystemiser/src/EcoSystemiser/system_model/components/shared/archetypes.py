@@ -2,13 +2,13 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-"""Generic Technical Parameter Archetypes for Component Categories.
+"""Generic Technical Parameter Archetypes for Component Categories.,
 
 This module defines ONLY the abstract, high-level archetype parameter models
-that are common to entire categories of components (storage, generation, etc.).
+that are common to entire categories of components (storage, generation, etc.).,
 
 Specific component parameters (e.g., BatteryTechnicalParams) are defined
-in their respective component files, following the co-location principle.
+in their respective component files, following the co-location principle.,
 
 The hierarchy follows: Base → Category Archetypes
 Specific models inherit from these archetypes in their component files.
@@ -20,10 +20,10 @@ from pydantic import BaseModel, Field
 
 
 class FidelityLevel(str, Enum):
-    """Fidelity levels for simulation accuracy vs speed trade-offs.
+    """Fidelity levels for simulation accuracy vs speed trade-offs.,
 
-    Explicit fidelity control enables users to consciously choose
-    the trade-off between computational speed and model accuracy.
+    Explicit fidelity control enables users to consciously choose,
+    the trade-off between computational speed and model accuracy.,
     """
 
     SIMPLE = "simple"  # Fast, basic constraints only
@@ -61,14 +61,14 @@ class FidelityLevel(str, Enum):
 
 # =============================================================================
 # BASE TECHNICAL PARAMETERS
-# =============================================================================
+# =============================================================================,
 
 
 class BaseTechnicalParams(BaseModel):
-    """Universal technical parameters for all components.
+    """Universal technical parameters for all components.,
 
-    These parameters are always required and form the foundation
-    of any component model, regardless of fidelity level.
+    These parameters are always required and form the foundation,
+    of any component model, regardless of fidelity level.,
     """
 
     capacity_nominal: float = Field(..., description="Nameplate rating (e.g., kW, kWh, m³/h)")
@@ -77,8 +77,7 @@ class BaseTechnicalParams(BaseModel):
 
     # Explicit fidelity control (required for all components)
     fidelity_level: FidelityLevel = Field(
-        default=FidelityLevel.STANDARD,
-        description="Explicit simulation fidelity level controlling model complexity",
+        default=FidelityLevel.STANDARD, description="Explicit simulation fidelity level controlling model complexity"
     )
 
     class Config:
@@ -87,15 +86,15 @@ class BaseTechnicalParams(BaseModel):
 
 # =============================================================================
 # STORAGE CATEGORY PARAMETERS
-# =============================================================================
+# =============================================================================,
 
 
 class StorageTechnicalParams(BaseTechnicalParams):
-    """Generic parameters common to ALL storage components.
+    """Generic parameters common to ALL storage components.,
 
-    This archetype defines only the fundamental parameters that every
-    storage device (battery, thermal storage, water tank) must have.
-    Specific storage types extend this with their own parameters.
+    This archetype defines only the fundamental parameters that every,
+    storage device (battery, thermal storage, water tank) must have.,
+    Specific storage types extend this with their own parameters.,
     """
 
     efficiency_roundtrip: float = Field(0.90, description="Round-trip efficiency")
@@ -113,14 +112,14 @@ class StorageTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # GENERATION CATEGORY PARAMETERS
-# =============================================================================
+# =============================================================================,
 
 
 class GenerationTechnicalParams(BaseTechnicalParams):
-    """Generic parameters common to ALL generation components.
+    """Generic parameters common to ALL generation components.,
 
-    This archetype covers solar, wind, and other generation types.
-    Specific generators extend this with their own parameters.
+    This archetype covers solar, wind, and other generation types.,
+    Specific generators extend this with their own parameters.,
     """
 
     efficiency_nominal: float = Field(0.85, description="Nominal conversion efficiency")
@@ -136,14 +135,14 @@ class GenerationTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # CONVERSION CATEGORY PARAMETERS
-# =============================================================================
+# =============================================================================,
 
 
 class ConversionTechnicalParams(BaseTechnicalParams):
-    """Generic parameters common to ALL conversion components.
+    """Generic parameters common to ALL conversion components.,
 
-    This archetype covers heat pumps, boilers, and other converters.
-    Specific converters extend this with their own parameters.
+    This archetype covers heat pumps, boilers, and other converters.,
+    Specific converters extend this with their own parameters.,
     """
 
     efficiency_nominal: float = Field(0.90, description="Nominal conversion efficiency")
@@ -160,13 +159,13 @@ class ConversionTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # TRANSMISSION CATEGORY PARAMETERS
-# =============================================================================
+# =============================================================================,
 
 
 class TransmissionTechnicalParams(BaseTechnicalParams):
-    """Generic parameters common to ALL transmission/grid components.
+    """Generic parameters common to ALL transmission/grid components.,
 
-    This archetype covers grid connections and transmission lines.
+    This archetype covers grid connections and transmission lines.,
     """
 
     max_import: float = Field(float("inf"), description="Maximum import capacity [kW]")
@@ -175,13 +174,13 @@ class TransmissionTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # DEMAND CATEGORY PARAMETERS
-# =============================================================================
+# =============================================================================,
 
 
 class DemandTechnicalParams(BaseTechnicalParams):
-    """Generic parameters common to ALL demand components.
+    """Generic parameters common to ALL demand components.,
 
-    This archetype covers electrical, thermal, and water demands.
+    This archetype covers electrical, thermal, and water demands.,
     """
 
     peak_demand: float = Field(0.0, description="Peak demand [kW or m³/h]")
@@ -193,7 +192,7 @@ class DemandTechnicalParams(BaseTechnicalParams):
 # =============================================================================
 
 # NOTE: Water domain archetypes are defined when water components are added.
-# The pattern follows the same principle: generic archetype here,
+# The pattern follows the same principle: generic archetype here
 # specific models in component files.
 
 
@@ -203,28 +202,27 @@ class DemandTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # VALIDATION HELPERS
-# =============================================================================
+# =============================================================================,
 
 
 def validate_fidelity_consistency(components: list[BaseTechnicalParams]) -> bool:
-    """Check if all components have consistent fidelity levels.
+    """Check if all components have consistent fidelity levels.,
 
-    This is useful for ensuring a simulation uses consistent fidelity
+    This is useful for ensuring a simulation uses consistent fidelity,
     across all components, though mixed fidelity is also supported.
 
     Args:
         components: List of component technical parameters
 
     Returns:
-        True if fidelity levels are consistent
+        True if fidelity levels are consistent,
     """
     if not components:
         return True
-
     fidelity_levels = [c.fidelity_level for c in components if hasattr(c, "fidelity_level")]
 
     if not fidelity_levels:
         return True
 
-    # Check if all components have the same fidelity level
+    # Check if all components have the same fidelity level,
     return len(set(fidelity_levels)) == 1

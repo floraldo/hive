@@ -5,10 +5,9 @@ Unit tests for secure configuration management
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
-
 from hive_config.secure_config import SecureConfigLoader, generate_master_key
 
 

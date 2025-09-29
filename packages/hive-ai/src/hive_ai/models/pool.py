@@ -84,7 +84,7 @@ class ModelPool:
             min_size=2,
             max_size=pool_size,
             timeout=30.0,
-            max_idle_time=300.0,  # 5 minutes
+            max_idle_time=300.0,  # 5 minutes,
             health_check_interval=60.0,  # 1 minute
         )
 
@@ -198,8 +198,8 @@ class ModelPool:
             active_connections=pool_info["active"],
             idle_connections=pool_info["idle"],
             total_requests=total_requests,
-            successful_requests=total_requests,  # Approximation
-            avg_response_time_ms=avg_response_time,
+            successful_requests=total_requests,  # Approximation,
+            avg_response_time_ms=avg_response_time
             pool_efficiency=efficiency,
         )
 

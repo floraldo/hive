@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 
 class TechnicalKPIAnalysis(BaseAnalysis):
-    """Calculate technical key performance indicators from simulation results.
+    """Calculate technical key performance indicators from simulation results.,
 
 
     This strategy computes core technical metrics such as:
@@ -20,7 +20,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
     - Renewable fraction
     - Battery cycles
     - System efficiency
-    - Peak demand reduction
+    - Peak demand reduction,
     """
 
     def __init__(self) -> None:
@@ -35,7 +35,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             metadata: Optional simulation metadata
 
         Returns:
-            Dictionary of calculated technical KPIs
+            Dictionary of calculated technical KPIs,
         """
         kpis = {}
 
@@ -43,15 +43,15 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         system_type = self._detect_system_type(results_data)
 
         if system_type == "energy":
-            kpis.update(self._calculate_energy_kpis(results_data))
+            (kpis.update(self._calculate_energy_kpis(results_data)),)
         elif system_type == "water":
-            kpis.update(self._calculate_water_kpis(results_data))
+            (kpis.update(self._calculate_water_kpis(results_data)),)
         elif system_type == "mixed":
-            kpis.update(self._calculate_energy_kpis(results_data))
+            (kpis.update(self._calculate_energy_kpis(results_data)),)
             kpis.update(self._calculate_water_kpis(results_data))
 
-        # Calculate common KPIs
-        kpis.update(self._calculate_common_kpis(results_data))
+        # Calculate common KPIs,
+        (kpis.update(self._calculate_common_kpis(results_data)),)
 
         return kpis
 
@@ -62,24 +62,25 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            System type: 'energy', 'water', or 'mixed'
+            System type: 'energy', 'water', or 'mixed',
         """
         components = results_data.get("components", {})
-
         has_energy = any(
             comp.get("type") in ["battery", "solar_pv", "grid", "generator"] for comp in components.values()
         )
-
-        has_water = any(
-            comp.get("type") in ["water_storage", "water_demand", "rainwater_source"] for comp in components.values()
+        has_water = (
+            any(
+                comp.get("type") in ["water_storage", "water_demand", "rainwater_source"]
+                for comp in components.values()
+            ),
         )
 
         if has_energy and has_water:
-            return "mixed"
+            return ("mixed",)
         elif has_energy:
-            return "energy"
+            return ("energy",)
         elif has_water:
-            return "water"
+            return ("water",)
         else:
             return "unknown"
 
@@ -90,7 +91,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            Dictionary of energy KPIs
+            Dictionary of energy KPIs,
         """
         kpis = {}
         flows = results_data.get("flows", {})
@@ -108,7 +109,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         # Demand
         total_demand = self._get_flow_sum(flows, "demand", direction="input")
 
-        # Calculate KPIs
+        # Calculate KPIs,
         if total_demand > 0:
             kpis["grid_self_sufficiency"] = max(0, 1 - (grid_import / total_demand))
             kpis["renewable_fraction"] = min(1, renewable_gen / total_demand)
@@ -138,7 +139,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            Dictionary of water KPIs
+            Dictionary of water KPIs,
         """
         kpis = {}
         flows = results_data.get("flows", {})
@@ -150,7 +151,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         # Water demand
         water_demand = self._get_flow_sum(flows, "water_demand", direction="input")
 
-        # Calculate KPIs
+        # Calculate KPIs,
         if water_demand > 0:
             kpis["rainwater_utilization"] = min(1, rainwater / water_demand)
             kpis["water_self_sufficiency"] = max(0, 1 - (mains_water / water_demand))
@@ -171,7 +172,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            Dictionary of common KPIs
+            Dictionary of common KPIs,
         """
         kpis = {}
 
@@ -184,7 +185,6 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         # System efficiency (if applicable)
         total_input = 0
         total_output = 0
-
         flows = results_data.get("flows", {})
         for flow_name, flow_data in flows.items():
             if isinstance(flow_data, dict):
@@ -210,7 +210,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             components: Components dictionary
 
         Returns:
-            Dictionary of battery KPIs
+            Dictionary of battery KPIs,
         """
         kpis = {}
 
@@ -235,7 +235,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         else:
             kpis["battery_cycles"] = 0
 
-        # Round-trip efficiency
+        # Round-trip efficiency,
         if battery_charge > 0:
             kpis["battery_efficiency"] = battery_discharge / battery_charge
         else:
@@ -253,7 +253,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             flows: Flow data dictionary
 
         Returns:
-            Dictionary of peak shaving KPIs
+            Dictionary of peak shaving KPIs,
         """
         kpis = {}
 
@@ -275,7 +275,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             else:
                 kpis["peak_to_average_ratio"] = 0
 
-            # Load factor (average / peak)
+            # Load factor (average / peak),
             if kpis["peak_demand"] > 0:
                 kpis["load_factor"] = kpis["average_demand"] / kpis["peak_demand"]
             else:
@@ -292,21 +292,21 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             direction: Optional direction filter ('input', 'output', 'charge', 'discharge', 'import', 'export')
 
         Returns:
-            Sum of matching flows
+            Sum of matching flows,
         """
         total = 0
 
         for flow_name, flow_data in flows.items():
-            # Check if flow involves the component
+            # Check if flow involves the component,
             if component.lower() not in flow_name.lower():
                 continue
 
-            # Check direction if specified
+            # Check direction if specified,
             if direction:
                 if direction.lower() not in flow_name.lower():
                     continue
 
-            # Sum the flow values
+            # Sum the flow values,
             if isinstance(flow_data, dict):
                 values = flow_data.get("values", [])
                 if len(values) > 0:

@@ -289,7 +289,7 @@ class RateLimiter:
         Wait for rate limit capacity to become available.
 
         Args:
-            operation: Operation to wait for
+            operation: Operation to wait for,
             max_wait_seconds: Maximum time to wait
 
         Returns:

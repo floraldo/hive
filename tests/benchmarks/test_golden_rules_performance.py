@@ -2,12 +2,12 @@
 Performance benchmarks for Golden Rules validation.
 """
 
-import pytest
-import tempfile
-from pathlib import Path
+import os
 import subprocess
 import sys
-import os
+import tempfile
+from pathlib import Path
+
 
 class TestGoldenRulesPerformance:
     """Benchmark tests for Golden Rules validation performance."""
@@ -21,7 +21,7 @@ class TestGoldenRulesPerformance:
                 cwd="/c/git/hive",
                 capture_output=True,
                 text=True,
-                encoding='utf-8'
+                encoding="utf-8",
             )
             return result.returncode == 0
 
@@ -33,7 +33,7 @@ class TestGoldenRulesPerformance:
         """Benchmark Golden Rules validation on a single Python file."""
 
         # Create a test file with known violations
-        test_content = '''
+        test_content = """
 import os
 import sys
 
@@ -47,18 +47,20 @@ class TestClass:
 
     def get_data(self):
         return self.data
-'''
+"""
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(test_content)
             temp_file = f.name
 
         try:
+
             def validate_single_file():
                 # Import the validation functions
-                sys.path.insert(0, '/c/git/hive/scripts')
+                sys.path.insert(0, "/c/git/hive/scripts")
                 try:
                     from validate_golden_rules import check_file_against_rules
+
                     violations = check_file_against_rules(temp_file)
                     return len(violations)
                 except ImportError:
@@ -77,12 +79,12 @@ class TestClass:
 
         def scan_directories():
             python_files = []
-            for root, dirs, files in os.walk('/c/git/hive'):
+            for root, dirs, files in os.walk("/c/git/hive"):
                 # Skip test and benchmark directories for performance
-                dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', 'tests', 'benchmarks']]
+                dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ["__pycache__", "tests", "benchmarks"]]
 
                 for file in files:
-                    if file.endswith('.py'):
+                    if file.endswith(".py"):
                         python_files.append(os.path.join(root, file))
 
             return len(python_files)
@@ -96,15 +98,15 @@ class TestClass:
 
         # Create multiple test files
         test_files = []
-        test_content = '''
+        test_content = """
 def example_function():
     print("Test function")
     return "result"
-'''
+"""
 
         try:
             for i in range(10):
-                with tempfile.NamedTemporaryFile(mode='w', suffix=f'_test_{i}.py', delete=False) as f:
+                with tempfile.NamedTemporaryFile(mode="w", suffix=f"_test_{i}.py", delete=False) as f:
                     f.write(test_content)
                     test_files.append(f.name)
 
@@ -112,11 +114,11 @@ def example_function():
                 violations = 0
                 for file_path in test_files:
                     try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
+                        with open(file_path, "r", encoding="utf-8") as f:
                             content = f.read()
                             # Simple check for print statements (logging rule)
-                            if 'print(' in content:
-                                violations += content.count('print(')
+                            if "print(" in content:
+                                violations += content.count("print(")
                     except Exception:
                         pass
                 return violations

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Launch the AI Reviewer daemon."""
 import sys
-import os
 from pathlib import Path
 
 # Add apps directories to path

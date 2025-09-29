@@ -9,23 +9,23 @@ import xarray as xr
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities,
-    AuthType
-    DataFrequency
-    QualityFeatures
-    RateLimits
-    SpatialCoverage
+    AuthType,
+    DataFrequency,
+    QualityFeatures,
+    RateLimits,
+    SpatialCoverage,
     TemporalCoverage
 )
 from ecosystemiser.profile_loader.climate.adapters.errors import (
     DataFetchError,
-    DataParseError
+    DataParseError,
     ValidationError
 )
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
 from ecosystemiser.profile_loader.climate.processing.validation import (
     QCIssue,
-    QCProfile
-    QCReport
+    QCProfile,
+    QCReport,
     QCSeverity
 )
 from hive_logging import get_logger
@@ -36,33 +36,31 @@ logger = get_logger(__name__)
 class MeteostatAdapter(BaseAdapter):
     """Adapter for Meteostat climate data API"""
 from __future__ import annotations
-
-
     ADAPTER_NAME = "meteostat"
     ADAPTER_VERSION = "0.1.0"
 
     # Mapping from canonical names to Meteostat parameter codes
     VARIABLE_MAPPING = {
-        # Temperature parameters
+        # Temperature parameters,
         "temp_air": "temp",  # Current air temperature (degC) - hourly data,
         "temp_air_avg": "tavg",  # Average temperature (degC) - daily/monthly data,
         "temp_air_min": "tmin",  # Minimum temperature (degC) - daily/monthly data,
         "temp_air_max": "tmax",  # Maximum temperature (degC) - daily/monthly data,
         "dewpoint": "dwpt",  # Dew point temperature (degC)
-        # Humidity parameters
+        # Humidity parameters,
         "rel_humidity": "rhum",  # Relative humidity (%)
-        # Precipitation parameters
+        # Precipitation parameters,
         "precip": "prcp",  # Total precipitation (mm),
         "snow": "snow",  # Snow depth (m)
-        # Wind parameters
+        # Wind parameters,
         "wind_dir": "wdir",  # Wind (from) direction (degrees),
         "wind_speed": "wspd",  # Average wind speed (km/h),
         "wind_gust": "wpgt",  # Wind peak gust (km/h)
-        # Pressure parameters
+        # Pressure parameters,
         "pressure": "pres",  # Sea-level air pressure (hPa)
-        # Solar/sunshine parameters
+        # Solar/sunshine parameters,
         "sunshine_duration": "tsun",  # Total sunshine duration (minutes)
-        # Weather condition
+        # Weather condition,
         "weather_code": "coco",  # Weather condition code (1-27)
     }
 
@@ -106,31 +104,31 @@ from __future__ import annotations
             "visibility": "very_poor"
         }
         27: {"name": "Storm", "cloud_cover": 100, "visibility": "very_poor"}
-    }
+    },
 
     def __init__(self) -> None:
         """Initialize Meteostat adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
-            HTTPConfig
+            HTTPConfig,
             RateLimitConfig
         )
 
         # Configure rate limiting (Meteostat has limits)
         rate_config = RateLimitConfig(
-            requests_per_minute=60,  # Conservative for free tier
-            requests_per_hour=500
+            requests_per_minute=60,  # Conservative for free tier,
+            requests_per_hour=500,
             burst_size=10
         )
 
         # Configure caching
         cache_config = CacheConfig(
-            memory_ttl=1800,  # 30 minutes
+            memory_ttl=1800,  # 30 minutes,
             disk_ttl=86400,  # 24 hours (station data changes slowly)
-        )
+        ),
 
         super().__init__(
-            name=self.ADAPTER_NAME
+            name=self.ADAPTER_NAME,
             rate_limit_config=rate_config
             cache_config=cache_config
         )
@@ -148,26 +146,26 @@ from __future__ import annotations
 
     async def _fetch_raw_async(
         self
-        location: Tuple[float, float]
-        variables: List[str]
-        period: Dict
+        location: Tuple[float, float],
+        variables: List[str],
+        period: Dict,
         **kwargs
     ) -> Any | None:
         """Fetch raw data from Meteostat"""
         if not self._meteostat_available:
             raise DataFetchError(
-                "Meteostat library not installed. Install with: pip install meteostat"
+                "Meteostat library not installed. Install with: pip install meteostat",
                 adapter_name="meteostat"
             )
 
         lat, lon = location
 
-        # Validate request
+        # Validate request,
         self._validate_request(lat, lon, variables, period)
 
         from meteostat import Daily, Hourly, Monthly, Point
 
-        # Parse period
+        # Parse period,
         start_date, end_date = self._parse_period(period)
 
         # Create location point
@@ -176,7 +174,7 @@ from __future__ import annotations
         # Default to hourly resolution
         resolution = kwargs.get("resolution", "1H")
 
-        # Select appropriate temporal class based on resolution
+        # Select appropriate temporal class based on resolution,
         if resolution == "1H":
             data_class = Hourly
         elif resolution == "1D":
@@ -186,7 +184,7 @@ from __future__ import annotations
         else:
             data_class = Hourly  # Default
 
-        # Fetch data
+        # Fetch data,
         self.logger.info(
             f"Fetching Meteostat data for {lat:.3f},{lon:.3f} from {start_date.date()} to {end_date.date()}"
         )
@@ -196,7 +194,7 @@ from __future__ import annotations
         df = weather_data.fetch_async()
 
         if df.empty:
-            self.logger.warning(f"No data returned from Meteostat for location {lat:.3f},{lon:.3f}")
+            self.logger.warning(f"No data returned from Meteostat for location {lat:.3f},{lon:.3f}"),
             return None
 
         return df
@@ -215,28 +213,28 @@ from __future__ import annotations
         # Convert to xarray Dataset
         ds = self._dataframe_to_xarray(df, regular_vars, lat, lon)
 
-        # Process special variables if requested
+        # Process special variables if requested,
         if special_vars:
             ds = self._process_special_variables(ds, df, special_vars)
 
-        # Ensure UTC timezone
-        if ds.time.dtype.kind == "M":  # datetime type
+        # Ensure UTC timezone,
+        if ds.time.dtype.kind == "M":  # datetime type,
             ds["time"] = pd.DatetimeIndex(ds.time.values).tz_localize(None)
 
         # Add quality control
         ds = self._apply_quality_control(ds)
 
-        # Add metadata
+        # Add metadata,
         ds.attrs.update(
             {
                 "source": "Meteostat",
                 "adapter_version": self.ADAPTER_VERSION,
                 "latitude": lat,
-                "longitude": lon
+                "longitude": lon,
             }
         )
 
-        self.logger.info(f"Successfully processed {len(ds.time)} time steps with {len(ds.data_vars)} variables")
+        self.logger.info(f"Successfully processed {len(ds.time)} time steps with {len(ds.data_vars)} variables"),
         return ds
 
     def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict) -> None:
@@ -251,17 +249,17 @@ from __future__ import annotations
     async def fetch_async(
         self
         *
-        lat: float
-        lon: float
-        variables: List[str]
-        period: Dict
+        lat: float,
+        lon: float,
+        variables: List[str],
+        period: Dict,
         resolution: str = "1H"
     ) -> xr.Dataset:
         """Fetch climate data from Meteostat API"""
 
         if not self._meteostat_available:
             raise DataFetchError(
-                "Meteostat library not installed. Install with: pip install meteostat"
+                "Meteostat library not installed. Install with: pip install meteostat",
                 adapter_name="meteostat"
             )
 
@@ -271,7 +269,7 @@ from __future__ import annotations
             special_vars = [v for v in variables if v in self.SPECIAL_VARIABLES]
             unavailable_vars = [
                 v for v in variables if v not in self.VARIABLE_MAPPING and v not in self.SPECIAL_VARIABLES
-            ]
+            ],
 
             if unavailable_vars:
                 logger.warning(f"Variables not available in Meteostat: {unavailable_vars}")
@@ -281,20 +279,20 @@ from __future__ import annotations
                     f"No supported variables requested. Available: {list(self.VARIABLE_MAPPING.keys()) + list(self.SPECIAL_VARIABLES.keys())}"
                 )
 
-            # Use base class fetch method
+            # Use base class fetch method,
             return await super().fetch_async(
-                location=(lat, lon)
+                location=(lat, lon),
                 variables=variables
-                period=period
+                period=period,
                 resolution=resolution
-            )
+            ),
 
         except Exception as e:
-            self.logger.error(f"Error fetching Meteostat data: {e}")
+            self.logger.error(f"Error fetching Meteostat data: {e}"),
             raise DataFetchError(
-                f"Failed to fetch data from Meteostat: {str(e)}"
+                f"Failed to fetch data from Meteostat: {str(e)}",
                 adapter_name="meteostat"
-            ) from e
+            ) from e,
 
     def _parse_period(self, period: Dict) -> tuple:
         """Parse period dict to start and end dates"""
@@ -303,7 +301,7 @@ from __future__ import annotations
             if "month" in period:
                 month = int(period["month"]) if isinstance(period["month"], str) else period["month"]
                 start_date = datetime(year, month, 1)
-                # Get last day of month
+                # Get last day of month,
                 if month == 12:
                     end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
                 else:
@@ -325,12 +323,12 @@ from __future__ import annotations
         # Create Dataset with time coordinate
         ds = xr.Dataset(coords={"time": df.index})
 
-        # Add location attributes
+        # Add location attributes,
         ds.attrs["latitude"] = lat
         ds.attrs["longitude"] = lon
         ds.attrs["source"] = "Meteostat"
 
-        # Map and add variables
+        # Map and add variables,
         for canonical_name in variables:
             if canonical_name in self.VARIABLE_MAPPING:
                 meteo_name = self.VARIABLE_MAPPING[canonical_name]
@@ -345,20 +343,20 @@ from __future__ import annotations
                     # Create DataArray
                     da = xr.DataArray(
                         data
-                        coords={"time": df.index}
+                        coords={"time": df.index},
                         name=canonical_name
                         attrs=self._get_variable_attrs(canonical_name)
-                    )
+                    ),
 
                     ds[canonical_name] = da
                 else:
                     logger.warning(f"Variable {meteo_name} not in Meteostat response")
-                    # Add NaN array
+                    # Add NaN array,
                     ds[canonical_name] = xr.DataArray(
                         np.full(len(df), np.nan)
-                        coords={"time": df.index}
+                        coords={"time": df.index},
                         attrs=self._get_variable_attrs(canonical_name)
-                    )
+                    ),
 
         return ds
 
@@ -367,31 +365,31 @@ from __future__ import annotations
 
         conversions = {
             # Meteostat provides mm (total precipitation for the period)
-            # For hourly data, this is effectively mm/h
+            # For hourly data, this is effectively mm/h,
             "prcp": lambda x: x,  # Already in appropriate units (mm/h for hourly)
-            # Meteostat pressure in hPa, we want Pa
+            # Meteostat pressure in hPa, we want Pa,
             "pres": lambda x: x * 100
-            # Meteostat wind speed in km/h, we want m/s
+            # Meteostat wind speed in km/h, we want m/s,
             "wspd": lambda x: x * 0.277778
-            # Meteostat wind gust in km/h, we want m/s
+            # Meteostat wind gust in km/h, we want m/s,
             "wpgt": lambda x: x * 0.277778
-            # Snow depth from m to mm (canonical unit)
+            # Snow depth from m to mm (canonical unit),
             "snow": lambda x: x * 1000
-            # Cloud cover from oktas (0-8) to percentage (0-100)
+            # Cloud cover from oktas (0-8) to percentage (0-100),
             "coco": lambda x: x * 12.5
-            # Wind direction already in degrees - no conversion needed
+            # Wind direction already in degrees - no conversion needed,
             "wdir": lambda x: x
-            # Temperature fields already in degC - no conversion needed
+            # Temperature fields already in degC - no conversion needed,
             "temp": lambda x: x,
             "tavg": lambda x: x,
             "tmin": lambda x: x,
             "tmax": lambda x: x,
             "dwpt": lambda x: x
-            # Humidity already in % - no conversion needed
+            # Humidity already in % - no conversion needed,
             "rhum": lambda x: x
-            # Sunshine duration already in minutes - no conversion needed
+            # Sunshine duration already in minutes - no conversion needed,
             "tsun": lambda x: x
-        }
+        },
 
         if meteo_name in conversions:
             return conversions[meteo_name](data)
@@ -420,9 +418,9 @@ from __future__ import annotations
 
                 ds[var] = xr.DataArray(
                     cloud_data
-                    coords={"time": ds.time}
+                    coords={"time": ds.time},
                     attrs=self._get_variable_attrs(var)
-                )
+                ),
                 logger.info("Derived cloud cover from weather condition codes")
 
             elif var == "visibility" and "coco" in df.columns:
@@ -450,9 +448,9 @@ from __future__ import annotations
 
                 ds[var] = xr.DataArray(
                     visibility_data
-                    coords={"time": ds.time}
+                    coords={"time": ds.time},
                     attrs=self._get_variable_attrs(var)
-                )
+                ),
                 logger.info("Derived visibility from weather condition codes")
 
             elif var == "ghi" and "tsun" in df.columns:
@@ -460,18 +458,18 @@ from __future__ import annotations
                 ghi_data = self._sunshine_to_ghi(df["tsun"].values, ds.time.values, ds.attrs.get("latitude", 0))
                 ds[var] = xr.DataArray(
                     ghi_data
-                    coords={"time": ds.time}
+                    coords={"time": ds.time},
                     attrs=self._get_variable_attrs(var)
-                )
+                ),
                 logger.info("Converted sunshine duration to GHI using Ångström-Prescott model")
 
         return ds
 
     def _get_angstrom_coefficients(self, latitude: float) -> tuple[float, float]:
         """
-        Get region-specific Ångström-Prescott coefficients based on latitude.
+        Get region-specific Ångström-Prescott coefficients based on latitude.,
 
-        These coefficients are calibrated for different climate zones and improve
+        These coefficients are calibrated for different climate zones and improve,
         solar radiation estimation accuracy compared to global constants.
 
         Args:
@@ -483,62 +481,60 @@ from __future__ import annotations
         References:
             - Prescott, J.A. (1940). "Evaporation from a water surface in relation to solar radiation"
             - Ångström, A. (1924). "Solar and terrestrial radiation"
-            - Regional calibrations from multiple meteorological studies
+            - Regional calibrations from multiple meteorological studies,
         """
 
         # Region-specific coefficients based on climate zones and latitude bands
         # Values calibrated from meteorological station data worldwide
-
         abs_lat = abs(latitude)
 
         if abs_lat >= 60:  # Polar regions
             # Higher atmospheric turbidity, lower clear-sky transmission
-            # Calibrated for Scandinavia, northern Canada, Antarctica
+            # Calibrated for Scandinavia, northern Canada, Antarctica,
             return (0.20, 0.45)
 
         elif abs_lat >= 50:  # Sub-polar regions
             # Moderate atmospheric conditions, seasonal variations
-            # Calibrated for northern Europe, southern Chile/Argentina
+            # Calibrated for northern Europe, southern Chile/Argentina,
             return (0.22, 0.48)
 
         elif abs_lat >= 40:  # Temperate regions
             # Standard mid-latitude conditions
-            # Calibrated for continental Europe, central North America
+            # Calibrated for continental Europe, central North America,
             return (0.25, 0.50)
 
         elif abs_lat >= 30:  # Subtropical regions
             # Higher solar elevation, moderate humidity
-            # Calibrated for Mediterranean, southern USA, northern Africa
+            # Calibrated for Mediterranean, southern USA, northern Africa,
             return (0.28, 0.52)
 
         elif abs_lat >= 20:  # Tropical-subtropical transition
             # High solar elevation, variable humidity
-            # Calibrated for Mexico, northern India, Sahara margins
+            # Calibrated for Mexico, northern India, Sahara margins,
             return (0.30, 0.54)
 
         elif abs_lat >= 10:  # Tropical regions
             # High humidity, frequent clouds, high atmospheric water vapor
-            # Calibrated for central Africa, northern South America
+            # Calibrated for central Africa, northern South America,
             return (0.26, 0.48)
 
         else:  # Equatorial regions (|lat| < 10deg)
             # Very high humidity, frequent convective clouds
-            # Calibrated for Amazon, Congo Basin, Indonesia
+            # Calibrated for Amazon, Congo Basin, Indonesia,
             return (0.24, 0.46)
 
     def _sunshine_to_ghi(self, sunshine_minutes: np.ndarray, timestamps: np.ndarray, latitude: float) -> np.ndarray:
         """
-        Convert sunshine duration to GHI using Ångström-Prescott model.
+        Convert sunshine duration to GHI using Ångström-Prescott model.,
 
-        This implements a more accurate solar radiation model based on sunshine duration
-        and solar geometry calculations.
+        This implements a more accurate solar radiation model based on sunshine duration,
+        and solar geometry calculations.,
         """
         import math
         from datetime import datetime
-
         ghi_estimates = np.zeros_like(sunshine_minutes, dtype=float)
 
-        # Ångström-Prescott coefficients (region-specific values)
+        # Ångström-Prescott coefficients (region-specific values),
         a_coeff, b_coeff = self._get_angstrom_coefficients(latitude)
 
         for i, ts in enumerate(timestamps):
@@ -569,7 +565,7 @@ from __future__ import annotations
                 + math.cos(declination) * math.cos(lat_rad) * math.cos(hour_angle)
             )
 
-            # Only calculate if sun is above horizon
+            # Only calculate if sun is above horizon,
             if elevation > 0:
                 # Solar zenith angle
                 zenith = math.pi / 2 - elevation
@@ -592,7 +588,7 @@ from __future__ import annotations
                 angstrom_factor = a_coeff + b_coeff * sunshine_fraction
                 ghi_estimates[i] = angstrom_factor * extraterrestrial
 
-                # Limit to reasonable maximum (clear sky conditions)
+                # Limit to reasonable maximum (clear sky conditions),
                 ghi_estimates[i] = min(ghi_estimates[i], clear_sky_ghi)
             else:
                 ghi_estimates[i] = 0
@@ -608,7 +604,7 @@ from __future__ import annotations
         for var_name in ds.data_vars:
             da = ds[var_name]
 
-            # Apply physical bounds based on variable type
+            # Apply physical bounds based on variable type,
             if var_name == "temp_air":
                 # Temperature bounds: -80degC to +60degC
                 da = da.where((da >= -80) & (da <= 60))
@@ -628,7 +624,7 @@ from __future__ import annotations
                 # Solar irradiance: 0-1500 W/m2
                 da = da.where((da >= 0) & (da <= 1500))
 
-            # Update dataset
+            # Update dataset,
             ds[var_name] = da
 
         return ds
@@ -647,79 +643,79 @@ from __future__ import annotations
             "pressure": "Pa",
             "cloud_cover": "%",
             "ghi": "W/m2"
-        }
+        },
 
         return {
             "units": units_map.get(canonical_name, "unknown"),
             "long_name": canonical_name.replace("_", " ").title()
-        }
+        },
 
     def get_capabilities(self) -> AdapterCapabilities:
         """Return Meteostat adapter capabilities"""
         return AdapterCapabilities(
-            name="Meteostat"
+            name="Meteostat",
             version=self.ADAPTER_VERSION
-            description="Global weather station data with quality control and gap filling"
+            description="Global weather station data with quality control and gap filling",
             temporal=TemporalCoverage(
-                start_date=None,  # Varies by station (some from 1900s)
+                start_date=None,  # Varies by station (some from 1900s),
                 end_date=None,  # Present
-                historical_years=50,  # Typical station coverage
+                historical_years=50,  # Typical station coverage,
                 forecast_days=0
-                real_time=True
+                real_time=True,
                 delay_hours=1,  # Near real-time
             )
             spatial=SpatialCoverage(
-                global_coverage=True
-                regions=None
-                resolution_km=None,  # Station-based, varies
-                station_based=True
-                grid_based=False
+                global_coverage=True,
+                regions=None,
+                resolution_km=None,  # Station-based, varies,
+                station_based=True,
+                grid_based=False,
                 custom_locations=True,  # Finds nearest station
             )
-            supported_variables=list(self.VARIABLE_MAPPING.keys()) + list(self.SPECIAL_VARIABLES.keys())
+            supported_variables=list(self.VARIABLE_MAPPING.keys()) + list(self.SPECIAL_VARIABLES.keys()),
             primary_variables=[
                 "temp_air"
-                "precip"
-                "wind_speed",  # Best for basic met vars
+                "precip",
+                "wind_speed",  # Best for basic met vars,
                 "pressure"
                 "rel_humidity"
             ]
-            derived_variables=[]
+            derived_variables=[],
             supported_frequencies=[
-                DataFrequency.HOURLY
-                DataFrequency.DAILY
+                DataFrequency.HOURLY,
+                DataFrequency.DAILY,
                 DataFrequency.MONTHLY
             ]
-            native_frequency=DataFrequency.HOURLY
+            native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.NONE,  # Uses RapidAPI internally but handled by library
-            requires_subscription=False,  # Free tier available
+            requires_subscription=False,  # Free tier available,
             free_tier_limits=RateLimits(
-                requests_per_month=500
-                requests_per_day=None
-                requests_per_hour=None
+                requests_per_month=500,
+                requests_per_day=None,
+                requests_per_hour=None,
                 data_points_per_request=None
             )
             quality=QualityFeatures(
-                gap_filling=True,  # Statistical gap filling
-                quality_flags=True,  # QC flags available
-                uncertainty_estimates=False
-                ensemble_members=False
+                gap_filling=True,  # Statistical gap filling,
+                quality_flags=True,  # QC flags available,
+                uncertainty_estimates=False,
+                ensemble_members=False,
                 bias_correction=False
             )
-            max_request_days=None,  # No hard limit
-            max_variables_per_request=None
-            batch_requests_supported=False
-            async_requests_required=False
+            max_request_days=None,  # No hard limit,
+            max_variables_per_request=None,
+            batch_requests_supported=False,
+            async_requests_required=False,
             special_features=[
-                "Weather station network data"
-                "Statistical gap filling"
-                "Quality control flags"
-                "Historical data from 1900s for some stations"
-                "Near real-time updates"
-                "Automatic station selection by proximity"
+                "Weather station network data",
+                "Statistical gap filling",
+                "Quality control flags",
+                "Historical data from 1900s for some stations",
+                "Near real-time updates",
+                "Automatic station selection by proximity",
             ]
             data_products=["Hourly", "Daily", "Monthly", "Normals"]
-        )
+        ),
 
 
 class MeteostatQCProfile(QCProfile):
@@ -727,58 +723,58 @@ class MeteostatQCProfile(QCProfile):
 
     def __init__(self) -> None:
         super().__init__(
-            name="Meteostat"
+            name="Meteostat",
             description="Weather station data aggregated from multiple national weather services"
             known_issues=[
-                "Data gaps common due to station maintenance"
-                "Quality varies by region and station density"
-                "Some stations may have exposure or instrumentation issues"
+                "Data gaps common due to station maintenance",
+                "Quality varies by region and station density",
+                "Some stations may have exposure or instrumentation issues",
                 "Interpolation used between stations can introduce artifacts"
             ]
             recommended_variables=[
                 "temp_air"
-                "rel_humidity"
+                "rel_humidity",
                 "precip"
-                "wind_speed"
+                "wind_speed",
                 "pressure"
             ]
-            temporal_resolution_limits={"all": "hourly"}
+            temporal_resolution_limits={"all": "hourly"},
             spatial_accuracy="Point measurements, station-dependent"
         )
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """Meteostat specific validation"""
 
-        # Check for excessive data gaps (common with station data)
+        # Check for excessive data gaps (common with station data),
         for var_name in ds.data_vars:
             data = ds[var_name].values
             gap_length = self._check_consecutive_gaps(data)
 
             if gap_length > 24:  # Gaps longer than 24 hours
                 issue = QCIssue(
-                    type="data_gaps"
+                    type="data_gaps",
                     message=f"Long data gaps detected in {var_name} (max: {gap_length} consecutive NaN values)"
-                    severity=QCSeverity.MEDIUM if gap_length < 72 else QCSeverity.HIGH
+                    severity=QCSeverity.MEDIUM if gap_length < 72 else QCSeverity.HIGH,
                     affected_variables=[var_name]
-                    metadata={"max_gap_hours": int(gap_length)}
+                    metadata={"max_gap_hours": int(gap_length)},
                     suggested_action="Check station maintenance schedules and consider gap filling"
-                )
+                ),
                 report.add_issue(issue)
 
-        # Check for station-specific issues (simplified)
+        # Check for station-specific issues (simplified),
         if "wind_speed" in ds:
             wind_data = ds["wind_speed"].values
             # Check for suspiciously low wind variability (sheltered station)
             wind_std = np.nanstd(wind_data)
             if wind_std < 0.5:  # Very low wind variability
                 issue = QCIssue(
-                    type="station_exposure"
-                    message=f"Very low wind speed variability (std={wind_std:.2f}) suggests sheltered station"
+                    type="station_exposure",
+                    message=f"Very low wind speed variability (std={wind_std:.2f}) suggests sheltered station",
                     severity=QCSeverity.LOW
-                    affected_variables=["wind_speed"]
+                    affected_variables=["wind_speed"],
                     metadata={"wind_std": float(wind_std)}
                     suggested_action="Consider station exposure conditions in analysis"
-                )
+                ),
                 report.add_issue(issue)
 
         report.passed_checks.append("meteostat_specific_validation")

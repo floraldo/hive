@@ -1,12 +1,11 @@
 """Unit tests for hive-performance package V4.2."""
 
 import asyncio
-import pytest
 import time
-import psutil
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch, call
-from typing import Dict, List, Any
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Import the components we're testing
 from hive_performance.metrics_collector import (
@@ -16,8 +15,8 @@ from hive_performance.metrics_collector import (
     track_performance,
 )
 from hive_performance.system_monitor import (
-    SystemMonitor,
     SystemMetrics,
+    SystemMonitor,
 )
 
 
@@ -28,7 +27,7 @@ def metrics_collector():
         collection_interval=0.1,  # Fast for testing
         max_history=10,
         enable_system_metrics=True,
-        enable_async_metrics=True
+        enable_async_metrics=True,
     )
 
 
@@ -39,7 +38,7 @@ def system_monitor():
         collection_interval=0.1,  # Fast for testing
         max_history=10,
         enable_alerts=True,
-        alert_thresholds={"cpu_percent": 80.0, "memory_percent": 85.0}
+        alert_thresholds={"cpu_percent": 80.0, "memory_percent": 85.0},
     )
 
 
@@ -66,16 +65,16 @@ class TestPerformanceMetrics:
 
         metrics = PerformanceMetrics(
             execution_time=1.5,
-            memory_usage=1024*1024,
+            memory_usage=1024 * 1024,
             operations_count=5,
             error_count=1,
             custom_metrics=custom_data,
             tags=tags,
-            operation_name="test_operation"
+            operation_name="test_operation",
         )
 
         assert metrics.execution_time == 1.5
-        assert metrics.memory_usage == 1024*1024
+        assert metrics.memory_usage == 1024 * 1024
         assert metrics.operations_count == 5
         assert metrics.error_count == 1
         assert metrics.custom_metrics == custom_data
@@ -244,6 +243,7 @@ class TestMetricsCollector:
         assert isinstance(json_data, str)
 
         import json
+
         parsed = json.loads(json_data)
         assert isinstance(parsed, list)
         assert len(parsed) == 1
@@ -280,7 +280,7 @@ class TestMetricsCollector:
         metrics_collector.clear_metrics()
         assert len(metrics_collector.get_metrics()) == 0
 
-    @patch('hive_performance.metrics_collector.psutil.Process')
+    @patch("hive_performance.metrics_collector.psutil.Process")
     def test_memory_usage_tracking(self, mock_process, metrics_collector):
         """Test memory usage tracking functionality."""
         # Mock memory info
@@ -352,12 +352,7 @@ class TestOperationTracker:
         operation_name = "custom_operation"
         custom_data = {"processing_items": 50}
 
-        with operation_tracker(
-            metrics_collector,
-            operation_name,
-            bytes_processed=2048,
-            custom_metrics=custom_data
-        ):
+        with operation_tracker(metrics_collector, operation_name, bytes_processed=2048, custom_metrics=custom_data):
             await asyncio.sleep(0.001)
 
         metrics = metrics_collector.get_metrics(operation_name)
@@ -435,16 +430,16 @@ class TestSystemMetrics:
         """Test SystemMetrics with specific data."""
         metrics = SystemMetrics(
             cpu_percent=45.5,
-            memory_total=8*1024*1024*1024,  # 8GB
+            memory_total=8 * 1024 * 1024 * 1024,  # 8GB
             memory_percent=60.0,
             disk_percent=75.0,
             active_tasks=10,
             hostname="test-host",
-            platform="linux"
+            platform="linux",
         )
 
         assert metrics.cpu_percent == 45.5
-        assert metrics.memory_total == 8*1024*1024*1024
+        assert metrics.memory_total == 8 * 1024 * 1024 * 1024
         assert metrics.memory_percent == 60.0
         assert metrics.disk_percent == 75.0
         assert metrics.active_tasks == 10
@@ -479,44 +474,40 @@ class TestSystemMonitor:
         assert system_monitor._monitoring is False
 
     @pytest.mark.asyncio
-    @patch('hive_performance.system_monitor.psutil.cpu_percent')
-    @patch('hive_performance.system_monitor.psutil.virtual_memory')
-    @patch('hive_performance.system_monitor.psutil.disk_usage')
-    @patch('hive_performance.system_monitor.psutil.disk_io_counters')
-    @patch('hive_performance.system_monitor.psutil.net_io_counters')
-    async def test_collect_system_metrics(self, mock_net, mock_disk_io, mock_disk,
-                                        mock_memory, mock_cpu, system_monitor):
+    @patch("hive_performance.system_monitor.psutil.cpu_percent")
+    @patch("hive_performance.system_monitor.psutil.virtual_memory")
+    @patch("hive_performance.system_monitor.psutil.disk_usage")
+    @patch("hive_performance.system_monitor.psutil.disk_io_counters")
+    @patch("hive_performance.system_monitor.psutil.net_io_counters")
+    async def test_collect_system_metrics(
+        self, mock_net, mock_disk_io, mock_disk, mock_memory, mock_cpu, system_monitor
+    ):
         """Test system metrics collection."""
         # Setup mocks
         mock_cpu.return_value = 45.5
 
         mock_mem = MagicMock()
-        mock_mem.total = 8*1024*1024*1024
-        mock_mem.available = 4*1024*1024*1024
-        mock_mem.used = 4*1024*1024*1024
+        mock_mem.total = 8 * 1024 * 1024 * 1024
+        mock_mem.available = 4 * 1024 * 1024 * 1024
+        mock_mem.used = 4 * 1024 * 1024 * 1024
         mock_mem.percent = 50.0
         mock_memory.return_value = mock_mem
 
         mock_disk_usage.return_value = MagicMock(
-            total=1024*1024*1024*1024,
-            used=512*1024*1024*1024,
-            free=512*1024*1024*1024
+            total=1024 * 1024 * 1024 * 1024, used=512 * 1024 * 1024 * 1024, free=512 * 1024 * 1024 * 1024
         )
 
         mock_disk_io.return_value = MagicMock(
-            read_bytes=1024*1024,
-            write_bytes=2*1024*1024,
-            read_count=100,
-            write_count=200
+            read_bytes=1024 * 1024, write_bytes=2 * 1024 * 1024, read_count=100, write_count=200
         )
 
         mock_net.return_value = MagicMock(
-            bytes_sent=1024*1024*10,
-            bytes_recv=1024*1024*20,
+            bytes_sent=1024 * 1024 * 10,
+            bytes_recv=1024 * 1024 * 20,
             packets_sent=1000,
             packets_recv=2000,
             errin=0,
-            errout=0
+            errout=0,
         )
 
         # Collect metrics
@@ -524,7 +515,7 @@ class TestSystemMonitor:
 
         assert isinstance(metrics, SystemMetrics)
         assert metrics.cpu_percent == 45.5
-        assert metrics.memory_total == 8*1024*1024*1024
+        assert metrics.memory_total == 8 * 1024 * 1024 * 1024
         assert metrics.memory_percent == 50.0
 
     @pytest.mark.asyncio
@@ -542,7 +533,7 @@ class TestSystemMonitor:
             cpu_percent=90.0,  # Above 80% threshold
             memory_percent=90.0,  # Above 85% threshold
             disk_percent=95.0,  # Above 90% threshold
-            swap_percent=60.0   # Above 50% threshold
+            swap_percent=60.0,  # Above 50% threshold
         )
 
         await system_monitor._check_alerts(high_cpu_metrics)
@@ -619,7 +610,7 @@ class TestSystemMonitor:
         for i in range(5):
             metrics = SystemMetrics(
                 cpu_percent=20.0 + i * 10,  # 20, 30, 40, 50, 60
-                memory_percent=30.0 + i * 5   # 30, 35, 40, 45, 50
+                memory_percent=30.0 + i * 5,  # 30, 35, 40, 45, 50
             )
             system_monitor._metrics_history.append(metrics)
 
@@ -652,6 +643,7 @@ class TestSystemMonitor:
         assert isinstance(json_data, str)
 
         import json
+
         parsed = json.loads(json_data)
         assert isinstance(parsed, list)
         assert len(parsed) == 1

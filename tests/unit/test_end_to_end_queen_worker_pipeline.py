@@ -12,20 +12,16 @@ This test validates the complete task flow from creation through execution:
 Focuses specifically on the core Queen → Worker workflow.
 """
 
-import asyncio
 import json
+import os
 import sqlite3
 import subprocess
+import sys
 import tempfile
 import time
-import threading
-import signal
-import os
-import sys
-from pathlib import Path
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
-from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -813,7 +809,7 @@ if __name__ == "__main__":
             ]
         )
 
-        print(f"\n📈 Test Results:")
+        print("\n📈 Test Results:")
         print(f"   Overall Status: {'✅ ALL PASSED' if all_passed else '❌ SOME FAILED'}")
 
         # Database statistics
@@ -830,7 +826,7 @@ if __name__ == "__main__":
 
         conn.close()
 
-        print(f"\n📊 Pipeline Statistics:")
+        print("\n📊 Pipeline Statistics:")
         print(f"   Total Tasks Created: {total_tasks}")
         print(f"   Tasks Completed: {completed_tasks}")
         print(f"   Tasks Failed: {failed_tasks}")

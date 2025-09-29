@@ -185,7 +185,7 @@ class CostManager:
         Estimate cost for an operation before execution.
 
         Args:
-            operation: Name of the operation
+            operation: Name of the operation,
             parameters: Operation parameters for cost calculation
 
         Returns:
@@ -208,7 +208,7 @@ class CostManager:
         """Default cost estimation logic."""
         # Simple defaults - should be customized per application
         cost_defaults = {
-            "ai_request": ResourceCost(ResourceType.API_CALL, 1000, 0.002),  # AI tokens
+            "ai_request": ResourceCost(ResourceType.API_CALL, 1000, 0.002),  # AI tokens,
             "email_send": ResourceCost(ResourceType.EMAIL, 1, 0.001),
             "sms_send": ResourceCost(ResourceType.SMS, 1, 0.01),
             "storage_write": ResourceCost(ResourceType.STORAGE, 1024, 0.00001),
@@ -226,7 +226,7 @@ class CostManager:
         Check if operation can proceed within budget limits.
 
         Args:
-            estimated_cost: Estimated cost of the operation
+            estimated_cost: Estimated cost of the operation,
             operation: Optional operation name for logging
 
         Returns:
@@ -239,29 +239,31 @@ class CostManager:
 
         # Check per-operation limit
         if cost > self.limits.per_operation_limit:
-            reason = f"Operation cost ${cost:.2f} exceeds per-operation limit ${self.limits.per_operation_limit:.2f}"
-            logger.warning(f"Budget check failed for {operation}: {reason}")
+            reason = (f"Operation cost ${cost:.2f} exceeds per-operation limit ${self.limits.per_operation_limit:.2f}",)
+            (logger.warning(f"Budget check failed for {operation}: {reason}"),)
             return False, reason
 
         # Check hourly limit
         hourly_total = sum(self.hourly_usage.values())
         if hourly_total + cost > self.limits.hourly_limit:
-            reason = f"Hourly limit ${self.limits.hourly_limit:.2f} would be exceeded (current: ${hourly_total:.2f})"
-            logger.warning(f"Budget check failed for {operation}: {reason}")
+            reason = (f"Hourly limit ${self.limits.hourly_limit:.2f} would be exceeded (current: ${hourly_total:.2f})",)
+            (logger.warning(f"Budget check failed for {operation}: {reason}"),)
             return False, reason
 
         # Check daily limit
         daily_total = sum(self.daily_usage.values())
         if daily_total + cost > self.limits.daily_limit:
-            reason = f"Daily limit ${self.limits.daily_limit:.2f} would be exceeded (current: ${daily_total:.2f})"
-            logger.warning(f"Budget check failed for {operation}: {reason}")
+            reason = (f"Daily limit ${self.limits.daily_limit:.2f} would be exceeded (current: ${daily_total:.2f})",)
+            (logger.warning(f"Budget check failed for {operation}: {reason}"),)
             return False, reason
 
         # Check monthly limit
         monthly_total = sum(self.monthly_usage.values())
         if monthly_total + cost > self.limits.monthly_limit:
-            reason = f"Monthly limit ${self.limits.monthly_limit:.2f} would be exceeded (current: ${monthly_total:.2f})"
-            logger.warning(f"Budget check failed for {operation}: {reason}")
+            reason = (
+                f"Monthly limit ${self.limits.monthly_limit:.2f} would be exceeded (current: ${monthly_total:.2f})",
+            )
+            (logger.warning(f"Budget check failed for {operation}: {reason}"),)
             return False, reason
 
         return True, "Budget check passed"
@@ -276,9 +278,9 @@ class CostManager:
         Record actual resource usage.
 
         Args:
-            actual_cost: Actual cost incurred
-            operation: Operation that incurred the cost
-            metadata: Additional metadata for tracking
+            actual_cost: Actual cost incurred,
+            operation: Operation that incurred the cost,
+            metadata: Additional metadata for tracking,
         """
         cost = actual_cost.total_cost
         resource_key = f"{operation}_{actual_cost.resource_type.value}"
@@ -381,16 +383,16 @@ class CostManager:
         Execute an operation with automatic cost control.
 
         Args:
-            operation: Name of the operation
-            operation_func: Async function to execute
-            parameters: Parameters for cost estimation
+            operation: Name of the operation,
+            operation_func: Async function to execute,
+            parameters: Parameters for cost estimation,
             **kwargs: Arguments for the operation function
 
         Returns:
             Result of the operation function
 
         Raises:
-            Exception: If budget check fails or operation fails
+            Exception: If budget check fails or operation fails,
         """
         # Estimate cost
         estimated_cost = await self.estimate_cost(operation, parameters)

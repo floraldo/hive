@@ -10,29 +10,26 @@ Tests the complete autonomous task execution flow:
 5. Status updates flow back through the pipeline
 """
 
-import asyncio
 import json
-import pytest
+import os
 import sqlite3
-import tempfile
-import time
-import uuid
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, Any, List
-from unittest.mock import Mock, patch
 
 # Test imports - use proper path setup
 import sys
-import os
+import tempfile
+import uuid
+from datetime import datetime, timezone
+from unittest.mock import patch
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps", "hive-orchestrator", "src"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps", "ai-planner", "src"))
 
 # Import components to test
-from hive_orchestrator.core.db import database_enhanced_optimized as db_enhanced
-from hive_orchestrator.core.db.database import get_connection, init_db, create_task
 from ai_planner.agent import AIPlanner
+from hive_orchestrator.core.db import database_enhanced_optimized as db_enhanced
+from hive_orchestrator.core.db.database import get_connection
 
 
 class TestAIPlannerQueenIntegration:

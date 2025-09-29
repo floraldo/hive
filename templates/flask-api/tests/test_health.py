@@ -2,8 +2,9 @@
 Health endpoint tests for {{project_name}}
 """
 
-import pytest
 import json
+
+import pytest
 from app import app
 
 

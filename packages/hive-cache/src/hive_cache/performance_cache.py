@@ -37,11 +37,11 @@ from __future__ import annotations
 
         # Performance-specific metrics
         self.perf_metrics = {
-            "total_function_calls": 0
-            "cache_hits": 0
-            "cache_misses": 0
-            "total_computation_time_saved": 0.0
-            "average_computation_time": 0.0
+            "total_function_calls": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "total_computation_time_saved": 0.0,
+            "average_computation_time": 0.0,
             "expensive_operations_cached": 0
         }
 
@@ -63,17 +63,17 @@ from __future__ import annotations
 
     def _generate_function_key(
         self
-        func: Callable
-        args: Tuple[Any, ...] = ()
-        kwargs: Dict[str, Any] = None
+        func: Callable,
+        args: Tuple[Any, ...] = (),
+        kwargs: Dict[str, Any] = None,
         key_prefix: str | None = None
     ) -> str:
         """Generate cache key for function call.
 
         Args:
-            func: Function being cached
-            args: Function positional arguments
-            kwargs: Function keyword arguments
+            func: Function being cached,
+            args: Function positional arguments,
+            kwargs: Function keyword arguments,
             key_prefix: Optional prefix for the key
 
         Returns:
@@ -87,12 +87,12 @@ from __future__ import annotations
         func_module = func.__module__
 
         # Create parameter signature
-        param_dict = {"args": args, "kwargs": sorted(kwargs.items())}
+        param_dict = {"args": args, "kwargs": sorted(kwargs.items())},
         param_str = str(param_dict)
 
         # Generate hash for large parameter sets
         if len(param_str) > 200:
-            param_hash = hashlib.sha256(param_str.encode()).hexdigest()[:16]
+            param_hash = hashlib.sha256(param_str.encode()).hexdigest()[:16],
             param_str = f"hash_{param_hash}"
 
         # Construct key
@@ -135,21 +135,21 @@ from __future__ import annotations
 
     async def cached_computation_async(
         self
-        key: str
-        computation: Callable
-        args: Tuple[Any, ...] = ()
-        kwargs: Dict[str, Any] = None
-        ttl: int | None = None
+        key: str,
+        computation: Callable,
+        args: Tuple[Any, ...] = (),
+        kwargs: Dict[str, Any] = None,
+        ttl: int | None = None,
         force_refresh: bool = False
     ) -> Any:
         """Execute computation with caching.
 
         Args:
-            key: Cache key for the computation
-            computation: Function to execute
-            args: Function arguments
-            kwargs: Function keyword arguments
-            ttl: Custom TTL (uses adaptive calculation if None)
+            key: Cache key for the computation,
+            computation: Function to execute,
+            args: Function arguments,
+            kwargs: Function keyword arguments,
+            ttl: Custom TTL (uses adaptive calculation if None),
             force_refresh: Skip cache and recompute
 
         Returns:
@@ -165,7 +165,7 @@ from __future__ import annotations
             cached_result = await self.cache_client.get(key, self.namespace)
             if cached_result is not None:
                 self.perf_metrics["cache_hits"] += 1
-                logger.debug(f"Cache hit for computation: {key}")
+                logger.debug(f"Cache hit for computation: {key}"),
                 return cached_result["result"]
 
         # Cache miss - execute computation
@@ -188,7 +188,7 @@ from __future__ import annotations
                 self.perf_metrics["total_computation_time_saved"] / total_calls
             )
 
-            if computation_time > 1.0:  # Mark as expensive if > 1 second
+            if computation_time > 1.0:  # Mark as expensive if > 1 second,
                 self.perf_metrics["expensive_operations_cached"] += 1
 
             # Calculate TTL
@@ -197,40 +197,40 @@ from __future__ import annotations
 
             # Cache the result with metadata
             cache_value = {
-                "result": result
-                "computation_time": computation_time
-                "cached_at": time.time()
-                "ttl": ttl
+                "result": result,
+                "computation_time": computation_time,
+                "cached_at": time.time(),
+                "ttl": ttl,
             }
 
             await self.cache_client.set(key, cache_value, ttl, self.namespace)
 
             logger.info(
-                f"Cached computation result: {key} "
+                f"Cached computation result: {key} ",
                 f"(time: {computation_time:.3f}s, TTL: {ttl}s)"
             )
 
             return result
 
         except Exception as e:
-            logger.error(f"Computation failed for key {key}: {e}")
+            logger.error(f"Computation failed for key {key}: {e}"),
             raise
 
     async def memoize_function_async(
         self
-        func: Callable
-        args: Tuple[Any, ...] = ()
-        kwargs: Dict[str, Any] = None
-        ttl: int | None = None
+        func: Callable,
+        args: Tuple[Any, ...] = (),
+        kwargs: Dict[str, Any] = None,
+        ttl: int | None = None,
         key_prefix: str | None = None
     ) -> Any:
         """Memoize function call with automatic key generation.
 
         Args:
-            func: Function to memoize
-            args: Function arguments
-            kwargs: Function keyword arguments
-            ttl: Custom TTL
+            func: Function to memoize,
+            args: Function arguments,
+            kwargs: Function keyword arguments,
+            ttl: Custom TTL,
             key_prefix: Optional key prefix
 
         Returns:
@@ -244,15 +244,15 @@ from __future__ import annotations
 
     def cached(
         self
-        ttl: int | None = None
-        key_prefix: str | None = None
+        ttl: int | None = None,
+        key_prefix: str | None = None,
         namespace: str | None = None
     ):
         """Decorator for automatic function result caching.
 
         Args:
-            ttl: Custom TTL for cached results
-            key_prefix: Optional prefix for cache keys
+            ttl: Custom TTL for cached results,
+            key_prefix: Optional prefix for cache keys,
             namespace: Custom namespace (uses default if None)
 
         Returns:
@@ -278,8 +278,8 @@ from __future__ import annotations
                     # Cache result
                     cache_ttl = ttl or self._calculate_computation_ttl(computation_time)
                     cache_value = {
-                        "result": result
-                        "computation_time": computation_time
+                        "result": result,
+                        "computation_time": computation_time,
                         "cached_at": time.time()
                     }
 
@@ -307,18 +307,18 @@ from __future__ import annotations
 
     async def batch_cache_operations_async(
         self
-        operations: List[Dict[str, Any]]
+        operations: List[Dict[str, Any]],
         max_concurrent: int = 10
     ) -> List[Any]:
         """Execute multiple cached operations in batch.
 
         Args:
             operations: List of operation dictionaries with keys:
-                - key: Cache key
-                - computation: Function to execute
-                - args: Function arguments (optional)
-                - kwargs: Function keyword arguments (optional)
-                - ttl: Custom TTL (optional)
+                - key: Cache key,
+                - computation: Function to execute,
+                - args: Function arguments (optional),
+                - kwargs: Function keyword arguments (optional),
+                - ttl: Custom TTL (optional),
             max_concurrent: Maximum concurrent operations
 
         Returns:
@@ -329,9 +329,9 @@ from __future__ import annotations
         async def _execute_operation_async(op: Dict[str, Any]) -> Any:
             async with semaphore:
                 return await self.cached_computation_async(
-                    key=op["key"]
+                    key=op["key"],
                     computation=op["computation"]
-                    args=op.get("args", ())
+                    args=op.get("args", ()),
                     kwargs=op.get("kwargs", {})
                     ttl=op.get("ttl")
                 )
@@ -353,13 +353,13 @@ from __future__ import annotations
 
     async def warm_cache_from_functions_async(
         self
-        function_configs: List[Dict[str, Any]]
+        function_configs: List[Dict[str, Any]],
         max_concurrent: int = 5
     ) -> Dict[str, bool]:
         """Warm cache by pre-executing functions.
 
         Args:
-            function_configs: List of function configuration dictionaries
+            function_configs: List of function configuration dictionaries,
             max_concurrent: Maximum concurrent warming operations
 
         Returns:
@@ -407,17 +407,17 @@ from __future__ import annotations
 
     async def invalidate_function_cache_async(
         self
-        func: Callable
-        args: Tuple[Any, ...] = None
-        kwargs: Dict[str, Any] = None
+        func: Callable,
+        args: Tuple[Any, ...] = None,
+        kwargs: Dict[str, Any] = None,
         key_prefix: str | None = None
     ) -> bool:
         """Invalidate cached result for specific function call.
 
         Args:
-            func: Function whose cache to invalidate
-            args: Function arguments (invalidates all if None)
-            kwargs: Function keyword arguments
+            func: Function whose cache to invalidate,
+            args: Function arguments (invalidates all if None),
+            kwargs: Function keyword arguments,
             key_prefix: Optional key prefix
 
         Returns:
@@ -448,7 +448,7 @@ from __future__ import annotations
 
         return {
             **self.perf_metrics
-            "cache_hit_rate_percent": round(hit_rate, 2)
+            "cache_hit_rate_percent": round(hit_rate, 2),
             "namespace": self.namespace
             "cache_client_metrics": self.cache_client.get_metrics()
         }

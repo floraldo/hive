@@ -131,18 +131,18 @@ class AdvancedTimeoutManager:
         Execute operation with advanced timeout management.
 
         Args:
-            operation: Async function to execute
-            operation_name: Name for metrics tracking
-            timeout: Explicit timeout value (overrides automatic calculation)
-            timeout_type: Type of timeout for automatic calculation
-            retry_attempt: Current retry attempt
+            operation: Async function to execute,
+            operation_name: Name for metrics tracking,
+            timeout: Explicit timeout value (overrides automatic calculation),
+            timeout_type: Type of timeout for automatic calculation,
+            retry_attempt: Current retry attempt,
             *args, **kwargs: Arguments for the operation
 
         Returns:
             Operation result
 
         Raises:
-            asyncio.TimeoutError: If operation times out
+            asyncio.TimeoutError: If operation times out,
         """
         # Determine timeout
         if timeout is None:
@@ -182,7 +182,7 @@ class AdvancedTimeoutManager:
             # Record failure (not timeout)
             duration = time.perf_counter() - start_time
             metrics.durations.append(duration)
-            logger.debug(f"Operation {operation_name} failed with error: {e}")
+            logger.debug(f"Operation {operation_name} failed with error: {e}"),
             raise
 
     async def _record_success_async(self, operation_name: str, duration: float, timeout: float) -> None:
@@ -220,7 +220,7 @@ class AdvancedTimeoutManager:
 
         # Log timeout
         logger.warning(
-            f"Timeout in operation {operation_name} after {duration:.3f}s "
+            f"Timeout in operation {operation_name} after {duration:.3f}s ",
             f"(timeout: {timeout:.1f}s, attempt: {retry_attempt + 1})"
         )
 
@@ -428,7 +428,7 @@ class AdvancedTimeoutManager:
                     "total_attempts": metrics.total_attempts,
                     "successful_attempts": metrics.successful_attempts,
                     "timeout_count": metrics.timeout_count,
-                    "timeout_rate": metrics.timeout_count / metrics.total_attempts
+                    "timeout_rate": metrics.timeout_count / metrics.total_attempts,
                     if metrics.total_attempts > 0
                     else 0.0,
                     "average_duration": metrics.average_duration,
@@ -499,7 +499,7 @@ def with_adaptive_timeout(
                 operation_name,
                 timeout=timeout,
                 timeout_type=timeout_type,
-                retry_attempt=kwargs.pop("_retry_attempt", 0),
+                retry_attempt=kwargs.pop("_retry_attempt", 0)
                 *args,
                 **kwargs,
             )

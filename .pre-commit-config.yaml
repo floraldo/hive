@@ -1,54 +1,28 @@
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-      - id: check-merge-conflict
-      - id: debug-statements
+# Simple pre-commit configuration for Hive platform
+# Focused on preventing syntax errors that plague AI agents
 
+repos:
+  # Ruff - Fast Python linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.15
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # Black - Code formatter (backup to ruff)
   - repo: https://github.com/psf/black
-    rev: 23.7.0
+    rev: 24.8.0
     hooks:
       - id: black
         language_version: python3.11
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-        args: [--max-line-length=88, --extend-ignore=E203,W503]
-
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.35.0
-    hooks:
-      - id: markdownlint
-        args: [--fix]
-        files: \.(md|markdown)$
-        exclude: ^(\.github/|node_modules/|\.venv/)
-
+  # Basic Python syntax check
   - repo: local
     hooks:
-      - id: enhanced-golden-rules
-        name: Enhanced Golden Rules Validation
-        entry: python -m pytest packages/hive-tests/tests/unit/test_architecture.py::TestArchitecturalCompliance::test_enhanced_golden_rules -v
+      - id: python-syntax-check
+        name: Check Python syntax
+        entry: python -m py_compile
         language: system
-        pass_filenames: false
-        always_run: true
-        stages: [commit]
-        
-      - id: repository-hygiene-check
-        name: Repository Hygiene Check
-        entry: python scripts/operational_excellence/automated_hygiene.py --all
-        language: system
-        pass_filenames: false
-        always_run: false
-        stages: [manual]
+        types: [python]
+        pass_filenames: true

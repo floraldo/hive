@@ -648,8 +648,8 @@ else:
                             factor = float(part.replace("x", ""))
                             metrics["improvement_factor"] = factor
                             break
-                except:
-                    pass
+                except (ValueError, IndexError, AttributeError) as e:
+                    logger.debug(f"Could not parse improvement factor from line: {line.strip()}: {e}")
 
             elif "ops/sec" in line or "tasks/sec" in line:
                 # Extract throughput
@@ -661,10 +661,10 @@ else:
                                 throughput = float(parts[i - 1])
                                 metrics["throughput"] = throughput
                                 break
-                            except:
-                                pass
-                except:
-                    pass
+                            except (ValueError, IndexError) as e:
+                                logger.debug(f"Could not parse throughput value: {e}")
+                except (ValueError, IndexError, AttributeError) as e:
+                    logger.debug(f"Could not parse throughput from line: {line.strip()}: {e}")
 
         if metrics:
             # Store metrics in last result

@@ -19,12 +19,7 @@ def run_script(script_name: str, description: str) -> bool:
         return False
 
     try:
-        result = subprocess.run(
-            [sys.executable, str(script_path)],
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
+        result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True, timeout=60)
 
         print(result.stdout)
         if result.stderr:
@@ -48,10 +43,7 @@ def run_validation() -> dict:
 
     try:
         result = subprocess.run(
-            [sys.executable, "scripts/validate_golden_rules.py"],
-            capture_output=True,
-            text=True,
-            timeout=120
+            [sys.executable, "scripts/validate_golden_rules.py"], capture_output=True, text=True, timeout=120
         )
 
         output = result.stdout
@@ -60,27 +52,24 @@ def run_validation() -> dict:
         failures = 0
         failed_rules = []
 
-        for line in output.split('\n'):
-            if 'FAIL' in line and 'Golden Rule' in line:
+        for line in output.split("\n"):
+            if "FAIL" in line and "Golden Rule" in line:
                 # Extract rule number
                 import re
-                match = re.search(r'Golden Rule (\d+)', line)
+
+                match = re.search(r"Golden Rule (\d+)", line)
                 if match:
                     failed_rules.append(int(match.group(1)))
-            if 'Golden Rules failed validation' in line:
-                match = re.search(r'(\d+) Golden Rules', line)
+            if "Golden Rules failed validation" in line:
+                match = re.search(r"(\d+) Golden Rules", line)
                 if match:
                     failures = int(match.group(1))
 
-        return {
-            'failures': failures,
-            'failed_rules': failed_rules,
-            'output': output
-        }
+        return {"failures": failures, "failed_rules": failed_rules, "output": output}
 
     except Exception as e:
         print(f"Error running validation: {e}")
-        return {'failures': -1, 'failed_rules': [], 'output': str(e)}
+        return {"failures": -1, "failed_rules": [], "output": str(e)}
 
 
 def main():
@@ -91,7 +80,7 @@ def main():
     # Initial validation
     print("\n1. INITIAL STATE")
     initial_results = run_validation()
-    initial_failures = initial_results['failures']
+    initial_failures = initial_results["failures"]
     print(f"\nInitial failures: {initial_failures} rules")
     print(f"Failed rules: {initial_results['failed_rules']}")
 
@@ -120,7 +109,7 @@ def main():
     # Final validation
     print("\n3. FINAL STATE")
     final_results = run_validation()
-    final_failures = final_results['failures']
+    final_failures = final_results["failures"]
     print(f"\nFinal failures: {final_failures} rules")
     print(f"Failed rules: {final_results['failed_rules']}")
 
@@ -133,7 +122,7 @@ def main():
     print(f"Failed: {len(failed_fixes)}")
 
     if failed_fixes:
-        print(f"\nFailed scripts:")
+        print("\nFailed scripts:")
         for script in failed_fixes:
             print(f"  - {script}")
 
@@ -156,7 +145,7 @@ def main():
         print("3. Run individual fix scripts with verbose output for details")
         print("4. Consider creating custom fix scripts for specific patterns")
 
-        if 10 in final_results['failed_rules']:
+        if 10 in final_results["failed_rules"]:
             print("\nRule 10 (Service Layer):")
             print("  - Requires manual refactoring of business logic")
             print("  - Extract domain modules from service layers")

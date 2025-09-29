@@ -76,7 +76,7 @@ class PromptConfig(BaseModel):
     validation_enabled: bool = Field(True, description="Enable variable validation")
     optimization_enabled: bool = Field(False, description="Enable prompt optimization")
     max_template_size: int = Field(50000, description="Max template size in chars")
-    variable_prefix: str = Field("{{", description="Variable start delimiter")
+    variable_prefix: str = (Field("{{", description="Variable start delimiter"),)
     variable_suffix: str = Field("}}", description="Variable end delimiter")
 
 

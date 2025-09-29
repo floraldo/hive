@@ -1,11 +1,11 @@
 """V4.2 Async Infrastructure Integration Tests."""
 
 import asyncio
-import pytest
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timedelta
-from typing import Dict, List, Any
+from datetime import datetime
+from unittest.mock import patch
+
+import pytest
 
 
 class MockAsyncClaudeService:
@@ -38,21 +38,17 @@ class MockAsyncClaudeService:
                         "id": f"task_1_{plan_id}",
                         "title": "Setup Environment",
                         "description": "Initialize project environment",
-                        "estimated_duration": 30
+                        "estimated_duration": 30,
                     },
                     {
                         "id": f"task_2_{plan_id}",
                         "title": "Core Implementation",
                         "description": "Implement main functionality",
-                        "estimated_duration": 120
-                    }
+                        "estimated_duration": 120,
+                    },
                 ],
-                "complexity_breakdown": {
-                    "low": 1,
-                    "medium": 1,
-                    "high": 0
-                },
-                "total_estimated_duration": 150
+                "complexity_breakdown": {"low": 1, "medium": 1, "high": 0},
+                "total_estimated_duration": 150,
             }
 
 
@@ -66,12 +62,7 @@ class MockAsyncAIPlanner:
         self.processing_queue = asyncio.Queue(maxsize=100)
         self.results_cache = {}
         self.claude_service = MockAsyncClaudeService(mock_mode)
-        self.performance_metrics = {
-            "response_times": [],
-            "total_tasks": 0,
-            "successful_tasks": 0,
-            "failed_tasks": 0
-        }
+        self.performance_metrics = {"response_times": [], "total_tasks": 0, "successful_tasks": 0, "failed_tasks": 0}
 
     async def generate_plan_async(self, task):
         """Generate execution plan for task."""
@@ -81,10 +72,7 @@ class MockAsyncAIPlanner:
         try:
             # Generate plan using Claude service
             plan_details = await self.claude_service.generate_execution_plan_async(
-                task["description"],
-                task.get("context_data", {}),
-                task["priority"],
-                task["requestor"]
+                task["description"], task.get("context_data", {}), task["priority"], task["requestor"]
             )
 
             execution_time = time.time() - start_time
@@ -100,7 +88,7 @@ class MockAsyncAIPlanner:
                 "plan_id": plan_details["plan_id"],
                 "plan_details": plan_details,
                 "execution_time": execution_time,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
             return result
@@ -116,7 +104,7 @@ class MockAsyncAIPlanner:
                 "task_id": task_id,
                 "error": str(e),
                 "execution_time": execution_time,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
     async def process_planning_queue_async(self, max_tasks=None):
@@ -143,11 +131,7 @@ class MockAsyncAIReviewer:
         self.mock_mode = mock_mode
         self.max_concurrent_reviews = 5
         self.review_queue = asyncio.Queue()
-        self.performance_metrics = {
-            "reviews_processed": 0,
-            "average_review_time": 0.0,
-            "review_accuracy": 0.95
-        }
+        self.performance_metrics = {"reviews_processed": 0, "average_review_time": 0.0, "review_accuracy": 0.95}
 
     async def perform_review_async(self, review_request):
         """Perform async code review."""
@@ -174,20 +158,16 @@ class MockAsyncAIReviewer:
                         "type": "suggestion",
                         "severity": "medium",
                         "line": 42,
-                        "message": "Consider using async/await pattern"
+                        "message": "Consider using async/await pattern",
                     }
                 ],
                 "overall_score": 85,
                 "execution_time": execution_time,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
         except Exception as e:
-            return {
-                "status": "failed",
-                "error": str(e),
-                "execution_time": time.time() - start_time
-            }
+            return {"status": "failed", "error": str(e), "execution_time": time.time() - start_time}
 
 
 class MockPerformanceMetrics:
@@ -200,11 +180,7 @@ class MockPerformanceMetrics:
     def start_operation(self, operation_name, tags=None):
         """Start tracking operation."""
         operation_id = f"{operation_name}_{time.time_ns()}"
-        self.operation_counters[operation_id] = {
-            "name": operation_name,
-            "start_time": time.time(),
-            "tags": tags or {}
-        }
+        self.operation_counters[operation_id] = {"name": operation_name, "start_time": time.time(), "tags": tags or {}}
         return operation_id
 
     def end_operation(self, operation_id, success=True, bytes_processed=0):
@@ -218,7 +194,7 @@ class MockPerformanceMetrics:
                 "execution_time": execution_time,
                 "success": success,
                 "bytes_processed": bytes_processed,
-                "timestamp": datetime.utcnow()
+                "timestamp": datetime.utcnow(),
             }
 
             self.metrics_history.append(metrics)
@@ -262,7 +238,7 @@ class TestV42AsyncInfrastructureIntegration:
             "description": "Create a web application",
             "priority": 80,
             "requestor": "test_user",
-            "context_data": {"framework": "FastAPI"}
+            "context_data": {"framework": "FastAPI"},
         }
 
         result = await async_planner.generate_plan_async(task)
@@ -283,7 +259,7 @@ class TestV42AsyncInfrastructureIntegration:
         review_request = {
             "code": "def hello_world():\n    print('Hello, World!')",
             "language": "python",
-            "context": "Simple greeting function"
+            "context": "Simple greeting function",
         }
 
         result = await async_reviewer.perform_review_async(review_request)
@@ -306,7 +282,7 @@ class TestV42AsyncInfrastructureIntegration:
                 "description": f"Task {i} description",
                 "priority": 70 + i,
                 "requestor": "test_user",
-                "context_data": {}
+                "context_data": {},
             }
             for i in range(5)
         ]
@@ -334,6 +310,7 @@ class TestV42AsyncInfrastructureIntegration:
     @pytest.mark.asyncio
     async def test_performance_metrics_integration(self, performance_metrics):
         """Test performance metrics integration with async operations."""
+
         async def tracked_operation(duration=0.01):
             await asyncio.sleep(duration)
             return "operation_result"
@@ -367,15 +344,13 @@ class TestV42AsyncInfrastructureIntegration:
                 "description": f"Rate limit test {i}",
                 "priority": 50,
                 "requestor": "rate_test_user",
-                "context_data": {}
+                "context_data": {},
             }
             for i in range(10)
         ]
 
         start_time = time.time()
-        results = await asyncio.gather(*[
-            async_planner.generate_plan_async(task) for task in tasks
-        ])
+        results = await asyncio.gather(*[async_planner.generate_plan_async(task) for task in tasks])
         end_time = time.time()
 
         # All should complete successfully
@@ -400,7 +375,7 @@ class TestV42AsyncInfrastructureIntegration:
                 "description": f"Queue test task {i}",
                 "priority": 60 + i,
                 "requestor": "queue_test_user",
-                "context_data": {}
+                "context_data": {},
             }
             for i in range(3)
         ]
@@ -427,12 +402,13 @@ class TestV42AsyncInfrastructureIntegration:
             "description": None,  # This should cause an error
             "priority": 50,
             "requestor": "error_test_user",
-            "context_data": {}
+            "context_data": {},
         }
 
         # Mock the Claude service to raise an error
-        with patch.object(async_planner.claude_service, 'generate_execution_plan_async',
-                         side_effect=ValueError("Simulated error")):
+        with patch.object(
+            async_planner.claude_service, "generate_execution_plan_async", side_effect=ValueError("Simulated error")
+        ):
             result = await async_planner.generate_plan_async(problematic_task)
 
         # Should handle error gracefully
@@ -453,31 +429,27 @@ class TestV42AsyncInfrastructureIntegration:
                 "description": "This will succeed",
                 "priority": 70,
                 "requestor": "mixed_test_user",
-                "context_data": {}
+                "context_data": {},
             },
             {
                 "id": "success_task_2",
                 "description": "This will also succeed",
                 "priority": 75,
                 "requestor": "mixed_test_user",
-                "context_data": {}
-            }
+                "context_data": {},
+            },
         ]
 
         # Execute planning tasks
-        planning_results = await asyncio.gather(*[
-            async_planner.generate_plan_async(task) for task in planning_tasks
-        ])
+        planning_results = await asyncio.gather(*[async_planner.generate_plan_async(task) for task in planning_tasks])
 
         # Execute review tasks
         review_requests = [
             {"code": "print('hello')", "language": "python"},
-            {"code": "console.log('world')", "language": "javascript"}
+            {"code": "console.log('world')", "language": "javascript"},
         ]
 
-        review_results = await asyncio.gather(*[
-            async_reviewer.perform_review_async(req) for req in review_requests
-        ])
+        review_results = await asyncio.gather(*[async_reviewer.perform_review_async(req) for req in review_requests])
 
         # Verify planning results
         assert len(planning_results) == 2
@@ -506,14 +478,12 @@ class TestV42AsyncInfrastructureIntegration:
                 "description": f"Benchmark planning task {i}",
                 "priority": 80,
                 "requestor": "benchmark_user",
-                "context_data": {"test": "benchmark"}
+                "context_data": {"test": "benchmark"},
             }
             for i in range(planning_tasks)
         ]
 
-        planning_results = await asyncio.gather(*[
-            async_planner.generate_plan_async(task) for task in tasks
-        ])
+        planning_results = await asyncio.gather(*[async_planner.generate_plan_async(task) for task in tasks])
 
         planning_duration = time.time() - planning_start
 
@@ -525,14 +495,12 @@ class TestV42AsyncInfrastructureIntegration:
             {
                 "code": f"def benchmark_function_{i}():\n    return {i}",
                 "language": "python",
-                "context": f"Benchmark function {i}"
+                "context": f"Benchmark function {i}",
             }
             for i in range(review_tasks)
         ]
 
-        review_results = await asyncio.gather(*[
-            async_reviewer.perform_review_async(req) for req in review_requests
-        ])
+        review_results = await asyncio.gather(*[async_reviewer.perform_review_async(req) for req in review_requests])
 
         review_duration = time.time() - review_start
 
@@ -555,6 +523,7 @@ class TestV42AsyncInfrastructureIntegration:
     @pytest.mark.asyncio
     async def test_resource_utilization_monitoring(self, async_planner, performance_metrics):
         """Test resource utilization monitoring during async operations."""
+
         async def monitored_operation(operation_id):
             op_id = performance_metrics.start_operation(f"monitored_op_{operation_id}")
 
@@ -563,7 +532,7 @@ class TestV42AsyncInfrastructureIntegration:
                 "description": f"Resource monitoring test {operation_id}",
                 "priority": 70,
                 "requestor": "monitoring_user",
-                "context_data": {}
+                "context_data": {},
             }
 
             result = await async_planner.generate_plan_async(task)
@@ -572,9 +541,7 @@ class TestV42AsyncInfrastructureIntegration:
             return result
 
         # Execute multiple monitored operations
-        results = await asyncio.gather(*[
-            monitored_operation(i) for i in range(5)
-        ])
+        results = await asyncio.gather(*[monitored_operation(i) for i in range(5)])
 
         # Verify all operations completed
         assert len(results) == 5
@@ -610,14 +577,12 @@ class TestV42PerformanceTargets:
                 "description": f"Throughput test task {i}",
                 "priority": 75,
                 "requestor": "throughput_user",
-                "context_data": {}
+                "context_data": {},
             }
             for i in range(task_count)
         ]
 
-        results = await asyncio.gather(*[
-            async_planner.generate_plan_async(task) for task in tasks
-        ])
+        results = await asyncio.gather(*[async_planner.generate_plan_async(task) for task in tasks])
 
         duration = time.time() - start_time
         throughput = task_count / (duration / 60)  # plans per minute
@@ -636,15 +601,13 @@ class TestV42PerformanceTargets:
             {
                 "code": f"def test_function_{i}():\n    return 'test_{i}'",
                 "language": "python",
-                "context": f"Test function {i}"
+                "context": f"Test function {i}",
             }
             for i in range(5)
         ]
 
         start_time = time.time()
-        results = await asyncio.gather(*[
-            async_reviewer.perform_review_async(req) for req in review_requests
-        ])
+        results = await asyncio.gather(*[async_reviewer.perform_review_async(req) for req in review_requests])
         duration = time.time() - start_time
 
         # Verify all completed successfully
@@ -670,15 +633,13 @@ class TestV42PerformanceTargets:
                 "description": f"Concurrent capacity test {i}",
                 "priority": 70,
                 "requestor": "capacity_user",
-                "context_data": {}
+                "context_data": {},
             }
             for i in range(concurrent_tasks)
         ]
 
         start_time = time.time()
-        results = await asyncio.gather(*[
-            async_planner.generate_plan_async(task) for task in tasks
-        ])
+        results = await asyncio.gather(*[async_planner.generate_plan_async(task) for task in tasks])
         duration = time.time() - start_time
 
         # Verify all completed successfully

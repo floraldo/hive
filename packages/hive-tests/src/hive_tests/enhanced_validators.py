@@ -5,9 +5,8 @@ logger = get_logger(__name__)
 """Enhanced architectural validators for the Hive platform"""
 
 import ast
-import os
 from pathlib import Path
-from typing import List, Set, Tuple
+from typing import List, Set
 
 
 class CircularImportValidator:

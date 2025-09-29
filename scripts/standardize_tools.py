@@ -3,8 +3,9 @@
 Standardize tool versions across all Hive packages and apps.
 """
 
-import toml
 from pathlib import Path
+
+import toml
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -135,9 +136,9 @@ def main():
         logger.info(f"Checking {rel_path}")
         if update_pyproject_tools(pyproject_path, standard_versions):
             updated_count += 1
-            logger.info(f"  ✓ Updated")
+            logger.info("  ✓ Updated")
         else:
-            logger.info(f"  - No changes needed")
+            logger.info("  - No changes needed")
 
     logger.info(f"\nSummary: Updated {updated_count}/{len(pyproject_files)} files")
 

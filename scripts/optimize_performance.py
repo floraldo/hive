@@ -4,11 +4,8 @@ Performance optimization script for Hive platform
 Implements connection pooling, async optimizations, and circuit breakers
 """
 
-import asyncio
-import os
-from pathlib import Path
-from typing import Dict, List, Optional
 import re
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
@@ -329,7 +326,8 @@ def create_performance_module():
 
     # Create __init__.py
     init_file = perf_dir / "__init__.py"
-    init_file.write_text('''"""Hive performance optimization utilities"""
+    init_file.write_text(
+        '''"""Hive performance optimization utilities"""
 
 from .pool import EnhancedAsyncPool, PoolConfig
 from .circuit_breaker import CircuitBreaker, circuit_breaker
@@ -343,23 +341,26 @@ __all__ = [
     "TimeoutManager",
     "with_timeout",
 ]
-''', encoding='utf-8')
+''',
+        encoding="utf-8",
+    )
 
     # Create pool.py
     pool_file = perf_dir / "pool.py"
-    pool_file.write_text(CONNECTION_POOL_CONFIG + "\n\n" + ASYNC_POOL_ENHANCEMENT, encoding='utf-8')
+    pool_file.write_text(CONNECTION_POOL_CONFIG + "\n\n" + ASYNC_POOL_ENHANCEMENT, encoding="utf-8")
 
     # Create circuit_breaker.py
     cb_file = perf_dir / "circuit_breaker.py"
-    cb_file.write_text(CIRCUIT_BREAKER, encoding='utf-8')
+    cb_file.write_text(CIRCUIT_BREAKER, encoding="utf-8")
 
     # Create timeout.py
     timeout_file = perf_dir / "timeout.py"
-    timeout_file.write_text(TIMEOUT_HANDLER, encoding='utf-8')
+    timeout_file.write_text(TIMEOUT_HANDLER, encoding="utf-8")
 
     # Create pyproject.toml
     pyproject_file = perf_dir.parent.parent / "pyproject.toml"
-    pyproject_file.write_text('''[tool.poetry]
+    pyproject_file.write_text(
+        """[tool.poetry]
 name = "hive-performance"
 version = "0.1.0"
 description = "Performance optimization utilities for Hive platform"
@@ -379,7 +380,9 @@ ruff = "^0.1.15"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-''', encoding='utf-8')
+""",
+        encoding="utf-8",
+    )
 
     return perf_dir
 
@@ -400,30 +403,26 @@ def optimize_async_patterns():
         if not full_path.exists():
             continue
 
-        content = full_path.read_text(encoding='utf-8')
+        content = full_path.read_text(encoding="utf-8")
         original_content = content
 
         # Replace time.sleep with asyncio.sleep
-        content = re.sub(
-            r'time\.sleep\(([^)]+)\)',
-            r'await asyncio.sleep(\1)',
-            content
-        )
+        content = re.sub(r"time\.sleep\(([^)]+)\)", r"await asyncio.sleep(\1)", content)
 
         # Add async to functions that use await
         content = re.sub(
-            r'def (\w+)\(([^)]*)\):\s*\n([^}]+)await',
-            r'async def \1_async(\2):\n\3await',
+            r"def (\w+)\(([^)]*)\):\s*\n([^}]+)await",
+            r"async def \1_async(\2):\n\3await",
             content,
-            flags=re.MULTILINE | re.DOTALL
+            flags=re.MULTILINE | re.DOTALL,
         )
 
         if content != original_content:
             # Add asyncio import if needed
-            if 'await asyncio.sleep' in content and 'import asyncio' not in content:
-                content = 'import asyncio\n' + content
+            if "await asyncio.sleep" in content and "import asyncio" not in content:
+                content = "import asyncio\n" + content
 
-            full_path.write_text(content, encoding='utf-8')
+            full_path.write_text(content, encoding="utf-8")
             optimizations_applied.append(file_path)
 
     return optimizations_applied
@@ -454,7 +453,8 @@ def main():
 
     perf_config = PROJECT_ROOT / "config/performance.yaml"
     perf_config.parent.mkdir(parents=True, exist_ok=True)
-    perf_config.write_text('''# Hive Platform Performance Configuration
+    perf_config.write_text(
+        """# Hive Platform Performance Configuration
 
 connection_pool:
   min_size: 5
@@ -495,7 +495,9 @@ optimization:
   enable_async_optimization: true
   batch_size: 100
   parallel_workers: 4
-''', encoding='utf-8')
+""",
+        encoding="utf-8",
+    )
     print(f"  Created: {perf_config}")
 
     print("\n" + "=" * 60)

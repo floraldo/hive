@@ -11,7 +11,7 @@ in any event-driven system.
 
 import uuid
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Callable
 
 from .base_events import BaseEvent
 

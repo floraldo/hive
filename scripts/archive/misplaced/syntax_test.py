@@ -2,16 +2,16 @@
 """Quick syntax test script to verify critical syntax errors are fixed."""
 
 import sys
-import traceback
+
 
 def test_import(module_name, file_path):
     """Test importing a module and report any syntax errors."""
     try:
         # Try to compile the file first
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
-        compile(content, file_path, 'exec')
+        compile(content, file_path, "exec")
         print(f"✓ {module_name}: Syntax OK")
         return True
     except SyntaxError as e:
@@ -21,6 +21,7 @@ def test_import(module_name, file_path):
     except Exception as e:
         print(f"? {module_name}: Other error: {e}")
         return False
+
 
 def main():
     """Test syntax of key files."""
@@ -44,6 +45,7 @@ def main():
     else:
         print("\n💥 Some syntax errors remain")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

@@ -8,7 +8,7 @@ import ast
 import re
 import sys
 from pathlib import Path
-from typing import List, Set
+from typing import List
 
 from hive_logging import get_logger
 
@@ -52,7 +52,7 @@ class BatchSyntaxFixer:
 
     def fix_import_commas(self, content: str) -> str:
         """Fix missing commas in import statements."""
-        lines = content.split('\n')
+        lines = content.split("\n")
         fixed_lines = []
         in_import_block = False
         import_lines = []
@@ -61,14 +61,14 @@ class BatchSyntaxFixer:
             stripped = line.strip()
 
             # Start of multi-line import
-            if ('from ' in line and 'import (' in line) or (line.strip().endswith('import (')):
+            if ("from " in line and "import (" in line) or (line.strip().endswith("import (")):
                 in_import_block = True
                 import_lines = [line]
                 continue
 
             # Inside import block
             if in_import_block:
-                if ')' in line:
+                if ")" in line:
                     # End of import block
                     import_lines.append(line)
                     fixed_import = self._fix_import_block(import_lines)
@@ -81,7 +81,7 @@ class BatchSyntaxFixer:
 
             fixed_lines.append(line)
 
-        return '\n'.join(fixed_lines)
+        return "\n".join(fixed_lines)
 
     def _fix_import_block(self, import_lines: List[str]) -> List[str]:
         """Fix a multi-line import block."""
@@ -89,8 +89,8 @@ class BatchSyntaxFixer:
             return import_lines
 
         # Extract imports between ( and )
-        full_text = '\n'.join(import_lines)
-        match = re.search(r'import\s*\((.*?)\)', full_text, re.DOTALL)
+        full_text = "\n".join(import_lines)
+        match = re.search(r"import\s*\((.*?)\)", full_text, re.DOTALL)
         if not match:
             return import_lines
 
@@ -100,11 +100,11 @@ class BatchSyntaxFixer:
 
         # Split and clean import items
         import_items = []
-        for line in imports_text.split('\n'):
+        for line in imports_text.split("\n"):
             line = line.strip()
-            if line and not line.startswith('#'):
+            if line and not line.startswith("#"):
                 # Remove existing comma and add to list
-                line = line.rstrip(',').strip()
+                line = line.rstrip(",").strip()
                 if line:
                     import_items.append(line)
 
@@ -112,13 +112,13 @@ class BatchSyntaxFixer:
             return import_lines
 
         # Reconstruct with proper commas
-        header = import_lines[0].split('(')[0] + '('
-        footer = ')' if import_lines[-1].strip().endswith(')') else import_lines[-1]
+        header = import_lines[0].split("(")[0] + "("
+        footer = ")" if import_lines[-1].strip().endswith(")") else import_lines[-1]
 
         result = [header]
         for item in import_items[:-1]:
-            result.append(f'    {item},')
-        result.append(f'    {import_items[-1]},')  # Trailing comma
+            result.append(f"    {item},")
+        result.append(f"    {import_items[-1]},")  # Trailing comma
         result.append(footer)
 
         return result
@@ -127,16 +127,16 @@ class BatchSyntaxFixer:
         """Fix missing commas in function calls."""
         # Pattern for function calls with missing commas
         # Look for parameter=value followed by parameter=value without comma
-        pattern = r'(\w+\s*=\s*[^,\n)]+)(\s+)(\w+\s*=)'
+        pattern = r"(\w+\s*=\s*[^,\n)]+)(\s+)(\w+\s*=)"
 
         def add_comma(match):
-            return match.group(1) + ',' + match.group(2) + match.group(3)
+            return match.group(1) + "," + match.group(2) + match.group(3)
 
         return re.sub(pattern, add_comma, content, flags=re.MULTILINE)
 
     def fix_future_imports(self, content: str) -> str:
         """Move __future__ imports to the top of the file."""
-        lines = content.split('\n')
+        lines = content.split("\n")
         future_imports = []
         other_lines = []
         docstring_done = False
@@ -145,13 +145,13 @@ class BatchSyntaxFixer:
         for line in lines:
             stripped = line.strip()
 
-            if 'from __future__ import' in line:
+            if "from __future__ import" in line:
                 if stripped not in [fi.strip() for fi in future_imports]:
                     future_imports.append(line)
                 continue
 
             # Skip if it's just whitespace/comments at the top
-            if not stripped or stripped.startswith('#'):
+            if not stripped or stripped.startswith("#"):
                 other_lines.append(line)
                 continue
 
@@ -181,17 +181,17 @@ class BatchSyntaxFixer:
                         if not line.strip():
                             pass  # Already empty
                         else:
-                            docstring_lines.append('')
+                            docstring_lines.append("")
                 else:
                     code_lines.append(line)
 
             result_lines.extend(docstring_lines)
             result_lines.extend(future_imports)
             if future_imports and code_lines:
-                result_lines.append('')  # Empty line after future imports
+                result_lines.append("")  # Empty line after future imports
             result_lines.extend(code_lines)
 
-            return '\n'.join(result_lines)
+            return "\n".join(result_lines)
 
         return content
 
@@ -201,44 +201,55 @@ class BatchSyntaxFixer:
         dict_pattern = r'(["\'][\w_]+["\']\s*:\s*[^,}\n]+)(\s+["\'][\w_]+["\']\s*:)'
 
         def add_dict_comma(match):
-            return match.group(1) + ',' + match.group(2)
+            return match.group(1) + "," + match.group(2)
 
         return re.sub(dict_pattern, add_dict_comma, content, flags=re.MULTILINE)
 
     def fix_incomplete_lines(self, content: str) -> str:
         """Fix incomplete lines that are just identifiers."""
-        lines = content.split('\n')
+        lines = content.split("\n")
         fixed_lines = []
 
         for i, line in enumerate(lines):
             stripped = line.strip()
 
             # Check if line is just an identifier
-            if (stripped and
-                stripped.replace('_', 'a').replace('0', 'a').replace('1', 'a').replace('2', 'a').replace('3', 'a').replace('4', 'a').replace('5', 'a').replace('6', 'a').replace('7', 'a').replace('8', 'a').replace('9', 'a').isidentifier() and
-                i > 0):
+            if (
+                stripped
+                and stripped.replace("_", "a")
+                .replace("0", "a")
+                .replace("1", "a")
+                .replace("2", "a")
+                .replace("3", "a")
+                .replace("4", "a")
+                .replace("5", "a")
+                .replace("6", "a")
+                .replace("7", "a")
+                .replace("8", "a")
+                .replace("9", "a")
+                .isidentifier()
+                and i > 0
+            ):
 
-                prev_line = lines[i-1].strip()
+                prev_line = lines[i - 1].strip()
 
                 # This might be a continuation of an import or call
-                if ('import' in prev_line or
-                    prev_line.endswith('(') or
-                    prev_line.endswith(',')):
+                if "import" in prev_line or prev_line.endswith("(") or prev_line.endswith(","):
                     # Add comma to previous line if missing
-                    if not prev_line.endswith(',') and not prev_line.endswith('('):
-                        fixed_lines[-1] = fixed_lines[-1].rstrip() + ','
+                    if not prev_line.endswith(",") and not prev_line.endswith("("):
+                        fixed_lines[-1] = fixed_lines[-1].rstrip() + ","
 
             fixed_lines.append(line)
 
-        return '\n'.join(fixed_lines)
+        return "\n".join(fixed_lines)
 
     def fix_typing_imports(self, content: str) -> str:
         """Fix common typing import issues."""
         # Fix ListTuple -> List, Tuple
-        content = re.sub(r'\bListTuple\b', 'List, Tuple', content)
+        content = re.sub(r"\bListTuple\b", "List, Tuple", content)
 
         # Fix DictList -> Dict, List
-        content = re.sub(r'\bDictList\b', 'Dict, List', content)
+        content = re.sub(r"\bDictList\b", "Dict, List", content)
 
         return content
 
@@ -246,7 +257,7 @@ class BatchSyntaxFixer:
         """Fix a single file and return whether it was successful."""
         try:
             # Read original content
-            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
                 original_content = f.read()
 
             # Check if already valid
@@ -266,7 +277,7 @@ class BatchSyntaxFixer:
 
                 # Only write if content changed
                 if fixed_content != original_content:
-                    with open(filepath, 'w', encoding='utf-8') as f:
+                    with open(filepath, "w", encoding="utf-8") as f:
                         f.write(fixed_content)
                     logger.info(f"FIXED: {filepath}")
                     self.files_fixed += 1

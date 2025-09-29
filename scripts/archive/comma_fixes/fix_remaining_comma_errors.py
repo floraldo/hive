@@ -15,15 +15,12 @@ def find_files_with_syntax_errors():
     """Find all Python files with syntax errors using pytest."""
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "--collect-only"],
-            cwd="C:\\git\\hive",
-            capture_output=True,
-            text=True
+            [sys.executable, "-m", "pytest", "--collect-only"], cwd="C:\\git\\hive", capture_output=True, text=True
         )
 
         # Extract files with syntax errors from pytest output
         error_files = []
-        lines = result.stderr.split('\n')
+        lines = result.stderr.split("\n")
 
         for line in lines:
             if "SyntaxError" in line and "Perhaps you forgot a comma?" in line:
@@ -31,8 +28,8 @@ def find_files_with_syntax_errors():
                 for i in range(len(lines)):
                     if line in lines[i]:
                         # Look backwards for the file path
-                        for j in range(max(0, i-10), i):
-                            if "File \"" in lines[j] and ".py" in lines[j]:
+                        for j in range(max(0, i - 10), i):
+                            if 'File "' in lines[j] and ".py" in lines[j]:
                                 file_match = re.search(r'File "([^"]+\.py)"', lines[j])
                                 if file_match:
                                     error_files.append(file_match.group(1))
@@ -49,22 +46,22 @@ def fix_comma_patterns_in_file(filepath):
     print(f"Fixing comma patterns in: {filepath}")
 
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             content = f.read()
 
         original_content = content
         fixes_applied = 0
 
         # Pattern 1: Function definition parameters - missing comma after self/cls
-        pattern1 = re.compile(r'def\s+\w+\(\s*(self|cls)\s+(\w+[^,)]*)', re.MULTILINE)
-        content = pattern1.sub(r'def \g<0>(\1, \2', content)
+        pattern1 = re.compile(r"def\s+\w+\(\s*(self|cls)\s+(\w+[^,)]*)", re.MULTILINE)
+        content = pattern1.sub(r"def \g<0>(\1, \2", content)
         if content != original_content:
             fixes_applied += 1
             original_content = content
 
         # Pattern 2: Function calls - missing commas between arguments
         # Look for lines ending with identifier/string/number without comma, followed by line with identifier
-        lines = content.split('\n')
+        lines = content.split("\n")
         fixed_lines = []
 
         for i, line in enumerate(lines):
@@ -75,31 +72,33 @@ def fix_comma_patterns_in_file(filepath):
                 next_line = lines[i + 1].strip()
 
                 # Pattern: line ends with value, next line starts with parameter name
-                if (re.search(r'["\'\w\d\]}\)]\s*$', line.strip()) and
-                    re.search(r'^\s*\w+\s*[=:]', next_line) and
-                    not line.strip().endswith(',') and
-                    not line.strip().endswith('(') and
-                    '"""' not in line):
+                if (
+                    re.search(r'["\'\w\d\]}\)]\s*$', line.strip())
+                    and re.search(r"^\s*\w+\s*[=:]", next_line)
+                    and not line.strip().endswith(",")
+                    and not line.strip().endswith("(")
+                    and '"""' not in line
+                ):
 
                     # Add comma to current line
-                    fixed_line = line.rstrip() + ','
+                    fixed_line = line.rstrip() + ","
                     fixes_applied += 1
 
             fixed_lines.append(fixed_line)
 
-        content = '\n'.join(fixed_lines)
+        content = "\n".join(fixed_lines)
 
         # Pattern 3: Dictionary entries - missing commas between key-value pairs
         # This is trickier, let's use a more targeted approach
-        dict_pattern = re.compile(r'(\w+\s*=\s*[^,\n]+)\s*\n\s*(\w+\s*=)', re.MULTILINE)
+        dict_pattern = re.compile(r"(\w+\s*=\s*[^,\n]+)\s*\n\s*(\w+\s*=)", re.MULTILINE)
         matches = dict_pattern.findall(content)
         if matches:
-            content = dict_pattern.sub(r'\1,\n    \2', content)
+            content = dict_pattern.sub(r"\1,\n    \2", content)
             fixes_applied += len(matches)
 
         # Only write if we made fixes
         if fixes_applied > 0:
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
             print(f"Applied {fixes_applied} comma fixes to {filepath}")
             return True
@@ -115,7 +114,7 @@ def fix_comma_patterns_in_file(filepath):
 def test_syntax_after_fix(filepath):
     """Test if file has valid syntax after fixes."""
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             source = f.read()
         ast.parse(source, filename=str(filepath))
         return True, "OK"
@@ -174,7 +173,7 @@ def main():
             cwd="C:\\git\\hive",
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
         )
 
         if "SyntaxError" not in result.stderr:

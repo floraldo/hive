@@ -12,16 +12,12 @@ Test Implementation: QR Code Generator Service
 - Base64 encoding for response
 """
 
-import json
 import subprocess
-import time
-import requests
 import sys
-from datetime import datetime
+import time
 from pathlib import Path
-from typing import Dict, Any
-import traceback
-import base64
+
+import requests
 
 # Import the FAT framework
 sys.path.insert(0, str(Path(__file__).parent))
@@ -686,7 +682,7 @@ if __name__ == "__main__":
     result = run_external_dependency_test()
 
     if result["success"]:
-        print(f"\n[SUCCESS] External Dependency Test completed successfully!")
+        print("\n[SUCCESS] External Dependency Test completed successfully!")
         exit(0)
     else:
         print(f"\n[FAILURE] External Dependency Test failed: {result['error']}")

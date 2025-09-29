@@ -6,7 +6,6 @@ This script systematically updates all files in the Hive workspace to use
 the new centralized path management system from hive-config.
 """
 
-import re
 import sys
 from pathlib import Path
 from typing import List, Tuple

@@ -3,7 +3,7 @@ Docker-based deployment strategy
 """
 
 import asyncio
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -18,12 +18,12 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
     Docker-based deployment strategy for containerized applications
     """
 
-    def __init__(self, config: Dict[str, Any]) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         """Initialize Docker deployment strategy"""
         super().__init__(config)
         self.strategy = DeploymentStrategy.ROLLING
 
-    async def pre_deployment_checks_async(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def pre_deployment_checks_async(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Run pre-deployment checks for Docker deployment
 
@@ -73,7 +73,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
                 "errors": [f"Pre-deployment check failed: {e}"],
             }
 
-    async def deploy_async(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
+    async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """
         Execute Docker deployment
 
@@ -150,10 +150,10 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
     async def rollback_async(
         self,
-        task: Dict[str, Any],
+        task: dict[str, Any],
         deployment_id: str,
-        previous_deployment: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        previous_deployment: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Rollback Docker deployment to previous version
 
@@ -224,7 +224,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
                 "error": str(e),
             }
 
-    async def post_deployment_actions_async(self, task: Dict[str, Any], deployment_id: str) -> None:
+    async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """
         Run post-deployment actions for Docker deployment
 
@@ -264,7 +264,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Docker daemon check failed: {e}")
             return False
 
-    async def _validate_docker_image_async(self, image_config: Dict[str, Any]) -> bool:
+    async def _validate_docker_image_async(self, image_config: dict[str, Any]) -> bool:
         """Validate Docker image configuration"""
         try:
             # Check if image exists locally or can be pulled
@@ -274,7 +274,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Docker image validation failed: {e}")
             return False
 
-    async def _check_registry_access_async(self, registry_config: Dict[str, Any]) -> bool:
+    async def _check_registry_access_async(self, registry_config: dict[str, Any]) -> bool:
         """Check Docker registry access"""
         try:
             # Test registry login
@@ -284,7 +284,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Registry access check failed: {e}")
             return False
 
-    async def _prepare_docker_image_async(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
+    async def _prepare_docker_image_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """Build or pull Docker image"""
         try:
             image_config = task["docker_image"]
@@ -305,7 +305,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
                 "error": str(e),
             }
 
-    async def _stop_existing_containers_async(self, task: Dict[str, Any]) -> bool:
+    async def _stop_existing_containers_async(self, task: dict[str, Any]) -> bool:
         """Stop existing containers for rolling deployment"""
         try:
             # Find and stop existing containers
@@ -315,7 +315,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Failed to stop existing containers: {e}")
             return False
 
-    async def _run_container_async(self, task: Dict[str, Any], image_name: str, deployment_id: str) -> Dict[str, Any]:
+    async def _run_container_async(self, task: dict[str, Any], image_name: str, deployment_id: str) -> dict[str, Any]:
         """Run Docker container"""
         try:
             # Simulate container startup
@@ -354,7 +354,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Failed to stop container {container_id}: {e}")
             return False
 
-    async def _update_load_balancer_async(self, task: Dict[str, Any], container_id: str) -> bool:
+    async def _update_load_balancer_async(self, task: dict[str, Any], container_id: str) -> bool:
         """Update load balancer configuration"""
         try:
             # Simulate load balancer update
@@ -364,7 +364,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Load balancer update failed: {e}")
             return False
 
-    async def _cleanup_old_images_async(self, task: Dict[str, Any]) -> None:
+    async def _cleanup_old_images_async(self, task: dict[str, Any]) -> None:
         """Cleanup old Docker images"""
         try:
             # Remove old image versions
@@ -372,7 +372,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
         except Exception as e:
             logger.error(f"Image cleanup failed: {e}")
 
-    async def _cleanup_stopped_containers_async(self, task: Dict[str, Any]) -> None:
+    async def _cleanup_stopped_containers_async(self, task: dict[str, Any]) -> None:
         """Remove stopped containers"""
         try:
             # Remove stopped containers
@@ -380,7 +380,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
         except Exception as e:
             logger.error(f"Container cleanup failed: {e}")
 
-    async def _update_container_monitoring_async(self, task: Dict[str, Any], deployment_id: str) -> None:
+    async def _update_container_monitoring_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """Update container monitoring configuration"""
         try:
             # Update monitoring configs

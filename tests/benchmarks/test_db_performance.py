@@ -2,16 +2,14 @@
 Performance benchmarks for database operations.
 """
 
-import pytest
-import sqlite3
 import tempfile
 from pathlib import Path
-from typing import List, Dict, Any
 
+import pytest
 from hive_db import (
-    get_sqlite_connection,
     batch_insert,
     create_table_if_not_exists,
+    get_sqlite_connection,
     table_exists,
 )
 
@@ -39,16 +37,11 @@ class TestDatabasePerformance:
             id INTEGER PRIMARY KEY,
             value TEXT,
             score REAL
-            """
+            """,
         )
 
         def insert_batch():
-            batch_insert(
-                conn,
-                "test_data",
-                small_dataset,
-                columns=["id", "value", "score"]
-            )
+            batch_insert(conn, "test_data", small_dataset, columns=["id", "value", "score"])
 
         benchmark(insert_batch)
         conn.close()
@@ -64,22 +57,18 @@ class TestDatabasePerformance:
             id INTEGER PRIMARY KEY,
             value TEXT,
             score REAL
-            """
+            """,
         )
 
         def insert_batch():
-            batch_insert(
-                conn,
-                "test_data",
-                medium_dataset,
-                columns=["id", "value", "score"]
-            )
+            batch_insert(conn, "test_data", medium_dataset, columns=["id", "value", "score"])
 
         benchmark(insert_batch)
         conn.close()
 
     def test_connection_creation(self, benchmark, temp_db):
         """Benchmark database connection creation."""
+
         def create_connection():
             conn = get_sqlite_connection(temp_db)
             conn.close()
@@ -91,11 +80,7 @@ class TestDatabasePerformance:
         conn = get_sqlite_connection(temp_db)
 
         # Create a table
-        create_table_if_not_exists(
-            conn,
-            "existing_table",
-            "id INTEGER PRIMARY KEY"
-        )
+        create_table_if_not_exists(conn, "existing_table", "id INTEGER PRIMARY KEY")
 
         def check_table():
             return table_exists(conn, "existing_table")
@@ -116,15 +101,10 @@ class TestDatabasePerformance:
             id INTEGER PRIMARY KEY,
             value TEXT,
             score REAL
-            """
+            """,
         )
 
-        batch_insert(
-            conn,
-            "test_data",
-            medium_dataset,
-            columns=["id", "value", "score"]
-        )
+        batch_insert(conn, "test_data", medium_dataset, columns=["id", "value", "score"])
 
         # Create index on score
         conn.execute("CREATE INDEX idx_score ON test_data(score)")
@@ -151,15 +131,10 @@ class TestDatabasePerformance:
             id INTEGER PRIMARY KEY,
             value TEXT,
             score REAL
-            """
+            """,
         )
 
-        batch_insert(
-            conn,
-            "test_data",
-            medium_dataset,
-            columns=["id", "value", "score"]
-        )
+        batch_insert(conn, "test_data", medium_dataset, columns=["id", "value", "score"])
 
         def select_unindexed():
             cursor = conn.cursor()
@@ -181,7 +156,7 @@ class TestDatabasePerformance:
             id INTEGER PRIMARY KEY,
             value TEXT,
             score REAL
-            """
+            """,
         )
 
         def run_transaction():
@@ -190,7 +165,7 @@ class TestDatabasePerformance:
             for record in small_dataset:
                 cursor.execute(
                     "INSERT OR REPLACE INTO test_data (id, value, score) VALUES (?, ?, ?)",
-                    (record["id"], record["value"], record["score"])
+                    (record["id"], record["value"], record["score"]),
                 )
             cursor.execute("COMMIT")
 

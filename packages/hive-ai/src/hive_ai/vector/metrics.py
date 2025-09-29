@@ -63,23 +63,23 @@ class VectorMetrics(MetricsCollectorInterface):
 
     async def record_vector_operation_async(
         self
-        operation: str
-        count: int
-        latency_ms: int
-        success: bool
-        collection: str | None = None
+        operation: str,
+        count: int,
+        latency_ms: int,
+        success: bool,
+        collection: str | None = None,
         metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """Record vector database operation metrics."""
         timestamp = datetime.utcnow()
 
         record = VectorOperationRecord(
-            timestamp=timestamp
-            operation=operation
-            count=count
-            latency_ms=latency_ms
-            success=success
-            collection=collection
+            timestamp=timestamp,
+            operation=operation,
+            count=count,
+            latency_ms=latency_ms,
+            success=success,
+            collection=collection,
             metadata=metadata or {}
         )
 
@@ -102,7 +102,7 @@ class VectorMetrics(MetricsCollectorInterface):
         self._invalidate_caches(operation)
 
         logger.debug(
-            f"Recorded vector operation: {operation} "
+            f"Recorded vector operation: {operation} ",
             f"({count} vectors, {latency_ms}ms, "
             f"{'success' if success else 'failure'})"
         )
@@ -113,9 +113,9 @@ class VectorMetrics(MetricsCollectorInterface):
         """Record model usage (for MetricsCollectorInterface compatibility)."""
         # Convert model usage to vector operation for unified tracking
         await self.record_vector_operation_async(
-            operation="embedding_generation"
+            operation="embedding_generation",
             count=tokens.total_tokens if hasattr(tokens, "total_tokens") else 1
-            latency_ms=latency_ms
+            latency_ms=latency_ms,
             success=success
             metadata={"model": model}
         )
@@ -131,11 +131,11 @@ class VectorMetrics(MetricsCollectorInterface):
         total_vectors = sum(r.count for r in self._recent_operations)
 
         return {
-            "total_operations": total_ops
+            "total_operations": total_ops,
             "successful_operations": successful_ops
-            "total_vectors_processed": total_vectors
+            "total_vectors_processed": total_vectors,
             "avg_latency_ms": total_latency / total_ops if total_ops > 0 else 0.0
-            "success_rate": successful_ops / total_ops if total_ops > 0 else 0.0
+            "success_rate": successful_ops / total_ops if total_ops > 0 else 0.0,
             "time_range": "recent_1000_operations"
         }
 
@@ -169,12 +169,12 @@ class VectorMetrics(MetricsCollectorInterface):
         top_operations = dict(sorted(self._operation_counters.items(), key=lambda x: x[1], reverse=True)[:5])
 
         stats = VectorPerformanceStats(
-            total_operations=total_operations
-            successful_operations=successful_operations
-            total_vectors_processed=total_vectors
-            avg_latency_ms=avg_latency
-            success_rate=successful_operations / total_operations if total_operations > 0 else 0.0
-            operations_per_minute=ops_per_minute
+            total_operations=total_operations,
+            successful_operations=successful_operations,
+            total_vectors_processed=total_vectors,
+            avg_latency_ms=avg_latency,
+            success_rate=successful_operations / total_operations if total_operations > 0 else 0.0,
+            operations_per_minute=ops_per_minute,
             top_operations=top_operations
         )
 
@@ -203,9 +203,9 @@ class VectorMetrics(MetricsCollectorInterface):
         for record in recent_records:
             operation_trends[record.operation].append(
                 {
-                    "timestamp": record.timestamp.isoformat()
+                    "timestamp": record.timestamp.isoformat(),
                     "latency_ms": record.latency_ms
-                    "count": record.count
+                    "count": record.count,
                     "success": record.success
                 }
             )
@@ -219,13 +219,13 @@ class VectorMetrics(MetricsCollectorInterface):
 
         # Calculate trend statistics
         trends = {
-            "time_period_hours": hours
+            "time_period_hours": hours,
             "total_records": len(recent_records)
-            "operation_breakdown": dict(operation_trends)
+            "operation_breakdown": dict(operation_trends),
             "hourly_summary": dict(hourly_trends)
             "performance_summary": {
                 "avg_latency_ms": sum(r.latency_ms for r in recent_records) / len(recent_records)
-                "success_rate": sum(1 for r in recent_records if r.success) / len(recent_records)
+                "success_rate": sum(1 for r in recent_records if r.success) / len(recent_records),
                 "total_vectors": sum(r.count for r in recent_records)
             }
         }
@@ -240,9 +240,9 @@ class VectorMetrics(MetricsCollectorInterface):
 
         if not collection_records:
             return {
-                "collection": collection
+                "collection": collection,
                 "operations": 0
-                "vectors_processed": 0
+                "vectors_processed": 0,
                 "error": "No operations found for this collection"
             }
 
@@ -260,13 +260,13 @@ class VectorMetrics(MetricsCollectorInterface):
                 successful_ops += 1
 
         return {
-            "collection": collection
+            "collection": collection,
             "total_operations": len(collection_records)
-            "successful_operations": successful_ops
+            "successful_operations": successful_ops,
             "total_vectors_processed": total_vectors
-            "avg_latency_ms": total_latency / len(collection_records)
+            "avg_latency_ms": total_latency / len(collection_records),
             "success_rate": successful_ops / len(collection_records)
-            "operation_breakdown": dict(operation_counts)
+            "operation_breakdown": dict(operation_counts),
             "time_range": "recent_operations"
         }
 
@@ -277,11 +277,11 @@ class VectorMetrics(MetricsCollectorInterface):
 
         return [
             {
-                "timestamp": record.timestamp.isoformat()
+                "timestamp": record.timestamp.isoformat(),
                 "operation": record.operation
-                "latency_ms": record.latency_ms
+                "latency_ms": record.latency_ms,
                 "count": record.count
-                "success": record.success
+                "success": record.success,
                 "collection": record.collection
                 "metadata": record.metadata
             }
@@ -307,9 +307,9 @@ class VectorMetrics(MetricsCollectorInterface):
 
             recent_failures.append(
                 {
-                    "timestamp": record.timestamp.isoformat()
+                    "timestamp": record.timestamp.isoformat(),
                     "operation": record.operation
-                    "collection": record.collection
+                    "collection": record.collection,
                     "latency_ms": record.latency_ms
                     "metadata": record.metadata
                 }
@@ -319,11 +319,11 @@ class VectorMetrics(MetricsCollectorInterface):
         failure_rate = len(failed_operations) / total_operations if total_operations > 0 else 0.0
 
         return {
-            "total_failures": len(failed_operations)
+            "total_failures": len(failed_operations),
             "failure_rate": failure_rate
-            "errors_by_operation": dict(error_by_operation)
+            "errors_by_operation": dict(error_by_operation),
             "errors_by_collection": dict(error_by_collection)
-            "recent_failures": recent_failures[-10:],  # Last 10 failures
+            "recent_failures": recent_failures[-10:],  # Last 10 failures,
             "recommendations": self._generate_error_recommendations(error_by_operation)
         }
 

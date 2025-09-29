@@ -20,7 +20,7 @@ def multivariate_block_bootstrap(
 ) -> xr.Dataset:
     """
 
-    Generate synthetic climate data using seasonal block bootstrap.
+    Generate synthetic climate data using seasonal block bootstrap.,
 
     Preserves intra-block correlations between variables.
 
@@ -33,7 +33,7 @@ def multivariate_block_bootstrap(
         target_length: Length of synthetic series to generate
 
     Returns:
-        Synthetic dataset with same variables as input
+        Synthetic dataset with same variables as input,
     """
     if seed is not None:
         np.random.seed(seed)
@@ -48,10 +48,10 @@ def multivariate_block_bootstrap(
     # Partition historical data into blocks
     blocks = partition_into_blocks(ds_hist, block_td, season_bins)
 
-    # Determine target length
+    # Determine target length,
     if target_length:
         target_td = pd.Timedelta(target_length)
-        n_blocks_needed = (int(np.ceil(target_td / block_td)),)
+        n_blocks_needed = int(np.ceil(target_td / block_td))
     else:
         n_blocks_needed = len(blocks)
 
@@ -64,7 +64,7 @@ def multivariate_block_bootstrap(
     # Ensure continuity and proper time index
     synthetic = ensure_continuity(synthetic, ds_hist.time[0].values)
 
-    # Copy attributes
+    # Copy attributes,
     synthetic.attrs = ds_hist.attrs.copy()
     synthetic.attrs["synthetic"] = True
     synthetic.attrs["method"] = "seasonal_block_bootstrap"
@@ -79,12 +79,12 @@ def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins:
     Partition dataset into blocks labeled by season.
 
     Args:
-        ds: Dataset to partition,
-        block_size: Size of each block,
+        ds: Dataset to partition
+        block_size: Size of each block
         season_bins: Number of seasonal bins
 
     Returns:
-        List of (block_data, season_label) tuples
+        List of (block_data, season_label) tuples,
     """
     blocks = []
 
@@ -108,15 +108,15 @@ def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins:
             if season_bins == 12:
                 season = mid_time.month - 1
             elif season_bins == 4:
-                season = ((mid_time.month - 1) // 3,)
+                season = (mid_time.month - 1) // 3
             else:
                 # Generic binning based on day of year
                 day_of_year = mid_time.dayofyear
                 season = int((day_of_year - 1) / 365 * season_bins)
 
-            blocks.append((block_data, season))
+            (blocks.append((block_data, season)),)
 
-    logger.info(f"Partitioned into {len(blocks)} blocks across {season_bins} seasons")
+    (logger.info(f"Partitioned into {len(blocks)} blocks across {season_bins} seasons"),)
 
     return blocks
 
@@ -126,12 +126,12 @@ def sample_blocks_by_season(blocks: list, n_blocks: int, n_seasons: int) -> list
     Sample blocks with replacement, respecting seasonal distribution.
 
     Args:
-        blocks: List of (block_data, season) tuples,
-        n_blocks: Number of blocks to sample,
+        blocks: List of (block_data, season) tuples
+        n_blocks: Number of blocks to sample
         n_seasons: Number of seasons
 
     Returns:
-        List of sampled blocks
+        List of sampled blocks,
     """
     # Organize blocks by season
     blocks_by_season = {s: [] for s in range(n_seasons)}
@@ -157,15 +157,15 @@ def sample_blocks_by_season(blocks: list, n_blocks: int, n_seasons: int) -> list
             n_sample += 1
             extra_blocks -= 1
 
-        # Sample with replacement
+        # Sample with replacement,
         for _ in range(n_sample):
             idx = np.random.randint(0, len(season_blocks))
             sampled.append(season_blocks[idx].copy())
 
-    # Shuffle to avoid systematic seasonal ordering
+    # Shuffle to avoid systematic seasonal ordering,
     np.random.shuffle(sampled)
 
-    logger.info(f"Sampled {len(sampled)} blocks")
+    (logger.info(f"Sampled {len(sampled)} blocks"),)
 
     return sampled
 
@@ -175,17 +175,17 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
     Concatenate blocks with overlap-save smoothing.
 
     Args:
-        blocks: List of block datasets,
+        blocks: List of block datasets
         overlap_hours: Hours of overlap for smoothing
 
     Returns:
-        Concatenated dataset
+        Concatenated dataset,
     """
     if not blocks:
         raise ValueError("No blocks to concatenate")
 
     if overlap_hours == 0:
-        # Simple concatenation
+        # Simple concatenation,
         return xr.concat(blocks, dim="time")
 
     # Concatenate with overlap smoothing
@@ -194,14 +194,14 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
     for i in range(1, len(blocks)):
         current_block = blocks[i]
 
-        # Find overlap region
+        # Find overlap region,
         pd.Timedelta(hours=overlap_hours)
 
         # Get overlapping portions
         result_end = result.time[-overlap_hours:]
         block_start = current_block.time[:overlap_hours]
 
-        # Blend in overlap region
+        # Blend in overlap region,
         if len(result_end) > 0 and len(block_start) > 0:
             # Linear blending weights
             n_overlap = min(len(result_end), len(block_start))
@@ -209,7 +209,7 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
 
             for var in result.data_vars:
                 if var in current_block:
-                    # Blend values
+                    # Blend values,
                     result[var].values[-n_overlap:] = (
                         weights * result[var].values[-n_overlap:]
                         + (1 - weights) * current_block[var].values[:n_overlap]
@@ -227,11 +227,11 @@ def ensure_continuity(ds: xr.Dataset, start_time: np.datetime64) -> xr.Dataset:
     Ensure continuous time index starting from specified time.
 
     Args:
-        ds: Dataset to process,
+        ds: Dataset to process
         start_time: Starting time for new index
 
     Returns:
-        Dataset with continuous time index
+        Dataset with continuous time index,
     """
     # Get original frequency
     time_diff = pd.Series(ds.time.values).diff().mode()[0]

@@ -12,7 +12,6 @@ from typing import Any, Dict, List
 import click
 import yaml
 from rich.console import Console
-from rich.pretty import pprint
 from rich.table import Table
 
 

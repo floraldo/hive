@@ -105,9 +105,8 @@ class ModelMetrics(MetricsCollectorInterface):
         self._invalidate_caches()
 
         logger.debug(
-            f"Recorded usage: {model} "
-            f"({tokens.total_tokens} tokens, {latency_ms}ms, "
-            f"${cost:.4f}, {'success' if success else 'failure'})"
+            f"Recorded usage: {model} ",
+            f"({tokens.total_tokens} tokens, {latency_ms}ms, " f"${cost:.4f}, {'success' if success else 'failure'})",
         )
 
     async def record_vector_operation_async(self, operation: str, count: int, latency_ms: int, success: bool) -> None:

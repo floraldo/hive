@@ -1,7 +1,6 @@
 """Review history management for learning system."""
 
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -35,7 +34,8 @@ class ReviewHistory:
             cursor = conn.cursor()
 
             # Reviews table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS reviews (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_path TEXT NOT NULL,
@@ -47,10 +47,12 @@ class ReviewHistory:
                     review_data TEXT,
                     metadata TEXT
                 )
-            """)
+            """
+            )
 
             # Violations table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS violations (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     review_id INTEGER,
@@ -63,10 +65,12 @@ class ReviewHistory:
                     fix_confirmed BOOLEAN DEFAULT 0,
                     FOREIGN KEY (review_id) REFERENCES reviews(id)
                 )
-            """)
+            """
+            )
 
             # Feedback table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS feedback (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     review_id INTEGER,
@@ -78,10 +82,12 @@ class ReviewHistory:
                     FOREIGN KEY (review_id) REFERENCES reviews(id),
                     FOREIGN KEY (violation_id) REFERENCES violations(id)
                 )
-            """)
+            """
+            )
 
             # Patterns table for learned patterns
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS learned_patterns (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     pattern_type TEXT,
@@ -91,10 +97,12 @@ class ReviewHistory:
                     last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
                     metadata TEXT
                 )
-            """)
+            """
+            )
 
             # Team preferences table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS team_preferences (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     preference_key TEXT UNIQUE,
@@ -103,7 +111,8 @@ class ReviewHistory:
                     examples TEXT,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             conn.commit()
 
@@ -126,44 +135,50 @@ class ReviewHistory:
             cursor = conn.cursor()
 
             # Store main review
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO reviews (
                     file_path, score, violations_count,
                     suggestions_count, ai_confidence,
                     review_data, metadata
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (
-                str(file_path),
-                review_result.overall_score,
-                sum(review_result.violations_count.values()),
-                review_result.suggestions_count,
-                review_result.ai_confidence,
-                json.dumps({
-                    "summary": review_result.summary,
-                    "violations_by_severity": {
-                        k.value: v for k, v in review_result.violations_count.items()
-                    },
-                }),
-                json.dumps(review_result.metadata),
-            ))
+            """,
+                (
+                    str(file_path),
+                    review_result.overall_score,
+                    sum(review_result.violations_count.values()),
+                    review_result.suggestions_count,
+                    review_result.ai_confidence,
+                    json.dumps(
+                        {
+                            "summary": review_result.summary,
+                            "violations_by_severity": {k.value: v for k, v in review_result.violations_count.items()},
+                        }
+                    ),
+                    json.dumps(review_result.metadata),
+                ),
+            )
 
             review_id = cursor.lastrowid
 
             # Store violations
             for violation in review_result.all_violations:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO violations (
                         review_id, type, severity, rule,
                         message, line_number
                     ) VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    review_id,
-                    violation.type.value,
-                    violation.severity.value,
-                    violation.rule,
-                    violation.message,
-                    violation.line_number,
-                ))
+                """,
+                    (
+                        review_id,
+                        violation.type.value,
+                        violation.severity.value,
+                        violation.rule,
+                        violation.message,
+                        violation.line_number,
+                    ),
+                )
 
             conn.commit()
 
@@ -189,12 +204,15 @@ class ReviewHistory:
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO feedback (
                     review_id, violation_id, feedback_type,
                     feedback_text
                 ) VALUES (?, ?, ?, ?)
-            """, (review_id, violation_id, feedback_type, feedback_text))
+            """,
+                (review_id, violation_id, feedback_type, feedback_text),
+            )
 
             conn.commit()
 
@@ -219,7 +237,8 @@ class ReviewHistory:
             cursor = conn.cursor()
 
             # Get reviews for similar files
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT r.*,
                        COUNT(f.id) as feedback_count,
                        AVG(CASE WHEN f.feedback_type = 'positive' THEN 1 ELSE 0 END) as positive_ratio
@@ -229,18 +248,22 @@ class ReviewHistory:
                 GROUP BY r.id
                 ORDER BY r.timestamp DESC
                 LIMIT ?
-            """, (f"%{file_path.name}", limit))
+            """,
+                (f"%{file_path.name}", limit),
+            )
 
             reviews = []
             for row in cursor.fetchall():
-                reviews.append({
-                    "id": row[0],
-                    "file_path": row[1],
-                    "timestamp": row[2],
-                    "score": row[3],
-                    "feedback_count": row[-2],
-                    "positive_ratio": row[-1],
-                })
+                reviews.append(
+                    {
+                        "id": row[0],
+                        "file_path": row[1],
+                        "timestamp": row[2],
+                        "score": row[3],
+                        "feedback_count": row[-2],
+                        "positive_ratio": row[-1],
+                    }
+                )
 
             return reviews
 
@@ -262,11 +285,14 @@ class ReviewHistory:
             cursor = conn.cursor()
 
             # Check if preference exists
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT id, confidence, examples
                 FROM team_preferences
                 WHERE preference_key = ?
-            """, (preference_key,))
+            """,
+                (preference_key,),
+            )
 
             existing = cursor.fetchone()
 
@@ -276,32 +302,38 @@ class ReviewHistory:
                 examples = json.loads(examples_json) if examples_json else []
                 examples.append(example)
 
-                cursor.execute("""
+                cursor.execute(
+                    """
                     UPDATE team_preferences
                     SET preference_value = ?,
                         confidence = ?,
                         examples = ?,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
-                """, (
-                    preference_value,
-                    min(confidence + 0.1, 1.0),  # Increase confidence
-                    json.dumps(examples[-10:]),  # Keep last 10 examples
-                    pref_id,
-                ))
+                """,
+                    (
+                        preference_value,
+                        min(confidence + 0.1, 1.0),  # Increase confidence
+                        json.dumps(examples[-10:]),  # Keep last 10 examples
+                        pref_id,
+                    ),
+                )
             else:
                 # Create new preference
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO team_preferences (
                         preference_key, preference_value,
                         confidence, examples
                     ) VALUES (?, ?, ?, ?)
-                """, (
-                    preference_key,
-                    preference_value,
-                    0.5,  # Initial confidence
-                    json.dumps([example]),
-                ))
+                """,
+                    (
+                        preference_key,
+                        preference_value,
+                        0.5,  # Initial confidence
+                        json.dumps([example]),
+                    ),
+                )
 
             conn.commit()
 
@@ -317,13 +349,15 @@ class ReviewHistory:
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT preference_key, preference_value,
                        confidence, examples
                 FROM team_preferences
                 WHERE confidence > 0.6
                 ORDER BY confidence DESC
-            """)
+            """
+            )
 
             preferences = {}
             for row in cursor.fetchall():
@@ -353,7 +387,8 @@ class ReviewHistory:
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT
                     COUNT(*) as total,
                     SUM(CASE WHEN was_fixed THEN 1 ELSE 0 END) as fixed,
@@ -362,7 +397,9 @@ class ReviewHistory:
                 JOIN reviews r ON v.review_id = r.id
                 WHERE v.type = ?
                   AND r.timestamp > datetime('now', '-' || ? || ' days')
-            """, (violation_type, time_window_days))
+            """,
+                (violation_type, time_window_days),
+            )
 
             row = cursor.fetchone()
             total, fixed, confirmed = row
@@ -390,11 +427,14 @@ class ReviewHistory:
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE violations
                 SET was_fixed = ?, fix_confirmed = ?
                 WHERE id = ?
-            """, (was_fixed, fix_confirmed, violation_id))
+            """,
+                (was_fixed, fix_confirmed, violation_id),
+            )
 
             conn.commit()
 

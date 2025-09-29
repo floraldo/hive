@@ -1,7 +1,6 @@
 """Enhanced connection_async pool configuration"""
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -26,7 +25,7 @@ class PoolConfig:
 import asyncio
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from hive_logging import get_logger
 
@@ -88,7 +87,7 @@ class EnhancedAsyncPool:
             try:
                 # Actual connection_async creation would go here
                 return await asyncio.sleep(0)  # Placeholder
-            except Exception as e:
+            except Exception:
                 if attempt == self.config.retry_attempts - 1:
                     self._metrics["errors"] += 1
                     raise

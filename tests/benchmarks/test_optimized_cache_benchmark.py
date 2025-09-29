@@ -145,7 +145,7 @@ class OptimizedCacheBenchmark:
             # Create error result to show the issue
             results.append(
                 BenchmarkResult(
-                    name=f"optimized_cache_FAILED",
+                    name="optimized_cache_FAILED",
                     mean_ms=999.0,
                     p95_ms=999.0,
                     p99_ms=999.0,
@@ -284,7 +284,7 @@ class OptimizedCacheBenchmark:
             fastest = min(working_results, key=lambda x: x.p95_ms)
             slowest = max(working_results, key=lambda x: x.p95_ms)
 
-            print(f"\nPERFORMANCE SUMMARY:")
+            print("\nPERFORMANCE SUMMARY:")
             print(f"  Operations tested: {len(working_results)}")
             print(f"  Sub-1ms operations: {success_count}/{len(working_results)}")
             print(f"  Success rate: {success_count/len(working_results)*100:.1f}%")
@@ -292,14 +292,14 @@ class OptimizedCacheBenchmark:
             print(f"  Slowest operation: {slowest.name} ({slowest.p95_ms:.2f}ms P95)")
 
             if success_count == len(working_results):
-                print(f"\n✅ OPTIMIZATION SUCCESS: All operations under 1ms P95 target!")
+                print("\n✅ OPTIMIZATION SUCCESS: All operations under 1ms P95 target!")
             elif success_count > len(working_results) * 0.8:
                 print(f"\n🟡 PARTIAL SUCCESS: {success_count}/{len(working_results)} operations meet target")
             else:
                 print(f"\n❌ OPTIMIZATION NEEDED: Only {success_count}/{len(working_results)} operations meet target")
 
-        print(f"\nTarget for V4.2 certification: < 1ms P95 latency")
-        print(f"Previous issue: ~20ms P95 latency (should be FIXED)")
+        print("\nTarget for V4.2 certification: < 1ms P95 latency")
+        print("Previous issue: ~20ms P95 latency (should be FIXED)")
 
 
 async def main():

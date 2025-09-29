@@ -91,9 +91,9 @@ class SystemMonitor:
 
     def __init__(
         self
-        collection_interval: float = 1.0
-        max_history: int = 3600,  # 1 hour at 1-second intervals
-        enable_alerts: bool = True
+        collection_interval: float = 1.0,
+        max_history: int = 3600,  # 1 hour at 1-second intervals,
+        enable_alerts: bool = True,
         alert_thresholds: Optional[Dict[str, float]] = None
     ):
         self.collection_interval = collection_interval
@@ -102,14 +102,14 @@ class SystemMonitor:
 
         # Default alert thresholds
         self.alert_thresholds = alert_thresholds or {
-            "cpu_percent": 80.0
-            "memory_percent": 85.0
-            "disk_percent": 90.0
-            "swap_percent": 50.0
+            "cpu_percent": 80.0,
+            "memory_percent": 85.0,
+            "disk_percent": 90.0,
+            "swap_percent": 50.0,
         }
 
         # Metrics storage
-        self._metrics_history: deque = deque(maxlen=max_history)
+        self._metrics_history: deque = deque(maxlen=max_history),
         self._alert_callbacks: List[Callable] = []
 
         # Monitoring state
@@ -125,8 +125,8 @@ class SystemMonitor:
         self._process = psutil.Process()
 
         # Previous values for rate calculations
-        self._prev_disk_io: Any | None = None
-        self._prev_network_io: Any | None = None
+        self._prev_disk_io: Any | None = None,
+        self._prev_network_io: Any | None = None,
         self._prev_timestamp: float | None = None
 
     async def start_monitoring_async(self) -> None:
@@ -230,49 +230,49 @@ class SystemMonitor:
         # Create metrics object
         metrics = SystemMetrics(
             # CPU
-            cpu_percent=cpu_percent
-            cpu_count=cpu_count
-            cpu_freq=cpu_freq
-            load_average=load_avg
+            cpu_percent=cpu_percent,
+            cpu_count=cpu_count,
+            cpu_freq=cpu_freq,
+            load_average=load_avg,
             # Memory
-            memory_total=memory.total
-            memory_available=memory.available
-            memory_used=memory.used
-            memory_percent=memory.percent
-            swap_total=swap.total
-            swap_used=swap.used
-            swap_percent=swap.percent
+            memory_total=memory.total,
+            memory_available=memory.available,
+            memory_used=memory.used,
+            memory_percent=memory.percent,
+            swap_total=swap.total,
+            swap_used=swap.used,
+            swap_percent=swap.percent,
             # Disk
-            disk_total=disk_usage.total
-            disk_used=disk_usage.used
-            disk_free=disk_usage.free
-            disk_percent=disk_usage.used / disk_usage.total * 100
-            disk_read_bytes=disk_io.read_bytes
-            disk_write_bytes=disk_io.write_bytes
-            disk_read_count=disk_io.read_count
-            disk_write_count=disk_io.write_count
+            disk_total=disk_usage.total,
+            disk_used=disk_usage.used,
+            disk_free=disk_usage.free,
+            disk_percent=disk_usage.used / disk_usage.total * 100,
+            disk_read_bytes=disk_io.read_bytes,
+            disk_write_bytes=disk_io.write_bytes,
+            disk_read_count=disk_io.read_count,
+            disk_write_count=disk_io.write_count,
             # Network
-            network_bytes_sent=network_io.bytes_sent
-            network_bytes_recv=network_io.bytes_recv
-            network_packets_sent=network_io.packets_sent
-            network_packets_recv=network_io.packets_recv
-            network_errors_in=network_io.errin
-            network_errors_out=network_io.errout
+            network_bytes_sent=network_io.bytes_sent,
+            network_bytes_recv=network_io.bytes_recv,
+            network_packets_sent=network_io.packets_sent,
+            network_packets_recv=network_io.packets_recv,
+            network_errors_in=network_io.errin,
+            network_errors_out=network_io.errout,
             # Process
-            process_count=process_count
+            process_count=process_count,
             thread_count=sum(p.num_threads() for p in psutil.process_iter(["num_threads"]) if p.info["num_threads"])
             # Python process
-            python_memory_rss=python_memory.rss
+            python_memory_rss=python_memory.rss,
             python_memory_vms=python_memory.vms
-            python_cpu_percent=python_cpu
+            python_cpu_percent=python_cpu,
             python_threads=python_threads
             python_open_files=python_open_files
             # Async
-            active_tasks=active_tasks
+            active_tasks=active_tasks,
             pending_tasks=pending_tasks
             running_loops=running_loops
             # Metadata
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
             hostname=str(self._hostname)
             platform=self._platform
         )
@@ -351,15 +351,15 @@ class SystemMonitor:
         count = len(metrics_list)
 
         return SystemMetrics(
-            cpu_percent=sum(m.cpu_percent for m in metrics_list) / count
+            cpu_percent=sum(m.cpu_percent for m in metrics_list) / count,
             memory_percent=sum(m.memory_percent for m in metrics_list) / count
-            disk_percent=sum(m.disk_percent for m in metrics_list) / count
+            disk_percent=sum(m.disk_percent for m in metrics_list) / count,
             swap_percent=sum(m.swap_percent for m in metrics_list) / count
-            active_tasks=sum(m.active_tasks for m in metrics_list) / count
+            active_tasks=sum(m.active_tasks for m in metrics_list) / count,
             python_cpu_percent=sum(m.python_cpu_percent for m in metrics_list) / count
-            python_memory_rss=int(sum(m.python_memory_rss for m in metrics_list) / count)
+            python_memory_rss=int(sum(m.python_memory_rss for m in metrics_list) / count),
             timestamp=datetime.utcnow()
-            hostname=metrics_list[0].hostname
+            hostname=metrics_list[0].hostname,
             platform=metrics_list[0].platform
         )
 
@@ -379,11 +379,11 @@ class SystemMonitor:
         peak_metric = max(metrics_list, key=lambda m: m.cpu_percent)
 
         return SystemMetrics(
-            cpu_percent=peak_cpu
+            cpu_percent=peak_cpu,
             memory_percent=peak_memory
-            disk_percent=peak_disk
+            disk_percent=peak_disk,
             active_tasks=peak_tasks
-            timestamp=peak_metric.timestamp
+            timestamp=peak_metric.timestamp,
             hostname=peak_metric.hostname
             platform=peak_metric.platform
         )
@@ -409,9 +409,9 @@ class SystemMonitor:
             return (n * xy_sum - x_sum * y_sum) / (n * x2_sum - x_sum * x_sum)
 
         return {
-            "cpu_trend": calculate_trend([m.cpu_percent for m in metrics_list])
+            "cpu_trend": calculate_trend([m.cpu_percent for m in metrics_list]),
             "memory_trend": calculate_trend([m.memory_percent for m in metrics_list])
-            "disk_trend": calculate_trend([m.disk_percent for m in metrics_list])
+            "disk_trend": calculate_trend([m.disk_percent for m in metrics_list]),
             "tasks_trend": calculate_trend([float(m.active_tasks) for m in metrics_list])
         }
 
@@ -461,11 +461,11 @@ class SystemMonitor:
             return json.dumps(
                 [
                     {
-                        "timestamp": m.timestamp.isoformat()
+                        "timestamp": m.timestamp.isoformat(),
                         "cpu_percent": m.cpu_percent
-                        "memory_percent": m.memory_percent
+                        "memory_percent": m.memory_percent,
                         "disk_percent": m.disk_percent
-                        "active_tasks": m.active_tasks
+                        "active_tasks": m.active_tasks,
                         "python_memory_mb": m.python_memory_rss // (1024 * 1024)
                     }
                     for m in metrics_list

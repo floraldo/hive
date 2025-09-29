@@ -1,27 +1,23 @@
 """Unit tests for hive-cache package V4.2."""
 
 import asyncio
-import json
-import pytest
 import time
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch, call
-from typing import Dict, List, Any
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 # Import the components we're testing
 from hive_cache.cache_client import (
-    HiveCacheClient,
     CircuitBreaker,
-    get_cache_client,
+    HiveCacheClient,
     close_cache_client,
+    get_cache_client,
 )
 from hive_cache.config import CacheConfig
 from hive_cache.exceptions import (
-    CacheError,
+    CacheCircuitBreakerError,
     CacheConnectionError,
     CacheTimeoutError,
-    CacheCircuitBreakerError,
-    CacheSerializationError,
 )
 
 
@@ -45,7 +41,7 @@ def cache_config():
         min_ttl=60,
         max_ttl=86400,
         namespace_prefix="test:",
-        namespace_ttl_overrides={"claude": 7200, "performance": 1800}
+        namespace_ttl_overrides={"claude": 7200, "performance": 1800},
     )
 
 
@@ -202,10 +198,9 @@ class TestHiveCacheClient:
         assert cache_client._health_status["healthy"] is True
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.ConnectionPool.from_url')
-    @patch('hive_cache.cache_client.aioredis.Redis')
-    async def test_cache_client_initialization_success(self, mock_redis_class,
-                                                     mock_pool_from_url, cache_client):
+    @patch("hive_cache.cache_client.aioredis.ConnectionPool.from_url")
+    @patch("hive_cache.cache_client.aioredis.Redis")
+    async def test_cache_client_initialization_success(self, mock_redis_class, mock_pool_from_url, cache_client):
         """Test successful cache client initialization."""
         # Setup mocks
         mock_pool = AsyncMock()
@@ -223,7 +218,7 @@ class TestHiveCacheClient:
         mock_redis.ping.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.ConnectionPool.from_url')
+    @patch("hive_cache.cache_client.aioredis.ConnectionPool.from_url")
     async def test_cache_client_initialization_failure(self, mock_pool_from_url, cache_client):
         """Test cache client initialization failure."""
         mock_pool_from_url.side_effect = Exception("Connection failed")
@@ -255,6 +250,7 @@ class TestHiveCacheClient:
     @pytest.mark.asyncio
     async def test_execute_with_circuit_breaker_success(self, cache_client):
         """Test successful operation with circuit breaker."""
+
         async def mock_operation():
             return "success"
 
@@ -264,6 +260,7 @@ class TestHiveCacheClient:
     @pytest.mark.asyncio
     async def test_execute_with_circuit_breaker_timeout(self, cache_client):
         """Test timeout handling with circuit breaker."""
+
         async def slow_operation():
             await asyncio.sleep(10)  # Will timeout
             return "too_slow"
@@ -336,7 +333,7 @@ class TestHiveCacheClient:
         assert hash1 != hash3
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_set_operation(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test cache set operation."""
         cache_client._redis_pool = mock_redis_pool
@@ -352,7 +349,7 @@ class TestHiveCacheClient:
         mock_redis.setex.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_get_operation_hit(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test cache get operation with hit."""
         cache_client._redis_pool = mock_redis_pool
@@ -372,7 +369,7 @@ class TestHiveCacheClient:
         assert cache_client._metrics["misses"] == 0
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_get_operation_miss(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test cache get operation with miss."""
         cache_client._redis_pool = mock_redis_pool
@@ -388,7 +385,7 @@ class TestHiveCacheClient:
         assert cache_client._metrics["misses"] == 1
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_get_or_set_cache_hit(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test get_or_set with cache hit."""
         cache_client._redis_pool = mock_redis_pool
@@ -411,7 +408,7 @@ class TestHiveCacheClient:
         mock_redis.setex.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_get_or_set_cache_miss(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test get_or_set with cache miss."""
         cache_client._redis_pool = mock_redis_pool
@@ -431,7 +428,7 @@ class TestHiveCacheClient:
         mock_redis.setex.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_get_or_set_async_factory(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test get_or_set with async factory function."""
         cache_client._redis_pool = mock_redis_pool
@@ -451,7 +448,7 @@ class TestHiveCacheClient:
         mock_redis.setex.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_delete_operation(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test cache delete operation."""
         cache_client._redis_pool = mock_redis_pool
@@ -466,7 +463,7 @@ class TestHiveCacheClient:
         assert cache_client._metrics["deletes"] == 1
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_delete_pattern(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test delete pattern operation."""
         cache_client._redis_pool = mock_redis_pool
@@ -484,7 +481,7 @@ class TestHiveCacheClient:
         mock_redis.delete.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_exists_operation(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test key existence check."""
         cache_client._redis_pool = mock_redis_pool
@@ -498,7 +495,7 @@ class TestHiveCacheClient:
         assert result is True
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_ttl_operation(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test TTL retrieval."""
         cache_client._redis_pool = mock_redis_pool
@@ -512,7 +509,7 @@ class TestHiveCacheClient:
         assert result == 300
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_extend_ttl(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test TTL extension."""
         cache_client._redis_pool = mock_redis_pool
@@ -526,7 +523,7 @@ class TestHiveCacheClient:
         assert result is True
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_mget_operation(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test multiple get operation."""
         cache_client._redis_pool = mock_redis_pool
@@ -546,7 +543,7 @@ class TestHiveCacheClient:
         assert cache_client._metrics["misses"] == 1
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_mset_operation(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test multiple set operation."""
         cache_client._redis_pool = mock_redis_pool
@@ -566,7 +563,7 @@ class TestHiveCacheClient:
         assert mock_pipeline.setex.call_count == 2
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_health_check_success(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test successful health check."""
         cache_client._redis_pool = mock_redis_pool
@@ -586,7 +583,7 @@ class TestHiveCacheClient:
         assert result["set_get_test"] is True
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.aioredis.Redis')
+    @patch("hive_cache.cache_client.aioredis.Redis")
     async def test_health_check_failure(self, mock_redis_class, cache_client, mock_redis_pool):
         """Test health check failure."""
         cache_client._redis_pool = mock_redis_pool
@@ -641,7 +638,7 @@ class TestHiveCacheClient:
     async def test_ttl_limits_enforcement(self, cache_client):
         """Test TTL limits are enforced."""
         # Mock the set operation to verify TTL clamping
-        with patch.object(cache_client, '_execute_with_circuit_breaker') as mock_execute:
+        with patch.object(cache_client, "_execute_with_circuit_breaker") as mock_execute:
             mock_execute.return_value = True
 
             # Test TTL below minimum
@@ -668,8 +665,8 @@ class TestGlobalCacheClient:
     """Test global cache client functionality."""
 
     @pytest.mark.asyncio
-    @patch('hive_cache.cache_client.CacheConfig.from_env')
-    @patch.object(HiveCacheClient, 'initialize')
+    @patch("hive_cache.cache_client.CacheConfig.from_env")
+    @patch.object(HiveCacheClient, "initialize")
     async def test_get_cache_client_creation(self, mock_initialize, mock_config_from_env):
         """Test global cache client creation."""
         mock_config = MagicMock()
@@ -691,7 +688,7 @@ class TestGlobalCacheClient:
 
         config = CacheConfig(redis_url="redis://localhost:6379/0")
 
-        with patch.object(HiveCacheClient, 'initialize'):
+        with patch.object(HiveCacheClient, "initialize"):
             client1 = await get_cache_client(config)
             client2 = await get_cache_client(config)
 
@@ -702,8 +699,8 @@ class TestGlobalCacheClient:
         """Test closing global cache client."""
         config = CacheConfig(redis_url="redis://localhost:6379/0")
 
-        with patch.object(HiveCacheClient, 'initialize'):
-            with patch.object(HiveCacheClient, 'close') as mock_close:
+        with patch.object(HiveCacheClient, "initialize"):
+            with patch.object(HiveCacheClient, "close") as mock_close:
                 client = await get_cache_client(config)
                 assert client is not None
 
@@ -719,7 +716,7 @@ class TestCacheIntegration:
         """Test complete cache operation workflow."""
         cache_client._redis_pool = mock_redis_pool
 
-        with patch('hive_cache.cache_client.aioredis.Redis') as mock_redis_class:
+        with patch("hive_cache.cache_client.aioredis.Redis") as mock_redis_class:
             mock_redis = AsyncMock()
             mock_redis.setex = AsyncMock(return_value=True)
             mock_redis.get = AsyncMock()
@@ -754,7 +751,7 @@ class TestCacheIntegration:
         """Test cache operations with circuit breaker integration."""
         cache_client._redis_pool = mock_redis_pool
 
-        with patch('hive_cache.cache_client.aioredis.Redis') as mock_redis_class:
+        with patch("hive_cache.cache_client.aioredis.Redis") as mock_redis_class:
             # Simulate failing operations
             mock_redis = AsyncMock()
             mock_redis.get = AsyncMock(side_effect=Exception("Connection failed"))
@@ -816,7 +813,7 @@ class TestCacheIntegration:
         """Test that errors are properly tracked in metrics."""
         cache_client._redis_pool = mock_redis_pool
 
-        with patch('hive_cache.cache_client.aioredis.Redis') as mock_redis_class:
+        with patch("hive_cache.cache_client.aioredis.Redis") as mock_redis_class:
             mock_redis = AsyncMock()
             mock_redis.get = AsyncMock(side_effect=Exception("Simulated error"))
             mock_redis_class.return_value.__aenter__.return_value = mock_redis

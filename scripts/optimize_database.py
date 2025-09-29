@@ -8,7 +8,7 @@ Adds indexes, analyzes query patterns, and optimizes database performance.
 import sqlite3
 import time
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from hive_config.paths import DB_PATH
 from hive_logging import get_logger
@@ -64,8 +64,8 @@ class DatabaseOptimizer:
         table_stats = {}
         for table in tables:
             # Table names come from sqlite_master, so they're safe, but let's validate anyway
-            table_name = table['name']
-            if not all(c.isalnum() or c == '_' for c in table_name):
+            table_name = table["name"]
+            if not all(c.isalnum() or c == "_" for c in table_name):
                 logger.warning(f"Skipping table with invalid name: {table_name}")
                 continue
             cursor.execute(f"SELECT COUNT(*) as count FROM {table_name}")

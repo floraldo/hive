@@ -9,17 +9,18 @@ This complements the comprehensive integration tests with faster,
 targeted validation checks.
 """
 
-import pytest
-import sqlite3
-import tempfile
 import json
+import os
+import sqlite3
+import sys
+import tempfile
 import time
 import uuid
-from pathlib import Path
 from datetime import datetime, timezone
-from typing import Dict, Any, List
-import os
-import sys
+from pathlib import Path
+from typing import Dict
+
+import pytest
 
 # Add paths for imports
 test_root = Path(__file__).parent.parent
@@ -320,7 +321,6 @@ class PlatformValidationTests:
 
     def test_performance_baseline(self):
         """Test basic performance baseline"""
-        import time
 
         conn = sqlite3.connect(self.db_path)
 

@@ -52,18 +52,18 @@ class EncodingSpec:
 
 
 class ParameterEncoder:
-    """Encodes and decodes parameters for optimization algorithms.
+    """Encodes and decodes parameters for optimization algorithms.,
 
-    This class handles the conversion between human-readable system
-    configurations and the numerical parameter vectors used by
-    optimization algorithms.
+    This class handles the conversion between human-readable system,
+    configurations and the numerical parameter vectors used by,
+    optimization algorithms.,
     """
 
     def __init__(self, encoding_spec: EncodingSpec) -> None:
         """Initialize parameter encoder.
 
         Args:
-            encoding_spec: Specification for parameter encoding
+            encoding_spec: Specification for parameter encoding,
         """
         self.spec = encoding_spec
         self.parameter_map = {param.name: param for param in self.spec.parameters}
@@ -75,7 +75,7 @@ class ParameterEncoder:
             config: System configuration dictionary
 
         Returns:
-            Encoded parameter vector
+            Encoded parameter vector,
         """
         vector = np.zeros(self.spec.dimensions)
 
@@ -90,7 +90,7 @@ class ParameterEncoder:
 
             except Exception as e:
                 logger.warning(f"Failed to encode parameter {param_spec.name}: {e}")
-                # Use middle of bounds as default
+                # Use middle of bounds as default,
                 vector[i] = (param_spec.bounds[0] + param_spec.bounds[1]) / 2
 
         return vector
@@ -103,7 +103,7 @@ class ParameterEncoder:
             base_config: Base configuration to modify
 
         Returns:
-            Updated system configuration
+            Updated system configuration,
         """
         if len(vector) != self.spec.dimensions:
             raise ValueError(f"Vector dimension {len(vector)} doesn't match " f"expected {self.spec.dimensions}")
@@ -116,7 +116,7 @@ class ParameterEncoder:
                 # Decode parameter value
                 decoded_value = self._decode_parameter(vector[i], param_spec)
 
-                # Update configuration
+                # Update configuration,
                 self._set_parameter_value(config, param_spec, decoded_value)
 
             except Exception as e:
@@ -133,12 +133,12 @@ class ParameterEncoder:
             param_spec: Parameter specification
 
         Returns:
-            Parameter value
+            Parameter value,
         """
         # Navigate through nested dictionaries
         value = config
 
-        # First find the component
+        # First find the component,
         if "components" in config and param_spec.component in config["components"]:
             value = config["components"][param_spec.component]
         else:
@@ -164,13 +164,13 @@ class ParameterEncoder:
         Args:
             config: System configuration to modify
             param_spec: Parameter specification
-            value: New parameter value
+            value: New parameter value,
         """
-        # Ensure components section exists
+        # Ensure components section exists,
         if "components" not in config:
             config["components"] = {}
 
-        # Ensure component exists
+        # Ensure component exists,
         if param_spec.component not in config["components"]:
             config["components"][param_spec.component] = {}
 
@@ -178,7 +178,7 @@ class ParameterEncoder:
         current = config["components"][param_spec.component]
         path_parts = param_spec.parameter_path.split(".")
 
-        # Navigate to parent of final key
+        # Navigate to parent of final key,
         for part in path_parts[:-1]:
             if part not in current:
                 current[part] = {}
@@ -187,7 +187,7 @@ class ParameterEncoder:
         # Set the final value
         final_key = path_parts[-1]
 
-        # Convert value based on parameter type
+        # Convert value based on parameter type,
         if param_spec.parameter_type == "integer":
             current[final_key] = int(round(value))
         else:
@@ -201,11 +201,11 @@ class ParameterEncoder:
             param_spec: Parameter specification
 
         Returns:
-            Encoded value within bounds
+            Encoded value within bounds,
         """
         min_val, max_val = param_spec.bounds
 
-        # Apply scaling
+        # Apply scaling,
         if param_spec.scaling == "log":
             if value <= 0:
                 value = min_val
@@ -213,7 +213,7 @@ class ParameterEncoder:
             min_val = np.log10(max(min_val, 1e-10))
             max_val = np.log10(max_val)
         elif param_spec.scaling == "normalized":
-            # Already handled by bounds
+            # Already handled by bounds,
             pass
 
         # Ensure within bounds
@@ -228,12 +228,12 @@ class ParameterEncoder:
             param_spec: Parameter specification
 
         Returns:
-            Decoded parameter value
+            Decoded parameter value,
         """
         min_val, max_val = param_spec.bounds
         value = encoded_value
 
-        # Apply inverse scaling
+        # Apply inverse scaling,
         if param_spec.scaling == "log":
             value = 10**value
         elif param_spec.scaling == "normalized":
@@ -252,7 +252,7 @@ class ParameterEncoder:
             vector: Parameter vector to validate
 
         Returns:
-            True if valid, False otherwise
+            True if valid, False otherwise,
         """
         if len(vector) != self.spec.dimensions:
             return False
@@ -268,7 +268,7 @@ class ParameterEncoder:
         """Get information about all parameters.
 
         Returns:
-            Dictionary with parameter information
+            Dictionary with parameter information,
         """
         info = {}
         for param in self.spec.parameters:
@@ -280,16 +280,16 @@ class ParameterEncoder:
                 "units": param.units,
                 "description": param.description,
                 "scaling": param.scaling
-            }
+            },
         return info
 
 
 class SystemConfigEncoder(ParameterEncoder):
-    """Specialized encoder for EcoSystemiser system configurations.
+    """Specialized encoder for EcoSystemiser system configurations.,
 
-    This class provides predefined parameter specifications for common
-    energy system components and automatically detects optimizable
-    parameters from system configurations.
+    This class provides predefined parameter specifications for common,
+    energy system components and automatically detects optimizable,
+    parameters from system configurations.,
     """
 
     # Component parameters are now dynamically discovered from component configurations
@@ -299,23 +299,23 @@ class SystemConfigEncoder(ParameterEncoder):
     def from_config(
         cls
         config_path: str | Path,
-        component_selection: Optional[List[str]] = None
+        component_selection: Optional[List[str]] = None,
         custom_bounds: Optional[Dict[str, Tuple[float, float]]] = None
     ) -> "SystemConfigEncoder":
-        """Create encoder from system configuration file.
+        """Create encoder from system configuration file.,
 
-        This method dynamically discovers optimizable parameters from component
+        This method dynamically discovers optimizable parameters from component,
         configurations themselves, maintaining proper architectural gravity.
 
         Args:
-            config_path: Path to system configuration YAML file
-            component_selection: List of components to optimize (None = all)
+            config_path: Path to system configuration YAML file,
+            component_selection: List of components to optimize (None = all),
             custom_bounds: Custom bounds for parameters
 
         Returns:
-            SystemConfigEncoder instance
+            SystemConfigEncoder instance,
         """
-        # Load configuration
+        # Load configuration,
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)
 
@@ -335,19 +335,18 @@ class SystemConfigEncoder(ParameterEncoder):
                 optimizable_params = cls._extract_optimizable_parameters(component_name, component_config)
 
                 for param_spec in optimizable_params:
-                    # Apply custom bounds if provided
+                    # Apply custom bounds if provided,
                     if custom_bounds and param_spec.name in custom_bounds:
                         param_spec = dataclass.replace(param_spec, bounds=custom_bounds[param_spec.name])
                     parameters.append(param_spec)
 
         if not parameters:
             raise ValueError(
-                "No optimizable parameters found in configuration. "
+                "No optimizable parameters found in configuration. ",
                 "Components must define 'optimizable_parameters' in their technical section."
             )
 
-        logger.info(f"Created encoder with {len(parameters)} parameters: " f"{[p.name for p in parameters]}")
-
+        logger.info(f"Created encoder with {len(parameters)} parameters: " f"{[p.name for p in parameters]}"),
         encoding_spec = EncodingSpec(parameters=parameters)
         return cls(encoding_spec)
 
@@ -355,17 +354,17 @@ class SystemConfigEncoder(ParameterEncoder):
     def _extract_optimizable_parameters(
         cls, component_name: str, component_config: Dict[str, Any]
     ) -> List[ParameterSpec]:
-        """Extract optimizable parameters from component configuration.
+        """Extract optimizable parameters from component configuration.,
 
         This method implements the architectural principle of co-location:
         component-specific knowledge lives with the component, not in generic engines.
 
         Args:
-            component_name: Name of the component
+            component_name: Name of the component,
             component_config: Component configuration dictionary
 
         Returns:
-            List of ParameterSpec objects for this component
+            List of ParameterSpec objects for this component,
         """
         parameters = []
 
@@ -377,7 +376,7 @@ class SystemConfigEncoder(ParameterEncoder):
             logger.debug(f"No optimizable parameters defined for component {component_name}")
             return parameters
 
-        # Convert each optimizable parameter to ParameterSpec
+        # Convert each optimizable parameter to ParameterSpec,
         for param_name, param_config in optimizable_config.items():
             try:
                 # Extract required fields
@@ -386,35 +385,35 @@ class SystemConfigEncoder(ParameterEncoder):
 
                 if not parameter_path or not bounds:
                     logger.warning(
-                        f"Incomplete parameter definition for {component_name}.{param_name}: "
+                        f"Incomplete parameter definition for {component_name}.{param_name}: ",
                         f"missing parameter_path or bounds"
                     )
                     continue
 
-                # Convert bounds to tuple if it's a list
+                # Convert bounds to tuple if it's a list,
                 if isinstance(bounds, list) and len(bounds) == 2:
                     bounds = tuple(bounds)
                 elif not isinstance(bounds, tuple) or len(bounds) != 2:
-                    logger.warning(f"Invalid bounds format for {component_name}.{param_name}: {bounds}")
+                    logger.warning(f"Invalid bounds format for {component_name}.{param_name}: {bounds}"),
                     continue
 
                 # Create ParameterSpec
                 param_spec = ParameterSpec(
-                    name=f"{component_name}_{param_name}"
+                    name=f"{component_name}_{param_name}",
                     component=component_name
-                    parameter_path=parameter_path
+                    parameter_path=parameter_path,
                     bounds=bounds
-                    parameter_type=param_config.get("parameter_type", "continuous")
+                    parameter_type=param_config.get("parameter_type", "continuous"),
                     units=param_config.get("units")
-                    description=param_config.get("description", f"{param_name} for {component_name}")
+                    description=param_config.get("description", f"{param_name} for {component_name}"),
                     scaling=param_config.get("scaling", "linear")
-                )
+                ),
 
                 parameters.append(param_spec)
                 logger.debug(f"Extracted optimizable parameter: {param_spec.name}")
 
             except Exception as e:
-                logger.warning(f"Failed to process parameter {component_name}.{param_name}: {e}")
+                logger.warning(f"Failed to process parameter {component_name}.{param_name}: {e}"),
                 continue
 
         return parameters
@@ -427,13 +426,12 @@ class SystemConfigEncoder(ParameterEncoder):
             parameter_definitions: List of parameter definition dictionaries
 
         Returns:
-            SystemConfigEncoder instance
+            SystemConfigEncoder instance,
         """
         parameters = []
         for param_def in parameter_definitions:
             param_spec = ParameterSpec(**param_def)
             parameters.append(param_spec)
-
         encoding_spec = EncodingSpec(parameters=parameters)
         return cls(encoding_spec)
 
@@ -443,11 +441,11 @@ class SystemConfigEncoder(ParameterEncoder):
         """Suggest parameter bounds based on current configuration values.
 
         Args:
-            config: System configuration
+            config: System configuration,
             scaling_factor: Factor to scale current values for bounds
 
         Returns:
-            Dictionary of suggested bounds
+            Dictionary of suggested bounds,
         """
         suggested_bounds = {}
 
@@ -459,11 +457,11 @@ class SystemConfigEncoder(ParameterEncoder):
                     max_bound = current_value * scaling_factor
                     suggested_bounds[param_spec.name] = (min_bound, max_bound)
                 else:
-                    # Use default bounds for zero values
+                    # Use default bounds for zero values,
                     suggested_bounds[param_spec.name] = param_spec.bounds
 
             except Exception as e:
-                logger.warning(f"Could not extract value for {param_spec.name}: {e}")
+                logger.warning(f"Could not extract value for {param_spec.name}: {e}"),
                 suggested_bounds[param_spec.name] = param_spec.bounds
 
         return suggested_bounds

@@ -2,13 +2,13 @@
 Performance benchmarks for async operations.
 """
 
-import pytest
 import asyncio
-import aiofiles
 import tempfile
-import time
 from pathlib import Path
 from typing import List
+
+import aiofiles
+import pytest
 
 
 class TestAsyncPerformance:
@@ -28,25 +28,26 @@ class TestAsyncPerformance:
                 # Create multiple files asynchronously
                 tasks = []
                 for i in range(10):
-                    temp_file = tempfile.NamedTemporaryFile(mode='w', suffix=f'_async_{i}.txt', delete=False)
+                    temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=f"_async_{i}.txt", delete=False)
                     temp_files.append(temp_file.name)
                     temp_file.close()
 
                 # Write to files asynchronously
                 async def write_file(file_path, data):
-                    async with aiofiles.open(file_path, 'w') as f:
+                    async with aiofiles.open(file_path, "w") as f:
                         await f.write(str(data))
 
                 for i, file_path in enumerate(temp_files):
-                    task = write_file(file_path, async_dataset[i * 100:(i + 1) * 100])
+                    task = write_file(file_path, async_dataset[i * 100 : (i + 1) * 100])
                     tasks.append(task)
 
                 await asyncio.gather(*tasks)
 
                 # Read from files asynchronously
                 read_tasks = []
+
                 async def read_file(file_path):
-                    async with aiofiles.open(file_path, 'r') as f:
+                    async with aiofiles.open(file_path, "r") as f:
                         return await f.read()
 
                 for file_path in temp_files:
@@ -104,7 +105,7 @@ class TestAsyncPerformance:
 
             tasks = []
             for i in range(0, len(async_dataset), batch_size):
-                batch = async_dataset[i:i + batch_size]
+                batch = async_dataset[i : i + batch_size]
                 tasks.append(process_batch(batch))
 
             results = await asyncio.gather(*tasks)

@@ -6,16 +6,12 @@ This test validates the autonomous platform's ability to generate and coordinate
 applications with multiple interacting components (frontend, backend, API, database).
 """
 
-import json
-import sqlite3
 import subprocess
-import time
-import requests
 import sys
-from datetime import datetime
+import time
 from pathlib import Path
-from typing import Dict, Any
-import traceback
+
+import requests
 
 # Import the FAT framework
 sys.path.insert(0, str(Path(__file__).parent))
@@ -446,7 +442,7 @@ if __name__ == "__main__":
     result = run_multi_component_test()
 
     if result["success"]:
-        print(f"\\n[SUCCESS] Multi-Component Test completed successfully!")
+        print("\\n[SUCCESS] Multi-Component Test completed successfully!")
         exit(0)
     else:
         print(f"\\n[FAILURE] Multi-Component Test failed: {result['error']}")

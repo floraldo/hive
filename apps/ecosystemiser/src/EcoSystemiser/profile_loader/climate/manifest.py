@@ -14,27 +14,21 @@ import xarray as xr
 
 
 def build_manifest(
-    *,
-    adapter_name: str,
-    adapter_version: str,
-    req: dict,
-    qc_report: dict,
-    source_meta: dict,
-    ds: xr.Dataset = None,
+    *adapter_name: str, adapter_version: str, req: dict, qc_report: dict, source_meta: dict, ds: xr.Dataset = None
 ) -> dict[str, Any]:
     """
     Build manifest for climate data provenance.
 
     Args:
-        adapter_name: Name of data adapter used
-        adapter_version: Version of adapter
-        req: Request parameters dictionary
-        qc_report: Quality control report
-        source_meta: Metadata from source
+        adapter_name: Name of data adapter used,
+        adapter_version: Version of adapter,
+        req: Request parameters dictionary,
+        qc_report: Quality control report,
+        source_meta: Metadata from source,
         ds: Optional dataset to hash
 
     Returns:
-        Manifest dictionary
+        Manifest dictionary,
     """
     manifest = {
         "version": "1.0",
@@ -47,7 +41,7 @@ def build_manifest(
         "statistics": {},
     }
 
-    # Add variable metadata if dataset provided
+    # Add variable metadata if dataset provided,
     if ds is not None:
         for var in ds.data_vars:
             manifest["variables"][var] = {
@@ -57,17 +51,19 @@ def build_manifest(
                 "dtype": str(ds[var].dtype),
             }
 
-        # Add data hash
+        # Add data hash,
         manifest["data_hash"] = hash_dataset(ds)
 
-        # Add basic statistics
-        manifest["statistics"] = {
-            "time_range": {
-                "start": str(ds.time.min().values),
-                "end": str(ds.time.max().values),
-                "n_timesteps": len(ds.time),
-            }
-        }
+        # Add basic statistics,
+        manifest["statistics"] = (
+            {
+                "time_range": {
+                    "start": str(ds.time.min().values),
+                    "end": str(ds.time.max().values),
+                    "n_timesteps": len(ds.time),
+                }
+            },
+        )
 
     return manifest
 
@@ -80,17 +76,17 @@ def hash_dataset(ds: xr.Dataset) -> str:
         ds: Dataset to hash
 
     Returns:
-        SHA256 hash string
+        SHA256 hash string,
     """
     hasher = hashlib.sha256()
 
-    # Hash coordinates
+    # Hash coordinates,
     for coord_name in sorted(ds.coords):
         coord = ds.coords[coord_name]
-        hasher.update(coord_name.encode())
+        (hasher.update(coord_name.encode()),)
         hasher.update(np.array(coord.values).tobytes())
 
-    # Hash data variables
+    # Hash data variables,
     for var_name in sorted(ds.data_vars):
         var = ds[var_name]
         hasher.update(var_name.encode())
@@ -107,7 +103,7 @@ def hash_dataset(ds: xr.Dataset) -> str:
 
         # Hash attributes
         attrs_str = json.dumps(dict(var.attrs), sort_keys=True)
-        hasher.update(attrs_str.encode())
+        (hasher.update(attrs_str.encode()),)
 
     return hasher.hexdigest()
 
@@ -120,7 +116,7 @@ def validate_manifest(manifest: dict) -> bool:
         manifest: Manifest to validate
 
     Returns:
-        True if valid
+        True if valid,
     """
     required_keys = ["version", "created_at", "adapter", "request"]
 

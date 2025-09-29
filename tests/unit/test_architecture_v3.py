@@ -10,9 +10,8 @@ These tests enforce the architectural principles established during the v3.0 ref
 """
 
 import ast
-import os
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
 import pytest
 
@@ -54,7 +53,7 @@ def check_file_imports(file_path: Path, forbidden_patterns: List[str]) -> List[s
             for pattern in forbidden_patterns:
                 if pattern in import_name:
                     violations.append(f"{file_path.relative_to(PROJECT_ROOT)}: Forbidden import '{import_name}'")
-    except Exception as e:
+    except Exception:
         # Skip files that can't be parsed
         pass
 
@@ -112,7 +111,7 @@ def test_service_layer_decoupling():
                     "study_service.py: Import from simulation_service should have comment explaining it's for types only"
                 )
 
-    assert len(violations) == 0, f"Service decoupling violations:\n" + "\n".join(violations)
+    assert len(violations) == 0, "Service decoupling violations:\n" + "\n".join(violations)
 
 
 def test_climate_validation_colocated():
@@ -159,7 +158,7 @@ def test_climate_validation_colocated():
             if "from ecosystemiser.profile_loader.climate.processing.validation import" not in content:
                 violations.append(f"{adapter_file}: Missing validation imports")
 
-    assert len(violations) == 0, f"Climate validation co-location violations:\n" + "\n".join(violations)
+    assert len(violations) == 0, "Climate validation co-location violations:\n" + "\n".join(violations)
 
 
 def test_reporting_service_centralized():
@@ -194,7 +193,7 @@ def test_reporting_service_centralized():
         if "app.reporting_service = ReportingService()" not in content:
             violations.append("reporting/app.py: ReportingService not initialized")
 
-    assert len(violations) == 0, f"Reporting centralization violations:\n" + "\n".join(violations)
+    assert len(violations) == 0, "Reporting centralization violations:\n" + "\n".join(violations)
 
 
 def test_cli_layer_purity():
@@ -242,7 +241,7 @@ def test_cli_layer_purity():
         if required_import not in content:
             violations.append(f"cli.py: Missing required service import '{required_import}'")
 
-    assert len(violations) == 0, f"CLI layer purity violations:\n" + "\n".join(violations)
+    assert len(violations) == 0, "CLI layer purity violations:\n" + "\n".join(violations)
 
 
 def test_streamlit_isolation():
@@ -265,7 +264,7 @@ def test_streamlit_isolation():
     if not requirements_file.exists():
         violations.append("dashboard/requirements.txt: Missing (needed for isolation)")
 
-    assert len(violations) == 0, f"Streamlit isolation violations:\n" + "\n".join(violations)
+    assert len(violations) == 0, "Streamlit isolation violations:\n" + "\n".join(violations)
 
 
 def test_validation_file_size():
@@ -308,7 +307,7 @@ def test_job_facade_exists():
         if method not in content:
             violations.append(f"JobFacade missing required method: {method}")
 
-    assert len(violations) == 0, f"JobFacade structure violations:\n" + "\n".join(violations)
+    assert len(violations) == 0, "JobFacade structure violations:\n" + "\n".join(violations)
 
 
 if __name__ == "__main__":

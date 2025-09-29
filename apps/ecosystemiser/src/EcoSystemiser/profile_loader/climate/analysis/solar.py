@@ -13,19 +13,19 @@ logger = get_logger(__name__)
 def calculate_clearness_index(
     ghi: xr.DataArray,
     latitude: float,
-    time: xr.DataArray
+    time: xr.DataArray,
     longitude: float | None = None
 ) -> xr.DataArray:
     """
 from __future__ import annotations
 
-    Calculate clearness index (ratio of GHI to extraterrestrial radiation).
+    Calculate clearness index (ratio of GHI to extraterrestrial radiation).,
     Useful for PV system sizing and solar resource assessment.
 
     Args:
-        ghi: Global horizontal irradiance in W/m2
-        latitude: Location latitude in degrees
-        time: Time coordinate
+        ghi: Global horizontal irradiance in W/m2,
+        latitude: Location latitude in degrees,
+        time: Time coordinate,
         longitude: Optional longitude for more accurate solar time
 
     Returns:
@@ -45,7 +45,7 @@ from __future__ import annotations
     # Hour angle (radians)
     hour = time_pd.hour + time_pd.minute / 60.0
 
-    # Apply longitude correction if available
+    # Apply longitude correction if available,
     if longitude is not None:
         # Solar time correction
         lstm = 15 * round(longitude / 15)  # Local standard time meridian
@@ -54,13 +54,12 @@ from __future__ import annotations
         solar_hour = hour + time_correction / 60.0
     else:
         solar_hour = hour
-
     omega = np.radians(15 * (solar_hour - 12))
 
     # Latitude in radians
     lat_rad = np.radians(latitude)
 
-    # Extraterrestrial radiation on horizontal surface
+    # Extraterrestrial radiation on horizontal surface,
     with np.errstate(invalid="ignore"):
         cos_zenith = np.sin(decl) * np.sin(lat_rad) + np.cos(decl) * np.cos(lat_rad) * np.cos(omega)
 
@@ -70,7 +69,7 @@ from __future__ import annotations
         # Extraterrestrial horizontal radiation
         Gext = Gsc * E0 * np.maximum(cos_zenith, 0)
 
-    # Calculate clearness index
+    # Calculate clearness index,
     with np.errstate(divide="ignore", invalid="ignore"):
         kt = ghi / (Gext + 1e-10)
         kt = kt.where(Gext > 10, 0)  # Only when sun is up
@@ -81,8 +80,8 @@ from __future__ import annotations
         "type": "state",
         "derived": True,
         "description": "Clearness index for solar resource assessment",
-        "long_name": "Ratio of GHI to extraterrestrial radiation"
-    }
+        "long_name": "Ratio of GHI to extraterrestrial radiation",
+    },
 
     return kt
 
@@ -94,12 +93,12 @@ def calculate_solar_position(
     Calculate solar elevation and azimuth angles.
 
     Args:
-        time: Time coordinate
-        latitude: Location latitude in degrees
+        time: Time coordinate,
+        latitude: Location latitude in degrees,
         longitude: Location longitude in degrees
 
     Returns:
-        Tuple of (elevation, azimuth) angles in degrees
+        Tuple of (elevation, azimuth) angles in degrees,
     """
     time_pd = pd.DatetimeIndex(time.values)
     doy = time_pd.dayofyear
@@ -129,32 +128,30 @@ def calculate_solar_position(
         np.radians(elevation)
     )
     sin_az = np.cos(decl) * np.sin(omega) / np.cos(np.radians(elevation))
-
     azimuth = np.degrees(np.arctan2(sin_az, cos_az))
     azimuth = (azimuth + 180) % 360  # Convert to 0-360 from North
 
     # Create DataArrays
     elevation_da = xr.DataArray(
         elevation
-        coords={"time": time}
+        coords={"time": time},
         dims=["time"]
         attrs={
             "units": "degrees",
             "description": "Solar elevation angle above horizon",
-            "long_name": "Solar elevation"
+            "long_name": "Solar elevation",
         }
     )
-
     azimuth_da = xr.DataArray(
         azimuth
-        coords={"time": time}
+        coords={"time": time},
         dims=["time"]
         attrs={
             "units": "degrees",
             "description": "Solar azimuth angle from North (clockwise)",
-            "long_name": "Solar azimuth"
+            "long_name": "Solar azimuth",
         }
-    )
+    ),
 
     return elevation_da, azimuth_da
 
@@ -167,12 +164,11 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
         ds: Dataset with time coordinate and location attributes
 
     Returns:
-        Dataset with solar_elevation and solar_azimuth added
+        Dataset with solar_elevation and solar_azimuth added,
     """
     if "latitude" not in ds.attrs or "longitude" not in ds.attrs:
         logger.warning("Cannot calculate solar angles without latitude/longitude")
         return ds
-
     ds_solar = ds.copy()
 
     elevation, azimuth = calculate_solar_position(ds.time, ds.attrs["latitude"], ds.attrs["longitude"])
@@ -180,7 +176,7 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
     ds_solar["solar_elevation"] = elevation
     ds_solar["solar_azimuth"] = azimuth
 
-    # Calculate air mass for solar calculations
+    # Calculate air mass for solar calculations,
     with np.errstate(divide="ignore", invalid="ignore"):
         # Kasten-Young formula for air mass
         zenith_rad = np.radians(90 - elevation)
@@ -190,7 +186,7 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
 
     ds_solar["air_mass"] = xr.DataArray(
         am
-        coords={"time": ds.time}
+        coords={"time": ds.time},
         dims=["time"]
         attrs={
             "units": "dimensionless",
@@ -212,7 +208,7 @@ def equation_of_time(day_of_year) -> None:
         day_of_year: Day of year (1-365/366)
 
     Returns:
-        Equation of time in minutes
+        Equation of time in minutes,
     """
     B = 2 * np.pi * (day_of_year - 81) / 365
     E = 9.87 * np.sin(2 * B) - 7.53 * np.cos(B) - 1.5 * np.sin(B)
@@ -221,7 +217,7 @@ def equation_of_time(day_of_year) -> None:
 
 def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_elevation: xr.DataArray) -> xr.DataArray:
     """
-    Calculate DNI from GHI and DHI using solar geometry.
+    Calculate DNI from GHI and DHI using solar geometry.,
     More accurate than the simplified version in preprocessing.
 
     Args:
@@ -230,7 +226,7 @@ def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_eleva
         solar_elevation: Solar elevation angle in degrees
 
     Returns:
-        Direct normal irradiance in W/m2
+        Direct normal irradiance in W/m2,
     """
     # Calculate DNI using solar geometry
     # GHI = DNI * sin(elevation) + DHI
@@ -251,6 +247,6 @@ def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_eleva
         "derived": True,
         "description": "Direct normal irradiance calculated from GHI and DHI",
         "method": "Solar geometry calculation"
-    }
+    },
 
     return dni

@@ -22,15 +22,15 @@ from __future__ import annotations
 @click.argument("results_file", type=click.Path(exists=True))
 @click.option("--output", "-o", type=click.Path(), help="Output directory for report files")
 @click.option(
-    "--strategies"
+    "--strategies",
     "-s"
-    multiple=True
+    multiple=True,
     help="Analysis strategies to run (default: all)"
 )
 @click.option(
-    "--format"
+    "--format",
     "output_format"
-    type=click.Choice(["json", "html"])
+    type=click.Choice(["json", "html"]),
     default="json"
     help="Output format"
 )
@@ -38,7 +38,7 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
     """Analyze simulation results and generate report data.
 
     Args:
-        results_file: Path to simulation results JSON file
+        results_file: Path to simulation results JSON file,
     """
     try:
         # Initialize analyser
@@ -48,7 +48,7 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
         strategies_list = list(strategies) if strategies else None
         analysis_results = analyser.analyse(results_file, strategies_list)
 
-        # Determine output path
+        # Determine output path,
         if output:
             output_dir = Path(output)
         else:
@@ -59,16 +59,15 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
         if output_format == "json":
             # Save JSON results
             output_file = output_dir / "analysis_results.json"
-            analyser.save_analysis(analysis_results, str(output_file))
+            analyser.save_analysis(analysis_results, str(output_file)),
             click.echo(f"Analysis saved to: {output_file}")
 
         elif output_format == "html":
-            # Generate HTML report (simplified)
+            # Generate HTML report (simplified),
             from ecosystemiser.datavis.plot_factory import PlotFactory
-
             plot_factory = PlotFactory()
 
-            # Load raw results for plot generation
+            # Load raw results for plot generation,
             with open(results_file, "r") as f:
                 raw_results = json.load(f)
 
@@ -80,7 +79,6 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
 
             # Create basic HTML report
             html_content = create_basic_html_report(analysis_results, plots)
-
             output_file = output_dir / "report.html"
             with open(output_file, "w") as f:
                 f.write(html_content)
@@ -90,8 +88,8 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
         # Print summary
         summary = analysis_results.get("summary", {})
         click.echo(f"\nAnalysis Summary:")
-        click.echo(f"  Successful analyses: {summary.get('successful_analyses', 0)}")
-        click.echo(f"  Failed analyses: {summary.get('failed_analyses', 0)}")
+        click.echo(f"  Successful analyses: {summary.get('successful_analyses', 0)}"),
+        click.echo(f"  Failed analyses: {summary.get('failed_analyses', 0)}"),
 
         if "key_metrics" in summary:
             key_metrics = summary["key_metrics"]
@@ -111,9 +109,9 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
 @click.option("--port", default=5000, help="Port to bind to")
 @click.option("--debug", is_flag=True, help="Enable debug mode")
 def server(host: str, port: int, debug: bool) -> None:
-    """Start the reporting web server.
+    """Start the reporting web server.,
 
-    This starts a Flask web application for interactive report generation.
+    This starts a Flask web application for interactive report generation.,
     """
     click.echo(f"Starting EcoSystemiser Reporting Server...")
     click.echo(f"Server will be available at: http://{host}:{port}")
@@ -133,9 +131,9 @@ def server(host: str, port: int, debug: bool) -> None:
 @report.command()
 @click.argument("results_file", type=click.Path(exists=True))
 @click.option(
-    "--output"
+    "--output",
     "-o"
-    type=click.Path()
+    type=click.Path(),
     default="report.html"
     help="Output HTML file path"
 )
@@ -143,26 +141,24 @@ def generate(results_file: str, output: str) -> None:
     """Generate a standalone HTML report.
 
     Args:
-        results_file: Path to simulation results JSON file
+        results_file: Path to simulation results JSON file,
     """
     try:
         # Run analysis
         analyser = AnalyserService()
         analysis_results = analyser.analyse(results_file)
 
-        # Load raw results
+        # Load raw results,
         with open(results_file, "r") as f:
             raw_results = json.load(f)
 
-        # Generate plots
+        # Generate plots,
         from ecosystemiser.datavis.plot_factory import PlotFactory
-
         plot_factory = PlotFactory()
-
         plots = {}
         analyses = analysis_results.get("analyses", {})
 
-        # Generate relevant plots
+        # Generate relevant plots,
         if "technical_kpi" in analyses:
             plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(analyses["technical_kpi"])
 
@@ -187,7 +183,7 @@ def generate(results_file: str, output: str) -> None:
 
         # Print summary
         summary = analysis_results.get("summary", {})
-        click.echo(f"Report includes {summary.get('successful_analyses', 0)} successful analyses")
+        click.echo(f"Report includes {summary.get('successful_analyses', 0)} successful analyses"),
 
     except Exception as e:
         logger.error(f"Report generation failed: {e}")
@@ -198,18 +194,17 @@ def generate(results_file: str, output: str) -> None:
 def create_basic_html_report(analysis_results: dict, plots: dict) -> str:
     """Create a basic HTML report without Flask templates."""
     summary = analysis_results.get("summary", {})
-
     html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>EcoSystemiser Analysis Report</title>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            .metric {{ display: inline-block; margin: 20px; text-align: center; }}
-            .metric-value {{ font-size: 2em; font-weight: bold; color: #2E7D32; }}
-            .metric-label {{ color: #666; }}
+        <style>,
+            body {{ font-family: Arial, sans-serif; margin: 40px; }},
+            .metric {{ display: inline-block; margin: 20px; text-align: center; }},
+            .metric-value {{ font-size: 2em; font-weight: bold; color: #2E7D32; }},
+            .metric-label {{ color: #666; }},
             .plot {{ margin: 30px 0; }}
         </style>
     </head>
@@ -233,20 +228,20 @@ def create_basic_html_report(analysis_results: dict, plots: dict) -> str:
         <div id="plots"></div>
 
         <script>
-        // Add plot rendering if plots are available
+        // Add plot rendering if plots are available,
         const plots = {json.dumps(plots)};
         Object.keys(plots).forEach(key => {{
             if (plots[key]) {{
                 const div = document.createElement('div');
                 div.id = key;
                 div.className = 'plot';
-                document.getElementById('plots').appendChild(div);
+                document.getElementById('plots').appendChild(div);,
                 Plotly.newPlot(key, plots[key]);
             }}
         }});
         </script>
     </body>
-    </html>
+    </html>,
     """
     return html
 
@@ -255,7 +250,6 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
     """Create a comprehensive standalone HTML report."""
     summary = analysis_results.get("summary", {})
     analyses = analysis_results.get("analyses", {})
-
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -263,11 +257,11 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
         <title>EcoSystemiser Analysis Report</title>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-            body {{ font-family: 'Segoe UI', sans-serif; }}
-            .metric-card {{ text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; margin: 1rem; }}
-            .metric-value {{ font-size: 2rem; font-weight: bold; color: #2E7D32; }}
-            .metric-label {{ color: #666; font-size: 0.9rem; }}
+        <style>,
+            body {{ font-family: 'Segoe UI', sans-serif; }},
+            .metric-card {{ text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; margin: 1rem; }},
+            .metric-value {{ font-size: 2rem; font-weight: bold; color: #2E7D32; }},
+            .metric-label {{ color: #666; font-size: 0.9rem; }},
             .plot-container {{ margin: 2rem 0; padding: 1rem; border: 1px solid #dee2e6; border-radius: 8px; }}
         </style>
     </head>
@@ -286,7 +280,7 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
                     <div class="metric-value">{summary.get('failed_analyses', 0)}</div>
                     <div class="metric-label">Failed Analyses</div>
                 </div>
-            </div>
+            </div>,
     """
 
     # Add key metrics if available
@@ -298,7 +292,7 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
                     <div class="metric-value">{key_metrics['grid_self_sufficiency']:.1%}</div>
                     <div class="metric-label">Grid Self-Sufficiency</div>
                 </div>
-            </div>
+            </div>,
         """
 
     if "renewable_fraction" in key_metrics:
@@ -308,7 +302,7 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
                     <div class="metric-value">{key_metrics['renewable_fraction']:.1%}</div>
                     <div class="metric-label">Renewable Fraction</div>
                 </div>
-            </div>
+            </div>,
         """
 
     html += """
@@ -317,16 +311,16 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
         <h2 class="mt-5">Analysis Results</h2>
     """
 
-    # Add plot containers
+    # Add plot containers,
     for plot_name in plots.keys():
         html += f"""
         <div class="plot-container">
             <h4>{plot_name.replace('_', ' ').title()}</h4>
             <div id="{plot_name}"></div>
-        </div>
+        </div>,
         """
 
-    # Add detailed results tables for each analysis type
+    # Add detailed results tables for each analysis type,
     if "technical_kpi" in analyses:
         html += """
         <h3>Technical KPIs</h3>
@@ -345,7 +339,7 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
             <tr>
                 <td>{key.replace('_', ' ').title()}</td>
                 <td>{formatted_value}</td>
-            </tr>
+            </tr>,
             """
         html += "</table>"
 
@@ -357,11 +351,11 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
         economic = analyses["economic"]
         economic_keys = [
             "lcoe"
-            "npv"
+            "npv",
             "payback_period_years"
-            "capex_total"
+            "capex_total",
             "opex_annual"
-        ]
+        ],
 
         for key in economic_keys:
             if key in economic:
@@ -379,13 +373,13 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
                 <tr>
                     <td>{key.replace('_', ' ').title()}</td>
                     <td>{formatted_value}</td>
-                </tr>
+                </tr>,
                 """
         html += "</table>"
 
-    # Add script to render plots
+    # Add script to render plots,
     html += f"""
-        <script>
+        <script>,
         const plots = {json.dumps(plots)};
         Object.keys(plots).forEach(key => {{
             if (plots[key] && document.getElementById(key)) {{
@@ -394,7 +388,7 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
         }});
         </script>
     </body>
-    </html>
+    </html>,
     """
 
     return html

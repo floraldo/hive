@@ -2,7 +2,7 @@
 Tests for deployment strategies
 """
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from ai_deployer.deployer import DeploymentStrategy

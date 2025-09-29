@@ -1,5 +1,5 @@
 """
-EcoSystemiser-specific event types.
+EcoSystemiser-specific event types.,
 
 Extends the generic messaging toolkit with EcoSystemiser-specific events:
 - Simulation lifecycle events
@@ -12,12 +12,12 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 try:
     from hive_bus import BaseEvent
 except ImportError:
-    # Fallback implementation if hive_messaging is not available
+    # Fallback implementation if hive_messaging is not available,
     class BaseEvent:
         """Base event class for fallback implementation."""
 
@@ -37,17 +37,17 @@ logger = get_logger(__name__)
 
 class EcoSystemiserEvent(BaseEvent):
     """
-    Base event class for all EcoSystemiser events.
+    Base event class for all EcoSystemiser events.,
 
-    Extends BaseEvent with simulation context and EcoSystemiser-specific
-    metadata fields.
+    Extends BaseEvent with simulation context and EcoSystemiser-specific,
+    metadata fields.,
     """
 
     def __init__(
         self,
         event_type: str,
         source: str = "ecosystemiser",
-        payload: Optional[dict[str, Any]] = None,
+        payload: dict[str, Any] | None = None,
         simulation_id: str | None = None,
         analysis_id: str | None = None,
         optimization_id: str | None = None,
@@ -58,17 +58,17 @@ class EcoSystemiserEvent(BaseEvent):
         Initialize an EcoSystemiser event.
 
         Args:
-            event_type: Type of event
-            source: Source component
-            payload: Event payload data
-            simulation_id: Associated simulation ID
-            analysis_id: Associated analysis ID
-            optimization_id: Associated optimization ID
-            timestep: Simulation timestep if applicable
+            event_type: Type of event,
+            source: Source component,
+            payload: Event payload data,
+            simulation_id: Associated simulation ID,
+            analysis_id: Associated analysis ID,
+            optimization_id: Associated optimization ID,
+            timestep: Simulation timestep if applicable,
         """
         super().__init__(event_type=event_type, source=source, payload=payload or {}, **kwargs)
 
-        # EcoSystemiser-specific fields
+        # EcoSystemiser-specific fields,
         self.simulation_id = simulation_id
         self.analysis_id = analysis_id
         self.optimization_id = optimization_id
@@ -94,7 +94,7 @@ class EcoSystemiserEvent(BaseEvent):
 
 # ===============================================================================
 # SIMULATION EVENTS
-# ===============================================================================
+# ===============================================================================,
 
 
 class SimulationEvent(EcoSystemiserEvent):
@@ -132,7 +132,7 @@ class SimulationEvent(EcoSystemiserEvent):
 
     @classmethod
     def failed(
-        cls, simulation_id: str, error_message: str, error_details: Optional[dict[str, Any]] = None, **kwargs
+        cls, simulation_id: str, error_message: str, error_details: dict[str, Any] | None = None, **kwargs
     ) -> SimulationEvent:
         """Create simulation failed event"""
         return cls(
@@ -169,7 +169,7 @@ class SimulationEvent(EcoSystemiserEvent):
 
 # ===============================================================================
 # ANALYSIS EVENTS
-# ===============================================================================
+# ===============================================================================,
 
 
 class AnalysisEvent(EcoSystemiserEvent):
@@ -195,7 +195,7 @@ class AnalysisEvent(EcoSystemiserEvent):
 
     @classmethod
     def completed(
-        cls, analysis_id: str, results: dict[str, Any], insights: Optional[list[str]] = None, **kwargs
+        cls, analysis_id: str, results: dict[str, Any], insights: list[str] | None = None, **kwargs
     ) -> AnalysisEvent:
         """Create analysis completed event"""
         return cls(
@@ -207,7 +207,7 @@ class AnalysisEvent(EcoSystemiserEvent):
 
     @classmethod
     def failed(
-        cls, analysis_id: str, error_message: str, error_details: Optional[dict[str, Any]] = None, **kwargs
+        cls, analysis_id: str, error_message: str, error_details: dict[str, Any] | None = None, **kwargs
     ) -> AnalysisEvent:
         """Create analysis failed event"""
         return cls(
@@ -225,7 +225,7 @@ class AnalysisEvent(EcoSystemiserEvent):
 
 # ===============================================================================
 # STUDY EVENTS
-# ===============================================================================
+# ===============================================================================,
 
 
 class StudyEvent(EcoSystemiserEvent):
@@ -273,7 +273,7 @@ class StudyEvent(EcoSystemiserEvent):
         cls,
         study_id: str,
         error_message: str,
-        error_details: Optional[dict[str, Any]] = None,
+        error_details: dict[str, Any] | None = None,
         source_agent: str = "StudyService",
         **kwargs,
     ) -> StudyEvent:
@@ -311,7 +311,7 @@ class StudyEvent(EcoSystemiserEvent):
 
 # ===============================================================================
 # OPTIMIZATION EVENTS
-# ===============================================================================
+# ===============================================================================,
 
 
 class OptimizationEvent(EcoSystemiserEvent):
@@ -395,7 +395,7 @@ class OptimizationEvent(EcoSystemiserEvent):
 
 # ===============================================================================
 # COMPONENT EVENTS
-# ===============================================================================
+# ===============================================================================,
 
 
 class ComponentEvent(EcoSystemiserEvent):
@@ -447,7 +447,7 @@ class ComponentEvent(EcoSystemiserEvent):
 
 # ===============================================================================
 # PROFILE LOADING EVENTS
-# ===============================================================================
+# ===============================================================================,
 
 
 class ProfileEvent(EcoSystemiserEvent):

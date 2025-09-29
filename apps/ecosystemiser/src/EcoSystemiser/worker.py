@@ -1,5 +1,5 @@
 """
-Arq worker configuration for processing climate jobs.
+Arq worker configuration for processing climate jobs.,
 
 Run with: arq ecosystemiser.worker.WorkerSettings
 """
@@ -11,7 +11,7 @@ from ecosystemiser.services.job_service import (
     collect_metrics,
     process_climate_job,
     shutdown,
-    startup,
+    startup
 )
 from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
@@ -28,8 +28,8 @@ class WorkerSettings:
     # Redis connection
     redis_settings = RedisSettings(
         host=settings.queue.redis_url.split("://")[1].split(":")[0],
-        port=int(settings.queue.redis_url.split(":")[-1].split("/")[0]),
-        database=0,
+        port=int(settings.queue.redis_url.split(":")[-1].split("/")[0])
+        database=0
     )
 
     # Queue configuration
@@ -45,7 +45,7 @@ class WorkerSettings:
 
     # Functions to run
     functions = [
-        process_climate_job,
+        process_climate_job
     ]
 
     # Cron jobs

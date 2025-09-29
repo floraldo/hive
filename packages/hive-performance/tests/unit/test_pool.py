@@ -1,8 +1,6 @@
 """Unit tests for hive_performance.pool module."""
 
 import pytest
-import asyncio
-from unittest.mock import Mock, AsyncMock, patch
 
 
 class TestPerformancePool:
@@ -12,6 +10,7 @@ class TestPerformancePool:
         """Test pool module can be imported."""
         try:
             from hive_performance import pool
+
             assert pool is not None
         except ImportError:
             pytest.skip("Pool module not found as separate module")
@@ -36,11 +35,11 @@ class TestPerformancePool:
             pool = ConnectionPool(max_size=10)
 
             # Test connection interface
-            if hasattr(pool, 'get_connection'):
+            if hasattr(pool, "get_connection"):
                 connection = await pool.get_connection()
                 assert connection is not None or connection is None
 
-            if hasattr(pool, 'return_connection'):
+            if hasattr(pool, "return_connection"):
                 await pool.return_connection(connection)
 
         except ImportError:
@@ -51,12 +50,7 @@ class TestPerformancePool:
         try:
             from hive_performance.pool import ConnectionPool
 
-            config = {
-                'max_size': 20,
-                'min_size': 5,
-                'timeout': 30.0,
-                'retry_attempts': 3
-            }
+            config = {"max_size": 20, "min_size": 5, "timeout": 30.0, "retry_attempts": 3}
 
             pool = ConnectionPool(**config)
             assert pool is not None
@@ -73,10 +67,10 @@ class TestPerformancePool:
             pool = ConnectionPool()
 
             # Test lifecycle methods
-            if hasattr(pool, 'start'):
+            if hasattr(pool, "start"):
                 await pool.start()
 
-            if hasattr(pool, 'stop'):
+            if hasattr(pool, "stop"):
                 await pool.stop()
 
             assert True  # Lifecycle completed
@@ -93,11 +87,11 @@ class TestPerformancePool:
             pool = ConnectionPool()
 
             # Test health monitoring interface
-            if hasattr(pool, 'health_check'):
+            if hasattr(pool, "health_check"):
                 health = await pool.health_check()
                 assert isinstance(health, bool) or health is None
 
-            if hasattr(pool, 'get_stats'):
+            if hasattr(pool, "get_stats"):
                 stats = pool.get_stats()
                 assert isinstance(stats, dict) or stats is None
 
@@ -113,7 +107,8 @@ class TestPerformancePool:
             assert thread_pool is not None
 
             # Test thread pool interface
-            if hasattr(thread_pool, 'submit'):
+            if hasattr(thread_pool, "submit"):
+
                 def sample_task():
                     return "completed"
 
@@ -132,11 +127,11 @@ class TestPerformancePool:
             resource_pool = ResourcePool()
 
             # Test resource management interface
-            if hasattr(resource_pool, 'acquire'):
+            if hasattr(resource_pool, "acquire"):
                 resource = await resource_pool.acquire()
                 assert resource is not None or resource is None
 
-            if hasattr(resource_pool, 'release'):
+            if hasattr(resource_pool, "release"):
                 await resource_pool.release(resource)
 
         except ImportError:

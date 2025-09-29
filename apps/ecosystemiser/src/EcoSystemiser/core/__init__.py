@@ -3,13 +3,13 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 """
-EcoSystemiser Core Components.
+EcoSystemiser Core Components.,
 
 Contains the core infrastructure that extends generic Hive packages:
 - Database layer (extends hive-db)
 - Event bus (extends hive-bus)
 - Error handling (extends hive-errors)
-- EcoSystemiser-specific event types
+- EcoSystemiser-specific event types,
 
     This follows the "inherit → extend" pattern:
 - Generic packages provide reusable infrastructure

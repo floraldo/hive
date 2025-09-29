@@ -6,12 +6,9 @@ Systematically fixes Golden Rule violations and optimizes the codebase
 
 import os
 import re
-import ast
-import json
 import shutil
-from pathlib import Path
-from typing import Dict, List, Set, Tuple
 from collections import defaultdict
+from pathlib import Path
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -20,11 +17,12 @@ APPS_DIR = PROJECT_ROOT / "apps"
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 
 # Patterns for fixes
-ASYNC_FUNCTION_PATTERN = re.compile(r'async\s+def\s+(\w+)\s*\(')
-BARE_EXCEPT_PATTERN = re.compile(r'except\s*:\s*$', re.MULTILINE)
-GLOBAL_CONFIG_PATTERN = re.compile(r'load_config\(\)')
-DI_FALLBACK_PATTERN = re.compile(r'(?:config|logger|db)\s*=\s*None')
-DI_FALLBACK_BLOCK_PATTERN = re.compile(r'if\s+(?:config|logger|db)\s+is\s+None\s*:')
+ASYNC_FUNCTION_PATTERN = re.compile(r"async\s+def\s+(\w+)\s*\(")
+BARE_EXCEPT_PATTERN = re.compile(r"except\s*:\s*$", re.MULTILINE)
+GLOBAL_CONFIG_PATTERN = re.compile(r"load_config\(\)")
+DI_FALLBACK_PATTERN = re.compile(r"(?:config|logger|db)\s*=\s*None")
+DI_FALLBACK_BLOCK_PATTERN = re.compile(r"if\s+(?:config|logger|db)\s+is\s+None\s*:")
+
 
 class HardenPlatform:
     def __init__(self):
@@ -67,66 +65,54 @@ class HardenPlatform:
 
         # List of functions to rename
         async_renames = {
-            'run': 'run_async',
-            'deploy': 'deploy_async',
-            'check_health': 'check_health_async',
-            'pre_deployment_checks': 'pre_deployment_checks_async',
-            'rollback': 'rollback_async',
-            'post_deployment_actions': 'post_deployment_actions_async',
-            'validate_configuration': 'validate_configuration_async',
-            'async_table_exists': 'table_exists_async',
-            'async_get_database_info': 'get_database_info_async'
+            "run": "run_async",
+            "deploy": "deploy_async",
+            "check_health": "check_health_async",
+            "pre_deployment_checks": "pre_deployment_checks_async",
+            "rollback": "rollback_async",
+            "post_deployment_actions": "post_deployment_actions_async",
+            "validate_configuration": "validate_configuration_async",
+            "async_table_exists": "table_exists_async",
+            "async_get_database_info": "get_database_info_async",
         }
 
         files_to_check = []
         for root, _, files in os.walk(APPS_DIR):
             for file in files:
-                if file.endswith('.py'):
+                if file.endswith(".py"):
                     files_to_check.append(Path(root) / file)
 
         for root, _, files in os.walk(PACKAGES_DIR):
             for file in files:
-                if file.endswith('.py'):
+                if file.endswith(".py"):
                     files_to_check.append(Path(root) / file)
 
         for file_path in files_to_check:
             try:
-                content = file_path.read_text(encoding='utf-8')
+                content = file_path.read_text(encoding="utf-8")
                 original_content = content
                 modified = False
 
                 # Find async functions without _async suffix
                 matches = ASYNC_FUNCTION_PATTERN.findall(content)
                 for func_name in matches:
-                    if not func_name.endswith('_async') and not func_name.startswith('__'):
+                    if not func_name.endswith("_async") and not func_name.startswith("__"):
                         new_name = async_renames.get(func_name, f"{func_name}_async")
 
                         # Replace function definition
-                        content = re.sub(
-                            rf'async\s+def\s+{func_name}\s*\(',
-                            f'async def {new_name}(',
-                            content
-                        )
+                        content = re.sub(rf"async\s+def\s+{func_name}\s*\(", f"async def {new_name}(", content)
 
                         # Replace function calls
-                        content = re.sub(
-                            rf'(?<!def\s)(?<!def\s\s){func_name}\s*\(',
-                            f'{new_name}(',
-                            content
-                        )
+                        content = re.sub(rf"(?<!def\s)(?<!def\s\s){func_name}\s*\(", f"{new_name}(", content)
 
                         # Replace await calls
-                        content = re.sub(
-                            rf'await\s+{func_name}\s*\(',
-                            f'await {new_name}(',
-                            content
-                        )
+                        content = re.sub(rf"await\s+{func_name}\s*\(", f"await {new_name}(", content)
 
                         modified = True
-                        self.fixes_applied['async_naming'].append(f"{file_path}: {func_name} -> {new_name}")
+                        self.fixes_applied["async_naming"].append(f"{file_path}: {func_name} -> {new_name}")
 
                 if modified:
-                    file_path.write_text(content, encoding='utf-8')
+                    file_path.write_text(content, encoding="utf-8")
 
             except Exception as e:
                 self.errors.append(f"Error processing {file_path}: {e}")
@@ -138,18 +124,13 @@ class HardenPlatform:
         target_file = PROJECT_ROOT / "apps/ecosystemiser/dashboard/app_isolated.py"
         if target_file.exists():
             try:
-                content = target_file.read_text(encoding='utf-8')
+                content = target_file.read_text(encoding="utf-8")
 
                 # Replace bare except with specific exception
-                content = re.sub(
-                    r'except\s*:\s*$',
-                    'except Exception:',
-                    content,
-                    flags=re.MULTILINE
-                )
+                content = re.sub(r"except\s*:\s*$", "except Exception:", content, flags=re.MULTILINE)
 
-                target_file.write_text(content, encoding='utf-8')
-                self.fixes_applied['bare_except'].append(str(target_file))
+                target_file.write_text(content, encoding="utf-8")
+                self.fixes_applied["bare_except"].append(str(target_file))
 
             except Exception as e:
                 self.errors.append(f"Error fixing bare except in {target_file}: {e}")
@@ -162,19 +143,15 @@ class HardenPlatform:
 
         for pyproject_file in pyproject_files:
             try:
-                content = pyproject_file.read_text(encoding='utf-8')
+                content = pyproject_file.read_text(encoding="utf-8")
 
                 # Replace old pytest versions with standard version
                 old_content = content
-                content = re.sub(
-                    r'pytest\s*=\s*"[\^~]?7\.\d+\.\d+"',
-                    'pytest = "^8.3.2"',
-                    content
-                )
+                content = re.sub(r'pytest\s*=\s*"[\^~]?7\.\d+\.\d+"', 'pytest = "^8.3.2"', content)
 
                 if content != old_content:
-                    pyproject_file.write_text(content, encoding='utf-8')
-                    self.fixes_applied['pytest_version'].append(str(pyproject_file))
+                    pyproject_file.write_text(content, encoding="utf-8")
+                    self.fixes_applied["pytest_version"].append(str(pyproject_file))
 
             except Exception as e:
                 self.errors.append(f"Error updating {pyproject_file}: {e}")
@@ -194,35 +171,23 @@ class HardenPlatform:
             full_path = PROJECT_ROOT / file_path
             if full_path.exists():
                 try:
-                    content = full_path.read_text(encoding='utf-8')
+                    content = full_path.read_text(encoding="utf-8")
                     original_content = content
 
                     # Remove load_config() calls
-                    content = re.sub(
-                        r'^\s*(?:config|cfg)\s*=\s*load_config\(\).*$',
-                        '',
-                        content,
-                        flags=re.MULTILINE
-                    )
+                    content = re.sub(r"^\s*(?:config|cfg)\s*=\s*load_config\(\).*$", "", content, flags=re.MULTILINE)
 
                     # Remove DI fallback patterns
-                    content = re.sub(
-                        r',\s*config\s*=\s*None',
-                        '',
-                        content
-                    )
+                    content = re.sub(r",\s*config\s*=\s*None", "", content)
 
                     # Remove DI fallback blocks
                     content = re.sub(
-                        r'if\s+config\s+is\s+None:\s*\n\s+config\s*=\s*load_config\(\)',
-                        '',
-                        content,
-                        flags=re.MULTILINE
+                        r"if\s+config\s+is\s+None:\s*\n\s+config\s*=\s*load_config\(\)", "", content, flags=re.MULTILINE
                     )
 
                     if content != original_content:
-                        full_path.write_text(content, encoding='utf-8')
-                        self.fixes_applied['global_state'].append(str(full_path))
+                        full_path.write_text(content, encoding="utf-8")
+                        self.fixes_applied["global_state"].append(str(full_path))
 
                 except Exception as e:
                     self.errors.append(f"Error removing global state from {full_path}: {e}")
@@ -243,7 +208,7 @@ class HardenPlatform:
                 try:
                     dest_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.move(str(src_path), str(dest_path))
-                    self.fixes_applied['moved_files'].append(f"{src_file} -> {dest_file}")
+                    self.fixes_applied["moved_files"].append(f"{src_file} -> {dest_file}")
                 except Exception as e:
                     self.errors.append(f"Error moving {src_file}: {e}")
 
@@ -260,7 +225,7 @@ class HardenPlatform:
             if full_path.exists():
                 try:
                     shutil.rmtree(full_path)
-                    self.fixes_applied['removed_dirs'].append(str(dir_path))
+                    self.fixes_applied["removed_dirs"].append(str(dir_path))
                 except Exception as e:
                     self.errors.append(f"Error removing {dir_path}: {e}")
 
@@ -507,8 +472,8 @@ if __name__ == "__main__":
 
         try:
             test_file.parent.mkdir(parents=True, exist_ok=True)
-            test_file.write_text(test_content, encoding='utf-8')
-            self.fixes_applied['architectural_tests'].append(str(test_file))
+            test_file.write_text(test_content, encoding="utf-8")
+            self.fixes_applied["architectural_tests"].append(str(test_file))
         except Exception as e:
             self.errors.append(f"Error creating architectural tests: {e}")
 
@@ -560,7 +525,7 @@ if __name__ == "__main__":
         report.append("4. Refactor CLIs to use hive-cli utilities")
         report.append("")
 
-        report_file.write_text("\n".join(report), encoding='utf-8')
+        report_file.write_text("\n".join(report), encoding="utf-8")
         print(f"Report generated: {report_file}")
 
 

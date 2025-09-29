@@ -31,11 +31,11 @@ def setup_logging(
     Configure the root logger for an application. This should be called once at startup.
 
     Args:
-        name: The name of the application, used for the log file name if not provided.
-        level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
-        log_to_file: If True, logs will be written to a file.
-        log_file_path: The full path to the log file. If None, defaults to 'logs/{name}.log'.
-        json_format: If True, logs will be formatted as JSON.
+        name: The name of the application, used for the log file name if not provided.,
+        level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL).,
+        log_to_file: If True, logs will be written to a file.,
+        log_file_path: The full path to the log file. If None, defaults to 'logs/{name}.log'.,
+        json_format: If True, logs will be formatted as JSON.,
     """
     log_level = os.environ.get("LOG_LEVEL", level).upper()
 
@@ -75,7 +75,7 @@ def setup_logging(
         # Use a rotating file handler to prevent log files from growing infinitely
         file_handler = logging.handlers.RotatingFileHandler(
             log_file_path,
-            maxBytes=(10 * 1024 * 1024),  # 10 MB per file
+            maxBytes=(10 * 1024 * 1024),  # 10 MB per file,
             backupCount=5,  # Keep 5 backup files
         )
         file_handler.setFormatter(formatter)

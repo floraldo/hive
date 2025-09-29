@@ -36,12 +36,11 @@ class SolverFactory:
             Solver instance
 
         Raises:
-            ValueError: If solver type is unknown
+            ValueError: If solver type is unknown,
         """
         if solver_type not in cls._solvers:
             available = ", ".join(cls._solvers.keys())
             raise ValueError(f"Unknown solver type: {solver_type}. Available: {available}")
-
         solver_class = cls._solvers[solver_type]
         return solver_class(system, config)
 

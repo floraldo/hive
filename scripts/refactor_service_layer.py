@@ -4,17 +4,17 @@ Refactor service layer files to move business logic to implementation layer
 and update CLIs to use hive-cli utilities
 """
 
-import os
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import Tuple
 
 PROJECT_ROOT = Path(__file__).parent.parent
+
 
 def extract_business_logic_from_service(service_file: Path) -> Tuple[str, str]:
     """Extract business logic from service layer and create implementation file"""
 
-    service_content = service_file.read_text(encoding='utf-8')
+    service_content = service_file.read_text(encoding="utf-8")
 
     # Create implementation module content
     impl_content = '''"""Implementation layer for business logic"""
@@ -62,7 +62,7 @@ class Service:
 def refactor_cli_to_use_hive_cli(cli_file: Path) -> str:
     """Refactor CLI to use hive-cli utilities"""
 
-    cli_content = cli_file.read_text(encoding='utf-8')
+    cli_content = cli_file.read_text(encoding="utf-8")
 
     # Add hive-cli imports
     new_imports = """from hive_cli import create_cli, add_command, run_cli
@@ -71,14 +71,14 @@ from hive_cli.output import success, error, info, warning
 """
 
     # Replace Click with hive-cli patterns
-    cli_content = re.sub(r'import click', new_imports, cli_content)
-    cli_content = re.sub(r'@click\.command', '@command', cli_content)
-    cli_content = re.sub(r'@click\.option', '@option', cli_content)
-    cli_content = re.sub(r'@click\.group', '@create_cli', cli_content)
-    cli_content = re.sub(r'click\.echo', 'info', cli_content)
-    cli_content = re.sub(r'click\.secho\([^,]+,\s*fg="green"\)', 'success', cli_content)
-    cli_content = re.sub(r'click\.secho\([^,]+,\s*fg="red"\)', 'error', cli_content)
-    cli_content = re.sub(r'click\.secho\([^,]+,\s*fg="yellow"\)', 'warning', cli_content)
+    cli_content = re.sub(r"import click", new_imports, cli_content)
+    cli_content = re.sub(r"@click\.command", "@command", cli_content)
+    cli_content = re.sub(r"@click\.option", "@option", cli_content)
+    cli_content = re.sub(r"@click\.group", "@create_cli", cli_content)
+    cli_content = re.sub(r"click\.echo", "info", cli_content)
+    cli_content = re.sub(r'click\.secho\([^,]+,\s*fg="green"\)', "success", cli_content)
+    cli_content = re.sub(r'click\.secho\([^,]+,\s*fg="red"\)', "error", cli_content)
+    cli_content = re.sub(r'click\.secho\([^,]+,\s*fg="yellow"\)', "warning", cli_content)
 
     return cli_content
 
@@ -109,7 +109,7 @@ def main():
             service_content, impl_content = extract_business_logic_from_service(full_path)
 
             # Write implementation file
-            impl_path.write_text(impl_content, encoding='utf-8')
+            impl_path.write_text(impl_content, encoding="utf-8")
             print(f"  Created implementation: {impl_path}")
 
             # Note: We're not overwriting the service file to avoid breaking existing code
@@ -152,7 +152,7 @@ def process_data(self, data):
     return result
 ```
 """
-            migration_path.write_text(migration_content, encoding='utf-8')
+            migration_path.write_text(migration_content, encoding="utf-8")
             print(f"  Created migration guide: {migration_path}")
 
     # CLI files that need refactoring
@@ -168,14 +168,14 @@ def process_data(self, data):
         full_path = PROJECT_ROOT / cli_file
         if full_path.exists():
             # Create backup
-            backup_path = full_path.with_suffix('.py.backup')
-            backup_path.write_text(full_path.read_text(encoding='utf-8'), encoding='utf-8')
+            backup_path = full_path.with_suffix(".py.backup")
+            backup_path.write_text(full_path.read_text(encoding="utf-8"), encoding="utf-8")
 
             # Refactor CLI
             new_content = refactor_cli_to_use_hive_cli(full_path)
 
             # Write updated CLI
-            full_path.write_text(new_content, encoding='utf-8')
+            full_path.write_text(new_content, encoding="utf-8")
             print(f"  Refactored: {cli_file}")
             print(f"  Backup saved: {backup_path}")
 

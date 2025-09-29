@@ -21,7 +21,7 @@ from __future__ import annotations
 
         Args:
             data_source: Source type ('file' or 'database') - defaults to 'database'
-            base_path: Base path for file-based loading
+            base_path: Base path for file-based loading,
         """
         self.data_source = data_source
         self.loaders = {"file": FileLoader(base_path), "database": SQLiteLoader()}
@@ -37,7 +37,7 @@ from __future__ import annotations
             Dictionary with component data
 
         Raises:
-            FileNotFoundError: If component data not found
+            FileNotFoundError: If component data not found,
         """
         if component_id in self._cache:
             return self._cache[component_id]
@@ -45,7 +45,6 @@ from __future__ import annotations
         loader = self.loaders.get(self.data_source)
         if not loader:
             raise ValueError(f"Unknown data source: {self.data_source}")
-
         data = loader.load(component_id)
         self._cache[component_id] = data
         logger.debug(f"Loaded component data: {component_id}")
@@ -58,7 +57,7 @@ from __future__ import annotations
             category: Optional category filter ('energy' or 'water')
 
         Returns:
-            List of component IDs
+            List of component IDs,
         """
         loader = self.loaders.get(self.data_source)
         if not loader:
@@ -78,7 +77,7 @@ class FileLoader:
         """Initialize file loader.
 
         Args:
-            base_path: Base path for component library
+            base_path: Base path for component library,
         """
         if base_path is None:
             base_path = Path(__file__).parent / "library"
@@ -95,9 +94,9 @@ class FileLoader:
 
         Raises:
             FileNotFoundError: If YAML file not found
-            ValueError: If YAML file is malformed
+            ValueError: If YAML file is malformed,
         """
-        # Search in energy and water subdirectories
+        # Search in energy and water subdirectories,
         for category in ["energy", "water"]:
             file_path = self.base_path / category / f"{component_id}.yml"
             if file_path.exists():
@@ -105,7 +104,7 @@ class FileLoader:
                     with open(file_path, "r") as f:
                         data = yaml.safe_load(f)
 
-                    # Validate basic structure
+                    # Validate basic structure,
                     if not data:
                         raise ValueError(f"Empty YAML file: {file_path}")
 
@@ -129,7 +128,7 @@ class FileLoader:
             category: Optional category filter
 
         Returns:
-            List of component IDs
+            List of component IDs,
         """
         components = []
         categories = [category] if category else ["energy", "water"]
@@ -150,7 +149,7 @@ class SQLiteLoader:
         """Initialize SQLite loader.
 
         Args:
-            db_path: Path to SQLite database file. Defaults to ecosystemiser.db
+            db_path: Path to SQLite database file. Defaults to ecosystemiser.db,
         """
         if db_path is None:
             db_path = get_ecosystemiser_db_path()
@@ -162,31 +161,31 @@ class SQLiteLoader:
         try:
             with ecosystemiser_transaction() as conn:
                 # Create components table
-                # Create components table
+                # Create components table,
                 conn.execute(
                     """
                     CREATE TABLE IF NOT EXISTS components (
-                        id TEXT PRIMARY KEY
-                        category TEXT NOT NULL
-                        component_class TEXT NOT NULL
-                        technical_data TEXT NOT NULL
-                        economic_data TEXT
-                        metadata TEXT
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        id TEXT PRIMARY KEY,
+                        category TEXT NOT NULL,
+                        component_class TEXT NOT NULL,
+                        technical_data TEXT NOT NULL,
+                        economic_data TEXT,
+                        metadata TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
                 )
 
-                # Create indexes for performance
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)")
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_class ON components(component_class)")
+                # Create indexes for performance,
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)"),
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_components_class ON components(component_class)"),
 
                 logger.debug("Component database tables ensured")
 
         except Exception as e:
             logger.error(f"Failed to ensure database tables: {e}")
-            raise
+            raise,
 
     def load(self, component_id: str) -> Dict[str, Any]:
         """Load component data from SQLite database.
@@ -199,7 +198,7 @@ class SQLiteLoader:
 
         Raises:
             FileNotFoundError: If component not found in database
-            ValueError: If component data is malformed
+            ValueError: If component data is malformed,
         """
         try:
             with ecosystemiser_transaction() as conn:
@@ -212,17 +211,17 @@ class SQLiteLoader:
                 # Reconstruct component data structure
                 data = {
                     "component_class": row["component_class"],
-                    "technical": json.loads(row["technical_data"]),
+                    "technical": json.loads(row["technical_data"])
                     "category": row["category"]
                 }
 
-                # Add optional fields if present
+                # Add optional fields if present,
                 if row["economic_data"]:
                     data["economic"] = json.loads(row["economic_data"])
 
                 if row["metadata"]:
                     metadata = json.loads(row["metadata"])
-                    # Merge metadata fields into data
+                    # Merge metadata fields into data,
                     for key, value in metadata.items():
                         if key not in data:
                             data[key] = value
@@ -234,7 +233,7 @@ class SQLiteLoader:
             raise ValueError(f"Invalid JSON data for component {component_id}: {e}")
         except Exception as e:
             logger.error(f"Failed to load component {component_id} from database: {e}")
-            raise
+            raise,
 
     def list_components(self, category: str | None = None) -> List[str]:
         """List available components in the database.
@@ -243,20 +242,19 @@ class SQLiteLoader:
             category: Optional category filter
 
         Returns:
-            List of component IDs
+            List of component IDs,
         """
         try:
             with ecosystemiser_transaction() as conn:
                 if category:
                     cursor = conn.execute(
-                        "SELECT id FROM components WHERE category = ? ORDER BY id"
-                        (category,)
+                        "SELECT id FROM components WHERE category = ? ORDER BY id",
+                        (category)
                     )
                 else:
                     cursor = conn.execute("SELECT id FROM components ORDER BY id")
-
                 components = [row["id"] for row in cursor.fetchall()]
-                logger.debug(f"Listed {len(components)} components from database")
+                logger.debug(f"Listed {len(components)} components from database"),
                 return components
 
         except Exception as e:
@@ -271,10 +269,10 @@ class SQLiteLoader:
             data: Component data dictionary
 
         Raises:
-            ValueError: If component data is invalid
+            ValueError: If component data is invalid,
         """
         try:
-            # Validate required fields
+            # Validate required fields,
             if "component_class" not in data:
                 raise ValueError(f"Missing 'component_class' in component data")
             if "technical" not in data:
@@ -293,22 +291,22 @@ class SQLiteLoader:
             metadata_json = json.dumps(metadata) if metadata else None
 
             with ecosystemiser_transaction() as conn:
-                # Insert or update component
+                # Insert or update component,
                 conn.execute(
-                    """
+                    """,
                     INSERT OR REPLACE INTO components
                     (id, category, component_class, technical_data, economic_data, metadata, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """
                     (
-                        component_id
-                        category
-                        component_class
-                        technical_data
-                        economic_data
+                        component_id,
+                        category,
+                        component_class,
+                        technical_data,
+                        economic_data,
                         metadata_json
                     )
-                )
+                ),
 
                 logger.info(f"Saved component to database: {component_id}")
 
@@ -316,7 +314,7 @@ class SQLiteLoader:
             raise ValueError(f"Failed to serialize component data: {e}")
         except Exception as e:
             logger.error(f"Failed to save component {component_id} to database: {e}")
-            raise
+            raise,
 
     def migrate_from_files(self, file_loader: "FileLoader") -> int:
         """Migrate component data from YAML files to SQLite database.
@@ -325,7 +323,7 @@ class SQLiteLoader:
             file_loader: FileLoader instance to migrate from
 
         Returns:
-            Number of components migrated
+            Number of components migrated,
         """
         migrated_count = 0
         try:
@@ -336,7 +334,7 @@ class SQLiteLoader:
                 try:
                     # Load from file
                     data = file_loader.load(component_id)
-                    # Save to database
+                    # Save to database,
                     self.save_component(component_id, data)
                     migrated_count += 1
                 except Exception as e:

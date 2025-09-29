@@ -59,8 +59,8 @@ class CacheHealthMonitor:
         self._health_history: List[HealthCheckResult] = []
         self._max_history_size = 100
         self._alert_thresholds = {
-            "response_time_ms": 1000,  # Alert if response time > 1s
-            "error_rate_percent": 10,  # Alert if error rate > 10%
+            "response_time_ms": 1000,  # Alert if response time > 1s,
+            "error_rate_percent": 10,  # Alert if error rate > 10%,
             "consecutive_failures": 3,  # Alert after 3 consecutive failures
         }
         self._consecutive_failures = 0
@@ -175,15 +175,15 @@ class CacheHealthMonitor:
 
             # Determine overall health
             healthy = all([
-                ping_result.get("success", False)
-                set_get_result.get("success", False)
-                pattern_result.get("success", False)
+                ping_result.get("success", False),
+                set_get_result.get("success", False),
+                pattern_result.get("success", False),
             ])
 
             return HealthCheckResult(
-                healthy=healthy
+                healthy=healthy,
                 timestamp=datetime.utcnow()
-                response_time_ms=response_time_ms
+                response_time_ms=response_time_ms,
                 details=details
                 errors=errors
             )
@@ -193,9 +193,9 @@ class CacheHealthMonitor:
             response_time_ms = (time.time() - start_time) * 1000
 
             return HealthCheckResult(
-                healthy=False
+                healthy=False,
                 timestamp=datetime.utcnow()
-                response_time_ms=response_time_ms
+                response_time_ms=response_time_ms,
                 details=details
                 errors=errors
             )
@@ -210,14 +210,14 @@ class CacheHealthMonitor:
                 ping_time = (time.time() - start_time) * 1000
 
                 return {
-                    "success": True
+                    "success": True,
                     "result": result
                     "ping_time_ms": ping_time
                 }
 
         except Exception as e:
             return {
-                "success": False
+                "success": False,
                 "error": str(e)
             }
 
@@ -239,16 +239,16 @@ class CacheHealthMonitor:
             delete_success = await self.cache_client.delete(test_key, namespace="health")
 
             return {
-                "success": set_success and retrieved_value is not None and delete_success
+                "success": set_success and retrieved_value is not None and delete_success,
                 "set_success": set_success
-                "get_success": retrieved_value is not None
+                "get_success": retrieved_value is not None,
                 "delete_success": delete_success
                 "data_integrity": retrieved_value == test_value if retrieved_value else False
             }
 
         except Exception as e:
             return {
-                "success": False
+                "success": False,
                 "error": str(e)
             }
 
@@ -266,14 +266,14 @@ class CacheHealthMonitor:
             )
 
             return {
-                "success": deleted_count == len(test_keys)
+                "success": deleted_count == len(test_keys),
                 "deleted_count": deleted_count
                 "expected_count": len(test_keys)
             }
 
         except Exception as e:
             return {
-                "success": False
+                "success": False,
                 "error": str(e)
             }
 
@@ -286,15 +286,15 @@ class CacheHealthMonitor:
 
                 # Extract key metrics
                 return {
-                    "version": info.get("redis_version")
+                    "version": info.get("redis_version"),
                     "uptime_seconds": info.get("uptime_in_seconds")
-                    "connected_clients": info.get("connected_clients")
+                    "connected_clients": info.get("connected_clients"),
                     "used_memory": info.get("used_memory")
-                    "used_memory_human": info.get("used_memory_human")
+                    "used_memory_human": info.get("used_memory_human"),
                     "total_commands_processed": info.get("total_commands_processed")
-                    "keyspace_hits": info.get("keyspace_hits")
+                    "keyspace_hits": info.get("keyspace_hits"),
                     "keyspace_misses": info.get("keyspace_misses")
-                    "expired_keys": info.get("expired_keys")
+                    "expired_keys": info.get("expired_keys"),
                     "evicted_keys": info.get("evicted_keys")
                 }
 
@@ -309,9 +309,9 @@ class CacheHealthMonitor:
             pool = self.cache_client._redis_pool
 
             return {
-                "max_connections": pool._max_connections if hasattr(pool, '_max_connections') else "unknown"
+                "max_connections": pool._max_connections if hasattr(pool, '_max_connections') else "unknown",
                 "created_connections": pool.created_connections if hasattr(pool, 'created_connections') else "unknown"
-                "available_connections": pool.available_connections if hasattr(pool, 'available_connections') else "unknown"
+                "available_connections": pool.available_connections if hasattr(pool, 'available_connections') else "unknown",
                 "in_use_connections": pool.in_use_connections if hasattr(pool, 'in_use_connections') else "unknown"
             }
 
@@ -336,11 +336,11 @@ class CacheHealthMonitor:
             errors = client_metrics.get("errors", 0)
 
             return PerformanceMetrics(
-                total_operations=total_ops
+                total_operations=total_ops,
                 successful_operations=total_ops - errors
-                failed_operations=errors
+                failed_operations=errors,
                 average_response_time_ms=0.0,  # Would need to track this separately
-                cache_hit_rate=client_metrics.get("hit_rate_percent", 0.0)
+                cache_hit_rate=client_metrics.get("hit_rate_percent", 0.0),
                 connection_pool_usage=0.0,  # Would need pool monitoring
                 memory_usage_bytes=0  # Would need Redis memory info
             )
@@ -371,7 +371,7 @@ class CacheHealthMonitor:
         """
         if not self._health_history:
             return {
-                "status": "unknown"
+                "status": "unknown",
                 "message": "No health checks performed yet"
             }
 
@@ -389,11 +389,11 @@ class CacheHealthMonitor:
             status = "degraded"
 
         return {
-            "status": status
+            "status": status,
             "health_rate_percent": round(health_rate, 1)
-            "average_response_time_ms": round(avg_response_time, 2)
+            "average_response_time_ms": round(avg_response_time, 2),
             "last_check": latest_check.timestamp.isoformat()
-            "consecutive_failures": self._consecutive_failures
+            "consecutive_failures": self._consecutive_failures,
             "total_checks": len(self._health_history)
             "monitoring_active": self._monitoring_active
         }
@@ -438,8 +438,8 @@ class CacheHealthMonitor:
             recommendations.append("Check error logs and Redis connectivity")
 
         return {
-            "issues": issues
+            "issues": issues,
             "recommendations": recommendations
-            "client_metrics": client_metrics
+            "client_metrics": client_metrics,
             "health_summary": self.get_health_summary()
         }

@@ -9,13 +9,11 @@ Identifies and fixes async resource management issues:
 - Unprotected concurrent access to shared resources
 """
 
-import ast
-import os
 import re
-from pathlib import Path
-from typing import List, Dict, Tuple, Set
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Tuple
 
 from hive_logging import get_logger
 
@@ -25,6 +23,7 @@ logger = get_logger(__name__)
 @dataclass
 class AsyncIssue:
     """Represents an async resource management issue"""
+
     file_path: Path
     line_number: int
     issue_type: str
@@ -53,9 +52,9 @@ class AsyncResourceAnalyzer:
             path_str = str(file_path).lower()
             if not any(exclude in path_str for exclude in ["__pycache__", "archive", "legacy", ".backup"]):
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
+                    with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
-                        if 'async ' in content or 'asyncio' in content or 'await ' in content:
+                        if "async " in content or "asyncio" in content or "await " in content:
                             async_files.append(file_path)
                 except Exception:
                     pass
@@ -67,12 +66,12 @@ class AsyncResourceAnalyzer:
         issues = []
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
-                lines = content.split('\n')
+                lines = content.split("\n")
 
             # Issue 1: asyncio.create_task without storing reference
-            task_pattern = re.compile(r'asyncio\.create_task\([^)]+\)(?!\s*=)')
+            task_pattern = re.compile(r"asyncio\.create_task\([^)]+\)(?!\s*=)")
             for i, line in enumerate(lines, 1):
                 if task_pattern.search(line):
                     issue = AsyncIssue(
@@ -81,38 +80,38 @@ class AsyncResourceAnalyzer:
                         issue_type="untracked_task",
                         description="Task created without storing reference - may be garbage collected",
                         severity="high",
-                        suggested_fix="Store task: task = asyncio.create_task(...)"
+                        suggested_fix="Store task: task = asyncio.create_task(...)",
                     )
                     issues.append(issue)
 
             # Issue 2: Missing async context manager
             resource_patterns = [
-                (r'await.*\.connect\(', 'connection'),
-                (r'await.*\.open\(', 'file'),
-                (r'await.*\.acquire\(', 'lock'),
-                (r'ClientSession\(', 'session')
+                (r"await.*\.connect\(", "connection"),
+                (r"await.*\.open\(", "file"),
+                (r"await.*\.acquire\(", "lock"),
+                (r"ClientSession\(", "session"),
             ]
 
             for pattern, resource_type in resource_patterns:
                 pattern_re = re.compile(pattern)
                 for i, line in enumerate(lines, 1):
-                    if pattern_re.search(line) and 'async with' not in line:
+                    if pattern_re.search(line) and "async with" not in line:
                         # Check if it's not within an async with block (crude check)
-                        if i > 1 and 'async with' not in lines[i-2]:
+                        if i > 1 and "async with" not in lines[i - 2]:
                             issue = AsyncIssue(
                                 file_path=file_path,
                                 line_number=i,
                                 issue_type="missing_context_manager",
                                 description=f"{resource_type} opened without async context manager",
                                 severity="high",
-                                suggested_fix=f"Use: async with ... as {resource_type}:"
+                                suggested_fix=f"Use: async with ... as {resource_type}:",
                             )
                             issues.append(issue)
 
             # Issue 3: Missing finally blocks for cleanup
-            try_pattern = re.compile(r'^\s*try:')
-            await_pattern = re.compile(r'await')
-            finally_pattern = re.compile(r'^\s*finally:')
+            try_pattern = re.compile(r"^\s*try:")
+            await_pattern = re.compile(r"await")
+            finally_pattern = re.compile(r"^\s*finally:")
 
             for i, line in enumerate(lines, 1):
                 if try_pattern.match(line):
@@ -143,13 +142,13 @@ class AsyncResourceAnalyzer:
                             issue_type="missing_finally",
                             description="Async operations in try block without finally for cleanup",
                             severity="medium",
-                            suggested_fix="Add finally block for resource cleanup"
+                            suggested_fix="Add finally block for resource cleanup",
                         )
                         issues.append(issue)
 
             # Issue 4: Concurrent access without locks
-            shared_state_pattern = re.compile(r'self\._\w+\s*=\s*')
-            async_def_pattern = re.compile(r'async\s+def\s+')
+            shared_state_pattern = re.compile(r"self\._\w+\s*=\s*")
+            async_def_pattern = re.compile(r"async\s+def\s+")
 
             # Find all async methods that modify shared state
             async_methods_with_state = []
@@ -158,7 +157,7 @@ class AsyncResourceAnalyzer:
                     # Check next 20 lines for state modification
                     for j in range(i, min(i + 20, len(lines))):
                         if shared_state_pattern.search(lines[j]):
-                            if 'async with' not in lines[j] and 'Lock' not in ' '.join(lines[i:j]):
+                            if "async with" not in lines[j] and "Lock" not in " ".join(lines[i:j]):
                                 async_methods_with_state.append(i)
                                 break
 
@@ -169,12 +168,12 @@ class AsyncResourceAnalyzer:
                     issue_type="unprotected_state",
                     description="Async method modifies shared state without lock",
                     severity="medium",
-                    suggested_fix="Use asyncio.Lock() to protect shared state"
+                    suggested_fix="Use asyncio.Lock() to protect shared state",
                 )
                 issues.append(issue)
 
             # Issue 5: asyncio.gather without return_exceptions
-            gather_pattern = re.compile(r'asyncio\.gather\([^)]+\)(?!.*return_exceptions)')
+            gather_pattern = re.compile(r"asyncio\.gather\([^)]+\)(?!.*return_exceptions)")
             for i, line in enumerate(lines, 1):
                 if gather_pattern.search(line):
                     issue = AsyncIssue(
@@ -183,7 +182,7 @@ class AsyncResourceAnalyzer:
                         issue_type="unsafe_gather",
                         description="asyncio.gather without return_exceptions=True",
                         severity="low",
-                        suggested_fix="Add return_exceptions=True for safer error handling"
+                        suggested_fix="Add return_exceptions=True for safer error handling",
                     )
                     issues.append(issue)
 
@@ -203,7 +202,7 @@ class AsyncResourceAnalyzer:
             "missing_finally": 0,
             "unprotected_state": 0,
             "unsafe_gather": 0,
-            "total": 0
+            "total": 0,
         }
 
         for file_path in async_files:
@@ -447,8 +446,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Enhance async resource management")
     parser.add_argument("--report", action="store_true", help="Generate analysis report")
-    parser.add_argument("--generate-patterns", action="store_true",
-                       help="Generate best practices script")
+    parser.add_argument("--generate-patterns", action="store_true", help="Generate best practices script")
 
     args = parser.parse_args()
 
@@ -459,7 +457,7 @@ def main():
     elif args.generate_patterns:
         script = analyzer.generate_fixes_script()
         output_path = Path.cwd() / "async_resource_patterns.py"
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.write(script)
         print(f"Generated best practices script: {output_path}")
     else:

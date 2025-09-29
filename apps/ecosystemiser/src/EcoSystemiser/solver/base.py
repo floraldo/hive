@@ -41,7 +41,7 @@ class BaseSolver(ABC):
 
         Args:
             system: System object to solve
-            config: Solver configuration
+            config: Solver configuration,
         """
         self.system = system
         self.config = config or SolverConfig()
@@ -52,25 +52,25 @@ class BaseSolver(ABC):
         """Solve the system and return results.
 
         Returns:
-            SolverResult object containing solution status and metrics
+            SolverResult object containing solution status and metrics,
         """
         pass
 
     @abstractmethod
     def prepare_system(self) -> None:
-        """Prepare the system for solving.
+        """Prepare the system for solving.,
 
-        This method should handle any solver-specific initialization
-        such as creating optimization variables or initializing arrays.
+        This method should handle any solver-specific initialization,
+        such as creating optimization variables or initializing arrays.,
         """
         pass
 
     @abstractmethod
     def extract_results(self) -> None:
-        """Extract results from solved system.
+        """Extract results from solved system.,
 
-        This method should convert solver-specific results into
-        standard numpy arrays in the system flows.
+        This method should convert solver-specific results into,
+        standard numpy arrays in the system flows.,
         """
         pass
 
@@ -78,13 +78,13 @@ class BaseSolver(ABC):
         """Validate that the solution satisfies all constraints.
 
         Returns:
-            True if solution is valid, False otherwise
+            True if solution is valid, False otherwise,
         """
         # Default implementation - can be overridden
         violations = []
 
         for component in self.system.components.values():
-            # Check storage bounds
+            # Check storage bounds,
             if component.type == "storage":
                 if hasattr(component, "E"):
                     E = component.E

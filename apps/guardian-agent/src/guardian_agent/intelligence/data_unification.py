@@ -66,6 +66,13 @@ class MetricType(Enum):
     CERTIFICATION_SCORE = "certification_score"
     INNOVATION_SCORE = "innovation_score"
 
+    # New metric types for Genesis Mandate - Design Intent & Prophecy
+    DESIGN_INTENT = "design_intent"
+    ARCHITECTURAL_PROPHECY = "architectural_prophecy"
+    PROPHECY_ACCURACY = "prophecy_accuracy"
+    INTENT_EXTRACTION = "intent_extraction"
+    DESIGN_COMPLEXITY = "design_complexity"
+
 
 @dataclass
 class UnifiedMetric:
@@ -499,6 +506,41 @@ class DataUnificationLayer:
             )
         )
 
+        # Genesis Mandate - Design Intent & Prophecy Sources
+
+        # Design document ingestion and intent extraction
+        self.register_source(
+            DataSource(
+                name="design_intent_ingestion",
+                source_type="file",
+                location="docs/designs/",
+                collection_interval=1800,  # 30 minutes - monitor for new design docs
+                transform_function="transform_design_intent_metrics",
+            )
+        )
+
+        # Architectural prophecy generation and tracking
+        self.register_source(
+            DataSource(
+                name="prophecy_tracking",
+                source_type="api",
+                location="internal://prophecy_engine",
+                collection_interval=7200,  # 2 hours - prophecy analysis
+                transform_function="transform_prophecy_metrics",
+            )
+        )
+
+        # Prophecy accuracy validation (retrospective analysis)
+        self.register_source(
+            DataSource(
+                name="prophecy_validation",
+                source_type="api",
+                location="internal://prophecy_validation",
+                collection_interval=86400,  # 24 hours - daily accuracy assessment
+                transform_function="transform_prophecy_accuracy_metrics",
+            )
+        )
+
     def register_source(self, source: DataSource) -> None:
         """Register a new data source."""
         self.data_sources[source.name] = source
@@ -570,6 +612,12 @@ class DataUnificationLayer:
         """Collect metrics from file source."""
         try:
             file_path = Path(source.location)
+
+            # Handle design documents directory
+            if source.name == "design_intent_ingestion":
+                return await self._collect_design_documents_async(source.name, file_path)
+
+            # Handle single file sources
             if not file_path.exists():
                 return []
 
@@ -653,6 +701,14 @@ class DataUnificationLayer:
         elif source.location == "internal://toolkit_usage":
             # Toolkit utilization and platform integration
             return await self._collect_toolkit_metrics_async(source.name)
+
+        elif source.location == "internal://prophecy_engine":
+            # Architectural prophecy generation and tracking
+            return await self._collect_prophecy_metrics_async(source.name)
+
+        elif source.location == "internal://prophecy_validation":
+            # Prophecy accuracy validation (retrospective analysis)
+            return await self._collect_prophecy_accuracy_async(source.name)
 
         return []
 
@@ -1957,3 +2013,423 @@ class DataUnificationLayer:
                     metric.tags["toolkit_gap"] = "significant"
 
         return metrics
+
+    # Genesis Mandate - Design Intent & Prophecy Collection Methods
+
+    async def _collect_design_documents_async(self, source_name: str, docs_path: Path) -> list[UnifiedMetric]:
+        """Collect and process design documents for intent extraction."""
+        metrics = []
+        timestamp = datetime.utcnow()
+
+        try:
+            if not docs_path.exists():
+                logger.warning(f"Design documents path does not exist: {docs_path}")
+                return metrics
+
+            # Scan for design documents (markdown, text files)
+            design_files = []
+            for pattern in ["*.md", "*.txt", "*.rst"]:
+                design_files.extend(docs_path.glob(pattern))
+
+            logger.info(f"Found {len(design_files)} design documents")
+
+            for doc_file in design_files:
+                try:
+                    # Read document content
+                    with open(doc_file, encoding="utf-8") as f:
+                        content = f.read()
+
+                    # Extract basic metadata
+                    word_count = len(content.split())
+                    line_count = len(content.splitlines())
+
+                    # Simple complexity assessment
+                    complexity_indicators = [
+                        "api",
+                        "endpoint",
+                        "database",
+                        "cache",
+                        "queue",
+                        "service",
+                        "authentication",
+                        "authorization",
+                        "performance",
+                        "scale",
+                        "integration",
+                        "third-party",
+                        "real-time",
+                        "async",
+                    ]
+                    complexity_score = sum(
+                        1 for indicator in complexity_indicators if indicator.lower() in content.lower()
+                    )
+
+                    # Design intent metric
+                    metrics.append(
+                        UnifiedMetric(
+                            metric_type=MetricType.DESIGN_INTENT,
+                            source=source_name,
+                            timestamp=timestamp,
+                            value=1.0,  # Document presence indicator
+                            unit="document",
+                            tags={
+                                "document_name": doc_file.stem,
+                                "document_type": doc_file.suffix[1:],  # Remove dot
+                                "complexity_level": self._categorize_complexity(complexity_score),
+                                "oracle_component": "design_ingestion",
+                            },
+                            metadata={
+                                "file_path": str(doc_file),
+                                "word_count": word_count,
+                                "line_count": line_count,
+                                "complexity_score": complexity_score,
+                                "last_modified": doc_file.stat().st_mtime,
+                                "content_hash": hash(content) % 1000000,  # Simple content hash
+                            },
+                        )
+                    )
+
+                    # Intent extraction complexity metric
+                    metrics.append(
+                        UnifiedMetric(
+                            metric_type=MetricType.INTENT_EXTRACTION,
+                            source=source_name,
+                            timestamp=timestamp,
+                            value=complexity_score,
+                            unit="complexity_points",
+                            tags={
+                                "document_name": doc_file.stem,
+                                "extraction_quality": self._assess_extraction_quality(content),
+                                "oracle_component": "intent_extraction",
+                            },
+                            metadata={
+                                "indicators_found": complexity_score,
+                                "estimated_analysis_time": f"{complexity_score * 2} minutes",
+                            },
+                        )
+                    )
+
+                    # Design complexity metric
+                    metrics.append(
+                        UnifiedMetric(
+                            metric_type=MetricType.DESIGN_COMPLEXITY,
+                            source=source_name,
+                            timestamp=timestamp,
+                            value=min(complexity_score / 5.0, 1.0),  # Normalize to 0-1
+                            unit="complexity_ratio",
+                            tags={
+                                "document_name": doc_file.stem,
+                                "complexity_category": self._categorize_complexity(complexity_score),
+                                "oracle_component": "complexity_analysis",
+                            },
+                            metadata={
+                                "raw_complexity": complexity_score,
+                                "normalized_complexity": min(complexity_score / 5.0, 1.0),
+                                "complexity_factors": complexity_indicators[:complexity_score],
+                            },
+                        )
+                    )
+
+                except Exception as e:
+                    logger.error(f"Failed to process design document {doc_file}: {e}")
+                    continue
+
+            logger.info(f"Processed {len(design_files)} design documents, generated {len(metrics)} metrics")
+
+        except Exception as e:
+            logger.error(f"Failed to collect design documents: {e}")
+
+        return metrics
+
+    def _categorize_complexity(self, score: int) -> str:
+        """Categorize design complexity based on score."""
+        if score >= 10:
+            return "very_high"
+        elif score >= 7:
+            return "high"
+        elif score >= 4:
+            return "medium"
+        elif score >= 2:
+            return "low"
+        else:
+            return "very_low"
+
+    def _assess_extraction_quality(self, content: str) -> str:
+        """Assess how well we can extract intent from the document."""
+        quality_indicators = [
+            ("requirements", 2),
+            ("goals", 2),
+            ("objectives", 2),
+            ("architecture", 3),
+            ("design", 2),
+            ("api", 2),
+            ("database", 2),
+            ("performance", 2),
+            ("security", 2),
+            ("users", 1),
+            ("business", 2),
+            ("value", 1),
+        ]
+
+        quality_score = sum(weight for indicator, weight in quality_indicators if indicator.lower() in content.lower())
+
+        if quality_score >= 15:
+            return "excellent"
+        elif quality_score >= 10:
+            return "good"
+        elif quality_score >= 5:
+            return "fair"
+        else:
+            return "poor"
+
+    async def _collect_prophecy_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
+        """Collect architectural prophecy generation and tracking metrics."""
+        metrics = []
+        timestamp = datetime.utcnow()
+
+        try:
+            # Simulate prophecy generation metrics
+            # In reality, this would integrate with the ProphecyEngine
+
+            prophecy_scenarios = [
+                {
+                    "project": "user-dashboard-redesign",
+                    "prophecy_type": "performance_bottleneck",
+                    "severity": "critical",
+                    "confidence": 0.85,
+                    "time_to_manifestation": 30,  # days
+                },
+                {
+                    "project": "payment-service-v2",
+                    "prophecy_type": "cost_overrun",
+                    "severity": "significant",
+                    "confidence": 0.75,
+                    "time_to_manifestation": 90,
+                },
+                {
+                    "project": "mobile-app-backend",
+                    "prophecy_type": "scalability_issue",
+                    "severity": "moderate",
+                    "confidence": 0.65,
+                    "time_to_manifestation": 180,
+                },
+            ]
+
+            for scenario in prophecy_scenarios:
+                # Prophecy tracking metric
+                metrics.append(
+                    UnifiedMetric(
+                        metric_type=MetricType.ARCHITECTURAL_PROPHECY,
+                        source=source_name,
+                        timestamp=timestamp,
+                        value=scenario["confidence"],
+                        unit="confidence_score",
+                        tags={
+                            "project_name": scenario["project"],
+                            "prophecy_type": scenario["prophecy_type"],
+                            "severity": scenario["severity"],
+                            "oracle_component": "prophecy_generation",
+                        },
+                        metadata={
+                            "time_to_manifestation_days": scenario["time_to_manifestation"],
+                            "prophecy_id": f"prophecy_{scenario['project']}_{scenario['prophecy_type']}",
+                            "generated_by": "prophecy_engine_v1.0",
+                        },
+                    )
+                )
+
+            logger.info(f"Generated {len(metrics)} prophecy tracking metrics")
+
+        except Exception as e:
+            logger.error(f"Failed to collect prophecy metrics: {e}")
+
+        return metrics
+
+    async def _collect_prophecy_accuracy_async(self, source_name: str) -> list[UnifiedMetric]:
+        """Collect prophecy accuracy validation metrics (retrospective analysis)."""
+        metrics = []
+        timestamp = datetime.utcnow()
+
+        try:
+            # Simulate prophecy accuracy validation
+            # In reality, this would compare past prophecies with actual outcomes
+
+            validation_cases = [
+                {
+                    "prophecy_id": "prophecy_analytics_dashboard_performance",
+                    "predicted_outcome": "database_bottleneck",
+                    "actual_outcome": "database_bottleneck",
+                    "accuracy": 1.0,  # Perfect prediction
+                    "days_to_manifestation": 25,  # Predicted 30, actual 25
+                    "business_impact": "high",
+                },
+                {
+                    "prophecy_id": "prophecy_notification_service_cost",
+                    "predicted_outcome": "cost_overrun_200%",
+                    "actual_outcome": "cost_overrun_150%",
+                    "accuracy": 0.8,  # Close prediction
+                    "days_to_manifestation": 65,  # Predicted 60, actual 65
+                    "business_impact": "medium",
+                },
+                {
+                    "prophecy_id": "prophecy_auth_service_security",
+                    "predicted_outcome": "security_vulnerability",
+                    "actual_outcome": "no_issues_found",
+                    "accuracy": 0.0,  # False positive
+                    "days_to_manifestation": None,  # Never manifested
+                    "business_impact": "low",
+                },
+            ]
+
+            for case in validation_cases:
+                # Prophecy accuracy metric
+                metrics.append(
+                    UnifiedMetric(
+                        metric_type=MetricType.PROPHECY_ACCURACY,
+                        source=source_name,
+                        timestamp=timestamp,
+                        value=case["accuracy"],
+                        unit="accuracy_score",
+                        tags={
+                            "prophecy_id": case["prophecy_id"],
+                            "predicted_outcome": case["predicted_outcome"],
+                            "actual_outcome": case["actual_outcome"],
+                            "business_impact": case["business_impact"],
+                            "oracle_component": "prophecy_validation",
+                        },
+                        metadata={
+                            "days_to_manifestation": case["days_to_manifestation"],
+                            "validation_date": timestamp.isoformat(),
+                            "learning_value": "high" if case["accuracy"] != 0.5 else "medium",
+                        },
+                    )
+                )
+
+            # Calculate overall prophecy engine accuracy
+            total_accuracy = sum(case["accuracy"] for case in validation_cases)
+            avg_accuracy = total_accuracy / len(validation_cases) if validation_cases else 0.0
+
+            # Overall accuracy metric
+            metrics.append(
+                UnifiedMetric(
+                    metric_type=MetricType.PROPHECY_ACCURACY,
+                    source=source_name,
+                    timestamp=timestamp,
+                    value=avg_accuracy,
+                    unit="overall_accuracy",
+                    tags={"metric_type": "aggregate", "oracle_component": "prophecy_validation_summary"},
+                    metadata={
+                        "total_prophecies_validated": len(validation_cases),
+                        "perfect_predictions": len([c for c in validation_cases if c["accuracy"] == 1.0]),
+                        "false_positives": len([c for c in validation_cases if c["accuracy"] == 0.0]),
+                        "validation_period": "last_30_days",
+                    },
+                )
+            )
+
+            logger.info(f"Validated {len(validation_cases)} prophecies, overall accuracy: {avg_accuracy:.1%}")
+
+        except Exception as e:
+            logger.error(f"Failed to collect prophecy accuracy metrics: {e}")
+
+        return metrics
+
+    def transform_design_intent_metrics(self, metrics: list[UnifiedMetric], source: DataSource) -> list[UnifiedMetric]:
+        """Transform and enrich design intent metrics."""
+        for metric in metrics:
+            metric.tags["oracle_component"] = "design_intelligence"
+
+            if metric.metric_type == MetricType.DESIGN_COMPLEXITY:
+                complexity = metric.value
+                if complexity > 0.8:
+                    metric.tags["prophecy_priority"] = "high"
+                    metric.tags["analysis_urgency"] = "immediate"
+                elif complexity > 0.6:
+                    metric.tags["prophecy_priority"] = "medium"
+                    metric.tags["analysis_urgency"] = "soon"
+                else:
+                    metric.tags["prophecy_priority"] = "low"
+                    metric.tags["analysis_urgency"] = "routine"
+
+        return metrics
+
+    def transform_prophecy_metrics(self, metrics: list[UnifiedMetric], source: DataSource) -> list[UnifiedMetric]:
+        """Transform and enrich prophecy metrics."""
+        for metric in metrics:
+            metric.tags["oracle_component"] = "architectural_prophecy"
+
+            if metric.metric_type == MetricType.ARCHITECTURAL_PROPHECY:
+                confidence = metric.value
+                severity = metric.tags.get("severity", "moderate")
+
+                # Add urgency based on confidence and severity
+                if confidence > 0.8 and severity in ["critical", "catastrophic"]:
+                    metric.tags["action_urgency"] = "immediate"
+                elif confidence > 0.7 and severity in ["critical", "significant"]:
+                    metric.tags["action_urgency"] = "high"
+                elif confidence > 0.6:
+                    metric.tags["action_urgency"] = "medium"
+                else:
+                    metric.tags["action_urgency"] = "low"
+
+                # Add Oracle recommendations
+                metric.metadata["oracle_recommendation"] = self._generate_prophecy_recommendation(
+                    metric.tags.get("prophecy_type", "unknown"), confidence, severity
+                )
+
+        return metrics
+
+    def transform_prophecy_accuracy_metrics(
+        self, metrics: list[UnifiedMetric], source: DataSource
+    ) -> list[UnifiedMetric]:
+        """Transform and enrich prophecy accuracy metrics."""
+        for metric in metrics:
+            metric.tags["oracle_component"] = "prophecy_learning"
+
+            if metric.metric_type == MetricType.PROPHECY_ACCURACY:
+                accuracy = metric.value
+
+                # Categorize accuracy for learning
+                if accuracy >= 0.9:
+                    metric.tags["accuracy_category"] = "excellent"
+                elif accuracy >= 0.7:
+                    metric.tags["accuracy_category"] = "good"
+                elif accuracy >= 0.5:
+                    metric.tags["accuracy_category"] = "fair"
+                elif accuracy > 0.0:
+                    metric.tags["accuracy_category"] = "poor"
+                else:
+                    metric.tags["accuracy_category"] = "false_positive"
+
+                # Add learning recommendations
+                metric.metadata["learning_action"] = self._generate_learning_action(accuracy)
+
+        return metrics
+
+    def _generate_prophecy_recommendation(self, prophecy_type: str, confidence: float, severity: str) -> str:
+        """Generate Oracle recommendation based on prophecy characteristics."""
+        if prophecy_type == "performance_bottleneck":
+            return "Consider implementing caching layer and database optimization early"
+        elif prophecy_type == "cost_overrun":
+            return "Implement cost monitoring and resource optimization from day one"
+        elif prophecy_type == "scalability_issue":
+            return "Design for horizontal scaling and implement load testing"
+        elif prophecy_type == "compliance_violation":
+            return "Ensure Golden Rules compliance before first commit"
+        elif prophecy_type == "security_vulnerability":
+            return "Implement security best practices and regular audits"
+        else:
+            return f"Monitor {prophecy_type} closely and implement preventive measures"
+
+    def _generate_learning_action(self, accuracy: float) -> str:
+        """Generate learning action based on prophecy accuracy."""
+        if accuracy >= 0.9:
+            return "Reinforce successful prediction patterns"
+        elif accuracy >= 0.7:
+            return "Minor adjustments to prediction model"
+        elif accuracy >= 0.5:
+            return "Moderate refinement of prediction algorithms"
+        elif accuracy > 0.0:
+            return "Significant model improvements needed"
+        else:
+            return "Investigate false positive causes and adjust thresholds"

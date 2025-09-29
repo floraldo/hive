@@ -57,14 +57,14 @@ class PromptTemplate(PromptTemplateInterface):
 
     def __init__(
         self
-        template: str
-        variables: Optional[List[PromptVariable]] = None
-        metadata: PromptMetadata | None = None
-        variable_prefix: str = "{{"
+        template: str,
+        variables: Optional[List[PromptVariable]] = None,
+        metadata: PromptMetadata | None = None,
+        variable_prefix: str = "{{",
         variable_suffix: str = "}}"
     ):
-        self.template = template
-        self.variables = {var.name: var for var in (variables or [])}
+        self.template = template,
+        self.variables = {var.name: var for var in (variables or [])},
         self.metadata = metadata
         self.variable_prefix = variable_prefix
         self.variable_suffix = variable_suffix
@@ -118,11 +118,11 @@ class PromptTemplate(PromptTemplateInterface):
     def _get_dummy_value(self, var_type: str) -> Any:
         """Get dummy value for variable type testing."""
         type_map = {
-            "str": "test_string"
-            "int": 42
-            "float": 3.14
-            "bool": True
-            "list": ["item1", "item2"]
+            "str": "test_string",
+            "int": 42,
+            "float": 3.14,
+            "bool": True,
+            "list": ["item1", "item2"],
             "dict": {"key": "value"}
         }
         return type_map.get(var_type, "default_value")
@@ -145,7 +145,7 @@ class PromptTemplate(PromptTemplateInterface):
             missing = self.get_missing_variables(**kwargs)
             raise PromptError(
                 f"Template rendering failed: missing required variables"
-                template_name=self.metadata.name if self.metadata else "unknown"
+                template_name=self.metadata.name if self.metadata else "unknown",
                 missing_variables=missing
             )
 
@@ -212,11 +212,11 @@ class PromptTemplate(PromptTemplateInterface):
     def _validate_type(self, value: Any, expected_type: str) -> bool:
         """Validate value type against expected type."""
         type_validators = {
-            "str": lambda v: isinstance(v, str)
+            "str": lambda v: isinstance(v, str),
             "int": lambda v: isinstance(v, int)
-            "float": lambda v: isinstance(v, (int, float))
+            "float": lambda v: isinstance(v, (int, float)),
             "bool": lambda v: isinstance(v, bool)
-            "list": lambda v: isinstance(v, list)
+            "list": lambda v: isinstance(v, list),
             "dict": lambda v: isinstance(v, dict)
             "any": lambda v: True
         }
@@ -256,17 +256,17 @@ class PromptTemplate(PromptTemplateInterface):
         new_metadata = None
         if self.metadata:
             new_metadata = PromptMetadata(
-                name=new_name or f"{self.metadata.name}_copy"
+                name=new_name or f"{self.metadata.name}_copy",
                 description=self.metadata.description
-                author=self.metadata.author
+                author=self.metadata.author,
                 version=self.metadata.version
                 tags=self.metadata.tags.copy()
             )
 
         return PromptTemplate(
-            template=self.template
+            template=self.template,
             variables=list(self.variables.values())
-            metadata=new_metadata
+            metadata=new_metadata,
             variable_prefix=self.variable_prefix
             variable_suffix=self.variable_suffix
         )
@@ -274,27 +274,27 @@ class PromptTemplate(PromptTemplateInterface):
     def to_dict(self) -> Dict[str, Any]:
         """Serialize template to dictionary."""
         return {
-            "template": self.template
+            "template": self.template,
             "variables": [
                 {
-                    "name": var.name
+                    "name": var.name,
                     "type": var.type
-                    "required": var.required
+                    "required": var.required,
                     "default": var.default
                     "description": var.description
                 }
                 for var in self.variables.values()
             ]
             "metadata": {
-                "name": self.metadata.name
-                "description": self.metadata.description
-                "author": self.metadata.author
-                "version": self.metadata.version
+                "name": self.metadata.name,
+                "description": self.metadata.description,
+                "author": self.metadata.author,
+                "version": self.metadata.version,
                 "tags": self.metadata.tags
             }
             if self.metadata
             else None
-            "variable_prefix": self.variable_prefix
+            "variable_prefix": self.variable_prefix,
             "variable_suffix": self.variable_suffix
         }
 
@@ -303,9 +303,9 @@ class PromptTemplate(PromptTemplateInterface):
         """Create template from dictionary."""
         variables = [
             PromptVariable(
-                name=var_data["name"]
+                name=var_data["name"],
                 type=var_data["type"]
-                required=var_data.get("required", True)
+                required=var_data.get("required", True),
                 default=var_data.get("default")
                 description=var_data.get("description", "")
             )
@@ -317,10 +317,10 @@ class PromptTemplate(PromptTemplateInterface):
             metadata = PromptMetadata(**data["metadata"])
 
         return cls(
-            template=data["template"]
+            template=data["template"],
             variables=variables
-            metadata=metadata
-            variable_prefix=data.get("variable_prefix", "{{")
+            metadata=metadata,
+            variable_prefix=data.get("variable_prefix", "{{"),
             variable_suffix=data.get("variable_suffix", "}}")
         )
 
@@ -361,14 +361,14 @@ class PromptChain:
         Execute the prompt chain with model generation.
 
         Args:
-            initial_variables: Variables for the first template
+            initial_variables: Variables for the first template,
             model_client: AI model client for generation
 
         Returns:
             List of generated outputs from each step
 
         Raises:
-            PromptError: Chain execution failed
+            PromptError: Chain execution failed,
         """
         if not model_client:
             raise PromptError("Model client required for chain execution")

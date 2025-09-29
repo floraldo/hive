@@ -147,16 +147,16 @@ class AsyncTimeoutManager:
         Run coroutine with timeout and enhanced error context.
 
         Args:
-            coro: Coroutine to execute
-            timeout: Timeout in seconds (uses default if None)
-            operation_name: Name for monitoring and debugging
+            coro: Coroutine to execute,
+            timeout: Timeout in seconds (uses default if None),
+            operation_name: Name for monitoring and debugging,
             fallback: Value to return on timeout (if not None, no exception raised)
 
         Returns:
             Result of coroutine execution
 
         Raises:
-            AsyncTimeoutError: If operation times out and no fallback provided
+            AsyncTimeoutError: If operation times out and no fallback provided,
         """
         timeout = timeout or self.default_timeout
         operation_name = operation_name or getattr(coro, "__name__", "unknown_operation")
@@ -186,7 +186,7 @@ class AsyncTimeoutManager:
                 f"Operation '{operation_name}' timed out",
                 operation=operation_name,
                 timeout_duration=timeout,
-                elapsed_time=elapsed,
+                elapsed_time=elapsed
             )
         finally:
             if "task" in locals():
@@ -204,17 +204,17 @@ class AsyncTimeoutManager:
                 "success_rate": 0.0,
             }
 
-        stats = self._operation_stats[operation_name]
-        stats["total_calls"] += 1
+        stats = self._operation_stats[operation_name],
+        stats["total_calls"] += 1,
         stats["total_time"] += elapsed
 
         if success:
-            stats["successful_calls"] += 1
+            stats["successful_calls"] += 1,
         else:
             stats["timeouts"] += 1
 
         # Update derived metrics
-        stats["avg_time"] = stats["total_time"] / stats["total_calls"]
+        stats["avg_time"] = stats["total_time"] / stats["total_calls"],
         stats["success_rate"] = stats["successful_calls"] / stats["total_calls"]
 
     async def cancel_all_tasks_async(self) -> None:
@@ -244,9 +244,9 @@ def async_circuit_breaker(
     Decorator to add circuit breaker protection to async functions.
 
     Args:
-        failure_threshold: Number of failures before opening circuit
-        recovery_timeout: Seconds to wait before attempting reset
-        expected_exception: Exception type that triggers circuit breaker
+        failure_threshold: Number of failures before opening circuit,
+        recovery_timeout: Seconds to wait before attempting reset,
+        expected_exception: Exception type that triggers circuit breaker,
     """
     breaker = AsyncCircuitBreaker(failure_threshold, recovery_timeout, expected_exception)
 
@@ -276,7 +276,7 @@ def async_timeout(seconds: float, operation_name: str | None = None) -> None:
         async def wrapper_async(*args, **kwargs):
             op_name = operation_name or func.__name__
             return await timeout_manager.run_with_timeout_async(
-                func(*args, **kwargs),
+                func(*args, **kwargs)
                 timeout=seconds,
                 operation_name=op_name,
             )
@@ -297,10 +297,10 @@ def async_resilient(
     Composite decorator providing both timeout and circuit breaker protection.
 
     Args:
-        timeout: Operation timeout in seconds
-        circuit_failure_threshold: Failures before circuit opens
-        circuit_recovery_timeout: Circuit recovery time
-        operation_name: Operation name for monitoring
+        timeout: Operation timeout in seconds,
+        circuit_failure_threshold: Failures before circuit opens,
+        circuit_recovery_timeout: Circuit recovery time,
+        operation_name: Operation name for monitoring,
     """
 
     def decorator(func) -> None:

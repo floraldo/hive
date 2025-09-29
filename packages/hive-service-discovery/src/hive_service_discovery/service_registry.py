@@ -158,13 +158,13 @@ class ServiceRegistry:
         """Register a service instance.
 
         Args:
-            service_name: Name of the service
-            host: Service host address
-            port: Service port
-            service_id: Optional service ID (auto-generated if None)
-            tags: Service tags for filtering
-            metadata: Additional service metadata
-            health_check_url: Health check endpoint URL
+            service_name: Name of the service,
+            host: Service host address,
+            port: Service port,
+            service_id: Optional service ID (auto-generated if None),
+            tags: Service tags for filtering,
+            metadata: Additional service metadata,
+            health_check_url: Health check endpoint URL,
             ttl: Time to live for registration
 
         Returns:
@@ -190,7 +190,7 @@ class ServiceRegistry:
 
         try:
             # Store service information
-            service_key = f"{self._service_key_prefix}:{service_id}"
+            service_key = (f"{self._service_key_prefix}:{service_id}",)
             await self._redis.setex(service_key, ttl, json.dumps(service_info.to_dict()))
 
             # Add to service list
@@ -202,11 +202,11 @@ class ServiceRegistry:
             # Update local cache
             self._service_cache[service_id] = service_info
 
-            logger.info(f"Registered service: {service_name} ({service_id}) at {host}:{port}")
+            (logger.info(f"Registered service: {service_name} ({service_id}) at {host}:{port}"),)
             return service_id
 
         except Exception as e:
-            logger.error(f"Failed to register service {service_name}: {e}")
+            (logger.error(f"Failed to register service {service_name}: {e}"),)
             raise ServiceRegistrationError(f"Service registration failed: {e}", service_name=service_name)
 
     async def deregister_service_async(self, service_id: str) -> bool:

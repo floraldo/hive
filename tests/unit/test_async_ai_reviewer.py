@@ -1,12 +1,12 @@
 """Unit tests for AsyncAIReviewer V4.2."""
 
 import asyncio
-import pytest
 import time
 import uuid
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Dict, Any, List
+from datetime import datetime
+from unittest.mock import AsyncMock, patch
+
+import pytest
 
 # Import the components we're testing
 from ai_reviewer.async_agent import (
@@ -42,7 +42,7 @@ def mock_config():
         "mock_mode": True,
         "max_concurrent_reviews": 5,
         "max_queue_size": 50,
-        "performance_monitoring_interval": 30
+        "performance_monitoring_interval": 30,
     }
     return config
 
@@ -71,22 +71,14 @@ class TestAsyncReviewEngine:
     @pytest.mark.asyncio
     async def test_review_task_async_basic(self, review_engine):
         """Test basic review functionality."""
-        task = {
-            "id": "task_123",
-            "description": "Test task for review",
-            "complexity": "medium",
-            "status": "completed"
-        }
+        task = {"id": "task_123", "description": "Test task for review", "complexity": "medium", "status": "completed"}
 
         run_data = {
             "status": "success",
             "exit_code": 0,
             "execution_time": 45.2,
-            "files": {
-                "created": ["src/main.py", "tests/test_main.py"],
-                "modified": ["README.md"]
-            },
-            "output": "Task completed successfully"
+            "files": {"created": ["src/main.py", "tests/test_main.py"], "modified": ["README.md"]},
+            "output": "Task completed successfully",
         }
 
         result = await review_engine.review_task_async(task, run_data)
@@ -113,11 +105,7 @@ class TestAsyncReviewEngine:
         times = {}
 
         for complexity in complexities:
-            task = {
-                "id": f"task_{complexity}",
-                "complexity": complexity,
-                "status": "completed"
-            }
+            task = {"id": f"task_{complexity}", "complexity": complexity, "status": "completed"}
             run_data = {"status": "success", "exit_code": 0}
 
             start_time = time.time()
@@ -136,21 +124,13 @@ class TestAsyncReviewEngine:
         num_reviews = 6  # More than semaphore limit of 3
 
         tasks = [
-            {
-                "id": f"concurrent_task_{i}",
-                "complexity": "medium",
-                "status": "completed"
-            }
-            for i in range(num_reviews)
+            {"id": f"concurrent_task_{i}", "complexity": "medium", "status": "completed"} for i in range(num_reviews)
         ]
 
         run_data = {"status": "success", "exit_code": 0}
 
         start_time = time.time()
-        review_coroutines = [
-            review_engine.review_task_async(task, run_data)
-            for task in tasks
-        ]
+        review_coroutines = [review_engine.review_task_async(task, run_data) for task in tasks]
         results = await asyncio.gather(*review_coroutines)
         end_time = time.time()
 
@@ -167,15 +147,11 @@ class TestAsyncReviewEngine:
     async def test_mock_review_generation(self, review_engine):
         """Test mock review generation for different scenarios."""
         # Test successful task
-        successful_task = {
-            "id": "success_task",
-            "complexity": "medium",
-            "status": "completed"
-        }
+        successful_task = {"id": "success_task", "complexity": "medium", "status": "completed"}
         successful_run_data = {
             "status": "success",
             "exit_code": 0,
-            "files": {"created": ["src/app.py"], "modified": []}
+            "files": {"created": ["src/app.py"], "modified": []},
         }
 
         success_result = await review_engine.review_task_async(successful_task, successful_run_data)
@@ -185,16 +161,8 @@ class TestAsyncReviewEngine:
         assert success_result["score"] >= 60
 
         # Test failed task
-        failed_task = {
-            "id": "failed_task",
-            "complexity": "high",
-            "status": "failed"
-        }
-        failed_run_data = {
-            "status": "failed",
-            "exit_code": 1,
-            "error": "Compilation failed"
-        }
+        failed_task = {"id": "failed_task", "complexity": "high", "status": "failed"}
+        failed_run_data = {"status": "failed", "exit_code": 1, "error": "Compilation failed"}
 
         failed_result = await review_engine.review_task_async(failed_task, failed_run_data)
 
@@ -216,8 +184,8 @@ class TestAsyncAIReviewer:
         assert async_reviewer.results_cache == {}
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
-    @patch('ai_reviewer.async_agent.get_async_event_bus')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
+    @patch("ai_reviewer.async_agent.get_async_event_bus")
     async def test_reviewer_initialize_async(self, mock_get_bus, mock_get_db, async_reviewer):
         """Test async initialization."""
         mock_get_db.return_value = AsyncMock()
@@ -230,7 +198,7 @@ class TestAsyncAIReviewer:
         assert async_reviewer.review_engine is not None
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
     async def test_get_next_review_task_async(self, mock_get_db, async_reviewer):
         """Test getting next task for review."""
         # Setup mock database
@@ -240,7 +208,7 @@ class TestAsyncAIReviewer:
             "description": "Test task for review",
             "status": "completed",
             "priority": 80,
-            "completion_time": datetime.utcnow().isoformat()
+            "completion_time": datetime.utcnow().isoformat(),
         }
         mock_db.execute_query_async.return_value = [mock_task]
         mock_get_db.return_value = mock_db
@@ -255,8 +223,8 @@ class TestAsyncAIReviewer:
         assert task["status"] == "completed"
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
-    @patch('ai_reviewer.async_agent.get_async_event_bus')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
+    @patch("ai_reviewer.async_agent.get_async_event_bus")
     async def test_perform_review_async(self, mock_get_bus, mock_get_db, async_reviewer):
         """Test review performance end-to-end."""
         # Setup mocks
@@ -266,7 +234,7 @@ class TestAsyncAIReviewer:
         mock_db.get_async.return_value = {
             "status": "success",
             "execution_time": 30.5,
-            "files": {"created": ["app.py"], "modified": []}
+            "files": {"created": ["app.py"], "modified": []},
         }
         mock_get_db.return_value = mock_db
 
@@ -281,7 +249,7 @@ class TestAsyncAIReviewer:
             "description": "Review web application implementation",
             "status": "completed",
             "priority": 80,
-            "complexity": "medium"
+            "complexity": "medium",
         }
 
         # Perform review
@@ -301,8 +269,8 @@ class TestAsyncAIReviewer:
         mock_bus.publish_async.assert_called()
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
-    @patch('ai_reviewer.async_agent.get_async_event_bus')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
+    @patch("ai_reviewer.async_agent.get_async_event_bus")
     async def test_concurrent_review_processing(self, mock_get_bus, mock_get_db, async_reviewer):
         """Test concurrent review processing capabilities."""
         # Setup mocks
@@ -312,7 +280,7 @@ class TestAsyncAIReviewer:
         mock_db.get_async.return_value = {
             "status": "success",
             "execution_time": 25.0,
-            "files": {"created": ["main.py"], "modified": []}
+            "files": {"created": ["main.py"], "modified": []},
         }
         mock_get_db.return_value = mock_db
 
@@ -328,7 +296,7 @@ class TestAsyncAIReviewer:
                 "description": f"Review task {i}",
                 "status": "completed",
                 "priority": 70 + i,
-                "complexity": "medium"
+                "complexity": "medium",
             }
             for i in range(4)
         ]
@@ -349,7 +317,7 @@ class TestAsyncAIReviewer:
         assert end_time - start_time < 10.0  # Should complete quickly in mock mode
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
     async def test_error_handling_missing_run_data(self, mock_get_db, async_reviewer):
         """Test error handling when run data is missing."""
         # Setup mock to return None for run data
@@ -363,7 +331,7 @@ class TestAsyncAIReviewer:
             "id": "missing_data_task",
             "description": "Task with missing run data",
             "status": "completed",
-            "priority": 80
+            "priority": 80,
         }
 
         # Should handle missing data gracefully
@@ -374,8 +342,8 @@ class TestAsyncAIReviewer:
         assert "No run data found" in result["error"]
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
-    @patch('ai_reviewer.async_agent.get_async_event_bus')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
+    @patch("ai_reviewer.async_agent.get_async_event_bus")
     async def test_performance_monitoring(self, mock_get_bus, mock_get_db, async_reviewer):
         """Test performance monitoring capabilities."""
         # Setup mocks
@@ -385,7 +353,7 @@ class TestAsyncAIReviewer:
         mock_db.get_async.return_value = {
             "status": "success",
             "execution_time": 40.0,
-            "files": {"created": ["test.py"], "modified": []}
+            "files": {"created": ["test.py"], "modified": []},
         }
         mock_get_db.return_value = mock_db
 
@@ -401,7 +369,7 @@ class TestAsyncAIReviewer:
                 "description": f"Performance test task {i}",
                 "status": "completed",
                 "priority": 75,
-                "complexity": "medium"
+                "complexity": "medium",
             }
             for i in range(3)
         ]
@@ -428,20 +396,20 @@ class TestAsyncAIReviewer:
         low_priority_task = {
             "id": "low_review",
             "priority": ReviewPriority.LOW.value,
-            "description": "Low priority review"
+            "description": "Low priority review",
         }
 
         critical_priority_task = {
             "id": "critical_review",
             "priority": ReviewPriority.CRITICAL.value,
-            "description": "Critical priority review"
+            "description": "Critical priority review",
         }
 
         # Both should be processable (detailed priority handling would require queue implementation)
         assert low_priority_task["priority"] < critical_priority_task["priority"]
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
     async def test_queue_management(self, mock_get_db, async_reviewer):
         """Test review queue management."""
         mock_db = AsyncMock()
@@ -454,11 +422,7 @@ class TestAsyncAIReviewer:
 
         # Add reviews to queue
         for i in range(3):
-            task = {
-                "id": f"queue_task_{i}",
-                "description": f"Queue test task {i}",
-                "priority": 70 + i
-            }
+            task = {"id": f"queue_task_{i}", "description": f"Queue test task {i}", "priority": 70 + i}
             await async_reviewer.review_queue.put(task)
 
         assert async_reviewer.review_queue.qsize() == 3
@@ -468,8 +432,8 @@ class TestAsyncReviewerIntegration:
     """Integration tests for AsyncAIReviewer components working together."""
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
-    @patch('ai_reviewer.async_agent.get_async_event_bus')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
+    @patch("ai_reviewer.async_agent.get_async_event_bus")
     async def test_full_review_workflow(self, mock_get_bus, mock_get_db):
         """Test complete review workflow from task completion to review delivery."""
         # Setup comprehensive mocks
@@ -481,23 +445,11 @@ class TestAsyncReviewerIntegration:
             "exit_code": 0,
             "execution_time": 120.5,
             "files": {
-                "created": [
-                    "src/api/auth.py",
-                    "src/api/users.py",
-                    "tests/test_auth.py",
-                    "tests/test_users.py"
-                ],
-                "modified": [
-                    "requirements.txt",
-                    "README.md"
-                ]
+                "created": ["src/api/auth.py", "src/api/users.py", "tests/test_auth.py", "tests/test_users.py"],
+                "modified": ["requirements.txt", "README.md"],
             },
             "output": "API implementation completed with tests",
-            "metrics": {
-                "lines_of_code": 450,
-                "test_coverage": 85,
-                "complexity_score": 6.2
-            }
+            "metrics": {"lines_of_code": 450, "test_coverage": 85, "complexity_score": 6.2},
         }
         mock_get_db.return_value = mock_db
 
@@ -516,7 +468,7 @@ class TestAsyncReviewerIntegration:
             "priority": 85,
             "complexity": "high",
             "assigned_to": "developer_123",
-            "completion_time": datetime.utcnow().isoformat()
+            "completion_time": datetime.utcnow().isoformat(),
         }
 
         # Execute review workflow
@@ -554,8 +506,8 @@ class TestAsyncReviewerIntegration:
         assert reviewer.performance_metrics["successful_reviews"] == 1
 
     @pytest.mark.asyncio
-    @patch('ai_reviewer.async_agent.get_async_db_operations')
-    @patch('ai_reviewer.async_agent.get_async_event_bus')
+    @patch("ai_reviewer.async_agent.get_async_db_operations")
+    @patch("ai_reviewer.async_agent.get_async_event_bus")
     async def test_review_decision_accuracy(self, mock_get_bus, mock_get_db):
         """Test that review decisions are appropriate for different task outcomes."""
         # Setup mocks
@@ -578,9 +530,9 @@ class TestAsyncReviewerIntegration:
                     "status": "success",
                     "exit_code": 0,
                     "files": {"created": ["app.py", "test_app.py"]},
-                    "metrics": {"test_coverage": 90}
+                    "metrics": {"test_coverage": 90},
                 },
-                "expected_decision": ["approved", "approved_with_changes"]
+                "expected_decision": ["approved", "approved_with_changes"],
             },
             {
                 "name": "successful_no_tests",
@@ -588,19 +540,15 @@ class TestAsyncReviewerIntegration:
                     "status": "success",
                     "exit_code": 0,
                     "files": {"created": ["app.py"]},
-                    "metrics": {"test_coverage": 0}
+                    "metrics": {"test_coverage": 0},
                 },
-                "expected_decision": ["approved_with_changes"]
+                "expected_decision": ["approved_with_changes"],
             },
             {
                 "name": "failed_task",
-                "run_data": {
-                    "status": "failed",
-                    "exit_code": 1,
-                    "error": "Compilation failed"
-                },
-                "expected_decision": ["rejected"]
-            }
+                "run_data": {"status": "failed", "exit_code": 1, "error": "Compilation failed"},
+                "expected_decision": ["rejected"],
+            },
         ]
 
         for scenario in test_scenarios:
@@ -611,7 +559,7 @@ class TestAsyncReviewerIntegration:
                 "description": f"Test scenario: {scenario['name']}",
                 "status": "completed",
                 "priority": 80,
-                "complexity": "medium"
+                "complexity": "medium",
             }
 
             result = await reviewer.perform_review_async(task)

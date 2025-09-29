@@ -74,7 +74,7 @@ def init(
             if len(parts) >= 3:
                 per_op_limit = float(parts[2])
         except ValueError:
-            click.echo(f"Invalid cost limits format: {cost_limits}", err=True)
+            (click.echo(f"Invalid cost limits format: {cost_limits}", err=True),)
             sys.exit(1)
 
     # Determine output directory
@@ -107,21 +107,21 @@ def init(
         result = asyncio.run(generator.generate(config))
 
         if dry_run:
-            click.echo("🔍 Dry run - would generate:")
+            (click.echo("🔍 Dry run - would generate:"),)
             for file_path in result["files_created"]:
                 click.echo(f"  📄 {file_path}")
         else:
             click.echo("🎉 Application generated successfully!")
-            click.echo(f"📂 Location: {output_dir}")
+            (click.echo(f"📂 Location: {output_dir}"),)
             click.echo(f"📋 Files created: {len(result['files_created'])}")
 
             if result.get("next_steps"):
-                click.echo("\n📝 Next steps:")
+                (click.echo("\n📝 Next steps:"),)
                 for step in result["next_steps"]:
                     click.echo(f"  • {step}")
 
     except Exception as e:
-        click.echo(f"❌ Generation failed: {e}", err=True)
+        (click.echo(f"❌ Generation failed: {e}", err=True),)
         if "--verbose" in sys.argv:
             import traceback
 

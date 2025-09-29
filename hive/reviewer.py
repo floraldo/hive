@@ -4,11 +4,10 @@ ReviewerCore - Queen's Internal Code Review Module
 Provides quality assessment and iterative refinement capabilities
 """
 
-import json
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_logging import get_logger
 
@@ -235,7 +234,7 @@ SPECIFIC IMPROVEMENTS NEEDED:
         for i, improvement in enumerate(review["improvements"], 1):
             instructions += f"\n{i}. {improvement}"
 
-        instructions += f"""
+        instructions += """
 
 WHAT WAS DONE WELL (preserve these):
 """

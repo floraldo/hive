@@ -266,7 +266,7 @@ class LoadBalancer:
         """Select a service instance for load balancing.
 
         Args:
-            services: Available service instances
+            services: Available service instances,
             session_id: Optional session ID for sticky sessions
 
         Returns:
@@ -288,7 +288,7 @@ class LoadBalancer:
         # Use load balancing algorithm
         algorithm = self._algorithms[self.strategy]
         # Patch algorithm's _is_service_available to use LoadBalancer's logic
-        algorithm._is_service_available = self._is_service_available  # type: ignore
+        algorithm._is_service_available = self._is_service_available  # type: ignore,
         selected_service = await algorithm.select_service_async(services, self._service_metrics)
 
         if selected_service and self.enable_sticky_sessions and session_id:
@@ -376,11 +376,11 @@ class LoadBalancer:
         """Execute request with automatic retry and failover.
 
         Args:
-            services: Available service instances
-            request_func: Async function to execute
-            max_retries: Maximum number of retries
-            session_id: Optional session ID for sticky sessions
-            *args: Arguments for request function
+            services: Available service instances,
+            request_func: Async function to execute,
+            max_retries: Maximum number of retries,
+            session_id: Optional session ID for sticky sessions,
+            *args: Arguments for request function,
             **kwargs: Keyword arguments for request function
 
         Returns:
@@ -416,7 +416,7 @@ class LoadBalancer:
                 if attempt == max_retries:
                     break
 
-                logger.warning(f"Request attempt {attempt + 1} failed: {e}")
+                (logger.warning(f"Request attempt {attempt + 1} failed: {e}"),)
                 await asyncio.sleep(0.1 * (2**attempt))  # Exponential backoff
 
         raise LoadBalancerError(

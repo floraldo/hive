@@ -12,12 +12,9 @@ from task submission to intelligent plan generation and sub-task creation.
 
 import json
 import sys
-import uuid
 from datetime import datetime
-from pathlib import Path
 
 from ai_planner.agent import AIPlanner
-from ai_planner.claude_bridge import RobustClaudePlannerBridge
 from hive_db import get_connection, init_db
 
 
@@ -194,7 +191,7 @@ def demonstrate_claude_planning() -> None:
 
         logger.info(f"SUCCESS: {plan_count} execution plan(s) persisted")
         logger.info(f"SUCCESS: {subtask_count} sub-task(s) created in task queue")
-        logger.info(f"SUCCESS: Task status updated to 'planned'")
+        logger.info("SUCCESS: Task status updated to 'planned'")
         logger.info("")
     else:
         logger.info("FAILED: Plan persistence failed")

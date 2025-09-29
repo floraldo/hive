@@ -34,8 +34,8 @@ class AIError(BaseError):
         Args:
             message: Human-readable error description.,
             model: Name of the model that caused the error.,
-            provider: Name of the AI provider (anthropic, openai, etc.).
-            **kwargs: Additional context passed to BaseError.
+            provider: Name of the AI provider (anthropic, openai, etc.).,
+            **kwargs: Additional context passed to BaseError.,
         """
         super().__init__(message, component="hive-ai", **kwargs)
         self.model = model
@@ -63,8 +63,8 @@ class ModelError(BaseError):
             message: Human-readable error description.,
             model: Name of the model that failed.,
             provider: Name of the AI provider.,
-            request_id: Unique identifier for the failed request.
-            **kwargs: Additional context passed to BaseError.
+            request_id: Unique identifier for the failed request.,
+            **kwargs: Additional context passed to BaseError.,
         """
         super().__init__(message, model, provider, **kwargs)
         self.request_id = request_id
@@ -88,8 +88,8 @@ class VectorError(BaseError):
         Args:
             message: Human-readable error description.,
             collection: Name of the vector collection involved.,
-            operation: Type of vector operation that failed.
-            **kwargs: Additional context passed to BaseError.
+            operation: Type of vector operation that failed.,
+            **kwargs: Additional context passed to BaseError.,
         """
         super().__init__(message, **kwargs)
         self.collection = collection
@@ -114,8 +114,8 @@ class PromptError(BaseError):
         Args:
             message: Human-readable error description.,
             template_name: Name of the template that failed.,
-            missing_variables: List of required variables that were missing.
-            **kwargs: Additional context passed to BaseError.
+            missing_variables: List of required variables that were missing.,
+            **kwargs: Additional context passed to BaseError.,
         """
         super().__init__(message, **kwargs)
         self.template_name = template_name
@@ -142,8 +142,8 @@ class CostLimitError(BaseError):
             message: Human-readable error description.,
             current_cost: Current spending amount in USD.,
             limit: The spending limit that was exceeded.,
-            period: Time period for the limit (daily, monthly).
-            **kwargs: Additional context passed to BaseError.
+            period: Time period for the limit (daily, monthly).,
+            **kwargs: Additional context passed to BaseError.,
         """
         super().__init__(message, **kwargs)
         self.current_cost = current_cost
@@ -172,8 +172,8 @@ class ModelUnavailableError(BaseError):
             message: Human-readable error description.,
             model: Name of the unavailable model.,
             provider: Name of the AI provider.,
-            available_models: List of available model alternatives.
-            **kwargs: Additional context passed to BaseError.
+            available_models: List of available model alternatives.,
+            **kwargs: Additional context passed to BaseError.,
         """
         super().__init__(message, model, provider, **kwargs)
         self.available_models = available_models or []

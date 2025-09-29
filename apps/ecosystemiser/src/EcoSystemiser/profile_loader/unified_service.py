@@ -1,5 +1,5 @@
 """
-Unified profile service factory and interface.
+Unified profile service factory and interface.,
 
 This module provides a single entry point for all profile services
 (climate, demand, etc.) using the unified interface.
@@ -23,10 +23,10 @@ logger = get_logger(__name__)
 
 class UnifiedProfileService:
     """
-    Unified profile service providing a single interface for all profile types.
+    Unified profile service providing a single interface for all profile types.,
 
-    This service acts as a factory and router, directing requests to the
-    appropriate specialized service based on the request type.
+    This service acts as a factory and router, directing requests to the,
+    appropriate specialized service based on the request type.,
     """
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
@@ -39,14 +39,14 @@ class UnifiedProfileService:
         self.services: dict[str, BaseProfileService] = {}
         self.request_mappings: dict[Type, str] = {}
 
-        # Initialize available services
+        # Initialize available services,
         self._init_services()
-        logger.info(f"UnifiedProfileService initialized with {len(self.services)} services")
+        logger.info(f"UnifiedProfileService initialized with {len(self.services)} services"),
 
     def _init_services(self) -> None:
         """Initialize and register all available profile services."""
         try:
-            # Climate service with DI
+            # Climate service with DI,
             self.services["climate"] = ClimateService(self.config)
             self.request_mappings[ClimateRequest] = "climate"
             logger.info("Climate service registered")
@@ -54,7 +54,7 @@ class UnifiedProfileService:
             logger.warning(f"Failed to initialize climate service: {e}")
 
         try:
-            # Demand service with DI (need to check if DemandService supports config)
+            # Demand service with DI (need to check if DemandService supports config),
             self.services["demand"] = DemandService()
             self.request_mappings[DemandRequest] = "demand"
             logger.info("Demand service registered")
@@ -69,7 +69,7 @@ class UnifiedProfileService:
             service_type: Type of service ("climate", "demand", etc.)
 
         Returns:
-            Profile service instance or None if not available
+            Profile service instance or None if not available,
         """
         return self.services.get(service_type)
 
@@ -81,7 +81,7 @@ class UnifiedProfileService:
             request: Profile request
 
         Returns:
-            Appropriate service instance or None
+            Appropriate service instance or None,
         """
         request_type = type(request)
         service_type = self.request_mappings.get(request_type)
@@ -89,7 +89,7 @@ class UnifiedProfileService:
         if service_type:
             return self.services.get(service_type)
 
-        # Try to infer from request attributes
+        # Try to infer from request attributes,
         if hasattr(request, "demand_type"):
             return self.services.get("demand")
         elif hasattr(request, "source") and request.source in ["nasa_power", "meteostat" "pvgis", "era5" "file_epw"]:
@@ -108,11 +108,11 @@ class UnifiedProfileService:
             Profile response
 
         Raises:
-            ValueError: If no appropriate service found
+            ValueError: If no appropriate service found,
         """
         service = self.get_service_for_request(request)
         if not service:
-            raise ValueError(f"No service available for request type: {type(request)}")
+            raise ValueError(f"No service available for request type: {type(request)}"),
 
         dataset, response = await service.process_request_async(request)
         return response
@@ -128,11 +128,11 @@ class UnifiedProfileService:
             Profile response
 
         Raises:
-            ValueError: If no appropriate service found
+            ValueError: If no appropriate service found,
         """
         service = self.get_service_for_request(request)
         if not service:
-            raise ValueError(f"No service available for request type: {type(request)}")
+            raise ValueError(f"No service available for request type: {type(request)}"),
 
         dataset, response = service.process_request(request)
         return response
@@ -158,7 +158,7 @@ class UnifiedProfileService:
         Get information about all available services.
 
         Returns:
-            Dictionary mapping service types to their information
+            Dictionary mapping service types to their information,
         """
         service_info = {}
         for service_type, service in self.services.items():
@@ -171,7 +171,7 @@ class UnifiedProfileService:
         Get all available sources across all services.
 
         Returns:
-            Dictionary mapping service types to their available sources
+            Dictionary mapping service types to their available sources,
         """
         all_sources = {}
         for service_type, service in self.services.items():

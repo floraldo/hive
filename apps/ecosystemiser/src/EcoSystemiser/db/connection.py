@@ -3,7 +3,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 """
-EcoSystemiser database connection management.
+EcoSystemiser database connection management.,
 
 This module provides database connection utilities by importing from
 EcoSystemiser's core database service, maintaining proper architectural layering.

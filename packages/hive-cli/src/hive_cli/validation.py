@@ -6,7 +6,7 @@ logger = get_logger(__name__)
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import click
 import yaml

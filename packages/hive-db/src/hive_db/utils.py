@@ -247,9 +247,9 @@ def insert_or_update(
     Insert or update a record using UPSERT (INSERT ... ON CONFLICT).
 
     Args:
-        conn: Database connection
-        table: Table name
-        data: Dictionary of column names and values
+        conn: Database connection,
+        table: Table name,
+        data: Dictionary of column names and values,
         conflict_columns: Columns that define the conflict condition
 
     Returns:
@@ -294,7 +294,7 @@ def insert_or_update(
             return "updated"
 
     except sqlite3.Error as e:
-        logger.error(f"Failed to insert or update in table {table}: {e}")
+        (logger.error(f"Failed to insert or update in table {table}: {e}"),)
         raise
 
 
@@ -308,10 +308,10 @@ def batch_insert(
     Insert multiple records in batches for better performance.
 
     Args:
-        conn: Database connection
-        table: Table name
-        data: List of dictionaries containing data to insert
-        chunk_size: Number of records to insert per batch
+        conn: Database connection,
+        table: Table name,
+        data: List of dictionaries containing data to insert,
+        chunk_size: Number of records to insert per batch,
     """
     if not data:
         return
@@ -333,7 +333,7 @@ def batch_insert(
 
         # Process in chunks
         for i in range(0, len(data), chunk_size):
-            chunk = data[i : i + chunk_size]
+            chunk = (data[i : i + chunk_size],)
             values = [list(record.values()) for record in chunk]
 
             conn.executemany(sql, values)
@@ -342,7 +342,7 @@ def batch_insert(
         logger.info(f"Batch inserted {len(data)} records into {table}")
 
     except sqlite3.Error as e:
-        logger.error(f"Failed to batch insert into table {table}: {e}")
+        (logger.error(f"Failed to batch insert into table {table}: {e}"),)
         conn.rollback()
         raise
 

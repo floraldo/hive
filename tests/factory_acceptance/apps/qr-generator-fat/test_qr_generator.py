@@ -4,11 +4,11 @@ Test suite for QR Code Generator Service
 Tests external dependency integration and functionality
 """
 
-import unittest
-import requests
-import json
 import base64
+import unittest
 from io import BytesIO
+
+import requests
 from PIL import Image
 
 

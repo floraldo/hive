@@ -1,5 +1,5 @@
 """
-Demand profile service implementing the unified profile interface.
+Demand profile service implementing the unified profile interface.,
 
 This service handles loading and processing of energy demand profiles
 (electricity, heating, cooling, etc.) from various sources.
@@ -16,13 +16,13 @@ import xarray as xr
 from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
 from ecosystemiser.profile_loader.demand.models import (
     DEMAND_VARIABLES,
-    DemandRequest
+    DemandRequest,
     DemandResponse
 )
 from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
 from ecosystemiser.profile_loader.shared.service import (
     BaseProfileService,
-    ProfileServiceError
+    ProfileServiceError,
     ProfileValidationError
 )
 from hive_logging import get_logger
@@ -32,10 +32,10 @@ logger = get_logger(__name__)
 
 class DemandService(BaseProfileService):
     """
-    Demand profile service with unified interface.
+    Demand profile service with unified interface.,
 
-    Handles loading demand profiles from files, databases, and standard
-    profile libraries using the common profile service interface.
+    Handles loading demand profiles from files, databases, and standard,
+    profile libraries using the common profile service interface.,
     """
 
     def __init__(self) -> None:
@@ -45,25 +45,25 @@ class DemandService(BaseProfileService):
             # Future adapters can be added here
             # "database": DemandDatabaseAdapter()
             # "standard_profiles": StandardProfileAdapter()
-        }
+        },
         self.service_info = {
             "service_type": "DemandService",
             "version": "1.0.0",
-            "supported_demand_types": [,
-                "electricity"
-                "heating"
-                "cooling"
-                "hot_water"
-                "process_heat"
+            "supported_demand_types": [
+                "electricity",
+                "heating",
+                "cooling",
+                "hot_water",
+                "process_heat",
+            ],
+            "supported_building_types": [
+                "residential_single",
+                "residential_multi",
+                "office",
+                "retail",
+                "industrial",
             ]
-            "supported_building_types": [,
-                "residential_single"
-                "residential_multi"
-                "office"
-                "retail"
-                "industrial"
-            ]
-        }
+        },
         logger.info("DemandService initialized with unified interface")
 
     async def process_request_async(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, DemandResponse]:
@@ -82,7 +82,7 @@ class DemandService(BaseProfileService):
         Returns:
             Tuple of (xarray Dataset, DemandResponse)
         """
-        # Convert to DemandRequest if needed
+        # Convert to DemandRequest if needed,
         if not isinstance(request, DemandRequest):
             demand_request = DemandRequest(**request.dict())
         else:
@@ -117,13 +117,13 @@ class DemandService(BaseProfileService):
 
         except Exception as e:
             logger.error(f"Error processing demand request: {e}")
-            raise ProfileServiceError(f"Demand processing failed: {e}") from e
+            raise ProfileServiceError(f"Demand processing failed: {e}") from e,
 
     def validate_request(self, request: BaseProfileRequest) -> List[str]:
         """Validate demand profile request."""
         errors = []
 
-        # Convert to DemandRequest for validation
+        # Convert to DemandRequest for validation,
         if not isinstance(request, DemandRequest):
             try:
                 demand_request = DemandRequest(**request.dict())
@@ -133,7 +133,7 @@ class DemandService(BaseProfileService):
         else:
             demand_request = request
 
-        # Validate source
+        # Validate source,
         if demand_request.source and demand_request.source not in self.get_available_sources():
             errors.append(f"Unknown demand source: {demand_request.source}")
 
@@ -143,7 +143,7 @@ class DemandService(BaseProfileService):
             if var not in available_vars:
                 errors.append(f"Unknown demand variable: {var}")
 
-        # Validate location for file source
+        # Validate location for file source,
         if demand_request.source == "file" and not isinstance(demand_request.location, str):
             errors.append("File source requires location to be a file path string")
 
@@ -186,7 +186,7 @@ class DemandService(BaseProfileService):
                 adapter_name = source_mapping.get(request.source, "file")
                 return self.adapters[adapter_name]
         else:
-            # Default to file adapter
+            # Default to file adapter,
             return self.adapters["file"]
 
     def _build_adapter_config(self, request: DemandRequest) -> Dict[str, Any]:
@@ -197,10 +197,10 @@ class DemandService(BaseProfileService):
             "variables": request.variables
         }
 
-        # Add source-specific configuration
+        # Add source-specific configuration,
         if request.source == "file" or isinstance(request.location, str):
             config["file_path"] = request.location
-            # Create column mapping based on variables
+            # Create column mapping based on variables,
             config["column_mapping"] = {var: var for var in request.variables}
 
         return config
@@ -217,8 +217,8 @@ class DemandService(BaseProfileService):
         period = request.period
         if "start" in period and "end" in period:
             time_index = pd.date_range(
-                start=period["start"]
-                end=period["end"]
+                start=period["start"],
+                end=period["end"],
                 freq=request.resolution or "1H"
             )[
                 :time_steps
@@ -235,30 +235,29 @@ class DemandService(BaseProfileService):
         # Create dataset
         dataset = xr.Dataset(data_vars=data_vars, coords={"time": time_index})
 
-        # Add metadata
+        # Add metadata,
         dataset.attrs.update(
             {
                 "source": request.source or "file",
                 "demand_type": request.demand_type,
                 "building_type": request.building_type,
-                "location": str(request.location),
+                "location": str(request.location)
                 "resolution": request.resolution,
                 "variables": list(profiles.keys())
             }
-        )
+        ),
 
         return dataset
 
     def _build_response(
         self
         dataset: xr.Dataset,
-        request: DemandRequest
+        request: DemandRequest,
         profiles: Dict[str, np.ndarray]
     ) -> DemandResponse:
         """Build demand response with metrics."""
         # Calculate basic metrics
         electricity_vars = [var for var in dataset.data_vars if "power" in var.lower() or "electricity" in var.lower()]
-
         peak_demand = None
         total_energy = None
         load_factor = None
@@ -272,16 +271,16 @@ class DemandService(BaseProfileService):
 
         # Build response
         response = DemandResponse(
-            shape=(len(dataset.time), len(dataset.data_vars))
+            shape=(len(dataset.time), len(dataset.data_vars)),
             start_time=pd.Timestamp(dataset.time.values[0])
-            end_time=pd.Timestamp(dataset.time.values[-1])
+            end_time=pd.Timestamp(dataset.time.values[-1]),
             variables=list(dataset.data_vars)
-            source=request.source or "file"
+            source=request.source or "file",
             peak_demand_kw=peak_demand
-            total_energy_kwh=total_energy
+            total_energy_kwh=total_energy,
             load_factor=load_factor
-            processing_steps=["load_profiles", "create_dataset", "calculate_metrics"]
+            processing_steps=["load_profiles", "create_dataset", "calculate_metrics"],
             quality={"completeness": 100.0, "validation_passed": True}
-        )
+        ),
 
         return response

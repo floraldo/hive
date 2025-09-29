@@ -15,26 +15,17 @@ Designed to catch breaking changes and ensure platform reliability.
 """
 
 import asyncio
+import concurrent.futures
 import json
-import pytest
+import os
 import sqlite3
+import subprocess
+import sys
 import tempfile
 import time
-import uuid
-import threading
-import concurrent.futures
-import subprocess
-import psutil
-import signal
-import os
-import sys
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple, Union
-from unittest.mock import Mock, patch, MagicMock
-from dataclasses import dataclass, asdict
-from contextlib import contextmanager, asynccontextmanager
-
+from typing import Any, Dict, List, Optional, Tuple
 
 # Test imports - add paths
 test_root = Path(__file__).parent.parent
@@ -393,7 +384,7 @@ class AIPlannerIntegrationTests:
 
             # Verify progressive status updates
             if status_1["completed_count"] != 1 or status_2["completed_count"] != 2:
-                print(f"❌ Status sync failed: expected progressive updates")
+                print("❌ Status sync failed: expected progressive updates")
                 return False
 
             # Verify planning task status update
@@ -673,7 +664,9 @@ class CrossAppCommunicationTests:
                 print(f"✅ Event bus communication test passed: {events_handled}/{events_published} events handled")
                 return True
             else:
-                print(f"❌ Event bus communication test failed: only {events_handled}/{events_published} events handled")
+                print(
+                    f"❌ Event bus communication test failed: only {events_handled}/{events_published} events handled"
+                )
                 return False
 
         except Exception as e:
@@ -1250,7 +1243,9 @@ class PerformanceIntegrationTests:
                     print(f"✅ Async infrastructure performance test passed: {improvement_factor:.1f}x improvement")
                     return True
                 else:
-                    print(f"❌ Async infrastructure performance test failed: only {improvement_factor:.1f}x improvement")
+                    print(
+                        f"❌ Async infrastructure performance test failed: only {improvement_factor:.1f}x improvement"
+                    )
                     return False
 
             except Exception as e:
@@ -1445,7 +1440,9 @@ class PerformanceIntegrationTests:
             conn.close()
 
             if improvement_factor >= 3.0 and sequential_count == 10 and concurrent_count == 10:
-                print(f"✅ 5x performance improvement validation passed: {improvement_factor:.1f}x improvement achieved")
+                print(
+                    f"✅ 5x performance improvement validation passed: {improvement_factor:.1f}x improvement achieved"
+                )
                 self.env.metrics.improvement_factor = improvement_factor
                 return True
             else:
@@ -1712,13 +1709,13 @@ class ComprehensiveHiveIntegrationTestSuite:
         print("=" * 80)
 
         # Test results by category
-        print(f"\n📊 Test Results by Category:")
+        print("\n📊 Test Results by Category:")
         for category, passed in test_results.items():
             status = "✅ PASSED" if passed else "❌ FAILED"
             print(f"   {status} {category.replace('_', ' ').title()}")
 
         # Overall metrics
-        print(f"\n📈 Overall Metrics:")
+        print("\n📈 Overall Metrics:")
         print(f"   ⏱️  Total Duration: {self.env.metrics.duration:.2f}s")
         print(f"   📋 Tasks Created: {self.env.metrics.tasks_created}")
         print(f"   🤖 Plans Generated: {self.env.metrics.plans_generated}")
@@ -1744,7 +1741,7 @@ class ComprehensiveHiveIntegrationTestSuite:
 
         # Performance highlights
         if self.env.metrics.performance_samples:
-            print(f"\n📊 Performance Highlights:")
+            print("\n📊 Performance Highlights:")
             for sample in self.env.metrics.performance_samples[-5:]:  # Show last 5
                 test_name = sample.get("test", "unknown")
                 value = sample.get("value", 0)

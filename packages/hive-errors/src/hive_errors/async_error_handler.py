@@ -67,11 +67,11 @@ class AsyncErrorHandler:
 
         # Error tracking
         self._error_stats = ErrorStats()
-        self._error_history: deque = deque(maxlen=max_error_history)
+        self._error_history: deque = (deque(maxlen=max_error_history),)
         self._component_health: Dict[str, float] = defaultdict(lambda: 1.0)  # 0.0-1.0
 
         # Performance tracking
-        self._operation_times: Dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
+        self._operation_times: Dict[str, deque] = (defaultdict(lambda: deque(maxlen=100)),)
         self._success_rates: Dict[str, float] = defaultdict(lambda: 1.0)
 
     async def handle_error(
@@ -81,8 +81,8 @@ class AsyncErrorHandler:
         Handle an error with full context and monitoring.
 
         Args:
-            error: The exception that occurred
-            context: Error context information
+            error: The exception that occurred,
+            context: Error context information,
             suppress: Whether to suppress the error (return None)
 
         Returns:

@@ -4,13 +4,12 @@ SSH-based deployment strategy using hive-deployment package
 
 import asyncio
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from hive_deployment import (
     connect_to_server,
     deploy_application,
     determine_deployment_paths,
-    rollback_deployment,
 )
 from hive_logging import get_logger
 
@@ -25,12 +24,12 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
     SSH-based deployment strategy for traditional server deployments
     """
 
-    def __init__(self, config: Dict[str, Any]) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         """Initialize SSH deployment strategy"""
         super().__init__(config)
         self.strategy = DeploymentStrategy.DIRECT
 
-    async def pre_deployment_checks_async(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def pre_deployment_checks_async(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Run pre-deployment checks for SSH deployment
 
@@ -78,7 +77,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                 "errors": [f"Pre-deployment check failed: {e}"],
             }
 
-    async def deploy_async(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
+    async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """
         Execute SSH deployment
 
@@ -163,10 +162,10 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
     async def rollback_async(
         self,
-        task: Dict[str, Any],
+        task: dict[str, Any],
         deployment_id: str,
-        previous_deployment: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        previous_deployment: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Rollback SSH deployment to previous version
 
@@ -234,7 +233,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
                 "error": str(e),
             }
 
-    async def post_deployment_actions_async(self, task: Dict[str, Any], deployment_id: str) -> None:
+    async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """
         Run post-deployment actions for SSH deployment
 
@@ -267,7 +266,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
     # Helper methods
 
-    async def _check_ssh_connectivity_async(self, ssh_config: Dict[str, Any]) -> bool:
+    async def _check_ssh_connectivity_async(self, ssh_config: dict[str, Any]) -> bool:
         """Test SSH connectivity"""
         try:
             # Run in executor to avoid blocking
@@ -278,7 +277,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"SSH connectivity check failed: {e}")
             return False
 
-    def _sync_check_ssh(self, ssh_config: Dict[str, Any]) -> bool:
+    def _sync_check_ssh(self, ssh_config: dict[str, Any]) -> bool:
         """Synchronous SSH connectivity check"""
         try:
             ssh_client = connect_to_server(ssh_config)
@@ -289,13 +288,13 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         except Exception:
             return False
 
-    async def _check_remote_permissions_async(self, task: Dict[str, Any]) -> bool:
+    async def _check_remote_permissions_async(self, task: dict[str, Any]) -> bool:
         """Check remote directory permissions"""
         # Implementation would check write permissions on target directory
         # For now, assume success
         return True
 
-    async def _connect_to_server_async(self, ssh_config: Dict[str, Any]):
+    async def _connect_to_server_async(self, ssh_config: dict[str, Any]):
         """Establish SSH connection"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, connect_to_server, ssh_config)
@@ -304,14 +303,14 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         self,
         ssh_client,
         source_path: str,
-        deployment_paths: Dict[str, str],
-        task: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        deployment_paths: dict[str, str],
+        task: dict[str, Any],
+    ) -> dict[str, Any]:
         """Deploy application files"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, deploy_application, ssh_client, source_path, deployment_paths, task)
 
-    async def _create_backup_async(self, ssh_client, deployment_paths: Dict[str, str]) -> Dict[str, Any]:
+    async def _create_backup_async(self, ssh_client, deployment_paths: dict[str, str]) -> dict[str, Any]:
         """Create backup of current deployment"""
         # Implementation would create backup of existing deployment
         # For now, return mock backup info
@@ -328,25 +327,25 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         await asyncio.sleep(0.5)
         return True
 
-    async def _restore_from_backup_async(self, ssh_client, backup_info: Dict[str, Any]) -> bool:
+    async def _restore_from_backup_async(self, ssh_client, backup_info: dict[str, Any]) -> bool:
         """Restore deployment from backup"""
         # Implementation would restore files from backup
         # For now, simulate success
         await asyncio.sleep(1.0)
         return True
 
-    async def _cleanup_old_backups_async(self, task: Dict[str, Any]) -> None:
+    async def _cleanup_old_backups_async(self, task: dict[str, Any]) -> None:
         """Cleanup old deployment backups"""
         # Implementation would clean up old backup directories
         pass
 
-    async def _update_monitoring_config_async(self, task: Dict[str, Any]) -> None:
+    async def _update_monitoring_config_async(self, task: dict[str, Any]) -> None:
         """Update monitoring configuration"""
         # Implementation would update monitoring configs
         pass
 
     async def _send_deployment_notifications_async(
-        self, task: Dict[str, Any], deployment_id: str, success: bool
+        self, task: dict[str, Any], deployment_id: str, success: bool
     ) -> None:
         """Send deployment notifications"""
         # Implementation would send notifications via email, Slack, etc.

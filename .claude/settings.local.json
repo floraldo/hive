@@ -48,7 +48,10 @@
       "Read(//c/c/git/SmartHoodsOptimisationTool/**)",
       "Read(//c/git/SmartHoodsOptimisationTool/Systemiser/**)",
       "Read(//c/git/**)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(poetry show:*)",
+      "Bash(pre-commit:*)",
+      "Bash(ruff check:*)"
     ],
     "deny": [],
     "ask": []

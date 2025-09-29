@@ -5,11 +5,11 @@ This demonstrates the power of property-based testing for finding edge cases
 in algorithmic code that traditional example-based tests might miss.
 """
 
-import pytest
-from hypothesis import given, strategies as st, assume, settings
-from hypothesis.strategies import composite
 import networkx as nx
-from typing import Dict, List, Tuple, Set
+import pytest
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
+from hypothesis.strategies import composite
 
 
 # Custom strategy for generating valid graphs
@@ -80,7 +80,7 @@ class TestGraphAlgorithmProperties:
             if intermediate in nx_distances:
                 for neighbor in G.neighbors(intermediate):
                     if neighbor in nx_distances:
-                        edge_weight = G[intermediate][neighbor]['weight']
+                        edge_weight = G[intermediate][neighbor]["weight"]
                         direct_dist = nx_distances[neighbor]
                         via_intermediate = nx_distances[intermediate] + edge_weight
 
@@ -134,7 +134,7 @@ class TestGraphAlgorithmProperties:
         G = nx.path_graph(n)
 
         # Get coloring using NetworkX greedy algorithm
-        coloring = nx.greedy_color(G, strategy='largest_first')
+        coloring = nx.greedy_color(G, strategy="largest_first")
 
         # Property 1: Adjacent nodes have different colors
         for u, v in G.edges():
@@ -195,7 +195,7 @@ class TestGraphAlgorithmProperties:
 
         # Allow some variance (within 3 standard deviations)
         variance = expected_edges * (1 - p)
-        tolerance = 3 * (variance ** 0.5) if variance > 0 else 1
+        tolerance = 3 * (variance**0.5) if variance > 0 else 1
 
         assert abs(actual_edges - expected_edges) <= max(tolerance, expected_edges * 0.5)
 
@@ -219,7 +219,7 @@ class TestGraphAlgorithmProperties:
 
             if is_bipartite:
                 # Property 1: Can be colored with 2 colors
-                coloring = nx.greedy_color(G, strategy='largest_first')
+                coloring = nx.greedy_color(G, strategy="largest_first")
                 num_colors = len(set(coloring.values()))
                 assert num_colors <= 2
 

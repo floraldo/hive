@@ -2,9 +2,9 @@ from hive_logging import get_logger
 
 #!/usr/bin/env python3
 """
-Performance Benchmarking Script for EcoSystemiser
+Performance Benchmarking Script for EcoSystemiser,
 
-This script establishes quantitative baselines for our own performance optimization,
+This script establishes quantitative baselines for our own performance optimization
 providing the data-driven foundation for architectural decisions and regression detection.
 
 Purpose: Establish baseline metrics for:
@@ -13,9 +13,9 @@ Purpose: Establish baseline metrics for:
 - RollingHorizonMILPSolver performance with/without warm-starting
 
 Usage:
-    python scripts/run_benchmarks.py                    # Run all benchmarks
-    python scripts/run_benchmarks.py --simulation-only  # Just simulation benchmarks
-    python scripts/run_benchmarks.py --milp-only        # Just MILP benchmarks
+    python scripts/run_benchmarks.py                    # Run all benchmarks,
+    python scripts/run_benchmarks.py --simulation-only  # Just simulation benchmarks,
+    python scripts/run_benchmarks.py --milp-only        # Just MILP benchmarks,
     python scripts/run_benchmarks.py --profile          # Include memory profiling
 """
 
@@ -31,7 +31,6 @@ from typing import Any
 # Optional dependency for memory monitoring
 try:
     import psutil
-
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -52,27 +51,27 @@ class PerformanceBenchmark:
         self.output_dir.mkdir(exist_ok=True)
         self.results = {
             "timestamp": datetime.now().isoformat(),
-            "system_info": self._get_system_info(),
+            "system_info": self._get_system_info()
             "simulation_benchmarks": {},
             "milp_benchmarks": {},
-            "memory_benchmarks": {},
-        }
+            "memory_benchmarks": {}
+        },
 
     def _get_system_info(self) -> dict[str, Any]:
         """Capture system configuration for benchmark context."""
         return {
             "cpu_count": psutil.cpu_count(logical=False),
-            "cpu_count_logical": psutil.cpu_count(logical=True),
+            "cpu_count_logical": psutil.cpu_count(logical=True)
             "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 2),
             "python_version": sys.version,
-            "platform": sys.platform,
-        }
+            "platform": sys.platform
+        },
 
     def benchmark_simulation_service(self) -> dict[str, Any]:
         """
-        Benchmark SimulationService.run_simulation across fidelity levels.
+        Benchmark SimulationService.run_simulation across fidelity levels.,
 
-        Establishes baseline solve times for standard system configurations.
+        Establishes baseline solve times for standard system configurations.,
         """
         logger.info("Starting simulation service benchmarks...")
 
@@ -84,23 +83,23 @@ class PerformanceBenchmark:
                 "battery": {"capacity_kwh": 20.0, "power_kw": 5.0},
                 "heat_pump": {"capacity_kw": 8.0},
                 "power_demand": {"annual_kwh": 8000},
-                "heat_demand": {"annual_kwh": 12000},
+                "heat_demand": {"annual_kwh": 12000}
             },
-            "optimization": {"horizon_days": 7, "timestep_hours": 1},
+            "optimization": {"horizon_days": 7, "timestep_hours": 1}
         }
 
         simulation_results = {}
 
-        # Benchmark each fidelity level
+        # Benchmark each fidelity level,
         for fidelity in [
             FidelityLevel.FAST,
             FidelityLevel.BALANCED,
-            FidelityLevel.ACCURATE,
+            FidelityLevel.ACCURATE
         ]:
             logger.info(f"Benchmarking fidelity level: {fidelity.value}")
 
             try:
-                # Memory tracking
+                # Memory tracking,
                 tracemalloc.start()
                 start_memory = psutil.Process().memory_info().rss / (1024**2)  # MB
 
@@ -113,9 +112,8 @@ class PerformanceBenchmark:
                     system_config=system_config,
                     fidelity_level=fidelity,
                     start_date=datetime.now(),
-                    end_date=datetime.now() + timedelta(days=7),
+                    end_date=datetime.now() + timedelta(days=7)
                 )
-
                 end_time = time.perf_counter()
                 solve_time = end_time - start_time
 
@@ -126,11 +124,11 @@ class PerformanceBenchmark:
 
                 simulation_results[fidelity.value] = {
                     "solve_time_seconds": round(solve_time, 3),
-                    "memory_delta_mb": round(end_memory - start_memory, 2),
+                    "memory_delta_mb": round(end_memory - start_memory, 2)
                     "peak_memory_mb": round(peak_memory, 2),
                     "success": True,
-                    "objective_value": getattr(result, "objective_value", None),
-                }
+                    "objective_value": getattr(result, "objective_value", None)
+                },
 
                 logger.info(f"  {fidelity.value}: {solve_time:.3f}s, peak memory: {peak_memory:.1f}MB")
 
@@ -141,16 +139,16 @@ class PerformanceBenchmark:
                     "memory_delta_mb": None,
                     "peak_memory_mb": None,
                     "success": False,
-                    "error": str(e),
-                }
+                    "error": str(e)
+                },
 
         return simulation_results
 
     def benchmark_milp_warm_starting(self) -> dict[str, Any]:
         """
-        Benchmark RollingHorizonMILPSolver with and without warm-starting.
+        Benchmark RollingHorizonMILPSolver with and without warm-starting.,
 
-        Quantifies the performance impact of enhanced warm-starting logic.
+        Quantifies the performance impact of enhanced warm-starting logic.,
         """
         logger.info("Starting MILP warm-starting benchmarks...")
 
@@ -158,19 +156,19 @@ class PerformanceBenchmark:
         scenario_config = {
             "horizon_days": 3,
             "timestep_hours": 1,
-            "total_days": 7,  # Multiple windows for warm-start testing
+            "total_days": 7,  # Multiple windows for warm-start testing,
             "system": {
                 "solar_pv": {"capacity_kw": 15.0},
                 "battery": {"capacity_kwh": 30.0, "power_kw": 10.0},
                 "heat_pump": {"capacity_kw": 12.0},
                 "power_demand": {"annual_kwh": 10000},
-                "heat_demand": {"annual_kwh": 15000},
-            },
+                "heat_demand": {"annual_kwh": 15000}
+            }
         }
 
         milp_results = {}
 
-        # Test both cold start and warm start scenarios
+        # Test both cold start and warm start scenarios,
         for warm_start_enabled in [False, True]:
             scenario_name = "with_warm_start" if warm_start_enabled else "cold_start"
             logger.info(f"Benchmarking MILP solver: {scenario_name}")
@@ -183,45 +181,42 @@ class PerformanceBenchmark:
                 solver = RollingHorizonMILPSolver(
                     horizon_hours=scenario_config["horizon_days"] * 24,
                     timestep_hours=scenario_config["timestep_hours"],
-                    warm_start_enabled=warm_start_enabled,
+                    warm_start_enabled=warm_start_enabled
                 )
 
                 # Simulate multiple rolling windows
-                total_solve_time = 0
+                total_solve_time = 0,
                 window_count = 0
 
                 for window_start in range(0, scenario_config["total_days"], scenario_config["horizon_days"]):
                     window_solve_start = time.perf_counter()
 
-                    # Run optimization window
+                    # Run optimization window,
                     solver.optimize_window(
                         start_hour=window_start * 24,
-                        system_config=scenario_config["system"],
+                        system_config=scenario_config["system"]
                     )
-
                     window_solve_time = time.perf_counter() - window_solve_start
                     total_solve_time += window_solve_time
                     window_count += 1
 
                     if not warm_start_enabled:
-                        # Clear solution for cold start
+                        # Clear solution for cold start,
                         solver.previous_solution = None
-
                 end_time = time.perf_counter()
                 peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)  # MB
                 tracemalloc.stop()
-
                 total_time = end_time - start_time
                 avg_window_time = total_solve_time / window_count if window_count > 0 else 0
 
                 milp_results[scenario_name] = {
                     "total_time_seconds": round(total_time, 3),
-                    "total_solve_time_seconds": round(total_solve_time, 3),
+                    "total_solve_time_seconds": round(total_solve_time, 3)
                     "average_window_solve_time_seconds": round(avg_window_time, 3),
                     "window_count": window_count,
                     "peak_memory_mb": round(peak_memory, 2),
-                    "success": True,
-                }
+                    "success": True
+                },
 
                 logger.info(f"  {scenario_name}: {total_solve_time:.3f}s total, {avg_window_time:.3f}s avg/window")
 
@@ -234,10 +229,10 @@ class PerformanceBenchmark:
                     "window_count": 0,
                     "peak_memory_mb": None,
                     "success": False,
-                    "error": str(e),
+                    "error": str(e)
                 }
 
-        # Calculate warm-start performance improvement
+        # Calculate warm-start performance improvement,
         if milp_results.get("cold_start", {}).get("success") and milp_results.get("with_warm_start", {}).get("success"):
             cold_time = milp_results["cold_start"]["total_solve_time_seconds"]
             warm_time = milp_results["with_warm_start"]["total_solve_time_seconds"]
@@ -246,19 +241,18 @@ class PerformanceBenchmark:
                 improvement_percent = ((cold_time - warm_time) / cold_time) * 100
                 milp_results["warm_start_improvement"] = {
                     "solve_time_improvement_percent": round(improvement_percent, 1),
-                    "solve_time_reduction_seconds": round(cold_time - warm_time, 3),
-                }
+                    "solve_time_reduction_seconds": round(cold_time - warm_time, 3)
+                },
 
         return milp_results
 
     def benchmark_memory_usage(self) -> dict[str, Any]:
         """
-        Benchmark peak memory usage patterns for different operation types.
+        Benchmark peak memory usage patterns for different operation types.,
 
-        Establishes baseline memory consumption for regression detection.
+        Establishes baseline memory consumption for regression detection.,
         """
         logger.info("Starting memory usage benchmarks...")
-
         memory_results = {}
 
         # Test different operation scales
@@ -268,9 +262,9 @@ class PerformanceBenchmark:
             "large_system": {"days": 14, "timestep_hours": 1},
             "high_resolution": {
                 "days": 3,
-                "timestep_hours": 0.25,
+                "timestep_hours": 0.25
             },  # 15-minute resolution
-        }
+        },
 
         for scenario_name, config in scenarios.items():
             logger.info(f"Memory benchmark: {scenario_name}")
@@ -283,31 +277,30 @@ class PerformanceBenchmark:
                 builder = SystemBuilder()
                 system = builder.build_standard_system(
                     location={"latitude": 52.0, "longitude": 4.0},
-                    horizon_days=config["days"],
-                    timestep_hours=config["timestep_hours"],
+                    horizon_days=config["days"]
+                    timestep_hours=config["timestep_hours"]
                 )
 
                 # Simulate data loading and processing
                 simulation_service = SimulationService()
                 simulation_service.run_simulation(
                     system_config=system,
-                    fidelity_level=FidelityLevel.BALANCED,
+                    fidelity_level=FidelityLevel.BALANCED
                     start_date=datetime.now(),
-                    end_date=datetime.now() + timedelta(days=config["days"]),
+                    end_date=datetime.now() + timedelta(days=config["days"])
                 )
-
                 peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)
                 final_memory = psutil.Process().memory_info().rss / (1024**2)
                 tracemalloc.stop()
 
                 memory_results[scenario_name] = {
                     "initial_memory_mb": round(initial_memory, 2),
-                    "peak_memory_mb": round(peak_memory, 2),
+                    "peak_memory_mb": round(peak_memory, 2)
                     "final_memory_mb": round(final_memory, 2),
-                    "memory_delta_mb": round(final_memory - initial_memory, 2),
+                    "memory_delta_mb": round(final_memory - initial_memory, 2)
                     "scenario_config": config,
-                    "success": True,
-                }
+                    "success": True
+                },
 
                 logger.info(f"  {scenario_name}: peak {peak_memory:.1f}MB, delta {final_memory - initial_memory:.1f}MB")
 
@@ -320,8 +313,8 @@ class PerformanceBenchmark:
                     "memory_delta_mb": None,
                     "scenario_config": config,
                     "success": False,
-                    "error": str(e),
-                }
+                    "error": str(e)
+                },
 
         return memory_results
 
@@ -348,12 +341,12 @@ class PerformanceBenchmark:
 
             logger.info(f"Benchmark results saved to: {results_file}")
 
-            # Print summary
+            # Print summary,
             self._print_summary()
 
         except Exception as e:
             logger.error(f"Benchmark suite failed: {e}")
-            raise
+            raise,
 
     def _print_summary(self) -> None:
         """Print benchmark summary to console."""
@@ -366,7 +359,7 @@ class PerformanceBenchmark:
         logger.info(f"System: {sys_info['cpu_count']} cores, {sys_info['memory_total_gb']}GB RAM")
         logger.info(f"Timestamp: {self.results['timestamp']}")
 
-        # Simulation benchmarks
+        # Simulation benchmarks,
         if self.results.get("simulation_benchmarks"):
             logger.info("\nSIMULATION SERVICE BENCHMARKS:")
             for fidelity, result in self.results["simulation_benchmarks"].items():
@@ -377,7 +370,7 @@ class PerformanceBenchmark:
                 else:
                     logger.error(f"  {fidelity:12}: FAILED")
 
-        # MILP benchmarks
+        # MILP benchmarks,
         if self.results.get("milp_benchmarks"):
             logger.info("\nMILP SOLVER BENCHMARKS:")
             for scenario, result in self.results["milp_benchmarks"].items():
@@ -390,12 +383,12 @@ class PerformanceBenchmark:
                 else:
                     logger.error(f"  {scenario:15}: FAILED")
 
-            # Warm start improvement
+            # Warm start improvement,
             if "warm_start_improvement" in self.results["milp_benchmarks"]:
                 improvement = self.results["milp_benchmarks"]["warm_start_improvement"]
                 logger.info(f"\nWarm-start improvement: {improvement['solve_time_improvement_percent']:.1f}% faster")
 
-        # Memory benchmarks
+        # Memory benchmarks,
         if self.results.get("memory_benchmarks"):
             logger.info("\nMEMORY USAGE BENCHMARKS:")
             for scenario, result in self.results["memory_benchmarks"].items():
@@ -413,24 +406,23 @@ def main() -> None:
     """Main benchmark execution."""
     parser = argparse.ArgumentParser(description="EcoSystemiser Performance Benchmarks")
     parser.add_argument(
-        "--simulation-only",
+        "--simulation-only"
         action="store_true",
-        help="Run only simulation service benchmarks",
+        help="Run only simulation service benchmarks"
     )
     parser.add_argument("--milp-only", action="store_true", help="Run only MILP solver benchmarks")
     parser.add_argument("--profile", action="store_true", help="Include detailed memory profiling")
     parser.add_argument("--output-dir", type=Path, help="Output directory for results")
-
     args = parser.parse_args()
 
     # Create benchmark runner
     benchmark = PerformanceBenchmark(output_dir=args.output_dir)
 
-    # Run benchmarks
+    # Run benchmarks,
     benchmark.run_all_benchmarks(
         simulation_only=args.simulation_only,
-        milp_only=args.milp_only,
-        include_memory=args.profile,
+        milp_only=args.milp_only
+        include_memory=args.profile
     )
 
 

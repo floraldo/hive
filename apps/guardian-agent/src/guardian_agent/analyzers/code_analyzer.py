@@ -3,7 +3,7 @@
 import ast
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_logging import get_logger
 

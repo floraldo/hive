@@ -1,34 +1,9 @@
 """Unit tests for hive-async package V4.2."""
 
 import asyncio
-import pytest
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Any, Optional
 
-# Import the components we're testing
-from hive_async.resilience import (
-    AsyncCircuitBreaker,
-    AsyncTimeoutManager,
-    CircuitState,
-    async_circuit_breaker,
-    async_timeout,
-    async_resilient,
-)
-from hive_async.retry import (
-    AsyncRetryConfig,
-    async_retry,
-    create_retry_decorator,
-    retry_on_connection_error,
-)
-from hive_async.context import (
-    AsyncResourceManager,
-    async_context,
-)
-from hive_async.tasks import (
-    gather_with_concurrency,
-    run_with_timeout,
-)
+import pytest
 from hive_async.advanced_timeout import (
     AdvancedTimeoutManager,
     TimeoutConfig,
@@ -36,9 +11,33 @@ from hive_async.advanced_timeout import (
     timeout_context,
     with_adaptive_timeout,
 )
+from hive_async.context import (
+    AsyncResourceManager,
+    async_context,
+)
+
+# Import the components we're testing
+from hive_async.resilience import (
+    AsyncCircuitBreaker,
+    AsyncTimeoutManager,
+    CircuitState,
+    async_circuit_breaker,
+    async_resilient,
+    async_timeout,
+)
+from hive_async.retry import (
+    AsyncRetryConfig,
+    async_retry,
+    create_retry_decorator,
+    retry_on_connection_error,
+)
+from hive_async.tasks import (
+    gather_with_concurrency,
+    run_with_timeout,
+)
 
 # Import expected exceptions
-from hive_errors import CircuitBreakerOpenError, AsyncTimeoutError
+from hive_errors import AsyncTimeoutError, CircuitBreakerOpenError
 
 
 class TestCircuitState:
@@ -56,11 +55,7 @@ class TestAsyncCircuitBreaker:
 
     def test_circuit_breaker_initialization(self):
         """Test AsyncCircuitBreaker initializes correctly."""
-        breaker = AsyncCircuitBreaker(
-            failure_threshold=3,
-            recovery_timeout=30,
-            expected_exception=ValueError
-        )
+        breaker = AsyncCircuitBreaker(failure_threshold=3, recovery_timeout=30, expected_exception=ValueError)
 
         assert breaker.failure_threshold == 3
         assert breaker.recovery_timeout == 30
@@ -241,10 +236,7 @@ class TestAsyncTimeoutManager:
             await asyncio.sleep(0.01)
             return "completed"
 
-        result = await manager.run_with_timeout_async(
-            quick_operation(),
-            operation_name="test_op"
-        )
+        result = await manager.run_with_timeout_async(quick_operation(), operation_name="test_op")
 
         assert result == "completed"
 
@@ -264,10 +256,7 @@ class TestAsyncTimeoutManager:
             return "too_slow"
 
         with pytest.raises(AsyncTimeoutError) as exc_info:
-            await manager.run_with_timeout_async(
-                slow_operation(),
-                operation_name="slow_op"
-            )
+            await manager.run_with_timeout_async(slow_operation(), operation_name="slow_op")
 
         assert "slow_op" in str(exc_info.value)
         assert exc_info.value.operation == "slow_op"
@@ -288,9 +277,7 @@ class TestAsyncTimeoutManager:
             return "too_slow"
 
         result = await manager.run_with_timeout_async(
-            slow_operation(),
-            operation_name="slow_op",
-            fallback="fallback_value"
+            slow_operation(), operation_name="slow_op", fallback="fallback_value"
         )
 
         assert result == "fallback_value"
@@ -305,18 +292,12 @@ class TestAsyncTimeoutManager:
             return "completed"
 
         # Should succeed with longer timeout
-        result = await manager.run_with_timeout_async(
-            medium_operation(),
-            timeout=0.5
-        )
+        result = await manager.run_with_timeout_async(medium_operation(), timeout=0.5)
         assert result == "completed"
 
         # Should fail with shorter timeout
         with pytest.raises(AsyncTimeoutError):
-            await manager.run_with_timeout_async(
-                medium_operation(),
-                timeout=0.1
-            )
+            await manager.run_with_timeout_async(medium_operation(), timeout=0.1)
 
     @pytest.mark.asyncio
     async def test_timeout_manager_cancel_all_tasks(self):
@@ -356,7 +337,7 @@ class TestAsyncTimeoutManager:
         assert op_stats["total_calls"] == 3
         assert op_stats["successful_calls"] == 2
         assert op_stats["timeouts"] == 1
-        assert op_stats["success_rate"] == 2/3
+        assert op_stats["success_rate"] == 2 / 3
         assert op_stats["avg_time"] == (0.5 + 0.3 + 1.0) / 3
 
 
@@ -412,10 +393,7 @@ class TestAsyncDecoratorPatterns:
         call_count = 0
 
         @async_resilient(
-            timeout=0.2,
-            circuit_failure_threshold=2,
-            circuit_recovery_timeout=0.1,
-            operation_name="resilient_test"
+            timeout=0.2, circuit_failure_threshold=2, circuit_recovery_timeout=0.1, operation_name="resilient_test"
         )
         async def decorated_function(should_fail=False, delay=0.01):
             nonlocal call_count
@@ -452,13 +430,7 @@ class TestAsyncRetryConfig:
 
     def test_retry_config_initialization(self):
         """Test AsyncRetryConfig initialization."""
-        config = AsyncRetryConfig(
-            max_attempts=5,
-            base_delay=0.1,
-            max_delay=5.0,
-            exponential_base=2.0,
-            jitter=True
-        )
+        config = AsyncRetryConfig(max_attempts=5, base_delay=0.1, max_delay=5.0, exponential_base=2.0, jitter=True)
 
         assert config.max_attempts == 5
         assert config.base_delay == 0.1
@@ -468,12 +440,7 @@ class TestAsyncRetryConfig:
 
     def test_retry_config_delay_calculation(self):
         """Test retry delay calculation."""
-        config = AsyncRetryConfig(
-            base_delay=0.1,
-            max_delay=1.0,
-            exponential_base=2.0,
-            jitter=False
-        )
+        config = AsyncRetryConfig(base_delay=0.1, max_delay=1.0, exponential_base=2.0, jitter=False)
 
         # Test exponential backoff
         delay1 = config.calculate_delay(attempt=1)
@@ -490,11 +457,7 @@ class TestAsyncRetryConfig:
 
     def test_retry_config_with_jitter(self):
         """Test retry delay with jitter."""
-        config = AsyncRetryConfig(
-            base_delay=0.1,
-            exponential_base=2.0,
-            jitter=True
-        )
+        config = AsyncRetryConfig(base_delay=0.1, exponential_base=2.0, jitter=True)
 
         delay1 = config.calculate_delay(attempt=2)
         delay2 = config.calculate_delay(attempt=2)
@@ -576,11 +539,7 @@ class TestAsyncRetryDecorator:
     @pytest.mark.asyncio
     async def test_create_retry_decorator_custom(self):
         """Test creating custom retry decorator."""
-        retry_decorator = create_retry_decorator(
-            max_attempts=2,
-            base_delay=0.01,
-            exceptions=(ValueError, TypeError)
-        )
+        retry_decorator = create_retry_decorator(max_attempts=2, base_delay=0.01, exceptions=(ValueError, TypeError))
 
         call_count = 0
 
@@ -691,6 +650,7 @@ class TestTaskUtilities:
     @pytest.mark.asyncio
     async def test_run_with_timeout_success(self):
         """Test run_with_timeout with successful operation."""
+
         async def quick_task():
             await asyncio.sleep(0.01)
             return "completed"
@@ -701,6 +661,7 @@ class TestTaskUtilities:
     @pytest.mark.asyncio
     async def test_run_with_timeout_failure(self):
         """Test run_with_timeout with timeout."""
+
         async def slow_task():
             await asyncio.sleep(1.0)
             return "too_slow"
@@ -715,11 +676,7 @@ class TestAdvancedTimeoutManager:
     def test_timeout_config_initialization(self):
         """Test TimeoutConfig initialization."""
         config = TimeoutConfig(
-            default_timeout=30.0,
-            min_timeout=1.0,
-            max_timeout=300.0,
-            adaptive_enabled=True,
-            performance_window=100
+            default_timeout=30.0, min_timeout=1.0, max_timeout=300.0, adaptive_enabled=True, performance_window=100
         )
 
         assert config.default_timeout == 30.0
@@ -741,18 +698,13 @@ class TestAdvancedTimeoutManager:
     @pytest.mark.asyncio
     async def test_advanced_timeout_manager(self):
         """Test AdvancedTimeoutManager functionality."""
-        manager = AdvancedTimeoutManager(
-            config=TimeoutConfig(default_timeout=1.0, adaptive_enabled=False)
-        )
+        manager = AdvancedTimeoutManager(config=TimeoutConfig(default_timeout=1.0, adaptive_enabled=False))
 
         async def test_operation():
             await asyncio.sleep(0.01)
             return "success"
 
-        result = await manager.execute_with_timeout_async(
-            test_operation(),
-            operation_name="test_op"
-        )
+        result = await manager.execute_with_timeout_async(test_operation(), operation_name="test_op")
 
         assert result == "success"
 
@@ -801,10 +753,7 @@ class TestAsyncIntegration:
         # Successful operation
         async def wrapped_success():
             return await breaker.call_async(
-                lambda: timeout_manager.run_with_timeout_async(
-                    integrated_operation(),
-                    operation_name="integrated_test"
-                )
+                lambda: timeout_manager.run_with_timeout_async(integrated_operation(), operation_name="integrated_test")
             )
 
         result = await wrapped_success()
@@ -814,8 +763,7 @@ class TestAsyncIntegration:
         async def wrapped_timeout():
             return await breaker.call_async(
                 lambda: timeout_manager.run_with_timeout_async(
-                    integrated_operation(delay=1.0),
-                    operation_name="timeout_test"
+                    integrated_operation(delay=1.0), operation_name="timeout_test"
                 )
             )
 
@@ -852,11 +800,7 @@ class TestAsyncIntegration:
         """Test complete resilience stack working together."""
         operation_count = 0
 
-        @async_resilient(
-            timeout=0.5,
-            circuit_failure_threshold=2,
-            circuit_recovery_timeout=0.1
-        )
+        @async_resilient(timeout=0.5, circuit_failure_threshold=2, circuit_recovery_timeout=0.1)
         @async_retry(max_attempts=3, base_delay=0.01)
         async def resilient_operation(mode="success"):
             nonlocal operation_count
@@ -889,16 +833,14 @@ class TestAsyncIntegration:
     @pytest.mark.asyncio
     async def test_concurrent_resilient_operations(self):
         """Test multiple resilient operations running concurrently."""
+
         @async_resilient(timeout=0.2, circuit_failure_threshold=3)
         async def concurrent_operation(operation_id, delay=0.01):
             await asyncio.sleep(delay)
             return f"concurrent_{operation_id}"
 
         # Run multiple operations concurrently
-        tasks = [
-            concurrent_operation(i, 0.01)
-            for i in range(10)
-        ]
+        tasks = [concurrent_operation(i, 0.01) for i in range(10)]
 
         results = await asyncio.gather(*tasks)
 

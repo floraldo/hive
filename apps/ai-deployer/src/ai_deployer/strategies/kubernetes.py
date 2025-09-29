@@ -3,7 +3,7 @@ Kubernetes-based deployment strategy
 """
 
 import asyncio
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -18,12 +18,12 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
     Kubernetes-based deployment strategy for cloud-native applications
     """
 
-    def __init__(self, config: Dict[str, Any]) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         """Initialize Kubernetes deployment strategy"""
         super().__init__(config)
         self.strategy = DeploymentStrategy.CANARY
 
-    async def pre_deployment_checks_async(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def pre_deployment_checks_async(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Run pre-deployment checks for Kubernetes deployment
 
@@ -79,7 +79,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
                 "errors": [f"Pre-deployment check failed: {e}"],
             }
 
-    async def deploy_async(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
+    async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """
         Execute Kubernetes deployment
 
@@ -159,10 +159,10 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
 
     async def rollback_async(
         self,
-        task: Dict[str, Any],
+        task: dict[str, Any],
         deployment_id: str,
-        previous_deployment: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        previous_deployment: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Rollback Kubernetes deployment to previous version
 
@@ -232,7 +232,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
                 "error": str(e),
             }
 
-    async def post_deployment_actions_async(self, task: Dict[str, Any], deployment_id: str) -> None:
+    async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """
         Run post-deployment actions for Kubernetes deployment
 
@@ -279,7 +279,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Cluster connectivity check failed: {e}")
             return False
 
-    async def _validate_manifests_async(self, manifests: Dict[str, Any]) -> bool:
+    async def _validate_manifests_async(self, manifests: dict[str, Any]) -> bool:
         """Validate Kubernetes manifests"""
         try:
             # Simulate manifest validation
@@ -299,7 +299,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Namespace access check failed: {e}")
             return False
 
-    async def _check_image_access_async(self, image_config: Dict[str, Any]) -> bool:
+    async def _check_image_access_async(self, image_config: dict[str, Any]) -> bool:
         """Check if Docker image is accessible from cluster"""
         try:
             # Simulate image access check
@@ -309,7 +309,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Image access check failed: {e}")
             return False
 
-    async def _apply_manifests_async(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
+    async def _apply_manifests_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """Apply Kubernetes manifests"""
         try:
             # Simulate manifest application
@@ -337,7 +337,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Deployment readiness check failed: {e}")
             return False
 
-    async def _execute_canary_deployment_async(self, task: Dict[str, Any], deployment_id: str) -> Dict[str, Any]:
+    async def _execute_canary_deployment_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """Execute canary deployment strategy"""
         try:
             logger.info(f"Executing canary deployment for {deployment_id}")
@@ -377,7 +377,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
                 "error": str(e),
             }
 
-    async def _deploy_canary_version_async(self, task: Dict[str, Any], deployment_id: str) -> None:
+    async def _deploy_canary_version_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """Deploy canary version with limited replicas"""
         # Simulate canary deployment
         await asyncio.sleep(1.0)
@@ -402,7 +402,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
         except Exception as e:
             logger.error(f"Failed deployment cleanup error: {e}")
 
-    async def _update_ingress_async(self, task: Dict[str, Any], deployment_id: str) -> bool:
+    async def _update_ingress_async(self, task: dict[str, Any], deployment_id: str) -> bool:
         """Update ingress configuration"""
         try:
             # Simulate ingress update
@@ -432,7 +432,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Kubectl rollback failed: {e}")
             return False
 
-    async def _apply_previous_manifests_async(self, manifests: List[str]) -> bool:
+    async def _apply_previous_manifests_async(self, manifests: list[str]) -> bool:
         """Apply previous deployment manifests"""
         try:
             # Simulate applying previous manifests
@@ -450,7 +450,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
         except Exception as e:
             logger.error(f"Replica set cleanup failed: {e}")
 
-    async def _configure_autoscaling_async(self, task: Dict[str, Any], deployment_id: str) -> None:
+    async def _configure_autoscaling_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """Configure horizontal pod autoscaling"""
         try:
             # Setup HPA
@@ -458,7 +458,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
         except Exception as e:
             logger.error(f"Autoscaling configuration failed: {e}")
 
-    async def _update_monitoring_config_async(self, task: Dict[str, Any], deployment_id: str) -> None:
+    async def _update_monitoring_config_async(self, task: dict[str, Any], deployment_id: str) -> None:
         """Update monitoring and alerting configuration"""
         try:
             # Update monitoring configs

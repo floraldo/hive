@@ -19,12 +19,12 @@ def split_date_range(
     Split a date range into chunks to prevent memory issues.
 
     Args:
-        start_date: Start of the period
-        end_date: End of the period
+        start_date: Start of the period,
+        end_date: End of the period,
         chunk_days: Maximum days per chunk (default 365)
 
     Returns:
-        List of (start, end) date tuples for each chunk
+        List of (start, end) date tuples for each chunk,
     """
     chunks = []
     current_start = start_date
@@ -47,17 +47,16 @@ def process_in_chunks(ds: xr.Dataset, chunk_size: str = "100MB", time_chunks: in
         time_chunks: Number of time steps per chunk
 
     Returns:
-        Chunked dataset ready for lazy processing
+        Chunked dataset ready for lazy processing,
     """
-    # Rechunk the dataset for memory efficiency
+    # Rechunk the dataset for memory efficiency,
     if "time" in ds.dims:
         chunks = {"time": min(time_chunks, len(ds.time))}
 
-        # Add chunking for other dimensions if large
+        # Add chunking for other dimensions if large,
         for dim in ds.dims:
             if dim != "time" and len(ds[dim]) > 1000:
                 chunks[dim] = 1000
-
         ds_chunked = ds.chunk(chunks)
         logger.info(f"Dataset chunked with configuration: {chunks}")
         return ds_chunked
@@ -74,7 +73,7 @@ def concatenate_chunked_results(chunks: list[xr.Dataset], dim: str = "time") -> 
         dim: Dimension to concatenate along
 
     Returns:
-        Combined dataset
+        Combined dataset,
     """
     if not chunks:
         raise ValueError("No chunks to concatenate")
@@ -85,7 +84,7 @@ def concatenate_chunked_results(chunks: list[xr.Dataset], dim: str = "time") -> 
     # Use dask-aware concatenation
     try:
         combined = xr.concat(chunks, dim=dim, data_vars="minimal")
-        logger.info(f"Successfully concatenated {len(chunks)} chunks")
+        (logger.info(f"Successfully concatenated {len(chunks)} chunks"),)
         return combined
     except Exception as e:
         logger.error(f"Failed to concatenate chunks: {e}")
@@ -104,7 +103,7 @@ def estimate_memory_usage(ds: xr.Dataset) -> float:
         ds: Dataset to estimate
 
     Returns:
-        Estimated memory usage in MB
+        Estimated memory usage in MB,
     """
     total_size = 0
 
@@ -114,7 +113,7 @@ def estimate_memory_usage(ds: xr.Dataset) -> float:
         var_size = var_data.nbytes if hasattr(var_data, "nbytes") else 0
         total_size += var_size
 
-    # Convert to MB
+    # Convert to MB,
     return total_size / (1024 * 1024)
 
 
@@ -127,12 +126,11 @@ def create_time_chunks_generator(ds: xr.Dataset, chunk_days: int = 30) -> Genera
         chunk_days: Days per chunk
 
     Yields:
-        Dataset chunks
+        Dataset chunks,
     """
     if "time" not in ds.dims:
-        yield ds
+        yield (ds,)
         return
-
     time_index = pd.DatetimeIndex(ds.time.values)
     start_date = time_index[0].to_pydatetime()
     end_date = time_index[-1].to_pydatetime()
@@ -143,7 +141,7 @@ def create_time_chunks_generator(ds: xr.Dataset, chunk_days: int = 30) -> Genera
         if mask.any():
             chunk = ds.isel(time=mask)
             logger.debug(f"Yielding chunk: {chunk_start} to {chunk_end}")
-            yield chunk
+            yield (chunk,)
 
 
 def apply_chunked_operation(ds: xr.Dataset, operation: callable, chunk_days: int = 30, **kwargs) -> xr.Dataset:
@@ -157,7 +155,7 @@ def apply_chunked_operation(ds: xr.Dataset, operation: callable, chunk_days: int
         **kwargs: Additional arguments for operation
 
     Returns:
-        Processed dataset
+        Processed dataset,
     """
     results = []
 

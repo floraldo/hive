@@ -2,8 +2,6 @@
 Pytest configuration for hive-tests.
 """
 
-from pathlib import Path
-
 import pytest
 from hive_config.paths import get_project_root
 

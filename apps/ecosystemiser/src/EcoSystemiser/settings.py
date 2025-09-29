@@ -1,23 +1,22 @@
 """
-Centralized configuration management for EcoSystemiser platform.
+Centralized configuration management for EcoSystemiser platform.,
 
 Combines all configuration needs for the modular architecture including
 profile_loader (climate, demand), solver, analyser, and reporting modules.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Pydantic v2 imports
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -143,12 +142,12 @@ class APISettings(BaseSettings):
     # Versioning
     api_prefix: str = Field(default="/api")
     default_version: str = Field(default="v3")
-    supported_versions: List[str] = Field(default=["v2", "v3"])
+    supported_versions: list[str] = Field(default=["v2", "v3"])
 
     # CORS
-    cors_origins: List[str] = Field(default=["*"])
-    cors_methods: List[str] = Field(default=["*"])
-    cors_headers: List[str] = Field(default=["*"])
+    cors_origins: list[str] = Field(default=["*"])
+    cors_methods: list[str] = Field(default=["*"])
+    cors_headers: list[str] = Field(default=["*"])
 
     # Limits
     max_batch_size: int = Field(default=100, ge=1, le=1000)
@@ -292,12 +291,12 @@ class Settings(BaseSettings):
     def validate_environment(cls, v, info):
         """Adjust settings based on environment"""
         if v == "production":
-            # Enforce production settings
+            # Enforce production settings,
             if "debug" in info.data:
                 info.data["debug"] = False
         return v
 
-    def get_adapter_config(self, adapter_name: str) -> Dict[str, Any]:
+    def get_adapter_config(self, adapter_name: str) -> dict[str, Any]:
         """Get configuration for a specific adapter"""
         config = {}
         prefix = f"{adapter_name}_"
@@ -319,12 +318,12 @@ class Settings(BaseSettings):
         from ecosystemiser.profile_loader.climate.config_models import CacheConfig
 
         return CacheConfig(
-            memory_size=self.cache.memory_size
-            memory_ttl=self.cache.memory_ttl
-            cache_dir=str(self.cache.cache_dir)
-            disk_ttl=self.cache.disk_ttl
-            redis_url=self.cache.redis_url
-            redis_ttl=self.cache.redis_ttl
+            memory_size=self.cache.memory_size,
+            memory_ttl=self.cache.memory_ttl,
+            cache_dir=str(self.cache.cache_dir),
+            disk_ttl=self.cache.disk_ttl,
+            redis_url=self.cache.redis_url,
+            redis_ttl=self.cache.redis_ttl,
         )
 
     def get_http_config(self):
@@ -332,28 +331,27 @@ class Settings(BaseSettings):
         from ecosystemiser.profile_loader.climate.config_models import HTTPConfig
 
         return HTTPConfig(
-            timeout=self.http.timeout
-            max_retries=self.http.max_retries
-            retry_backoff_factor=self.http.retry_backoff_factor
-            connection_pool_size=self.http.connection_pool_size
-            keepalive_expiry=self.http.keepalive_expiry
+            timeout=self.http.timeout,
+            max_retries=self.http.max_retries,
+            retry_backoff_factor=self.http.retry_backoff_factor,
+            connection_pool_size=self.http.connection_pool_size,
+            keepalive_expiry=self.http.keepalive_expiry,
         )
 
     def get_rate_limit_config(self):
         """Get rate limit configuration for adapters"""
-        # Import here to avoid circular dependency
+        # Import here to avoid circular dependency,
         from ecosystemiser.profile_loader.climate.config_models import RateLimitConfig
 
         return RateLimitConfig(
-            requests_per_minute=self.rate_limit.requests_per_minute
-            burst_size=self.rate_limit.burst_size
+            requests_per_minute=self.rate_limit.requests_per_minute, burst_size=self.rate_limit.burst_size
         )
 
     model_config = ConfigDict(
-        env_prefix="ECOSYSTEMISER_"
-        env_file=".env"
-        env_file_encoding="utf-8"
-        case_sensitive=False
+        env_prefix="ECOSYSTEMISER_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
         extra="ignore",  # Allow extra environment variables
     )
 
@@ -362,7 +360,7 @@ class Settings(BaseSettings):
 _settings: Settings | None = None
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     """Get singleton settings instance"""
     global _settings

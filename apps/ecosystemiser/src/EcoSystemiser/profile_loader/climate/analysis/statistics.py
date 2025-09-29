@@ -17,11 +17,11 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
         percentiles: Percentiles to calculate
 
     Returns:
-        Dictionary of statistics per variable + correlation matrix
+        Dictionary of statistics per variable + correlation matrix,
     """
     stats_dict = {}
 
-    # Calculate per-variable statistics
+    # Calculate per-variable statistics,
     for var_name in ds.data_vars:
         data = ds[var_name].values
 
@@ -36,10 +36,10 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
                 "max": float(np.max(valid_data)),
                 "count": len(valid_data),
                 "missing": int(np.sum(np.isnan(data))),
-                "missing_pct": float(np.sum(np.isnan(data)) / len(data) * 100),
+                "missing_pct": float(np.sum(np.isnan(data)) / len(data) * 100)
             }
 
-            # Add percentiles
+            # Add percentiles,
             for p in percentiles:
                 var_stats[f"p{int(p):02d}"] = float(np.percentile(valid_data, p))
 
@@ -51,8 +51,8 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
                 "min": np.nan,
                 "max": np.nan,
                 "count": 0,
-                "missing": len(data),
-                "missing_pct": 100.0,
+                "missing": len(data)
+                "missing_pct": 100.0
             }
 
     # Calculate correlation matrix
@@ -71,7 +71,7 @@ def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> dict[str
         method: Correlation method ('pearson' or 'spearman')
 
     Returns:
-        Correlation matrix as nested dictionary
+        Correlation matrix as nested dictionary,
     """
     var_names = list(ds.data_vars)
     correlations = {}
@@ -86,7 +86,6 @@ def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> dict[str
                 # Get valid pairs (no NaN)
                 data1 = ds[var1].values
                 data2 = ds[var2].values
-
                 mask = ~(np.isnan(data1) | np.isnan(data2))
 
                 if np.sum(mask) > 2:
@@ -114,7 +113,7 @@ def compare_statistics(stats1: dict, stats2: dict, tolerance: float = 0.1) -> di
         tolerance: Relative tolerance for comparison
 
     Returns:
-        Comparison results
+        Comparison results,
     """
     comparison = {}
 
@@ -139,7 +138,7 @@ def compare_statistics(stats1: dict, stats2: dict, tolerance: float = 0.1) -> di
                     comparison[var][f"{stat}_rel_diff"] = rel_diff
                     comparison[var][f"{stat}_within_tolerance"] = rel_diff <= tolerance
 
-    # Compare correlations
+    # Compare correlations,
     if "correlations" in stats1 and "correlations" in stats2:
         corr1 = stats1["correlations"]
         corr2 = stats2["correlations"]

@@ -23,22 +23,22 @@ def get_sqlite_connection(
     Get a SQLite database connection.
 
     Args:
-        db_path: Path to the SQLite database file (overrides config)
-        config: Configuration dictionary with database settings
+        db_path: Path to the SQLite database file (overrides config),
+        config: Configuration dictionary with database settings,
         **kwargs: Additional connection parameters
 
     Returns:
         SQLite connection object
 
     Raises:
-        sqlite3.Error: If connection fails
+        sqlite3.Error: If connection fails,
         ValueError: If no database path is provided
 
     Config Structure:
         {
             'db_path': '/path/to/database.sqlite',
             'timeout': 30.0,
-            'check_same_thread': False
+            'check_same_thread': False,
         }
     """
     # If no config provided, create minimal config (db_path can be sufficient)
@@ -58,7 +58,7 @@ def get_sqlite_connection(
     defaults = {
         "timeout": config.get("timeout", 30.0),
         "check_same_thread": config.get("check_same_thread", False),
-        "isolation_level": config.get("isolation_level", None),  # Autocommit mode
+        "isolation_level": config.get("isolation_level", None),  # Autocommit mode,
     }
     defaults.update(kwargs)
 
@@ -72,11 +72,11 @@ def get_sqlite_connection(
         # Enable foreign key constraints
         conn.execute("PRAGMA foreign_keys=ON")
 
-        logger.info(f"SQLite connection established: {final_db_path}")
+        (logger.info(f"SQLite connection established: {final_db_path}"),)
         return conn
 
     except sqlite3.Error as e:
-        logger.error(f"Failed to connect to SQLite database {final_db_path}: {e}")
+        (logger.error(f"Failed to connect to SQLite database {final_db_path}: {e}"),)
         raise
 
 

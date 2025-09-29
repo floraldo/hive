@@ -5,7 +5,6 @@ This benchmark focuses on the serialization component that could be causing
 cache latency issues in the V4.2 performance certification.
 """
 
-import asyncio
 import json
 import statistics
 import time
@@ -258,11 +257,7 @@ class SerializationBenchmark:
                     status = (
                         "FAST"
                         if result.p95_ms < 0.1
-                        else "OK"
-                        if result.p95_ms < 1.0
-                        else "SLOW"
-                        if result.p95_ms < 5.0
-                        else "CRITICAL"
+                        else "OK" if result.p95_ms < 1.0 else "SLOW" if result.p95_ms < 5.0 else "CRITICAL"
                     )
 
                     if result.p95_ms > 1.0:
@@ -293,7 +288,7 @@ class SerializationBenchmark:
                 fastest_serialize = min(serialize_ops, key=lambda x: x.p95_ms)
                 slowest_serialize = max(serialize_ops, key=lambda x: x.p95_ms)
 
-                print(f"\nSERIALIZATION COMPARISON:")
+                print("\nSERIALIZATION COMPARISON:")
                 print(
                     f"  Fastest: {fastest_serialize.name} ({fastest_serialize.p95_ms:.3f}ms P95, {fastest_serialize.ops_per_second:,.0f} ops/sec)"
                 )
@@ -306,7 +301,7 @@ class SerializationBenchmark:
                 fastest_deserialize = min(deserialize_ops, key=lambda x: x.p95_ms)
                 slowest_deserialize = max(deserialize_ops, key=lambda x: x.p95_ms)
 
-                print(f"\nDESERIALIZATION COMPARISON:")
+                print("\nDESERIALIZATION COMPARISON:")
                 print(
                     f"  Fastest: {fastest_deserialize.name} ({fastest_deserialize.p95_ms:.3f}ms P95, {fastest_deserialize.ops_per_second:,.0f} ops/sec)"
                 )
@@ -316,7 +311,7 @@ class SerializationBenchmark:
                 print(f"  Speed difference: {slowest_deserialize.p95_ms / fastest_deserialize.p95_ms:.1f}x slower")
 
         # Generate recommendations
-        print(f"\nOPTIMIZATION RECOMMENDATIONS:")
+        print("\nOPTIMIZATION RECOMMENDATIONS:")
 
         json_ops = [r for r in all_results_flat if "json" in r.name.lower()]
         msgpack_ops = [r for r in all_results_flat if "msgpack" in r.name.lower()]
@@ -335,8 +330,8 @@ class SerializationBenchmark:
                 improvement = json_avg / msgpack_avg
                 print(f"  - Switch from JSON to msgpack: {improvement:.1f}x faster serialization")
 
-        print(f"  - Target: Complete cache operation < 1ms P95 latency")
-        print(f"  - Current cache issue: ~20ms P95 (mostly NOT from serialization)")
+        print("  - Target: Complete cache operation < 1ms P95 latency")
+        print("  - Current cache issue: ~20ms P95 (mostly NOT from serialization)")
 
 
 def main():

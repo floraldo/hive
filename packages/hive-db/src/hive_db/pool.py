@@ -38,10 +38,10 @@ class ConnectionPool:
         Initialize connection pool for a specific database.
 
         Args:
-            db_path: Path to the SQLite database file
-            min_connections: Minimum connections to maintain
-            max_connections: Maximum connections allowed
-            connection_timeout: Timeout for acquiring connections
+            db_path: Path to the SQLite database file,
+            min_connections: Minimum connections to maintain,
+            max_connections: Maximum connections allowed,
+            connection_timeout: Timeout for acquiring connections,
         """
         self.db_path = Path(db_path)
         self.min_connections = min_connections
@@ -69,14 +69,14 @@ class ConnectionPool:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
             conn = sqlite3.connect(
-                str(self.db_path),
+                str(self.db_path)
                 check_same_thread=False,
-                timeout=30.0,  # 30 second timeout for locks
+                timeout=30.0,  # 30 second timeout for locks,
                 isolation_level="DEFERRED",  # Better concurrency
             )
 
             # Optimize connection settings
-            conn.row_factory = sqlite3.Row
+            conn.row_factory = sqlite3.Row,
             conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
             conn.execute("PRAGMA synchronous=NORMAL")  # Faster writes
             conn.execute("PRAGMA cache_size=10000")  # 10MB cache

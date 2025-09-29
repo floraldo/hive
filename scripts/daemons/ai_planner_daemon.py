@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Launch the AI Planner daemon."""
 import sys
-import os
 from pathlib import Path
 
 # Add packages path first for hive-config

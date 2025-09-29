@@ -19,7 +19,7 @@ def get_aggregation_policy(var_type: Literal["state", "flux"]) -> str:
         var_type: Type of variable ("state" or "flux")
 
     Returns:
-        Aggregation method name
+        Aggregation method name,
     """
     if var_type == "state":
         return "mean"
@@ -39,21 +39,21 @@ def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: dict[st
         policy_map: Optional override for aggregation policies
 
     Returns:
-        Resampled dataset
+        Resampled dataset,
     """
     # Build aggregation policy for each variable
     agg_policies = {}
 
     for var_name in ds.data_vars:
         if policy_map and var_name in policy_map:
-            # Use override policy
+            # Use override policy,
             agg_policies[var_name] = policy_map[var_name]
         elif var_name in CANONICAL_VARIABLES:
             # Use canonical policy based on variable type
             var_type = CANONICAL_VARIABLES[var_name]["type"]
             agg_policies[var_name] = get_aggregation_policy(var_type)
         else:
-            # Default to mean
+            # Default to mean,
             agg_policies[var_name] = "mean"
 
     logger.info(f"Resampling to {target_resolution} with policies: {agg_policies}")
@@ -82,7 +82,7 @@ def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: dict[st
             logger.warning(f"Unknown policy '{policy}' for '{var_name}', using mean")
             resampled = da.resample(time=target_resolution).mean()
 
-        # Preserve attributes
+        # Preserve attributes,
         resampled.attrs = da.attrs
         resampled_vars[var_name] = resampled
 
@@ -90,7 +90,7 @@ def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: dict[st
     ds_resampled = xr.Dataset(resampled_vars)
     ds_resampled.attrs = ds.attrs
 
-    # Special handling for solar radiation at night
+    # Special handling for solar radiation at night,
     if "ghi" in ds_resampled:
         ds_resampled = zero_night_irradiance(ds_resampled, "ghi")
     if "dni" in ds_resampled:
@@ -110,7 +110,7 @@ def upsample_dataset(ds: xr.Dataset, target_resolution: str) -> xr.Dataset:
         target_resolution: Target resolution (must be higher than current)
 
     Returns:
-        Upsampled dataset
+        Upsampled dataset,
     """
     # Create new time index
     start = ds.time.min().values
@@ -123,7 +123,7 @@ def upsample_dataset(ds: xr.Dataset, target_resolution: str) -> xr.Dataset:
     for var_name in ds.data_vars:
         da = ds[var_name]
 
-        # Determine interpolation method based on variable type
+        # Determine interpolation method based on variable type,
         if var_name in CANONICAL_VARIABLES:
             var_type = CANONICAL_VARIABLES[var_name]["type"]
             if var_type == "state":

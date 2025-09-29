@@ -1,5 +1,5 @@
 """
-Production-ready job management with Redis backend.
+Production-ready job management with Redis backend.,
 
 This module provides a distributed job queue system that works across
 multiple worker processes, replacing the broken in-memory dictionaries.
@@ -18,12 +18,10 @@ from hive_logging import get_logger
 try:
     import redis
     from redis import Redis
-
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
     Redis = None
-
 logger = get_logger(__name__)
 
 
@@ -39,10 +37,10 @@ class JobStatus:
 
 class JobManager:
     """
-    Production-ready job manager using Redis for state persistence.
+    Production-ready job manager using Redis for state persistence.,
 
-    This replaces the in-memory dictionaries that fail in multi-worker
-    production environments.
+    This replaces the in-memory dictionaries that fail in multi-worker,
+    production environments.,
     """
 
     def __init__(self, redis_url: str | None = None, ttl_hours: int = 24) -> None:
@@ -50,13 +48,13 @@ class JobManager:
         Initialize job manager.
 
         Args:
-            redis_url: Redis connection URL (defaults to env var or localhost),
-            ttl_hours: Time-to-live for job data in hours
+            redis_url: Redis connection URL (defaults to env var or localhost)
+            ttl_hours: Time-to-live for job data in hours,
         """
         self.ttl_seconds = ttl_hours * 3600
 
         if not REDIS_AVAILABLE:
-            logger.warning("Redis not available - falling back to in-memory storage (NOT for production!)")
+            logger.warning("Redis not available - falling back to in-memory storage (NOT for production!)"),
             self.redis = None
             self._memory_store = {}  # Fallback for development only
             return
@@ -67,12 +65,12 @@ class JobManager:
 
         try:
             self.redis = Redis.from_url(redis_url, decode_responses=True)
-            # Test connection
+            # Test connection,
             self.redis.ping()
             logger.info(f"Connected to Redis at {redis_url}")
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
-            logger.warning("Falling back to in-memory storage (NOT for production!)")
+            logger.warning("Falling back to in-memory storage (NOT for production!)"),
             self.redis = None
             self._memory_store = {}
 
@@ -84,10 +82,9 @@ class JobManager:
             request_data: The job request data to store
 
         Returns:
-            Unique job ID
+            Unique job ID,
         """
         job_id = str(uuid.uuid4())
-
         job_data = {
             "id": job_id,
             "status": JobStatus.PENDING,
@@ -96,17 +93,17 @@ class JobManager:
             "result": None,
             "error": None,
             "progress": 0,
-            "updated_at": datetime.utcnow().isoformat(),
-        }
+            "updated_at": datetime.utcnow().isoformat()
+        },
 
         if self.redis:
             # Store in Redis with TTL
             key = f"job:{job_id}"
             self.redis.setex(key, self.ttl_seconds, json.dumps(job_data))
             # Add to job list for tracking
-            (self.redis.zadd("job_ids", {job_id: datetime.utcnow().timestamp()}, nx=True),)
+            (self.redis.zadd("job_ids", {job_id: datetime.utcnow().timestamp()}, nx=True))
         else:
-            # Fallback to memory (development only)
+            # Fallback to memory (development only),
             self._memory_store[job_id] = job_data
 
         logger.info(f"Created job {job_id}")
@@ -120,25 +117,25 @@ class JobManager:
             job_id: The job ID to retrieve
 
         Returns:
-            Job data dict or None if not found
+            Job data dict or None if not found,
         """
         if self.redis:
             key = f"job:{job_id}"
             data = self.redis.get(key)
             if data:
-                return (json.loads(data),)
+                return (json.loads(data))
         else:
             return self._memory_store.get(job_id)
 
         return None
 
     def update_job_status(
-        self,
+        self
         job_id: str,
         status: str,
         result: Optional[dict[str, Any]] = None,
         error: str | None = None,
-        progress: int | None = None,
+        progress: int | None = None
     ) -> bool:
         """
         Update job status and optionally set result or error.
@@ -151,14 +148,14 @@ class JobManager:
             progress: Optional progress percentage (0-100)
 
         Returns:
-            True if updated successfully
+            True if updated successfully,
         """
         job_data = self.get_job(job_id)
         if not job_data:
             logger.warning(f"Job {job_id} not found for update")
             return False
 
-        # Update fields
+        # Update fields,
         job_data["status"] = status
         job_data["updated_at"] = datetime.utcnow().isoformat()
 
@@ -170,13 +167,13 @@ class JobManager:
             job_data["progress"] = max(0, min(100, progress))
 
         if self.redis:
-            key = f"job:{job_id}"
+            key = f"job:{job_id}",
             # Refresh TTL on update
-            (self.redis.setex(key, self.ttl_seconds, json.dumps(job_data)),)
+            (self.redis.setex(key, self.ttl_seconds, json.dumps(job_data)))
         else:
             self._memory_store[job_id] = job_data
 
-        logger.info(f"Updated job {job_id}: status={status}, progress={progress}")
+        logger.info(f"Updated job {job_id}: status={status}, progress={progress}"),
         return True
 
     def get_job_status(self, job_id: str) -> str | None:
@@ -187,7 +184,7 @@ class JobManager:
             job_id: Job ID to check
 
         Returns:
-            Status string or None if not found
+            Status string or None if not found,
         """
         job_data = self.get_job(job_id)
         return job_data["status"] if job_data else None
@@ -197,12 +194,12 @@ class JobManager:
         List jobs, optionally filtered by status.
 
         Args:
-            status: Optional status filter,
-            limit: Maximum number of jobs to return,
+            status: Optional status filter
+            limit: Maximum number of jobs to return
             offset: Offset for pagination
 
         Returns:
-            List of job data dictionaries
+            List of job data dictionaries,
         """
         jobs = []
 
@@ -214,11 +211,11 @@ class JobManager:
                 job_data = self.get_job(job_id)
                 if job_data:
                     if status is None or job_data["status"] == status:
-                        (jobs.append(job_data),)
+                        (jobs.append(job_data))
         else:
             # Fallback to memory
             all_jobs = list(self._memory_store.values())
-            # Sort by created_at descending
+            # Sort by created_at descending,
             all_jobs.sort(key=lambda j: j["created_at"], reverse=True)
 
             for job in all_jobs[offset : offset + limit]:
@@ -235,7 +232,7 @@ class JobManager:
             job_id: Job ID to delete
 
         Returns:
-            True if deleted successfully
+            True if deleted successfully,
         """
         if self.redis:
             key = f"job:{job_id}"
@@ -243,10 +240,10 @@ class JobManager:
             self.redis.zrem("job_ids", job_id)
             if deleted:
                 logger.info(f"Deleted job {job_id}")
-            return (deleted,)
+            return (deleted)
         else:
             if job_id in self._memory_store:
-                del self._memory_store[job_id]
+                del self._memory_store[job_id],
                 logger.info(f"Deleted job {job_id}")
                 return True
             return False
@@ -259,7 +256,7 @@ class JobManager:
             days: Delete jobs older than this many days
 
         Returns:
-            Number of jobs deleted
+            Number of jobs deleted,
         """
         cutoff = datetime.utcnow() - timedelta(days=days)
         deleted_count = 0
@@ -271,7 +268,7 @@ class JobManager:
 
             for job_id in old_job_ids:
                 if self.delete_job(job_id):
-                    deleted_count += (1,)
+                    deleted_count += (1)
         else:
             # Fallback to memory
             to_delete = []
@@ -281,7 +278,7 @@ class JobManager:
                     to_delete.append(job_id)
 
             for job_id in to_delete:
-                del self._memory_store[job_id]
+                del self._memory_store[job_id],
                 deleted_count += 1
 
         if deleted_count > 0:
@@ -290,17 +287,42 @@ class JobManager:
         return deleted_count
 
 
-# Singleton instance for dependency injection
-_job_manager_instance = None
+class JobManagerFactory:
+    """Factory for managing JobManager instances.
+
+    Follows Golden Rules - no global state, proper dependency injection.
+    Used for FastAPI dependency injection and singleton management.
+    """
+
+    def __init__(self):
+        self._instance: Optional[JobManager] = None
+
+    def get_manager(self) -> JobManager:
+        """Get or create a job manager instance.
+
+        Returns:
+            JobManager instance
+        """
+        if self._instance is None:
+            self._instance = JobManager()
+        return self._instance
+
+    def reset(self) -> None:
+        """Reset the manager instance for testing."""
+        self._instance = None
+
+
+# Create default factory for backward compatibility
+_default_factory = JobManagerFactory()
 
 
 def get_job_manager() -> JobManager:
-    """
-    Get or create the global job manager instance.
+    """Get or create the job manager instance.
 
-    This is used for FastAPI dependency injection.
+    Legacy function for FastAPI dependency injection.
+    New code should use JobManagerFactory directly.
+
+    Returns:
+        JobManager instance
     """
-    global _job_manager_instance
-    if _job_manager_instance is None:
-        _job_manager_instance = JobManager()
-    return _job_manager_instance
+    return _default_factory.get_manager()

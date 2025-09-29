@@ -76,7 +76,7 @@ async def test_cache_fix_validation():
         get_avg = statistics.mean(latencies)
         get_p95 = sorted(latencies)[int(len(latencies) * 0.95)]
 
-        print(f"\n📊 Performance Results:")
+        print("\n📊 Performance Results:")
         print(f"   SET: {set_avg:.2f}ms avg, {set_p95:.2f}ms P95")
         print(f"   GET: {get_avg:.2f}ms avg, {get_p95:.2f}ms P95")
 
@@ -94,9 +94,9 @@ async def test_cache_fix_validation():
 
         if success:
             print(f"✅ Cache performance EXCELLENT: All operations < {target_latency}ms")
-            print(f"🎯 Previous issue (20ms) appears to be RESOLVED")
+            print("🎯 Previous issue (20ms) appears to be RESOLVED")
         else:
-            print(f"⚠️  Cache performance needs more optimization")
+            print("⚠️  Cache performance needs more optimization")
 
         # Cleanup
         await client.delete_async(test_key)
@@ -143,10 +143,10 @@ async def main():
         print("   Either Redis is not available or more optimization needed.")
         print("   Code fixes are implemented and should work when Redis is available.")
 
-    print(f"\n💡 Next Steps:")
-    print(f"   1. Ensure Redis is running locally")
-    print(f"   2. Re-run V4.2 performance certification")
-    print(f"   3. Validate 5x improvement target achievement")
+    print("\n💡 Next Steps:")
+    print("   1. Ensure Redis is running locally")
+    print("   2. Re-run V4.2 performance certification")
+    print("   3. Validate 5x improvement target achievement")
 
 
 if __name__ == "__main__":

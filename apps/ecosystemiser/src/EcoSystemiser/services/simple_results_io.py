@@ -13,32 +13,32 @@ logger = get_logger(__name__)
 
 
 class SimpleResultsIO:
-    """Simple, scalable results persistence - Single Artifact, Two Formats.
+    """Simple, scalable results persistence - Single Artifact, Two Formats.,
 
     Each simulation creates a directory containing exactly two files:
     1. summary.json - Metadata and aggregated KPIs
-    2. timeseries.parquet - All detailed time-series data
+    2. timeseries.parquet - All detailed time-series data,
 
-    This is stateless, scalable, and simple.
+    This is stateless, scalable, and simple.,
     """
 
     def save_results(
         self,
-        system,
+        system
         simulation_id: str,
         output_dir: Path,
-        metadata: dict | None = None,
+        metadata: dict | None = None
     ) -> Path:
         """Save simulation results in simple two-file format.
 
         Args:
-            system: Solved system object
-            simulation_id: Unique simulation identifier
-            output_dir: Base directory for results
+            system: Solved system object,
+            simulation_id: Unique simulation identifier,
+            output_dir: Base directory for results,
             metadata: Optional additional metadata
 
         Returns:
-            Path to simulation directory containing the two files
+            Path to simulation directory containing the two files,
         """
         output_dir = Path(output_dir)
 
@@ -59,8 +59,8 @@ class SimpleResultsIO:
             json.dump(summary_data, f, indent=2, default=str)
 
         logger.info(f"Results saved to {run_dir}")
-        logger.info(f"  - summary.json: {summary_path.stat().st_size} bytes")
-        logger.info(f"  - timeseries.parquet: {timeseries_path.stat().st_size} bytes")
+        logger.info(f"  - summary.json: {summary_path.stat().st_size} bytes"),
+        logger.info(f"  - timeseries.parquet: {timeseries_path.stat().st_size} bytes"),
 
         return run_dir
 
@@ -71,13 +71,12 @@ class SimpleResultsIO:
             run_dir: Path to simulation run directory
 
         Returns:
-            Dictionary with 'summary' and 'timeseries' keys
+            Dictionary with 'summary' and 'timeseries' keys,
         """
         run_dir = Path(run_dir)
 
         if not run_dir.exists():
             raise FileNotFoundError(f"Run directory not found: {run_dir}")
-
         results = {}
 
         # Load summary
@@ -104,16 +103,16 @@ class SimpleResultsIO:
             system: Solved system object
 
         Returns:
-            DataFrame with columns: timestep, variable, value
+            DataFrame with columns: timestep, variable, value,
         """
         data = []
 
-        # Extract flows
+        # Extract flows,
         for flow_name, flow_data in system.flows.items():
             if "value" in flow_data:
                 flow_value = flow_data["value"]
 
-                # Handle different value types (numpy, CVXPY, list)
+                # Handle different value types (numpy, CVXPY, list),
                 if hasattr(flow_value, "value"):  # CVXPY variable
                     if flow_value.value is not None:
                         values = flow_value.value
@@ -128,19 +127,19 @@ class SimpleResultsIO:
                 else:
                     values = np.array([flow_value] * system.N)
 
-                # Add to data list
+                # Add to data list,
                 for t, val in enumerate(values):
                     data.append(
                         {
                             "timestep": t,
-                            "variable": f"flow.{flow_name}",
-                            "value": float(val),
+                            "variable": f"flow.{flow_name}"
+                            "value": float(val)
                         }
                     )
 
-        # Extract component states
+        # Extract component states,
         for comp_name, component in system.components.items():
-            # Storage levels
+            # Storage levels,
             if hasattr(component, "E"):
                 if hasattr(component.E, "value") and component.E.value is not None:
                     energy_values = component.E.value
@@ -157,27 +156,27 @@ class SimpleResultsIO:
                         data.append(
                             {
                                 "timestep": t,
-                                "variable": f"state.{comp_name}.energy",
-                                "value": float(val),
+                                "variable": f"state.{comp_name}.energy"
+                                "value": float(val)
                             }
                         )
 
-            # Generation profiles
+            # Generation profiles,
             if hasattr(component, "profile") and component.profile is not None:
                 if isinstance(component.profile, np.ndarray):
                     for t, val in enumerate(component.profile):
                         data.append(
                             {
                                 "timestep": t,
-                                "variable": f"profile.{comp_name}",
-                                "value": float(val),
+                                "variable": f"profile.{comp_name}"
+                                "value": float(val)
                             }
                         )
 
         # Create DataFrame
         df = pd.DataFrame(data)
 
-        # Optimize data types for storage
+        # Optimize data types for storage,
         if not df.empty:
             df["timestep"] = df["timestep"].astype("uint16")
             df["variable"] = df["variable"].astype("category")
@@ -194,14 +193,14 @@ class SimpleResultsIO:
             metadata: Optional additional metadata
 
         Returns:
-            Summary dictionary
+            Summary dictionary,
         """
         summary = {
             "simulation_id": getattr(system, "system_id", "unknown"),
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat()
             "timesteps": system.N,
-            "solver": getattr(system, "solver_type", "unknown"),
-            "metadata": metadata or {},
+            "solver": getattr(system, "solver_type", "unknown")
+            "metadata": metadata or {}
         }
 
         # Calculate basic KPIs from timeseries
@@ -213,7 +212,7 @@ class SimpleResultsIO:
             total_flow = flow_vars.groupby("variable")["value"].sum()
             kpis["total_energy_flow"] = float(flow_vars["value"].sum())
 
-            # Specific flow KPIs
+            # Specific flow KPIs,
             for var_name in total_flow.index:
                 flow_name = var_name.replace("flow.", "")
                 kpis[f"{flow_name}_total"] = float(total_flow[var_name])
@@ -230,13 +229,13 @@ class SimpleResultsIO:
 
         summary["kpis"] = kpis
 
-        # Add basic statistics
+        # Add basic statistics,
         summary["statistics"] = {
             "total_variables": len(timeseries_df["variable"].unique()),
-            "total_datapoints": len(timeseries_df),
+            "total_datapoints": len(timeseries_df)
             "min_value": float(timeseries_df["value"].min()) if not timeseries_df.empty else 0,
             "max_value": float(timeseries_df["value"].max()) if not timeseries_df.empty else 0,
-            "mean_value": float(timeseries_df["value"].mean()) if not timeseries_df.empty else 0,
-        }
+            "mean_value": float(timeseries_df["value"].mean()) if not timeseries_df.empty else 0
+        },
 
         return summary

@@ -6,9 +6,8 @@ Common patterns and utilities for proper async resource management.
 """
 
 import asyncio
-from contextlib import asynccontextmanager
-from typing import Optional, List, Any
 import weakref
+from contextlib import asynccontextmanager
 
 
 class TaskManager:
@@ -61,10 +60,7 @@ class AsyncResourcePool:
 
         try:
             # Try to get from pool
-            return await asyncio.wait_for(
-                self._pool.get(),
-                timeout=5.0
-            )
+            return await asyncio.wait_for(self._pool.get(), timeout=5.0)
         except asyncio.TimeoutError:
             # Create new resource if pool is empty
             async with self._lock:
@@ -93,10 +89,7 @@ class AsyncResourcePool:
 
 async def safe_gather(*coros, return_exceptions=True):
     """Safer version of asyncio.gather"""
-    return await asyncio.gather(
-        *coros,
-        return_exceptions=return_exceptions
-    )
+    return await asyncio.gather(*coros, return_exceptions=return_exceptions)
 
 
 class AsyncStateLock:
@@ -133,10 +126,7 @@ async def example_proper_resource_management():
         await task_manager.cancel_all()
 
     # 2. Connection management
-    async with managed_connection(
-        create_conn=create_database_connection,
-        close_conn=close_database_connection
-    ) as conn:
+    async with managed_connection(create_conn=create_database_connection, close_conn=close_database_connection) as conn:
         await conn.execute("SELECT 1")
 
     # 3. Pool management
@@ -151,12 +141,7 @@ async def example_proper_resource_management():
         await pool.close()
 
     # 4. Safe gathering
-    results = await safe_gather(
-        operation1(),
-        operation2(),
-        operation3(),
-        return_exceptions=True
-    )
+    results = await safe_gather(operation1(), operation2(), operation3(), return_exceptions=True)
 
     # 5. Protected state
     state_lock = AsyncStateLock()

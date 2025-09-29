@@ -11,13 +11,9 @@ Uses the rich library for beautiful terminal UI with live updates.
 """
 
 import json
-import time
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List
 
-# Import database functions from the orchestrator's core
-from hive_orchestrator.core.db import close_connection, get_connection
 from rich import box
 from rich.columns import Columns
 from rich.console import Console
@@ -26,6 +22,9 @@ from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
+
+# Import database functions from the orchestrator's core
+from hive_orchestrator.core.db import close_connection, get_connection
 
 
 class HiveDashboard:

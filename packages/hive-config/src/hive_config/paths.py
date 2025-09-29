@@ -78,9 +78,9 @@ def get_project_root() -> Path:
 
     # Fourth, check common development locations for Windows
     common_dev_paths = [
-        Path("C:/git/hive"),
+        Path("C:/git/hive")
         Path("C:/src/hive"),
-        Path("C:/code/hive"),
+        Path("C:/code/hive")
         Path("C:/dev/hive"),
         Path.home() / "git" / "hive",
         Path.home() / "src" / "hive",

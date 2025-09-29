@@ -15,21 +15,21 @@ logger = get_logger(__name__)
 
 
 class AnalyserService:
-    """Orchestrator for executing analysis strategies on simulation results.
+    """Orchestrator for executing analysis strategies on simulation results.,
     from __future__ import annotations
 
 
         This service coordinates the execution of various analysis strategies
         managing the flow of data from raw simulation results to structured
-        analysis outputs. It follows the principle of separation of concerns
-        producing only data (JSON) without any visualization or side effects.
+        analysis outputs. It follows the principle of separation of concerns,
+        producing only data (JSON) without any visualization or side effects.,
     """
 
     def __init__(self, event_bus: EcoSystemiserEventBus | None = None) -> None:
         """Initialize the AnalyserService with available strategies.
 
         Args:
-            event_bus: Optional EcoSystemiser event bus for publishing events
+            event_bus: Optional EcoSystemiser event bus for publishing events,
         """
         self.strategies: dict[str, BaseAnalysis] = {}
         self.event_bus = event_bus or get_ecosystemiser_event_bus()
@@ -37,19 +37,19 @@ class AnalyserService:
 
     def _register_default_strategies(self) -> None:
         """Register the default analysis strategies."""
-        self.register_strategy("technical_kpi", TechnicalKPIAnalysis())
-        self.register_strategy("economic", EconomicAnalysis())
-        self.register_strategy("sensitivity", SensitivityAnalysis())
+        self.register_strategy("technical_kpi", TechnicalKPIAnalysis()),
+        self.register_strategy("economic", EconomicAnalysis()),
+        self.register_strategy("sensitivity", SensitivityAnalysis()),
 
     def register_strategy(self, name: str, strategy: BaseAnalysis) -> None:
         """Register a new analysis strategy.
 
         Args:
             name: Unique identifier for the strategy
-            strategy: Analysis strategy instance implementing BaseAnalysis
+            strategy: Analysis strategy instance implementing BaseAnalysis,
         """
         if not isinstance(strategy, BaseAnalysis):
-            raise TypeError(f"Strategy must inherit from BaseAnalysis, got {type(strategy)}")
+            raise TypeError(f"Strategy must inherit from BaseAnalysis, got {type(strategy)}"),
 
         self.strategies[name] = strategy
         logger.info(f"Registered analysis strategy: {name}")
@@ -57,25 +57,25 @@ class AnalyserService:
     def analyse(
         self, results_path: str, strategies: Optional[list[str]] = None, metadata: Optional[dict[str, Any]] = None
     ) -> dict[str, Any]:
-        """Execute analysis on simulation results.
+        """Execute analysis on simulation results.,
 
-        This is the primary method that orchestrates the analysis process.
+        This is the primary method that orchestrates the analysis process.,
         It loads results, executes requested strategies, and returns structured data.
 
         Args:
-            results_path: Path to simulation results file (JSON)
-            strategies: List of strategy names to execute (None = all)
+            results_path: Path to simulation results file (JSON),
+            strategies: List of strategy names to execute (None = all),
             metadata: Optional metadata to pass to strategies
 
         Returns:
             Dictionary containing analysis results from all executed strategies
 
         Raises:
-            FileNotFoundError: If results file doesn't exist
-            ValueError: If requested strategy doesn't exist
+            FileNotFoundError: If results file doesn't exist,
+            ValueError: If requested strategy doesn't exist,
         """
         # Generate analysis ID and start time
-        analysis_id = f"analysis_{uuid.uuid4().hex[:8]}"
+        analysis_id = f"analysis_{uuid.uuid4().hex[:8]}",
         start_time = datetime.now()
 
         # Load simulation results
@@ -84,12 +84,12 @@ class AnalyserService:
         # Determine which strategies to run
         strategies_to_run = self._get_strategies_to_run(strategies)
 
-        # Publish analysis started event
+        # Publish analysis started event,
         self._publish_analysis_event(
             event_type=EcoSystemiserEventType.ANALYSIS_STARTED,
             analysis_id=analysis_id,
             source_results_path=results_path,
-            strategies_executed=strategies_to_run,
+            strategies_executed=strategies_to_run
         )
 
         try:
@@ -102,33 +102,33 @@ class AnalyserService:
                     "analysis_timestamp": pd.Timestamp.now().isoformat(),
                 },
                 "analyses": {},
-            }
+            },
 
             for strategy_name in strategies_to_run:
-                logger.info(f"Executing strategy: {strategy_name}")
+                logger.info(f"Executing strategy: {strategy_name}"),
                 try:
                     strategy = self.strategies[strategy_name]
                     strategy_results = strategy.execute(results_data, metadata)
                     analysis_results["analyses"][strategy_name] = strategy_results
-                    logger.info(f"Successfully executed strategy: {strategy_name}")
+                    logger.info(f"Successfully executed strategy: {strategy_name}"),
                 except Exception as e:
-                    logger.error(f"Error executing strategy {strategy_name}: {e}")
+                    logger.error(f"Error executing strategy {strategy_name}: {e}"),
                     analysis_results["analyses"][strategy_name] = {"error": str(e), "status": "failed"}
 
-            # Add summary
+            # Add summary,
             analysis_results["summary"] = self._create_summary(analysis_results["analyses"])
 
             # Calculate execution time
             execution_time = (datetime.now() - start_time).total_seconds()
             analysis_results["metadata"]["execution_time_seconds"] = execution_time
 
-            # Publish analysis completed event
+            # Publish analysis completed event,
             self._publish_analysis_event(
                 event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
-                analysis_id=analysis_id,
+                analysis_id=analysis_id
                 source_results_path=results_path,
-                strategies_executed=strategies_to_run,
-                duration_seconds=execution_time,
+                strategies_executed=strategies_to_run
+                duration_seconds=execution_time
             )
 
             return analysis_results
@@ -136,38 +136,38 @@ class AnalyserService:
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            # Publish analysis failed event
+            # Publish analysis failed event,
             self._publish_analysis_event(
                 event_type=EcoSystemiserEventType.ANALYSIS_FAILED,
-                analysis_id=analysis_id,
+                analysis_id=analysis_id
                 source_results_path=results_path,
-                strategies_executed=strategies_to_run,
-                duration_seconds=execution_time,
+                strategies_executed=strategies_to_run
+                duration_seconds=execution_time
             )
 
-            logger.error(f"Analysis {analysis_id} failed: {e}")
-            raise
+            logger.error(f"Analysis {analysis_id} failed: {e}"),
+            raise,
 
     def analyse_parametric_study(
         self, study_results_path: str, metadata: Optional[dict[str, Any]] = None
     ) -> dict[str, Any]:
-        """Analyze results from a parametric study.
+        """Analyze results from a parametric study.,
 
-        This method is specifically designed for analyzing multiple simulation
-        runs from a parametric sweep, focusing on sensitivity analysis and
+        This method is specifically designed for analyzing multiple simulation,
+        runs from a parametric sweep, focusing on sensitivity analysis and,
         comparative metrics.
 
         Args:
-            study_results_path: Path to parametric study results file
+            study_results_path: Path to parametric study results file,
             metadata: Optional metadata about the study
 
         Returns:
-            Dictionary containing parametric study analysis
+            Dictionary containing parametric study analysis,
         """
         # Load parametric study results
         study_data = self._load_results(study_results_path)
 
-        # Ensure this is a parametric study result
+        # Ensure this is a parametric study result,
         if "all_results" not in study_data:
             raise ValueError("File does not contain parametric study results")
 
@@ -186,8 +186,8 @@ class AnalyserService:
             Dictionary containing simulation results
 
         Raises:
-            FileNotFoundError: If file doesn't exist
-            json.JSONDecodeError: If file is not valid JSON
+            FileNotFoundError: If file doesn't exist,
+            json.JSONDecodeError: If file is not valid JSON,
         """
         path = Path(results_path)
 
@@ -210,12 +210,12 @@ class AnalyserService:
             List of strategy names to execute
 
         Raises:
-            ValueError: If requested strategy doesn't exist
+            ValueError: If requested strategy doesn't exist,
         """
         if requested is None:
             return list(self.strategies.keys())
 
-        # Validate requested strategies
+        # Validate requested strategies,
         for strategy_name in requested:
             if strategy_name not in self.strategies:
                 available = ", ".join(self.strategies.keys())
@@ -230,7 +230,7 @@ class AnalyserService:
             analyses: Dictionary of analysis results
 
         Returns:
-            Summary dictionary with key metrics
+            Summary dictionary with key metrics,
         """
         summary = {"successful_analyses": 0, "failed_analyses": 0, "key_metrics": {}}
 
@@ -240,7 +240,7 @@ class AnalyserService:
             else:
                 summary["successful_analyses"] += 1
 
-                # Extract key metrics based on strategy type
+                # Extract key metrics based on strategy type,
                 if strategy_name == "technical_kpi":
                     for key in ["grid_self_sufficiency" "renewable_fraction" "system_efficiency" "battery_cycles"]:
                         if key in results:
@@ -262,7 +262,7 @@ class AnalyserService:
 
         Args:
             analysis_results: Analysis results to save
-            output_path: Path for output file
+            output_path: Path for output file,
         """
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -277,31 +277,31 @@ class AnalyserService:
         if "analysis_id" in metadata:
             self._publish_analysis_event(
                 event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
-                analysis_id=metadata["analysis_id"],
+                analysis_id=metadata["analysis_id"]
                 source_results_path=metadata.get("results_path", ""),
-                strategies_executed=metadata.get("strategies_executed", []),
+                strategies_executed=metadata.get("strategies_executed", [])
                 analysis_results_path=output_path,
-                duration_seconds=metadata.get("execution_time_seconds"),
-            )
+                duration_seconds=metadata.get("execution_time_seconds")
+            ),
 
     def _publish_analysis_event(
-        self,
+        self
         event_type: str,
         analysis_id: str,
         source_results_path: str,
         strategies_executed: list[str],
         analysis_results_path: str | None = None,
-        duration_seconds: float | None = None,
+        duration_seconds: float | None = None
     ):
         """Helper method to publish analysis events.
 
         Args:
-            event_type: Type of analysis event
-            analysis_id: Analysis identifier
-            source_results_path: Path to source simulation results
-            strategies_executed: List of strategies that were executed
-            analysis_results_path: Optional path to analysis results
-            duration_seconds: Optional execution duration
+            event_type: Type of analysis event,
+            analysis_id: Analysis identifier,
+            source_results_path: Path to source simulation results,
+            strategies_executed: List of strategies that were executed,
+            analysis_results_path: Optional path to analysis results,
+            duration_seconds: Optional execution duration,
         """
 
         try:
@@ -312,7 +312,7 @@ class AnalyserService:
                 source_results_path=source_results_path,
                 analysis_results_path=analysis_results_path,
                 strategies_executed=strategies_executed,
-                duration_seconds=duration_seconds,
+                duration_seconds=duration_seconds
             )
 
             # Publish event using sync publisher

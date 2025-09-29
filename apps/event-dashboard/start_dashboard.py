@@ -8,8 +8,6 @@ Event Dashboard Launcher for Hive V4.0
 Simple launcher script for the real-time event dashboard.
 """
 
-import sys
-from pathlib import Path
 
 from dashboard import main
 

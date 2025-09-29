@@ -22,15 +22,13 @@ class DemandFileAdapter:
                 - column_mapping: Dict mapping profile names to column names
 
         Returns:
-            Dictionary of profile arrays
+            Dictionary of profile arrays,
         """
         profiles = {}
-
         file_path = config.get("file_path")
         if not file_path:
             logger.warning("No demand file path specified")
             return profiles
-
         file_path = Path(file_path)
         if not file_path.exists():
             logger.warning(f"Demand file not found: {file_path}")
@@ -50,7 +48,7 @@ class DemandFileAdapter:
                 else:
                     logger.warning(f"Column '{column_name}' not found in demand file")
 
-            # If no mapping provided, use all columns
+            # If no mapping provided, use all columns,
             if not column_mapping:
                 for col in df.columns:
                     if col not in ["time", "timestamp", "index"]:  # Skip time columns

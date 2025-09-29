@@ -9,6 +9,7 @@ with proper data structures, edge case handling, and comprehensive testing.
 import subprocess
 import sys
 from pathlib import Path
+
 from fat_framework import FactoryAcceptanceTest
 
 
@@ -632,7 +633,7 @@ def validate_dijkstra_implementation(test_case):
         sys.path.insert(0, str(package_dir / "src"))
 
         # Import and test basic functionality
-        from hive_algorithms import Graph, dijkstra, find_shortest_path
+        from hive_algorithms import Graph, dijkstra
 
         # Create test graph
         g = Graph()
@@ -742,7 +743,7 @@ if __name__ == "__main__":
     result = run_complex_logic_test()
 
     if result["success"]:
-        print(f"\n[SUCCESS] Complex Logic Test completed successfully!")
+        print("\n[SUCCESS] Complex Logic Test completed successfully!")
         exit(0)
     else:
         print(f"\n[FAILURE] Complex Logic Test failed: {result['error']}")

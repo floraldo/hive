@@ -111,25 +111,25 @@ class BaseAgent(ABC):
         # State management
         self.state = AgentState.CREATED
         self.current_iteration = 0
-        self.start_time: datetime | None = None
+        self.start_time: datetime | None = None,
         self.end_time: datetime | None = None
 
         # Memory system
         self.memory = AgentMemory() if config.memory_enabled else None
 
         # Tool system
-        self.tools: Dict[str, AgentTool] = {}
+        self.tools: Dict[str, AgentTool] = {},
         self._register_default_tools()
 
         # Message handling
-        self.message_queue: List[AgentMessage] = []
+        self.message_queue: List[AgentMessage] = [],
         self.response_handlers: Dict[str, Callable] = {}
 
         # Caching
         self.cache = CacheManager(f"agent_{self.id}")
 
         # Results and error tracking
-        self.results: List[Any] = []
+        self.results: List[Any] = [],
         self.errors: List[str] = []
 
         logger.info(f"Created agent: {self.config.name} ({self.id})")
@@ -138,7 +138,7 @@ class BaseAgent(ABC):
         """Register default tools available to all agents."""
         self.add_tool(
             AgentTool(
-                name="think"
+                name="think",
                 description="Think about the current situation and plan next steps"
                 function=self._think_tool_async
             )
@@ -146,7 +146,7 @@ class BaseAgent(ABC):
 
         self.add_tool(
             AgentTool(
-                name="remember"
+                name="remember",
                 description="Store information in memory for later use"
                 function=self._remember_tool_async
             )
@@ -159,7 +159,7 @@ class BaseAgent(ABC):
     async def _think_tool_async(self, prompt: str) -> str:
         """Default thinking tool for reasoning."""
         thinking_prompt = PromptTemplate(
-            template="""
+            template=""",
 You are an AI agent named {{ agent_name }}. Please think about the following:
 
 {{ prompt }}
@@ -182,9 +182,9 @@ Thoughts:
         if self.memory:
             self.memory.episodic.append(
                 {
-                    "type": "thinking"
-                    "prompt": prompt
-                    "thoughts": response.content
+                    "type": "thinking",
+                    "prompt": prompt,
+                    "thoughts": response.content,
                     "timestamp": datetime.utcnow().isoformat()
                 }
             )
@@ -269,11 +269,11 @@ Thoughts:
     async def send_message_async(self, recipient: str, content: str, message_type: str = "message") -> str:
         """Send a message to another agent or system."""
         message = AgentMessage(
-            id=str(uuid.uuid4())
+            id=str(uuid.uuid4()),
             sender=self.id
-            recipient=recipient
+            recipient=recipient,
             content=content
-            message_type=message_type
+            message_type=message_type,
             timestamp=datetime.utcnow()
         )
 
@@ -355,9 +355,9 @@ Thoughts:
             # Start metrics tracking
             if self.metrics:
                 operation_id = self.metrics.start_operation(
-                    operation_type="agent_execution"
-                    model=self.config.model
-                    provider="agent_framework"
+                    operation_type="agent_execution",
+                    model=self.config.model,
+                    provider="agent_framework",
                     metadata={"agent_id": self.id, "agent_name": self.config.name}
                 )
             else:
@@ -376,7 +376,7 @@ Thoughts:
                 duration_ms = int((self.end_time - self.start_time).total_seconds() * 1000)
                 self.metrics.end_operation(
                     operation_id
-                    success=True
+                    success=True,
                     additional_metadata={"iterations": self.current_iteration, "duration_ms": duration_ms}
                 )
 
@@ -394,11 +394,11 @@ Thoughts:
                 duration_ms = int((self.end_time - self.start_time).total_seconds() * 1000)
                 self.metrics.end_operation(
                     operation_id
-                    success=False
+                    success=False,
                     error_type=type(e).__name__
                     additional_metadata={
-                        "iterations": self.current_iteration
-                        "duration_ms": duration_ms
+                        "iterations": self.current_iteration,
+                        "duration_ms": duration_ms,
                         "error": error_msg
                     }
                 )
@@ -437,19 +437,19 @@ Thoughts:
             duration = (end_time - self.start_time).total_seconds()
 
         return {
-            "id": self.id
+            "id": self.id,
             "name": self.config.name
-            "state": self.state.value
+            "state": self.state.value,
             "current_iteration": self.current_iteration
-            "max_iterations": self.config.max_iterations
+            "max_iterations": self.config.max_iterations,
             "created_at": self.created_at.isoformat()
-            "start_time": self.start_time.isoformat() if self.start_time else None
+            "start_time": self.start_time.isoformat() if self.start_time else None,
             "end_time": self.end_time.isoformat() if self.end_time else None
-            "duration_seconds": duration
+            "duration_seconds": duration,
             "tools_available": len(self.tools)
-            "messages_sent": len(self.message_queue)
+            "messages_sent": len(self.message_queue),
             "memory_enabled": self.memory is not None
-            "errors": len(self.errors)
+            "errors": len(self.errors),
             "results": len(self.results)
         }
 
@@ -459,11 +459,11 @@ Thoughts:
             return {"memory_enabled": False}
 
         return {
-            "memory_enabled": True
+            "memory_enabled": True,
             "short_term_items": len(self.memory.short_term)
-            "long_term_items": len(self.memory.long_term)
+            "long_term_items": len(self.memory.long_term),
             "episodic_memories": len(self.memory.episodic)
-            "conversation_messages": len(self.memory.conversation)
+            "conversation_messages": len(self.memory.conversation),
             "short_term_keys": list(self.memory.short_term.keys())
             "long_term_keys": list(self.memory.long_term.keys())
         }
@@ -472,37 +472,37 @@ Thoughts:
         """Export agent state for persistence or debugging."""
         return {
             "agent_info": {
-                "id": self.id
+                "id": self.id,
                 "config": {
-                    "name": self.config.name
-                    "description": self.config.description
-                    "model": self.config.model
-                    "temperature": self.config.temperature
-                    "max_tokens": self.config.max_tokens
-                    "max_iterations": self.config.max_iterations
+                    "name": self.config.name,
+                    "description": self.config.description,
+                    "model": self.config.model,
+                    "temperature": self.config.temperature,
+                    "max_tokens": self.config.max_tokens,
+                    "max_iterations": self.config.max_iterations,
                     "metadata": self.config.metadata
                 }
                 "created_at": self.created_at.isoformat()
             }
             "execution_state": {
-                "state": self.state.value
-                "current_iteration": self.current_iteration
+                "state": self.state.value,
+                "current_iteration": self.current_iteration,
                 "start_time": self.start_time.isoformat() if self.start_time else None
-                "end_time": self.end_time.isoformat() if self.end_time else None
+                "end_time": self.end_time.isoformat() if self.end_time else None,
                 "errors": self.errors
                 "results": self.results
             }
             "memory": {
                 "short_term": self.memory.short_term if self.memory else {}
-                "long_term": self.memory.long_term if self.memory else {}
+                "long_term": self.memory.long_term if self.memory else {},
                 "episodic": self.memory.episodic if self.memory else []
                 "conversation": [
                     {
-                        "id": msg.id
+                        "id": msg.id,
                         "sender": msg.sender
-                        "recipient": msg.recipient
+                        "recipient": msg.recipient,
                         "content": msg.content
-                        "message_type": msg.message_type
+                        "message_type": msg.message_type,
                         "timestamp": msg.timestamp.isoformat()
                         "metadata": msg.metadata
                     }
@@ -511,9 +511,9 @@ Thoughts:
             }
             "tools": {
                 name: {
-                    "name": tool.name
-                    "description": tool.description
-                    "enabled": tool.enabled
+                    "name": tool.name,
+                    "description": tool.description,
+                    "enabled": tool.enabled,
                     "parameters": tool.parameters
                 }
                 for name, tool in self.tools.items()
@@ -536,9 +536,9 @@ class SimpleTaskAgent(BaseAgent):
 
     def __init__(
         self
-        task_prompt: str
-        config: AgentConfig
-        model_client: ModelClient
+        task_prompt: str,
+        config: AgentConfig,
+        model_client: ModelClient,
         metrics_collector: AIMetricsCollector | None = None
     ):
         super().__init__(config, model_client, metrics_collector)
@@ -563,5 +563,5 @@ class SimpleTaskAgent(BaseAgent):
             full_prompt, model=self.config.model, temperature=self.config.temperature, max_tokens=self.config.max_tokens
         )
 
-        self.current_iteration += 1
+        self.current_iteration += 1,
         return response.content

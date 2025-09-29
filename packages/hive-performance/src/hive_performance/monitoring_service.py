@@ -59,8 +59,8 @@ class MonitoringService:
         )
 
         self.async_profiler = AsyncProfiler(
-            max_task_history=max_history_points // 10,  # Less frequent task storage
-            enable_stack_traces=False,  # Disabled for performance
+            max_task_history=max_history_points // 10,  # Less frequent task storage,
+            enable_stack_traces=False,  # Disabled for performance,
             sample_rate=0.1,  # 10% sampling for performance
         )
 
@@ -69,8 +69,8 @@ class MonitoringService:
         )
 
         # Service state
-        self._monitoring = False
-        self._analysis_task: asyncio.Task | None = None
+        self._monitoring = (False,)
+        self._analysis_task: asyncio.Task | None = (None,)
         self._alert_callbacks: List[Callable] = []
 
         # Analysis history

@@ -3,15 +3,16 @@ Pipeline Monitoring Implementation
 Contains the business logic for pipeline monitoring.
 Separated from core interfaces to maintain clean architecture.
 """
+
 from __future__ import annotations
 
-
 import time
+from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Any, Dict, ListTuple
+from typing import Any, Dict, List
 
 from hive_logging import get_logger
 
@@ -47,15 +48,15 @@ class PipelineMetrics:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
-            "total_executions": self.total_executions
-            "successful_executions": self.successful_executions
-            "failed_executions": self.failed_executions
-            "success_rate": self.success_rate
-            "average_duration_ms": self.average_duration_ms
-            "total_duration_ms": self.total_duration_ms
-            "stage_durations": self.stage_durations
-            "error_counts": dict(self.error_counts)
-            "last_execution_time": self.last_execution_time.isoformat() if self.last_execution_time else None
+            "total_executions": self.total_executions,
+            "successful_executions": self.successful_executions,
+            "failed_executions": self.failed_executions,
+            "success_rate": self.success_rate,
+            "average_duration_ms": self.average_duration_ms,
+            "total_duration_ms": self.total_duration_ms,
+            "stage_durations": self.stage_durations,
+            "error_counts": dict(self.error_counts),
+            "last_execution_time": self.last_execution_time.isoformat() if self.last_execution_time else None,
         }
 
 
@@ -128,11 +129,11 @@ class PipelineMonitor:
             # Add to history
             self.execution_history.append(
                 {
-                    "execution_id": execution_id
-                    "timestamp": datetime.now()
-                    "duration_ms": duration_ms
-                    "success": success
-                    "error": error
+                    "execution_id": execution_id,
+                    "timestamp": datetime.now(),
+                    "duration_ms": duration_ms,
+                    "success": success,
+                    "error": error,
                 }
             )
 
@@ -168,11 +169,11 @@ class PipelineMonitor:
             metrics["active_executions"] = len(self._active_executions)
             metrics["stages"] = {
                 name: {
-                    "execution_count": stage.execution_count
-                    "average_duration_ms": stage.average_duration_ms
-                    "error_rate": stage.error_rate
-                    "last_error": stage.last_error
-                    "last_execution": stage.last_execution.isoformat() if stage.last_execution else None
+                    "execution_count": stage.execution_count,
+                    "average_duration_ms": stage.average_duration_ms,
+                    "error_rate": stage.error_rate,
+                    "last_error": stage.last_error,
+                    "last_execution": stage.last_execution.isoformat() if stage.last_execution else None,
                 }
                 for name, stage in self.stage_metrics.items()
             }
@@ -214,18 +215,46 @@ class PipelineMonitor:
                 health = "healthy"
 
             return {
-                "pipeline": self.pipeline_name
-                "health": health
-                "success_rate": self.metrics.success_rate
-                "recent_failures": recent_failures
-                "active_executions": len(self._active_executions)
-                "last_execution": self.metrics.last_execution_time.isoformat()
-                if self.metrics.last_execution_time
-                else None
+                "pipeline": self.pipeline_name,
+                "health": health,
+                "success_rate": self.metrics.success_rate,
+                "recent_failures": recent_failures,
+                "active_executions": len(self._active_executions),
+                "last_execution": (
+                    self.metrics.last_execution_time.isoformat() if self.metrics.last_execution_time else None
+                ),
             }
 
 
-class MonitoringService:
+class BaseMonitoringService(ABC):
+    """Abstract base class defining the monitoring service interface.
+
+    Establishes the service layer contract for all monitoring implementations
+    following Golden Rule 10 - Service Layer Architecture standards.
+    """
+
+    @abstractmethod
+    def get_or_create_monitor(self, pipeline_name: str) -> "PipelineMonitor":
+        """Get existing monitor or create new one for pipeline."""
+        pass
+
+    @abstractmethod
+    def remove_monitor(self, pipeline_name: str) -> bool:
+        """Remove monitor for specified pipeline."""
+        pass
+
+    @abstractmethod
+    def get_monitor_status(self, pipeline_name: str) -> Dict[str, Any] | None:
+        """Get current status of pipeline monitor."""
+        pass
+
+    @abstractmethod
+    def get_all_monitors_status(self) -> Dict[str, Dict[str, Any]]:
+        """Get status of all active monitors."""
+        pass
+
+
+class MonitoringService(BaseMonitoringService):
     """Service for managing multiple pipeline monitors"""
 
     def __init__(self) -> None:
@@ -256,3 +285,24 @@ class MonitoringService:
                 summary[health["health"]] += 1
 
             return summary
+
+    def remove_monitor(self, pipeline_name: str) -> bool:
+        """Remove monitor for specified pipeline."""
+        with self.lock:
+            if pipeline_name in self.monitors:
+                del self.monitors[pipeline_name]
+                logger.info(f"Removed monitor for pipeline: {pipeline_name}")
+                return True
+            return False
+
+    def get_monitor_status(self, pipeline_name: str) -> Dict[str, Any] | None:
+        """Get current status of pipeline monitor."""
+        with self.lock:
+            if pipeline_name in self.monitors:
+                return self.monitors[pipeline_name].get_health_status()
+            return None
+
+    def get_all_monitors_status(self) -> Dict[str, Dict[str, Any]]:
+        """Get status of all active monitors."""
+        with self.lock:
+            return {name: monitor.get_health_status() for name, monitor in self.monitors.items()}

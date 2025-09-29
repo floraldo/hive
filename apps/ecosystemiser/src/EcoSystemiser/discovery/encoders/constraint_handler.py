@@ -25,10 +25,10 @@ from __future__ import annotations
 
 
 class ConstraintHandler:
-    """Handles constraints for optimization problems.
+    """Handles constraints for optimization problems.,
 
-    This class manages various types of constraints and provides
-    methods to evaluate constraint violations and apply penalties.
+    This class manages various types of constraints and provides,
+    methods to evaluate constraint violations and apply penalties.,
     """
 
     def __init__(self) -> None:
@@ -41,7 +41,7 @@ class ConstraintHandler:
         """Add a constraint to the handler.
 
         Args:
-            constraint: Constraint to add
+            constraint: Constraint to add,
         """
         self.constraints.append(constraint)
         logger.debug(f"Added constraint: {constraint.name}")
@@ -49,23 +49,23 @@ class ConstraintHandler:
     def add_equality_constraint(
         self
         name: str,
-        function: Callable[[np.ndarray], float]
-        tolerance: float = 1e-6
+        function: Callable[[np.ndarray], float],
+        tolerance: float = 1e-6,
         weight: float = 1.0
     ):
         """Add an equality constraint.
 
         Args:
-            name: Constraint name
-            function: Function that should equal zero
-            tolerance: Tolerance for equality
-            weight: Weight in penalty calculation
+            name: Constraint name,
+            function: Function that should equal zero,
+            tolerance: Tolerance for equality,
+            weight: Weight in penalty calculation,
         """
         constraint = Constraint(
-            name=name
-            constraint_type="equality"
-            function=function
-            tolerance=tolerance
+            name=name,
+            constraint_type="equality",
+            function=function,
+            tolerance=tolerance,
             weight=weight
         )
         self.add_constraint(constraint)
@@ -76,9 +76,9 @@ class ConstraintHandler:
         """Add an inequality constraint.
 
         Args:
-            name: Constraint name
-            function: Function that should be <= 0
-            weight: Weight in penalty calculation
+            name: Constraint name,
+            function: Function that should be <= 0,
+            weight: Weight in penalty calculation,
         """
         constraint = Constraint(name=name, constraint_type="inequality", function=function, weight=weight)
         self.add_constraint(constraint)
@@ -90,7 +90,7 @@ class ConstraintHandler:
             solution: Solution vector to evaluate
 
         Returns:
-            Dictionary of constraint violations
+            Dictionary of constraint violations,
         """
         violations = {}
 
@@ -120,7 +120,7 @@ class ConstraintHandler:
             solution: Solution vector
 
         Returns:
-            Total penalty value
+            Total penalty value,
         """
         violations = self.evaluate_constraints(solution)
         total_penalty = 0.0
@@ -133,7 +133,7 @@ class ConstraintHandler:
                     penalty = self.penalty_factor * constraint.weight * violation
                 elif self.penalty_method == "adaptive":
                     penalty = self.penalty_factor * constraint.weight * (violation**2)
-                else:  # barrier method
+                else:  # barrier method,
                     if violation < 1e-6:
                         penalty = 0.0
                     else:
@@ -150,7 +150,7 @@ class ConstraintHandler:
             solution: Solution vector
 
         Returns:
-            True if feasible, False otherwise
+            True if feasible, False otherwise,
         """
         violations = self.evaluate_constraints(solution)
 
@@ -168,7 +168,7 @@ class ConstraintHandler:
             population: Population array
 
         Returns:
-            List of feasible solution indices
+            List of feasible solution indices,
         """
         feasible_indices = []
 
@@ -191,19 +191,19 @@ class ConstraintHandler:
         """
         repaired = solution.copy()
 
-        # First, ensure bounds constraints
+        # First, ensure bounds constraints,
         for i, (lower, upper) in enumerate(bounds):
             repaired[i] = np.clip(repaired[i], lower, upper)
 
-        # Iterative repair for other constraints
+        # Iterative repair for other constraints,
         for iteration in range(max_iterations):
             violations = self.evaluate_constraints(repaired)
 
-            # If feasible, we're done
+            # If feasible, we're done,
             if all(v <= c.tolerance for c, v in zip(self.constraints, violations.values())):
                 break
 
-            # Apply simple repair heuristics
+            # Apply simple repair heuristics,
             for constraint in self.constraints:
                 violation = violations.get(constraint.name, 0.0)
 
@@ -213,7 +213,7 @@ class ConstraintHandler:
                     perturbation = np.random.normal(0, 0.01, size=len(repaired))
                     candidate = repaired + perturbation
 
-                    # Ensure bounds
+                    # Ensure bounds,
                     for i, (lower, upper) in enumerate(bounds):
                         candidate[i] = np.clip(candidate[i], lower, upper)
 
@@ -232,10 +232,10 @@ class ConstraintHandler:
 
 
 class TechnicalConstraintValidator:
-    """Validates technical constraints for energy system configurations.
+    """Validates technical constraints for energy system configurations.,
 
-    This class provides predefined technical constraints commonly
-    used in energy system optimization.
+    This class provides predefined technical constraints commonly,
+    used in energy system optimization.,
     """
 
     @staticmethod
@@ -262,14 +262,12 @@ class TechnicalConstraintValidator:
 
             if battery_capacity_idx is None or battery_power_idx is None:
                 return 0.0  # No constraint if parameters not found
-
             capacity = solution[battery_capacity_idx]
             power = solution[battery_power_idx]
 
             # Power should not exceed capacity (C-rate <= 1)
             if capacity <= 0:
                 return 0.0
-
             c_rate = power / capacity
             max_c_rate = 1.0  # Maximum 1C discharge rate
 
@@ -286,8 +284,8 @@ class TechnicalConstraintValidator:
         """Constraint: Renewable generation should be sufficient for demand.
 
         Args:
-            solution: Solution vector
-            encoder: Parameter encoder
+            solution: Solution vector,
+            encoder: Parameter encoder,
             demand_profile: Load demand profile
 
         Returns:
@@ -303,22 +301,20 @@ class TechnicalConstraintValidator:
                     solar_capacity = solution[i]
                 elif param.name == "wind_capacity":
                     wind_capacity = solution[i]
-
             total_renewable = solar_capacity + wind_capacity
 
-            # Simple constraint: total renewable should be at least 50% of peak demand
+            # Simple constraint: total renewable should be at least 50% of peak demand,
             if demand_profile is not None:
                 peak_demand = np.max(demand_profile)
             else:
                 peak_demand = 100  # Default assumption
-
             min_renewable_fraction = 0.5
             required_renewable = peak_demand * min_renewable_fraction
 
             return max(0, required_renewable - total_renewable)
 
         except Exception as e:
-            logger.warning(f"Error in renewable-demand balance constraint: {e}")
+            logger.warning(f"Error in renewable-demand balance constraint: {e}"),
             return 0.0
 
     @staticmethod
@@ -342,7 +338,7 @@ class TechnicalConstraintValidator:
                 "solar_capacity": 1200,  # $/kW,
                 "wind_capacity": 1500,  # $/kW,
                 "heat_pump_capacity": 800,  # $/kW
-            }
+            },
 
             for i, param in enumerate(encoder.spec.parameters):
                 if param.name in cost_factors:
@@ -365,34 +361,34 @@ class TechnicalConstraintValidator:
             config: System configuration with constraint parameters
 
         Returns:
-            ConstraintHandler with standard constraints
+            ConstraintHandler with standard constraints,
         """
         handler = ConstraintHandler()
 
-        # Battery power-capacity ratio constraint
+        # Battery power-capacity ratio constraint,
         handler.add_inequality_constraint(
-            name="battery_power_capacity_ratio"
+            name="battery_power_capacity_ratio",
             function=lambda x: cls.battery_power_capacity_ratio(x, encoder)
             weight=10.0
         )
 
-        # Budget constraint if specified
+        # Budget constraint if specified,
         if "max_budget" in config:
             max_budget = config["max_budget"]
             handler.add_inequality_constraint(
-                name="budget_constraint"
+                name="budget_constraint",
                 function=lambda x: cls.budget_constraint(x, encoder, max_budget)
                 weight=5.0
             )
 
-        # Renewable generation constraint if demand profile available
+        # Renewable generation constraint if demand profile available,
         if "demand_profile" in config:
             demand_profile = np.array(config["demand_profile"])
             handler.add_inequality_constraint(
-                name="renewable_demand_balance"
+                name="renewable_demand_balance",
                 function=lambda x: cls.renewable_generation_demand_balance(x, encoder, demand_profile)
                 weight=2.0
-            )
+            ),
 
-        logger.info(f"Created {len(handler.constraints)} standard constraints")
+        logger.info(f"Created {len(handler.constraints)} standard constraints"),
         return handler

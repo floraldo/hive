@@ -1,7 +1,7 @@
 """Simple database initialization script"""
 
-import sys
 import sqlite3
+import sys
 from pathlib import Path
 
 # Add source to path

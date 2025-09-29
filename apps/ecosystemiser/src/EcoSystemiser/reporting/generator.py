@@ -2,9 +2,9 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-"""Centralized HTML report generation for EcoSystemiser.
+"""Centralized HTML report generation for EcoSystemiser.,
 
-This module provides a unified approach to generating HTML reports,
+This module provides a unified approach to generating HTML reports
 eliminating code duplication between CLI and web interfaces.
 """
 
@@ -24,26 +24,26 @@ class HTMLReportGenerator:
         self.bootstrap_js_cdn = "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
 
     def generate_standalone_report(
-        self,
+        self
         analysis_results: dict[str, Any],
         plots: dict[str, Any] | None = None,
         title: str = "EcoSystemiser Analysis Report",
-        report_type: str = "standard",
+        report_type: str = "standard"
     ) -> str:
         """Generate a complete standalone HTML report.
 
         Args:
-            analysis_results: Analysis results dictionary
-            plots: Optional dictionary of Plotly plots
+            analysis_results: Analysis results dictionary,
+            plots: Optional dictionary of Plotly plots,
             title: Report title
 
         Returns:
-            Complete HTML string
+            Complete HTML string,
         """
         # Build HTML sections based on report type
         head_html = self._generate_head(
             title, include_bootstrap=(report_type in ["genetic_algorithm", "monte_carlo", "study"])
-        )
+        ),
 
         if report_type == "genetic_algorithm":
             content_html = self._generate_ga_report_content(analysis_results, plots or {})
@@ -57,7 +57,6 @@ class HTMLReportGenerator:
             plots_html = self._generate_plots_section(plots or {})
             details_html = self._generate_details_section(analysis_results)
             content_html = f"{summary_html}{plots_html}{details_html}"
-
         scripts_html = self._generate_scripts(plots or {}, report_type)
 
         # Assemble complete HTML
@@ -92,7 +91,7 @@ class HTMLReportGenerator:
     </div>
     {scripts_html}
 </body>
-</html>
+</html>,
             """
         else:
             # Standard report
@@ -108,7 +107,7 @@ class HTMLReportGenerator:
     </div>
     {scripts_html}
 </body>
-</html>
+</html>,
             """
         return html
 
@@ -120,7 +119,7 @@ class HTMLReportGenerator:
             plots: Optional dictionary of Plotly plots
 
         Returns:
-            HTML body content string
+            HTML body content string,
         """
         summary_html = self._generate_summary_section(analysis_results)
         plots_html = self._generate_plots_section(plots or {})
@@ -129,7 +128,7 @@ class HTMLReportGenerator:
         return f"""
 {summary_html}
 {plots_html}
-{details_html}
+{details_html},
         """
 
     def _generate_head(self, title: str, include_bootstrap: bool = False) -> str:
@@ -146,257 +145,257 @@ class HTMLReportGenerator:
     <script src="{self.plotly_cdn}"></script>
     {bootstrap_js}
     {self._generate_styles(include_bootstrap)}
-</head>
+</head>,
         """
 
     def _generate_styles(self, include_bootstrap: bool = False) -> str:
         """Generate CSS styles for the report."""
         return """
-    <style>
+    <style>,
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
             background: #f5f5f5;
             color: #333;
-        }
+        },
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
-            background: white;
+            background: white;,
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
-        }
+        },
         h1 {
-            color: #2E7D32;
-            border-bottom: 3px solid #2E7D32;
-            padding-bottom: 10px;
+            color: #2E7D32;,
+            border-bottom: 3px solid #2E7D32;,
+            padding-bottom: 10px;,
             margin-bottom: 30px;
-        }
+        },
         h2 {
-            color: #388E3C;
-            margin-top: 40px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #e0e0e0;
+            color: #388E3C;,
+            margin-top: 40px;,
+            margin-bottom: 20px;,
+            border-bottom: 1px solid #e0e0e0;,
             padding-bottom: 8px;
-        }
+        },
         h3 {
-            color: #43A047;
-            margin-top: 25px;
+            color: #43A047;,
+            margin-top: 25px;,
             margin-bottom: 15px;
-        }
+        },
         .timestamp {
-            color: #666;
-            font-size: 0.9em;
+            color: #666;,
+            font-size: 0.9em;,
             margin-bottom: 30px;
-        }
+        },
         .metrics-grid {
-            display: grid;
+            display: grid;,
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin: 30px 0;
-        }
+        },
         .metric {
             background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
+            padding: 20px;,
+            border-radius: 8px;,
+            text-align: center;,
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: transform 0.2s;
-        }
+        },
         .metric:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px);,
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
+        },
         .metric-value {
-            font-size: 2.5em;
+            font-size: 2.5em;,
             font-weight: bold;
-            color: #1B5E20;
+            color: #1B5E20;,
             margin-bottom: 8px;
-        }
+        },
         .metric-label {
-            color: #558B2F;
-            font-size: 0.95em;
-            text-transform: uppercase;
+            color: #558B2F;,
+            font-size: 0.95em;,
+            text-transform: uppercase;,
             letter-spacing: 0.5px;
-        }
+        },
         .metric.warning .metric-value {
             color: #F57C00;
-        }
+        },
         .metric.error .metric-value {
             color: #D32F2F;
-        }
+        },
         .plot {
             margin: 30px 0;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
+            padding: 20px;,
+            border-radius: 8px;,
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        },
         .plot-title {
             font-weight: 600;
-            color: #388E3C;
+            color: #388E3C;,
             margin-bottom: 15px;
-        }
+        },
         table {
-            width: 100%;
+            width: 100%;,
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 20px 0;,
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
+        },
         thead {
             background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);
             color: white;
-        }
+        },
         th {
-            padding: 12px 15px;
-            text-align: left;
+            padding: 12px 15px;,
+            text-align: left;,
             font-weight: 600;
-        }
+        },
         td {
-            padding: 10px 15px;
+            padding: 10px 15px;,
             border-bottom: 1px solid #e0e0e0;
-        }
+        },
         tbody tr:hover {
             background: #F1F8E9;
-        }
+        },
         tbody tr:last-child td {
             border-bottom: none;
-        }
+        },
         .success {
-            color: #2E7D32;
+            color: #2E7D32;,
             font-weight: 600;
-        }
+        },
         .error {
-            color: #D32F2F;
+            color: #D32F2F;,
             font-weight: 600;
-        }
+        },
         .warning {
-            color: #F57C00;
+            color: #F57C00;,
             font-weight: 600;
-        }
+        },
         .info-box {
-            background: #E3F2FD;
+            background: #E3F2FD;,
             border-left: 4px solid #2196F3;
             padding: 15px 20px;
-            margin: 20px 0;
+            margin: 20px 0;,
             border-radius: 4px;
-        }
+        },
         .info-box h4 {
             margin: 0 0 10px 0;
             color: #1565C0;
         }
-        /* Interactive Report Styles */
+        /* Interactive Report Styles */,
         .result-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: white;,
+            border-radius: 8px;,
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);,
             margin-bottom: 20px;
             transition: transform 0.2s;
-        }
+        },
         .result-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px);,
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
+        },
         .result-card-header {
             background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);
             color: white;
-            padding: 15px 20px;
-            border-radius: 8px 8px 0 0;
+            padding: 15px 20px;,
+            border-radius: 8px 8px 0 0;,
             font-weight: 600;
-        }
+        },
         .result-card-body {
             padding: 20px;
-        }
+        },
         .parameter-grid {
-            display: grid;
+            display: grid;,
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 15px;
             margin: 20px 0;
-        }
+        },
         .parameter-item {
             background: #f8f9fa;
-            padding: 12px 15px;
-            border-radius: 6px;
+            padding: 12px 15px;,
+            border-radius: 6px;,
             border-left: 4px solid #4CAF50;
-        }
+        },
         .parameter-name {
             font-weight: 600;
-            color: #2E7D32;
+            color: #2E7D32;,
             margin-bottom: 4px;
-        }
+        },
         .parameter-value {
-            color: #666;
+            color: #666;,
             font-size: 0.95em;
-        }
+        },
         .objective-badge {
             display: inline-block;
             padding: 4px 12px;
             background: #E8F5E9;
-            color: #2E7D32;
-            border-radius: 20px;
-            font-size: 0.85em;
+            color: #2E7D32;,
+            border-radius: 20px;,
+            font-size: 0.85em;,
             font-weight: 500;
             margin: 2px 4px;
-        }
+        },
         .convergence-indicator {
-            display: inline-flex;
+            display: inline-flex;,
             align-items: center;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 8px 12px;,
+            border-radius: 6px;,
             font-weight: 500;
-        }
+        },
         .convergence-indicator.converged {
             background: #d4edda;
             color: #155724;
-        }
+        },
         .convergence-indicator.failed {
             background: #f8d7da;
             color: #721c24;
-        }
+        },
         .stats-row {
-            display: flex;
-            justify-content: space-between;
+            display: flex;,
+            justify-content: space-between;,
             align-items: center;
-            padding: 8px 0;
+            padding: 8px 0;,
             border-bottom: 1px solid #e9ecef;
-        }
+        },
         .stats-row:last-child {
             border-bottom: none;
-        }
+        },
         .stats-label {
             font-weight: 500;
             color: #495057;
-        }
+        },
         .stats-value {
-            color: #2E7D32;
+            color: #2E7D32;,
             font-weight: 600;
-        }
+        },
         .tab-content {
             margin-top: 20px;
-        }
+        },
         .risk-meter {
-            display: flex;
+            display: flex;,
             align-items: center;
             margin: 10px 0;
-        }
+        },
         .risk-bar {
             flex: 1;
             height: 20px;
-            background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);
+            background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);,
             border-radius: 10px;
             margin: 0 10px;
             position: relative;
-        }
+        },
         .risk-indicator {
             position: absolute;
             top: -2px;
             width: 4px;
             height: 24px;
-            background: #333;
+            background: #333;,
             border-radius: 2px;
         }
-    </style>
+    </style>,
         """
 
     def _generate_summary_section(self, analysis_results: dict[str, Any]) -> str:
@@ -416,7 +415,7 @@ class HTMLReportGenerator:
     <div class="metric">
         <div class="metric-value">{successful}</div>
         <div class="metric-label">Successful Analyses</div>
-    </div>
+    </div>,
         """
 
         if failed > 0:
@@ -424,20 +423,19 @@ class HTMLReportGenerator:
     <div class="metric warning">
         <div class="metric-value">{failed}</div>
         <div class="metric-label">Failed Analyses</div>
-    </div>
+    </div>,
             """
 
         # Key performance metrics
         key_metrics = summary.get("key_metrics", {})
-
         metric_formatters = {
             "grid_self_sufficiency": ("Grid Self-Sufficiency", lambda x: f"{x:.1%}"),
-            "renewable_fraction": ("Renewable Fraction", lambda x: f"{x:.1%}"),
+            "renewable_fraction": ("Renewable Fraction", lambda x: f"{x:.1%}")
             "total_cost": ("Total Cost", lambda x: f"${x:,.0f}"),
-            "emissions_reduction": ("Emissions Reduction", lambda x: f"{x:.1%}"),
+            "emissions_reduction": ("Emissions Reduction", lambda x: f"{x:.1%}")
             "peak_demand_reduction": ("Peak Demand Reduction", lambda x: f"{x:.1%}"),
-            "storage_utilization": ("Storage Utilization", lambda x: f"{x:.1%}"),
-        }
+            "storage_utilization": ("Storage Utilization", lambda x: f"{x:.1%}")
+        },
 
         for key, (label, formatter) in metric_formatters.items():
             if key in key_metrics:
@@ -447,7 +445,7 @@ class HTMLReportGenerator:
     <div class="metric">
         <div class="metric-value">{formatted_value}</div>
         <div class="metric-label">{label}</div>
-    </div>
+    </div>,
                 """
 
         html += "</div>\n</section>\n"
@@ -466,7 +464,7 @@ class HTMLReportGenerator:
 <div class="plot">
     <div class="plot-title">{plot_title}</div>
     <div id="{plot_id}"></div>
-</div>
+</div>,
             """
 
         html += "</section>\n"
@@ -507,7 +505,7 @@ class HTMLReportGenerator:
             # Format key
             formatted_key = key.replace("_", " ").title()
 
-            # Format value
+            # Format value,
             if isinstance(value, bool):
                 formatted_value = "Yes" if value else "No"
                 css_class = "success" if value else "warning"
@@ -539,37 +537,37 @@ class HTMLReportGenerator:
         plot_script = ""
         if plots:
             plot_script = f"""
-    // Plot rendering
+    // Plot rendering,
     const plots = {json.dumps(plots)};
     Object.keys(plots).forEach(plotId => {{
         const element = document.getElementById(plotId);
         if (element && plots[plotId]) {{
             const layout = {{
-                autosize: true,
-                margin: {{l: 50, r: 50, t: 50, b: 50}},
-                paper_bgcolor: 'rgba(0,0,0,0)',
+                autosize: true
+                margin: {{l: 50, r: 50, t: 50, b: 50}}
+                paper_bgcolor: 'rgba(0,0,0,0)'
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 ...plots[plotId].layout
-            }};
+            }};,
             const config = {{
-                responsive: true,
-                displayModeBar: true,
-                displaylogo: false,
+                responsive: true
+                displayModeBar: true
+                displaylogo: false
                 modeBarButtonsToRemove: ['sendDataToCloud']
-            }};
+            }};,
             Plotly.newPlot(plotId, plots[plotId].data || plots[plotId], layout, config);
         }}
-    }});
+    }});,
             """
 
         interactive_script = ""
         if report_type in ["genetic_algorithm", "monte_carlo", "study"]:
             interactive_script = """
     // Interactive features
-    // Smooth scrolling for navigation
+    // Smooth scrolling for navigation,
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
-            e.preventDefault();
+            e.preventDefault();,
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth' });
@@ -577,7 +575,7 @@ class HTMLReportGenerator:
         });
     });
 
-    // Collapsible sections
+    // Collapsible sections,
     document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button => {
         button.addEventListener('click', function() {
             const icon = this.querySelector('.fa') || this.querySelector('[class*="arrow"]');
@@ -587,7 +585,7 @@ class HTMLReportGenerator:
         });
     });
 
-    // Parameter filtering
+    // Parameter filtering,
     const filterInput = document.getElementById('parameterFilter');
     if (filterInput) {
         filterInput.addEventListener('input', function() {
@@ -597,7 +595,7 @@ class HTMLReportGenerator:
                 item.style.display = name.includes(filter) ? 'block' : 'none';
             });
         });
-    }
+    },
             """
 
         return f"""
@@ -606,14 +604,13 @@ document.addEventListener('DOMContentLoaded', function() {{
 {plot_script}
 {interactive_script}
 }});
-</script>
+</script>,
         """
 
     def _generate_ga_report_content(self, analysis_results: dict[str, Any], plots: dict[str, Any]) -> str:
         """Generate content for genetic algorithm optimization reports."""
         best_result = analysis_results.get("best_result", {})
         summary_stats = analysis_results.get("summary_statistics", {})
-
         html = f"""
         <div class="row" id="summary">
             <div class="col-12">
@@ -668,7 +665,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                     <div class="result-card-body">
         """
 
-        # Best solution parameters
+        # Best solution parameters,
         if best_result.get("best_solution"):
             html += """
                         <h5>Best Solution Parameters:</h5>
@@ -679,11 +676,11 @@ document.addEventListener('DOMContentLoaded', function() {{
                             <div class="parameter-item">
                                 <div class="parameter-name">Parameter {i+1}</div>
                                 <div class="parameter-value">{param_value:.6f}</div>
-                            </div>
+                            </div>,
                 """
             html += "</div>"
 
-        # Objectives
+        # Objectives,
         if best_result.get("best_objectives"):
             html += "<h5 class='mt-4'>Objective Values:</h5><div>"
             for i, obj_value in enumerate(best_result["best_objectives"]):
@@ -694,10 +691,10 @@ document.addEventListener('DOMContentLoaded', function() {{
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
         """
 
-        # Plots section
+        # Plots section,
         if plots:
             html += self._generate_interactive_plots_section(plots, "genetic_algorithm")
 
@@ -716,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>,
             """
 
         return html
@@ -726,7 +723,6 @@ document.addEventListener('DOMContentLoaded', function() {{
         best_result = analysis_results.get("best_result", {})
         summary_stats = analysis_results.get("summary_statistics", {})
         uncertainty_analysis = best_result.get("uncertainty_analysis", {})
-
         html = f"""
         <div class="row" id="summary">
             <div class="col-12">
@@ -764,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
         """
 
         # Statistics section
@@ -781,7 +777,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                             <div class="row">
             """
 
-            # Handle case where statistics is a single dict of values
+            # Handle case where statistics is a single dict of values,
             if isinstance(statistics.get("mean"), (int, float)):
                 # Single objective case
                 mean = statistics.get("mean", 0)
@@ -808,10 +804,10 @@ document.addEventListener('DOMContentLoaded', function() {{
                                         <span class="stats-label">Max:</span>
                                         <span class="stats-value">{max_val:.4f}</span>
                                     </div>
-                                </div>
+                                </div>,
                 """
             else:
-                # Multi-objective case
+                # Multi-objective case,
                 for obj_name, obj_stats in statistics.items():
                     if isinstance(obj_stats, dict):
                         mean = obj_stats.get("mean", 0)
@@ -834,7 +830,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                                         <span class="stats-label">Range:</span>
                                         <span class="stats-value">{min_val:.4f} - {max_val:.4f}</span>
                                     </div>
-                                </div>
+                                </div>,
                 """
 
             html += """
@@ -842,7 +838,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>,
             """
 
         # Risk analysis section
@@ -884,17 +880,17 @@ document.addEventListener('DOMContentLoaded', function() {{
                                         <span class="stats-value">{prob_exceed_mean:.1f}%</span>
                                     </div>
                                 </div>
-                            </div>
+                            </div>,
                 """
 
             html += """
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>,
             """
 
-        # Plots section
+        # Plots section,
         if plots:
             html += self._generate_interactive_plots_section(plots, "monte_carlo")
 
@@ -933,7 +929,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
         """
 
     def _generate_interactive_plots_section(self, plots: dict[str, Any], report_type: str) -> str:
@@ -957,16 +953,16 @@ document.addEventListener('DOMContentLoaded', function() {{
                             aria-controls="{plot_id}-pane" aria-selected="{active_attr}">
                         {plot_title}
                     </button>
-                </li>
+                </li>,
             """
 
             tab_content += f"""
-                <div class="tab-pane fade {'show active' if i == 0 else ''}" id="{plot_id}-pane"
+                <div class="tab-pane fade {'show active' if i == 0 else ''}" id="{plot_id}-pane",
                      role="tabpanel" aria-labelledby="{plot_id}-tab">
                     <div class="plot mt-3">
                         <div id="{plot_id}"></div>
                     </div>
-                </div>
+                </div>,
             """
 
         tab_nav += "</ul>"
@@ -985,7 +981,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
         """
 
     def generate_ga_optimization_report(self, study_result: dict[str, Any], plots: dict[str, Any] | None = None) -> str:
@@ -996,7 +992,7 @@ document.addEventListener('DOMContentLoaded', function() {{
             plots: Optional dictionary of plots
 
         Returns:
-            Complete HTML report string
+            Complete HTML report string,
         """
         title = f"Genetic Algorithm Optimization: {study_result.get('study_id', 'GA Study')}"
         return self.generate_standalone_report(study_result, plots, title, "genetic_algorithm")
@@ -1009,7 +1005,7 @@ document.addEventListener('DOMContentLoaded', function() {{
             plots: Optional dictionary of plots
 
         Returns:
-            Complete HTML report string
+            Complete HTML report string,
         """
         title = f"Monte Carlo Uncertainty Analysis: {study_result.get('study_id', 'MC Study')}"
         return self.generate_standalone_report(study_result, plots, title, "monte_carlo")
@@ -1020,18 +1016,18 @@ document.addEventListener('DOMContentLoaded', function() {{
         """Generate a comparative study report.
 
         Args:
-            study_results: List of StudyResult dictionaries
+            study_results: List of StudyResult dictionaries,
             plots: Optional dictionary of plots
 
         Returns:
-            Complete HTML report string
+            Complete HTML report string,
         """
         # Aggregate results for comparison
         aggregated_results = {
             "study_type": "comparison",
             "studies": study_results,
             "summary": self._create_comparison_summary(study_results),
-        }
+        },
 
         return self.generate_standalone_report(aggregated_results, plots, "Study Comparison Report", "study")
 
@@ -1049,15 +1045,15 @@ document.addEventListener('DOMContentLoaded', function() {{
             "successful_studies": successful_studies,
             "total_execution_time": total_execution_time,
             "avg_execution_time": avg_execution_time,
-            "study_types": list({s.get("study_type", "unknown") for s in study_results}),
-        }
+            "study_types": list({s.get("study_type", "unknown") for s in study_results})
+        },
 
     def save_report(self, html_content: str, output_path: Path) -> None:
         """Save HTML report to file.
 
         Args:
             html_content: Complete HTML content
-            output_path: Path to save the report
+            output_path: Path to save the report,
         """
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(html_content, encoding="utf-8")
@@ -1067,17 +1063,17 @@ document.addEventListener('DOMContentLoaded', function() {{
 def create_standalone_html_report(
     analysis_results: dict[str, Any],
     plots: dict[str, Any] | None = None,
-    title: str = "EcoSystemiser Analysis Report",
+    title: str = "EcoSystemiser Analysis Report"
 ) -> str:
     """Create a standalone HTML report (backward compatibility wrapper).
 
     Args:
-        analysis_results: Analysis results dictionary
-        plots: Optional dictionary of Plotly plots
+        analysis_results: Analysis results dictionary,
+        plots: Optional dictionary of Plotly plots,
         title: Report title
 
     Returns:
-        Complete HTML string
+        Complete HTML string,
     """
     generator = HTMLReportGenerator()
     return generator.generate_standalone_report(analysis_results, plots, title)

@@ -3,9 +3,6 @@
 Standalone entry point for AI Reviewer Agent
 """
 
-import os
-import sys
-from pathlib import Path
 
 # Now import and run
 from ai_reviewer.agent import main

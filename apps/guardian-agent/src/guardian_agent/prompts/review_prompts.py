@@ -1,6 +1,5 @@
 """Prompt templates for code review generation."""
 
-import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -137,7 +136,7 @@ Format your response as JSON:
             return content
 
         # Include first and last portions
-        truncated = lines[:max_lines // 2]
+        truncated = lines[: max_lines // 2]
         truncated.append("\n... [truncated middle section] ...\n")
         truncated.extend(lines[-max_lines // 2 :])
 

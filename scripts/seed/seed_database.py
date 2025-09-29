@@ -7,7 +7,6 @@ This replaces the old JSON-based task files with database-native task creation.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add hive-core-db to path
@@ -16,7 +15,7 @@ import hive_core_db
 
 # Add hive-logging to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-logging" / "src"))
-from hive_logging import setup_logging, get_logger
+from hive_logging import get_logger, setup_logging
 
 
 def setup_sample_tasks():
@@ -180,8 +179,8 @@ def clear_all_tasks():
 
     try:
         # Use direct database connection to clear tasks
-        from hive_db import get_sqlite_connection, sqlite_transaction
         from hive_config.paths import DB_PATH
+        from hive_db import sqlite_transaction
 
         with sqlite_transaction(DB_PATH) as conn:
             cursor = conn.cursor()

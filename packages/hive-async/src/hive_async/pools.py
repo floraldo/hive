@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Generic, Optional, TypeVar
+from typing import Callable, Dict, Generic, Optional, TypeVar
 
 from hive_logging import get_logger
 
@@ -40,8 +40,8 @@ class ConnectionPool(Generic[T]):
         self.health_check = health_check
         self.config = config or PoolConfig()
 
-        self._pool: asyncio.Queue = asyncio.Queue(maxsize=self.config.max_size)
-        self._connections: Dict[T, float] = {}
+        self._pool: asyncio.Queue = (asyncio.Queue(maxsize=self.config.max_size),)
+        self._connections: Dict[T, float] = ({},)
         self._lock = asyncio.Lock()
         self._closed = False
         self._health_check_task: asyncio.Task | None = None

@@ -5,7 +5,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 """
-Configuration data models for climate module.
+Configuration data models for climate module.,
 
 Extracted to avoid circular dependencies between settings.py and base.py.
 """

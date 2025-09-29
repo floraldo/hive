@@ -8,7 +8,7 @@ import ast
 import re
 import sys
 from pathlib import Path
-from typing import List, Tuple
+from typing import Tuple
 
 from hive_logging import get_logger
 
@@ -26,9 +26,9 @@ class SyntaxFixer:
         """Fix missing commas in import statements."""
         patterns = [
             # from module import (item1 item2) -> from module import (item1, item2)
-            (r'from\s+[\w.]+\s+import\s*\(\s*([^)]+)\)', self._fix_import_list),
+            (r"from\s+[\w.]+\s+import\s*\(\s*([^)]+)\)", self._fix_import_list),
             # import statement with missing commas
-            (r'import\s+([^;\n]+)', self._fix_import_simple),
+            (r"import\s+([^;\n]+)", self._fix_import_simple),
         ]
 
         for pattern, fixer in patterns:
@@ -39,11 +39,11 @@ class SyntaxFixer:
     def _fix_import_list(self, match) -> str:
         """Fix comma-separated import list."""
         import_list = match.group(1).strip()
-        if ',' not in import_list and '\n' in import_list:
+        if "," not in import_list and "\n" in import_list:
             # Split on whitespace/newlines and add commas
-            items = [item.strip() for item in re.split(r'[\s\n]+', import_list) if item.strip()]
+            items = [item.strip() for item in re.split(r"[\s\n]+", import_list) if item.strip()]
             if len(items) > 1:
-                import_list = ',\n    '.join(items)
+                import_list = ",\n    ".join(items)
                 self.fixes_applied += 1
 
         return f"from {match.group(0).split('import')[0].split('from')[1].strip()} import (\n    {import_list},\n)"
@@ -59,51 +59,48 @@ class SyntaxFixer:
 
         def add_comma(match):
             self.fixes_applied += 1
-            return match.group(1) + ',' + match.group(2)
+            return match.group(1) + "," + match.group(2)
 
         return re.sub(pattern, add_comma, content, flags=re.MULTILINE)
 
     def fix_missing_commas_in_calls(self, content: str) -> str:
         """Fix missing commas in function calls."""
         # Pattern for function call arguments missing commas
-        pattern = r'(\w+\s*=\s*[^,\n)]+)(\s+\w+\s*=)'
+        pattern = r"(\w+\s*=\s*[^,\n)]+)(\s+\w+\s*=)"
 
         def add_comma(match):
             self.fixes_applied += 1
-            return match.group(1) + ',' + match.group(2)
+            return match.group(1) + "," + match.group(2)
 
         return re.sub(pattern, add_comma, content, flags=re.MULTILINE)
 
     def fix_incomplete_statements(self, content: str) -> str:
         """Fix incomplete statements that are just identifiers."""
-        lines = content.split('\n')
+        lines = content.split("\n")
         fixed_lines = []
 
         for i, line in enumerate(lines):
             stripped = line.strip()
 
             # Check if line is just an identifier (potential incomplete import/statement)
-            if (stripped and
-                stripped.isidentifier() and
-                i > 0 and
-                ('import' in lines[i-1] or 'from' in lines[i-1])):
+            if stripped and stripped.isidentifier() and i > 0 and ("import" in lines[i - 1] or "from" in lines[i - 1]):
 
                 # This might be a continuation of an import - check context
-                if i > 0 and ('import' in lines[i-1] or ',' in lines[i-1]):
+                if i > 0 and ("import" in lines[i - 1] or "," in lines[i - 1]):
                     # Add comma to previous line if missing
-                    if not lines[i-1].rstrip().endswith(','):
-                        lines[i-1] = lines[i-1].rstrip() + ','
+                    if not lines[i - 1].rstrip().endswith(","):
+                        lines[i - 1] = lines[i - 1].rstrip() + ","
                         self.fixes_applied += 1
 
             fixed_lines.append(line)
 
-        return '\n'.join(fixed_lines)
+        return "\n".join(fixed_lines)
 
     def check_and_fix_file(self, filepath: Path) -> Tuple[bool, str]:
         """Check and fix a single file."""
         try:
             # Read original content
-            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
                 original_content = f.read()
 
             # Try parsing original - if it works, no fix needed
@@ -126,7 +123,7 @@ class SyntaxFixer:
 
                 # Only write if we made changes
                 if content != original_content:
-                    with open(filepath, 'w', encoding='utf-8') as f:
+                    with open(filepath, "w", encoding="utf-8") as f:
                         f.write(content)
                     return True, f"Fixed ({self.fixes_applied} changes)"
                 else:

@@ -1,5 +1,5 @@
 """
-EcoSystemiser-specific event bus implementation.
+EcoSystemiser-specific event bus implementation.,
 
 Extends the generic messaging toolkit with EcoSystemiser capabilities:
 - Database-backed persistence in ecosystemiser.db
@@ -13,12 +13,12 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Union
+from typing import Any
 
 try:
     from hive_bus import BaseBus, BaseEvent
 except ImportError:
-    # Fallback implementation if hive_messaging is not available
+    # Fallback implementation if hive_messaging is not available,
     class BaseEvent:
         """Base event class for fallback implementation."""
 
@@ -51,13 +51,13 @@ logger = get_logger(__name__)
 
 class EcoSystemiserEventBus(BaseBus):
     """
-    EcoSystemiser-specific event bus implementation.
+    EcoSystemiser-specific event bus implementation.,
 
     Extends BaseBus with EcoSystemiser simulation features:
     - Persistent storage in EcoSystemiser database
     - Simulation-specific event routing
     - Analysis correlation tracking
-    - Optimization coordination patterns
+    - Optimization coordination patterns,
     """
 
     def __init__(self) -> None:
@@ -72,8 +72,8 @@ class EcoSystemiserEventBus(BaseBus):
             # Check if table exists and get its schema
             cursor = conn.execute(
                 """
-                SELECT sql FROM sqlite_master
-                WHERE type='table' AND name='ecosystemiser_events'
+                SELECT sql FROM sqlite_master,
+                WHERE type='table' AND name='ecosystemiser_events',
             """
             )
             existing_schema = cursor.fetchone()
@@ -96,7 +96,7 @@ class EcoSystemiserEventBus(BaseBus):
                     "created_at",
                 }
 
-                missing_columns = required_columns - columns
+                missing_columns = (required_columns - columns,)
                 if missing_columns:
                     logger.warning(f"Recreating ecosystemiser_events table due to missing columns: {missing_columns}")
                     conn.execute("DROP TABLE ecosystemiser_events")
@@ -104,12 +104,12 @@ class EcoSystemiserEventBus(BaseBus):
                 else:
                     logger.debug("ecosystemiser_events table exists with correct schema")
             else:
-                # Table doesn't exist, create it
+                # Table doesn't exist, create it,
                 self._create_events_table(conn)
 
     def _create_events_table(self, conn) -> None:
         """Create the events table with proper schema"""
-        # EcoSystemiser events table with simulation-specific fields
+        # EcoSystemiser events table with simulation-specific fields,
         conn.execute(
             """
             CREATE TABLE ecosystemiser_events (
@@ -128,29 +128,35 @@ class EcoSystemiserEventBus(BaseBus):
         """
         )
 
-        # EcoSystemiser-specific indexes for simulation queries
-        conn.execute(
-            """
-            CREATE INDEX IF NOT EXISTS idx_ecosys_events_simulation
+        # EcoSystemiser-specific indexes for simulation queries,
+        (
+            conn.execute(
+                """
+            CREATE INDEX IF NOT EXISTS idx_ecosys_events_simulation,
             ON ecosystemiser_events(simulation_id, timestamp)
         """
+            ),
         )
 
-        conn.execute(
-            """
-            CREATE INDEX IF NOT EXISTS idx_ecosys_events_analysis
+        (
+            conn.execute(
+                """
+            CREATE INDEX IF NOT EXISTS idx_ecosys_events_analysis,
             ON ecosystemiser_events(analysis_id, timestamp)
         """
+            ),
         )
 
-        conn.execute(
-            """
-            CREATE INDEX IF NOT EXISTS idx_ecosys_events_optimization
+        (
+            conn.execute(
+                """
+            CREATE INDEX IF NOT EXISTS idx_ecosys_events_optimization,
             ON ecosystemiser_events(optimization_id, timestamp)
         """
+            ),
         )
 
-    def publish(self, event: Union[BaseEvent, dict[str, Any]], correlation_id: str | None = None) -> str:
+    def publish(self, event: BaseEvent | dict[str, Any], correlation_id: str | None = None) -> str:
         """
         Publish an EcoSystemiser event with simulation context.
 
@@ -159,14 +165,14 @@ class EcoSystemiserEventBus(BaseBus):
             correlation_id: Optional correlation ID for workflow tracking
 
         Returns:
-            Event ID of the published event
+            Event ID of the published event,
         """
         try:
-            # Convert dict to Event if needed
+            # Convert dict to Event if needed,
             if isinstance(event, dict):
                 event = self._create_event_from_dict(event)
 
-            # Set correlation ID if provided
+            # Set correlation ID if provided,
             if correlation_id:
                 event.correlation_id = correlation_id
 
@@ -175,7 +181,7 @@ class EcoSystemiserEventBus(BaseBus):
             analysis_id = getattr(event, "analysis_id", None)
             optimization_id = getattr(event, "optimization_id", None)
 
-            # Store in EcoSystemiser database
+            # Store in EcoSystemiser database,
             with ecosystemiser_transaction() as conn:
                 conn.execute(
                     """
@@ -184,8 +190,7 @@ class EcoSystemiserEventBus(BaseBus):
                         correlation_id, simulation_id, analysis_id, optimization_id,
                         payload, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
+                    """(
                         event.event_id,
                         event.event_type,
                         (
@@ -200,10 +205,10 @@ class EcoSystemiserEventBus(BaseBus):
                         optimization_id,
                         json.dumps(event.payload if hasattr(event, "payload") else {}),
                         json.dumps(event.metadata if hasattr(event, "metadata") else {}),
-                    ),
+                    )
                 )
 
-            # Notify subscribers (from parent class)
+            # Notify subscribers (from parent class),
             self._notify_subscribers(event)
 
             logger.debug(f"Published EcoSystemiser event {event.event_id}: {event.event_type}")
@@ -228,7 +233,7 @@ class EcoSystemiserEventBus(BaseBus):
         elif event_type.startswith("optimization."):
             return OptimizationEvent.from_dict(data)
         else:
-            # Default to base event
+            # Default to base event,
             if not hasattr(BaseEvent, "from_dict"):
                 # Create BaseEvent manually if from_dict doesn't exist
                 event = BaseEvent(
@@ -290,13 +295,11 @@ class EcoSystemiserEventBus(BaseBus):
 
         query_parts.append("ORDER BY timestamp DESC LIMIT ?")
         params.append(limit)
-
         query = " ".join(query_parts)
 
         with ecosystemiser_transaction() as conn:
             cursor = conn.execute(query, params)
             rows = cursor.fetchall()
-
         events = []
         for row in rows:
             event_data = {
@@ -309,7 +312,7 @@ class EcoSystemiserEventBus(BaseBus):
                 "metadata": json.loads(row["metadata"]) if row["metadata"] else {},
             }
 
-            # Add EcoSystemiser-specific fields
+            # Add EcoSystemiser-specific fields,
             if row["simulation_id"]:
                 event_data["simulation_id"] = row["simulation_id"]
             if row["analysis_id"]:
@@ -317,7 +320,7 @@ class EcoSystemiserEventBus(BaseBus):
             if row["optimization_id"]:
                 event_data["optimization_id"] = row["optimization_id"]
 
-            events.append(self._create_event_from_dict(event_data))
+            (events.append(self._create_event_from_dict(event_data)),)
 
         return events
 

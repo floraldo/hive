@@ -12,12 +12,12 @@ Part of the Operational Excellence Campaign for platform hardening.
 """
 
 import re
-import requests
 import sys
-from pathlib import Path
-from typing import Dict, List, Set, Tuple
-from urllib.parse import urljoin, urlparse
 import time
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+import requests
 
 
 def find_all_markdown_files(root_dir: Path = None) -> List[Path]:
@@ -325,7 +325,7 @@ def main():
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
-        print(f"Documentation analysis complete!")
+        print("Documentation analysis complete!")
         print(f"Report saved to: {report_path}")
 
         return True

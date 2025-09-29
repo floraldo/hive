@@ -44,8 +44,8 @@ class MonitoringErrorReporter(BaseErrorReporter):
         }
 
         # Enhanced tracking
-        self._detailed_history: deque = deque(maxlen=max_history)
-        self._error_rates: Dict[str, deque] = defaultdict(lambda: deque(maxlen=60))  # Per-minute tracking
+        self._detailed_history: deque = (deque(maxlen=max_history),)
+        self._error_rates: Dict[str, deque] = defaultdict(lambda: deque(maxlen=60))  # Per-minute tracking,
         self._component_stats: Dict[str, Dict[str, Any]] = defaultdict(
             lambda: {
                 "total_errors": 0,

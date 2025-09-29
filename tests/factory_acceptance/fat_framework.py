@@ -10,13 +10,10 @@ import json
 import sqlite3
 import subprocess
 import time
-import requests
-import tempfile
-import shutil
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 import traceback
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 class FactoryAcceptanceTest:
@@ -284,7 +281,7 @@ class FactoryAcceptanceTest:
                 print(f"      Error: {result['error']}")
 
         # Complexity Analysis
-        print(f"\nCOMPLEXITY ANALYSIS:")
+        print("\nCOMPLEXITY ANALYSIS:")
         print("-" * 30)
         complexity_stats = {}
         for result in self.test_results:
@@ -300,7 +297,7 @@ class FactoryAcceptanceTest:
             print(f"{complexity:<15}: {stats['passed']}/{stats['total']} ({success_rate:.1f}%)")
 
         # Overall Assessment
-        print(f"\nOVERALL ASSESSMENT:")
+        print("\nOVERALL ASSESSMENT:")
         print("-" * 30)
         overall_success_rate = len(passed_tests) / len(self.test_results) * 100
 

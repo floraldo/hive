@@ -306,7 +306,7 @@ def create_config_from_sources(config_path: Path | None = None, use_environment:
     else:
         # Look for default config locations
         default_paths = [
-            Path("hive_config.json"),
+            Path("hive_config.json")
             Path("config/hive_config.json"),
             Path.home() / ".hive" / "config.json",
         ]

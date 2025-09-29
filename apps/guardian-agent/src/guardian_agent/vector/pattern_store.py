@@ -3,7 +3,7 @@
 import json
 import pickle
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from hive_ai.vector import VectorStore as HiveVectorStore
@@ -141,13 +141,15 @@ class PatternStore:
         for result in results:
             pattern_id = result.get("pattern_id")
             if pattern_id and pattern_id in self.patterns:
-                enriched_results.append({
-                    "pattern_id": pattern_id,
-                    "content": self.patterns[pattern_id]["content"],
-                    "type": self.patterns[pattern_id]["type"],
-                    "similarity": result.get("similarity", 0),
-                    "metadata": self.patterns[pattern_id].get("metadata", {}),
-                })
+                enriched_results.append(
+                    {
+                        "pattern_id": pattern_id,
+                        "content": self.patterns[pattern_id]["content"],
+                        "type": self.patterns[pattern_id]["type"],
+                        "similarity": result.get("similarity", 0),
+                        "metadata": self.patterns[pattern_id].get("metadata", {}),
+                    }
+                )
 
         return enriched_results
 
@@ -197,10 +199,7 @@ class PatternStore:
 
         # Filter by context if provided
         if context:
-            results = [
-                r for r in results
-                if context in r.get("metadata", {}).get("categories", [])
-            ]
+            results = [r for r in results if context in r.get("metadata", {}).get("categories", [])]
 
         return results
 
@@ -228,10 +227,7 @@ class PatternStore:
         )
 
         # Filter by violation type
-        relevant_fixes = [
-            r for r in results
-            if r.get("metadata", {}).get("fixes_violation") == violation_type
-        ]
+        relevant_fixes = [r for r in results if r.get("metadata", {}).get("fixes_violation") == violation_type]
 
         return relevant_fixes
 
@@ -298,7 +294,7 @@ cursor.execute(query, (user_id,))""",
     def _load_patterns(self) -> Dict[str, Any]:
         """Load patterns from disk."""
         if self.patterns_file.exists():
-            with open(self.patterns_file, "r") as f:
+            with open(self.patterns_file) as f:
                 return json.load(f)
         return {}
 

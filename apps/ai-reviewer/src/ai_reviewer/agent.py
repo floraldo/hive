@@ -4,13 +4,9 @@ Autonomous review agent that polls the database for review_pending tasks
 
 import argparse
 import asyncio
-import json
 import signal
-import sys
-import time
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 # Import hive logging
 from hive_logging import get_logger
@@ -20,7 +16,6 @@ logger = get_logger(__name__)
 from hive_logging import get_logger
 
 # Import from orchestrator's extended database layer (proper app-to-app communication)
-from hive_orchestrator.core.db import get_database, get_pooled_connection
 
 # Async database imports for Phase 4.1
 try:
@@ -33,12 +28,12 @@ try:
     ASYNC_DB_AVAILABLE = True
 except ImportError:
     ASYNC_DB_AVAILABLE = False
-from ai_reviewer.database_adapter import DatabaseAdapter
-from ai_reviewer.reviewer import ReviewDecision, ReviewEngine
 from rich.console import Console
-from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
+
+from ai_reviewer.database_adapter import DatabaseAdapter
+from ai_reviewer.reviewer import ReviewDecision, ReviewEngine
 
 # Event bus imports for explicit agent communication
 try:

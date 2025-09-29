@@ -103,23 +103,23 @@ def create_hive_app(
     Create a production-ready FastAPI application with Hive standards.
 
     Args:
-        title: Application title (required)
-        description: Application description (required)
-        version: Application version
-        config: Configuration object (optional, will create default)
-        cost_calculator: Custom cost calculator for tracking
-        daily_cost_limit: Daily cost limit in USD
-        monthly_cost_limit: Monthly cost limit in USD
-        rate_limits: Rate limiting configuration
-        enable_cors: Enable CORS middleware
-        enable_metrics: Enable Prometheus metrics
+        title: Application title (required),
+        description: Application description (required),
+        version: Application version,
+        config: Configuration object (optional, will create default),
+        cost_calculator: Custom cost calculator for tracking,
+        daily_cost_limit: Daily cost limit in USD,
+        monthly_cost_limit: Monthly cost limit in USD,
+        rate_limits: Rate limiting configuration,
+        enable_cors: Enable CORS middleware,
+        enable_metrics: Enable Prometheus metrics,
         **kwargs: Additional FastAPI kwargs
 
     Returns:
         Configured FastAPI application
 
     Raises:
-        ValueError: If required parameters are invalid
+        ValueError: If required parameters are invalid,
         RuntimeError: If application initialization fails
 
     Example:
@@ -131,7 +131,7 @@ def create_hive_app(
             description="Production-ready service",
             daily_cost_limit=50.0,
             rate_limits={"per_minute": 30},
-            enable_cors=True,
+            enable_cors=True
         )
 
         @app.get("/api/hello")

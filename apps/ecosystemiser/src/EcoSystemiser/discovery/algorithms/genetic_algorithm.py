@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 from ecosystemiser.discovery.algorithms.base import (
     BaseOptimizationAlgorithm,
-    OptimizationConfig,
+    OptimizationConfig
 )
 from hive_logging import get_logger
 
@@ -37,22 +37,22 @@ class GeneticAlgorithmConfig(OptimizationConfig):
 
 
 class GeneticAlgorithm(BaseOptimizationAlgorithm):
-    """Single-objective genetic algorithm implementation.
+    """Single-objective genetic algorithm implementation.,
 
     Implements a standard genetic algorithm with tournament selection,
-    simulated binary crossover, and polynomial mutation.
+    simulated binary crossover, and polynomial mutation.,
     """
 
     def __init__(self, config: GeneticAlgorithmConfig) -> None:
         """Initialize genetic algorithm.
 
         Args:
-            config: Genetic algorithm configuration
+            config: Genetic algorithm configuration,
         """
         super().__init__(config)
         self.ga_config = config
 
-        # Validate configuration
+        # Validate configuration,
         if not 0 <= config.mutation_rate <= 1:
             raise ValueError("Mutation rate must be between 0 and 1")
         if not 0 <= config.crossover_rate <= 1:
@@ -64,14 +64,14 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         """Initialize random population within bounds."""
         population = np.random.random((self.config.population_size, self.config.dimensions))
 
-        # Scale to bounds
+        # Scale to bounds,
         for i, (lower, upper) in enumerate(self.config.bounds):
             population[:, i] = lower + population[:, i] * (upper - lower)
 
         # Ensure bounds compliance
         population = self.validate_bounds(population)
 
-        logger.info(f"Initialized population of {len(population)} individuals")
+        logger.info(f"Initialized population of {len(population)} individuals"),
         return population
 
     def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
@@ -79,7 +79,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         evaluations = []
 
         if self.config.parallel_evaluation and self.config.max_workers > 1:
-            # Parallel evaluation
+            # Parallel evaluation,
             with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
                 futures = [executor.submit(fitness_function, individual) for individual in population]
 
@@ -92,13 +92,13 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                         evaluations.append(
                             {
                                 "fitness": float("inf"),
-                                "objectives": [float("inf")] * len(self.config.objectives),
+                                "objectives": [float("inf")] * len(self.config.objectives)
                                 "valid": False,
-                                "error": str(e),
+                                "error": str(e)
                             }
                         )
         else:
-            # Sequential evaluation
+            # Sequential evaluation,
             for individual in population:
                 try:
                     result = fitness_function(individual)
@@ -108,11 +108,11 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                     evaluations.append(
                         {
                             "fitness": float("inf"),
-                            "objectives": [float("inf")] * len(self.config.objectives),
+                            "objectives": [float("inf")] * len(self.config.objectives)
                             "valid": False,
-                            "error": str(e),
+                            "error": str(e)
                         }
-                    )
+                    ),
 
         return evaluations
 
@@ -154,9 +154,9 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         for _ in range(self.config.population_size):
             # Select random individuals for tournament
             tournament_indices = np.random.choice(
-                population_size,
+                population_size
                 size=min(self.ga_config.tournament_size, population_size),
-                replace=False,
+                replace=False
             )
 
             # Find best in tournament (lowest fitness for minimization)
@@ -170,7 +170,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         """Roulette wheel selection."""
         fitness_values = np.array([eval_result.get("fitness", float("inf")) for eval_result in evaluations])
 
-        # Convert to probabilities (invert for minimization)
+        # Convert to probabilities (invert for minimization),
         if np.all(np.isfinite(fitness_values)):
             max_fitness = np.max(fitness_values)
             probabilities = max_fitness - fitness_values + 1e-10
@@ -178,13 +178,12 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         else:
             # Uniform selection if all fitness values are infinite
             probabilities = np.ones(len(evaluations)) / len(evaluations)
-
         selected_indices = np.random.choice(
-            len(evaluations),
+            len(evaluations)
             size=self.config.population_size,
             p=probabilities,
-            replace=True,
-        )
+            replace=True
+        ),
 
         return selected_indices
 
@@ -197,13 +196,12 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         # Convert ranks to selection probabilities
         probabilities = (len(evaluations) - ranks) / np.sum(np.arange(1, len(evaluations) + 1))
-
         selected_indices = np.random.choice(
-            len(evaluations),
+            len(evaluations)
             size=self.config.population_size,
             p=probabilities,
-            replace=True,
-        )
+            replace=True
+        ),
 
         return selected_indices
 
@@ -215,7 +213,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
             parent1 = parents[i]
             parent2 = parents[(i + 1) % len(parents)]
 
-            # Crossover
+            # Crossover,
             if np.random.random() < self.ga_config.crossover_rate:
                 child1, child2 = self._crossover(parent1, parent2)
             else:
@@ -258,7 +256,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                     else:
                         beta = (1.0 / (2 * (1 - rand))) ** (1.0 / (eta + 1))
 
-                    # Create children
+                    # Create children,
                     child1[i] = 0.5 * ((y1 + y2) - beta * abs(y2 - y1))
                     child2[i] = 0.5 * ((y1 + y2) + beta * abs(y2 - y1))
 
@@ -295,10 +293,8 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         for i in range(len(individual)):
             if np.random.random() < self.ga_config.mutation_rate:
                 lower, upper = self.config.bounds[i]
-
                 delta1 = (individual[i] - lower) / (upper - lower)
                 delta2 = (upper - individual[i]) / (upper - lower)
-
                 rand = np.random.random()
                 mut_pow = 1.0 / (eta + 1.0)
 
@@ -351,7 +347,6 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         """Check convergence based on fitness improvement."""
         if len(self.convergence_history) < self.config.convergence_patience:
             return False
-
         recent_fitness = self.convergence_history[-self.config.convergence_patience :]
         fitness_change = max(recent_fitness) - min(recent_fitness)
 
@@ -359,7 +354,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
 
 class NSGAIIOptimizer(BaseOptimizationAlgorithm):
-    """NSGA-II implementation for multi-objective optimization.
+    """NSGA-II implementation for multi-objective optimization.,
 
     Implements the Non-dominated Sorting Genetic Algorithm II (NSGA-II)
     for solving multi-objective optimization problems.
@@ -369,7 +364,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         """Initialize NSGA-II optimizer.
 
         Args:
-            config: Genetic algorithm configuration
+            config: Genetic algorithm configuration,
         """
         super().__init__(config)
         self.ga_config = config
@@ -381,13 +376,12 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         """Initialize random population within bounds."""
         population = np.random.random((self.config.population_size, self.config.dimensions))
 
-        # Scale to bounds
+        # Scale to bounds,
         for i, (lower, upper) in enumerate(self.config.bounds):
             population[:, i] = lower + population[:, i] * (upper - lower)
-
         population = self.validate_bounds(population)
 
-        logger.info(f"Initialized NSGA-II population of {len(population)} individuals")
+        logger.info(f"Initialized NSGA-II population of {len(population)} individuals"),
         return population
 
     def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
@@ -401,7 +395,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                 for future in futures:
                     try:
                         result = future.result()
-                        # Ensure objectives are present
+                        # Ensure objectives are present,
                         if "objectives" not in result:
                             result["objectives"] = [result.get("fitness", float("inf"))]
                         evaluations.append(result)
@@ -411,7 +405,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                             {
                                 "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
-                                "error": str(e),
+                                "error": str(e)
                             }
                         )
         else:
@@ -427,9 +421,9 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                         {
                             "objectives": [float("inf")] * len(self.config.objectives),
                             "valid": False,
-                            "error": str(e),
+                            "error": str(e)
                         }
-                    )
+                    ),
 
         return evaluations
 
@@ -461,11 +455,10 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
             # Tournament selection for parents
             parent1_idx = self._tournament_selection_nsga2(evaluations)
             parent2_idx = self._tournament_selection_nsga2(evaluations)
-
             parent1 = population[parent1_idx]
             parent2 = population[parent2_idx]
 
-            # Crossover
+            # Crossover,
             if np.random.random() < self.ga_config.crossover_rate:
                 child1, child2 = self._simulated_binary_crossover(parent1, parent2)
             else:
@@ -491,7 +484,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
             if self._dominates(evaluations[idx], evaluations[best_idx]):
                 best_idx = idx
             elif not self._dominates(evaluations[best_idx], evaluations[idx]):
-                # Both are non-dominated, use crowding distance
+                # Both are non-dominated, use crowding distance,
                 if evaluations[idx].get("crowding_distance", 0) > evaluations[best_idx].get("crowding_distance", 0):
                     best_idx = idx
 
@@ -502,7 +495,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         # Perform non-dominated sorting
         fronts = self._fast_non_dominated_sort(evaluations)
 
-        # Calculate crowding distance for each front
+        # Calculate crowding distance for each front,
         for front in fronts:
             self._calculate_crowding_distance(evaluations, front)
 
@@ -511,7 +504,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         for front in fronts:
             if len(selected_indices) + len(front) <= self.config.population_size:
-                # Include entire front
+                # Include entire front,
                 selected_indices.extend(front)
             else:
                 # Include part of front based on crowding distance
@@ -533,7 +526,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         dominated_set = [[] for _ in range(n)]  # Set of individuals that i dominates
         fronts = [[]]
 
-        # Find first front and domination relationships
+        # Find first front and domination relationships,
         for i in range(n):
             for j in range(n):
                 if i != j:
@@ -586,7 +579,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
     def _calculate_crowding_distance(self, evaluations: list[dict[str, Any]], front: list[int]) -> None:
         """Calculate crowding distance for individuals in a front."""
         if len(front) <= 2:
-            # Boundary solutions get infinite distance
+            # Boundary solutions get infinite distance,
             for idx in front:
                 evaluations[idx]["crowding_distance"] = float("inf")
             return
@@ -594,7 +587,6 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         # Initialize distances
         for idx in front:
             evaluations[idx]["crowding_distance"] = 0
-
         num_objectives = len(evaluations[front[0]].get("objectives", []))
 
         for obj_idx in range(num_objectives):
@@ -602,7 +594,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
             front_with_obj = [(idx, evaluations[idx]["objectives"][obj_idx]) for idx in front]
             front_with_obj.sort(key=lambda x: x[1])
 
-            # Boundary solutions get infinite distance
+            # Boundary solutions get infinite distance,
             evaluations[front_with_obj[0][0]]["crowding_distance"] = float("inf")
             evaluations[front_with_obj[-1][0]]["crowding_distance"] = float("inf")
 
@@ -633,11 +625,11 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                     else:
                         beta = (1.0 / (2 * (1 - rand))) ** (1.0 / (eta + 1))
 
-                    # Create children
+                    # Create children,
                     child1[i] = 0.5 * ((y1 + y2) - beta * abs(y2 - y1))
                     child2[i] = 0.5 * ((y1 + y2) + beta * abs(y2 - y1))
 
-                    # Ensure bounds
+                    # Ensure bounds,
                     child1[i] = np.clip(child1[i], lower, upper)
                     child2[i] = np.clip(child2[i], lower, upper)
 
@@ -651,10 +643,8 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         for i in range(len(individual)):
             if np.random.random() < self.ga_config.mutation_rate:
                 lower, upper = self.config.bounds[i]
-
                 delta1 = (individual[i] - lower) / (upper - lower)
                 delta2 = (upper - individual[i]) / (upper - lower)
-
                 rand = np.random.random()
                 mut_pow = 1.0 / (eta + 1.0)
 
@@ -677,21 +667,20 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         if len(self.convergence_history) < self.config.convergence_patience:
             return False
 
-        # Simple convergence check based on average objective improvement
+        # Simple convergence check based on average objective improvement,
         if len(evaluations) == 0:
             return False
-
         current_avg_objectives = []
         for obj_idx in range(len(self.config.objectives)):
             obj_values = [
-                eval_result.get("objectives", [float("inf")])[obj_idx]
+                eval_result.get("objectives", [float("inf")])[obj_idx],
                 for eval_result in evaluations
                 if len(eval_result.get("objectives", [])) > obj_idx
-            ]
+            ],
             if obj_values:
                 current_avg_objectives.append(np.mean(obj_values))
             else:
-                current_avg_objectives.append(float("inf"))
+                current_avg_objectives.append(float("inf")),
 
         np.mean(current_avg_objectives)
 

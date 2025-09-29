@@ -9,13 +9,11 @@ Identifies lambda functions that could be optimized with:
 - Named functions for complex logic
 """
 
-import ast
-import os
 import re
-from pathlib import Path
-from typing import List, Dict, Tuple
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Tuple
 
 from hive_logging import get_logger
 
@@ -25,6 +23,7 @@ logger = get_logger(__name__)
 @dataclass
 class LambdaOptimization:
     """Represents a potential lambda optimization"""
+
     file_path: Path
     line_number: int
     original: str
@@ -61,12 +60,14 @@ class LambdaOptimizer:
         optimizations = []
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
-                lines = content.split('\n')
+                lines = content.split("\n")
 
             # Pattern 1: sorted with simple key lambda
-            sorted_pattern = re.compile(r'sorted\([^,]+,\s*key=lambda\s+(\w+):\s*(\w+)\.get\(["\'](\w+)["\']\)(?:,\s*["\'][^"\']*["\']\))?\)')
+            sorted_pattern = re.compile(
+                r'sorted\([^,]+,\s*key=lambda\s+(\w+):\s*(\w+)\.get\(["\'](\w+)["\']\)(?:,\s*["\'][^"\']*["\']\))?\)'
+            )
             for i, line in enumerate(lines, 1):
                 match = sorted_pattern.search(line)
                 if match:
@@ -82,12 +83,12 @@ class LambdaOptimizer:
                             original=f"key=lambda {var_name}: {var_name}.get('{key_name}')",
                             suggested=f"key=operator.itemgetter('{key_name}')",
                             optimization_type="operator.itemgetter",
-                            complexity="simple"
+                            complexity="simple",
                         )
                         optimizations.append(opt)
 
             # Pattern 2: filter/map with simple lambda
-            filter_map_pattern = re.compile(r'(filter|map)\(lambda\s+(\w+):\s*([^,\)]+),')
+            filter_map_pattern = re.compile(r"(filter|map)\(lambda\s+(\w+):\s*([^,\)]+),")
             for i, line in enumerate(lines, 1):
                 match = filter_map_pattern.search(line)
                 if match:
@@ -96,20 +97,20 @@ class LambdaOptimizer:
                     expression = match.group(3).strip()
 
                     # Check if it's a simple attribute access
-                    if re.match(rf'^{var_name}\.(\w+)$', expression):
-                        attr_name = re.match(rf'^{var_name}\.(\w+)$', expression).group(1)
+                    if re.match(rf"^{var_name}\.(\w+)$", expression):
+                        attr_name = re.match(rf"^{var_name}\.(\w+)$", expression).group(1)
                         opt = LambdaOptimization(
                             file_path=file_path,
                             line_number=i,
                             original=f"{func_type}(lambda {var_name}: {expression}",
                             suggested=f"{func_type}(operator.attrgetter('{attr_name}')",
                             optimization_type="operator.attrgetter",
-                            complexity="simple"
+                            complexity="simple",
                         )
                         optimizations.append(opt)
 
             # Pattern 3: Complex lambda in sorting (should be named function)
-            complex_sorted = re.compile(r'sorted\([^,]+,\s*key=lambda\s+\w+:\s*[^\)]{50,}')
+            complex_sorted = re.compile(r"sorted\([^,]+,\s*key=lambda\s+\w+:\s*[^\)]{50,}")
             for i, line in enumerate(lines, 1):
                 match = complex_sorted.search(line)
                 if match:
@@ -119,12 +120,12 @@ class LambdaOptimizer:
                         original="Complex lambda in sorted",
                         suggested="Extract to named function for clarity",
                         optimization_type="named_function",
-                        complexity="complex"
+                        complexity="complex",
                     )
                     optimizations.append(opt)
 
             # Pattern 4: Lambda with multiple statements (anti-pattern)
-            multi_statement = re.compile(r'lambda\s+\w+:\s*\([^;]+;[^)]+\)')
+            multi_statement = re.compile(r"lambda\s+\w+:\s*\([^;]+;[^)]+\)")
             for i, line in enumerate(lines, 1):
                 if multi_statement.search(line):
                     opt = LambdaOptimization(
@@ -133,7 +134,7 @@ class LambdaOptimizer:
                         original="Multi-statement lambda",
                         suggested="Convert to named function",
                         optimization_type="named_function",
-                        complexity="complex"
+                        complexity="complex",
                     )
                     optimizations.append(opt)
 
@@ -147,12 +148,7 @@ class LambdaOptimizer:
         python_files = self.find_python_files()
         logger.info(f"Analyzing {len(python_files)} Python files")
 
-        stats = {
-            "itemgetter": 0,
-            "attrgetter": 0,
-            "named_function": 0,
-            "total": 0
-        }
+        stats = {"itemgetter": 0, "attrgetter": 0, "named_function": 0, "total": 0}
 
         for file_path in python_files:
             file_opts = self.analyze_file(file_path)
@@ -208,11 +204,7 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
     def apply_simple_optimizations(self, dry_run: bool = True) -> Dict[str, int]:
         """Apply simple optimizations automatically"""
-        operations = {
-            "files_updated": 0,
-            "optimizations_applied": 0,
-            "skipped": 0
-        }
+        operations = {"files_updated": 0, "optimizations_applied": 0, "skipped": 0}
 
         # Group optimizations by file
         by_file = {}
@@ -224,7 +216,7 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
         for file_path, opts in by_file.items():
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     lines = f.readlines()
 
                 modified = False
@@ -239,9 +231,7 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                         # Apply the optimization
                         if opt.optimization_type == "operator.itemgetter":
                             new_line = re.sub(
-                                r'key=lambda\s+\w+:\s*\w+\.get\(["\'][^"\']+["\']\)',
-                                opt.suggested,
-                                original_line
+                                r'key=lambda\s+\w+:\s*\w+\.get\(["\'][^"\']+["\']\)', opt.suggested, original_line
                             )
                             if new_line != original_line:
                                 lines[line_idx] = new_line
@@ -270,7 +260,7 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                             lines.insert(0, "import operator\n")
 
                     # Write back
-                    with open(file_path, 'w', encoding='utf-8') as f:
+                    with open(file_path, "w", encoding="utf-8") as f:
                         f.writelines(lines)
 
                     operations["files_updated"] += 1
@@ -286,7 +276,6 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 def main():
     """Main entry point"""
     import argparse
-    from datetime import datetime
 
     parser = argparse.ArgumentParser(description="Optimize lambda function usage")
     parser.add_argument("--report", action="store_true", help="Generate optimization report")

@@ -8,11 +8,9 @@ AI Planner and Queen to enable reliable autonomous task execution.
 
 import asyncio
 import json
-import sqlite3
-import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 # Hive logging system
 from hive_logging import get_logger

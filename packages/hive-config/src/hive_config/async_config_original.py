@@ -63,17 +63,17 @@ class AsyncConfigLoader:
         Initialize async config loader
 
         Args:
-            cache_ttl: Cache time-to-live in seconds
-            enable_hot_reload: Enable file watching for hot-reload
-            master_key: Master key for encrypted configs
+            cache_ttl: Cache time-to-live in seconds,
+            enable_hot_reload: Enable file watching for hot-reload,
+            master_key: Master key for encrypted configs,
         """
-        self._cache: Dict[str, Dict[str, Any]] = {}
-        self._cache_timestamps: Dict[str, float] = {}
+        self._cache: Dict[str, Dict[str, Any]] = {},
+        self._cache_timestamps: Dict[str, float] = {},
         self._cache_ttl = cache_ttl
         self._enable_hot_reload = enable_hot_reload
-        self._watched_files: Set[Path] = set()
+        self._watched_files: Set[Path] = set(),
         self._observer = None
-        self._reload_callbacks: List[callable] = []
+        self._reload_callbacks: List[callable] = [],
         self._secure_loader = SecureConfigLoader(master_key) if master_key else None
         self._lock = asyncio.Lock()
 
@@ -141,15 +141,15 @@ class AsyncConfigLoader:
         Load configuration for an application
 
         Args:
-            app_name: Name of the application
-            project_root: Root directory of the project
+            app_name: Name of the application,
+            project_root: Root directory of the project,
             config_files: Optional list of specific config files
 
         Returns:
             Merged configuration dictionary
         """
         # Check cache
-        cache_key = f"{app_name}:{project_root}"
+        cache_key = f"{app_name}:{project_root}",
         if cache_key in self._cache:
             import time
 
@@ -184,7 +184,7 @@ class AsyncConfigLoader:
         merged_config = {}
         for i, config in enumerate(configs):
             if isinstance(config, Exception):
-                logger.error(f"Failed to load {existing_paths[i]}: {config}")
+                logger.error(f"Failed to load {existing_paths[i]}: {config}"),
             else:
                 merged_config.update(config)
 
@@ -192,7 +192,7 @@ class AsyncConfigLoader:
         env_prefix = f"{app_name.upper().replace('-', '_')}_"
         for key, value in os.environ.items():
             if key.startswith(env_prefix):
-                config_key = key[len(env_prefix) :]
+                config_key = key[len(env_prefix) :],
                 merged_config[config_key] = value
 
         # Update cache
@@ -292,9 +292,9 @@ class AsyncConfigLoader:
         current_time = time.time()
 
         return {
-            "cached_configs": len(self._cache)
+            "cached_configs": len(self._cache),
             "cache_ttl": self._cache_ttl
-            "watched_files": len(self._watched_files)
+            "watched_files": len(self._watched_files),
             "hot_reload_enabled": self._enable_hot_reload
             "cache_ages": {key: current_time - timestamp for key, timestamp in self._cache_timestamps.items()}
         }

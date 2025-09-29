@@ -1,5 +1,5 @@
 """
-EcoSystemiser-specific error handling implementation.
+EcoSystemiser-specific error handling implementation.,
 
 Extends the generic error handling toolkit with EcoSystemiser capabilities:
 - Simulation-specific errors
@@ -18,7 +18,7 @@ from typing import Any
 try:
     from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
 except ImportError:
-    # Fallback implementation if hive_error_handling is not available
+    # Fallback implementation if hive_error_handling is not available,
     class BaseError(Exception):
         """Base error class for fallback implementation."""
 
@@ -50,10 +50,10 @@ logger = get_logger(__name__)
 
 class EcoSystemiserError(BaseError):
     """
-    Base error class for all EcoSystemiser-specific errors.
+    Base error class for all EcoSystemiser-specific errors.,
 
-    Extends the generic BaseError with simulation context and additional
-    metadata specific to the EcoSystemiser platform.
+    Extends the generic BaseError with simulation context and additional,
+    metadata specific to the EcoSystemiser platform.,
     """
 
     def __init__(
@@ -74,15 +74,15 @@ class EcoSystemiserError(BaseError):
 
         Args:
             message: Human-readable error message,
-        component: Component where error occurred
+        component: Component where error occurred,
             operation: Operation being performed,
-        simulation_id: Active simulation ID if applicable
+        simulation_id: Active simulation ID if applicable,
             analysis_id: Active analysis ID if applicable,
-        optimization_id: Active optimization ID if applicable
+        optimization_id: Active optimization ID if applicable,
             timestep: Simulation timestep when error occurred,
-        details: Additional error details
+        details: Additional error details,
             recovery_suggestions: Steps to recover from error,
-        original_error: Original exception if wrapped
+        original_error: Original exception if wrapped,
         """
         # Build details with EcoSystemiser context
         ecosys_details = details or {}
@@ -105,7 +105,7 @@ class EcoSystemiserError(BaseError):
             original_error=original_error,
         )
 
-        # Store EcoSystemiser-specific attributes
+        # Store EcoSystemiser-specific attributes,
         self.simulation_id = simulation_id
         self.analysis_id = analysis_id
         self.optimization_id = optimization_id
@@ -121,7 +121,7 @@ class EcoSystemiserError(BaseError):
 
 # ===============================================================================
 # SIMULATION-SPECIFIC ERRORS
-# ===============================================================================
+# ===============================================================================,
 
 
 class SimulationError(EcoSystemiserError):
@@ -145,9 +145,9 @@ class SimulationConfigError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Check simulation configuration file"
-                "Verify parameter ranges and types"
-                "Ensure all required parameters are present"
+                "Check simulation configuration file",
+                "Verify parameter ranges and types",
+                "Ensure all required parameters are present",
             ]
         )
 
@@ -160,10 +160,10 @@ class SimulationExecutionError(BaseError):
     def __init__(self, message: str, **kwargs) -> None:
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Check simulation input data"
-                "Verify component connections"
-                "Review solver configuration"
-                "Check for infeasible constraints"
+                "Check simulation input data",
+                "Verify component connections",
+                "Review solver configuration",
+                "Check for infeasible constraints",
             ]
         )
         super().__init__(message=message, operation="execution", **kwargs)
@@ -171,7 +171,7 @@ class SimulationExecutionError(BaseError):
 
 # ===============================================================================
 # PROFILE LOADING ERRORS
-# ===============================================================================
+# ===============================================================================,
 
 
 class ProfileError(BaseError):
@@ -194,10 +194,10 @@ class ProfileLoadError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Verify data source availability"
-                "Check network connection for API sources"
-                "Validate file paths for local sources"
-                "Ensure proper API credentials"
+                "Verify data source availability",
+                "Check network connection for API sources",
+                "Validate file paths for local sources",
+                "Ensure proper API credentials",
             ]
         )
 
@@ -219,10 +219,10 @@ class ProfileValidationError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Check data format and structure"
-                "Verify time series continuity"
-                "Validate data ranges and units"
-                "Ensure quality control thresholds are appropriate"
+                "Check data format and structure",
+                "Verify time series continuity",
+                "Validate data ranges and units",
+                "Ensure quality control thresholds are appropriate",
             ]
         )
 
@@ -231,7 +231,7 @@ class ProfileValidationError(BaseError):
 
 # ===============================================================================
 # SOLVER AND OPTIMIZATION ERRORS
-# ===============================================================================
+# ===============================================================================,
 
 
 class SolverError(BaseError):
@@ -256,11 +256,11 @@ class OptimizationInfeasibleError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Relax constraint boundaries"
-                "Check for conflicting constraints"
-                "Verify component capacities"
-                "Review demand-supply balance"
-                "Consider using a different solver"
+                "Relax constraint boundaries",
+                "Check for conflicting constraints",
+                "Verify component capacities",
+                "Review demand-supply balance",
+                "Consider using a different solver",
             ]
         )
 
@@ -280,11 +280,11 @@ class SolverConvergenceError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Increase maximum iterations"
-                "Adjust convergence tolerance"
-                "Improve initial solution guess"
-                "Simplify problem formulation"
-                "Use warm-starting if available"
+                "Increase maximum iterations",
+                "Adjust convergence tolerance",
+                "Improve initial solution guess",
+                "Simplify problem formulation",
+                "Use warm-starting if available",
             ]
         )
 
@@ -293,7 +293,7 @@ class SolverConvergenceError(BaseError):
 
 # ===============================================================================
 # COMPONENT ERRORS
-# ===============================================================================
+# ===============================================================================,
 
 
 class ComponentError(BaseError):
@@ -332,10 +332,10 @@ class ComponentConnectionError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Verify component compatibility"
-                "Check connection types match"
-                "Ensure components are properly initialized"
-                "Review system topology configuration"
+                "Verify component compatibility",
+                "Check connection types match",
+                "Ensure components are properly initialized",
+                "Review system topology configuration",
             ]
         )
 
@@ -363,12 +363,13 @@ class ComponentValidationError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"[
-                "Check parameter value against valid range"
-                "Verify parameter units"
-                "Ensure parameter type is correct"
-                "Review component technical specifications"
-            ]
+            "recovery_suggestions",
+            [
+                "Check parameter value against valid range",
+                "Verify parameter units",
+                "Ensure parameter type is correct",
+                "Review component technical specifications",
+            ],
         )
 
         super().__init__(message=message, operation="validation", **kwargs)
@@ -376,7 +377,7 @@ class ComponentValidationError(BaseError):
 
 # ===============================================================================
 # DATABASE ERRORS
-# ===============================================================================
+# ===============================================================================,
 
 
 class DatabaseError(BaseError):
@@ -397,10 +398,10 @@ class DatabaseConnectionError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Check database file exists"
-                "Verify file permissions"
-                "Ensure database is not locked"
-                "Check disk space availability"
+                "Check database file exists",
+                "Verify file permissions",
+                "Ensure database is not locked",
+                "Check disk space availability",
             ]
         )
 
@@ -418,10 +419,10 @@ class DatabaseTransactionError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Retry transaction"
-                "Check for database locks"
-                "Verify data integrity"
-                "Review transaction isolation level"
+                "Retry transaction",
+                "Check for database locks",
+                "Verify data integrity",
+                "Review transaction isolation level",
             ]
         )
 
@@ -430,7 +431,7 @@ class DatabaseTransactionError(BaseError):
 
 # ===============================================================================
 # EVENT BUS ERRORS
-# ===============================================================================
+# ===============================================================================,
 
 
 class EventBusError(BaseError):
@@ -453,10 +454,10 @@ class EventPublishError(BaseError):
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions"[
-                "Check event bus connectivity"
-                "Verify event format"
-                "Ensure event handlers are registered"
-                "Review event bus capacity"
+                "Check event bus connectivity",
+                "Verify event format",
+                "Ensure event handlers are registered",
+                "Review event bus capacity",
             ]
         )
 
@@ -465,15 +466,15 @@ class EventPublishError(BaseError):
 
 # ===============================================================================
 # ERROR REPORTER
-# ===============================================================================
+# ===============================================================================,
 
 
 class EcoSystemiserErrorReporter(BaseErrorReporter):
     """
-    EcoSystemiser-specific error reporter.
+    EcoSystemiser-specific error reporter.,
 
-    Extends the base error reporter with simulation context tracking
-    and EcoSystemiser-specific reporting patterns.
+    Extends the base error reporter with simulation context tracking,
+    and EcoSystemiser-specific reporting patterns.,
     """
 
     def __init__(self) -> None:
@@ -496,11 +497,11 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
 
         Args:
             error: The error to report,
-        context: Error context information
+        context: Error context information,
             additional_info: Additional information about the error
 
         Returns:
-            Error ID for tracking
+            Error ID for tracking,
         """
         # Generate error ID
         error_id = str(uuid.uuid4())
@@ -509,17 +510,17 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         error_record = self._build_error_record(error, context, additional_info)
         error_record["error_id"] = error_id
 
-        # Update metrics
+        # Update metrics,
         self._update_metrics(error_record)
 
-        # Add to history
+        # Add to history,
         self.error_history.append(error_record)
 
         # Log the error (avoid 'message' key conflict with logging)
         log_record = {k: v for k, v in error_record.items() if k != "message"}
         logger.error(f"EcoSystemiser Error: {error}", extra=log_record)
 
-        # EcoSystemiser-specific categorization and handling
+        # EcoSystemiser-specific categorization and handling,
         if isinstance(error, SimulationError):
             self.simulation_errors.append(error)
             self._handle_simulation_error(error)
@@ -538,7 +539,7 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
     def _update_metrics(self, error_record: dict[str, Any]) -> None:
         """Update error metrics and statistics."""
         # Implementation for tracking error metrics
-        # Could integrate with monitoring systems
+        # Could integrate with monitoring systems,
         pass
 
     def _build_error_record(
@@ -569,23 +570,23 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         """Handle simulation-specific error reporting"""
         if error.simulation_id:
             logger.error(f"Simulation {error.simulation_id} failed: {error.message}")
-            # Could trigger simulation recovery or notification
+            # Could trigger simulation recovery or notification,
 
     def _handle_profile_error(self, error: ProfileError) -> None:
         """Handle profile-specific error reporting"""
         logger.warning(f"Profile loading issue: {error.message}")
-        # Could trigger fallback to default profiles
+        # Could trigger fallback to default profiles,
 
     def _handle_solver_error(self, error: SolverError) -> None:
         """Handle solver-specific error reporting"""
         if isinstance(error, OptimizationInfeasibleError):
             logger.critical(f"Optimization infeasible: {error.message}")
-            # Could trigger constraint relaxation
+            # Could trigger constraint relaxation,
 
     def _handle_component_error(self, error: ComponentError) -> None:
         """Handle component-specific error reporting"""
         logger.error(f"Component error: {error.message}")
-        # Could trigger component reconfiguration
+        # Could trigger component reconfiguration,
 
     def get_error_summary(self) -> dict[str, Any]:
         """Get summary of all reported errors"""
@@ -616,37 +617,29 @@ def get_error_reporter() -> EcoSystemiserErrorReporter:
 
 # Export main classes and functions
 __all__ = [
-    # Base classes
+    # Base classes,
     "EcoSystemiserError"
-    # Simulation errors
-    "SimulationError"
-    "SimulationConfigError"
+    # Simulation errors,
+    "SimulationError" "SimulationConfigError",
     "SimulationExecutionError"
-    # Profile errors
-    "ProfileError"
-    "ProfileLoadError"
+    # Profile errors,
+    "ProfileError" "ProfileLoadError",
     "ProfileValidationError"
-    # Solver errors
-    "SolverError"
-    "OptimizationInfeasibleError"
+    # Solver errors,
+    "SolverError" "OptimizationInfeasibleError",
     "SolverConvergenceError"
-    # Component errors
-    "ComponentError"
-    "ComponentConnectionError"
+    # Component errors,
+    "ComponentError" "ComponentConnectionError",
     "ComponentValidationError"
-    # Database errors
-    "DatabaseError"
-    "DatabaseConnectionError"
+    # Database errors,
+    "DatabaseError" "DatabaseConnectionError",
     "DatabaseTransactionError"
-    # Event bus errors
-    "EventBusError"
-    "EventPublishError"
-    # Reporter
-    "EcoSystemiserErrorReporter"
-    "get_error_reporter"
-    # Legacy aliases for backward compatibility
-    "AdapterError"
-    "ValidationError"
+    # Event bus errors,
+    "EventBusError" "EventPublishError"
+    # Reporter,
+    "EcoSystemiserErrorReporter" "get_error_reporter"
+    # Legacy aliases for backward compatibility,
+    "AdapterError" "ValidationError",
 ]
 
 

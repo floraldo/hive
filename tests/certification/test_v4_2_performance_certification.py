@@ -2,21 +2,21 @@
 
 import asyncio
 import gc
-import psutil
-import pytest
+import logging
 import time
-from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-import logging
+from typing import Any, Dict, List, Optional
+
+import psutil
+import pytest
+from hive_async import AdvancedTimeoutManager, TimeoutConfig
+from hive_cache import HiveCacheClient
+from hive_errors import AsyncErrorHandler, MonitoringErrorReporter
 
 # Import our enhanced infrastructure
-from hive_performance import MonitoringService, MetricsCollector
-from hive_cache import HiveCacheClient, ClaudeCacheClient
+from hive_performance import MonitoringService
 from hive_service_discovery import DiscoveryClient, ServiceRegistry
-from hive_errors import AsyncErrorHandler, MonitoringErrorReporter
-from hive_async import AdvancedTimeoutManager, TimeoutConfig
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ class V4PerformanceCertification:
             collection_interval=0.5,  # High frequency for testing
             analysis_interval=10.0,
             enable_profiling=True,
-            enable_alerts=False  # Disable alerts during testing
+            enable_alerts=False,  # Disable alerts during testing
         )
         await self.monitoring_service.start_monitoring()
         logger.info("Monitoring setup complete")
@@ -136,12 +136,11 @@ class V4PerformanceCertification:
 
     async def _test_service_discovery_performance(self) -> None:
         """Test service discovery and load balancing performance."""
-        from hive_service_discovery import ServiceRegistry, DiscoveryClient
         from hive_service_discovery.config import ServiceDiscoveryConfig
 
         config = ServiceDiscoveryConfig(
             registry_url="redis://localhost:6379/15",  # Test database
-            discovery_interval=1.0
+            discovery_interval=1.0,
         )
 
         registry = ServiceRegistry(config)
@@ -153,9 +152,7 @@ class V4PerformanceCertification:
             for i in range(100):
                 start_time = time.perf_counter()
                 service_id = await registry.register_service(
-                    service_name=f"test-service-{i}",
-                    host="localhost",
-                    port=8000 + i
+                    service_name=f"test-service-{i}", host="localhost", port=8000 + i
                 )
                 registration_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
                 registration_times.append(registration_time)
@@ -178,29 +175,32 @@ class V4PerformanceCertification:
             await discovery_client.shutdown()
 
             # Record results
-            self.results.append(CertificationResult(
-                test_name="service_discovery_lookup",
-                passed=avg_lookup_time < self.targets["service_discovery_lookup"],
-                target_value=self.targets["service_discovery_lookup"],
-                actual_value=avg_lookup_time,
-                baseline_value=self.baselines["service_discovery_lookup"],
-                improvement_factor=self.baselines["service_discovery_lookup"] / avg_lookup_time,
-                details={"registration_time": avg_registration_time, "lookup_count": 100}
-            ))
+            self.results.append(
+                CertificationResult(
+                    test_name="service_discovery_lookup",
+                    passed=avg_lookup_time < self.targets["service_discovery_lookup"],
+                    target_value=self.targets["service_discovery_lookup"],
+                    actual_value=avg_lookup_time,
+                    baseline_value=self.baselines["service_discovery_lookup"],
+                    improvement_factor=self.baselines["service_discovery_lookup"] / avg_lookup_time,
+                    details={"registration_time": avg_registration_time, "lookup_count": 100},
+                )
+            )
 
-            logger.info(f"Service discovery lookup: {avg_lookup_time:.2f}ms (target: {self.targets['service_discovery_lookup']}ms)")
+            logger.info(
+                f"Service discovery lookup: {avg_lookup_time:.2f}ms (target: {self.targets['service_discovery_lookup']}ms)"
+            )
 
         finally:
             await registry.shutdown()
 
     async def _test_cache_performance(self) -> None:
         """Test Redis cache performance."""
-        from hive_cache import HiveCacheClient
         from hive_cache.config import CacheConfig
 
         config = CacheConfig(
             redis_url="redis://localhost:6379/14",  # Test database
-            default_ttl=3600
+            default_ttl=3600,
         )
 
         cache_client = HiveCacheClient(config)
@@ -243,22 +243,26 @@ class V4PerformanceCertification:
             hit_rate = hit_count / 100
 
             # Record results
-            self.results.append(CertificationResult(
-                test_name="cache_operation_latency",
-                passed=avg_operation_time < self.targets["cache_operation_latency"],
-                target_value=self.targets["cache_operation_latency"],
-                actual_value=avg_operation_time,
-                baseline_value=self.baselines["cache_operation_latency"],
-                improvement_factor=self.baselines["cache_operation_latency"] / avg_operation_time,
-                details={
-                    "set_time": avg_set_time,
-                    "get_time": avg_get_time,
-                    "hit_rate": hit_rate,
-                    "operations_tested": 2000
-                }
-            ))
+            self.results.append(
+                CertificationResult(
+                    test_name="cache_operation_latency",
+                    passed=avg_operation_time < self.targets["cache_operation_latency"],
+                    target_value=self.targets["cache_operation_latency"],
+                    actual_value=avg_operation_time,
+                    baseline_value=self.baselines["cache_operation_latency"],
+                    improvement_factor=self.baselines["cache_operation_latency"] / avg_operation_time,
+                    details={
+                        "set_time": avg_set_time,
+                        "get_time": avg_get_time,
+                        "hit_rate": hit_rate,
+                        "operations_tested": 2000,
+                    },
+                )
+            )
 
-            logger.info(f"Cache operation latency: {avg_operation_time:.2f}ms (target: {self.targets['cache_operation_latency']}ms)")
+            logger.info(
+                f"Cache operation latency: {avg_operation_time:.2f}ms (target: {self.targets['cache_operation_latency']}ms)"
+            )
 
         finally:
             await cache_client.shutdown()
@@ -294,17 +298,19 @@ class V4PerformanceCertification:
         report = await self.monitoring_service.generate_report(timedelta(seconds=10))
 
         # Record results
-        self.results.append(CertificationResult(
-            test_name="monitoring_overhead",
-            passed=cpu_overhead < 5.0 and memory_overhead < 2.0,  # <5% CPU, <2% memory overhead
-            target_value=5.0,
-            actual_value=max(cpu_overhead, memory_overhead * 2.5),  # Weighted combination
-            details={
-                "cpu_overhead": cpu_overhead,
-                "memory_overhead": memory_overhead,
-                "monitoring_accuracy": abs(actual_duration - 1.0) < 0.1  # Should be ~1 second
-            }
-        ))
+        self.results.append(
+            CertificationResult(
+                test_name="monitoring_overhead",
+                passed=cpu_overhead < 5.0 and memory_overhead < 2.0,  # <5% CPU, <2% memory overhead
+                target_value=5.0,
+                actual_value=max(cpu_overhead, memory_overhead * 2.5),  # Weighted combination
+                details={
+                    "cpu_overhead": cpu_overhead,
+                    "memory_overhead": memory_overhead,
+                    "monitoring_accuracy": abs(actual_duration - 1.0) < 0.1,  # Should be ~1 second
+                },
+            )
+        )
 
         logger.info(f"Monitoring overhead - CPU: {cpu_overhead:.1f}%, Memory: {memory_overhead:.1f}%")
 
@@ -319,6 +325,7 @@ class V4PerformanceCertification:
 
     async def _test_ai_agent_performance(self) -> None:
         """Test AI agent async performance."""
+
         # Mock AI agent operations for certification
         async def mock_ai_planning_operation():
             """Mock AI planning operation with realistic timing."""
@@ -354,31 +361,40 @@ class V4PerformanceCertification:
         avg_reviewer_time = sum(reviewer_times) / len(reviewer_times)
 
         # Record results
-        self.results.append(CertificationResult(
-            test_name="ai_planner_throughput",
-            passed=planner_throughput >= self.targets["ai_planner_throughput"],
-            target_value=self.targets["ai_planner_throughput"],
-            actual_value=planner_throughput,
-            baseline_value=self.baselines["ai_planner_throughput"],
-            improvement_factor=planner_throughput / self.baselines["ai_planner_throughput"],
-            details={"test_duration": planner_duration, "operations_count": 30}
-        ))
+        self.results.append(
+            CertificationResult(
+                test_name="ai_planner_throughput",
+                passed=planner_throughput >= self.targets["ai_planner_throughput"],
+                target_value=self.targets["ai_planner_throughput"],
+                actual_value=planner_throughput,
+                baseline_value=self.baselines["ai_planner_throughput"],
+                improvement_factor=planner_throughput / self.baselines["ai_planner_throughput"],
+                details={"test_duration": planner_duration, "operations_count": 30},
+            )
+        )
 
-        self.results.append(CertificationResult(
-            test_name="ai_reviewer_response_time",
-            passed=avg_reviewer_time <= self.targets["ai_reviewer_response_time"],
-            target_value=self.targets["ai_reviewer_response_time"],
-            actual_value=avg_reviewer_time,
-            baseline_value=self.baselines["ai_reviewer_response_time"],
-            improvement_factor=self.baselines["ai_reviewer_response_time"] / avg_reviewer_time,
-            details={"operations_tested": 20}
-        ))
+        self.results.append(
+            CertificationResult(
+                test_name="ai_reviewer_response_time",
+                passed=avg_reviewer_time <= self.targets["ai_reviewer_response_time"],
+                target_value=self.targets["ai_reviewer_response_time"],
+                actual_value=avg_reviewer_time,
+                baseline_value=self.baselines["ai_reviewer_response_time"],
+                improvement_factor=self.baselines["ai_reviewer_response_time"] / avg_reviewer_time,
+                details={"operations_tested": 20},
+            )
+        )
 
-        logger.info(f"AI Planner throughput: {planner_throughput:.1f} plans/min (target: {self.targets['ai_planner_throughput']})")
-        logger.info(f"AI Reviewer response time: {avg_reviewer_time:.2f}s (target: {self.targets['ai_reviewer_response_time']}s)")
+        logger.info(
+            f"AI Planner throughput: {planner_throughput:.1f} plans/min (target: {self.targets['ai_planner_throughput']})"
+        )
+        logger.info(
+            f"AI Reviewer response time: {avg_reviewer_time:.2f}s (target: {self.targets['ai_reviewer_response_time']}s)"
+        )
 
     async def _test_ecosystemiser_performance(self) -> None:
         """Test EcoSystemiser async I/O performance."""
+
         # Mock EcoSystemiser simulation operations
         async def mock_simulation_operation():
             """Mock simulation with realistic async I/O patterns."""
@@ -410,21 +426,25 @@ class V4PerformanceCertification:
         parallel_duration = time.perf_counter() - parallel_start_time
 
         # Record results
-        self.results.append(CertificationResult(
-            test_name="ecosystemiser_simulation_time",
-            passed=avg_simulation_time <= self.targets["ecosystemiser_simulation_time"],
-            target_value=self.targets["ecosystemiser_simulation_time"],
-            actual_value=avg_simulation_time,
-            baseline_value=self.baselines["ecosystemiser_simulation_time"],
-            improvement_factor=self.baselines["ecosystemiser_simulation_time"] / avg_simulation_time,
-            details={
-                "parallel_duration": parallel_duration,
-                "parallel_operations": 20,
-                "single_operation_avg": avg_simulation_time
-            }
-        ))
+        self.results.append(
+            CertificationResult(
+                test_name="ecosystemiser_simulation_time",
+                passed=avg_simulation_time <= self.targets["ecosystemiser_simulation_time"],
+                target_value=self.targets["ecosystemiser_simulation_time"],
+                actual_value=avg_simulation_time,
+                baseline_value=self.baselines["ecosystemiser_simulation_time"],
+                improvement_factor=self.baselines["ecosystemiser_simulation_time"] / avg_simulation_time,
+                details={
+                    "parallel_duration": parallel_duration,
+                    "parallel_operations": 20,
+                    "single_operation_avg": avg_simulation_time,
+                },
+            )
+        )
 
-        logger.info(f"EcoSystemiser simulation time: {avg_simulation_time:.2f}s (target: {self.targets['ecosystemiser_simulation_time']}s)")
+        logger.info(
+            f"EcoSystemiser simulation time: {avg_simulation_time:.2f}s (target: {self.targets['ecosystemiser_simulation_time']}s)"
+        )
 
     # Resilience Component Tests
 
@@ -437,7 +457,6 @@ class V4PerformanceCertification:
 
     async def _test_error_handling_performance(self) -> None:
         """Test advanced error handling and recovery."""
-        from hive_errors import AsyncErrorHandler, MonitoringErrorReporter
 
         error_reporter = MonitoringErrorReporter()
         error_handler = AsyncErrorHandler(error_reporter)
@@ -461,42 +480,39 @@ class V4PerformanceCertification:
             except Exception as e:
                 # Record error but continue
                 await error_handler.handle_error(
-                    e,
-                    error_handler.create_error_context("test_operation", "test_component"),
-                    suppress=True
+                    e, error_handler.create_error_context("test_operation", "test_component"), suppress=True
                 )
 
-        avg_recovery_time = sum(recovery_times) / len(recovery_times) if recovery_times else float('inf')
+        avg_recovery_time = sum(recovery_times) / len(recovery_times) if recovery_times else float("inf")
 
         # Test error tracking accuracy
         error_stats = error_handler.get_error_statistics()
 
         # Record results
-        self.results.append(CertificationResult(
-            test_name="error_recovery_time",
-            passed=avg_recovery_time <= self.targets["error_recovery_time"],
-            target_value=self.targets["error_recovery_time"],
-            actual_value=avg_recovery_time,
-            baseline_value=self.baselines["error_recovery_time"],
-            improvement_factor=self.baselines["error_recovery_time"] / avg_recovery_time if avg_recovery_time > 0 else 1.0,
-            details={
-                "total_errors": error_stats["total_errors"],
-                "error_rate": error_stats["error_rate_per_minute"],
-                "recovery_operations": len(recovery_times)
-            }
-        ))
+        self.results.append(
+            CertificationResult(
+                test_name="error_recovery_time",
+                passed=avg_recovery_time <= self.targets["error_recovery_time"],
+                target_value=self.targets["error_recovery_time"],
+                actual_value=avg_recovery_time,
+                baseline_value=self.baselines["error_recovery_time"],
+                improvement_factor=(
+                    self.baselines["error_recovery_time"] / avg_recovery_time if avg_recovery_time > 0 else 1.0
+                ),
+                details={
+                    "total_errors": error_stats["total_errors"],
+                    "error_rate": error_stats["error_rate_per_minute"],
+                    "recovery_operations": len(recovery_times),
+                },
+            )
+        )
 
         logger.info(f"Error recovery time: {avg_recovery_time:.2f}s (target: {self.targets['error_recovery_time']}s)")
 
     async def _test_timeout_management(self) -> None:
         """Test advanced timeout management."""
-        from hive_async import AdvancedTimeoutManager, TimeoutConfig
 
-        config = TimeoutConfig(
-            default_timeout=2.0,
-            enable_adaptive=True,
-            adaptation_factor=1.2
-        )
+        config = TimeoutConfig(default_timeout=2.0, enable_adaptive=True, adaptation_factor=1.2)
         timeout_manager = AdvancedTimeoutManager(config)
 
         # Test adaptive timeout behavior
@@ -515,7 +531,7 @@ class V4PerformanceCertification:
                     variable_duration_operation,
                     "test_operation",
                     timeout=None,  # Use adaptive timeout
-                    args=(duration,)
+                    args=(duration,),
                 )
                 current_timeout = timeout_manager.get_timeout("test_operation")
                 timeout_improvements.append(current_timeout)
@@ -531,19 +547,21 @@ class V4PerformanceCertification:
         recommendations = timeout_manager.get_recommendations()
 
         # Record results
-        self.results.append(CertificationResult(
-            test_name="timeout_management_efficiency",
-            passed=timeout_adaptation > 0.1,  # At least 10% adaptation
-            target_value=0.1,
-            actual_value=timeout_adaptation,
-            details={
-                "initial_timeout": initial_timeout,
-                "final_timeout": final_timeout,
-                "adaptation_occurred": timeout_adaptation > 0.05,
-                "recommendations_count": len(recommendations),
-                "success_rate": metrics.successful_attempts / metrics.total_attempts if metrics else 0.0
-            }
-        ))
+        self.results.append(
+            CertificationResult(
+                test_name="timeout_management_efficiency",
+                passed=timeout_adaptation > 0.1,  # At least 10% adaptation
+                target_value=0.1,
+                actual_value=timeout_adaptation,
+                details={
+                    "initial_timeout": initial_timeout,
+                    "final_timeout": final_timeout,
+                    "adaptation_occurred": timeout_adaptation > 0.05,
+                    "recommendations_count": len(recommendations),
+                    "success_rate": metrics.successful_attempts / metrics.total_attempts if metrics else 0.0,
+                },
+            )
+        )
 
         logger.info(f"Timeout adaptation: {timeout_adaptation:.1%} (target: >10%)")
 
@@ -579,18 +597,20 @@ class V4PerformanceCertification:
         total_workflow_time = time.perf_counter() - workflow_start_time
 
         # Record results
-        self.results.append(CertificationResult(
-            test_name="end_to_end_workflow",
-            passed=total_workflow_time < 1.0,  # Should complete in under 1 second
-            target_value=1.0,
-            actual_value=total_workflow_time,
-            details={
-                "service_lookup": service_lookup_time,
-                "cache_operations": cache_time,
-                "ai_processing": ai_processing_time,
-                "data_processing": data_processing_time
-            }
-        ))
+        self.results.append(
+            CertificationResult(
+                test_name="end_to_end_workflow",
+                passed=total_workflow_time < 1.0,  # Should complete in under 1 second
+                target_value=1.0,
+                actual_value=total_workflow_time,
+                details={
+                    "service_lookup": service_lookup_time,
+                    "cache_operations": cache_time,
+                    "ai_processing": ai_processing_time,
+                    "data_processing": data_processing_time,
+                },
+            )
+        )
 
         logger.info(f"End-to-end workflow: {total_workflow_time:.3f}s (target: <1.0s)")
 
@@ -616,19 +636,23 @@ class V4PerformanceCertification:
         memory_usage = psutil.virtual_memory().percent
 
         # Record results
-        self.results.append(CertificationResult(
-            test_name="stress_test_performance",
-            passed=successful_operations == concurrent_operations and stress_duration < 5.0,
-            target_value=concurrent_operations,
-            actual_value=successful_operations,
-            details={
-                "duration": stress_duration,
-                "memory_usage_percent": memory_usage,
-                "operations_per_second": concurrent_operations / stress_duration
-            }
-        ))
+        self.results.append(
+            CertificationResult(
+                test_name="stress_test_performance",
+                passed=successful_operations == concurrent_operations and stress_duration < 5.0,
+                target_value=concurrent_operations,
+                actual_value=successful_operations,
+                details={
+                    "duration": stress_duration,
+                    "memory_usage_percent": memory_usage,
+                    "operations_per_second": concurrent_operations / stress_duration,
+                },
+            )
+        )
 
-        logger.info(f"Stress test: {successful_operations}/{concurrent_operations} operations in {stress_duration:.2f}s")
+        logger.info(
+            f"Stress test: {successful_operations}/{concurrent_operations} operations in {stress_duration:.2f}s"
+        )
 
     async def _generate_certification_report(self) -> CertificationReport:
         """Generate comprehensive certification report."""
@@ -637,10 +661,7 @@ class V4PerformanceCertification:
         failed_tests = total_tests - passed_tests
 
         # Calculate overall performance improvement
-        improvements = [
-            r.improvement_factor for r in self.results
-            if r.improvement_factor and r.improvement_factor > 0
-        ]
+        improvements = [r.improvement_factor for r in self.results if r.improvement_factor and r.improvement_factor > 0]
         avg_improvement = sum(improvements) / len(improvements) if improvements else 1.0
 
         # Get system metrics
@@ -664,7 +685,7 @@ class V4PerformanceCertification:
             failed_tests=failed_tests,
             performance_improvement=avg_improvement,
             results=self.results,
-            system_metrics=system_metrics
+            system_metrics=system_metrics,
         )
 
         # Log summary
@@ -677,6 +698,7 @@ class V4PerformanceCertification:
 
 # Pytest integration
 
+
 @pytest.mark.asyncio
 async def test_v4_2_certification_suite():
     """Run the complete V4.2 certification suite."""
@@ -687,7 +709,9 @@ async def test_v4_2_certification_suite():
     assert report.overall_passed, f"Certification failed: {report.failed_tests} tests failed"
 
     # Assert minimum performance improvement
-    assert report.performance_improvement >= 3.0, f"Performance improvement {report.performance_improvement:.1f}x below minimum 3.0x"
+    assert (
+        report.performance_improvement >= 3.0
+    ), f"Performance improvement {report.performance_improvement:.1f}x below minimum 3.0x"
 
     # Log detailed results
     for result in report.results:
@@ -704,9 +728,9 @@ if __name__ == "__main__":
         certification = V4PerformanceCertification()
         report = await certification.run_certification()
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("V4.2 PERFORMANCE CERTIFICATION REPORT")
-        print("="*60)
+        print("=" * 60)
         print(f"Timestamp: {report.timestamp}")
         print(f"Overall Status: {'PASSED' if report.overall_passed else 'FAILED'}")
         print(f"Tests: {report.passed_tests}/{report.total_tests} passed")
@@ -716,7 +740,9 @@ if __name__ == "__main__":
         for result in report.results:
             status = "PASS" if result.passed else "FAIL"
             improvement = f" ({result.improvement_factor:.1f}x)" if result.improvement_factor else ""
-            print(f"  {status}: {result.test_name} - {result.actual_value:.2f} (target: {result.target_value}){improvement}")
+            print(
+                f"  {status}: {result.test_name} - {result.actual_value:.2f} (target: {result.target_value}){improvement}"
+            )
 
         return report.overall_passed
 

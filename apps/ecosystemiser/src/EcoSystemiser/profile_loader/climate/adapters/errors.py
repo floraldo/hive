@@ -20,7 +20,7 @@ class AdapterError(Exception):
         self.adapter_name = adapter_name
         self.details = details or {}
 
-        # Store additional fields
+        # Store additional fields,
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -28,11 +28,11 @@ class AdapterError(Exception):
                 """Error fetching data from a source"""
 
                 def __init__(
-                    self,
+                    self
                     adapter_name: str,
                     message: str,
                     details: Optional[dict[str, Any]] = None,
-                    suggested_action: str | None = None**kwargs,
+                    suggested_action: str | None = None**kwargs
                 ):
                     super().__init__(message, adapter_name, details, **kwargs)
                     self.suggested_action = suggested_action
@@ -41,11 +41,11 @@ class AdapterError(Exception):
                         """Error parsing response data"""
 
                         def __init__(
-                            self,
+                            self
                             adapter_name: str,
                             message: str,
                             field: str | None = None,
-                            details: Optional[dict[str, Any]] = None**kwargs,
+                            details: Optional[dict[str, Any]] = None**kwargs
                         ):
                             super().__init__(message, adapter_name, details, **kwargs)
                             self.field = field
@@ -54,11 +54,11 @@ class AdapterError(Exception):
                                 """Error validating request parameters or data"""
 
                                 def __init__(
-                                    self,
+                                    self
                                     message: str,
                                     field: str | None = None,
                                     value: Any | None = None,
-                                    recovery_suggestion: str | None = None**kwargs,
+                                    recovery_suggestion: str | None = None**kwargs
                                 ):
                                     super().__init__(message, **kwargs)
                                     self.field = field

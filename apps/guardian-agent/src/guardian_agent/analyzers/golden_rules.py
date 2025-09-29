@@ -86,7 +86,9 @@ class GoldenRulesAnalyzer:
 
                 # Check if autofix is available
                 if self._can_autofix(val_violation.rule_id):
-                    violation.fix_suggestion = f"Can be automatically fixed using autofix.py for {val_violation.rule_id}"
+                    violation.fix_suggestion = (
+                        f"Can be automatically fixed using autofix.py for {val_violation.rule_id}"
+                    )
 
                 violations.append(violation)
 

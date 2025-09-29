@@ -1,7 +1,5 @@
 """Unit tests for hive_cache.config module."""
 
-from unittest.mock import Mock, patch
-
 import pytest
 
 

@@ -77,23 +77,23 @@ class TelemetryEvent:
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary for serialization."""
         return {
-            "event_id": self.event_id
+            "event_id": self.event_id,
             "event_type": self.event_type.value
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
             "component": self.component
-            "operation": self.operation
+            "operation": self.operation,
             "duration_ms": self.duration_ms
-            "success": self.success
+            "success": self.success,
             "error_message": self.error_message
-            "metadata": self.metadata
+            "metadata": self.metadata,
             "model_name": self.model_name
-            "provider": self.provider
+            "provider": self.provider,
             "tokens_used": self.tokens_used
-            "estimated_cost": self.estimated_cost
+            "estimated_cost": self.estimated_cost,
             "memory_usage_mb": self.memory_usage_mb
-            "cpu_percent": self.cpu_percent
+            "cpu_percent": self.cpu_percent,
             "network_latency_ms": self.network_latency_ms
-            "security_risk_level": self.security_risk_level
+            "security_risk_level": self.security_risk_level,
             "validation_result": self.validation_result
         }
 
@@ -135,7 +135,7 @@ class TelemetryBuffer:
         """Get recent events from buffer.
 
         Args:
-            count: Maximum number of events to return.
+            count: Maximum number of events to return.,
             event_type: Filter by specific event type.
 
         Returns:
@@ -149,7 +149,7 @@ class TelemetryBuffer:
             events = [e for e in events if e.event_type == event_type]
 
         # Sort by timestamp and return most recent
-        events.sort(key=lambda e: e.timestamp, reverse=True)
+        events.sort(key=lambda e: e.timestamp, reverse=True),
         return events[:count]
 
     async def get_buffer_stats_async(self) -> Dict[str, Any]:
@@ -177,11 +177,11 @@ class TelemetryBuffer:
                 time_range_hours = time_range.total_seconds() / 3600
 
             return {
-                "event_count": event_count
+                "event_count": event_count,
                 "total_events": self.total_events
-                "buffer_utilization": event_count / self.max_size
+                "buffer_utilization": event_count / self.max_size,
                 "event_types": type_counts
-                "time_range_hours": time_range_hours
+                "time_range_hours": time_range_hours,
                 "events_per_hour": event_count / max(time_range_hours, 0.1)
             }
 
@@ -191,18 +191,18 @@ class TelemetryCollector:
 
     def __init__(
         self
-        level: TelemetryLevel = TelemetryLevel.BASIC
-        buffer_size: int = 10000
-        export_interval_seconds: int = 300
+        level: TelemetryLevel = TelemetryLevel.BASIC,
+        buffer_size: int = 10000,
+        export_interval_seconds: int = 300,
         export_path: Path | None = None
     ):
         """Initialize telemetry collector.
 
         Args:
-            level: Telemetry collection level.
-            buffer_size: Maximum events in buffer.
-            export_interval_seconds: How often to export events.
-            export_path: Path for exporting telemetry data.
+            level: Telemetry collection level.,
+            buffer_size: Maximum events in buffer.,
+            export_interval_seconds: How often to export events.,
+            export_path: Path for exporting telemetry data.,
         """
         self.level = level
         self.buffer = TelemetryBuffer(buffer_size)
@@ -213,7 +213,7 @@ class TelemetryCollector:
         self.event_handlers: List[Callable[[TelemetryEvent], None]] = []
 
         # Background export task
-        self.export_task: asyncio.Task | None = None
+        self.export_task: asyncio.Task | None = None,
         self.running = False
 
         # Performance tracking
@@ -272,19 +272,19 @@ class TelemetryCollector:
 
     async def record_model_request_async(
         self
-        component: str
-        model_name: str
-        provider: str
-        prompt_length: int
+        component: str,
+        model_name: str,
+        provider: str,
+        prompt_length: int,
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """Record model request event.
 
         Args:
-            component: Component making the request.
-            model_name: Name of the model.
-            provider: Model provider.
-            prompt_length: Length of input prompt.
+            component: Component making the request.,
+            model_name: Name of the model.,
+            provider: Model provider.,
+            prompt_length: Length of input prompt.,
             metadata: Additional metadata.
 
         Returns:
@@ -293,13 +293,13 @@ class TelemetryCollector:
         event_id = f"req_{int(time.time() * 1000)}_{id(self)}"
 
         event = TelemetryEvent(
-            event_id=event_id
-            event_type=EventType.MODEL_REQUEST
-            timestamp=datetime.utcnow()
+            event_id=event_id,
+            event_type=EventType.MODEL_REQUEST,
+            timestamp=datetime.utcnow(),
             component=component
-            operation="model_request"
+            operation="model_request",
             model_name=model_name
-            provider=provider
+            provider=provider,
             metadata={"prompt_length": prompt_length, **(metadata or {})}
         )
 
@@ -308,43 +308,43 @@ class TelemetryCollector:
 
     async def record_model_response_async(
         self
-        request_id: str
-        component: str
-        model_name: str
-        provider: str
-        duration_ms: float
-        tokens_used: int
-        estimated_cost: float
-        success: bool = True
-        error_message: str | None = None
+        request_id: str,
+        component: str,
+        model_name: str,
+        provider: str,
+        duration_ms: float,
+        tokens_used: int,
+        estimated_cost: float,
+        success: bool = True,
+        error_message: str | None = None,
         metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """Record model response event.
 
         Args:
-            request_id: Correlation ID from request.
-            component: Component that made the request.
-            model_name: Name of the model.
-            provider: Model provider.
-            duration_ms: Request duration in milliseconds.
-            tokens_used: Number of tokens consumed.
-            estimated_cost: Estimated cost of the request.
-            success: Whether the request succeeded.
-            error_message: Error message if failed.
-            metadata: Additional metadata.
+            request_id: Correlation ID from request.,
+            component: Component that made the request.,
+            model_name: Name of the model.,
+            provider: Model provider.,
+            duration_ms: Request duration in milliseconds.,
+            tokens_used: Number of tokens consumed.,
+            estimated_cost: Estimated cost of the request.,
+            success: Whether the request succeeded.,
+            error_message: Error message if failed.,
+            metadata: Additional metadata.,
         """
         event = TelemetryEvent(
-            event_id=f"resp_{request_id}"
+            event_id=f"resp_{request_id}",
             event_type=EventType.MODEL_RESPONSE
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
             component=component
-            operation="model_response"
+            operation="model_response",
             duration_ms=duration_ms
-            success=success
+            success=success,
             error_message=error_message
-            model_name=model_name
+            model_name=model_name,
             provider=provider
-            tokens_used=tokens_used
+            tokens_used=tokens_used,
             estimated_cost=estimated_cost
             metadata={"request_id": request_id, **(metadata or {})}
         )
@@ -353,31 +353,31 @@ class TelemetryCollector:
 
     async def record_performance_metric_async(
         self
-        component: str
-        operation: str
-        duration_ms: float
-        memory_usage_mb: float | None = None
-        cpu_percent: float | None = None
+        component: str,
+        operation: str,
+        duration_ms: float,
+        memory_usage_mb: float | None = None,
+        cpu_percent: float | None = None,
         metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """Record performance metric event.
 
         Args:
-            component: Component being measured.
-            operation: Operation being measured.
-            duration_ms: Operation duration.
-            memory_usage_mb: Memory usage in MB.
-            cpu_percent: CPU usage percentage.
-            metadata: Additional metadata.
+            component: Component being measured.,
+            operation: Operation being measured.,
+            duration_ms: Operation duration.,
+            memory_usage_mb: Memory usage in MB.,
+            cpu_percent: CPU usage percentage.,
+            metadata: Additional metadata.,
         """
         event = TelemetryEvent(
-            event_id=f"perf_{int(time.time() * 1000)}_{id(self)}"
+            event_id=f"perf_{int(time.time() * 1000)}_{id(self)}",
             event_type=EventType.PERFORMANCE_METRIC
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
             component=component
-            operation=operation
+            operation=operation,
             duration_ms=duration_ms
-            memory_usage_mb=memory_usage_mb
+            memory_usage_mb=memory_usage_mb,
             cpu_percent=cpu_percent
             metadata=metadata or {}
         )
@@ -386,29 +386,29 @@ class TelemetryCollector:
 
     async def record_security_event_async(
         self
-        component: str
-        operation: str
-        risk_level: str
-        validation_result: str
+        component: str,
+        operation: str,
+        risk_level: str,
+        validation_result: str,
         metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """Record security event.
 
         Args:
-            component: Component where security event occurred.
-            operation: Security operation performed.
-            risk_level: Risk level (low, medium, high).
-            validation_result: Result of validation.
-            metadata: Additional metadata.
+            component: Component where security event occurred.,
+            operation: Security operation performed.,
+            risk_level: Risk level (low, medium, high).,
+            validation_result: Result of validation.,
+            metadata: Additional metadata.,
         """
         event = TelemetryEvent(
-            event_id=f"sec_{int(time.time() * 1000)}_{id(self)}"
+            event_id=f"sec_{int(time.time() * 1000)}_{id(self)}",
             event_type=EventType.SECURITY_EVENT
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
             component=component
-            operation=operation
+            operation=operation,
             security_risk_level=risk_level
-            validation_result=validation_result
+            validation_result=validation_result,
             metadata=metadata or {}
         )
 
@@ -434,13 +434,13 @@ class TelemetryCollector:
 
         # Calculate analytics
         analytics = {
-            "time_window_hours": time_window_hours
+            "time_window_hours": time_window_hours,
             "total_events": len(window_events)
-            "event_types": self._analyze_event_types(window_events)
+            "event_types": self._analyze_event_types(window_events),
             "performance": self._analyze_performance(window_events)
-            "model_usage": self._analyze_model_usage(window_events)
+            "model_usage": self._analyze_model_usage(window_events),
             "error_rates": self._analyze_errors(window_events)
-            "cost_analysis": self._analyze_costs(window_events)
+            "cost_analysis": self._analyze_costs(window_events),
             "security_summary": self._analyze_security(window_events)
         }
 
@@ -470,11 +470,11 @@ class TelemetryCollector:
         n = len(durations)
 
         return {
-            "total_operations": len(perf_events)
+            "total_operations": len(perf_events),
             "avg_duration_ms": sum(durations) / n
-            "median_duration_ms": durations[n // 2]
+            "median_duration_ms": durations[n // 2],
             "p95_duration_ms": durations[int(n * 0.95)] if n > 0 else 0
-            "p99_duration_ms": durations[int(n * 0.99)] if n > 0 else 0
+            "p99_duration_ms": durations[int(n * 0.99)] if n > 0 else 0,
             "min_duration_ms": min(durations)
             "max_duration_ms": max(durations)
         }
@@ -499,9 +499,9 @@ class TelemetryCollector:
                 total_tokens += event.tokens_used
 
         return {
-            "total_requests": len(model_events)
+            "total_requests": len(model_events),
             "total_tokens": total_tokens
-            "model_distribution": model_counts
+            "model_distribution": model_counts,
             "provider_distribution": provider_counts
             "avg_tokens_per_request": total_tokens / len(model_events) if model_events else 0
         }
@@ -523,9 +523,9 @@ class TelemetryCollector:
             error_operations[event.operation] = error_operations.get(event.operation, 0) + 1
 
         return {
-            "error_rate": (len(error_events) / total_events) * 100
+            "error_rate": (len(error_events) / total_events) * 100,
             "total_errors": len(error_events)
-            "error_by_component": error_components
+            "error_by_component": error_components,
             "error_by_operation": error_operations
         }
 
@@ -544,7 +544,7 @@ class TelemetryCollector:
                 cost_by_model[event.model_name] = cost_by_model.get(event.model_name, 0) + event.estimated_cost
 
         return {
-            "total_cost": total_cost
+            "total_cost": total_cost,
             "cost_by_model": cost_by_model
             "avg_cost_per_request": total_cost / len(cost_events)
         }
@@ -577,9 +577,9 @@ class TelemetryCollector:
 
         # Create export data
         export_data = {
-            "export_timestamp": datetime.utcnow().isoformat()
+            "export_timestamp": datetime.utcnow().isoformat(),
             "collection_level": self.level.value
-            "events_count": len(events)
+            "events_count": len(events),
             "events": [event.to_dict() for event in events]
         }
 
@@ -627,13 +627,13 @@ class TelemetryCollector:
         uptime = datetime.utcnow() - self.collection_start_time
 
         return {
-            "telemetry_level": self.level.value
+            "telemetry_level": self.level.value,
             "running": self.running
-            "uptime_hours": uptime.total_seconds() / 3600
+            "uptime_hours": uptime.total_seconds() / 3600,
             "events_collected": self.events_collected
-            "events_per_hour": self.events_collected / max(uptime.total_seconds() / 3600, 0.1)
+            "events_per_hour": self.events_collected / max(uptime.total_seconds() / 3600, 0.1),
             "buffer_stats": buffer_stats
-            "export_interval_seconds": self.export_interval
+            "export_interval_seconds": self.export_interval,
             "export_path": str(self.export_path)
         }
 

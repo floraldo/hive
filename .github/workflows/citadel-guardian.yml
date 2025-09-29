@@ -1,0 +1,392 @@
+name: 🏰 Citadel Guardian - Architectural Compliance
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  citadel-compliance:
+    name: 🏰 Architectural Compliance Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+      - name: 🔍 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for compliance analysis
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/hive-tests/
+          pip install -e apps/guardian-agent/
+          pip install -e packages/hive-logging/
+          pip install -e packages/hive-cache/
+
+      - name: 🏰 Initialize Citadel Guardian
+        id: init-guardian
+        run: |
+          echo "🏰 Citadel Guardian - Zero Tolerance Compliance Active"
+          echo "PR: #${{ github.event.number }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.head_ref }}"
+
+      - name: 📋 Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@v40
+        with:
+          files: |
+            **/*.py
+            **/*.toml
+            **/*.yaml
+            **/*.yml
+          files_ignore: |
+            **/*_test.py
+            **/test_*.py
+            **/tests/**
+
+      - name: 🔬 Run Architectural Compliance Scan
+        id: compliance-scan
+        run: |
+          python -c "
+          import asyncio
+          import json
+          import sys
+          from pathlib import Path
+
+          # Add guardian agent to path
+          sys.path.insert(0, 'apps/guardian-agent/src')
+
+          from guardian_agent.intelligence.citadel_guardian import CitadelGuardian, CitadelGuardianConfig
+          from guardian_agent.intelligence.oracle_service import OracleService, OracleConfig
+
+          async def run_compliance_scan():
+              try:
+                  # Initialize Guardian
+                  config = CitadelGuardianConfig(
+                      minimum_score_to_pass=85.0,
+                      enable_pr_blocking=True,
+                      enable_auto_comments=True,
+                      github_repository='${{ github.repository }}'
+                  )
+
+                  # Initialize Oracle for intelligence
+                  oracle_config = OracleConfig()
+                  oracle = OracleService(oracle_config)
+
+                  guardian = CitadelGuardian(config, oracle)
+
+                  # Get changed files
+                  changed_files_str = '''${{ steps.changed-files.outputs.all_changed_files }}'''
+                  changed_files = changed_files_str.split() if changed_files_str.strip() else []
+
+                  print(f'🔍 Analyzing {len(changed_files)} changed files...')
+
+                  # Run compliance validation
+                  report = await guardian.validate_pr_compliance_async(
+                      pr_number=${{ github.event.number }},
+                      commit_sha='${{ github.sha }}',
+                      branch_name='${{ github.head_ref }}',
+                      changed_files=changed_files
+                  )
+
+                  # Output results
+                  print(f'🏰 Compliance Status: {report.compliance_status.value.upper()}')
+                  print(f'📊 Overall Score: {report.overall_score:.1f}/100 ({report.score_change:+.1f})')
+                  print(f'⚠️  Violations: {len(report.violations)} total')
+                  print(f'🚫 Blockers: {report.blocker_count}')
+                  print(f'🔴 Critical: {report.critical_count}')
+                  print(f'📊 Risk Level: {report.risk_assessment}')
+
+                  # Generate PR comment
+                  comment = await guardian.generate_pr_comment_async(report)
+
+                  # Output for GitHub Actions
+                  with open('compliance_report.json', 'w') as f:
+                      json.dump({
+                          'status': report.compliance_status.value,
+                          'score': report.overall_score,
+                          'score_change': report.score_change,
+                          'blocker_count': report.blocker_count,
+                          'critical_count': report.critical_count,
+                          'risk_level': report.risk_assessment,
+                          'violations_count': len(report.violations),
+                          'components_affected': report.components_affected,
+                          'pr_comment': comment
+                      }, indent=2)
+
+                  # Set GitHub Actions outputs
+                  print(f'::set-output name=compliance_status::{report.compliance_status.value}')
+                  print(f'::set-output name=overall_score::{report.overall_score:.1f}')
+                  print(f'::set-output name=blocker_count::{report.blocker_count}')
+                  print(f'::set-output name=should_block::{\"true\" if report.compliance_status.value == \"block\" else \"false\"}')
+
+                  # Exit with error code if blocked
+                  if report.compliance_status.value == 'block':
+                      print('🚫 PR BLOCKED due to architectural compliance violations')
+                      sys.exit(1)
+                  elif report.compliance_status.value == 'require_review':
+                      print('🔍 PR requires manual review')
+                  elif report.compliance_status.value == 'warn':
+                      print('⚠️  PR has warnings but can proceed')
+                  else:
+                      print('✅ PR passes all compliance checks')
+
+              except Exception as e:
+                  print(f'❌ Compliance scan failed: {e}')
+                  import traceback
+                  traceback.print_exc()
+                  sys.exit(1)
+
+          asyncio.run(run_compliance_scan())
+          "
+
+      - name: 📝 Post Compliance Report Comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            try {
+              // Read compliance report
+              const reportData = JSON.parse(fs.readFileSync('compliance_report.json', 'utf8'));
+
+              // Find existing Citadel Guardian comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const existingComment = comments.find(comment =>
+                comment.body.includes('Citadel Guardian - Architectural Compliance Report')
+              );
+
+              const commentBody = reportData.pr_comment;
+
+              if (existingComment) {
+                // Update existing comment
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: commentBody
+                });
+                console.log('📝 Updated existing Citadel Guardian comment');
+              } else {
+                // Create new comment
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: commentBody
+                });
+                console.log('📝 Created new Citadel Guardian comment');
+              }
+
+            } catch (error) {
+              console.error('Failed to post compliance report:', error);
+            }
+
+      - name: 🏷️ Add Compliance Labels
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            try {
+              const reportData = JSON.parse(fs.readFileSync('compliance_report.json', 'utf8'));
+
+              // Remove existing compliance labels
+              const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const complianceLabels = currentLabels.filter(label =>
+                label.name.startsWith('compliance:') ||
+                label.name.startsWith('citadel:')
+              );
+
+              for (const label of complianceLabels) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name: label.name
+                });
+              }
+
+              // Add new compliance labels
+              const newLabels = [`compliance:${reportData.status}`];
+
+              if (reportData.blocker_count > 0) {
+                newLabels.push('citadel:blocked');
+              }
+
+              if (reportData.risk_level === 'high') {
+                newLabels.push('citadel:high-risk');
+              }
+
+              if (reportData.score >= 95) {
+                newLabels.push('citadel:excellent');
+              } else if (reportData.score >= 85) {
+                newLabels.push('citadel:good');
+              } else if (reportData.score >= 70) {
+                newLabels.push('citadel:needs-improvement');
+              } else {
+                newLabels.push('citadel:critical');
+              }
+
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: newLabels
+              });
+
+              console.log(`🏷️ Added labels: ${newLabels.join(', ')}`);
+
+            } catch (error) {
+              console.error('Failed to update labels:', error);
+            }
+
+      - name: 📊 Create Check Run
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            try {
+              const reportData = JSON.parse(fs.readFileSync('compliance_report.json', 'utf8'));
+
+              const conclusion = reportData.status === 'block' ? 'failure' :
+                               reportData.status === 'require_review' ? 'action_required' :
+                               reportData.status === 'warn' ? 'neutral' : 'success';
+
+              const title = reportData.status === 'allow' ?
+                '✅ Architectural Compliance Passed' :
+                reportData.status === 'warn' ?
+                '⚠️ Compliance Warnings Present' :
+                reportData.status === 'require_review' ?
+                '🔍 Manual Review Required' :
+                '🚫 Compliance Violations Detected';
+
+              const summary = `
+              **Overall Score**: ${reportData.score}/100 (${reportData.score_change >= 0 ? '+' : ''}${reportData.score_change})
+              **Risk Level**: ${reportData.risk_level}
+              **Violations**: ${reportData.violations_count} total (${reportData.blocker_count} blockers)
+              **Components Affected**: ${reportData.components_affected.join(', ') || 'None'}
+              `;
+
+              await github.rest.checks.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'Citadel Guardian',
+                head_sha: context.sha,
+                status: 'completed',
+                conclusion: conclusion,
+                output: {
+                  title: title,
+                  summary: summary.trim()
+                }
+              });
+
+              console.log(`📊 Created check run with conclusion: ${conclusion}`);
+
+            } catch (error) {
+              console.error('Failed to create check run:', error);
+            }
+
+      - name: 🚫 Block PR if Compliance Failed
+        if: steps.compliance-scan.outputs.should_block == 'true'
+        run: |
+          echo "🚫 PR BLOCKED: Architectural compliance violations detected"
+          echo "Score: ${{ steps.compliance-scan.outputs.overall_score }}/100"
+          echo "Blockers: ${{ steps.compliance-scan.outputs.blocker_count }}"
+          echo ""
+          echo "The Citadel Guardian has detected critical architectural violations."
+          echo "Please fix the issues identified in the compliance report before merging."
+          echo ""
+          echo "🏰 Zero tolerance for architectural decay - The Citadel stands strong!"
+          exit 1
+
+      - name: ✅ Compliance Success
+        if: steps.compliance-scan.outputs.compliance_status == 'allow'
+        run: |
+          echo "✅ COMPLIANCE PASSED: Architectural standards maintained"
+          echo "Score: ${{ steps.compliance-scan.outputs.overall_score }}/100"
+          echo ""
+          echo "🏰 The Citadel Guardian approves this contribution!"
+          echo "Architectural excellence preserved. The foundation remains strong."
+
+  # Optional: Run extended analysis for non-blocking insights
+  extended-analysis:
+    name: 🔍 Extended Architectural Analysis
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    needs: citadel-compliance
+    continue-on-error: true
+
+    steps:
+      - name: 🔍 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/hive-tests/
+          pip install -e apps/guardian-agent/
+
+      - name: 🔍 Run Cross-Package Integration Analysis
+        run: |
+          echo "🔍 Running extended architectural analysis..."
+          echo "This job provides additional insights without blocking the PR"
+
+          python -c "
+          import sys
+          sys.path.insert(0, 'apps/guardian-agent/src')
+
+          print('🔍 Extended Analysis Results:')
+          print('- Cross-package optimization opportunities: TBD')
+          print('- Performance improvement suggestions: TBD')
+          print('- Certification enhancement recommendations: TBD')
+          print('')
+          print('📊 Full analysis will be available in future iterations')
+          "
+
+      - name: 📈 Generate Architectural Insights
+        run: |
+          echo "📈 Generating architectural insights for continuous improvement..."
+          echo "Future enhancements:"
+          echo "- Automated refactoring suggestions"
+          echo "- Performance optimization recommendations"
+          echo "- Cross-package integration opportunities"
+          echo "- Certification score improvement roadmap"

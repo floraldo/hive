@@ -59,13 +59,13 @@ class AsyncEvent:
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary"""
         return {
-            "event_type": self.event_type
+            "event_type": self.event_type,
             "data": self.data
-            "priority": self.priority.value
+            "priority": self.priority.value,
             "event_id": self.event_id
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
             "correlation_id": self.correlation_id
-            "retry_count": self.retry_count
+            "retry_count": self.retry_count,
             "metadata": self.metadata
         }
 
@@ -73,13 +73,13 @@ class AsyncEvent:
     def from_dict(cls, data: Dict[str, Any]) -> "AsyncEvent":
         """Create event from dictionary"""
         return cls(
-            event_type=data["event_type"]
+            event_type=data["event_type"],
             data=data["data"]
-            priority=EventPriority(data.get("priority", EventPriority.NORMAL.value))
+            priority=EventPriority(data.get("priority", EventPriority.NORMAL.value)),
             event_id=data.get("event_id", str(uuid4()))
-            timestamp=data.get("timestamp", time.time())
+            timestamp=data.get("timestamp", time.time()),
             correlation_id=data.get("correlation_id")
-            retry_count=data.get("retry_count", 0)
+            retry_count=data.get("retry_count", 0),
             metadata=data.get("metadata", {})
         )
 
@@ -99,35 +99,35 @@ class AsyncEventBus:
 
     def __init__(
         self
-        max_queue_size: int = 1000
-        default_timeout: float = 30.0
-        enable_replay: bool = True
+        max_queue_size: int = 1000,
+        default_timeout: float = 30.0,
+        enable_replay: bool = True,
         max_replay_events: int = 100
     ):
         """
         Initialize async event bus
 
         Args:
-            max_queue_size: Maximum size for event queues
-            default_timeout: Default timeout for event handlers
-            enable_replay: Whether to enable event replay
-            max_replay_events: Maximum events to store for replay
+            max_queue_size: Maximum size for event queues,
+            default_timeout: Default timeout for event handlers,
+            enable_replay: Whether to enable event replay,
+            max_replay_events: Maximum events to store for replay,
         """
-        self._handlers: Dict[str, List[Callable]] = defaultdict(list)
-        self._queues: Dict[str, asyncio.PriorityQueue] = {}
-        self._workers: Dict[str, asyncio.Task] = {}
-        self._replay_buffer: List[AsyncEvent] = []
-        self._dead_letter_queue: asyncio.Queue = asyncio.Queue(maxsize=max_queue_size)
+        self._handlers: Dict[str, List[Callable]] = defaultdict(list),
+        self._queues: Dict[str, asyncio.PriorityQueue] = {},
+        self._workers: Dict[str, asyncio.Task] = {},
+        self._replay_buffer: List[AsyncEvent] = [],
+        self._dead_letter_queue: asyncio.Queue = asyncio.Queue(maxsize=max_queue_size),
         self._max_queue_size = max_queue_size
         self._default_timeout = default_timeout
         self._enable_replay = enable_replay
         self._max_replay_events = max_replay_events
         self._running = False
         self._stats = {
-            "events_published": 0
-            "events_processed": 0
-            "events_failed": 0
-            "events_timeout": 0
+            "events_published": 0,
+            "events_processed": 0,
+            "events_failed": 0,
+            "events_timeout": 0,
         }
 
     async def start_async(self) -> None:
@@ -165,17 +165,17 @@ class AsyncEventBus:
 
     def subscribe(
         self
-        event_type: str
-        handler: Callable[[AsyncEvent], Coroutine[Any, Any, None]]
+        event_type: str,
+        handler: Callable[[AsyncEvent], Coroutine[Any, Any, None]],
         priority: EventPriority = EventPriority.NORMAL
     ):
         """
         Subscribe to an event type
 
         Args:
-            event_type: Type of event to subscribe to
-            handler: Async function to handle the event
-            priority: Priority level for this handler
+            event_type: Type of event to subscribe to,
+            handler: Async function to handle the event,
+            priority: Priority level for this handler,
         """
         if not asyncio.iscoroutinefunction(handler):
             raise ValueError(f"Handler {handler.__name__} must be an async function")
@@ -195,7 +195,7 @@ class AsyncEventBus:
 
     def unsubscribe(
         self
-        event_type: str
+        event_type: str,
         handler: Callable[[AsyncEvent], Coroutine[Any, Any, None]]
     ):
         """Unsubscribe from an event type"""
@@ -214,29 +214,29 @@ class AsyncEventBus:
 
     async def publish_async(
         self
-        event_type: str
-        data: Dict[str, Any]
-        priority: EventPriority = EventPriority.NORMAL
-        correlation_id: str | None = None
+        event_type: str,
+        data: Dict[str, Any],
+        priority: EventPriority = EventPriority.NORMAL,
+        correlation_id: str | None = None,
         timeout: float | None = None
     ) -> str:
         """
         Publish an event asynchronously
 
         Args:
-            event_type: Type of event to publish
-            data: Event data payload
-            priority: Event priority
-            correlation_id: Optional correlation ID
+            event_type: Type of event to publish,
+            data: Event data payload,
+            priority: Event priority,
+            correlation_id: Optional correlation ID,
             timeout: Optional timeout for publishing
 
         Returns:
             Event ID of published event
         """
         event = AsyncEvent(
-            event_type=event_type
-            data=data
-            priority=priority
+            event_type=event_type,
+            data=data,
+            priority=priority,
             correlation_id=correlation_id
         )
 
@@ -270,14 +270,14 @@ class AsyncEventBus:
 
     async def publish_batch_async(
         self
-        events: List[Tuple[str, Dict[str, Any], EventPriority]]
+        events: List[Tuple[str, Dict[str, Any], EventPriority]],
         correlation_id: str | None = None
     ) -> List[str]:
         """
         Publish multiple events in batch
 
         Args:
-            events: List of (event_type, data, priority) tuples
+            events: List of (event_type, data, priority) tuples,
             correlation_id: Optional correlation ID for all events
 
         Returns:
@@ -288,9 +288,9 @@ class AsyncEventBus:
 
         for event_type, data, priority in events:
             event_id = await self.publish_async(
-                event_type=event_type
-                data=data
-                priority=priority
+                event_type=event_type,
+                data=data,
+                priority=priority,
                 correlation_id=correlation_id
             )
             event_ids.append(event_id)
@@ -374,16 +374,16 @@ class AsyncEventBus:
 
     async def replay_events_async(
         self
-        event_types: Optional[List[str]] = None
-        correlation_id: str | None = None
+        event_types: Optional[List[str]] = None,
+        correlation_id: str | None = None,
         since_timestamp: float | None = None
     ) -> int:
         """
         Replay events from buffer
 
         Args:
-            event_types: Optional list of event types to replay
-            correlation_id: Optional correlation ID to filter events
+            event_types: Optional list of event types to replay,
+            correlation_id: Optional correlation ID to filter events,
             since_timestamp: Replay events since this timestamp
 
         Returns:
@@ -405,9 +405,9 @@ class AsyncEventBus:
 
             # Republish event
             await self.publish_async(
-                event_type=event.event_type
+                event_type=event.event_type,
                 data=event.data
-                priority=event.priority
+                priority=event.priority,
                 correlation_id=event.correlation_id
             )
             replayed += 1
@@ -419,24 +419,24 @@ class AsyncEventBus:
         """Get event bus statistics"""
         return {
             **self._stats
-            "queue_sizes": {event_type: queue.qsize() for event_type, queue in self._queues.items()}
+            "queue_sizes": {event_type: queue.qsize() for event_type, queue in self._queues.items()},
             "dead_letter_queue_size": self._dead_letter_queue.qsize()
-            "replay_buffer_size": len(self._replay_buffer)
+            "replay_buffer_size": len(self._replay_buffer),
             "handler_count": sum(len(handlers) for handlers in self._handlers.values())
         }
 
     async def wait_for_event_async(
         self
-        event_type: str
-        predicate: Optional[Callable[[AsyncEvent], bool]] = None
+        event_type: str,
+        predicate: Optional[Callable[[AsyncEvent], bool]] = None,
         timeout: float = 30.0
     ) -> AsyncEvent | None:
         """
         Wait for a specific event
 
         Args:
-            event_type: Type of event to wait for
-            predicate: Optional function to filter events
+            event_type: Type of event to wait for,
+            predicate: Optional function to filter events,
             timeout: Maximum time to wait
 
         Returns:

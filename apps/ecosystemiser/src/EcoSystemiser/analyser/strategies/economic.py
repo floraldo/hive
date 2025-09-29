@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 
 class EconomicAnalysis(BaseAnalysis):
-    """Calculate economic metrics from simulation results.
+    """Calculate economic metrics from simulation results.,
 
 
     This strategy computes financial indicators such as:
@@ -20,7 +20,7 @@ class EconomicAnalysis(BaseAnalysis):
     - Net Present Value (NPV)
     - Internal Rate of Return (IRR)
     - Payback period
-    - Total cost of ownership
+    - Total cost of ownership,
     """
 
     def __init__(self) -> None:
@@ -37,11 +37,11 @@ class EconomicAnalysis(BaseAnalysis):
             metadata: Optional simulation metadata including economic parameters
 
         Returns:
-            Dictionary of calculated economic metrics
+            Dictionary of calculated economic metrics,
         """
         metrics = {}
 
-        # Update parameters from metadata if provided
+        # Update parameters from metadata if provided,
         if metadata:
             self.discount_rate = metadata.get("discount_rate", self.discount_rate)
             self.project_lifetime = metadata.get("project_lifetime", self.project_lifetime)
@@ -62,14 +62,12 @@ class EconomicAnalysis(BaseAnalysis):
         # Calculate financial indicators
         lcoe = self._calculate_lcoe(capex, opex_annual, energy_metrics, results_data)
         metrics["lcoe"] = lcoe
-
         npv = self._calculate_npv(capex, opex_annual, energy_metrics)
         metrics["npv"] = npv
-
         payback = self._calculate_payback_period(capex, opex_annual, energy_metrics)
         metrics["payback_period_years"] = payback
 
-        # Total cost of ownership
+        # Total cost of ownership,
         metrics["total_cost_ownership"] = capex + (opex_annual * self.project_lifetime)
 
         # Cost breakdown by component
@@ -85,7 +83,7 @@ class EconomicAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            Total CAPEX
+            Total CAPEX,
         """
         capex = 0
         components = results_data.get("components", {})
@@ -117,7 +115,7 @@ class EconomicAnalysis(BaseAnalysis):
                 capex += capacity * capex_per_m3
 
             else:
-                # Use fixed capex if specified
+                # Use fixed capex if specified,
                 capex += economic.get("capex_fixed", 0)
 
         return capex
@@ -129,7 +127,7 @@ class EconomicAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            Annual OPEX
+            Annual OPEX,
         """
         opex = 0
         components = results_data.get("components", {})
@@ -157,7 +155,7 @@ class EconomicAnalysis(BaseAnalysis):
                 opex += capacity * opex_per_kw_year
 
             else:
-                # Use fixed OPEX if specified
+                # Use fixed OPEX if specified,
                 opex += economic.get("opex_annual", 0)
 
         # Add maintenance costs (typically 1-2% of CAPEX annually)
@@ -174,7 +172,7 @@ class EconomicAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            Dictionary of energy economic metrics
+            Dictionary of energy economic metrics,
         """
         metrics = {}
         flows = results_data.get("flows", {})
@@ -224,7 +222,7 @@ class EconomicAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            LCOE in $/kWh
+            LCOE in $/kWh,
         """
         # Calculate total discounted costs
         total_cost = capex
@@ -241,13 +239,12 @@ class EconomicAnalysis(BaseAnalysis):
         if simulation_hours > 0:
             scale_factor = 8760 / simulation_hours
             annual_energy *= scale_factor
-
         total_energy = 0
         for year in range(1, self.project_lifetime + 1):
             discounted_energy = annual_energy / ((1 + self.discount_rate) ** year)
             total_energy += discounted_energy
 
-        # Calculate LCOE
+        # Calculate LCOE,
         if total_energy > 0:
             lcoe = total_cost / total_energy
         else:
@@ -264,7 +261,7 @@ class EconomicAnalysis(BaseAnalysis):
             energy_metrics: Energy economic metrics
 
         Returns:
-            NPV in currency units
+            NPV in currency units,
         """
         # Initial investment (negative cash flow)
         npv = -capex
@@ -287,7 +284,7 @@ class EconomicAnalysis(BaseAnalysis):
             energy_metrics: Energy economic metrics
 
         Returns:
-            Payback period in years
+            Payback period in years,
         """
         # Annual savings (compared to baseline)
         annual_savings = -energy_metrics.get("annual_net_energy_cost", 0)
@@ -306,14 +303,13 @@ class EconomicAnalysis(BaseAnalysis):
             results_data: Results dictionary
 
         Returns:
-            Dictionary of component costs
+            Dictionary of component costs,
         """
         component_costs = {}
         components = results_data.get("components", {})
 
         for comp_name, comp_data in components.items():
             costs = {}
-
             economic = comp_data.get("economic", {})
             technical = comp_data.get("technical", {})
 
@@ -321,7 +317,7 @@ class EconomicAnalysis(BaseAnalysis):
             capacity = technical.get("capacity_nominal", 0)
             comp_type = comp_data.get("type", "")
 
-            # Calculate CAPEX
+            # Calculate CAPEX,
             if comp_type == "battery":
                 costs["capex"] = capacity * economic.get("capex_per_kwh", 500)
                 costs["opex_annual"] = capacity * economic.get("opex_per_kwh_year", 10)
@@ -347,7 +343,7 @@ class EconomicAnalysis(BaseAnalysis):
             direction: Flow direction
 
         Returns:
-            Sum of matching flows
+            Sum of matching flows,
         """
         total = 0
 
