@@ -16,8 +16,10 @@ from hive_errors.monitoring_error_reporter import MonitoringErrorReporter
 from hive_errors.predictive_alerts import MetricPoint, MetricType
 from hive_logging import get_logger
 
+from .events import MonitoringCycleCompleteEvent, PredictiveAlertEvent
 from .exceptions import MonitoringConfigurationError
 from .interfaces import IMonitoringService
+from .protocols import EventBusProtocol, HealthMonitorProtocol
 
 logger = get_logger(__name__)
 
@@ -34,8 +36,8 @@ class PredictiveMonitoringService(IMonitoringService):
         self,
         alert_manager: PredictiveAlertManager,
         error_reporter: MonitoringErrorReporter | None = None,
-        health_monitor: Any | None = None,
-        bus: Any | None = None,
+        health_monitor: HealthMonitorProtocol | None = None,
+        bus: EventBusProtocol | None = None,
     ):
         """
         Initialize monitoring service.
@@ -83,7 +85,9 @@ class PredictiveMonitoringService(IMonitoringService):
             for (service_name, metric_type), metrics in metrics_by_service.items():
                 try:
                     alert = await self.alert_manager.analyze_metrics_async(
-                        service_name=service_name, metric_type=metric_type, metrics=metrics,
+                        service_name=service_name,
+                        metric_type=metric_type,
+                        metrics=metrics,
                     )
 
                     if alert:
@@ -105,6 +109,23 @@ class PredictiveMonitoringService(IMonitoringService):
             self.run_stats["last_run_duration_seconds"] = duration
 
             logger.info(f"Analysis cycle complete: {len(alerts_generated)} alerts in {duration:.2f}s")
+
+            # Emit cycle complete event
+            if self._bus:
+                try:
+                    cycle_event = MonitoringCycleCompleteEvent(
+                        cycle_id=f"cycle-{start_time.isoformat()}",
+                        alerts_generated=len(alerts_generated),
+                        services_analyzed=len(metrics_by_service),
+                        duration_seconds=duration,
+                        timestamp=start_time,
+                    )
+                    if hasattr(self._bus, "publish_async"):
+                        await self._bus.publish_async(cycle_event)
+                    else:
+                        self._bus.publish(cycle_event)
+                except Exception as e:
+                    logger.warning(f"Failed to emit cycle complete event: {e}")
 
             return {
                 "success": True,
@@ -193,20 +214,27 @@ class PredictiveMonitoringService(IMonitoringService):
             return
 
         try:
-            from hive_bus import BaseEvent
-
-            class PredictiveAlertEvent(BaseEvent):
-                """Event emitted when predictive alert generated"""
-
-                def __init__(self, alert_data: dict):
-                    super().__init__(event_type="monitoring.predictive_alert")
-                    self.alert_data = alert_data
+            # Create strongly-typed event
+            event = PredictiveAlertEvent(
+                alert_id=alert.alert_id,
+                service_name=alert.service_name,
+                metric_type=str(alert.metric_type),
+                severity=alert.severity,
+                prediction={
+                    "failure_probability": alert.failure_probability,
+                    "estimated_time_to_failure": alert.estimated_time_to_failure,
+                    "confidence": alert.confidence,
+                },
+                recommended_actions=alert.recommended_actions,
+            )
 
             # Publish event
-            event = PredictiveAlertEvent(alert.to_dict())
-            await self._bus.publish_async(event)
+            if hasattr(self._bus, "publish_async"):
+                await self._bus.publish_async(event)
+            else:
+                self._bus.publish(event)
 
-            logger.debug(f"Emitted alert event: {alert.alert_id}")
+            logger.info(f"Emitted alert event: {alert.alert_id} for {alert.service_name}")
 
         except Exception as e:
             logger.warning(f"Failed to emit alert event: {e}")

@@ -4,27 +4,20 @@ Demand profile service implementing the unified profile interface.,
 This service handles loading and processing of energy demand profiles
 (electricity, heating, cooling, etc.) from various sources.
 """
+
 from __future__ import annotations
 
-
 import asyncio
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
-from ecosystemiser.profile_loader.demand.models import (
-    DEMAND_VARIABLES,
-    DemandRequest,
-    DemandResponse
-)
-from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
-from ecosystemiser.profile_loader.shared.service import (
-    BaseProfileService,
-    ProfileServiceError,
-    ProfileValidationError
-)
+from ecosystemiser.profile_loader.demand.models import DEMAND_VARIABLES, DemandRequest, DemandResponse
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest
+from ecosystemiser.profile_loader.shared.service import BaseProfileService, ProfileServiceError, ProfileValidationError
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -45,7 +38,7 @@ class DemandService(BaseProfileService):
             # Future adapters can be added here,
             # "database": DemandDatabaseAdapter()
             # "standard_profiles": StandardProfileAdapter()
-        },
+        }
         self.service_info = {
             "service_type": "DemandService",
             "version": "1.0.0",
@@ -62,17 +55,17 @@ class DemandService(BaseProfileService):
                 "office",
                 "retail",
                 "industrial",
-            ]
-        },
+            ],
+        }
         logger.info("DemandService initialized with unified interface")
 
-    async def process_request_async(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, DemandResponse]:
+    async def process_request_async(self, request: BaseProfileRequest) -> tuple[xr.Dataset, DemandResponse]:
         """Process demand request asynchronously."""
         # Run synchronous processing in thread pool
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self.process_request, request)
 
-    def process_request(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, DemandResponse]:
+    def process_request(self, request: BaseProfileRequest) -> tuple[xr.Dataset, DemandResponse]:
         """
         Process demand profile request synchronously.
 
@@ -104,7 +97,7 @@ class DemandService(BaseProfileService):
             profiles = adapter.fetch(adapter_config)
 
             if not profiles:
-                raise ProfileServiceError(f"No demand profiles loaded for request")
+                raise ProfileServiceError("No demand profiles loaded for request")
 
             # Convert to xarray Dataset
             dataset = self._create_dataset(profiles, demand_request)
@@ -117,9 +110,9 @@ class DemandService(BaseProfileService):
 
         except Exception as e:
             logger.error(f"Error processing demand request: {e}")
-            raise ProfileServiceError(f"Demand processing failed: {e}") from e,
+            raise ProfileServiceError(f"Demand processing failed: {e}") from e
 
-    def validate_request(self, request: BaseProfileRequest) -> List[str]:
+    def validate_request(self, request: BaseProfileRequest) -> list[str]:
         """Validate demand profile request."""
         errors = []
 
@@ -149,22 +142,22 @@ class DemandService(BaseProfileService):
 
         return errors
 
-    def get_available_sources(self) -> List[str]:
+    def get_available_sources(self) -> list[str]:
         """Get available demand data sources."""
         return list(self.adapters.keys())
 
-    def get_available_variables(self, source: str | None = None) -> Dict[str, Dict[str, str]]:
+    def get_available_variables(self, source: str | None = None) -> dict[str, dict[str, str]]:
         """Get available demand variables."""
         return DEMAND_VARIABLES
 
-    def get_source_coverage(self, source: str) -> Dict[str, Any]:
+    def get_source_coverage(self, source: str) -> dict[str, Any]:
         """Get coverage information for demand source."""
         if source == "file":
-            return {,
+            return {
                 "spatial_coverage": "User-defined",
                 "temporal_coverage": "User-defined",
                 "resolution": "Variable",
-                "data_types": ["electricity", "heating", "cooling", "hot_water"]
+                "data_types": ["electricity", "heating", "cooling", "hot_water"],
             }
         else:
             return {"coverage": "Unknown"}
@@ -181,7 +174,7 @@ class DemandService(BaseProfileService):
                     "smart_meter": "file",
                     "scada": "file",
                     "simulation": "file",
-                    "benchmark": "file"
+                    "benchmark": "file",
                 }
                 adapter_name = source_mapping.get(request.source, "file")
                 return self.adapters[adapter_name]
@@ -189,12 +182,12 @@ class DemandService(BaseProfileService):
             # Default to file adapter,
             return self.adapters["file"]
 
-    def _build_adapter_config(self, request: DemandRequest) -> Dict[str, Any]:
+    def _build_adapter_config(self, request: DemandRequest) -> dict[str, Any]:
         """Build configuration for selected adapter."""
         config = {
             "demand_type": request.demand_type,
             "building_type": request.building_type,
-            "variables": request.variables
+            "variables": request.variables,
         }
 
         # Add source-specific configuration,
@@ -205,7 +198,7 @@ class DemandService(BaseProfileService):
 
         return config
 
-    def _create_dataset(self, profiles: Dict[str, np.ndarray], request: DemandRequest) -> xr.Dataset:
+    def _create_dataset(self, profiles: dict[str, np.ndarray], request: DemandRequest) -> xr.Dataset:
         """Convert profile data to xarray Dataset."""
         if not profiles:
             raise ProfileServiceError("No profile data to convert")
@@ -216,11 +209,7 @@ class DemandService(BaseProfileService):
         # Create time index based on request period
         period = request.period
         if "start" in period and "end" in period:
-            time_index = pd.date_range(
-                start=period["start"],
-                end=period["end"],
-                freq=request.resolution or "1H"
-            )[
+            time_index = pd.date_range(start=period["start"], end=period["end"], freq=request.resolution or "1H")[
                 :time_steps
             ]  # Truncate to actual data length
         else:
@@ -235,7 +224,7 @@ class DemandService(BaseProfileService):
         # Create dataset
         dataset = xr.Dataset(data_vars=data_vars, coords={"time": time_index})
 
-        # Add metadata,
+        # Add metadata
         dataset.attrs.update(
             {
                 "source": request.source or "file",
@@ -243,27 +232,24 @@ class DemandService(BaseProfileService):
                 "building_type": request.building_type,
                 "location": str(request.location),
                 "resolution": request.resolution,
-                "variables": list(profiles.keys())
+                "variables": list(profiles.keys()),
             }
-        ),
+        )
 
         return dataset
 
     def _build_response(
-        self,
-        dataset: xr.Dataset,
-        request: DemandRequest,
-        profiles: Dict[str, np.ndarray]
+        self, dataset: xr.Dataset, request: DemandRequest, profiles: dict[str, np.ndarray]
     ) -> DemandResponse:
         """Build demand response with metrics."""
         # Calculate basic metrics,
         electricity_vars = [var for var in dataset.data_vars if "power" in var.lower() or "electricity" in var.lower()]
-        peak_demand = None,
-        total_energy = None,
+        peak_demand = (None,)
+        total_energy = (None,)
         load_factor = None
 
         if electricity_vars and electricity_vars[0] in dataset:
-            power_data = dataset[electricity_vars[0]].values,
+            power_data = (dataset[electricity_vars[0]].values,)
             peak_demand = float(np.max(power_data))
             total_energy = float(np.sum(power_data))  # Simplified calculation
             avg_demand = float(np.mean(power_data))
@@ -280,7 +266,7 @@ class DemandService(BaseProfileService):
             total_energy_kwh=total_energy,
             load_factor=load_factor,
             processing_steps=["load_profiles", "create_dataset", "calculate_metrics"],
-            quality={"completeness": 100.0, "validation_passed": True}
-        ),
+            quality={"completeness": 100.0, "validation_passed": True},
+        )
 
         return response
