@@ -1,18 +1,20 @@
 """Monte Carlo methods for uncertainty analysis and design space exploration."""
 
+from __future__ import annotations
+
 import itertools
 import json
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, ListTuple
+from typing import Any, Callable, Dict, List, Tuple
 
 import numpy as np
 from ecosystemiser.discovery.algorithms.base import (
     BaseOptimizationAlgorithm,
-    OptimizationConfig
-    OptimizationResult
-    OptimizationStatus
+    OptimizationConfig,
+    OptimizationResult,
+    OptimizationStatus,
 )
 from hive_logging import get_logger
 from scipy import stats
@@ -24,8 +26,6 @@ logger = get_logger(__name__)
 @dataclass
 class MonteCarloConfig(OptimizationConfig):
     """Configuration for Monte Carlo analysis."""
-from __future__ import annotations
-
 
     # Sampling parameters
     sampling_method: str = "lhs"  # lhs, random, sobol, halton
@@ -89,11 +89,11 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         for var_name, var_config in self.mc_config.uncertainty_variables.items():
             uncertainty_var = UncertaintyVariable(
-                name=var_name
-                distribution=var_config.get("distribution", "normal")
-                parameters=var_config.get("parameters", {})
-                bounds=var_config.get("bounds")
-                description=var_config.get("description")
+                name=var_name,
+                distribution=var_config.get("distribution", "normal"),
+                parameters=var_config.get("parameters", {}),
+                bounds=var_config.get("bounds"),
+                description=var_config.get("description"),
             )
             variables.append(uncertainty_var)
 

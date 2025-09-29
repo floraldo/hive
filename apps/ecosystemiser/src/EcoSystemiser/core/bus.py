@@ -7,13 +7,13 @@ Extends the generic messaging toolkit with EcoSystemiser capabilities:
 - Analysis workflow coordination
 - EcoSystemiser-specific error handling
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any, Union
 
 try:
     from hive_bus import BaseBus, BaseEvent
@@ -25,7 +25,7 @@ except ImportError:
         def __init__(self, event_type: str, source: str = "unknown", **kwargs) -> None:
             self.event_type = event_type
             self.source = source
-            self.timestamp = datetime.now(timezone.utc)
+            self.timestamp = datetime.now(UTC)
             self.event_id = str(uuid.uuid4())
             for key, value in kwargs.items():
                 setattr(self, key, value)
@@ -42,8 +42,8 @@ except ImportError:
 
 from hive_logging import get_logger
 
-from ..db.connection import ecosystemiser_transaction, get_ecosystemiser_db_path
-from .errors import EventBusError, EventPublishError
+from .db import ecosystemiser_transaction, get_ecosystemiser_db_path
+from .errors import EventPublishError
 from .events import AnalysisEvent, OptimizationEvent, SimulationEvent
 
 logger = get_logger(__name__)
@@ -83,17 +83,17 @@ class EcoSystemiserEventBus(BaseBus):
                 cursor = conn.execute("PRAGMA table_info(ecosystemiser_events)")
                 columns = {row[1] for row in cursor.fetchall()}
                 required_columns = {
-                    "event_id"
-                    "event_type"
-                    "timestamp"
-                    "source_component"
-                    "correlation_id"
-                    "simulation_id"
-                    "analysis_id"
-                    "optimization_id"
-                    "payload"
-                    "metadata"
-                    "created_at"
+                    "event_id",
+                    "event_type",
+                    "timestamp",
+                    "source_component",
+                    "correlation_id",
+                    "simulation_id",
+                    "analysis_id",
+                    "optimization_id",
+                    "payload",
+                    "metadata",
+                    "created_at",
                 }
 
                 missing_columns = required_columns - columns
@@ -113,16 +113,16 @@ class EcoSystemiserEventBus(BaseBus):
         conn.execute(
             """
             CREATE TABLE ecosystemiser_events (
-                event_id TEXT PRIMARY KEY
-                event_type TEXT NOT NULL
-                timestamp TEXT NOT NULL
-                source_component TEXT NOT NULL
-                correlation_id TEXT
-                simulation_id TEXT
-                analysis_id TEXT
-                optimization_id TEXT
-                payload TEXT NOT NULL
-                metadata TEXT NOT NULL
+                event_id TEXT PRIMARY KEY,
+                event_type TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                source_component TEXT NOT NULL,
+                correlation_id TEXT,
+                simulation_id TEXT,
+                analysis_id TEXT,
+                optimization_id TEXT,
+                payload TEXT NOT NULL,
+                metadata TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """
@@ -150,11 +150,7 @@ class EcoSystemiserEventBus(BaseBus):
         """
         )
 
-    def publish(
-        self,
-        event: Union[BaseEvent, Dict[str, Any]],
-        correlation_id: str | None = None
-    ) -> str:
+    def publish(self, event: Union[BaseEvent, dict[str, Any]], correlation_id: str | None = None) -> str:
         """
         Publish an EcoSystemiser event with simulation context.
 
@@ -184,27 +180,27 @@ class EcoSystemiserEventBus(BaseBus):
                 conn.execute(
                     """
                     INSERT INTO ecosystemiser_events (
-                        event_id, event_type, timestamp, source_component
-                        correlation_id, simulation_id, analysis_id, optimization_id
+                        event_id, event_type, timestamp, source_component,
+                        correlation_id, simulation_id, analysis_id, optimization_id,
                         payload, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """
+                    """,
                     (
-                        event.event_id
-                        event.event_type
+                        event.event_id,
+                        event.event_type,
                         (
                             event.timestamp.isoformat()
                             if hasattr(event.timestamp, "isoformat")
                             else str(event.timestamp)
-                        )
-                        getattr(event, "source", "ecosystemiser")
-                        event.correlation_id
-                        simulation_id
-                        analysis_id
-                        optimization_id
-                        json.dumps(event.payload if hasattr(event, "payload") else {})
-                        json.dumps(event.metadata if hasattr(event, "metadata") else {})
-                    )
+                        ),
+                        getattr(event, "source", "ecosystemiser"),
+                        event.correlation_id,
+                        simulation_id,
+                        analysis_id,
+                        optimization_id,
+                        json.dumps(event.payload if hasattr(event, "payload") else {}),
+                        json.dumps(event.metadata if hasattr(event, "metadata") else {}),
+                    ),
                 )
 
             # Notify subscribers (from parent class)
@@ -215,13 +211,13 @@ class EcoSystemiserEventBus(BaseBus):
 
         except Exception as e:
             raise EventPublishError(
-                message=f"Failed to publish EcoSystemiser event: {e}"
-                component="ecosystemiser-event-bus"
-                operation="publish"
-                original_error=e
+                message=f"Failed to publish EcoSystemiser event: {e}",
+                component="ecosystemiser-event-bus",
+                operation="publish",
+                original_error=e,
             ) from e
 
-    def _create_event_from_dict(self, data: Dict[str, Any]) -> BaseEvent:
+    def _create_event_from_dict(self, data: dict[str, Any]) -> BaseEvent:
         """Create appropriate EcoSystemiser event type from dictionary"""
         event_type = data.get("event_type", "")
 
@@ -236,38 +232,38 @@ class EcoSystemiserEventBus(BaseBus):
             if not hasattr(BaseEvent, "from_dict"):
                 # Create BaseEvent manually if from_dict doesn't exist
                 event = BaseEvent(
-                    event_type=data.get("event_type", "unknown")
-                    source=data.get("source", "ecosystemiser")
-                    payload=data.get("payload", {})
+                    event_type=data.get("event_type", "unknown"),
+                    source=data.get("source", "ecosystemiser"),
+                    payload=data.get("payload", {}),
                 )
                 event.event_id = data.get("event_id", str(uuid.uuid4()))
-                event.timestamp = data.get("timestamp", datetime.now(timezone.utc))
+                event.timestamp = data.get("timestamp", datetime.now(UTC))
                 event.correlation_id = data.get("correlation_id")
                 event.metadata = data.get("metadata", {})
                 return event
             return BaseEvent.from_dict(data)
 
-    def get_simulation_history(self, simulation_id: str, limit: int = 50) -> List[BaseEvent]:
+    def get_simulation_history(self, simulation_id: str, limit: int = 50) -> list[BaseEvent]:
         """Get all events for a simulation"""
         return self._get_events(simulation_id=simulation_id, limit=limit)
 
-    def get_analysis_history(self, analysis_id: str, limit: int = 50) -> List[BaseEvent]:
+    def get_analysis_history(self, analysis_id: str, limit: int = 50) -> list[BaseEvent]:
         """Get all events for an analysis run"""
         return self._get_events(analysis_id=analysis_id, limit=limit)
 
-    def get_optimization_history(self, optimization_id: str, limit: int = 50) -> List[BaseEvent]:
+    def get_optimization_history(self, optimization_id: str, limit: int = 50) -> list[BaseEvent]:
         """Get all events for an optimization run"""
         return self._get_events(optimization_id=optimization_id, limit=limit)
 
     def _get_events(
-        self
+        self,
         event_type: str | None = None,
-        correlation_id: str | None = None
-        simulation_id: str | None = None
-        analysis_id: str | None = None
-        optimization_id: str | None = None
-        limit: int = 100
-    ) -> List[BaseEvent]:
+        correlation_id: str | None = None,
+        simulation_id: str | None = None,
+        analysis_id: str | None = None,
+        optimization_id: str | None = None,
+        limit: int = 100,
+    ) -> list[BaseEvent]:
         """Query EcoSystemiser events with simulation filters"""
         query_parts = ["SELECT * FROM ecosystemiser_events WHERE 1=1"]
         params = []
@@ -309,8 +305,8 @@ class EcoSystemiserEventBus(BaseBus):
                 "timestamp": row["timestamp"],
                 "source": row["source_component"],
                 "correlation_id": row["correlation_id"],
-                "payload": json.loads(row["payload"]) if row["payload"] else {}
-                "metadata": json.loads(row["metadata"]) if row["metadata"] else {}
+                "payload": json.loads(row["payload"]) if row["payload"] else {},
+                "metadata": json.loads(row["metadata"]) if row["metadata"] else {},
             }
 
             # Add EcoSystemiser-specific fields

@@ -1,7 +1,7 @@
 """Plot factory for creating visualizations from simulation results."""
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -20,8 +20,8 @@ class PlotFactory:
         """Initialize plot factory with default styling."""
         self.default_layout = {
             "template": "plotly_white",
-            "font": {"size": 12}
-            "margin": {"l": 60, "r": 30, "t": 60, "b": 60}
+            "font": {"size": 12},
+            "margin": {"l": 60, "r": 30, "t": 60, "b": 60},
             "hovermode": "x unified"
         }
 
@@ -71,16 +71,16 @@ class PlotFactory:
                 data=[
                     go.Sankey(
                         node=dict(
-                            pad=15
-                            thickness=20
-                            line=dict(color="black", width=0.5)
-                            label=node_list
+                            pad=15,
+                            thickness=20,
+                            line=dict(color="black", width=0.5),
+                            label=node_list,
                             color="lightblue"
-                        )
+                        ),
                         link=dict(
-                            source=[node_dict[f["source"]] for f in flows_data]
-                            target=[node_dict[f["target"]] for f in flows_data]
-                            value=[f["value"] for f in flows_data]
+                            source=[node_dict[f["source"]] for f in flows_data],
+                            target=[node_dict[f["target"]] for f in flows_data],
+                            value=[f["value"] for f in flows_data],
                             label=[f["label"] for f in flows_data]
                         )
                     )
@@ -105,10 +105,10 @@ class PlotFactory:
             Plotly figure as dictionary
         """
         fig = make_subplots(
-            rows=2
-            cols=1
-            subplot_titles=("Power Flows", "Storage Levels")
-            shared_xaxes=True
+            rows=2,
+            cols=1,
+            subplot_titles=("Power Flows", "Storage Levels"),
+            shared_xaxes=True,
             vertical_spacing=0.1
         )
 

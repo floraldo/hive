@@ -25,8 +25,10 @@ from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Prof
 )
 
 # Legacy aliases for common patterns
-BaseError = EcoSystemiserError, ConfigurationError = SimulationConfigError
-ResourceError = DatabaseError, TimeoutError = SolverConvergenceError
+BaseError = EcoSystemiserError
+ConfigurationError = SimulationConfigError
+ResourceError = DatabaseError
+TimeoutError = SolverConvergenceError
 
 
 # ValidationError needs special handling for field parameter compatibility
@@ -37,7 +39,7 @@ class ValidationError(BaseError):
         # Map 'field' to 'parameter_name' for compatibility
         if field is not None:
             kwargs["parameter_name"] = field
-            super().__init__(message, **kwargs)
+        super().__init__(message, **kwargs)
 
 
 def handle_error(
