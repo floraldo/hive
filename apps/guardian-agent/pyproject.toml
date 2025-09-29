@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "guardian-agent"
+version = "0.1.0"
+description = "AI-powered code review agent for the Hive platform"
+authors = ["Hive Team"]
+readme = "README.md"
+packages = [{include = "guardian_agent", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+hive-ai = {path = "../../packages/hive-ai", develop = true}
+hive-async = {path = "../../packages/hive-async", develop = true}
+hive-db = {path = "../../packages/hive-db", develop = true}
+hive-cache = {path = "../../packages/hive-cache", develop = true}
+hive-logging = {path = "../../packages/hive-logging", develop = true}
+hive-config = {path = "../../packages/hive-config", develop = true}
+hive-errors = {path = "../../packages/hive-errors", develop = true}
+hive-tests = {path = "../../packages/hive-tests", develop = true}
+click = "^8.1.0"
+pydantic = "^2.0.0"
+rich = "^13.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.23.0"
+black = "^24.8.0"
+mypy = "^1.8.0"
+ruff = "^0.1.15"
+isort = "^5.13.0"
+
+[tool.poetry.scripts]
+guardian = "guardian_agent.cli.main:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "I", "N", "W", "B", "C90", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
