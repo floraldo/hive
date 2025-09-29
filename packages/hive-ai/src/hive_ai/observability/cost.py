@@ -416,7 +416,7 @@ class CostManager:
                 total_tokens=0,
                 total_requests=0,
                 breakdown_by_model={},
-                breakdown_by_provider={}
+                breakdown_by_provider={},
                 breakdown_by_operation={},
                 top_expensive_operations=[]
             )
@@ -447,8 +447,8 @@ class CostManager:
                     "tokens": record.tokens_used,
                     "timestamp": record.timestamp.isoformat(),
                 }
-                for record in period_records,
-            ]
+                for record in period_records
+            ],
             key=lambda x: x["cost"],
             reverse=True
         )[:10]
@@ -459,7 +459,7 @@ class CostManager:
             total_tokens=total_tokens,
             total_requests=total_requests,
             breakdown_by_model=dict(model_costs),
-            breakdown_by_provider=dict(provider_costs)
+            breakdown_by_provider=dict(provider_costs),
             breakdown_by_operation=dict(operation_costs),
             top_expensive_operations=expensive_ops
         )

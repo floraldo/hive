@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 
 """Local error classes for climate adapters to avoid circular imports"""
 
-from typing import Any
+from typing import Any, Optional
 
 
 class AdapterError(Exception):

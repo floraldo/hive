@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Optional
 
 try:
     from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy

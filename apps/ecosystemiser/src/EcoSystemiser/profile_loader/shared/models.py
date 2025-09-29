@@ -13,7 +13,7 @@ by specific profile types (climate, demand, etc.).
 
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 import pandas as pd
 from pydantic import BaseModel, Field, validator

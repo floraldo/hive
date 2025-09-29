@@ -410,8 +410,8 @@ class AIPlanner:
             if not claude_response:
                 error = PlanGenerationError(
                     message=f"Claude bridge returned empty response",
-                    task_id=task["id"]
-                    task_description=task["task_description"]
+                    task_id=task["id"],
+                    task_description=task["task_description"],
                     original_error=None
                 )
                 self.error_reporter.report_error(error)
@@ -421,7 +421,7 @@ class AIPlanner:
                     WorkflowEventType.BLOCKED,
                     task["id"]
                     workflow_id=f"plan_{task['id']}",
-                    correlation_id=task.get("correlation_id")
+                    correlation_id=task.get("correlation_id"),
                     failure_reason="Claude bridge returned empty response",
                     error_type="EmptyClaudeResponse"
                 )
@@ -452,10 +452,10 @@ class AIPlanner:
                 WorkflowEventType.PLAN_GENERATED,
                 task["id"]
                 workflow_id=f"plan_{task['id']}",
-                correlation_id=task.get("correlation_id")
-                plan_name=enhanced_plan.get("plan_name")
-                subtask_count=len(enhanced_plan.get("sub_tasks", []))
-                estimated_duration=enhanced_plan.get("metrics", {}).get("total_estimated_duration", 0)
+                correlation_id=task.get("correlation_id"),
+                plan_name=enhanced_plan.get("plan_name"),
+                subtask_count=len(enhanced_plan.get("sub_tasks", [])),
+                estimated_duration=enhanced_plan.get("metrics", {}).get("total_estimated_duration", 0),
                 confidence_score=enhanced_plan.get("metadata", {}).get("claude_confidence", 0.0)
             )
 
@@ -464,8 +464,8 @@ class AIPlanner:
         except Exception as e:
             error = PlanGenerationError(
                 message="Failed to generate execution plan",
-                task_id=task["id"]
-                task_description=task["task_description"]
+                task_id=task["id"],
+                task_description=task["task_description"],
                 original_error=e
             )
             self.error_reporter.report_error(error)
@@ -475,8 +475,8 @@ class AIPlanner:
                 WorkflowEventType.BLOCKED,
                 task["id"]
                 workflow_id=f"plan_{task['id']}",
-                correlation_id=task.get("correlation_id")
-                failure_reason=str(e)
+                correlation_id=task.get("correlation_id"),
+                failure_reason=str(e),
                 error_type=type(e).__name__
             )
 
@@ -624,9 +624,9 @@ class AIPlanner:
                     try:
                         # Create each sub-task using the hive-core-db function
                         task_id = create_task(
-                            title=sub_task["title"]
+                            title=sub_task["title"],
                             task_type="planned_subtask",
-                            description=sub_task["description"]
+                            description=sub_task["description"],
                             payload={
                                 "parent_plan_id": plan["plan_id"]
                                 "subtask_id": sub_task["id"]
@@ -643,7 +643,7 @@ class AIPlanner:
                     except Exception as sub_task_error:
                         error = TaskProcessingError(
                             message=f"Failed to create sub-task",
-                            task_id=sub_task["id"]
+                            task_id=sub_task["id"],
                             phase="sub_task_creation",
                             original_error=sub_task_error
                         )
@@ -739,7 +739,7 @@ class AIPlanner:
                 WorkflowEventType.PHASE_STARTED,
                 task["id"]
                 workflow_id=f"plan_{task['id']}",
-                correlation_id=task.get("correlation_id")
+                correlation_id=task.get("correlation_id"),
                 phase="planning",
                 task_description=task["task_description"][:100]
             )
@@ -765,9 +765,9 @@ class AIPlanner:
                 WorkflowEventType.PHASE_COMPLETED,
                 task["id"]
                 workflow_id=f"plan_{task['id']}",
-                correlation_id=task.get("correlation_id")
+                correlation_id=task.get("correlation_id"),
                 phase="planning",
-                plan_id=plan["plan_id"]
+                plan_id=plan["plan_id"],
                 plan_name=plan.get("plan_name", "Unknown Plan")
             )
 
@@ -777,7 +777,7 @@ class AIPlanner:
         except Exception as e:
             error = TaskProcessingError(
                 message="Unexpected error during task processing",
-                task_id=task["id"]
+                task_id=task["id"],
                 phase="processing",
                 original_error=e
             )
@@ -789,9 +789,9 @@ class AIPlanner:
                 WorkflowEventType.BLOCKED,
                 task["id"]
                 workflow_id=f"plan_{task['id']}",
-                correlation_id=task.get("correlation_id")
+                correlation_id=task.get("correlation_id"),
                 phase="planning",
-                failure_reason=str(e)
+                failure_reason=str(e),
                 error_type=type(e).__name__
             )
 
@@ -996,7 +996,7 @@ class AIPlanner:
                     WorkflowEventType.PHASE_STARTED,
                     task["id"]
                     workflow_id=f"plan_{task['id']}",
-                    correlation_id=task.get("correlation_id")
+                    correlation_id=task.get("correlation_id"),
                     phase="planning",
                     task_description=task["task_description"][:100]
                 )
@@ -1023,9 +1023,9 @@ class AIPlanner:
                     WorkflowEventType.PHASE_COMPLETED,
                     task["id"]
                     workflow_id=f"plan_{task['id']}",
-                    correlation_id=task.get("correlation_id")
+                    correlation_id=task.get("correlation_id"),
                     phase="planning",
-                    plan_id=plan["plan_id"]
+                    plan_id=plan["plan_id"],
                     plan_name=plan.get("plan_name", "Unknown Plan")
                 )
 
@@ -1041,9 +1041,9 @@ class AIPlanner:
                     WorkflowEventType.BLOCKED,
                     task["id"]
                     workflow_id=f"plan_{task['id']}",
-                    correlation_id=task.get("correlation_id")
+                    correlation_id=task.get("correlation_id"),
                     phase="planning",
-                    failure_reason=str(e)
+                    failure_reason=str(e),
                     error_type=type(e).__name__
                 )
 

@@ -1,6 +1,6 @@
 """Water grid component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any
+from typing import Any, Optional
 
 import cvxpy as cp
 import numpy as np

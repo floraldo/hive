@@ -333,9 +333,9 @@ class PromptTemplate(PromptTemplateInterface):
         variables = [
             PromptVariable(
                 name=var_data["name"],
-                type=var_data["type"]
+                type=var_data["type"],
                 required=var_data.get("required", True),
-                default=var_data.get("default")
+                default=var_data.get("default"),
                 description=var_data.get("description", "")
             )
             for var_data in data.get("variables", [])

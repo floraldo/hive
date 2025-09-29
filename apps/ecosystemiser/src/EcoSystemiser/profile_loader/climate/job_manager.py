@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Optional
 
 from hive_config import load_config_for_app
 from hive_logging import get_logger

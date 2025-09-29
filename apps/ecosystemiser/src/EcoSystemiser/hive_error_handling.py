@@ -13,7 +13,7 @@ This module provides backward compatibility by importing from the new core modul
 All new code should import directly from ecosystemiser.core.errors.
 """
 
-from typing import Any
+from typing import Any, Optional
 
 # Import everything from the new core module
 from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Profile errors; Solver errors; Component errors; Database errors; Event bus errors; Error reporter
