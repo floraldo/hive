@@ -180,14 +180,14 @@ class AsyncClaudeService:
                 "workflow_phase": "analysis",
                 "required_skills": ["analysis", "planning"],
                 "estimated_duration": 15 if complexity == "low" else 30
-            }
+            },
             {
                 "title": "Design implementation approach",
                 "description": "Design the technical approach and architecture",
                 "workflow_phase": "design",
                 "required_skills": ["architecture", "design"],
                 "estimated_duration": 20 if complexity == "low" else 45
-            }
+            },
             {
                 "title": "Implement core functionality",
                 "description": "Implement the main functionality",
@@ -206,7 +206,7 @@ class AsyncClaudeService:
                         "workflow_phase": "testing",
                         "required_skills": ["testing", "quality_assurance"],
                         "estimated_duration": 45
-                    }
+                    },
                     {
                         "title": "Performance optimization",
                         "description": "Optimize performance and scalability",
@@ -243,7 +243,7 @@ class AsyncClaudeService:
     async def _call_claude_for_planning_async(
         self,
         task_description: str,
-        context_data: Dict[str, Any]
+        context_data: Dict[str, Any],
         priority: int,
         requestor: str,
         use_cache: bool = True

@@ -20,50 +20,53 @@ class AdapterError(Exception):
         self.adapter_name = adapter_name
         self.details = details or {}
 
-        # Store additional fields,
+        # Store additional fields
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-            class DataFetchError(BaseError):
-                """Error fetching data from a source"""
 
-                def __init__(
-                    self,
-                    adapter_name: str,
-                    message: str,
-                    details: Optional[dict[str, Any]] = None,
-                    suggested_action: str | None = None, **kwargs,
-                ):
-                    super().__init__(message, adapter_name, details, **kwargs)
-                    self.suggested_action = suggested_action
+class DataFetchError(BaseError):
+    """Error fetching data from a source"""
 
-                    class DataParseError(BaseError):
-                        """Error parsing response data"""
+    def __init__(
+        self,
+        adapter_name: str,
+        message: str,
+        details: Optional[dict[str, Any]] = None,
+        suggested_action: str | None = None, **kwargs,
+    ):
+        super().__init__(message, adapter_name, details, **kwargs)
+        self.suggested_action = suggested_action
 
-                        def __init__(
-                            self,
-                            adapter_name: str,
-                            message: str,
-                            field: str | None = None,
-                            details: Optional[dict[str, Any]] = None, **kwargs,
-                        ):
-                            super().__init__(message, adapter_name, details, **kwargs)
-                            self.field = field
 
-                            class ValidationError(BaseError):
-                                """Error validating request parameters or data"""
+class DataParseError(BaseError):
+    """Error parsing response data"""
 
-                                def __init__(
-                                    self,
-                                    message: str,
-                                    field: str | None = None,
-                                    value: Any | None = None,
-                                    recovery_suggestion: str | None = None, **kwargs,
-                                ):
-                                    super().__init__(message, **kwargs)
-                                    self.field = field
-                                    self.value = value
-                                    self.recovery_suggestion = recovery_suggestion
+    def __init__(
+        self,
+        adapter_name: str,
+        message: str,
+        field: str | None = None,
+        details: Optional[dict[str, Any]] = None, **kwargs,
+    ):
+        super().__init__(message, adapter_name, details, **kwargs)
+        self.field = field
+
+
+class ValidationError(BaseError):
+    """Error validating request parameters or data"""
+
+    def __init__(
+        self,
+        message: str,
+        field: str | None = None,
+        value: Any | None = None,
+        recovery_suggestion: str | None = None, **kwargs,
+    ):
+        super().__init__(message, **kwargs)
+        self.field = field
+        self.value = value
+        self.recovery_suggestion = recovery_suggestion
 
 
 # For backward compatibility with imports

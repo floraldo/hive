@@ -275,11 +275,11 @@ def create_bounds_issue(
         type="bounds",
         message=f"{n_violations} values ({percent:.1f}%) outside physical bounds {bounds} for {variable}",
         severity=severity,
-        affected_variables=[variable]
+        affected_variables=[variable],
         affected_count=n_violations,
         metadata={"bounds": bounds, "percent_affected": percent},
         **kwargs
-    ),
+    )
 
 
 def create_temporal_issue(
@@ -305,15 +305,15 @@ def create_temporal_issue(
 # ============================================================================
 
 
-@dataclass,
+@dataclass
 class QCProfile(ABC):
     """Base class for source-specific QC profiles"""
 
-    name: str,
-    description: str,
-    known_issues: List[str],
-    recommended_variables: List[str],
-    temporal_resolution_limits: Dict[str, str]  # variable -> minimum resolution,
+    name: str
+    description: str
+    known_issues: List[str]
+    recommended_variables: List[str]
+    temporal_resolution_limits: Dict[str, str]  # variable -> minimum resolution
     spatial_accuracy: str | None = None  # Description of spatial accuracy
 
     @abstractmethod
