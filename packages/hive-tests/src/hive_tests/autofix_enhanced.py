@@ -66,7 +66,7 @@ class TypeHintAnalyzer(ast.NodeVisitor):
                     "inferred_type": inferred_type,
                     "has_docstring": ast.get_docstring(node) is not None,
                     "in_class": self.current_class,
-                }
+                },
             )
 
         self.generic_visit(node)
@@ -87,7 +87,7 @@ class TypeHintAnalyzer(ast.NodeVisitor):
                     "has_docstring": ast.get_docstring(node) is not None,
                     "in_class": self.current_class,
                     "is_async": True,
-                }
+                },
             )
 
         self.generic_visit(node)
@@ -243,7 +243,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
     """
 
     def __init__(
-        self, project_root: Path, dry_run: bool = True, create_backups: bool = True, min_confidence: float = 0.95
+        self, project_root: Path, dry_run: bool = True, create_backups: bool = True, min_confidence: float = 0.95,
     ) -> None:
         super().__init__(project_root, dry_run, create_backups)
         self.min_confidence = min_confidence
@@ -307,7 +307,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
 
                         changes_made.append(
                             f"Added return type hint '{inferred_type}' to "
-                            f"{func_info['name']} at line {func_info['line']}"
+                            f"{func_info['name']} at line {func_info['line']}",
                         )
 
             # Apply changes
@@ -599,7 +599,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
             )
 
     def fix_all_enhancements(
-        self, enable_type_hints: bool = True, enable_docstrings: bool = True, enable_import_org: bool = True
+        self, enable_type_hints: bool = True, enable_docstrings: bool = True, enable_import_org: bool = True,
     ) -> list[EnhancedAutofixResult]:
         """
         Apply all enhancement fixes across project.
@@ -651,7 +651,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                         error_message=str(e),
                         enhancement_type="error",
                         confidence_score=0.0,
-                    )
+                    ),
                 )
 
         return self.enhanced_results
@@ -674,7 +674,7 @@ def main():
 
     # Create fixer
     fixer = EnhancedGoldenRulesAutoFixer(
-        project_root=args.project_root, dry_run=args.dry_run, create_backups=not args.no_backups
+        project_root=args.project_root, dry_run=args.dry_run, create_backups=not args.no_backups,
     )
 
     # Determine what to enable
@@ -699,7 +699,7 @@ def main():
 
     # Run enhancements
     results = fixer.fix_all_enhancements(
-        enable_type_hints=enable_hints, enable_docstrings=enable_docs, enable_import_org=enable_imports
+        enable_type_hints=enable_hints, enable_docstrings=enable_docs, enable_import_org=enable_imports,
     )
 
     # Report results

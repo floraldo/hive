@@ -121,7 +121,7 @@ class QueenWorkerPipelineTest:
                     priority_test_passed,
                     failure_test_passed,
                     timeout_test_passed,
-                ]
+                ],
             )
 
             self._generate_pipeline_test_report(all_passed)
@@ -147,7 +147,7 @@ class QueenWorkerPipelineTest:
                     "description": "Test basic task processing pipeline",
                     "priority": 50,
                     "context": json.dumps({"test_type": "basic", "expected_duration": 1.0}),
-                }
+                },
             )
 
             # 2. Start mock Queen process
@@ -198,7 +198,7 @@ class QueenWorkerPipelineTest:
                         "description": f"Concurrent processing test task {i + 1}",
                         "priority": 60,
                         "context": json.dumps({"test_type": "concurrent", "task_number": i + 1}),
-                    }
+                    },
                 )
                 task_ids.append(task_id)
 
@@ -231,7 +231,7 @@ class QueenWorkerPipelineTest:
                 duration = time.time() - start_time
                 throughput = num_tasks / duration
                 print(
-                    f"✅ Concurrent processing test passed: {num_tasks} tasks in {duration:.2f}s ({throughput:.2f} tasks/sec)"
+                    f"✅ Concurrent processing test passed: {num_tasks} tasks in {duration:.2f}s ({throughput:.2f} tasks/sec)",
                 )
                 return True
             else:
@@ -257,7 +257,7 @@ class QueenWorkerPipelineTest:
                     "description": "Should be processed last",
                     "priority": 20,
                     "context": json.dumps({"test_type": "priority", "priority_level": "low"}),
-                }
+                },
             )
 
             high_priority_task = self._create_test_task(
@@ -266,7 +266,7 @@ class QueenWorkerPipelineTest:
                     "description": "Should be processed first",
                     "priority": 90,
                     "context": json.dumps({"test_type": "priority", "priority_level": "high"}),
-                }
+                },
             )
 
             medium_priority_task = self._create_test_task(
@@ -275,7 +275,7 @@ class QueenWorkerPipelineTest:
                     "description": "Should be processed second",
                     "priority": 50,
                     "context": json.dumps({"test_type": "priority", "priority_level": "medium"}),
-                }
+                },
             )
 
             # Start Queen and Worker
@@ -335,7 +335,7 @@ class QueenWorkerPipelineTest:
                     "description": "Test worker failure recovery",
                     "priority": 70,
                     "context": json.dumps({"test_type": "failure_recovery", "worker_failure": True}),
-                }
+                },
             )
 
             # Start Queen and first Worker
@@ -396,7 +396,7 @@ class QueenWorkerPipelineTest:
                     "priority": 50,
                     "timeout": 2,  # 2 second timeout
                     "context": json.dumps({"test_type": "timeout", "long_running": True}),
-                }
+                },
             )
 
             # Start Queen and Worker
@@ -471,7 +471,7 @@ class QueenWorkerPipelineTest:
                 last_heartbeat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 current_task_id INTEGER
             );
-        """
+        """,
         )
 
         conn.commit()
@@ -610,7 +610,7 @@ if __name__ == "__main__":
         return str(script_path)
 
     def _create_mock_worker_script(
-        self, worker_id: str, should_fail: bool = False, slow_execution: bool = False
+        self, worker_id: str, should_fail: bool = False, slow_execution: bool = False,
     ) -> str:
         """Create mock Worker script"""
         script_content = f"""
@@ -805,8 +805,8 @@ if __name__ == "__main__":
         test_count = 5  # Number of test categories
         passed_count = sum(
             [
-                1 if all_passed else 0  # This is simplified; in real implementation would track individual tests
-            ]
+                1 if all_passed else 0,  # This is simplified; in real implementation would track individual tests
+            ],
         )
 
         print("\n📈 Test Results:")

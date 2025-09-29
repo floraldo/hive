@@ -267,7 +267,7 @@ class TestDockerDeploymentStrategy:
 
         with (
             patch.object(
-                strategy, "_prepare_docker_image", return_value={"success": True, "image_name": "web-app:deploy-123"}
+                strategy, "_prepare_docker_image", return_value={"success": True, "image_name": "web-app:deploy-123"},
             ),
             patch.object(strategy, "_stop_existing_containers", return_value=True),
             patch.object(strategy, "_run_container", return_value={"success": True, "container_id": "container-123"}),
@@ -286,7 +286,7 @@ class TestDockerDeploymentStrategy:
         strategy = DockerDeploymentStrategy({})
 
         with patch.object(
-            strategy, "_prepare_docker_image", return_value={"success": False, "error": "Image build failed"}
+            strategy, "_prepare_docker_image", return_value={"success": False, "error": "Image build failed"},
         ):
             result = await strategy.deploy(docker_task, "deploy-123")
 
@@ -300,7 +300,7 @@ class TestDockerDeploymentStrategy:
 
         with (
             patch.object(
-                strategy, "_prepare_docker_image", return_value={"success": True, "image_name": "web-app:deploy-123"}
+                strategy, "_prepare_docker_image", return_value={"success": True, "image_name": "web-app:deploy-123"},
             ),
             patch.object(strategy, "_stop_existing_containers", return_value=True),
             patch.object(strategy, "_run_container", return_value={"success": True, "container_id": "container-123"}),
@@ -322,7 +322,7 @@ class TestDockerDeploymentStrategy:
         with (
             patch.object(strategy, "_stop_container", return_value=True),
             patch.object(
-                strategy, "_run_container", return_value={"success": True, "container_id": "rollback-container"}
+                strategy, "_run_container", return_value={"success": True, "container_id": "rollback-container"},
             ),
             patch.object(strategy, "_wait_for_container_health", return_value=True),
             patch.object(strategy, "_update_load_balancer", return_value=True),

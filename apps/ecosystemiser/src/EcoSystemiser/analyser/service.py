@@ -55,7 +55,7 @@ class AnalyserService:
         logger.info(f"Registered analysis strategy: {name}")
 
     def analyse(
-        self, results_path: str, strategies: Optional[list[str]] = None, metadata: Optional[dict[str, Any]] = None
+        self, results_path: str, strategies: Optional[list[str]] = None, metadata: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         """Execute analysis on simulation results.,
 
@@ -151,7 +151,7 @@ class AnalyserService:
             raise
 
     def analyse_parametric_study(
-        self, study_results_path: str, metadata: Optional[dict[str, Any]] = None
+        self, study_results_path: str, metadata: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         """Analyze results from a parametric study.,
 

@@ -496,10 +496,10 @@ class QueenPlanningEnhanced(QueenLite):
                 review_pending = len(hive_core_db.get_tasks_by_status("review_pending"))
 
                 if (
-                    len(self.active_workers) == 0,
-                    and stats["queued"] == 0,
-                    and stats["assigned"] == 0,
-                    and stats["in_progress"] == 0,
+len(self.active_workers) == 0
+                    and stats["queued"] == 0
+                    and stats["assigned"] == 0
+                    and stats["in_progress"] == 0
                     and review_pending == 0
                 ):
                     if stats["completed"] > 0 or stats["failed"] > 0:
@@ -552,10 +552,10 @@ class QueenPlanningEnhanced(QueenLite):
                 review_pending = len(review_pending_tasks) if review_pending_tasks else 0
 
                 if (
-                    len(self.active_workers) == 0,
-                    and stats["queued"] == 0,
-                    and stats["assigned"] == 0,
-                    and stats["in_progress"] == 0,
+len(self.active_workers) == 0
+                    and stats["queued"] == 0
+                    and stats["assigned"] == 0
+                    and stats["in_progress"] == 0
                     and review_pending == 0
                 ):
                     if stats["completed"] > 0 or stats["failed"] > 0:

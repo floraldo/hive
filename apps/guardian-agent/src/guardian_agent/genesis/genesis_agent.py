@@ -111,7 +111,7 @@ class GenesisConfig(BaseModel):
 
     # Oracle integration
     enable_oracle_consultation: bool = Field(
-        default=True, description="Use Oracle intelligence for strategic decisions"
+        default=True, description="Use Oracle intelligence for strategic decisions",
     )
     oracle_query_timeout: int = Field(default=30, description="Timeout for Oracle queries in seconds")
 
@@ -211,7 +211,7 @@ class GenesisAgent:
             # Analyze feature performance from existing apps
             feature_keywords = analysis_result.get("features", [])
             feature_performance = self._analyze_feature_performance(
-                feature_keywords, dashboard_data.feature_performance
+                feature_keywords, dashboard_data.feature_performance,
             )
 
             # Get strategic recommendations based on business intelligence
@@ -230,7 +230,7 @@ class GenesisAgent:
                     "feature_performance": feature_performance,
                     "strategic_recommendations": strategic_recs,
                     "confidence_score": confidence,
-                }
+                },
             )
 
             logger.info(f"Oracle consultation complete - confidence: {confidence:.1%}")
@@ -272,7 +272,7 @@ class GenesisAgent:
                                 "cost": feature.operational_cost,
                                 "roi_score": feature.roi_score,
                                 "satisfaction": feature.satisfaction_score,
-                            }
+                            },
                         )
 
                 if similar_features:
@@ -314,7 +314,7 @@ class GenesisAgent:
             # Revenue optimization recommendations
             if dashboard_data.revenue_correlation.trial_to_paid_conversion < 5.0:
                 recommendations.append(
-                    "Focus on user onboarding and time-to-value - current conversion rate is below benchmark"
+                    "Focus on user onboarding and time-to-value - current conversion rate is below benchmark",
                 )
 
             # Feature strategy recommendations
@@ -328,14 +328,14 @@ class GenesisAgent:
             # Cost efficiency recommendations
             if dashboard_data.revenue_correlation.cost_efficiency_score < 80:
                 recommendations.append(
-                    "Consider cost-efficient architecture patterns - platform cost efficiency needs improvement"
+                    "Consider cost-efficient architecture patterns - platform cost efficiency needs improvement",
                 )
 
             # AI/ML recommendations based on analysis
             ai_features = analysis_result.get("ai_features", [])
             if ai_features:
                 recommendations.append(
-                    "AI features show high engagement - consider hive-ai integration for competitive advantage"
+                    "AI features show high engagement - consider hive-ai integration for competitive advantage",
                 )
 
         except Exception as e:
@@ -377,7 +377,7 @@ class GenesisAgent:
         return min(confidence, 1.0)  # Cap at 100%
 
     async def _create_app_spec_async(
-        self, name: str, description: str, analysis_result: dict[str, Any], oracle_insights: dict[str, Any]
+        self, name: str, description: str, analysis_result: dict[str, Any], oracle_insights: dict[str, Any],
     ) -> AppSpec:
         """Create comprehensive application specification."""
 
@@ -466,7 +466,7 @@ class GenesisAgent:
         return packages
 
     def _generate_feature_stubs(
-        self, analysis_result: dict[str, Any], oracle_insights: dict[str, Any]
+        self, analysis_result: dict[str, Any], oracle_insights: dict[str, Any],
     ) -> list[FeatureStub]:
         """Generate feature stubs with Oracle-prioritized recommendations."""
 

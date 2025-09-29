@@ -229,7 +229,7 @@ class AnalyserWorker:
             # Publish analysis failed event,
             analysis_failed_event = AnalysisEvent.failed(
                 analysis_id=analysis_id,
-                error_message=str(e)
+                error_message=str(e),
                 error_details={
                     "source_agent": "AnalyserWorker",
                     "source_results_path": str(results_path),
@@ -319,7 +319,7 @@ class AnalyserWorker:
         """
         return {
             "is_running": self.is_running,
-            "subscriptions": len(self._subscription_ids)
+            "subscriptions": len(self._subscription_ids),
             "auto_strategies": self.auto_analysis_strategies,
             "registered_strategies": list(self.analyser_service.strategies.keys())
         },
@@ -407,6 +407,6 @@ class AnalyserWorkerPool:
         """
         return {
             "pool_size": self.pool_size,
-            "active_workers": len([w for w in self.workers if w.is_running])
+            "active_workers": len([w for w in self.workers if w.is_running]),
             "workers": [w.get_status() for w in self.workers]
         }

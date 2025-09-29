@@ -122,7 +122,7 @@ class ReviewerCore:
         """Get list of files changed in the worktree"""
         try:
             result = subprocess.run(
-                ["git", "diff", "--name-only", "HEAD"], cwd=str(worktree_path), capture_output=True, text=True
+                ["git", "diff", "--name-only", "HEAD"], cwd=str(worktree_path), capture_output=True, text=True,
             )
 
             if result.returncode == 0:

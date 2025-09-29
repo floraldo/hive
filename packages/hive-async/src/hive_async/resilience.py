@@ -98,7 +98,7 @@ class AsyncCircuitBreaker:
 
                 # Record failure for predictive analysis
                 self._failure_history.append(
-                    {"timestamp": datetime.utcnow(), "error_type": type(e).__name__, "state_before": self.state.value}
+                    {"timestamp": datetime.utcnow(), "error_type": type(e).__name__, "state_before": self.state.value},
                 )
 
                 if self.failure_count >= self.failure_threshold:
@@ -112,7 +112,7 @@ class AsyncCircuitBreaker:
                             "from_state": old_state.value,
                             "to_state": CircuitState.OPEN.value,
                             "failure_count": self.failure_count,
-                        }
+                        },
                     )
 
                     logger.warning(f"Circuit breaker OPENED after {self.failure_count} failures")
@@ -190,7 +190,7 @@ class AsyncCircuitBreaker:
                             "metric_type": "failure_rate",
                             "unit": "failures_per_hour",
                         },
-                    }
+                    },
                 )
 
             logger.debug(f"Retrieved {len(metric_points)} failure rate points for circuit breaker {self.name}")
@@ -223,7 +223,7 @@ class AsyncCircuitBreaker:
                             "failure_count": transition["failure_count"],
                             "unit": "binary",
                         },
-                    }
+                    },
                 )
 
             logger.debug(f"Retrieved {len(metric_points)} state transition points for circuit breaker {self.name}")
@@ -249,7 +249,7 @@ class AsyncTimeoutManager:
         self._operation_stats = {}
 
     async def run_with_timeout_async(
-        self, coro, timeout: float | None = None, operation_name: str | None = None, fallback: Any | None = None
+        self, coro, timeout: float | None = None, operation_name: str | None = None, fallback: Any | None = None,
     ) -> Any:
         """
         Run coroutine with timeout and enhanced error context.
@@ -380,7 +380,7 @@ def async_timeout(seconds: float, operation_name: str | None = None) -> None:
         async def wrapper_async(*args, **kwargs):
             op_name = operation_name or func.__name__
             return await timeout_manager.run_with_timeout_async(
-                func(*args, **kwargs), timeout=seconds, operation_name=op_name
+                func(*args, **kwargs), timeout=seconds, operation_name=op_name,
             )
 
         return wrapper_async

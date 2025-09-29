@@ -146,7 +146,7 @@ class ResilientHttpClient:
         return self._request_with_resilience("DELETE", url, timeout=timeout, **kwargs)
 
     def _request_with_resilience(
-        self, method: str, url: str, timeout: float | None = None, **kwargs
+        self, method: str, url: str, timeout: float | None = None, **kwargs,
     ) -> requests.Response:
         """Execute HTTP request with circuit breaker and retry."""
         domain = self._extract_domain(url)
@@ -196,7 +196,7 @@ class ResilientHttpClient:
                     self._request_stats["retries"] += 1
                     backoff_seconds = 2**attempt  # Exponential backoff
                     logger.warning(
-                        f"{method} {url} failed (attempt {attempt + 1}), retrying in {backoff_seconds}s: {e}"
+                        f"{method} {url} failed (attempt {attempt + 1}), retrying in {backoff_seconds}s: {e}",
                     )
                     import time
 
@@ -257,7 +257,7 @@ class AsyncResilientHttpClient:
         if not (AIOHTTP_AVAILABLE or HTTPX_AVAILABLE):
             raise ImportError(
                 "Either aiohttp or httpx must be installed for async HTTP client. "
-                "Install with: pip install aiohttp OR pip install httpx"
+                "Install with: pip install aiohttp OR pip install httpx",
             )
 
         self.failure_threshold = failure_threshold
@@ -272,7 +272,7 @@ class AsyncResilientHttpClient:
         """Get or create circuit breaker for domain."""
         if domain not in self._circuit_breakers:
             self._circuit_breakers[domain] = AsyncCircuitBreaker(
-                failure_threshold=self.failure_threshold, recovery_timeout=self.recovery_timeout
+                failure_threshold=self.failure_threshold, recovery_timeout=self.recovery_timeout,
             )
         return self._circuit_breakers[domain]
 
@@ -331,7 +331,7 @@ class AsyncResilientHttpClient:
                 if attempt < self.max_retries:
                     backoff_seconds = 2**attempt
                     logger.warning(
-                        f"{method} {url} failed (attempt {attempt + 1}), retrying in {backoff_seconds}s: {e}"
+                        f"{method} {url} failed (attempt {attempt + 1}), retrying in {backoff_seconds}s: {e}",
                     )
                     await asyncio.sleep(backoff_seconds)
                 else:

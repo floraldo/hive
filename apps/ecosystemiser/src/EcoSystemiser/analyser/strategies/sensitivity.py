@@ -218,9 +218,9 @@ class SensitivityAnalysis(BaseAnalysis):
                         "average_sensitivity": float(avg_sensitivity),
                         "max_sensitivity": float(max_sensitivity),
                         "most_affected_kpi": max(
-                            indices.items(), key=lambda x: (abs(x[1]) if isinstance(x[1], (int, float)) else 0)
+                            indices.items(), key=lambda x: (abs(x[1]) if isinstance(x[1], (int, float)) else 0),
                         )[0],
-                    }
+                    },
                 )
 
         # Sort by average sensitivity,

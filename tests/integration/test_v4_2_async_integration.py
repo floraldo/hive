@@ -72,7 +72,7 @@ class MockAsyncAIPlanner:
         try:
             # Generate plan using Claude service
             plan_details = await self.claude_service.generate_execution_plan_async(
-                task["description"], task.get("context_data", {}), task["priority"], task["requestor"]
+                task["description"], task.get("context_data", {}), task["priority"], task["requestor"],
             )
 
             execution_time = time.time() - start_time
@@ -159,7 +159,7 @@ class MockAsyncAIReviewer:
                         "severity": "medium",
                         "line": 42,
                         "message": "Consider using async/await pattern",
-                    }
+                    },
                 ],
                 "overall_score": 85,
                 "execution_time": execution_time,
@@ -407,7 +407,7 @@ class TestV42AsyncInfrastructureIntegration:
 
         # Mock the Claude service to raise an error
         with patch.object(
-            async_planner.claude_service, "generate_execution_plan_async", side_effect=ValueError("Simulated error")
+            async_planner.claude_service, "generate_execution_plan_async", side_effect=ValueError("Simulated error"),
         ):
             result = await async_planner.generate_plan_async(problematic_task)
 

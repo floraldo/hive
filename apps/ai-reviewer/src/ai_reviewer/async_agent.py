@@ -5,6 +5,7 @@ AsyncAIReviewer - High-Performance Async AI Review Agent for V4.2
 Fully async AI reviewer agent with non-blocking operations, concurrent review processing
 and integration with the V4.0 async infrastructure.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -50,7 +51,7 @@ class AsyncReviewEngine:
         self._review_semaphore = asyncio.Semaphore(3)  # Limit concurrent reviews
 
     async def review_task_async(
-        self, task: dict[str, Any], run_data: dict[str, Any], context: dict[str, Any] = None
+        self, task: dict[str, Any], run_data: dict[str, Any], context: dict[str, Any] = None,
     ) -> dict[str, Any]:
         """
         Perform async code review of a completed task
@@ -98,7 +99,7 @@ class AsyncReviewEngine:
 
         # Generate detailed review analysis
         analysis = {
-            "code_quality": {
+            "code_quality": {,
                 "score": 85 if decision == ReviewDecision.APPROVE else 65,
                 "issues": (
                     []
@@ -111,18 +112,18 @@ class AsyncReviewEngine:
                     else []
                 ),
             },
-            "test_coverage": {
+            "test_coverage": {,
                 "score": 80 if decision == ReviewDecision.APPROVE else 45,
                 "missing_tests": (
                     [] if decision == ReviewDecision.APPROVE else ["Edge case testing", "Error handling tests"]
                 ),
             },
-            "security": {
+            "security": {,
                 "score": 90,
                 "vulnerabilities": [],
                 "recommendations": ["Use parameterized queries", "Validate input data"],
             },
-            "performance": {
+            "performance": {,
                 "score": 75,
                 "bottlenecks": [],
                 "optimizations": ["Consider caching", "Optimize database queries"],
@@ -150,7 +151,7 @@ class AsyncReviewEngine:
         }
 
     async def _perform_real_review_async(
-        self, task: dict[str, Any], run_data: dict[str, Any], context: dict[str, Any]
+        self, task: dict[str, Any], run_data: dict[str, Any], context: dict[str, Any],
     ) -> dict[str, Any]:
         """Perform real Claude-based review using async subprocess"""
 
@@ -189,7 +190,7 @@ class AsyncReviewEngine:
                 "confidence": 0.0,
                 "summary": f"Review failed: {str(e)}",
                 "feedback": "Manual review required due to Claude integration error",
-                "analysis": {
+                "analysis": {,
                     "code_quality": {"score": 0, "issues": [str(e)]},
                     "test_coverage": {"score": 0, "missing_tests": []},
                     "security": {"score": 0, "vulnerabilities": [], "recommendations": []},
@@ -344,13 +345,13 @@ Code Files:
 {objective_context}
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
-{{
+{{,
   "decision": "approve" or "reject" or "rework" or "escalate",
   "summary": "One sentence summary of your review",
   "issues": ["List of specific issues found", "Or empty list if none"],
   "suggestions": ["List of improvement suggestions", "Or empty list if none"],
   "quality_score": 75,
-  "metrics": {{
+  "metrics": {{,
     "code_quality": 80,
     "security": 85,
     "testing": 70,
@@ -436,24 +437,24 @@ Respond with ONLY the JSON object, no other text."""
             "confidence": claude_response.get("confidence", 0.8),
             "summary": claude_response.get("summary", "Claude review completed"),
             "feedback": claude_response.get("summary", "Claude review completed"),
-            "analysis": {
+            "analysis": {,
                 "code_quality": {
                     "score": metrics.get("code_quality", 75),
                     "issues": claude_response.get("issues", []),
                     "strengths": claude_response.get("suggestions", []),
                 },
-                "test_coverage": {
+                "test_coverage": {,
                     "score": metrics.get("testing", 70),
                     "missing_tests": [issue for issue in claude_response.get("issues", []) if "test" in issue.lower()],
                 },
-                "security": {
+                "security": {,
                     "score": metrics.get("security", 85),
                     "vulnerabilities": [
                         issue for issue in claude_response.get("issues", []) if "security" in issue.lower()
                     ],
                     "recommendations": claude_response.get("suggestions", []),
                 },
-                "performance": {
+                "performance": {,
                     "score": metrics.get("architecture", 75),
                     "bottlenecks": [
                         issue for issue in claude_response.get("issues", []) if "performance" in issue.lower()
@@ -616,7 +617,7 @@ class AsyncAIReviewer:
                 # Perform review with timeout
                 review_result = await asyncio.wait_for(
                     self.review_engine.review_task_async(
-                        task=task, run_data=run_data, context={"reviewer_id": self.agent_id}
+                        task=task, run_data=run_data, context={"reviewer_id": self.agent_id},
                     ),
                     timeout=self.max_review_time,
                 )
@@ -671,7 +672,7 @@ class AsyncAIReviewer:
                     },
                 )
 
-                logger.info(f"# OK Review completed for {task_id}: " f"{decision.value} in {review_time:.1f}s")
+                logger.info(f"# OK Review completed for {task_id}: {decision.value} in {review_time:.1f}s")
 
                 return {
                     "success": True,
@@ -683,7 +684,7 @@ class AsyncAIReviewer:
             except asyncio.TimeoutError:
                 logger.error(f"Review timeout for task {task_id}")
                 await self.db_ops.update_task_status_async(
-                    task_id, "review_failed", {"error": "Review timeout", "reviewer_id": self.agent_id}
+                    task_id, "review_failed", {"error": "Review timeout", "reviewer_id": self.agent_id},
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": "timeout"}
@@ -691,7 +692,7 @@ class AsyncAIReviewer:
             except Exception as e:
                 logger.error(f"Review failed for task {task_id}: {e}")
                 await self.db_ops.update_task_status_async(
-                    task_id, "review_failed", {"error": str(e), "reviewer_id": self.agent_id}
+                    task_id, "review_failed", {"error": str(e), "reviewer_id": self.agent_id},
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": str(e)}

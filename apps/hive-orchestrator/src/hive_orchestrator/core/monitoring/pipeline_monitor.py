@@ -128,7 +128,7 @@ class PipelineMonitor:
                 cursor = conn.execute(
                     """,
                     SELECT status, COUNT(*) FROM planning_queue GROUP BY status,
-                """
+                """,
                 )
                 for status, count in cursor.fetchall():
                     if status == "pending":
@@ -144,7 +144,7 @@ class PipelineMonitor:
                 cursor = conn.execute(
                     """,
                     SELECT status, COUNT(*) FROM execution_plans GROUP BY status,
-                """
+                """,
                 )
                 for status, count in cursor.fetchall():
                     if status == "generated":
@@ -162,7 +162,7 @@ class PipelineMonitor:
                     SELECT status, COUNT(*) FROM tasks,
                     WHERE task_type = 'planned_subtask',
                     GROUP BY status,
-                """
+                """,
                 )
                 for status, count in cursor.fetchall():
                     if status == "queued":
@@ -205,7 +205,7 @@ class PipelineMonitor:
             JOIN planning_queue pq ON ep.planning_task_id = pq.id
             WHERE ep.generated_at IS NOT NULL
             AND pq.created_at > datetime('now', '-24 hours')
-        """
+        """,
         )
         result = cursor.fetchone()
         return round(result[0] if result and result[0] else 0.0, 2)
@@ -223,7 +223,7 @@ class PipelineMonitor:
             AND started_at IS NOT NULL
             AND completed_at IS NOT NULL
             AND started_at > datetime('now', '-24 hours')
-        """
+        """,
         )
         result = cursor.fetchone()
         return round(result[0] if result and result[0] else 0.0, 2)
@@ -234,7 +234,7 @@ class PipelineMonitor:
             """,
             SELECT ep.id FROM execution_plans ep,
             WHERE ep.status IN ('executing', 'completed')
-        """
+        """,
         )
 
         plan_ids = [row[0] for row in cursor.fetchall()]
@@ -272,7 +272,7 @@ class PipelineMonitor:
             FROM tasks,
             WHERE task_type = 'planned_subtask'
             AND created_at > datetime('now', '-24 hours')
-        """
+        """,
         )
         result = cursor.fetchone()
         failed_count, total_count = result
@@ -290,7 +290,7 @@ class PipelineMonitor:
             WHERE task_type = 'planned_subtask',
             AND status = 'completed',
             AND completed_at > datetime('now', '-1 hour')
-        """
+        """,
         )
         return float(cursor.fetchone()[0])
 
@@ -321,7 +321,7 @@ class PipelineMonitor:
                     },
                     timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"stuck_tasks_{int(time.time())}",
-                )
+                ),
             )
             health_scores.append(0 if severity == HealthStatus.CRITICAL else 0.5)
         else:
@@ -341,7 +341,7 @@ class PipelineMonitor:
                     },
                     timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"error_rate_{int(time.time())}",
-                )
+                ),
             )
             health_scores.append(0 if severity == HealthStatus.CRITICAL else 0.5)
         else:
@@ -360,7 +360,7 @@ class PipelineMonitor:
                     },
                     timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"throughput_{int(time.time())}",
-                )
+                ),
             )
             health_scores.append(0.5)
         else:
@@ -377,7 +377,7 @@ class PipelineMonitor:
                     details={"pending_count": total_pending, "threshold": self.alert_thresholds["queue_backup_count"]},
                     timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"queue_backup_{int(time.time())}",
-                )
+                ),
             )
             health_scores.append(0.5)
         else:
@@ -442,7 +442,7 @@ class PipelineMonitor:
                 f"  OK Completed: {metrics.completed_subtasks}",
                 f"  FAIL Failed: {metrics.failed_subtasks}",
                 "",
-            ]
+            ],
         )
 
         # Performance Metrics
@@ -456,7 +456,7 @@ class PipelineMonitor:
                 f"Pipeline Throughput: {metrics.pipeline_throughput_per_hour:.1f} tasks/hour",
                 f"Error Rate: {metrics.error_rate_percentage:.1f}%",
                 "",
-            ]
+            ],
         )
 
         # Alerts
@@ -482,7 +482,7 @@ class PipelineMonitor:
         return "\n".join(report_lines)
 
     def _generate_recommendations(
-        self, metrics: PipelineMetrics, health: HealthStatus, alerts: list[PipelineAlert]
+        self, metrics: PipelineMetrics, health: HealthStatus, alerts: list[PipelineAlert],
     ) -> list[str]:
         """Generate actionable recommendations based on current state"""
         recommendations = []

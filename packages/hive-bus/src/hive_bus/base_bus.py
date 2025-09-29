@@ -49,7 +49,7 @@ class BaseBus(ABC):
         pass
 
     def subscribe(
-        self, event_pattern: str, callback: Callable[[BaseEvent], None], subscriber_name: str = "anonymous"
+        self, event_pattern: str, callback: Callable[[BaseEvent], None], subscriber_name: str = "anonymous",
     ) -> str:
         """
         Subscribe to events matching a pattern.

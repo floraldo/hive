@@ -152,7 +152,7 @@ class WorkerCore:
         # Does the branch already exist?
         branch_exists = (
             subprocess.run(
-                ["git", "rev-parse", "--verify", "--quiet", branch], cwd=str(self.root), capture_output=True, text=True
+                ["git", "rev-parse", "--verify", "--quiet", branch], cwd=str(self.root), capture_output=True, text=True,
             ).returncode
             == 0
         )
@@ -220,7 +220,7 @@ class WorkerCore:
         # Try which/where command
         try:
             result = subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"], capture_output=True, text=True, check=True
+                ["where" if os.name == "nt" else "which", "claude"], capture_output=True, text=True, check=True,
             )
             claude_path = result.stdout.strip().split("\n")[0]
             if claude_path:
@@ -577,7 +577,7 @@ CRITICAL PATH CONSTRAINT:
                     "WORKSPACE": str(self.workspace),
                     # Prevent repo-root climbing; treat workspace as the ceiling
                     "GIT_CEILING_DIRECTORIES": str(self.workspace),
-                }
+                },
             )
 
             # KISS approach: trust git's native worktree detection

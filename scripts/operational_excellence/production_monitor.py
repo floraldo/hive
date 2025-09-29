@@ -138,13 +138,13 @@ class ProductionMonitor:
         health_url = f"{endpoint.url.rstrip('/')}{endpoint.health_check_path}"
 
         result = MonitoringResult(
-            service_name=endpoint.name, endpoint=health_url, environment=endpoint.environment, timestamp=timestamp
+            service_name=endpoint.name, endpoint=health_url, environment=endpoint.environment, timestamp=timestamp,
         )
 
         try:
             start_time = time.time()
             response = requests.get(
-                health_url, timeout=endpoint.timeout_seconds, headers={"User-Agent": "ProductionShield/1.0"}
+                health_url, timeout=endpoint.timeout_seconds, headers={"User-Agent": "ProductionShield/1.0"},
             )
             end_time = time.time()
 
@@ -291,7 +291,7 @@ class ProductionMonitor:
                 f"- **Success Rate**: {analysis['success_rate']}%",
                 f"- **Average Response Time**: {analysis['avg_response_time_ms']}ms",
                 "",
-            ]
+            ],
         )
 
         # Service Status Details
@@ -341,7 +341,7 @@ class ProductionMonitor:
                             f"- Error: {failure['error_message']}",
                             f"- Time: {failure['timestamp']}",
                             "",
-                        ]
+                        ],
                     )
 
             if non_critical_failures:
@@ -353,7 +353,7 @@ class ProductionMonitor:
                             f"**{failure['service_name']}** ({failure['environment']})",
                             f"- Error: {failure['error_message']}",
                             "",
-                        ]
+                        ],
                     )
 
         # Recommendations
@@ -369,7 +369,7 @@ class ProductionMonitor:
                         "3. **Review application logs** for error patterns",
                         "4. **Verify network connectivity** and DNS resolution",
                         "",
-                    ]
+                    ],
                 )
 
             report_lines.extend(
@@ -380,7 +380,7 @@ class ProductionMonitor:
                     "3. **Check resource utilization** - CPU, memory, disk",
                     "4. **Update monitoring configuration** if needed",
                     "",
-                ]
+                ],
             )
         else:
             report_lines.extend(
@@ -389,7 +389,7 @@ class ProductionMonitor:
                     "",
                     "All monitored services are responding normally. Continue monitoring for trends and performance.",
                     "",
-                ]
+                ],
             )
 
         # Next Steps
@@ -399,7 +399,7 @@ class ProductionMonitor:
                 "",
                 "*This report is generated automatically every 5 minutes by Production Shield Monitoring.*",
                 "*For immediate alerts, check GitHub issues with the 'incident' label.*",
-            ]
+            ],
         )
 
         return "\n".join(report_lines)
@@ -440,10 +440,10 @@ def main():
     )
     parser.add_argument("--config", type=Path, help="Path to monitoring configuration file")
     parser.add_argument(
-        "--create-incidents", action="store_true", help="Create GitHub issues for incidents (requires GITHUB_TOKEN)"
+        "--create-incidents", action="store_true", help="Create GitHub issues for incidents (requires GITHUB_TOKEN)",
     )
     parser.add_argument(
-        "--output-format", choices=["console", "json", "markdown"], default="console", help="Output format"
+        "--output-format", choices=["console", "json", "markdown"], default="console", help="Output format",
     )
 
     args = parser.parse_args()

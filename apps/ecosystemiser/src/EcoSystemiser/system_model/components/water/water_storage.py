@@ -33,7 +33,7 @@ class WaterStorageTechnicalParams(StorageTechnicalParams):
     storage_type: str = Field("tank", description="Type of water storage (tank, reservoir, cistern)")
     loss_rate_daily: float = Field(0.01, description="Daily loss rate (evaporation, leakage) [%]")
     water_quality_class: str | None = Field(
-        None, description="Water quality classification (potable, greywater, blackwater)"
+        None, description="Water quality classification (potable, greywater, blackwater)",
     )
 
     # Flow rate parameters
@@ -199,7 +199,7 @@ class WaterStorageOptimizationSimple(BaseStorageOptimization):
                     == comp.V_water[t]
                     + comp.technical.efficiency_roundtrip * comp.Q_in[t]
                     - comp.Q_out[t]
-                    - comp.V_water[t] * hourly_loss_rate
+                    - comp.V_water[t] * hourly_loss_rate,
                 )
 
             # Flow constraints,
@@ -258,7 +258,7 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
                     == comp.V_water[t]
                     + comp.technical.efficiency_roundtrip * comp.Q_in[t]
                     - comp.Q_out[t]
-                    - comp.V_water[t] * hourly_loss_rate
+                    - comp.V_water[t] * hourly_loss_rate,
                 )
 
             # Flow constraints,
@@ -408,7 +408,7 @@ class WaterStorage(Component):
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
-                f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
+                f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, outflow={outflow:.3f}m³/h, level={new_level:.3f}m³",
             )
 
     def add_optimization_vars(self, N: int | None = None) -> None:

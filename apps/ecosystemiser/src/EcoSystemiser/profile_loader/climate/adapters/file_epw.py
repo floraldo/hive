@@ -239,7 +239,7 @@ class FileEPWAdapter(BaseAdapter):
         super().__init__(name=self.ADAPTER_NAME, rate_limit_config=rate_config, cache_config=cache_config)
 
     async def _fetch_raw_async(
-        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs,
     ) -> Any | None:
         """Fetch raw data from EPW file"""
         lat, lon = location
@@ -264,7 +264,7 @@ class FileEPWAdapter(BaseAdapter):
         return df
 
     async def _transform_data_async(
-        self, raw_data: Any, location: tuple[float, float], variables: list[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str],
     ) -> xr.Dataset:
         """Transform EPW DataFrame to xarray Dataset"""
         lat, lon = (location,)
@@ -513,7 +513,7 @@ class FileEPWAdapter(BaseAdapter):
 
                     # Create DataArray,
                     ds[canonical_name] = xr.DataArray(
-                        data, coords={"time": df.index}, attrs=self._get_variable_attrs(canonical_name)
+                        data, coords={"time": df.index}, attrs=self._get_variable_attrs(canonical_name),
                     )
                 else:
                     logger.warning(f"Variable {canonical_name} not found in EPW file")
@@ -728,14 +728,14 @@ class EPWQCProfile:
 
                 if small_changes > 0.7:  # 70% of changes < 0.1degC
                     report.warnings.append(
-                        f"Temperature profile appears over-processed (small_changes={small_changes:.2f}) - typical of some EPW files"
+                        f"Temperature profile appears over-processed (small_changes={small_changes:.2f}) - typical of some EPW files",
                     )
 
         # Check for temporal coverage (EPW should be full year),
         if len(ds.time) < 8000:  # Less than ~11 months of hourly data,
             (
                 report.warnings.append(
-                    f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)"
+                    f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)",
                 ),
             )
 

@@ -36,7 +36,7 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """
+    """,
     )
 
     # Create runs table
@@ -54,7 +54,7 @@ def init_db():
             error TEXT,
             FOREIGN KEY (task_id) REFERENCES tasks(task_id)
         )
-    """
+    """,
     )
 
     # Create workers table
@@ -67,7 +67,7 @@ def init_db():
             last_heartbeat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             metadata TEXT
         )
-    """
+    """,
     )
 
     conn.commit()

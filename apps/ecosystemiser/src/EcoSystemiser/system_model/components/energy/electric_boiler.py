@@ -32,7 +32,7 @@ class ElectricBoilerTechnicalParams(GenerationTechnicalParams):
     # STANDARD fidelity additions
     thermal_inertia: float | None = Field(None, description="Thermal mass and inertia factor")
     modulation_range: dict[str, float] | None = Field(
-        None, description="Power modulation capability {min_power, max_power}"
+        None, description="Power modulation capability {min_power, max_power}",
     )
 
     # DETAILED fidelity parameters

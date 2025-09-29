@@ -153,14 +153,14 @@ class RobustClaudePlannerBridge:
         # Try system PATH
         claude_path = (
             subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"]
+                ["where" if os.name == "nt" else "which", "claude"],
                 capture_output=True,
                 text=True
             )
             .stdout.strip()
             .split("\n")[0]
             if subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"]
+                ["where" if os.name == "nt" else "which", "claude"],
                 capture_output=True,
                 text=True
             ).returncode,
@@ -229,7 +229,7 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
             "deliverables": ["api_endpoints.py", "unit_tests.py", "integration_tests.py"]
         }}
     ]
-    "dependencies": {{
+    "dependencies": {{,
         "critical_path": ["task-001", "task-002", "task-003"],
         "parallel_groups": [["task-004", "task-005"], ["task-006", "task-007"]]
         "blocking_dependencies": {{
@@ -237,15 +237,15 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
             "task-003": ["task-002"]
         }}
     }}
-    "workflow": {{
+    "workflow": {{,
         "lifecycle_phases": ["analysis", "design", "implementation", "testing", "validation"],
-        "phase_transitions": {{
+        "phase_transitions": {{,
             "analysis": "design",
             "design": "implementation",
             "implementation": "testing",
             "testing": "validation",
         }}
-        "validation_gates": {{
+        "validation_gates": {{,
             "design": ["architecture_review", "stakeholder_approval"],
             "implementation": ["code_review", "unit_tests_pass"],
             "testing": ["integration_tests_pass", "performance_benchmarks"],
@@ -253,7 +253,7 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
         }}
         "rollback_strategy": "checkpoint-based rollback with automated reversion",
     }}
-    "metrics": {{
+    "metrics": {{,
         "total_estimated_duration": 240,
         "critical_path_duration": 180,
         "complexity_breakdown": {{"simple": 3, "medium": 4, "complex": 2}},
@@ -343,9 +343,9 @@ Generate the execution plan now:"""
                     assignee="worker:backend",
                     estimated_duration=30,
                     complexity="medium",
-                    dependencies=[]
+                    dependencies=[],
                     workflow_phase="analysis",
-                    required_skills=["analysis"]
+                    required_skills=["analysis"],
                     deliverables=["requirements.md"]
                 )
                 SubTask(
@@ -355,9 +355,9 @@ Generate the execution plan now:"""
                     assignee="worker:backend",
                     estimated_duration=120,
                     complexity="medium",
-                    dependencies=["fallback-001"]
+                    dependencies=["fallback-001"],
                     workflow_phase="implementation",
-                    required_skills=["programming"]
+                    required_skills=["programming"],
                     deliverables=["implementation.py"]
                 )
                 SubTask(
@@ -367,45 +367,45 @@ Generate the execution plan now:"""
                     assignee="worker:backend",
                     estimated_duration=60,
                     complexity="simple",
-                    dependencies=["fallback-002"]
+                    dependencies=["fallback-002"],
                     workflow_phase="testing",
-                    required_skills=["testing"]
+                    required_skills=["testing"],
                     deliverables=["test_results.md"]
                 )
-            ]
+            ],
             dependencies=DependencyMap(
-                critical_path=["fallback-001", "fallback-002", "fallback-003"]
-                parallel_groups=[]
+                critical_path=["fallback-001", "fallback-002", "fallback-003"],
+                parallel_groups=[],
                 blocking_dependencies={
                     "fallback-002": ["fallback-001"],
                     "fallback-003": ["fallback-002"]
                 }
-            )
+            ),
             workflow=WorkflowDefinition(
-                lifecycle_phases=["analysis", "implementation", "testing"]
+                lifecycle_phases=["analysis", "implementation", "testing"],
                 phase_transitions={
                     "analysis": "implementation",
                     "implementation": "testing",
-                }
+                },
                 validation_gates={
                     "analysis": ["requirements_clear"],
                     "implementation": ["code_complete"],
                     "testing": ["tests_pass"]
-                }
+                },
                 rollback_strategy="manual rollback with git revert"
-            )
+            ),
             metrics=PlanningMetrics(
                 total_estimated_duration=210,
                 critical_path_duration=210,
-                complexity_breakdown={"simple": 1, "medium": 2, "complex": 0}
-                skill_requirements={"programming": 2, "testing": 1, "analysis": 1}
+                complexity_breakdown={"simple": 1, "medium": 2, "complex": 0},
+                skill_requirements={"programming": 2, "testing": 1, "analysis": 1},
                 confidence_score=0.6,
                 risk_factors=["claude_unavailable", "simplified_planning"]
-            )
+            ),
             recommendations=[
                 "Validate requirements before implementation",
                 "Test thoroughly before deployment"
-            ]
+            ],
             considerations=[
                 "This is a fallback plan - consider human review",
                 "Claude integration should be restored for better planning"
@@ -451,32 +451,32 @@ Generate the execution plan now:"""
                         assignee="worker:backend",
                         estimated_duration=30,
                         complexity="medium",
-                        dependencies=[]
+                        dependencies=[],
                         workflow_phase="analysis",
-                        required_skills=["testing"]
+                        required_skills=["testing"],
                         deliverables=["mock_output.txt"]
                     )
-                ]
+                ],
                 dependencies=DependencyMap(
-                    critical_path=["mock-001"]
-                    parallel_groups=[]
+                    critical_path=["mock-001"],
+                    parallel_groups=[],
                     blocking_dependencies={}
-                )
+                ),
                 workflow=WorkflowDefinition(
-                    lifecycle_phases=["analysis"]
-                    phase_transitions={}
-                    validation_gates={"analysis": ["mock_validation"]}
+                    lifecycle_phases=["analysis"],
+                    phase_transitions={},
+                    validation_gates={"analysis": ["mock_validation"]},
                     rollback_strategy="mock rollback"
-                )
+                ),
                 metrics=PlanningMetrics(
                     total_estimated_duration=30,
                     critical_path_duration=30,
-                    complexity_breakdown={"simple": 0, "medium": 1, "complex": 0}
-                    skill_requirements={"testing": 1}
+                    complexity_breakdown={"simple": 0, "medium": 1, "complex": 0},
+                    skill_requirements={"testing": 1},
                     confidence_score=0.9,
                     risk_factors=["mock_risk"]
-                )
-                recommendations=["Mock recommendation"]
+                ),
+                recommendations=["Mock recommendation"],
                 considerations=["Mock consideration"]
             )
             return mock_response.dict()
@@ -495,7 +495,7 @@ Generate the execution plan now:"""
             logger.info(
                 f"Calling Claude for planning: {task_description[:100]}...")
             result = subprocess.run(
-                [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt]
+                [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt],
                 capture_output=True,
                 text=True,
                 timeout=120,  # 2 minute timeout for complex planning

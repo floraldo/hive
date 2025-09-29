@@ -18,7 +18,7 @@ class CacheConfig(BaseModel):
     max_connections: int = Field(default=20, description="Maximum Redis connections in pool")
     socket_keepalive: bool = Field(default=True, description="Enable TCP keepalive")
     socket_keepalive_options: dict[str, int] = Field(
-        default_factory=lambda: {"TCP_KEEPIDLE": 1, "TCP_KEEPINTVL": 3, "TCP_KEEPCNT": 5}
+        default_factory=lambda: {"TCP_KEEPIDLE": 1, "TCP_KEEPINTVL": 3, "TCP_KEEPCNT": 5},
     )
 
     # Timeout settings

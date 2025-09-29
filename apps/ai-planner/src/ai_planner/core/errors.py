@@ -104,7 +104,7 @@ class TaskValidationError(BaseError):
     """Error validating task data"""
 
     def __init__(
-        self, message: str, validation_type: str | None = None, failed_fields: Optional[list[str]] = None, **kwargs
+        self, message: str, validation_type: str | None = None, failed_fields: Optional[list[str]] = None, **kwargs,
     ):
         details = kwargs.get("details", {})
         if validation_type:
@@ -394,7 +394,7 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
         self.max_delay = max_delay
 
     async def attempt_recovery_async(
-        self, error: Exception, context: Optional[dict[str, Any]] = None
+        self, error: Exception, context: Optional[dict[str, Any]] = None,
     ) -> RecoveryStatus:
         """Attempt recovery by waiting with exponential backoff"""
         if not self.can_attempt_recovery():

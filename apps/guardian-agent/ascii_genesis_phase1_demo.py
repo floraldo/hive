@@ -104,7 +104,7 @@ and advanced analytics. Expected to handle 100,000+ concurrent users.
 ## Business Value
 Capture market share in social media space, targeting younger demographics
 with innovative features and superior user experience.
-"""
+""",
         )
 
     # Sample design document 2: Medium-complexity system
@@ -137,7 +137,7 @@ Small business owners and their staff members.
 - Reduce inventory errors by 50%
 - Improve stock visibility
 - Streamline order processing
-"""
+""",
         )
 
     print("Created design documents:")
@@ -175,7 +175,7 @@ Small business owners and their staff members.
     print(f"    Word Count: {len(content_1.split())}")
     print(f"    Complexity Score: {complexity_score_1}/14")
     print(
-        f"    Complexity Level: {'Very High' if complexity_score_1 >= 10 else 'High' if complexity_score_1 >= 7 else 'Medium'}"
+        f"    Complexity Level: {'Very High' if complexity_score_1 >= 10 else 'High' if complexity_score_1 >= 7 else 'Medium'}",
     )
     print(f"    Extraction Quality: {'Excellent' if complexity_score_1 >= 10 else 'Good'}")
     print(f"    Analysis Urgency: {'Immediate' if complexity_score_1 >= 10 else 'Soon'}")
@@ -190,7 +190,7 @@ Small business owners and their staff members.
     print(f"    Word Count: {len(content_2.split())}")
     print(f"    Complexity Score: {complexity_score_2}/14")
     print(
-        f"    Complexity Level: {'High' if complexity_score_2 >= 7 else 'Medium' if complexity_score_2 >= 4 else 'Low'}"
+        f"    Complexity Level: {'High' if complexity_score_2 >= 7 else 'Medium' if complexity_score_2 >= 4 else 'Low'}",
     )
     print(f"    Extraction Quality: {'Good' if complexity_score_2 >= 5 else 'Fair'}")
     print(f"    Analysis Urgency: {'Soon' if complexity_score_2 >= 4 else 'Routine'}")
@@ -417,7 +417,7 @@ async def simulate_prophecy_analysis():
 
     print("\n*** STRATEGIC RECOMMENDATIONS ***")
     print(
-        "Recommended Architecture: Implement event-driven architecture using hive-bus with hive-cache for aggregation. Use hive-ai ModelPool with intelligent caching and model fallbacks. Design modular architecture with clear service boundaries"
+        "Recommended Architecture: Implement event-driven architecture using hive-bus with hive-cache for aggregation. Use hive-ai ModelPool with intelligent caching and model fallbacks. Design modular architecture with clear service boundaries",
     )
     print("Optimal Hive Packages: hive-config, hive-db, hive-ai, hive-bus, hive-cache, hive-async, hive-deployment")
     print("Architectural Patterns: event-driven, CQRS, microservices, caching-first, circuit-breakers")
@@ -430,7 +430,7 @@ async def simulate_prophecy_analysis():
     print("\n*** ORACLE STRATEGIC GUIDANCE ***")
     print("3 critical architectural risks identified. Immediate attention required to prevent future issues.")
     print(
-        "Performance optimization is critical. Consider event-driven architecture and caching strategies from the start."
+        "Performance optimization is critical. Consider event-driven architecture and caching strategies from the start.",
     )
     print("Cost management is essential. Implement intelligent resource pooling and usage monitoring early.")
     print("Compliance violations detected. Follow Hive Golden Rules strictly to ensure CI/CD pipeline compatibility.")

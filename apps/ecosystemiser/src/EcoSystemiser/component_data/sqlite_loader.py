@@ -304,7 +304,7 @@ class SQLiteLoader:
                 types.append(
                     {
                         "name": row["name"],
-                        "category": row["category"]
+                        "category": row["category"],
                         "description": row["description"],
                         "spec_count": row["spec_count"]
                     }
@@ -344,9 +344,9 @@ class SQLiteLoader:
                 specs.append(
                     {
                         "type": row["type_name"],
-                        "category": row["category"]
+                        "category": row["category"],
                         "name": row["name"],
-                        "version": row["version"]
+                        "version": row["version"],
                         "is_default": bool(row["is_default"])
                     }
                 ),
@@ -403,11 +403,11 @@ class SQLiteLoader:
             # Add the specification,
             self.add_component_spec(
                 component_type=spec["type"],
-                name=spec["name"]
+                name=spec["name"],
                 technical_params=spec.get("technical", {}),
-                economic_params=spec.get("economic")
+                economic_params=spec.get("economic"),
                 environmental_params=spec.get("environmental"),
-                metadata=spec.get("metadata")
+                metadata=spec.get("metadata"),
                 version=spec.get("version", "1.0.0"),
                 is_default=spec.get("is_default", False)
             ),

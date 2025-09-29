@@ -48,7 +48,7 @@ def create_thermal_profiles() -> None:
             0.7,
             0.6,
             0.6,  # Evening: high then moderate
-        ]
+        ],
     )
 
     # Scale to realistic thermal demand (typical residential: 5-15 kW thermal)
@@ -82,7 +82,7 @@ def create_thermal_profiles() -> None:
             2.4,
             2.5,
             2.5,  # Evening: moderate COP
-        ]
+        ],
     )
 
     # Calculate electrical demand for heat pump (thermal_demand / COP)

@@ -83,7 +83,7 @@ class PredictiveMonitoringService(IMonitoringService):
             for (service_name, metric_type), metrics in metrics_by_service.items():
                 try:
                     alert = await self.alert_manager.analyze_metrics_async(
-                        service_name=service_name, metric_type=metric_type, metrics=metrics
+                        service_name=service_name, metric_type=metric_type, metrics=metrics,
                     )
 
                     if alert:

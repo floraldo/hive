@@ -64,7 +64,7 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
         if expected_to_fail:
             if result.returncode != 0:
                 logger.error(
-                    f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}"
+                    f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}",
                 )
                 return True, elapsed
             else:
@@ -145,7 +145,7 @@ COMMENTS 2,Example EPW for testing
 DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
 1990,1,1,1,0,?9?9?9?9E0?9?9?9?9?9?9?9?9?9?9?9?9?9?9?9*9*9*9*9*9,-3.3,-7.2,73,99000,0,0,253,0,0,0,0,0,0,0,280,2.1,0,0,16.1,77777,9,999999999,89,0.0820,0,88,999,999
 1990,1,1,2,0,?9?9?9?9E0?9?9?9?9?9?9?9?9?9?9?9?9?9?9?9*9*9*9*9*9,-3.9,-7.8,73,99000,0,0,251,0,0,0,0,0,0,0,270,2.6,0,0,16.1,77777,9,999999999,89,0.0820,0,88,999,999
-"""
+""",
             )
 
     # Define all test cases
@@ -209,7 +209,7 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
     logger.error(f"\n{TColors.BOLD}--- Running Expected Failure Tests ---{TColors.ENDC}")
     for test in failure_tests:
         success, elapsed = run_command(
-            test["name"], test["command"], expected_to_fail=test.get("expected_to_fail", False)
+            test["name"], test["command"], expected_to_fail=test.get("expected_to_fail", False),
         )
         results.append(success)
         timings.append(elapsed)

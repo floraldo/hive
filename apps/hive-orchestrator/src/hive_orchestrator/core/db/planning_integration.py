@@ -180,7 +180,7 @@ class PlanningIntegration:
                 WHERE status = 'pending',
                 ORDER BY priority DESC, created_at ASC,
                 LIMIT 10,
-            """
+            """,
             )
 
             tasks = []
@@ -471,7 +471,7 @@ class PlanningIntegration:
                     SELECT id FROM execution_plans,
                     WHERE status = 'completed',
                     AND datetime(updated_at) < datetime('now', '-{max_age_days} days')
-                """
+                """,
                 )
 
                 plan_ids = [row[0] for row in cursor.fetchall()]
@@ -525,13 +525,13 @@ class AsyncPlanningIntegration:
         # This would use async database operations when available
         # For now, run sync version in thread pool to avoid blocking
         return await asyncio.get_event_loop().run_in_executor(
-            None, planning_integration.get_ready_planned_subtasks, limit
+            None, planning_integration.get_ready_planned_subtasks, limit,
         )
 
     async def sync_subtask_status_to_plan_async(self, task_id: str, new_status: str) -> bool:
         """Async version of sync_subtask_status_to_plan"""
         return await asyncio.get_event_loop().run_in_executor(
-            None, planning_integration.sync_subtask_status_to_plan, task_id, new_status
+            None, planning_integration.sync_subtask_status_to_plan, task_id, new_status,
         )
 
 

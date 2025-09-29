@@ -75,7 +75,7 @@ def load_config_for_app(app_name: str) -> AppConfig:
         system_keys += 1
 
     logger.info(
-        f"Loaded configuration for '{app_name}': " f"{len(config)} total keys, {system_keys} from system environment"
+        f"Loaded configuration for '{app_name}': {len(config)} total keys, {system_keys} from system environment",
     )
 
     return AppConfig(app_name=app_name, config=config, sources=sources)

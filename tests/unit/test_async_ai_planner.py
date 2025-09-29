@@ -154,7 +154,7 @@ class TestAsyncClaudeService:
 
         # Test complex task
         complex_result = await claude_service.generate_execution_plan_async(
-            "Build a distributed microservices architecture with Docker, Kubernetes, and CI/CD", {}, 90, "test_user"
+            "Build a distributed microservices architecture with Docker, Kubernetes, and CI/CD", {}, 90, "test_user",
         )
         complex_breakdown = complex_result["complexity_breakdown"]
 

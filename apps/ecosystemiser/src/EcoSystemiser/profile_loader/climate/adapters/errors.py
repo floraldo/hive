@@ -15,7 +15,7 @@ class AdapterError(Exception):
     """Base error class for adapter-specific errors"""
 
     def __init__(
-        self, message: str, adapter_name: str | None = None, details: Optional[dict[str, Any]] = None, **kwargs
+        self, message: str, adapter_name: str | None = None, details: Optional[dict[str, Any]] = None, **kwargs,
     ):
         super().__init__(message)
         self.message = message

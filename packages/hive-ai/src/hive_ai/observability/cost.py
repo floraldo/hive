@@ -508,13 +508,13 @@ class CostManager:
         return {
             "analysis_period_days": days,
             "daily_trends": dict(daily_trends),
-            "statistics": {
+            "statistics": {,
                 "avg_daily_cost": avg_daily_cost,
                 "min_daily_cost": min_daily_cost,
                 "max_daily_cost": max_daily_cost,
                 "trend_direction": trend_direction,
             }
-            "projections": {
+            "projections": {,
                 "projected_weekly_cost": projected_weekly_cost,
                 "projected_monthly_cost": projected_monthly_cost,
             }
@@ -607,7 +607,7 @@ class CostManager:
         records = [record for record in self._cost_records if start_date <= record.timestamp <= end_date]
 
         export_data = {
-            "metadata": {
+            "metadata": {,
                 "exported_at": datetime.utcnow().isoformat(),
                 "period": {"start": start_date.isoformat(), "end": end_date.isoformat()},
                 "format": format,

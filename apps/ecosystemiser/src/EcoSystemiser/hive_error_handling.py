@@ -44,7 +44,7 @@ class ValidationError(ComponentValidationError):
 
 
 def handle_error(
-    error: Exception, context: str | None = None, additional_info: Optional[dict[str, Any]] = None
+    error: Exception, context: str | None = None, additional_info: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Legacy handle_error function"""
     return get_error_reporter().report_error(error, context, additional_info)

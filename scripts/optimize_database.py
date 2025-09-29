@@ -46,7 +46,7 @@ class DatabaseOptimizer:
             """
             SELECT name, sql FROM sqlite_master
             WHERE type='table' AND name NOT LIKE 'sqlite_%'
-        """
+        """,
         )
         tables = cursor.fetchall()
 
@@ -55,7 +55,7 @@ class DatabaseOptimizer:
             """
             SELECT name, tbl_name, sql FROM sqlite_master
             WHERE type='index' AND name NOT LIKE 'sqlite_%'
-        """
+        """,
         )
         indexes = cursor.fetchall()
 

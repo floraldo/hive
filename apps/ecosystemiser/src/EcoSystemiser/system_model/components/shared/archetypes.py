@@ -77,7 +77,7 @@ class BaseTechnicalParams(BaseModel):
 
     # Explicit fidelity control (required for all components)
     fidelity_level: FidelityLevel = Field(
-        default=FidelityLevel.STANDARD, description="Explicit simulation fidelity level controlling model complexity"
+        default=FidelityLevel.STANDARD, description="Explicit simulation fidelity level controlling model complexity",
     )
 
     class Config:

@@ -128,12 +128,12 @@ class MeteostatAdapter(BaseAdapter):
             return False
 
     async def _fetch_raw_async(
-        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs,
     ) -> Any | None:
         """Fetch raw data from Meteostat"""
         if not self._meteostat_available:
             raise DataFetchError(
-                "Meteostat library not installed. Install with: pip install meteostat", adapter_name="meteostat"
+                "Meteostat library not installed. Install with: pip install meteostat", adapter_name="meteostat",
             )
 
         lat, lon = location
@@ -164,7 +164,7 @@ class MeteostatAdapter(BaseAdapter):
 
         # Fetch data,
         self.logger.info(
-            f"Fetching Meteostat data for {lat:.3f},{lon:.3f} from {start_date.date()} to {end_date.date()}"
+            f"Fetching Meteostat data for {lat:.3f},{lon:.3f} from {start_date.date()} to {end_date.date()}",
         )
 
         # Get data from Meteostat
@@ -178,7 +178,7 @@ class MeteostatAdapter(BaseAdapter):
         return df
 
     async def _transform_data_async(
-        self, raw_data: Any, location: tuple[float, float], variables: list[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str],
     ) -> xr.Dataset:
         """Transform Meteostat DataFrame to xarray Dataset"""
         lat, lon = location
@@ -204,7 +204,7 @@ class MeteostatAdapter(BaseAdapter):
 
         # Add metadata,
         ds.attrs.update(
-            {"source": "Meteostat", "adapter_version": self.ADAPTER_VERSION, "latitude": lat, "longitude": lon}
+            {"source": "Meteostat", "adapter_version": self.ADAPTER_VERSION, "latitude": lat, "longitude": lon},
         )
 
         (self.logger.info(f"Successfully processed {len(ds.time)} time steps with {len(ds.data_vars)} variables"),)
@@ -220,13 +220,13 @@ class MeteostatAdapter(BaseAdapter):
             raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
     async def fetch_async(
-        self, *lat: float, lon: float, variables: list[str], period: dict, resolution: str = "1H"
+        self, *lat: float, lon: float, variables: list[str], period: dict, resolution: str = "1H",
     ) -> xr.Dataset:
         """Fetch climate data from Meteostat API"""
 
         if not self._meteostat_available:
             raise DataFetchError(
-                "Meteostat library not installed. Install with: pip install meteostat", adapter_name="meteostat"
+                "Meteostat library not installed. Install with: pip install meteostat", adapter_name="meteostat",
             )
 
         try:
@@ -242,13 +242,13 @@ class MeteostatAdapter(BaseAdapter):
 
             if not regular_vars and not special_vars:
                 raise ValidationError(
-                    f"No supported variables requested. Available: {list(self.VARIABLE_MAPPING.keys()) + list(self.SPECIAL_VARIABLES.keys())}"
+                    f"No supported variables requested. Available: {list(self.VARIABLE_MAPPING.keys()) + list(self.SPECIAL_VARIABLES.keys())}",
                 )
 
             # Use base class fetch method,
             return (
                 await super().fetch_async(
-                    location=(lat, lon), variables=variables, period=period, resolution=resolution
+                    location=(lat, lon), variables=variables, period=period, resolution=resolution,
                 ),
             )
 
@@ -478,7 +478,7 @@ class MeteostatAdapter(BaseAdapter):
         """
         Convert sunshine duration to GHI using Ångström-Prescott model.,
 
-        This implements a more accurate solar radiation model based on sunshine duration,
+This implements a more accurate solar radiation model based on sunshine duration
         and solar geometry calculations.,
         """
         import math
@@ -513,7 +513,7 @@ class MeteostatAdapter(BaseAdapter):
             lat_rad = math.radians(latitude)
             elevation = math.asin(
                 math.sin(declination) * math.sin(lat_rad)
-                + math.cos(declination) * math.cos(lat_rad) * math.cos(hour_angle)
+                + math.cos(declination) * math.cos(lat_rad) * math.cos(hour_angle),
             )
 
             # Only calculate if sun is above horizon,
@@ -638,7 +638,7 @@ class MeteostatAdapter(BaseAdapter):
             auth_type=AuthType.NONE,  # Uses RapidAPI internally but handled by library,
             requires_subscription=False,  # Free tier available,
             free_tier_limits=RateLimits(
-                requests_per_month=500, requests_per_day=None, requests_per_hour=None, data_points_per_request=None
+                requests_per_month=500, requests_per_day=None, requests_per_hour=None, data_points_per_request=None,
             ),
             quality=QualityFeatures(
                 gap_filling=True,  # Statistical gap filling,
@@ -647,7 +647,7 @@ class MeteostatAdapter(BaseAdapter):
                 ensemble_members=False,
                 bias_correction=False,
             ),
-            max_request_days=None,  # No hard limit
+            max_request_days=None,  # No hard limit,
             max_variables_per_request=None,
             batch_requests_supported=False,
             async_requests_required=False,

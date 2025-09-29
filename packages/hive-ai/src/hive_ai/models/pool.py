@@ -249,8 +249,8 @@ class ModelPool:
 
                 # Health criteria
                 healthy = (
-                    stats.total_connections > 0,
-                    and stats.pool_efficiency > 0.1,
+stats.total_connections > 0
+                    and stats.pool_efficiency > 0.1
                     and stats.avg_response_time_ms < 10000  # At least 10% efficiency  # Under 10 seconds
                 )
 
@@ -298,12 +298,12 @@ class ModelPool:
                             "reason": f"efficiency: {stats.pool_efficiency:.2f}",
                         }
                     else:
-                        optimization_results[provider] = {
+                        optimization_results[provider] = {,
                             "action": "no_change",
                             "reason": "optimal_size",
                         }
                 else:
-                    optimization_results[provider] = {
+                    optimization_results[provider] = {,
                         "action": "insufficient_data",
                         "requests": stats.total_requests,
                     }

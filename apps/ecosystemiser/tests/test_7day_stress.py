@@ -60,7 +60,7 @@ def create_7day_system():
             0.0,
             0.0,
             0.0,  # Evening/night
-        ]
+        ],
     )
 
     daily_demand = np.array(
@@ -89,7 +89,7 @@ def create_7day_system():
             0.4,
             0.4,
             0.4,  # Night baseload
-        ]
+        ],
     )
 
     # Create 7-day profiles with variations
@@ -122,8 +122,8 @@ def create_7day_system():
     # Create components
     grid_params = GridParams(
         technical=GridTechnicalParams(
-            capacity_nominal=100.0, import_tariff=0.25, export_tariff=0.10, fidelity_level=FidelityLevel.SIMPLE
-        )
+            capacity_nominal=100.0, import_tariff=0.25, export_tariff=0.10, fidelity_level=FidelityLevel.SIMPLE,
+        ),
     )
     grid = Grid("Grid", grid_params, N)
 
@@ -135,7 +135,7 @@ def create_7day_system():
             efficiency_roundtrip=0.95,
             initial_soc_pct=0.5,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     battery = Battery("Battery", battery_params, N)
 
@@ -144,15 +144,15 @@ def create_7day_system():
             capacity_nominal=40.0,  # 40 kW solar for good generation,
             efficiency_nominal=1.0,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     solar = SolarPV("SolarPV", solar_params, N)
     solar.profile = solar_profile
 
     demand_params = PowerDemandParams(
         technical=PowerDemandTechnicalParams(
-            capacity_nominal=12.5, peak_demand=12.5, load_profile_type="variable", fidelity_level=FidelityLevel.SIMPLE
-        )
+            capacity_nominal=12.5, peak_demand=12.5, load_profile_type="variable", fidelity_level=FidelityLevel.SIMPLE,
+        ),
     )
     demand = PowerDemand("PowerDemand", demand_params, N)
     demand.profile = demand_profile
@@ -242,7 +242,7 @@ def validate_long_term_stability(system, tolerance=1e-5):
             stability_results["energy_drift_check"],
             stability_results["storage_bounds_check"],
             stability_results["flow_consistency_check"],
-        ]
+        ],
     )
 
     return stability_results
@@ -350,7 +350,7 @@ def run_7day_stress_test():
                 "peak_memory_mb": float(peak_memory),
                 "memory_increase_mb": float(peak_memory - initial_memory),
                 "solver_success": result.status == "optimal",
-            }
+            },
         )
 
         if result.status == "optimal":
@@ -367,7 +367,7 @@ def run_7day_stress_test():
                     "stability_analysis": stability,
                     "pattern_analysis": patterns,
                     "validation_passed": stability["numerical_stability"],
-                }
+                },
             )
 
             # Log summary
@@ -376,23 +376,23 @@ def run_7day_stress_test():
             logger.info("=" * 60)
             logger.info(f"Solve time: {solve_time:.2f}s")
             logger.info(
-                f"Memory usage: {initial_memory:.1f} → {peak_memory:.1f} MB (+{peak_memory - initial_memory:.1f})"
+                f"Memory usage: {initial_memory:.1f} → {peak_memory:.1f} MB (+{peak_memory - initial_memory:.1f})",
             )
             logger.info(f"Numerical stability: {'PASS' if stability['numerical_stability'] else 'FAIL'}")
             logger.info(f"Energy balance: max daily imbalance = {stability.get('max_daily_imbalance', 0):.2e}")
 
             weekly = patterns["weekly_totals"]
             logger.info(
-                f"Weekly totals: {weekly['total_solar']:.0f} kWh solar, {weekly['total_demand']:.0f} kWh demand"
+                f"Weekly totals: {weekly['total_solar']:.0f} kWh solar, {weekly['total_demand']:.0f} kWh demand",
             )
             logger.info(
-                f"Grid interaction: {weekly['total_import']:.0f} kWh import, {weekly['total_export']:.0f} kWh export"
+                f"Grid interaction: {weekly['total_import']:.0f} kWh import, {weekly['total_export']:.0f} kWh export",
             )
 
             cycling = patterns["cycling_analysis"]
             logger.info(
                 f"Battery cycling: {cycling['equivalent_cycles']:.2f} cycles, "
-                f"SOC {cycling['initial_soc']:.1%} → {cycling['final_soc']:.1%}"
+                f"SOC {cycling['initial_soc']:.1%} → {cycling['final_soc']:.1%}",
             )
 
             logger.info(f"Overall result: {'PASSED' if results['validation_passed'] else 'FAILED'}")

@@ -132,7 +132,7 @@ class HiveTestSuite:
         try:
             # Spawn worker with timeout
             process = subprocess.Popen(
-                cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
+                cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env,
             )
 
             # Give it 3 seconds to initialize
@@ -246,7 +246,7 @@ class HiveTestSuite:
         try:
             # Test help command
             result = subprocess.run(
-                [sys.executable, str(queen_script), "--help"], capture_output=True, text=True, timeout=5
+                [sys.executable, str(queen_script), "--help"], capture_output=True, text=True, timeout=5,
             )
 
             if result.returncode == 0 and "QueenLite" in result.stdout:

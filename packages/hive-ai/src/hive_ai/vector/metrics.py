@@ -220,11 +220,11 @@ class VectorMetrics(MetricsCollectorInterface):
         # Calculate trend statistics
         trends = {
             "time_period_hours": hours,
-            "total_records": len(recent_records)
+            "total_records": len(recent_records),
             "operation_breakdown": dict(operation_trends),
-            "hourly_summary": dict(hourly_trends)
+            "hourly_summary": dict(hourly_trends),
             "performance_summary": {
-                "avg_latency_ms": sum(r.latency_ms for r in recent_records) / len(recent_records)
+                "avg_latency_ms": sum(r.latency_ms for r in recent_records) / len(recent_records),
                 "success_rate": sum(1 for r in recent_records if r.success) / len(recent_records),
                 "total_vectors": sum(r.count for r in recent_records)
             }
@@ -239,7 +239,7 @@ class VectorMetrics(MetricsCollectorInterface):
         collection_records = [r for r in self._recent_operations if r.collection == collection]
 
         if not collection_records:
-            return {
+            return {,
                 "collection": collection,
                 "operations": 0,
                 "vectors_processed": 0,
@@ -261,11 +261,11 @@ class VectorMetrics(MetricsCollectorInterface):
 
         return {
             "collection": collection,
-            "total_operations": len(collection_records)
+            "total_operations": len(collection_records),
             "successful_operations": successful_ops,
             "total_vectors_processed": total_vectors,
             "avg_latency_ms": total_latency / len(collection_records),
-            "success_rate": successful_ops / len(collection_records)
+            "success_rate": successful_ops / len(collection_records),
             "operation_breakdown": dict(operation_counts),
             "time_range": "recent_operations"
         }
@@ -322,7 +322,7 @@ class VectorMetrics(MetricsCollectorInterface):
             "total_failures": len(failed_operations),
             "failure_rate": failure_rate,
             "errors_by_operation": dict(error_by_operation),
-            "errors_by_collection": dict(error_by_collection)
+            "errors_by_collection": dict(error_by_collection),
             "recent_failures": recent_failures[-10:],  # Last 10 failures,
             "recommendations": self._generate_error_recommendations(error_by_operation)
         }

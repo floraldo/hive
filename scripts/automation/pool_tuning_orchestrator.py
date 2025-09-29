@@ -145,7 +145,7 @@ class PoolTuningOrchestrator:
                         rationale=rec_data.get("rationale", ""),
                         estimated_impact=rec_data.get("estimated_impact", {}),
                         risk_level=rec_data.get("risk_level", "medium"),
-                    )
+                    ),
                 )
 
             logger.info(f"Loaded {len(recommendations)} tuning recommendations")
@@ -181,7 +181,7 @@ class PoolTuningOrchestrator:
 
         logger.info(
             f"Prioritized {len(sorted_recs)} recommendations "
-            f"(top: {sorted_recs[0].service_name if sorted_recs else 'none'})"
+            f"(top: {sorted_recs[0].service_name if sorted_recs else 'none'})",
         )
 
         return sorted_recs
@@ -391,7 +391,7 @@ class PoolTuningOrchestrator:
             return False
 
     async def execute_tuning_async(
-        self, recommendation: TuningRecommendation, dry_run: bool = False
+        self, recommendation: TuningRecommendation, dry_run: bool = False,
     ) -> TuningExecution:
         """
         Execute a tuning recommendation.
@@ -437,7 +437,7 @@ class PoolTuningOrchestrator:
             # Step 3: Apply new configuration
             if not dry_run:
                 success = await self.apply_configuration_async(
-                    recommendation.service_name, recommendation.recommended_config
+                    recommendation.service_name, recommendation.recommended_config,
                 )
 
                 if not success:
@@ -448,7 +448,7 @@ class PoolTuningOrchestrator:
             # Step 4: Monitor after change
             logger.info(f"Monitoring for {self.monitoring_window_minutes} minutes...")
             execution.metrics_after = await self.monitor_metrics_async(
-                recommendation.service_name, duration_minutes=self.monitoring_window_minutes
+                recommendation.service_name, duration_minutes=self.monitoring_window_minutes,
             )
 
             # Step 5: Check if rollback needed
@@ -461,7 +461,7 @@ class PoolTuningOrchestrator:
 
                 if not dry_run:
                     rollback_success = await self.rollback_configuration_async(
-                        recommendation.service_name, recommendation.current_config
+                        recommendation.service_name, recommendation.current_config,
                     )
 
                     if rollback_success:
@@ -522,7 +522,7 @@ class PoolTuningOrchestrator:
             logger.error(f"Failed to commit to git: {e}")
 
     async def run_orchestration_async(
-        self, service_filter: str | None = None, dry_run: bool = False, skip_maintenance_check: bool = False
+        self, service_filter: str | None = None, dry_run: bool = False, skip_maintenance_check: bool = False,
     ) -> list[TuningExecution]:
         """
         Run complete orchestration workflow.
@@ -560,7 +560,7 @@ class PoolTuningOrchestrator:
             logger.info(
                 f"\nProcessing: {recommendation.service_name} "
                 f"(priority={recommendation.priority}, "
-                f"risk={recommendation.risk_level})"
+                f"risk={recommendation.risk_level})",
             )
 
             execution = await self.execute_tuning_async(recommendation, dry_run)
@@ -607,7 +607,7 @@ async def main():
     elif args.apply:
         logger.info("Applying tuning recommendations...")
         executions = await orchestrator.run_orchestration_async(
-            service_filter=args.service, dry_run=args.dry_run, skip_maintenance_check=args.skip_maintenance_check
+            service_filter=args.service, dry_run=args.dry_run, skip_maintenance_check=args.skip_maintenance_check,
         )
 
         print("\n" + "=" * 80)

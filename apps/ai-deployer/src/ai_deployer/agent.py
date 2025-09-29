@@ -61,7 +61,7 @@ class DeploymentAgent:
     """
 
     def __init__(
-        self, orchestrator: DeploymentOrchestrator | None = None, polling_interval: int = 30, test_mode: bool = False
+        self, orchestrator: DeploymentOrchestrator | None = None, polling_interval: int = 30, test_mode: bool = False,
     ):
         """
         Initialize the deployment agent
@@ -197,7 +197,7 @@ class DeploymentAgent:
                 # Publish failure event
                 if self.event_bus and create_task_event:
                     event = create_task_event(
-                        task_id=task_id, event_type=TaskEventType.DEPLOYMENT_FAILED, payload={"error": result.error}
+                        task_id=task_id, event_type=TaskEventType.DEPLOYMENT_FAILED, payload={"error": result.error},
                     )
                     self.event_bus.publish(event)
 
@@ -209,7 +209,7 @@ class DeploymentAgent:
             self.stats["errors"] += 1
 
     async def _update_task_status_async(
-        self, task_id: str, status: str, metadata: Optional[dict[str, Any]] = None
+        self, task_id: str, status: str, metadata: Optional[dict[str, Any]] = None,
     ) -> None:
         """Update task status in database"""
         try:

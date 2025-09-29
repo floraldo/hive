@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 
 
 def create_comparison_plot(
-    df1: pd.DataFrame, df2: pd.DataFrame, variables: list[str], labels: tuple[str, str] = ("Dataset 1", "Dataset 2")
+    df1: pd.DataFrame, df2: pd.DataFrame, variables: list[str], labels: tuple[str, str] = ("Dataset 1", "Dataset 2"),
 ) -> go.Figure:
     """
     Create a comparison plot between two datasets.
@@ -31,7 +31,7 @@ def create_comparison_plot(
     for var in variables:
         if var in df1.columns:
             fig.add_trace(
-                go.Scatter(x=df1.index, y=df1[var], mode="lines", name=f"{labels[0]} - {var}", legendgroup=labels[0])
+                go.Scatter(x=df1.index, y=df1[var], mode="lines", name=f"{labels[0]} - {var}", legendgroup=labels[0]),
             )
 
         if var in df2.columns:
@@ -43,7 +43,7 @@ def create_comparison_plot(
                     name=f"{labels[1]} - {var}",
                     legendgroup=labels[1],
                     line=dict(dash="dash"),
-                )
+                ),
             )
 
     fig.update_layout(
@@ -95,8 +95,8 @@ def create_heatmap(df: pd.DataFrame, variable: str, time_resolution: str = "1D")
     # Create heatmap
     fig = go.Figure(
         data=go.Heatmap(
-            z=pivot.values, x=pivot.columns, y=pivot.index, colorscale="Viridis", colorbar=dict(title=variable)
-        )
+            z=pivot.values, x=pivot.columns, y=pivot.index, colorscale="Viridis", colorbar=dict(title=variable),
+        ),
     )
 
     fig.update_layout(title=f"{variable} Heatmap", xaxis_title=x_label, yaxis_title=y_label, height=500)
@@ -130,11 +130,11 @@ def create_correlation_matrix(df: pd.DataFrame) -> go.Figure:
             texttemplate="%{text}",
             textfont={"size": 10},
             colorbar=dict(title="Correlation"),
-        )
+        ),
     )
 
     fig.update_layout(
-        title="Variable Correlation Matrix", height=600, width=800, xaxis={"side": "bottom"}, yaxis={"side": "left"}
+        title="Variable Correlation Matrix", height=600, width=800, xaxis={"side": "bottom"}, yaxis={"side": "left"},
     )
 
     return fig
@@ -217,7 +217,7 @@ def create_wind_rose(df: pd.DataFrame) -> go.Figure | None:
                     theta=dir_labels,
                     name=f"{speed_label} m/s",
                     marker_color=px.colors.sequential.Viridis[speed_labels.index(speed_label)],
-                )
+                ),
             )
 
     fig.update_layout(

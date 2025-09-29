@@ -3,8 +3,10 @@
 Remove invalid trailing commas that appeared after the fixer ran.
 Specifically: remove commas after opening braces { and after colons :
 """
+
 import re
 from pathlib import Path
+
 
 def fix_invalid_commas(content: str) -> tuple[str, int]:
     """Remove invalid trailing commas"""
@@ -12,17 +14,18 @@ def fix_invalid_commas(content: str) -> tuple[str, int]:
     original = content
 
     # Pattern 1: Remove comma after opening brace: {,
-    content = re.sub(r'\{\s*,', '{', content)
+    content = re.sub(r"\{\s*,", "{", content)
     if content != original:
         fixes += 1
         original = content
 
     # Pattern 2: Remove comma after colon: :,
-    content = re.sub(r':\s*,\s*\n', ':\n', content)
+    content = re.sub(r":\s*,\s*\n", ":\n", content)
     if content != original:
         fixes += 1
 
     return content, fixes
+
 
 def main():
     files = [
@@ -51,6 +54,8 @@ def main():
     print(f"\nTotal: {total_fixes} invalid commas removed")
     return 0
 
+
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

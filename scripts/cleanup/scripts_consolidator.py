@@ -226,7 +226,7 @@ class ScriptsConsolidator:
                         source_path="",
                         target_path=str(target_dir),
                         reason=f"Create new directory structure: {directory}",
-                    )
+                    ),
                 )
 
         print(f"[PLAN] Planned {len(new_structure)} new directories")
@@ -258,7 +258,7 @@ class ScriptsConsolidator:
                         source_path=script_path,
                         target_path=str(target_path),
                         reason=f"Archive deprecated script: {script}",
-                    )
+                    ),
                 )
 
         # Consolidation operations
@@ -271,7 +271,7 @@ class ScriptsConsolidator:
                         source_path="",
                         target_path=str(self.scripts_root / plan.target_path),
                         reason=f"Create consolidated script for {plan.group_name}",
-                    )
+                    ),
                 )
 
                 # Archive source scripts
@@ -284,7 +284,7 @@ class ScriptsConsolidator:
                             source_path=source_script,
                             target_path=str(target_path),
                             reason=f"Archive after consolidation: {script_name}",
-                        )
+                        ),
                     )
 
         # Move operations for scripts going to new locations
@@ -315,7 +315,7 @@ class ScriptsConsolidator:
                         source_path=str(source_path),
                         target_path=str(target_path),
                         reason=f"Reorganize into new structure: {Path(target).name}",
-                    )
+                    ),
                 )
 
         print(f"[PLAN] Planned {len(self.file_operations)} file operations")
@@ -498,7 +498,7 @@ def main():
     print(f"   - {len(consolidation_plans)} consolidation groups planned")
     print(f"   - {len(consolidator.file_operations)} file operations planned")
     print(
-        f"   - Estimated script reduction: {len([op for op in consolidator.file_operations if op.operation == 'move' and 'archive' in op.target_path])} files"
+        f"   - Estimated script reduction: {len([op for op in consolidator.file_operations if op.operation == 'move' and 'archive' in op.target_path])} files",
     )
 
     print("\nReview Plans:")

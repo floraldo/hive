@@ -410,7 +410,7 @@ def optimize(
         # Run optimization
         result = study_service.run_genetic_algorithm_optimization(
             base_config_path=Path(config),
-            optimization_variables=optimization_variables or []
+            optimization_variables=optimization_variables or [],
             objectives=objectives,
             multi_objective=multi_objective,
             **ga_config
@@ -440,7 +440,7 @@ def optimize(
                 json.dump(
                     {
                         "study_result": result.dict(),
-                        "configuration": {
+                        "configuration": {,
                             "objectives": objectives,
                             "multi_objective": multi_objective,
                             "ga_config": ga_config,
@@ -651,7 +651,7 @@ def uncertainty(
                 json.dump(
                     {
                         "study_result": result.dict(),
-                        "configuration": {
+                        "configuration": {,
                             "objectives": objectives,
                             "uncertainty_variables": uncertainty_variables,
                             "mc_config": mc_config,
@@ -799,7 +799,7 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
                 json.dump(
                     {
                         "study_result": result.dict(),
-                        "configuration": {
+                        "configuration": {,
                             "method": method,
                             "objectives": objectives,
                             "design_variables": design_variables,

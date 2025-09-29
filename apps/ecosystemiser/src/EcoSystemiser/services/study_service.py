@@ -45,10 +45,10 @@ class FidelitySweepSpec(BaseModel):
 
     component_names: list[str] = Field(default_factory=list, description="Components to sweep, empty means all")
     fidelity_levels: list[str] = Field(
-        default_factory=lambda: ["SIMPLE", "STANDARD"], description="Fidelity levels to test"
+        default_factory=lambda: ["SIMPLE", "STANDARD"], description="Fidelity levels to test",
     )
     mixed_fidelity_configs: list[dict[str, str]] | None = Field(
-        default=None, description="Pre-defined mixed fidelity configurations as {component: fidelity_level}"
+        default=None, description="Pre-defined mixed fidelity configurations as {component: fidelity_level}",
     )
 
 
@@ -165,7 +165,7 @@ class StudyService:
             study_result.execution_time = (datetime.now() - start_time).total_seconds()
 
             logger.info(
-                f"Study completed: {study_result.successful_simulations}/{study_result.num_simulations} successful"
+                f"Study completed: {study_result.successful_simulations}/{study_result.num_simulations} successful",
             )
 
             # Publish study completed event
@@ -371,7 +371,7 @@ class StudyService:
                     # Too many components for full exploration - use sampling
 
                     logger.info(
-                        f"Too many components ({len(target_components)}) for full fidelity exploration, using sampling"
+                        f"Too many components ({len(target_components)}) for full fidelity exploration, using sampling",
                     )
 
                     # Sample representative configurations
@@ -892,7 +892,7 @@ class StudyService:
                 results_with_metrics = [r for r in successful if r.solver_metrics is not None]
                 if results_with_metrics:
                     best_result = min(
-                        results_with_metrics, key=lambda r: r.solver_metrics.get("objective_value", float("inf"))
+                        results_with_metrics, key=lambda r: r.solver_metrics.get("objective_value", float("inf")),
                     )
                 else:
                     best_result = successful[0]  # Fallback to first result

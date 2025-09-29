@@ -36,7 +36,7 @@ def env_file_content(draw):
                 alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters="_"),
                 min_size=1,
                 max_size=50,
-            ).filter(lambda x: x and x[0].isalpha())
+            ).filter(lambda x: x and x[0].isalpha()),
         )
 
         # Various value types
@@ -71,8 +71,8 @@ def json_config_content(draw):
     # Add various configuration sections
     sections = draw(
         st.lists(
-            st.sampled_from(["database", "api", "logging", "cache", "security"]), min_size=1, max_size=5, unique=True
-        )
+            st.sampled_from(["database", "api", "logging", "cache", "security"]), min_size=1, max_size=5, unique=True,
+        ),
     )
 
     for section in sections:
@@ -81,7 +81,7 @@ def json_config_content(draw):
                 "host": draw(st.sampled_from(["localhost", "127.0.0.1", "db.example.com"])),
                 "port": draw(st.integers(min_value=1, max_value=65535)),
                 "name": draw(
-                    st.text(alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")), min_size=1, max_size=20)
+                    st.text(alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")), min_size=1, max_size=20),
                 ),
                 "pool_size": draw(st.integers(min_value=1, max_value=100)),
             }
@@ -164,11 +164,11 @@ class TestConfigurationProperties:
         st.dictionaries(
             keys=st.text(min_size=1, max_size=50),
             values=st.one_of(
-                st.text(max_size=100), st.integers(), st.floats(allow_nan=False, allow_infinity=False), st.booleans()
+                st.text(max_size=100), st.integers(), st.floats(allow_nan=False, allow_infinity=False), st.booleans(),
             ),
             min_size=1,
             max_size=20,
-        )
+        ),
     )
     @settings(max_examples=100, deadline=2000)
     def test_config_merging_properties(self, config_dict):
@@ -218,11 +218,11 @@ class TestConfigurationProperties:
     @given(
         st.lists(
             st.dictionaries(
-                keys=st.text(min_size=1, max_size=20), values=st.text(max_size=50), min_size=1, max_size=10
+                keys=st.text(min_size=1, max_size=20), values=st.text(max_size=50), min_size=1, max_size=10,
             ),
             min_size=1,
             max_size=5,
-        )
+        ),
     )
     @settings(max_examples=50, deadline=3000)
     def test_config_hierarchy_properties(self, config_layers):
@@ -328,7 +328,7 @@ class TestConfigSecurityProperties:
             values=st.text(min_size=10, max_size=100),
             min_size=1,
             max_size=5,
-        )
+        ),
     )
     @settings(max_examples=30, deadline=1000)
     def test_config_masking_properties(self, sensitive_config):

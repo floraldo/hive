@@ -393,7 +393,7 @@ class PromptRegistry:
         try:
             export_names = template_names or list(self._templates.keys())
             export_data = {
-                "metadata": {
+                "metadata": {,
                     "exported_at": datetime.utcnow().isoformat(),
                     "template_count": len(export_names),
                     "registry_version": "1.0.0",
@@ -479,16 +479,16 @@ class PromptRegistry:
         """Get comprehensive registry statistics."""
         return {
             "total_templates": len(self._templates),
-            "categories": len(self._categories)
+            "categories": len(self._categories),
             "tags": len(self._tags),
-            "storage_path": str(self.storage_path)
+            "storage_path": str(self.storage_path),
             "cache_enabled": self.cache is not None,
             "category_breakdown": {
                 category: len(templates)
                 for category, templates in self._categories.items()
             }
             "top_tags": sorted(
-                [(tag, len(templates)) for tag, templates in self._tags.items()]
+                [(tag, len(templates)) for tag, templates in self._tags.items()],
                 key=lambda x: x[1],
                 reverse=True
             )[:10]
@@ -508,7 +508,7 @@ class PromptRegistry:
                 # Basic validation
                 template.get_required_variables()
                 template.render(**{
-                    var.name: var.default or "test_value",
+                    var.name: var.default or "test_value"
                     for var in template.get_all_variables()
                     if var.required
                 })

@@ -84,7 +84,7 @@ class HiveDatabaseError(BaseError):
     """Database operation errors"""
 
     def __init__(
-        self, message: str, query: str | None = None, table: str | None = None, error_code: str | None = None**kwargs
+        self, message: str, query: str | None = None, table: str | None = None, error_code: str | None = None**kwargs,
     ):
         super().__init__(message, component="database", **kwargs)
         self.details["query"] = query
@@ -110,7 +110,7 @@ class HiveDatabaseError(BaseError):
             self.recovery_suggestions = [
                 "Check SQL syntax if query was provided"
                 "Verify table schema matches expected structure"
-                "Check database integrity with PRAGMA integrity_check"
+                "Check database integrity with PRAGMA integrity_check",
             ]
 
 
@@ -118,7 +118,7 @@ class HiveTaskError(BaseError):
     """Task execution errors"""
 
     def __init__(
-        self, message: str, task_id: str | None = None, task_type: str | None = None, phase: str | None = None**kwargs
+        self, message: str, task_id: str | None = None, task_type: str | None = None, phase: str | None = None**kwargs,
     ):
         super().__init__(message, component="task", **kwargs)
         self.details["task_id"] = task_id
@@ -162,7 +162,7 @@ class HiveWorkerError(BaseError):
                 "Check worker script for errors"
                 "Verify worker environment and dependencies"
                 "Review worker logs for detailed errors"
-                "Consider restarting the worker"
+                "Consider restarting the worker",
             ]
 
 
@@ -184,11 +184,11 @@ class HiveAPIError(BaseError):
         # Add recovery suggestions based on status code
         if status_code == 401:
             self.recovery_suggestions = [
-                "Check API credentials are validVerify API key is set in configurationCheck API key permissions"
+                "Check API credentials are validVerify API key is set in configurationCheck API key permissions",
             ]
         elif status_code == 429:
             self.recovery_suggestions = [
-                "Rate limit exceeded - wait before retryingImplement exponential backoffConsider request batching"
+                "Rate limit exceeded - wait before retryingImplement exponential backoffConsider request batching",
             ]
         elif status_code and status_code >= 500:
             self.recovery_suggestions = (
@@ -196,7 +196,7 @@ class HiveAPIError(BaseError):
             )
         else:
             self.recovery_suggestions = [
-                "Check API request formatVerify API endpoint is correctReview API documentation"
+                "Check API request formatVerify API endpoint is correctReview API documentation",
             ]
 
 

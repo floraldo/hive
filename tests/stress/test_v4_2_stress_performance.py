@@ -300,7 +300,7 @@ class TestV42StressPerformance:
 
         # Run extended stress test
         results = await stress_runner.run_stress_test(
-            memory_intensive_operation, duration_seconds=60, concurrent_workers=30
+            memory_intensive_operation, duration_seconds=60, concurrent_workers=30,
         )
 
         # Verify memory stability
@@ -469,7 +469,7 @@ class TestV42RegressionValidation:
                 await mock_ai_planner.generate_plan_async(task_id)
 
             results = await stress_runner.run_stress_test(
-                scalability_operation, duration_seconds=10, concurrent_workers=concurrency
+                scalability_operation, duration_seconds=10, concurrent_workers=concurrency,
             )
 
             scalability_results[concurrency] = results["throughput"]

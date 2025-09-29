@@ -151,7 +151,7 @@ class LoggingViolationsFixer:
                 file_path.write_text(new_content, encoding="utf-8")
 
                 self.fixes_applied.append(
-                    {"file": str(file_path.relative_to(self.project_root)), "fixes": fixes_in_file}
+                    {"file": str(file_path.relative_to(self.project_root)), "fixes": fixes_in_file},
                 )
 
                 print(f"[FIXED] {file_path.name}: {fixes_in_file} print statements")
@@ -195,7 +195,7 @@ class LoggingViolationsFixer:
 
         for i, (file_path, violation_count) in enumerate(files_with_violations, 1):
             print(
-                f"[{i:3d}/{len(files_with_violations)}] Processing {file_path.name} ({violation_count} violations)..."
+                f"[{i:3d}/{len(files_with_violations)}] Processing {file_path.name} ({violation_count} violations)...",
             )
             fixes = self.fix_file_logging(file_path)
             self.total_fixes += fixes

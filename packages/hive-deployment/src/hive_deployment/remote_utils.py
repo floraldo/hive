@@ -154,7 +154,7 @@ def run_remote_command(
             (logging.warning(f"  STDERR: {stderr}"),)
         if check:
             raise Exception(
-                f"Remote command failed with exit code {exit_code}: {sudo_prefix}{command}. Stderr: {stderr}"
+                f"Remote command failed with exit code {exit_code}: {sudo_prefix}{command}. Stderr: {stderr}",
             )
     else:
         (logging.debug(f"Remote command succeeded (Exit Code: 0): {sudo_prefix}{command}"),)
@@ -167,7 +167,7 @@ def run_remote_command(
 
 
 def upload_directory(
-    ssh_client: SSHClient, local_dir: str, remote_dir: str, config: dict[str, Any], sudo_upload: bool = False
+    ssh_client: SSHClient, local_dir: str, remote_dir: str, config: dict[str, Any], sudo_upload: bool = False,
 ) -> bool:
     """
     Uploads a local directory to a remote server via SFTP.
@@ -199,7 +199,7 @@ def upload_directory(
         (logging.info(f"Creating remote directory (if needed): {remote_dir}"),)
         # Use run_remote_command for directory creation
         exit_code, _, stderr = run_remote_command(
-            ssh_client, f"mkdir -p '{remote_dir}'", config, sudo=sudo_upload, check=False, log_output=False
+            ssh_client, f"mkdir -p '{remote_dir}'", config, sudo=sudo_upload, check=False, log_output=False,
         )
         if exit_code != 0:
             # Check if error is "File exists" - that's okay
@@ -224,7 +224,7 @@ def upload_directory(
             if relative_path != Path("."):  # Don't try to create the base dir again,
                 (logging.debug(f"Creating remote subdirectory: {remote_root}"),)
                 exit_code, _, stderr = run_remote_command(
-                    ssh_client, f"mkdir -p '{remote_root}'", config, sudo=sudo_upload, check=False, log_output=False
+                    ssh_client, f"mkdir -p '{remote_root}'", config, sudo=sudo_upload, check=False, log_output=False,
                 )
                 # Again, ignore "File exists" type errors
                 if exit_code != 0 and "File exists" not in stderr:

@@ -86,7 +86,7 @@ def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[dict[str
                     "not_null": bool(col[3]),
                     "default_value": col[4],
                     "primary_key": bool(col[5]),
-                }
+                },
             )
 
         return schema
@@ -349,7 +349,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
     try:
         # Ensure migrations table exists
         create_table_if_not_exists(
-            conn, "migrations", "version INTEGER PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+            conn, "migrations", "version INTEGER PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
         )
 
         # Get applied migrations
@@ -358,7 +358,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
 
         # Find migration files
         migration_files = sorted(
-            [f for f in migrations_dir.glob("*.sql") if f.stem.isdigit()], key=lambda x: int(x.stem)
+            [f for f in migrations_dir.glob("*.sql") if f.stem.isdigit()], key=lambda x: int(x.stem),
         )
 
         # Apply migrations

@@ -58,7 +58,7 @@ def create_golden_system():
             0.0,
             0.0,
             0.0,  # Evening/night
-        ]
+        ],
     )
 
     demand_profile = np.array(
@@ -87,14 +87,14 @@ def create_golden_system():
             0.4,
             0.4,
             0.4,  # Night baseload
-        ]
+        ],
     )
 
     # Create components matching golden dataset exactly
     grid_params = GridParams(
         technical=GridTechnicalParams(
-            capacity_nominal=100.0, import_tariff=0.25, export_tariff=0.10, fidelity_level=FidelityLevel.SIMPLE
-        )
+            capacity_nominal=100.0, import_tariff=0.25, export_tariff=0.10, fidelity_level=FidelityLevel.SIMPLE,
+        ),
     )
     grid = Grid("Grid", grid_params, N)
 
@@ -106,22 +106,22 @@ def create_golden_system():
             efficiency_roundtrip=0.95,
             initial_soc_pct=0.5,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     battery = Battery("Battery", battery_params, N)
 
     solar_params = SolarPVParams(
         technical=SolarPVTechnicalParams(
-            capacity_nominal=50.0, efficiency_nominal=1.0, fidelity_level=FidelityLevel.SIMPLE
-        )
+            capacity_nominal=50.0, efficiency_nominal=1.0, fidelity_level=FidelityLevel.SIMPLE,
+        ),
     )
     solar = SolarPV("SolarPV", solar_params, N)
     solar.profile = solar_profile
 
     demand_params = PowerDemandParams(
         technical=PowerDemandTechnicalParams(
-            capacity_nominal=12.5, peak_demand=12.5, load_profile_type="variable", fidelity_level=FidelityLevel.SIMPLE
-        )
+            capacity_nominal=12.5, peak_demand=12.5, load_profile_type="variable", fidelity_level=FidelityLevel.SIMPLE,
+        ),
     )
     demand = PowerDemand("PowerDemand", demand_params, N)
     demand.profile = demand_profile
@@ -205,7 +205,7 @@ def run_validation():
         logger.info(f"Solver completed: status={result.status}, time={solve_time:.4f}s")
 
         results.update(
-            {"solver_status": result.status, "solve_time": solve_time, "solver_success": result.status == "optimal"}
+            {"solver_status": result.status, "solve_time": solve_time, "solver_success": result.status == "optimal"},
         )
 
         if result.status == "optimal":
@@ -253,7 +253,7 @@ def run_validation():
                     "battery_cycling_ratio": float(battery_cycling),
                     "total_solar_generation": float(solar_total),
                     "validation_passed": energy_balance_ok and golden_match,
-                }
+                },
             )
 
             # Log summary

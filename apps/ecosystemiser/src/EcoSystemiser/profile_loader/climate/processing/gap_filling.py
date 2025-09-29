@@ -158,11 +158,11 @@ class GapFiller:
         gaps_filled = initial_gaps - final_gaps
 
         if gaps_filled > 0:
-            self.fill_report["details"][var_name] = {
+            self.fill_report["details"][var_name] = {,
                 "method": method,
-                "initial_gaps": int(initial_gaps)
+                "initial_gaps": int(initial_gaps),
                 "gaps_filled": int(gaps_filled),
-                "gaps_remaining": int(final_gaps)
+                "gaps_remaining": int(final_gaps),
                 "fill_rate": (float(gaps_filled / initial_gaps * 100) if initial_gaps > 0 else 0)
             },
 

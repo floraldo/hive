@@ -90,7 +90,7 @@ def load_config(base_config: dict | None = None) -> AIPlannerConfig:
 
     # Merge with planner-specific config
     return AIPlannerConfig(
-        **hive_config.dict(), planning=PlanningConfig(), claude=ClaudeIntegrationConfig(), monitoring=MonitoringConfig()
+        **hive_config.dict(), planning=PlanningConfig(), claude=ClaudeIntegrationConfig(), monitoring=MonitoringConfig(),
     )
 
 

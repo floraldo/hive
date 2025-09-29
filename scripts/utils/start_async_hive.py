@@ -116,7 +116,7 @@ def main():
     """Main entry point with options"""
     parser = argparse.ArgumentParser(description="Async Hive V4.0 Launcher")
     parser.add_argument(
-        "--mode", choices=["orchestrator", "benchmark", "both"], default="orchestrator", help="Execution mode"
+        "--mode", choices=["orchestrator", "benchmark", "both"], default="orchestrator", help="Execution mode",
     )
     parser.add_argument("--live", action="store_true", help="Enable live output")
 

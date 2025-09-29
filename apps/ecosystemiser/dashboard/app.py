@@ -36,7 +36,7 @@ Please use one of the following:
 
 This change is part of the EcoSystemiser v3.0 architectural refactoring to ensure
 proper separation between the presentation layer (dashboard) and the core business logic.
-"""
+""",
 )
 
 st.info("💡 **Tip:** The isolated dashboard can load any climate data JSON/CSV file from the results directory.")

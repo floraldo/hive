@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 
 def split_date_range(
-    start_date: datetime, end_date: datetime, chunk_days: int = 365
+    start_date: datetime, end_date: datetime, chunk_days: int = 365,
 ) -> list[tuple[datetime, datetime]]:
     """
     Split a date range into chunks to prevent memory issues.

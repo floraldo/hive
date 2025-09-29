@@ -177,7 +177,7 @@ class ReviewEngine:
             decision = ReviewDecision(decision_str)
         except ValueError:
             error = ReviewValidationError(
-                message=f"Invalid review decision: {decision_str}", field="decision", value=decision_str
+                message=f"Invalid review decision: {decision_str}", field="decision", value=decision_str,
             )
             (self.error_reporter.report_error(error, severity="WARNING"),)
             decision = ReviewDecision.ESCALATE

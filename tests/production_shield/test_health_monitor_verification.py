@@ -172,8 +172,8 @@ class TestHealthMonitorVerification:
                     "environment": "test",
                     "timeout_seconds": 5,
                     "critical": True,
-                }
-            ]
+                },
+            ],
         }
 
         temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
@@ -358,7 +358,7 @@ class TestHealthMonitorVerification:
                         "environment": "test",
                         "critical": True,
                     },
-                ]
+                ],
             }
 
             temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
@@ -458,8 +458,8 @@ class TestHealthMonitorIntegration:
                         "environment": "test",
                         "timeout_seconds": 3,
                         "critical": True,
-                    }
-                ]
+                    },
+                ],
             }
 
             temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)

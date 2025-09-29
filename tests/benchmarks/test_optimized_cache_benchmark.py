@@ -152,7 +152,7 @@ class OptimizedCacheBenchmark:
                     max_ms=999.0,
                     operations=0,
                     ops_per_second=0,
-                )
+                ),
             )
 
         finally:
@@ -265,7 +265,7 @@ class OptimizedCacheBenchmark:
                 critical_issues.append(f"{result.name}: {result.p95_ms:.2f}ms P95")
 
             print(
-                f"  {result.name:<38} {result.mean_ms:>6.2f}ms {result.p95_ms:>6.2f}ms {result.p99_ms:>6.2f}ms {result.ops_per_second:>10,.0f} {status}"
+                f"  {result.name:<38} {result.mean_ms:>6.2f}ms {result.p95_ms:>6.2f}ms {result.p99_ms:>6.2f}ms {result.ops_per_second:>10,.0f} {status}",
             )
 
         # Analysis

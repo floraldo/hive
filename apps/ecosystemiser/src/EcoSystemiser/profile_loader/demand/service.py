@@ -160,7 +160,7 @@ class DemandService(BaseProfileService):
     def get_source_coverage(self, source: str) -> Dict[str, Any]:
         """Get coverage information for demand source."""
         if source == "file":
-            return {
+            return {,
                 "spatial_coverage": "User-defined",
                 "temporal_coverage": "User-defined",
                 "resolution": "Variable",
@@ -241,7 +241,7 @@ class DemandService(BaseProfileService):
                 "source": request.source or "file",
                 "demand_type": request.demand_type,
                 "building_type": request.building_type,
-                "location": str(request.location)
+                "location": str(request.location),
                 "resolution": request.resolution,
                 "variables": list(profiles.keys())
             }
@@ -272,9 +272,9 @@ class DemandService(BaseProfileService):
         # Build response
         response = DemandResponse(
             shape=(len(dataset.time), len(dataset.data_vars)),
-            start_time=pd.Timestamp(dataset.time.values[0])
+            start_time=pd.Timestamp(dataset.time.values[0]),
             end_time=pd.Timestamp(dataset.time.values[-1]),
-            variables=list(dataset.data_vars)
+            variables=list(dataset.data_vars),
             source=request.source or "file",
             peak_demand_kw=peak_demand,
             total_energy_kwh=total_energy,

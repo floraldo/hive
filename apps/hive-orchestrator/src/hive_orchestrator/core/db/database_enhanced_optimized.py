@@ -105,7 +105,7 @@ def get_queued_tasks_with_planning_optimized(
 
         # Process results
         for row in cursor.fetchall():
-            task = {
+            task = {,
                 "id": row[0],
                 "title": row[1],
                 "description": row[2],

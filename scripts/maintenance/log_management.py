@@ -191,7 +191,7 @@ class LogOrganizer:
                     logger.info(
                         f"{'Would delete' if dry_run else 'Deleting'} {log_file.path} "
                         f"(modified: {log_file.modified.strftime('%Y-%m-%d')}, "
-                        f"size: {log_file.size} bytes)"
+                        f"size: {log_file.size} bytes)",
                     )
 
                     if not dry_run:

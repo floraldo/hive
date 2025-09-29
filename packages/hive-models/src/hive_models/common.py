@@ -57,7 +57,7 @@ class ExecutionResult(BaseModel):
     data: Optional[dict[str, Any]] = Field(default=None, description="Any data returned from the execution")
     error: str | None = Field(default=None, description="Error message if execution failed")
     error_details: Optional[dict[str, Any]] = Field(
-        default=None, description="Detailed error information for debugging"
+        default=None, description="Detailed error information for debugging",
     )
     duration_ms: float | None = Field(default=None, description="Execution duration in milliseconds")
 

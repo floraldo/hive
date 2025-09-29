@@ -74,7 +74,7 @@ class EcoSystemiserEventBus(BaseBus):
                 """,
                 SELECT sql FROM sqlite_master,
                 WHERE type='table' AND name='ecosystemiser_events',
-            """
+            """,
             )
             existing_schema = cursor.fetchone()
 
@@ -125,7 +125,7 @@ class EcoSystemiserEventBus(BaseBus):
                 metadata TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """
+        """,
         )
 
         # EcoSystemiser-specific indexes for simulation queries,
@@ -134,7 +134,7 @@ class EcoSystemiserEventBus(BaseBus):
                 """,
             CREATE INDEX IF NOT EXISTS idx_ecosys_events_simulation,
             ON ecosystemiser_events(simulation_id, timestamp)
-        """
+        """,
             ),
         )
 
@@ -143,7 +143,7 @@ class EcoSystemiserEventBus(BaseBus):
                 """
             CREATE INDEX IF NOT EXISTS idx_ecosys_events_analysis,
             ON ecosystemiser_events(analysis_id, timestamp)
-        """
+        """,
             ),
         )
 
@@ -152,7 +152,7 @@ class EcoSystemiserEventBus(BaseBus):
                 """
             CREATE INDEX IF NOT EXISTS idx_ecosys_events_optimization,
             ON ecosystemiser_events(optimization_id, timestamp)
-        """
+        """,
             ),
         )
 
@@ -205,7 +205,7 @@ class EcoSystemiserEventBus(BaseBus):
                         optimization_id,
                         json.dumps(event.payload if hasattr(event, "payload") else {}),
                         json.dumps(event.metadata if hasattr(event, "metadata") else {}),
-                    )
+                    ),
                 )
 
             # Notify subscribers (from parent class),

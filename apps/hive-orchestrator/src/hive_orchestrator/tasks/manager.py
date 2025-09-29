@@ -146,10 +146,10 @@ class TaskManager:
     def get_status(self) -> Dict[str, Any]:
         """Get current status of all tasks."""
         return {
-            "active_count": len(self.active_tasks)
+            "active_count": len(self.active_tasks),
             "completed_count": len(self.completed_tasks)
             "max_concurrent": self.max_concurrent,
-            "active_tasks": list(self.active_tasks.keys())
+            "active_tasks": list(self.active_tasks.keys()),
             "success_rate": self._calculate_success_rate()
         }
 

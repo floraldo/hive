@@ -83,7 +83,7 @@ class GoldenMicrogridValidator:
 
             if imbalance > self.tolerance:
                 balance_results["balance_violations"].append(
-                    {"timestep": t, "sources": sources, "sinks": sinks, "imbalance": imbalance}
+                    {"timestep": t, "sources": sources, "sinks": sinks, "imbalance": imbalance},
                 )
 
         # Determine if validation passed
@@ -115,7 +115,7 @@ class GoldenMicrogridValidator:
                     soc = comp.E[t] / E_max
                     if soc < -self.tolerance or soc > 1.0 + self.tolerance:
                         physics_results["storage_bounds_violations"].append(
-                            {"component": comp_name, "timestep": t, "soc": soc, "energy": comp.E[t], "capacity": E_max}
+                            {"component": comp_name, "timestep": t, "soc": soc, "energy": comp.E[t], "capacity": E_max},
                         )
 
         # Check non-negative flows
@@ -124,7 +124,7 @@ class GoldenMicrogridValidator:
                 flow_value = flow_data["value"][t] if hasattr(flow_data["value"], "__getitem__") else 0.0
                 if flow_value < -self.tolerance:
                     physics_results["flow_negative_violations"].append(
-                        {"flow": flow_key, "timestep": t, "value": flow_value}
+                        {"flow": flow_key, "timestep": t, "value": flow_value},
                     )
 
         # Determine if validation passed
@@ -136,7 +136,7 @@ class GoldenMicrogridValidator:
 
         logger.info(
             f"Physics constraints: storage_violations={len(physics_results['storage_bounds_violations'])}, "
-            f"flow_violations={len(physics_results['flow_negative_violations'])}"
+            f"flow_violations={len(physics_results['flow_negative_violations'])}",
         )
 
         return physics_results
@@ -205,7 +205,7 @@ class GoldenMicrogridValidator:
         logger.info(
             f"System behavior: solar_priority={behavior_results['solar_priority_check']}, "
             f"storage_cycling={behavior_results['storage_cycling_check']}, "
-            f"thermal_coupling={behavior_results['thermal_coupling_check']}"
+            f"thermal_coupling={behavior_results['thermal_coupling_check']}",
         )
 
         return behavior_results
@@ -253,7 +253,7 @@ class GoldenMicrogridValidator:
                 validation_results["physics_constraints"]["passed"],
                 validation_results["system_behavior"]["passed"],
                 validation_results["performance"]["passed"],
-            ]
+            ],
         )
 
         return validation_results
@@ -456,7 +456,7 @@ if __name__ == "__main__":
         logger.info("\n" + "=" * 80)
         logger.info("GOLDEN MICROGRID VALIDATION COMPLETE")
         logger.info(
-            f"Tests passed: {report['validation_summary']['passed_tests']}/{report['validation_summary']['total_tests']}"
+            f"Tests passed: {report['validation_summary']['passed_tests']}/{report['validation_summary']['total_tests']}",
         )
         logger.info("=" * 80)
 

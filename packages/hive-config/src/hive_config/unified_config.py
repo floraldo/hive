@@ -54,7 +54,7 @@ class OrchestrationConfig(BaseModel):
             "testing": 600,
             "validation": 300,
             "review": 180,
-        }
+        },
     )
     zombie_task_threshold: int = Field(default=3600)
     heartbeat_interval: int = Field(default=30)

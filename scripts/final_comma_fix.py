@@ -3,6 +3,7 @@
 Final comprehensive comma fixer that handles ALL remaining patterns.
 This will fix all syntax errors so ruff format can work.
 """
+
 import re
 import sys
 from pathlib import Path

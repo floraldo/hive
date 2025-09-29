@@ -98,7 +98,7 @@ def create_synthetic_weather_profiles() -> None:
             "temperature_c": temp_profile,
             "solar_irradiance_w_m2": solar_profile,
             "wind_speed_m_s": wind_profile,
-        }
+        },
     )
 
     # Create seasonal variants

@@ -111,21 +111,21 @@ class ModelHealthChecker:
     def _load_default_configs(self) -> dict[str, dict[str, Any]]:
         """Load default health check configurations for different providers."""
         return {
-            "anthropic": {
+            "anthropic": {,
                 "timeout_seconds": 10,
                 "test_prompt": "Hello, respond with 'OK' if you're working.",
                 "expected_response_pattern": "OK",
                 "max_response_time_ms": 5000,
                 "min_success_rate": 0.9,
             },
-            "openai": {
+            "openai": {,
                 "timeout_seconds": 10,
                 "test_prompt": "Say 'OK' to confirm you're operational.",
                 "expected_response_pattern": "OK",
                 "max_response_time_ms": 8000,
                 "min_success_rate": 0.9,
             },
-            "local": {
+            "local": {,
                 "timeout_seconds": 30,
                 "test_prompt": "Respond with 'OK' if functional.",
                 "expected_response_pattern": "OK",
@@ -225,7 +225,7 @@ class ModelHealthChecker:
             )
 
             logger.debug(
-                f"Provider health check completed: {provider} = {overall_status.value} ", f"({response_time_ms:.1f}ms)"
+                f"Provider health check completed: {provider} = {overall_status.value} ", f"({response_time_ms:.1f}ms)",
             )
 
             return health
@@ -281,7 +281,7 @@ class ModelHealthChecker:
             )
 
     async def _check_functionality_async(
-        self, provider_name: str, provider_instance: Any, config: dict[str, Any]
+        self, provider_name: str, provider_instance: Any, config: dict[str, Any],
     ) -> HealthCheckResult:
         """Check functional capability of provider."""
         start_time = time.time()
@@ -366,7 +366,7 @@ class ModelHealthChecker:
         return self.registry.config.models[provider_models[0]].name
 
     def _determine_provider_status(
-        self, connectivity: HealthCheckResult, functionality: HealthCheckResult
+        self, connectivity: HealthCheckResult, functionality: HealthCheckResult,
     ) -> HealthStatus:
         """Determine overall provider status from check results."""
         # If either check is unhealthy, provider is unhealthy,
@@ -385,14 +385,14 @@ class ModelHealthChecker:
         return HealthStatus.HEALTHY
 
     def _update_provider_health(
-        self, provider: str, status: HealthStatus, response_time_ms: float, details: dict[str, Any]
+        self, provider: str, status: HealthStatus, response_time_ms: float, details: dict[str, Any],
     ) -> ProviderHealth:
         """Update provider health state and history."""
         now = datetime.utcnow()
 
         # Create health check result,
         check_result = HealthCheckResult(
-            status=status, response_time_ms=response_time_ms, timestamp=now, details=details
+            status=status, response_time_ms=response_time_ms, timestamp=now, details=details,
         )
 
         # Update history,
@@ -510,7 +510,7 @@ class ModelHealthChecker:
         # Provider health summary
         provider_summary = {}
         for provider, health in self._provider_health.items():
-            provider_summary[provider] = {
+            provider_summary[provider] = {,
                 "status": health.status.value,
                 "availability": health.availability_percentage,
                 "last_check": health.last_check.isoformat(),
@@ -520,7 +520,7 @@ class ModelHealthChecker:
         # Model health summary
         model_summary = {}
         for model, health in self._model_health.items():
-            model_summary[model] = {
+            model_summary[model] = {,
                 "status": health.status.value,
                 "provider": health.provider,
                 "success_rate": health.success_rate,
@@ -546,7 +546,7 @@ class ModelHealthChecker:
             "monitoring_active": self._monitoring_active,
             "providers": provider_summary,
             "models": model_summary,
-            "statistics": {
+            "statistics": {,
                 "total_providers": total_providers,
                 "healthy_providers": healthy_providers,
                 "degraded_providers": sum(
@@ -578,7 +578,7 @@ class ModelHealthChecker:
                         "message": f"Provider {provider} is unhealthy",
                         "details": health.metadata,
                         "timestamp": health.last_check.isoformat(),
-                    }
+                    },
                 )
 
             # Low availability alert
@@ -591,7 +591,7 @@ class ModelHealthChecker:
                         "message": f"Provider {provider} availability is {health.availability_percentage:.1f}%",
                         "availability": health.availability_percentage,
                         "timestamp": health.last_check.isoformat(),
-                    }
+                    },
                 )
 
             # High response time alert
@@ -604,7 +604,7 @@ class ModelHealthChecker:
                         "message": f"Provider {provider} response time is {health.response_time_ms:.1f}ms",
                         "response_time_ms": health.response_time_ms,
                         "timestamp": health.last_check.isoformat(),
-                    }
+                    },
                 )
 
         return alerts
@@ -670,17 +670,17 @@ class ModelHealthChecker:
                     {
                         "timestamp": check.timestamp,
                         "value": float(value),
-                        "metadata": {
+                        "metadata": {,
                             "provider": provider,
                             "metric_type": metric_name,
                             "check_status": check.status.value,
                             "unit": self._get_metric_unit(metric_name),
                         },
-                    }
+                    },
                 )
 
         logger.debug(
-            f"Retrieved {len(metric_points)} health metric points for provider={provider}, metric={metric_name}"
+            f"Retrieved {len(metric_points)} health metric points for provider={provider}, metric={metric_name}",
         )
 
         return metric_points

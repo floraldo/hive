@@ -334,14 +334,14 @@ class UnifiedActionFramework:
 
             # Generate strategic insights,
             strategic_analysis = {
-                "overall_performance": {
+                "overall_performance": {,
                     "total_strategic_actions": total_actions,
                     "successful_actions": successful_actions,
                     "overall_success_rate": successful_actions / total_actions if total_actions > 0 else 0,
                     "analysis_date": datetime.utcnow().isoformat(),
                 },
                 "context_performance": {
-                    context: {
+                    context: {,
                         "success_rate": data["success_rate"],
                         "total_actions": data["total"],
                         "confidence_level": (
@@ -357,7 +357,7 @@ class UnifiedActionFramework:
                     for pattern, data in top_patterns,
                 ],
                 "strategic_recommendations": self._generate_pattern_recommendations(context_success_rates),
-                "learning_evolution": {
+                "learning_evolution": {,
                     "models_updated": len(self.strategic_learning_models),
                     "prophecy_validation_rate": self._calculate_prophecy_validation_rate(),
                     "cross_correlation_strength": self._calculate_avg_correlation_strength(),
@@ -802,7 +802,7 @@ class UnifiedActionFramework:
 
         # Update success rates for strategic contexts
         if strategic_context not in self.strategic_learning_models:
-            self.strategic_learning_models[strategic_context] = {
+            self.strategic_learning_models[strategic_context] = {,
                 "total_actions": 0,
                 "successful_actions": 0,
                 "success_rate": 0.0,
@@ -856,7 +856,7 @@ class UnifiedActionFramework:
 
         # Find best performing contexts
         best_contexts = [
-            context,
+            context
             for context, data in context_success_rates.items()
             if data["success_rate"] > 0.8 and data["total"] >= 3
         ]
@@ -866,7 +866,7 @@ class UnifiedActionFramework:
 
         # Find underperforming contexts
         poor_contexts = [
-            context,
+            context
             for context, data in context_success_rates.items()
             if data["success_rate"] < 0.5 and data["total"] >= 3
         ]

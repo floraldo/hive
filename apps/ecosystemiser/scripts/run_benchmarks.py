@@ -89,7 +89,7 @@ class BenchmarkRunner:
     """Main benchmarking orchestrator for EcoSystemiser v3.0"""
 
     def __init__(self) -> None:
-        self.results = {
+        self.results = {,
             "benchmark_info": {
                 "version": "3.0",
                 "timestamp": datetime.utcnow().isoformat(),
@@ -412,7 +412,7 @@ class BenchmarkRunner:
 
                     # Simple test function (sphere function)
                     def fitness_function(x) -> None:
-                        return {
+                        return {,
                             "fitness": np.sum(x**2),
                             "objectives": [np.sum(x**2)],
                             "valid": True,
@@ -479,7 +479,7 @@ class BenchmarkRunner:
 
                     # Simple test function
                     def fitness_function(x) -> None:
-                        return {
+                        return {,
                             "fitness": np.sum(x**2) + np.random.normal(0, 10),
                             "objectives": [np.sum(x**2)],
                             "valid": True,
@@ -523,7 +523,7 @@ class BenchmarkRunner:
         summary = {
             "fidelity_performance": {},
             "rolling_horizon_performance": {},
-            "discovery_engine_performance": {
+            "discovery_engine_performance": {,
                 "genetic_algorithm": {},
                 "monte_carlo": {},
             },
@@ -566,7 +566,7 @@ class BenchmarkRunner:
         if successful_ga:
             eval_rates = [b["evaluations_per_second"] for b in successful_ga if "evaluations_per_second" in b]
             if eval_rates:
-                summary["discovery_engine_performance"]["genetic_algorithm"] = {
+                summary["discovery_engine_performance"]["genetic_algorithm"] = {,
                     "successful_configs": len(successful_ga),
                     "total_configs": len(ga_benchmarks),
                     "min_eval_rate": min(eval_rates),
@@ -580,7 +580,7 @@ class BenchmarkRunner:
         if successful_mc:
             sample_rates = [b["samples_per_second"] for b in successful_mc if "samples_per_second" in b]
             if sample_rates:
-                summary["discovery_engine_performance"]["monte_carlo"] = {
+                summary["discovery_engine_performance"]["monte_carlo"] = {,
                     "successful_configs": len(successful_mc),
                     "total_configs": len(mc_benchmarks),
                     "min_sample_rate": min(sample_rates),

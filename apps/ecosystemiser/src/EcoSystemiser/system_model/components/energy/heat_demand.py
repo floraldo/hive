@@ -34,7 +34,7 @@ class HeatDemandTechnicalParams(DemandTechnicalParams):
 
     # STANDARD fidelity additions
     thermal_comfort_band: dict[str, float] | None = Field(
-        None, description="Acceptable temperature range {min_temp, max_temp}"
+        None, description="Acceptable temperature range {min_temp, max_temp}",
     )
     building_thermal_mass: float | None = Field(None, description="Building thermal inertia factor")
 
@@ -42,12 +42,12 @@ class HeatDemandTechnicalParams(DemandTechnicalParams):
     weather_dependency: dict[str, float] | None = Field(None, description="Weather correlation parameters")
     occupancy_schedule: dict[str, Any] | None = Field(None, description="Occupancy-driven demand variations")
     demand_response_capability: dict[str, float] | None = Field(
-        None, description="Demand response parameters {shift_capacity, shed_capacity}"
+        None, description="Demand response parameters {shift_capacity, shed_capacity}",
     )
 
     # RESEARCH fidelity parameters
     building_physics_model: dict[str, Any] | None = Field(
-        None, description="Detailed building physics model parameters"
+        None, description="Detailed building physics model parameters",
     )
     behavioral_model: dict[str, Any] | None = Field(None, description="Occupant behavior modeling parameters")
 

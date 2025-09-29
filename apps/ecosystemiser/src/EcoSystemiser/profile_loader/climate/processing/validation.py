@@ -247,11 +247,11 @@ class QCReport:
 
 # Helper functions for creating QC issues
 def create_consistency_issue(
-    message: str, affected_variables: list[str], severity: QCSeverity = QCSeverity.HIGH, **kwargs
+    message: str, affected_variables: list[str], severity: QCSeverity = QCSeverity.HIGH, **kwargs,
 ) -> QCIssue:
     """Helper to create consistency QC issues"""
     return QCIssue(
-        type="consistency", message=message, severity=severity, affected_variables=affected_variables, **kwargs
+        type="consistency", message=message, severity=severity, affected_variables=affected_variables, **kwargs,
     )
 
 
@@ -454,7 +454,7 @@ class MeteorologicalValidator:
         """
         report = (
             QCReport(
-                dataset_id=ds.attrs.get("id", f"dataset_{hash(str(ds.dims))}"), timestamp=datetime.now().isoformat()
+                dataset_id=ds.attrs.get("id", f"dataset_{hash(str(ds.dims))}"), timestamp=datetime.now().isoformat(),
             ),
         )
 
@@ -1079,7 +1079,7 @@ class MeteorologicalValidator:
         )
 
     def validate_batch(
-        self, datasets: list[tuple[xr.Dataset, str, str | None]], validation_level: str = "standard"
+        self, datasets: list[tuple[xr.Dataset, str, str | None]], validation_level: str = "standard",
     ) -> dict[str, QCReport]:
         """
         Validate multiple datasets in batch.
@@ -1111,7 +1111,7 @@ class MeteorologicalValidator:
                         severity=QCSeverity.CRITICAL,
                         affected_variables=[],
                         suggested_action="Check dataset format and processing pipeline",
-                    )
+                    ),
                 )
                 reports[identifier] = error_report
 
@@ -1151,18 +1151,18 @@ def validate_complete(
 
     # Initialize comprehensive report
     report = QCReport(
-        dataset_id=f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}", timestamp=datetime.now().isoformat()
+        dataset_id=f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}", timestamp=datetime.now().isoformat(),
     )
 
     # Add dataset info to metadata,
     report.metadata = {
-        "dataset_info": {
+        "dataset_info": {,
             "variables": list(ds.data_vars.keys()),
             "time_range": (str(ds.time.min().values), str(ds.time.max().values)),
             "shape": dict(ds.sizes),  # Use sizes instead of dims to avoid deprecation warning,
             "attributes": dict(ds.attrs),
             "source": source,
-        }
+        },
     }
 
     # Phase 1: Basic structural validation,
@@ -1332,7 +1332,7 @@ def apply_quality_control(
     # Perform comprehensive validation using module-level function,
     validation_level = ("comprehensive" if comprehensive else "standard",)
     report = validate_complete(
-        ds, source=source, validation_level=validation_level, strict_mode=False, enable_profiling=True
+        ds, source=source, validation_level=validation_level, strict_mode=False, enable_profiling=True,
     )
 
     # Apply corrective actions based on validation report,
@@ -1499,7 +1499,7 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> tuple[xr.Datas
                 },
             )
 
-            (logger.info(f"Flagged {n_spikes} spikes ({report[var_name]['percent']:.2f}%) " f"in '{var_name}'"),)
+            (logger.info(f"Flagged {n_spikes} spikes ({report[var_name]['percent']:.2f}%) in '{var_name}'"),)
 
     return ds_filtered, report
 

@@ -43,7 +43,7 @@ class TestNetworkFailures:
                 side_effect=[
                     RateLimitError("Rate limit exceeded"),
                     {"content": "Review", "usage": {"total_tokens": 100}},
-                ]
+                ],
             )
 
             engine = ReviewEngine(config)
@@ -217,7 +217,7 @@ class TestMalformedInput:
         binary_content = b"\x00\x01\x02\x03\xff\xfe"
 
         with patch(
-            "builtins.open", MagicMock(side_effect=UnicodeDecodeError("utf-8", binary_content, 0, 1, "invalid"))
+            "builtins.open", MagicMock(side_effect=UnicodeDecodeError("utf-8", binary_content, 0, 1, "invalid")),
         ):
             result = await engine.review_file(Path("binary.py"))
 

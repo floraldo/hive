@@ -471,9 +471,9 @@ Thoughts:
     async def export_state_async(self) -> Dict[str, Any]:
         """Export agent state for persistence or debugging."""
         return {
-            "agent_info": {
+            "agent_info": {,
                 "id": self.id,
-                "config": {
+                "config": {,
                     "name": self.config.name,
                     "description": self.config.description,
                     "model": self.config.model,
@@ -484,7 +484,7 @@ Thoughts:
                 }
                 "created_at": self.created_at.isoformat()
             }
-            "execution_state": {
+            "execution_state": {,
                 "state": self.state.value,
                 "current_iteration": self.current_iteration,
                 "start_time": self.start_time.isoformat() if self.start_time else None,
@@ -492,7 +492,7 @@ Thoughts:
                 "errors": self.errors,
                 "results": self.results
             }
-            "memory": {
+            "memory": {,
                 "short_term": self.memory.short_term if self.memory else {}
                 "long_term": self.memory.long_term if self.memory else {},
                 "episodic": self.memory.episodic if self.memory else [],
@@ -510,7 +510,7 @@ Thoughts:
                 ]
             }
             "tools": {
-                name: {
+                name: {,
                     "name": tool.name,
                     "description": tool.description,
                     "enabled": tool.enabled,

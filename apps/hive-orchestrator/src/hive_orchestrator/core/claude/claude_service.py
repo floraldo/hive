@@ -183,7 +183,7 @@ class ClaudeService:
         """
         # Use provided claude_config if available, otherwise use defaults,
         if claude_config is None:
-            claude_config = {
+            claude_config = {,
                 "mock_mode": False,
                 "timeout": 30,
                 "max_retries": 3,
@@ -196,15 +196,15 @@ class ClaudeService:
         # Use provided config or create from claude_config,
         if config is None:
             config = ClaudeBridgeConfig(
-                mock_mode=claude_config.get("mock_mode", False)
-                timeout=claude_config.get("timeout", 30)
+                mock_mode=claude_config.get("mock_mode", False),
+                timeout=claude_config.get("timeout", 30),
                 max_retries=claude_config.get("max_retries", 3)
             )
 
         if rate_config is None:
             rate_config = RateLimitConfig(
-                max_calls_per_minute=claude_config.get("rate_limit_per_minute", 10)
-                max_calls_per_hour=claude_config.get("rate_limit_per_hour", 100)
+                max_calls_per_minute=claude_config.get("rate_limit_per_minute", 10),
+                max_calls_per_hour=claude_config.get("rate_limit_per_hour", 100),
                 burst_size=claude_config.get("burst_size", 5)
             )
 
@@ -387,7 +387,7 @@ class ClaudeService:
             self.planner_bridge.generate_execution_plan,
             use_cache=use_cache,
             task_description=task_description,
-            context_data=context_data or {}
+            context_data=context_data or {},
             priority=priority,
             requestor=requestor
         )

@@ -43,7 +43,7 @@ class FeedbackProcessor:
         logger.info("FeedbackProcessor initialized")
 
     async def process_feedback(
-        self, review_id: str, violation_id: str | None, feedback_type: str, feedback_text: str | None
+        self, review_id: str, violation_id: str | None, feedback_type: str, feedback_text: str | None,
     ) -> dict[str, Any]:
         """
         Process individual feedback item.
@@ -240,7 +240,7 @@ class FeedbackProcessor:
                 WHERE f.processed = 0
                 ORDER BY f.timestamp DESC
                 LIMIT 1000
-            """
+            """,
             )
 
             columns = [desc[0] for desc in cursor.description]
@@ -309,7 +309,7 @@ class FeedbackProcessor:
                             "rule": rule,
                             "reason": f"Accuracy {stats['accuracy']:.1%} over {stats['total_feedback']} reviews",
                             "confidence": 0.9,
-                        }
+                        },
                     )
                 elif stats["accuracy"] < 0.6:
                     # Moderate accuracy - suggest threshold adjustment
@@ -319,7 +319,7 @@ class FeedbackProcessor:
                             "rule": rule,
                             "reason": f"Accuracy {stats['accuracy']:.1%} suggests threshold adjustment",
                             "confidence": 0.7,
-                        }
+                        },
                     )
 
         # Analyze common complaints for prompt improvements
@@ -333,7 +333,7 @@ class FeedbackProcessor:
                         "theme": theme["theme"],
                         "suggestion": theme["suggestion"],
                         "confidence": theme["confidence"],
-                    }
+                    },
                 )
 
         # Sort by confidence

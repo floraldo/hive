@@ -53,10 +53,10 @@ class ReviewResponseValidator(PydanticValidator):
         return ClaudeReviewResponse(
             decision="escalate",
             summary=f"Escalated: {error_message}",
-            issues=[error_message]
-            suggestions=["Manual review required"]
+            issues=[error_message],
+            suggestions=["Manual review required"],
             quality_score=0,
-            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0)
+            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
             confidence=0.0
         )
 
@@ -139,13 +139,13 @@ Code Files:
 {objective_context}
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
-{{
+{{,
   "decision": "approve" or "reject" or "rework" or "escalate",
   "summary": "One sentence summary of your review",
   "issues": ["List of specific issues found", "Or empty list if none"]
   "suggestions": ["List of improvement suggestions", "Or empty list if none"]
   "quality_score": 75,
-  "metrics": {{
+  "metrics": {{,
     "code_quality": 80,
     "security": 85,
     "testing": 70,
@@ -212,7 +212,7 @@ Respond with ONLY the JSON object, no other text."""
                 testing=quality_score - 10,
                 architecture=quality_score,
                 documentation=quality_score - 15
-            )
+            ),
             confidence=0.5,  # Lower confidence for parsed responses
         )
 
@@ -221,8 +221,8 @@ Respond with ONLY the JSON object, no other text."""
         mock_review = ClaudeReviewResponse(
             decision="approve" if "test" in prompt.lower() else "rework",
             summary="Mock review for testing purposes",
-            issues=[] if "good" in prompt.lower() else ["Mock issue found"]
-            suggestions=["Mock suggestion for improvement"]
+            issues=[] if "good" in prompt.lower() else ["Mock issue found"],
+            suggestions=["Mock suggestion for improvement"],
             quality_score=75,
             metrics=ReviewMetrics(
                 code_quality=80,
@@ -230,7 +230,7 @@ Respond with ONLY the JSON object, no other text."""
                 testing=70,
                 architecture=75,
                 documentation=65
-            )
+            ),
             confidence=0.9
         )
         return json.dumps(mock_review.dict())

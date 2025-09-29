@@ -197,7 +197,7 @@ class SimpleResultsIO:
         """
         summary = {
             "simulation_id": getattr(system, "system_id", "unknown"),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
             "timesteps": system.N,
             "solver": getattr(system, "solver_type", "unknown")
             "metadata": metadata or {}
@@ -232,7 +232,7 @@ class SimpleResultsIO:
         # Add basic statistics,
         summary["statistics"] = {
             "total_variables": len(timeseries_df["variable"].unique()),
-            "total_datapoints": len(timeseries_df)
+            "total_datapoints": len(timeseries_df),
             "min_value": float(timeseries_df["value"].min()) if not timeseries_df.empty else 0,
             "max_value": float(timeseries_df["value"].max()) if not timeseries_df.empty else 0,
             "mean_value": float(timeseries_df["value"].mean()) if not timeseries_df.empty else 0

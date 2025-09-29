@@ -76,7 +76,7 @@ class RepositoryHygieneScanner:
             # Check if merged
             if branch_name in merged_branches:
                 self.findings["merged_branches"].append(
-                    {"name": branch_name, "type": "merged", "action": "Can be safely deleted"}
+                    {"name": branch_name, "type": "merged", "action": "Can be safely deleted"},
                 )
                 continue
 
@@ -94,7 +94,7 @@ class RepositoryHygieneScanner:
                                 "days_old": days_old,
                                 "last_commit": last_commit,
                                 "action": "Review for deletion",
-                            }
+                            },
                         )
             except Exception as e:
                 print(f"Could not analyze branch {branch_name}: {e}")
@@ -134,7 +134,7 @@ class RepositoryHygieneScanner:
                                         "url": link_url,
                                         "text": link_text,
                                         "type": "external",
-                                    }
+                                    },
                                 )
 
                         elif link_url.startswith("/") or "../" in link_url or "./" in link_url:
@@ -147,7 +147,7 @@ class RepositoryHygieneScanner:
                                         "url": link_url,
                                         "text": link_text,
                                         "type": "internal",
-                                    }
+                                    },
                                 )
 
             except Exception as e:
@@ -215,7 +215,7 @@ class RepositoryHygieneScanner:
                                     "comment": match.group(1).strip(),
                                     "author": author,
                                     "full_line": line.strip(),
-                                }
+                                },
                             )
 
             except Exception as e:
@@ -269,7 +269,7 @@ class RepositoryHygieneScanner:
                                 "line": line_num,
                                 "issue": "Trailing whitespace",
                                 "severity": "minor",
-                            }
+                            },
                         )
 
                 # Check for missing title
@@ -280,7 +280,7 @@ class RepositoryHygieneScanner:
                             "line": 1,
                             "issue": "Missing document title (should start with #)",
                             "severity": "major",
-                        }
+                        },
                     )
 
             except Exception as e:
@@ -310,7 +310,7 @@ class RepositoryHygieneScanner:
                 f"**Files Scanned**: {self.stats['files_scanned']}",
                 f"**TODO Comments**: {self.stats['todos_found']}",
                 "",
-            ]
+            ],
         )
 
         # Stale Branches
@@ -323,7 +323,7 @@ class RepositoryHygieneScanner:
                         f"### ✅ Merged Branches ({len(self.findings['merged_branches'])})",
                         "These branches have been merged and can be safely deleted:",
                         "",
-                    ]
+                    ],
                 )
 
                 for branch in self.findings["merged_branches"][:10]:
@@ -340,7 +340,7 @@ class RepositoryHygieneScanner:
                         f"### ⚠️ Stale Branches ({len(self.findings['stale_branches'])})",
                         "These branches haven't been updated in 90+ days:",
                         "",
-                    ]
+                    ],
                 )
 
                 for branch in self.findings["stale_branches"][:10]:
@@ -358,12 +358,12 @@ class RepositoryHygieneScanner:
                     f"## 🔗 Dead Links ({len(self.findings['dead_links'])})",
                     "Documentation links that are no longer accessible:",
                     "",
-                ]
+                ],
             )
 
             for link in self.findings["dead_links"][:10]:
                 report_lines.append(
-                    f"- `{link['file']}:{link['line']}` - [{link['text']}]({link['url']}) ({link['type']})"
+                    f"- `{link['file']}:{link['line']}` - [{link['text']}]({link['url']}) ({link['type']})",
                 )
 
             if len(self.findings["dead_links"]) > 10:
@@ -374,7 +374,7 @@ class RepositoryHygieneScanner:
         # TODO Comments
         if self.findings["new_todos"]:
             report_lines.extend(
-                [f"## 📝 TODO Comments ({len(self.findings['new_todos'])})", "Technical debt items found in code:", ""]
+                [f"## 📝 TODO Comments ({len(self.findings['new_todos'])})", "Technical debt items found in code:", ""],
             )
 
             # Group by type
@@ -402,7 +402,7 @@ class RepositoryHygieneScanner:
                     f"## 📄 Documentation Issues ({len(self.findings['markdown_issues'])})",
                     "Formatting and style issues in documentation:",
                     "",
-                ]
+                ],
             )
 
             for issue in self.findings["markdown_issues"][:10]:
@@ -416,7 +416,7 @@ class RepositoryHygieneScanner:
         # No Issues Found
         if total_issues == 0:
             report_lines.extend(
-                ["## ✅ All Clear!", "", "No hygiene issues found. Repository is in excellent condition!", ""]
+                ["## ✅ All Clear!", "", "No hygiene issues found. Repository is in excellent condition!", ""],
             )
 
         # Next Steps
@@ -431,7 +431,7 @@ class RepositoryHygieneScanner:
                     "",
                     "**Automation Note**: This report will be regenerated weekly. Address items above to keep the repository clean.",
                     "",
-                ]
+                ],
             )
 
         return "\n".join(report_lines)
@@ -464,7 +464,7 @@ def main():
     args = parser.parse_args()
 
     if not any(
-        [args.analyze_branches, args.check_links, args.scan_todos, args.lint_docs, args.generate_report, args.all]
+        [args.analyze_branches, args.check_links, args.scan_todos, args.lint_docs, args.generate_report, args.all],
     ):
         parser.print_help()
         return

@@ -115,7 +115,7 @@ class SimulationEvent(EcoSystemiserEvent):
 
     @classmethod
     def completed(
-        cls, simulation_id: str, results: dict[str, Any], duration_seconds: float, **kwargs
+        cls, simulation_id: str, results: dict[str, Any], duration_seconds: float, **kwargs,
     ) -> SimulationEvent:
         """Create simulation completed event"""
         return cls(
@@ -132,7 +132,7 @@ class SimulationEvent(EcoSystemiserEvent):
 
     @classmethod
     def failed(
-        cls, simulation_id: str, error_message: str, error_details: dict[str, Any] | None = None, **kwargs
+        cls, simulation_id: str, error_message: str, error_details: dict[str, Any] | None = None, **kwargs,
     ) -> SimulationEvent:
         """Create simulation failed event"""
         return cls(
@@ -149,7 +149,7 @@ class SimulationEvent(EcoSystemiserEvent):
 
     @classmethod
     def progress(
-        cls, simulation_id: str, timestep: int, total_timesteps: int, status_message: str, **kwargs
+        cls, simulation_id: str, timestep: int, total_timesteps: int, status_message: str, **kwargs,
     ) -> SimulationEvent:
         """Create simulation progress event"""
         return cls(
@@ -195,7 +195,7 @@ class AnalysisEvent(EcoSystemiserEvent):
 
     @classmethod
     def completed(
-        cls, analysis_id: str, results: dict[str, Any], insights: list[str] | None = None, **kwargs
+        cls, analysis_id: str, results: dict[str, Any], insights: list[str] | None = None, **kwargs,
     ) -> AnalysisEvent:
         """Create analysis completed event"""
         return cls(
@@ -207,7 +207,7 @@ class AnalysisEvent(EcoSystemiserEvent):
 
     @classmethod
     def failed(
-        cls, analysis_id: str, error_message: str, error_details: dict[str, Any] | None = None, **kwargs
+        cls, analysis_id: str, error_message: str, error_details: dict[str, Any] | None = None, **kwargs,
     ) -> AnalysisEvent:
         """Create analysis failed event"""
         return cls(
@@ -293,7 +293,7 @@ class StudyEvent(EcoSystemiserEvent):
 
     @classmethod
     def metric_calculated(
-        cls, analysis_id: str, metric_name: str, metric_value: float, metric_unit: str | None = None, **kwargs
+        cls, analysis_id: str, metric_name: str, metric_value: float, metric_unit: str | None = None, **kwargs,
     ) -> AnalysisEvent:
         """Create metric calculated event"""
         return cls(
@@ -359,7 +359,7 @@ class OptimizationEvent(EcoSystemiserEvent):
 
     @classmethod
     def converged(
-        cls, optimization_id: str, final_objective: float, iterations: int, solution: dict[str, Any], **kwargs
+        cls, optimization_id: str, final_objective: float, iterations: int, solution: dict[str, Any], **kwargs,
     ) -> OptimizationEvent:
         """Create optimization converged event"""
         return cls(
@@ -377,7 +377,7 @@ class OptimizationEvent(EcoSystemiserEvent):
 
     @classmethod
     def infeasible(
-        cls, optimization_id: str, constraints_violated: list[str], solver_message: str | None = None, **kwargs
+        cls, optimization_id: str, constraints_violated: list[str], solver_message: str | None = None, **kwargs,
     ) -> OptimizationEvent:
         """Create optimization infeasible event"""
         return cls(
@@ -429,7 +429,7 @@ class ComponentEvent(EcoSystemiserEvent):
 
     @classmethod
     def state_changed(
-        cls, component_name: str, old_state: str, new_state: str, timestep: int | None = None, **kwargs
+        cls, component_name: str, old_state: str, new_state: str, timestep: int | None = None, **kwargs,
     ) -> ComponentEvent:
         """Create component state changed event"""
         return cls(
@@ -467,7 +467,7 @@ class ProfileEvent(EcoSystemiserEvent):
 
     @classmethod
     def load_completed(
-        cls, profile_type: str, source: str, data_points: int, duration_seconds: float, **kwargs
+        cls, profile_type: str, source: str, data_points: int, duration_seconds: float, **kwargs,
     ) -> ProfileEvent:
         """Create profile load completed event"""
         return cls(

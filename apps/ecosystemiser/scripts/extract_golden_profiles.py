@@ -153,7 +153,7 @@ def main() -> None:
             "golden_24h_summer.csv - Summer variant (100% solar, 80% demand)",
             "golden_24h_spring.csv - Spring variant (70% solar, 110% demand)",
         ],
-        "units": {
+        "units": {,
             "solar_generation_kw": "kilowatts",
             "power_demand_kw": "kilowatts",
             "solar_normalized": "0-1 scale",

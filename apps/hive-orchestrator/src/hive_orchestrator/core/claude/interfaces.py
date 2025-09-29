@@ -19,7 +19,7 @@ class ClaudeServiceInterface(ABC):
 
     @abstractmethod
     async def call_claude_async(
-        self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7, **kwargs
+        self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7, **kwargs,
     ) -> dict[str, Any]:
         """
         Make an async call to Claude API.
@@ -51,7 +51,7 @@ class PlannerBridgeInterface(ABC):
 
     @abstractmethod
     async def create_plan_async(
-        self, task_description: str, context: Optional[dict[str, Any]] = None
+        self, task_description: str, context: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         """
         Create a plan for the given task.
@@ -85,7 +85,7 @@ class ReviewerBridgeInterface(ABC):
 
     @abstractmethod
     async def review_code_async(
-        self, code: str, language: str = "python", context: str | None = None
+        self, code: str, language: str = "python", context: str | None = None,
     ) -> dict[str, Any]:
         """
         Review code using Claude.

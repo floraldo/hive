@@ -268,7 +268,7 @@ async def demonstrate_operation_unification():
     print("Strategic Context Performance:")
     for context, perf in feedback_data["strategic_context_performance"].items():
         print(
-            f"  {context.replace('_', ' ').title():<25}: {perf['success_rate']:.1%} ({perf['total_actions']} actions)"
+            f"  {context.replace('_', ' ').title():<25}: {perf['success_rate']:.1%} ({perf['total_actions']} actions)",
         )
 
     print()

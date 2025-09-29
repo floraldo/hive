@@ -74,7 +74,7 @@ class PredictiveAnalysisRunner:
             alerts_generated = []
             for (service_name, metric_type), metrics in metrics_by_service.items():
                 alert = await self.alert_manager.analyze_metrics_async(
-                    service_name=service_name, metric_type=metric_type, metrics=metrics
+                    service_name=service_name, metric_type=metric_type, metrics=metrics,
                 )
 
                 if alert:
@@ -233,7 +233,7 @@ class PredictiveAnalysisRunner:
 
             # Get response time history (latency proxy)
             latency_data = health_monitor.get_metric_history(
-                provider=service_name, metric_name="response_time", hours=24
+                provider=service_name, metric_name="response_time", hours=24,
             )
 
             if not latency_data:
@@ -298,7 +298,7 @@ async def main():
             threshold=5.0,  # 5% error rate
             confidence_threshold=0.80,
             degradation_window_minutes=30,
-        )
+        ),
     )
 
     alert_manager.add_config(
@@ -308,7 +308,7 @@ async def main():
             threshold=85.0,  # 85% CPU
             confidence_threshold=0.85,
             degradation_window_minutes=15,
-        )
+        ),
     )
 
     alert_manager.add_config(
@@ -318,7 +318,7 @@ async def main():
             threshold=1000.0,  # 1 second
             confidence_threshold=0.75,
             degradation_window_minutes=30,
-        )
+        ),
     )
 
     # Initialize orchestrator service (NEW: proper architecture)

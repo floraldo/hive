@@ -139,7 +139,7 @@ class AnalyticsEngine:
         self._anomaly_cache: dict[str, list[Anomaly]] = {}
 
     async def analyze_trends_async(
-        self, metric_types: list[MetricType] | None = None, hours: int = 24
+        self, metric_types: list[MetricType] | None = None, hours: int = 24,
     ) -> list[TrendAnalysis]:
         """Analyze trends across specified metrics."""
 
@@ -205,7 +205,7 @@ class AnalyticsEngine:
         return primary_keys.get(metric_type, "value")
 
     def _analyze_trend(
-        self, metric_name: str, values: list[float], timestamps: list[datetime], time_period: timedelta
+        self, metric_name: str, values: list[float], timestamps: list[datetime], time_period: timedelta,
     ) -> TrendAnalysis | None:
         """Analyze trend for a single metric."""
 
@@ -302,7 +302,7 @@ class AnalyticsEngine:
         return slope, r_squared
 
     async def detect_anomalies_async(
-        self, metric_types: list[MetricType] | None = None, hours: int = 24
+        self, metric_types: list[MetricType] | None = None, hours: int = 24,
     ) -> list[Anomaly]:
         """Detect anomalies in metrics using statistical methods."""
 
@@ -444,7 +444,7 @@ class AnalyticsEngine:
         return actions
 
     async def find_correlations_async(
-        self, metric_types: list[MetricType] | None = None, hours: int = 24
+        self, metric_types: list[MetricType] | None = None, hours: int = 24,
     ) -> list[Correlation]:
         """Find correlations between different metrics."""
 
@@ -499,7 +499,7 @@ class AnalyticsEngine:
         return correlations
 
     def _calculate_correlation(
-        self, series1: list[tuple[datetime, float]], series2: list[tuple[datetime, float]]
+        self, series1: list[tuple[datetime, float]], series2: list[tuple[datetime, float]],
     ) -> Correlation | None:
         """Calculate correlation between two time series."""
 

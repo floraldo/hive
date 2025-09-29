@@ -126,7 +126,7 @@ class GoldenRulesAnalyzer:
                     confidence=1.0,
                     example=f"python -m hive_tests.autofix --execute --rules {' '.join(rules)}",
                     rationale="These violations can be fixed automatically without manual intervention",
-                )
+                ),
             )
 
         # Suggest architectural improvements for service layer violations
@@ -140,7 +140,7 @@ class GoldenRulesAnalyzer:
                     line_range=(1, 100),
                     confidence=0.9,
                     rationale="Service layers should be thin orchestrators, not contain business logic",
-                )
+                ),
             )
 
         # Suggest dependency injection for global state violations
@@ -155,7 +155,7 @@ class GoldenRulesAnalyzer:
                     confidence=0.95,
                     example="def __init__(self, config: Config) -> None:",
                     rationale="Global state makes testing difficult and creates hidden dependencies",
-                )
+                ),
             )
 
         # Suggest test creation for missing tests
@@ -170,7 +170,7 @@ class GoldenRulesAnalyzer:
                     line_range=(1, 1),
                     confidence=0.85,
                     rationale="Every source file should have corresponding tests with good coverage",
-                )
+                ),
             )
 
         return suggestions

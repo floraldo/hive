@@ -39,7 +39,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None, u
         # Fall back to hive-logging for consistency with other apps,
         (
             setup_hive_logging(
-                name="ecosystemiser", level=log_level or "INFO", log_to_file=True, json_format=(log_format == "json")
+                name="ecosystemiser", level=log_level or "INFO", log_to_file=True, json_format=(log_format == "json"),
             ),
         )
 

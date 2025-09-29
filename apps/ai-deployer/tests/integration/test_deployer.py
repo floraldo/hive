@@ -213,7 +213,7 @@ class TestDeploymentOrchestrator:
         """Test deployment validation with unhealthy status"""
         orchestrator = DeploymentOrchestrator()
         orchestrator.check_health = AsyncMock(
-            return_value=HealthStatus(healthy=False, message="Service not responding")
+            return_value=HealthStatus(healthy=False, message="Service not responding"),
         )
 
         result = await orchestrator._validate_deployment(sample_task, "deploy-123")

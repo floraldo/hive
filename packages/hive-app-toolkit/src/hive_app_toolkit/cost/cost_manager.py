@@ -145,7 +145,7 @@ class CostManager:
     def _save_to_cache(self) -> None:
         """Save usage data to cache."""
         try:
-            cache_data = {
+            cache_data = {,
                 "daily_usage": dict(self.daily_usage),
                 "monthly_usage": dict(self.monthly_usage),
                 "last_reset": {period: ts.isoformat() for period, ts in self._last_reset.items()},
@@ -325,7 +325,7 @@ class CostManager:
                 limit=self.limits.hourly_limit,
                 operations=len(
                     [
-                        h,
+                        h
                         for h in self.usage_history,
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(hours=1)
                     ]
@@ -337,7 +337,7 @@ class CostManager:
                 limit=self.limits.daily_limit,
                 operations=len(
                     [
-                        h,
+                        h
                         for h in self.usage_history,
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(days=1)
                     ]
@@ -349,7 +349,7 @@ class CostManager:
                 limit=self.limits.monthly_limit,
                 operations=len(
                     [
-                        h,
+                        h
                         for h in self.usage_history,
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(days=30)
                     ]
@@ -357,7 +357,7 @@ class CostManager:
             ),
             "recent_operations": list(self.usage_history)[-10:],
             "usage_by_operation": self._get_usage_by_operation(),
-            "limits": {
+            "limits": {,
                 "hourly": self.limits.hourly_limit,
                 "daily": self.limits.daily_limit,
                 "monthly": self.limits.monthly_limit,

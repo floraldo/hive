@@ -211,7 +211,7 @@ class ProfileValidationError(BaseError):
     """Error validating profile data"""
 
     def __init__(
-        self, message: str, validation_type: str | None = None, failed_checks: Optional[list[str]] = None, **kwargs
+        self, message: str, validation_type: str | None = None, failed_checks: Optional[list[str]] = None, **kwargs,
     ):
         details = kwargs.get("details", {})
         if validation_type:
@@ -249,7 +249,7 @@ class OptimizationInfeasibleError(BaseError):
     """Error when optimization problem is infeasible"""
 
     def __init__(
-        self, message: str, solver_type: str | None = None, constraints_violated: Optional[list[str]] = None, **kwargs
+        self, message: str, solver_type: str | None = None, constraints_violated: Optional[list[str]] = None, **kwargs,
     ):
         details = kwargs.get("details", {})
         if solver_type:
@@ -306,7 +306,7 @@ class ComponentError(BaseError):
     """Base class for component-related errors"""
 
     def __init__(
-        self, message: str, component_name: str | None = None, component_type: str | None = None, **kwargs
+        self, message: str, component_name: str | None = None, component_type: str | None = None, **kwargs,
     ) -> None:
         details = kwargs.get("details", {})
         if component_name:

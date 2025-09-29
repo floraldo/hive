@@ -3,6 +3,7 @@
 Quick fixer for the 10 most critical files.
 Fixes all common comma patterns we've seen.
 """
+
 import re
 import sys
 from pathlib import Path

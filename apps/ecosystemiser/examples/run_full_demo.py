@@ -51,7 +51,7 @@ class MicrogridDemoRunner:
         - Minimizes total cost of ownership (TCO)
         - Maximizes renewable energy fraction (≥80%)
         - Serves 50 households with typical German consumption patterns,
-        """
+        """,
         )
 
         config = {
@@ -116,7 +116,7 @@ class MicrogridDemoRunner:
         Using NSGA-II (Non-dominated Sorting Genetic Algorithm II)
         Population: 50 | Generations: 100,
         This will explore the trade-off between cost and renewable fraction...
-        """
+        """,
         )
 
         # Simulate optimization progress
@@ -230,7 +230,7 @@ class MicrogridDemoRunner:
         - Solar/battery cost uncertainty: ±15%
         - Demand growth uncertainty: ±10%
         Running 1000 Monte Carlo simulations...
-        """
+        """,
         )
 
         # Simulate MC progress
@@ -379,7 +379,7 @@ class MicrogridDemoRunner:
 
         📊 INTERACTIVE REPORTS:
            View the detailed interactive reports with all visualizations:
-        """
+        """,
         )
 
         for i, report in enumerate(reports, 1):
@@ -396,7 +396,7 @@ class MicrogridDemoRunner:
 
         Thank you for using EcoSystemiser v3.0!
         For questions or support: support@ecosystemiser.com,
-        """
+        """,
         )
 
     def run(self) -> None:

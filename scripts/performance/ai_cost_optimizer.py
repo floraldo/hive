@@ -137,7 +137,7 @@ class AIConstOptimizer:
         return report
 
     async def _analyze_optimization_opportunities_async(
-        self, summary, analysis_days: int
+        self, summary, analysis_days: int,
     ) -> list[OptimizationOpportunity]:
         """Analyze and identify specific optimization opportunities."""
         opportunities = []
@@ -204,7 +204,7 @@ class AIConstOptimizer:
                             savings_percentage=best_savings_pct,
                             action_required=f"Evaluate if '{best_alt}' meets quality requirements for your use case",
                             complexity="medium",  # Requires testing
-                        )
+                        ),
                     )
 
             except Exception as e:
@@ -233,7 +233,7 @@ class AIConstOptimizer:
                     savings_percentage=15.0,
                     action_required="Review prompts for unnecessary verbosity, implement prompt compression",
                     complexity="low",  # Easy to implement
-                )
+                ),
             )
 
         # Very high total token usage
@@ -249,7 +249,7 @@ class AIConstOptimizer:
                     savings_percentage=10.0,
                     action_required="Implement per-request token limits and budget tracking",
                     complexity="medium",
-                )
+                ),
             )
 
         return opportunities
@@ -275,7 +275,7 @@ class AIConstOptimizer:
                     savings_percentage=(savings_from_cache / summary.total_cost * 100) if summary.total_cost > 0 else 0,
                     action_required="Implement semantic caching for frequently repeated queries",
                     complexity="medium",
-                )
+                ),
             )
 
         return opportunities
@@ -309,7 +309,7 @@ class AIConstOptimizer:
                             ),
                             action_required=f"Evaluate if some '{most_expensive[0]}' workloads can use '{second_most[0]}'",
                             complexity="high",  # Requires cross-provider testing
-                        )
+                        ),
                     )
 
         return opportunities
@@ -333,7 +333,7 @@ class AIConstOptimizer:
                             savings_percentage=70.0,
                             action_required=f"Test if lightweight model can handle '{op['operation']}'",
                             complexity="low",
-                        )
+                        ),
                     )
 
         return opportunities
@@ -374,7 +374,7 @@ class AIConstOptimizer:
                         f"   Savings: ${opp['potential_savings_usd']:.2f} ({opp['savings_percentage']:.1f}%)",
                         f"   Action: {opp['action_required']}",
                         f"   Complexity: {opp['complexity']}",
-                    ]
+                    ],
                 )
 
             return "\n".join(lines)
@@ -421,7 +421,7 @@ class AIConstOptimizer:
                         "",
                         f"**Description**: {opp['description']}",
                         "",
-                    ]
+                    ],
                 )
 
             return "\n".join(lines)

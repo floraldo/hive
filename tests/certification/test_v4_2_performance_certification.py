@@ -153,7 +153,7 @@ class V4PerformanceCertification:
             for i in range(100):
                 start_time = time.perf_counter()
                 service_id = await registry.register_service(
-                    service_name=f"test-service-{i}", host="localhost", port=8000 + i
+                    service_name=f"test-service-{i}", host="localhost", port=8000 + i,
                 )
                 registration_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
                 registration_times.append(registration_time)
@@ -185,11 +185,11 @@ class V4PerformanceCertification:
                     baseline_value=self.baselines["service_discovery_lookup"],
                     improvement_factor=self.baselines["service_discovery_lookup"] / avg_lookup_time,
                     details={"registration_time": avg_registration_time, "lookup_count": 100},
-                )
+                ),
             )
 
             logger.info(
-                f"Service discovery lookup: {avg_lookup_time:.2f}ms (target: {self.targets['service_discovery_lookup']}ms)"
+                f"Service discovery lookup: {avg_lookup_time:.2f}ms (target: {self.targets['service_discovery_lookup']}ms)",
             )
 
         finally:
@@ -258,11 +258,11 @@ class V4PerformanceCertification:
                         "hit_rate": hit_rate,
                         "operations_tested": 2000,
                     },
-                )
+                ),
             )
 
             logger.info(
-                f"Cache operation latency: {avg_operation_time:.2f}ms (target: {self.targets['cache_operation_latency']}ms)"
+                f"Cache operation latency: {avg_operation_time:.2f}ms (target: {self.targets['cache_operation_latency']}ms)",
             )
 
         finally:
@@ -310,7 +310,7 @@ class V4PerformanceCertification:
                     "memory_overhead": memory_overhead,
                     "monitoring_accuracy": abs(actual_duration - 1.0) < 0.1,  # Should be ~1 second
                 },
-            )
+            ),
         )
 
         logger.info(f"Monitoring overhead - CPU: {cpu_overhead:.1f}%, Memory: {memory_overhead:.1f}%")
@@ -371,7 +371,7 @@ class V4PerformanceCertification:
                 baseline_value=self.baselines["ai_planner_throughput"],
                 improvement_factor=planner_throughput / self.baselines["ai_planner_throughput"],
                 details={"test_duration": planner_duration, "operations_count": 30},
-            )
+            ),
         )
 
         self.results.append(
@@ -383,14 +383,14 @@ class V4PerformanceCertification:
                 baseline_value=self.baselines["ai_reviewer_response_time"],
                 improvement_factor=self.baselines["ai_reviewer_response_time"] / avg_reviewer_time,
                 details={"operations_tested": 20},
-            )
+            ),
         )
 
         logger.info(
-            f"AI Planner throughput: {planner_throughput:.1f} plans/min (target: {self.targets['ai_planner_throughput']})"
+            f"AI Planner throughput: {planner_throughput:.1f} plans/min (target: {self.targets['ai_planner_throughput']})",
         )
         logger.info(
-            f"AI Reviewer response time: {avg_reviewer_time:.2f}s (target: {self.targets['ai_reviewer_response_time']}s)"
+            f"AI Reviewer response time: {avg_reviewer_time:.2f}s (target: {self.targets['ai_reviewer_response_time']}s)",
         )
 
     async def _test_ecosystemiser_performance(self) -> None:
@@ -440,11 +440,11 @@ class V4PerformanceCertification:
                     "parallel_operations": 20,
                     "single_operation_avg": avg_simulation_time,
                 },
-            )
+            ),
         )
 
         logger.info(
-            f"EcoSystemiser simulation time: {avg_simulation_time:.2f}s (target: {self.targets['ecosystemiser_simulation_time']}s)"
+            f"EcoSystemiser simulation time: {avg_simulation_time:.2f}s (target: {self.targets['ecosystemiser_simulation_time']}s)",
         )
 
     # Resilience Component Tests
@@ -481,7 +481,7 @@ class V4PerformanceCertification:
             except Exception as e:
                 # Record error but continue
                 await error_handler.handle_error(
-                    e, error_handler.create_error_context("test_operation", "test_component"), suppress=True
+                    e, error_handler.create_error_context("test_operation", "test_component"), suppress=True,
                 )
 
         avg_recovery_time = sum(recovery_times) / len(recovery_times) if recovery_times else float("inf")
@@ -505,7 +505,7 @@ class V4PerformanceCertification:
                     "error_rate": error_stats["error_rate_per_minute"],
                     "recovery_operations": len(recovery_times),
                 },
-            )
+            ),
         )
 
         logger.info(f"Error recovery time: {avg_recovery_time:.2f}s (target: {self.targets['error_recovery_time']}s)")
@@ -561,7 +561,7 @@ class V4PerformanceCertification:
                     "recommendations_count": len(recommendations),
                     "success_rate": metrics.successful_attempts / metrics.total_attempts if metrics else 0.0,
                 },
-            )
+            ),
         )
 
         logger.info(f"Timeout adaptation: {timeout_adaptation:.1%} (target: >10%)")
@@ -610,7 +610,7 @@ class V4PerformanceCertification:
                     "ai_processing": ai_processing_time,
                     "data_processing": data_processing_time,
                 },
-            )
+            ),
         )
 
         logger.info(f"End-to-end workflow: {total_workflow_time:.3f}s (target: <1.0s)")
@@ -648,11 +648,11 @@ class V4PerformanceCertification:
                     "memory_usage_percent": memory_usage,
                     "operations_per_second": concurrent_operations / stress_duration,
                 },
-            )
+            ),
         )
 
         logger.info(
-            f"Stress test: {successful_operations}/{concurrent_operations} operations in {stress_duration:.2f}s"
+            f"Stress test: {successful_operations}/{concurrent_operations} operations in {stress_duration:.2f}s",
         )
 
     async def _generate_certification_report(self) -> CertificationReport:
@@ -742,7 +742,7 @@ if __name__ == "__main__":
             status = "PASS" if result.passed else "FAIL"
             improvement = f" ({result.improvement_factor:.1f}x)" if result.improvement_factor else ""
             print(
-                f"  {status}: {result.test_name} - {result.actual_value:.2f} (target: {result.target_value}){improvement}"
+                f"  {status}: {result.test_name} - {result.actual_value:.2f} (target: {result.target_value}){improvement}",
             )
 
         return report.overall_passed

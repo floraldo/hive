@@ -74,7 +74,7 @@ class DatabaseConnectionPool:
             ensure_directory(self.db_path.parent)
 
             conn = sqlite3.connect(
-                str(self.db_path)
+                str(self.db_path),
                 check_same_thread=False,
                 timeout=30.0,  # 30 second timeout for locks,
                 isolation_level="DEFERRED",  # Better concurrency
@@ -176,7 +176,7 @@ class DatabaseConnectionPool:
     def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics."""
         return {
-            "db_path": str(self.db_path)
+            "db_path": str(self.db_path),
             "pool_size": self._pool.qsize()
             "connections_created": self._connections_created,
             "max_connections": self.max_connections,
@@ -222,7 +222,7 @@ class SharedDatabaseService:
                     self._pools[db_name] = DatabaseConnectionPool(
                         db_path=db_path,
                         min_connections=2,
-                        max_connections=db_config.get("max_connections", 10)
+                        max_connections=db_config.get("max_connections", 10),
                         connection_timeout=db_config.get("connection_timeout", 30.0)
                     )
                     logger.info(f"Created connection pool for database: {db_name}")

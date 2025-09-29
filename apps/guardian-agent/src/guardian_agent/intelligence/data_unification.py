@@ -153,28 +153,28 @@ class MetricsWarehouse:
                         data_quality TEXT DEFAULT 'high',
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                     )
-                """
+                """,
                 )
 
                 await session.execute(
                     """
                     CREATE INDEX IF NOT EXISTS idx_metrics_type_timestamp
                     ON unified_metrics(metric_type, timestamp)
-                """
+                """,
                 )
 
                 await session.execute(
                     """
                     CREATE INDEX IF NOT EXISTS idx_metrics_source_timestamp
                     ON unified_metrics(source, timestamp)
-                """
+                """,
                 )
 
                 await session.execute(
                     """
                     CREATE INDEX IF NOT EXISTS idx_metrics_correlation
                     ON unified_metrics(correlation_id)
-                """
+                """,
                 )
 
                 await session.commit()
@@ -314,7 +314,7 @@ class MetricsWarehouse:
     async def get_latest_metrics_async(self, metric_type: MetricType, source: str | None = None) -> list[UnifiedMetric]:
         """Get the most recent metrics of a specific type."""
         return await self.query_metrics_async(
-            metric_types=[metric_type], sources=[source] if source else None, limit=100
+            metric_types=[metric_type], sources=[source] if source else None, limit=100,
         )
 
     async def get_time_series_async(self, metric_type: MetricType, source: str, hours: int = 24) -> list[UnifiedMetric]:
@@ -322,7 +322,7 @@ class MetricsWarehouse:
         start_time = datetime.utcnow() - timedelta(hours=hours)
 
         return await self.query_metrics_async(
-            metric_types=[metric_type], sources=[source], start_time=start_time, limit=10000
+            metric_types=[metric_type], sources=[source], start_time=start_time, limit=10000,
         )
 
 
@@ -354,7 +354,7 @@ class DataUnificationLayer:
                 location="logs/production_monitoring.json",
                 collection_interval=300,  # 5 minutes,
                 transform_function="transform_production_shield",
-            )
+            ),
         )
 
         # AI metrics from hive-ai
@@ -365,7 +365,7 @@ class DataUnificationLayer:
                 location="ai_metrics",
                 collection_interval=60,  # 1 minute,
                 transform_function="transform_ai_metrics",
-            )
+            ),
         )
 
         # Guardian Agent reviews
@@ -376,7 +376,7 @@ class DataUnificationLayer:
                 location="guardian_reviews",
                 collection_interval=300,  # 5 minutes,
                 transform_function="transform_guardian_reviews",
-            )
+            ),
         )
 
         # System performance
@@ -387,7 +387,7 @@ class DataUnificationLayer:
                 location="internal://system_metrics",
                 collection_interval=60,  # 1 minute,
                 transform_function="transform_system_metrics",
-            )
+            ),
         )
 
         # Golden Rules violations - Live architectural validation
@@ -398,7 +398,7 @@ class DataUnificationLayer:
                 location="internal://architectural_scan",
                 collection_interval=21600,  # 6 hours - comprehensive scan,
                 transform_function="transform_architectural_violations",
-            )
+            ),
         )
 
         # Continuous compliance monitoring
@@ -409,7 +409,7 @@ class DataUnificationLayer:
                 location="internal://compliance_check",
                 collection_interval=3600,  # 1 hour - quick compliance check,
                 transform_function="transform_compliance_metrics",
-            )
+            ),
         )
 
         # Business Intelligence & User Analytics Sources
@@ -422,7 +422,7 @@ class DataUnificationLayer:
                 location="internal://user_analytics",
                 collection_interval=1800,  # 30 minutes - user behavior changes frequently,
                 transform_function="transform_user_analytics",
-            )
+            ),
         )
 
         # Feature adoption and usage metrics
@@ -433,7 +433,7 @@ class DataUnificationLayer:
                 location="internal://feature_usage",
                 collection_interval=3600,  # 1 hour - feature usage patterns,
                 transform_function="transform_feature_metrics",
-            )
+            ),
         )
 
         # Business KPIs and revenue metrics
@@ -444,7 +444,7 @@ class DataUnificationLayer:
                 location="internal://business_kpis",
                 collection_interval=14400,  # 4 hours - business metrics are more stable,
                 transform_function="transform_business_metrics",
-            )
+            ),
         )
 
         # Customer satisfaction and support metrics
@@ -455,7 +455,7 @@ class DataUnificationLayer:
                 location="internal://customer_metrics",
                 collection_interval=7200,  # 2 hours - customer health monitoring,
                 transform_function="transform_customer_metrics",
-            )
+            ),
         )
 
         # Architect v2.0 Certification Standards Sources
@@ -468,7 +468,7 @@ class DataUnificationLayer:
                 location="internal://certification_audit",
                 collection_interval=43200,  # 12 hours - comprehensive certification assessment,
                 transform_function="transform_certification_metrics",
-            )
+            ),
         )
 
         # Code quality and security scanning
@@ -479,7 +479,7 @@ class DataUnificationLayer:
                 location="internal://code_quality",
                 collection_interval=7200,  # 2 hours - code quality monitoring,
                 transform_function="transform_code_quality_metrics",
-            )
+            ),
         )
 
         # Deployment readiness and CI/CD pipeline health
@@ -490,7 +490,7 @@ class DataUnificationLayer:
                 location="internal://deployment_check",
                 collection_interval=10800,  # 3 hours - deployment readiness assessment,
                 transform_function="transform_deployment_metrics",
-            )
+            ),
         )
 
         # Toolkit utilization and platform integration
@@ -501,7 +501,7 @@ class DataUnificationLayer:
                 location="internal://toolkit_usage",
                 collection_interval=21600,  # 6 hours - toolkit utilization analysis,
                 transform_function="transform_toolkit_metrics",
-            )
+            ),
         )
 
         # Genesis Mandate - Design Intent & Prophecy Sources
@@ -514,7 +514,7 @@ class DataUnificationLayer:
                 location="docs/designs/",
                 collection_interval=1800,  # 30 minutes - monitor for new design docs,
                 transform_function="transform_design_intent_metrics",
-            )
+            ),
         )
 
         # Architectural prophecy generation and tracking
@@ -525,7 +525,7 @@ class DataUnificationLayer:
                 location="internal://prophecy_engine",
                 collection_interval=7200,  # 2 hours - prophecy analysis,
                 transform_function="transform_prophecy_metrics",
-            )
+            ),
         )
 
         # Prophecy accuracy validation (retrospective analysis)
@@ -536,7 +536,7 @@ class DataUnificationLayer:
                 location="internal://prophecy_validation",
                 collection_interval=86400,  # 24 hours - daily accuracy assessment,
                 transform_function="transform_prophecy_accuracy_metrics",
-            )
+            ),
         )
 
     def register_source(self, source: DataSource) -> None:
@@ -657,7 +657,7 @@ class DataUnificationLayer:
                     },
                     unit="percent",
                     tags={"hostname": system_metrics.hostname},
-                )
+                ),
             ]
 
         elif source.location == "internal://architectural_scan":
@@ -757,7 +757,7 @@ class DataUnificationLayer:
                             "failed_rules": str(total_rules - passed_rules),
                         },
                         metadata={"all_passed": all_passed, "detailed_results": results},
-                    )
+                    ),
                 )
 
                 # Create individual violation metrics
@@ -777,7 +777,7 @@ class DataUnificationLayer:
                                         "category": self._categorize_rule(rule_name),
                                     },
                                     metadata={"violation_description": violation, "rule_full_name": rule_name},
-                                )
+                                ),
                             )
 
                 # Create technical debt metric
@@ -799,11 +799,11 @@ class DataUnificationLayer:
                             "calculation": "violations * 10, capped at 100",
                             "scan_timestamp": timestamp.isoformat(),
                         },
-                    )
+                    ),
                 )
 
                 logger.info(
-                    f"Architectural scan completed: {compliance_score:.1f}% compliance, {total_violations} violations"
+                    f"Architectural scan completed: {compliance_score:.1f}% compliance, {total_violations} violations",
                 )
 
         except Exception as e:
@@ -818,7 +818,7 @@ class DataUnificationLayer:
                     unit="error",
                     tags={"rule_name": "validation_error", "severity": "critical", "category": "system"},
                     metadata={"error_message": str(e), "error_type": "validation_failure"},
-                )
+                ),
             )
 
         return metrics
@@ -874,7 +874,7 @@ class DataUnificationLayer:
                                 unit="percent",
                                 tags={"scan_type": "quick", "rule_name": check_name, "critical": "true"},
                                 metadata={"violations": violations, "violation_count": len(violations)},
-                            )
+                            ),
                         )
 
                     except Exception as e:
@@ -896,7 +896,7 @@ class DataUnificationLayer:
                             "total_checks": str(total_critical),
                         },
                         metadata={"check_type": "critical_rules_only", "frequency": "hourly"},
-                    )
+                    ),
                 )
 
                 logger.info(f"Quick compliance check: {critical_compliance:.1f}% critical compliance")
@@ -946,7 +946,7 @@ class DataUnificationLayer:
                         tags={"workflow": "project_setup", "metric_name": "completion_time", "criticality": "high"},
                         metadata={"completions": 145, "abandonment_rate": 0.28, "industry_benchmark": 4.0},
                     ),
-                ]
+                ],
             )
 
             # User retention metrics
@@ -959,7 +959,7 @@ class DataUnificationLayer:
                     unit="percent",
                     tags={"retention_period": "7_days", "user_segment": "new_users", "cohort": "2025_09"},
                     metadata={"cohort_size": 234, "retained_users": 199, "benchmark": 75.0},
-                )
+                ),
             )
 
             logger.info(f"Collected {len(metrics)} user analytics metrics")
@@ -1033,7 +1033,7 @@ class DataUnificationLayer:
                             * feature["adoption_rate"]
                             / (feature["operational_cost"] / 100),
                         },
-                    )
+                    ),
                 )
 
             logger.info(f"Collected {len(metrics)} feature adoption metrics")
@@ -1092,7 +1092,7 @@ class DataUnificationLayer:
                             "target_cac": 100.0,
                         },
                     ),
-                ]
+                ],
             )
 
             logger.info(f"Collected {len(metrics)} business metrics")
@@ -1138,7 +1138,7 @@ class DataUnificationLayer:
                         tags={"metric_name": "open_tickets", "priority": "high", "escalated": "true"},
                         metadata={"avg_age_hours": 18.5, "oldest_ticket_hours": 72, "trend": "increasing"},
                     ),
-                ]
+                ],
             )
 
             # Customer health alerts
@@ -1162,7 +1162,7 @@ class DataUnificationLayer:
                         "duration_hours": 48,
                         "account_manager": "sarah.chen@hive.com",
                     },
-                )
+                ),
             )
 
             logger.info(f"Collected {len(metrics)} customer metrics")
@@ -1247,7 +1247,7 @@ class DataUnificationLayer:
         return metrics
 
     def transform_architectural_violations(
-        self, metrics: list[UnifiedMetric], source: DataSource
+        self, metrics: list[UnifiedMetric], source: DataSource,
     ) -> list[UnifiedMetric]:
         """Transform architectural validation data."""
         for metric in metrics:
@@ -1483,7 +1483,7 @@ class DataUnificationLayer:
                             "assessment_type": "comprehensive",
                         },
                         metadata={"max_score": 100, "last_audit": timestamp.isoformat(), "audit_version": "v2.0"},
-                    )
+                    ),
                 )
 
                 # Individual assessment criteria scores
@@ -1507,7 +1507,7 @@ class DataUnificationLayer:
                                 "max_score": self._get_criteria_max_score(criteria),
                                 "weight": self._get_criteria_weight(criteria),
                             },
-                        )
+                        ),
                     )
 
             logger.info(f"Collected {len(metrics)} certification audit metrics")
@@ -1642,7 +1642,7 @@ class DataUnificationLayer:
                             "maintainability": data["maintainability"],
                             "complexity_score": data["complexity_score"],
                         },
-                    )
+                    ),
                 )
 
                 # Test coverage metrics
@@ -1663,7 +1663,7 @@ class DataUnificationLayer:
                             "target_coverage": 90.0,
                             "certification_requirement": True,
                         },
-                    )
+                    ),
                 )
 
             logger.info(f"Collected {len(metrics)} code quality metrics")
@@ -1745,7 +1745,7 @@ class DataUnificationLayer:
                             "security_scans": data["security_scans"],
                             "performance_tests": data["performance_tests"],
                         },
-                    )
+                    ),
                 )
 
                 # Monitoring configuration score
@@ -1767,7 +1767,7 @@ class DataUnificationLayer:
                             "grafana_dashboard": data["monitoring_configured"],
                             "alerting_rules": data["monitoring_configured"],
                         },
-                    )
+                    ),
                 )
 
             logger.info(f"Collected {len(metrics)} deployment readiness metrics")
@@ -1848,7 +1848,7 @@ class DataUnificationLayer:
                             "follows_patterns": data["follows_patterns"],
                             "configuration_standard": data["configuration_standard"],
                         },
-                    )
+                    ),
                 )
 
                 # Platform integration score
@@ -1872,11 +1872,11 @@ class DataUnificationLayer:
                                     data["uses_hive_logging"],
                                     data["uses_hive_db"],
                                     data["uses_hive_ai"],
-                                ]
+                                ],
                             ),
                             "pattern_compliance": data["follows_patterns"],
                         },
-                    )
+                    ),
                 )
 
             logger.info(f"Collected {len(metrics)} toolkit utilization metrics")
@@ -2084,7 +2084,7 @@ class DataUnificationLayer:
                                 "last_modified": doc_file.stat().st_mtime,
                                 "content_hash": hash(content) % 1000000,  # Simple content hash
                             },
-                        )
+                        ),
                     )
 
                     # Intent extraction complexity metric
@@ -2104,7 +2104,7 @@ class DataUnificationLayer:
                                 "indicators_found": complexity_score,
                                 "estimated_analysis_time": f"{complexity_score * 2} minutes",
                             },
-                        )
+                        ),
                     )
 
                     # Design complexity metric
@@ -2125,7 +2125,7 @@ class DataUnificationLayer:
                                 "normalized_complexity": min(complexity_score / 5.0, 1.0),
                                 "complexity_factors": complexity_indicators[:complexity_score],
                             },
-                        )
+                        ),
                     )
 
                 except Exception as e:
@@ -2233,7 +2233,7 @@ class DataUnificationLayer:
                             "prophecy_id": f"prophecy_{scenario['project']}_{scenario['prophecy_type']}",
                             "generated_by": "prophecy_engine_v1.0",
                         },
-                    )
+                    ),
                 )
 
             logger.info(f"Generated {len(metrics)} prophecy tracking metrics")
@@ -2300,7 +2300,7 @@ class DataUnificationLayer:
                             "validation_date": timestamp.isoformat(),
                             "learning_value": "high" if case["accuracy"] != 0.5 else "medium",
                         },
-                    )
+                    ),
                 )
 
             # Calculate overall prophecy engine accuracy
@@ -2322,7 +2322,7 @@ class DataUnificationLayer:
                         "false_positives": len([c for c in validation_cases if c["accuracy"] == 0.0]),
                         "validation_period": "last_30_days",
                     },
-                )
+                ),
             )
 
             logger.info(f"Validated {len(validation_cases)} prophecies, overall accuracy: {avg_accuracy:.1%}")
@@ -2372,13 +2372,13 @@ class DataUnificationLayer:
 
                 # Add Oracle recommendations
                 metric.metadata["oracle_recommendation"] = self._generate_prophecy_recommendation(
-                    metric.tags.get("prophecy_type", "unknown"), confidence, severity
+                    metric.tags.get("prophecy_type", "unknown"), confidence, severity,
                 )
 
         return metrics
 
     def transform_prophecy_accuracy_metrics(
-        self, metrics: list[UnifiedMetric], source: DataSource
+        self, metrics: list[UnifiedMetric], source: DataSource,
     ) -> list[UnifiedMetric]:
         """Transform and enrich prophecy accuracy metrics."""
         for metric in metrics:

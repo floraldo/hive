@@ -270,7 +270,7 @@ class CompositeStrategy(RecoveryStrategy):
             success=False,
             action_taken=RecoveryAction.ESCALATE,
             error=error,
-            attempts=sum(r.attempts for r in [last_result] if r)
+            attempts=sum(r.attempts for r in [last_result] if r),
             message="All recovery strategies exhausted"
         )
 

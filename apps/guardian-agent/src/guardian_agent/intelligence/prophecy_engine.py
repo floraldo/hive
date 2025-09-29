@@ -617,7 +617,7 @@ class ProphecyEngine:
 
             # Filter by confidence threshold
             filtered_prophecies = [
-                p,
+                p
                 for p in prophecies,
                 if self._get_confidence_score(p.confidence) >= self.config.min_confidence_threshold
             ]
@@ -645,7 +645,7 @@ class ProphecyEngine:
 
         # Database bottleneck prophecy
         if (
-            "data_persistence" in design_intent.data_requirements,
+"data_persistence" in design_intent.data_requirements
             and "high_performance" in design_intent.performance_requirements
         ):
             prophecy = ArchitecturalProphecy(
@@ -773,7 +773,7 @@ class ProphecyEngine:
 
         # Authentication prophecy,
         if (
-            "authentication" in design_intent.integration_points,
+"authentication" in design_intent.integration_points
             and "security" not in design_intent.preferred_technologies
         ):
             prophecy = ArchitecturalProphecy(

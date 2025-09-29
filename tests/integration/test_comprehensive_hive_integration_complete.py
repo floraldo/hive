@@ -167,7 +167,7 @@ class PlatformTestEnvironment:
                     component TEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
-            """
+            """,
             )
 
             conn.commit()
@@ -246,7 +246,7 @@ class PlatformTestEnvironment:
 
             # Also add to in-memory samples
             self.metrics.performance_samples.append(
-                {"test": metric_name, "value": metric_value, "component": component, "timestamp": time.time()}
+                {"test": metric_name, "value": metric_value, "component": component, "timestamp": time.time()},
             )
 
         except Exception as e:
@@ -273,9 +273,9 @@ class AIPlannerIntegrationTests:
                     "description": "Implement JWT-based authentication with user management",
                     "priority": 80,
                     "context": json.dumps(
-                        {"complexity": "high", "estimated_subtasks": 5, "technologies": ["JWT", "Flask", "SQLite"]}
+                        {"complexity": "high", "estimated_subtasks": 5, "technologies": ["JWT", "Flask", "SQLite"]},
                     ),
-                }
+                },
             )
 
             # 2. Simulate AI Planner processing
@@ -320,7 +320,7 @@ class AIPlannerIntegrationTests:
                     "title": "Database Migration Pipeline",
                     "description": "Multi-step database migration with dependencies",
                     "context": json.dumps({"dependencies": True}),
-                }
+                },
             )
 
             # Create execution plan with dependencies
@@ -330,7 +330,7 @@ class AIPlannerIntegrationTests:
                     {"id": 2, "title": "Run Migration Scripts", "dependencies": [1], "priority": 90},
                     {"id": 3, "title": "Verify Migration", "dependencies": [2], "priority": 80},
                     {"id": 4, "title": "Update Application Config", "dependencies": [3], "priority": 70},
-                ]
+                ],
             }
 
             plan_id = self._create_execution_plan(planning_task_id, plan_data)
@@ -363,14 +363,14 @@ class AIPlannerIntegrationTests:
         try:
             # Create planning task and execution plan
             planning_task_id = self._create_planning_task(
-                {"title": "Status Sync Test", "description": "Test plan status synchronization"}
+                {"title": "Status Sync Test", "description": "Test plan status synchronization"},
             )
 
             plan_data = {
                 "subtasks": [
                     {"id": 1, "title": "Subtask 1", "status": "pending"},
                     {"id": 2, "title": "Subtask 2", "status": "pending"},
-                ]
+                ],
             }
 
             plan_id = self._create_execution_plan(planning_task_id, plan_data)
@@ -452,7 +452,7 @@ class AIPlannerIntegrationTests:
             conn.close()
 
             self.env.log_event(
-                "plan_generated", {"planning_task_id": planning_task_id, "plan_id": plan_id}, "ai_planner"
+                "plan_generated", {"planning_task_id": planning_task_id, "plan_id": plan_id}, "ai_planner",
             )
             return plan_id
 
@@ -665,7 +665,7 @@ class CrossAppCommunicationTests:
                 return True
             else:
                 print(
-                    f"❌ Event bus communication test failed: only {events_handled}/{events_published} events handled"
+                    f"❌ Event bus communication test failed: only {events_handled}/{events_published} events handled",
                 )
                 return False
 
@@ -700,7 +700,7 @@ class CrossAppCommunicationTests:
                         )
                     elif app_name == "ecosystemiser":
                         conn.execute(
-                            "INSERT INTO event_log (event_type, component) VALUES (?, ?)", (f"eco_event_{i}", app_name)
+                            "INSERT INTO event_log (event_type, component) VALUES (?, ?)", (f"eco_event_{i}", app_name),
                         )
 
                     conn.commit()
@@ -741,7 +741,7 @@ class CrossAppCommunicationTests:
 
             if total_ops >= 30:
                 print(
-                    f"✅ Database connection sharing test passed: {total_ops} operations, {ops_per_second:.2f} ops/sec"
+                    f"✅ Database connection sharing test passed: {total_ops} operations, {ops_per_second:.2f} ops/sec",
                 )
                 return True
             else:
@@ -792,7 +792,7 @@ class CrossAppCommunicationTests:
             # Verify error reporting system
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute(
-                "SELECT COUNT(*) FROM event_log WHERE event_type IN ('error_reported', 'error_escalated', 'error_logged')"
+                "SELECT COUNT(*) FROM event_log WHERE event_type IN ('error_reported', 'error_escalated', 'error_logged')",
             )
             total_error_events = cursor.fetchone()[0]
             conn.close()
@@ -939,7 +939,7 @@ class DatabaseIntegrationTests:
 
             if inserted_tasks >= expected_inserts * 0.9:  # Allow 10% tolerance
                 print(
-                    f"✅ Connection pool load test passed: {ops_per_second:.2f} ops/sec, {inserted_tasks} tasks inserted"
+                    f"✅ Connection pool load test passed: {ops_per_second:.2f} ops/sec, {inserted_tasks} tasks inserted",
                 )
                 return True
             else:
@@ -978,7 +978,7 @@ class DatabaseIntegrationTests:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (component_id) REFERENCES eco_components(id)
                 );
-            """
+            """,
             )
             conn.commit()
             conn.close()
@@ -989,12 +989,12 @@ class DatabaseIntegrationTests:
                     "name": "Solar Panel Array",
                     "type": "energy_generation",
                     "config": {"capacity": 100, "efficiency": 0.85},
-                }
+                },
             )
 
             # 3. Test simulation operations
             simulation_id = self._create_eco_simulation(
-                component_id, {"duration": 24, "timestep": 3600, "weather_data": "test_weather.csv"}
+                component_id, {"duration": 24, "timestep": 3600, "weather_data": "test_weather.csv"},
             )
 
             # 4. Test simulation processing
@@ -1083,10 +1083,10 @@ class DatabaseIntegrationTests:
             conn.execute("BEGIN TRANSACTION")
 
             conn.execute(
-                "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Transaction Test 1", "Successful transaction")
+                "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Transaction Test 1", "Successful transaction"),
             )
             conn.execute(
-                "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Transaction Test 2", "Successful transaction")
+                "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Transaction Test 2", "Successful transaction"),
             )
 
             conn.execute("COMMIT")
@@ -1108,10 +1108,10 @@ class DatabaseIntegrationTests:
                 conn.execute("BEGIN TRANSACTION")
 
                 conn.execute(
-                    "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Rollback Test 1", "Should be rolled back")
+                    "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Rollback Test 1", "Should be rolled back"),
                 )
                 conn.execute(
-                    "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Rollback Test 2", "Should be rolled back")
+                    "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Rollback Test 2", "Should be rolled back"),
                 )
 
                 # Simulate error condition
@@ -1133,7 +1133,7 @@ class DatabaseIntegrationTests:
                 return True
             else:
                 print(
-                    f"❌ Transaction rollback failed: found {rollback_count} records that should have been rolled back"
+                    f"❌ Transaction rollback failed: found {rollback_count} records that should have been rolled back",
                 )
                 return False
 
@@ -1168,7 +1168,7 @@ class DatabaseIntegrationTests:
         conn.close()
 
         self.env.log_event(
-            "eco_simulation_created", {"simulation_id": simulation_id, "component_id": component_id}, "ecosystemiser"
+            "eco_simulation_created", {"simulation_id": simulation_id, "component_id": component_id}, "ecosystemiser",
         )
         return simulation_id
 
@@ -1244,7 +1244,7 @@ class PerformanceIntegrationTests:
                     return True
                 else:
                     print(
-                        f"❌ Async infrastructure performance test failed: only {improvement_factor:.1f}x improvement"
+                        f"❌ Async infrastructure performance test failed: only {improvement_factor:.1f}x improvement",
                     )
                     return False
 
@@ -1300,7 +1300,7 @@ class PerformanceIntegrationTests:
                     # Complete task
                     conn = sqlite3.connect(self.env.test_db_path)
                     conn.execute(
-                        "UPDATE tasks SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (task_id,)
+                        "UPDATE tasks SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (task_id,),
                     )
                     conn.commit()
                     conn.close()
@@ -1325,19 +1325,19 @@ class PerformanceIntegrationTests:
             # Verify all tasks completed
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute(
-                "SELECT COUNT(*) FROM tasks WHERE status = 'completed' AND title LIKE 'Performance Test Task%'"
+                "SELECT COUNT(*) FROM tasks WHERE status = 'completed' AND title LIKE 'Performance Test Task%'",
             )
             completed_tasks = cursor.fetchone()[0]
             conn.close()
 
             if completed_tasks >= num_tasks and throughput >= 5.0:  # Expect at least 5 tasks/sec
                 print(
-                    f"✅ Concurrent processing performance test passed: {throughput:.2f} tasks/sec, {completed_tasks}/{num_tasks} completed"
+                    f"✅ Concurrent processing performance test passed: {throughput:.2f} tasks/sec, {completed_tasks}/{num_tasks} completed",
                 )
                 return True
             else:
                 print(
-                    f"❌ Concurrent processing performance test failed: {throughput:.2f} tasks/sec, only {completed_tasks}/{num_tasks} completed"
+                    f"❌ Concurrent processing performance test failed: {throughput:.2f} tasks/sec, only {completed_tasks}/{num_tasks} completed",
                 )
                 return False
 
@@ -1441,7 +1441,7 @@ class PerformanceIntegrationTests:
 
             if improvement_factor >= 3.0 and sequential_count == 10 and concurrent_count == 10:
                 print(
-                    f"✅ 5x performance improvement validation passed: {improvement_factor:.1f}x improvement achieved"
+                    f"✅ 5x performance improvement validation passed: {improvement_factor:.1f}x improvement achieved",
                 )
                 self.env.metrics.improvement_factor = improvement_factor
                 return True

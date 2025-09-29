@@ -341,24 +341,24 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         # Recent operations analysis
         recent_operations = [
-            op for op in self._recent_operations,
+            op for op in self._recent_operations
             if op.start_time > last_hour
         ]
 
         day_operations = [
-            op for op in self._recent_operations,
+            op for op in self._recent_operations
             if op.start_time > last_day
         ]
 
         # Calculate summary statistics
         summary = {
-            "overview": {
+            "overview": {,
                 "total_operations": len(self._recent_operations),
                 "operations_last_hour": len(recent_operations),
                 "operations_last_day": len(day_operations),
                 "active_operations": len(self._active_operations)
             }
-            "performance": {
+            "performance": {,
                 "avg_latency_ms": self._calculate_avg_latency(recent_operations),
                 "success_rate": self._calculate_success_rate(recent_operations),
                 "total_tokens_hour": sum(
@@ -367,12 +367,12 @@ class AIMetricsCollector(MetricsCollectorInterface):
                 )
                 "total_cost_hour": sum(op.cost for op in recent_operations)
             }
-            "usage_patterns": {
+            "usage_patterns": {,
                 "top_models": self._get_top_models(day_operations),
                 "top_operations": self._get_top_operations(day_operations),
                 "provider_distribution": self._get_provider_distribution(day_operations)
             }
-            "errors": {
+            "errors": {,
                 "error_rate": self._calculate_error_rate(recent_operations),
                 "top_errors": self._get_top_errors(recent_operations)
             }
@@ -446,7 +446,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         """Get performance trends over time."""
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
         operations = [
-            op for op in self._recent_operations,
+            op for op in self._recent_operations
             if op.start_time > cutoff_time
         ]
 
@@ -454,7 +454,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
             return {"error": "No data available for the specified time period"}
 
         # Group by hour
-        hourly_stats = defaultdict(lambda: {
+        hourly_stats = defaultdict(lambda: {,
             "operations": 0,
             "total_latency": 0,
             "total_tokens": 0,
@@ -478,7 +478,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         # Calculate derived metrics,
         trends = {}
         for hour, stats in hourly_stats.items():
-            trends[hour] = {
+            trends[hour] = {,
                 "operations": stats["operations"],
                 "avg_latency_ms": (
                     stats["total_latency"] / stats["operations"],
@@ -495,7 +495,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         return {
             "time_period_hours": hours,
             "hourly_trends": trends,
-            "summary": {
+            "summary": {,
                 "total_operations": len(operations),
                 "avg_operations_per_hour": len(operations) / hours,
                 "total_cost": sum(op.cost for op in operations),
@@ -515,18 +515,18 @@ class AIMetricsCollector(MetricsCollectorInterface):
         if time_range:
             start_time, end_time = time_range,
             operations = [
-                op for op in self._recent_operations,
+                op for op in self._recent_operations
                 if start_time <= op.start_time <= end_time,
             ]
         else:
             operations = list(self._recent_operations)
 
         export_data = {
-            "metadata": {
+            "metadata": {,
                 "exported_at": datetime.utcnow().isoformat(),
                 "format": format,
                 "operation_count": len(operations),
-                "time_range": {
+                "time_range": {,
                     "start": time_range[0].isoformat() if time_range else None,
                     "end": time_range[1].isoformat() if time_range else None,
                 }
@@ -542,7 +542,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
                     "duration_ms": op.duration_ms,
                     "success": op.success,
                     "cost": op.cost,
-                    "tokens_used": {
+                    "tokens_used": {,
                         "total_tokens": op.tokens_used.total_tokens,
                         "prompt_tokens": op.tokens_used.prompt_tokens,
                         "completion_tokens": op.tokens_used.completion_tokens,

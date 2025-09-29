@@ -272,7 +272,7 @@ class ClaudeAPICache:
                 response_size = len(response_text.encode("utf-8"))
                 self.claude_metrics["total_response_size_cached"] += response_size
                 self.claude_metrics["largest_response_cached"] = max(
-                    self.claude_metrics["largest_response_cached"], response_size
+                    self.claude_metrics["largest_response_cached"], response_size,
                 )
 
                 logger.info(f"Cached Claude API response: {cache_key} (TTL: {ttl}s, Size: {response_size} bytes)")

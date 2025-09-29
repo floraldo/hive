@@ -135,7 +135,7 @@ class AsyncErrorHandler:
                     "error_details": error.details,
                     "recovery_suggestions": error.recovery_suggestions,
                     "original_error": str(error.original_error) if error.original_error else None,
-                }
+                },
             )
 
         self._error_history.append(error_record)
@@ -161,7 +161,7 @@ class AsyncErrorHandler:
 
         if context.retry_attempt > 0:
             logger.warning(
-                f"Error in {context.operation_name} (attempt {context.retry_attempt}): {error}", extra=log_data
+                f"Error in {context.operation_name} (attempt {context.retry_attempt}): {error}", extra=log_data,
             )
         else:
             logger.error(f"Error in {context.operation_name}: {error}", extra=log_data)

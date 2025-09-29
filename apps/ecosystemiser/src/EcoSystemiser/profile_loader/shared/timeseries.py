@@ -32,7 +32,7 @@ def aggregate_policy(var_type: Literal["state", "flux"]) -> str:
 
 
 def resample_timeseries(
-    data: pd.DataFrame | xr.Dataset, target_freq: str, policy_map: dict[str, str]
+    data: pd.DataFrame | xr.Dataset, target_freq: str, policy_map: dict[str, str],
 ) -> pd.DataFrame | xr.Dataset:
     """
     Resample time series data with specified policies.

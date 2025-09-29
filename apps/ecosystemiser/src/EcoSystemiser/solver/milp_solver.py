@@ -94,7 +94,7 @@ class MILPSolver(BaseSolver):
                 status = "error"
                 message = f"Solver status: {self.problem.status}"
             result = SolverResult(
-                status=status, objective_value=self.problem.value, solve_time=time.time() - start_time, message=message
+                status=status, objective_value=self.problem.value, solve_time=time.time() - start_time, message=message,
             )
 
         except Exception as e:

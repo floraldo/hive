@@ -70,7 +70,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
                 return (
                     jsonify(
-                        {"success": True, "session_id": session_id, "summary": analysis_results.get("summary", {})}
+                        {"success": True, "session_id": session_id, "summary": analysis_results.get("summary", {})},
                     ),
                 )
 
@@ -96,7 +96,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
         # Use ReportingService to generate report
         report_config = ReportConfig(
-            report_type="standard", title=f"Analysis Report - {session_id}", include_plots=True, output_format="html"
+            report_type="standard", title=f"Analysis Report - {session_id}", include_plots=True, output_format="html",
         )
         report_result = app.reporting_service.generate_report(analysis_results=analysis_results, config=report_config)
 
@@ -250,7 +250,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             tmp_path = tmp.name
 
         return send_file(
-            tmp_path, as_attachment=True, download_name=f"ecosystemiser_report_{session_id}.html", mimetype="text/html"
+            tmp_path, as_attachment=True, download_name=f"ecosystemiser_report_{session_id}.html", mimetype="text/html",
         )
 
     @app.errorhandler(404)

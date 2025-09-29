@@ -276,7 +276,7 @@ class BaseOptimizationAlgorithm(ABC):
         return False
 
     def _create_result(
-        self, population: np.ndarray, evaluations: list[dict[str, Any]], start_time: float
+        self, population: np.ndarray, evaluations: list[dict[str, Any]], start_time: float,
     ) -> OptimizationResult:
         """Create optimization result.
 
@@ -371,7 +371,7 @@ class BaseOptimizationAlgorithm(ABC):
                 if i != j:
                     # Check if j dominates i (assuming minimization),
                     if np.all(objectives_array[j] <= objectives_array[i]) and np.any(
-                        objectives_array[j] < objectives_array[i]
+                        objectives_array[j] < objectives_array[i],
                     ):
                         is_dominated = True
                         break
@@ -382,7 +382,7 @@ class BaseOptimizationAlgorithm(ABC):
         return pareto_indices
 
     def _find_best_compromise_solution(
-        self, evaluations: list[dict[str, Any]], pareto_indices: list[int]
+        self, evaluations: list[dict[str, Any]], pareto_indices: list[int],
     ) -> int | None:
         """Find best compromise solution from Pareto front.
 

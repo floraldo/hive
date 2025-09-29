@@ -192,7 +192,7 @@ class DeploymentOrchestrator:
         return True
 
     async def _execute_deployment_async(
-        self, strategy_impl: Any, task: dict[str, Any], deployment_id: str
+        self, strategy_impl: Any, task: dict[str, Any], deployment_id: str,
     ) -> DeploymentResult:
         """
         Execute deployment using selected strategy

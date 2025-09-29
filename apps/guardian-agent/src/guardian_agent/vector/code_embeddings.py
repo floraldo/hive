@@ -30,7 +30,7 @@ class CodeEmbeddingGenerator:
         logger.info("CodeEmbeddingGenerator initialized with model %s", model_name)
 
     async def generate_file_embeddings(
-        self, file_path: Path, content: str, chunk_size: int = 50, overlap: int = 10
+        self, file_path: Path, content: str, chunk_size: int = 50, overlap: int = 10,
     ) -> list[dict[str, Any]]:
         """
         Generate embeddings for a file using sliding window approach.
@@ -108,7 +108,7 @@ class CodeEmbeddingGenerator:
         return embeddings
 
     async def generate_pattern_embedding(
-        self, pattern: str, pattern_type: str = "code", metadata: dict[str, Any] | None = None
+        self, pattern: str, pattern_type: str = "code", metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Generate embedding for a specific code pattern.
@@ -158,12 +158,12 @@ class CodeEmbeddingGenerator:
                         "name": node.name,
                         "line": node.lineno,
                         "methods": [m.name for m in node.body if isinstance(m, ast.FunctionDef)],
-                    }
+                    },
                 )
             elif isinstance(node, ast.FunctionDef):
                 # Only top-level functions
                 structure["functions"].append(
-                    {"name": node.name, "line": node.lineno, "is_async": isinstance(node, ast.AsyncFunctionDef)}
+                    {"name": node.name, "line": node.lineno, "is_async": isinstance(node, ast.AsyncFunctionDef)},
                 )
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
                 if isinstance(node, ast.Import):
@@ -175,7 +175,7 @@ class CodeEmbeddingGenerator:
         return structure
 
     def _build_context(
-        self, chunk_content: str, file_path: Path, start_line: int, end_line: int, structure_info: dict[str, Any]
+        self, chunk_content: str, file_path: Path, start_line: int, end_line: int, structure_info: dict[str, Any],
     ) -> str:
         """Build enriched context for embedding generation."""
         # Include structural context

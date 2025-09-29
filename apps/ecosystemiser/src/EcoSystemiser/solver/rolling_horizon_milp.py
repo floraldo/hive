@@ -140,7 +140,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                         "objective_value": window_result.objective_value,
                         "iterations": window_result.iterations,
                         "solution_vectors": solution_vectors,  # Store for warm-starting
-                    }
+                    },
                 )
 
                 self.total_solve_time += window_result.solve_time
@@ -154,7 +154,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                         "end_time": window["end"],
                         "status": "error",
                         "error": str(e),
-                    }
+                    },
                 )
 
         # Aggregate results
@@ -221,7 +221,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                     "prediction_end": prediction_end,
                     "implement_start": current_start,
                     "implement_end": min(current_start + step_size, self.system.N),
-                }
+                },
             )
 
             # Move to next window,
@@ -306,7 +306,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         """
         # Create standard MILP solver for this window
         milp_config = SolverConfig(
-            solver_type="MOSEK", verbose=self.config.verbose, solver_specific=self.config.solver_specific
+            solver_type="MOSEK", verbose=self.config.verbose, solver_specific=self.config.solver_specific,
         )
         milp_solver = MILPSolver(window_system, milp_config)
 
@@ -369,7 +369,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                             if hasattr(comp.P_in_opt, "value"):
                                 comp.P_in_opt.value = (
                                     np.pad(
-                                        shifted_values, (0, max(0, window["length"] - len(shifted_values))), "constant"
+                                        shifted_values, (0, max(0, window["length"] - len(shifted_values))), "constant",
                                     ),
                                 )
                                 warmstart_count += (1,)
@@ -539,7 +539,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                                 "energy": final_energy,
                                 "max_capacity": E_max,
                                 "violation": final_energy - E_max,
-                            }
+                            },
                         )
                         logger.warning(f"Storage overflow in {comp_name}: {final_energy:.3f} > {E_max:.3f}")
 
@@ -552,7 +552,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                                 "energy": final_energy,
                                 "min_capacity": E_min,
                                 "violation": E_min - final_energy,
-                            }
+                            },
                         )
                         logger.warning(f"Storage underflow in {comp_name}: {final_energy:.3f} < {E_min:.3f}")
 
@@ -735,7 +735,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
             # Count window failures,
             validation["window_failures"] = len(
-                [r for r in self.window_results if r.get("status") in ["error", "infeasible"]]
+                [r for r in self.window_results if r.get("status") in ["error", "infeasible"]],
             )
 
             # Check for solution gaps (missing timesteps),
@@ -749,16 +749,16 @@ class RollingHorizonMILPSolver(BaseSolver):
                                 "component": comp_name,
                                 "zero_timesteps": int(zero_count),
                                 "total_timesteps": self.system.N,
-                            }
+                            },
                         )
 
             # Calculate success metrics,
             validation["success_rate"] = (validation["total_windows"] - validation["window_failures"]) / max(
-                validation["total_windows"], 1
+                validation["total_windows"], 1,
             )
 
             validation["storage_violation_rate"] = validation["storage_continuity_violations"] / max(
-                len(self.storage_states) * validation["total_windows"], 1
+                len(self.storage_states) * validation["total_windows"], 1,
             )
 
             # Overall health score

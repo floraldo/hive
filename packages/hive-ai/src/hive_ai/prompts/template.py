@@ -91,7 +91,7 @@ class PromptTemplate(PromptTemplateInterface):
         for var_name in set(matches):
             if var_name not in self.variables:
                 self.variables[var_name] = PromptVariable(
-                    name=var_name, type="str", required=True, description=f"Auto-extracted variable: {var_name}"
+                    name=var_name, type="str", required=True, description=f"Auto-extracted variable: {var_name}",
                 )
 
         logger.debug(f"Extracted {len(self.variables)} variables from template")
@@ -184,7 +184,7 @@ class PromptTemplate(PromptTemplateInterface):
 
         except Exception as e:
             raise PromptError(
-                f"Template rendering failed: {str(e)}", template_name=self.metadata.name if self.metadata else "unknown"
+                f"Template rendering failed: {str(e)}", template_name=self.metadata.name if self.metadata else "unknown",
             ) from e
 
     def _render_internal(self, variables: dict[str, Any]) -> str:

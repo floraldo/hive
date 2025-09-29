@@ -70,7 +70,7 @@ def start_queen(config: str | None, debug: bool) -> None:
 @option(
     "--mode",
     "-m",
-    type=click.Choice(["backend", "frontend", "infra", "general"])
+    type=click.Choice(["backend", "frontend", "infra", "general"]),
     default="general",
     help="Worker mode"
 )
@@ -276,7 +276,7 @@ def review_escalated(task_id: str) -> None:
         # Get human decision
         decision = Prompt.ask(
             "\nYour decision",
-            choices=["approve", "reject", "rework", "defer", "cancel"]
+            choices=["approve", "reject", "rework", "defer", "cancel"],
             default="defer"
         )
 

@@ -68,7 +68,7 @@ class ProcessingStep:
             from ecosystemiser.profile_loader.climate.validation import QCReport
 
             if isinstance(report, QCReport):
-                report_dict = {
+                report_dict = {,
                     "qc_report": report,
                     "quality_score": report.calculate_quality_score(),
                     "issues_count": len(report.issues),
@@ -162,14 +162,14 @@ class ProcessingPipeline:
                         else 24
                     ),
                     "preserve_extremes": True
-                }
+                },
                 enabled=gap_fill_enabled
             )
 
         # 3. Resampling (disabled by default, enabled on-demand),
         self.add_preprocessing_step(
             "resample",
-            lambda ds, **kw: resample_dataset(ds, kw.get("resolution", "H"))
+            lambda ds, **kw: resample_dataset(ds, kw.get("resolution", "H")),
             config={"resolution": "H"},
             enabled=False,  # Only enabled when resolution is requested
         )
@@ -221,7 +221,7 @@ class ProcessingPipeline:
             name=name,
             function=function,
             stage=PipelineStage.PREPROCESSING,
-            config=config or {}
+            config=config or {},
             enabled=enabled,
             required=required
         )
@@ -240,7 +240,7 @@ class ProcessingPipeline:
             name=name,
             function=function,
             stage=PipelineStage.POSTPROCESSING,
-            config=config or {}
+            config=config or {},
             enabled=enabled,
             required=required
         )

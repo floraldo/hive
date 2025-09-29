@@ -79,7 +79,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 line_number=line_num,
                 message=message,
                 severity=severity,
-            )
+            ),
         )
 
     def visit_Import(self, node: ast.Import) -> None:
@@ -247,7 +247,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 return
 
             self.add_violation(
-                "rule-9", "Logging Standards", node.lineno, "Use hive_logging instead of print() in production code."
+                "rule-9", "Logging Standards", node.lineno, "Use hive_logging instead of print() in production code.",
             )
 
     def _validate_interface_contracts(self, node: ast.FunctionDef):
@@ -457,7 +457,7 @@ class EnhancedValidator:
             if rule_name not in violations_by_rule:
                 violations_by_rule[rule_name] = []
             violations_by_rule[rule_name].append(
-                f"{violation.file_path.relative_to(self.project_root)}:{violation.line_number} - {violation.message}"
+                f"{violation.file_path.relative_to(self.project_root)}:{violation.line_number} - {violation.message}",
             )
 
         return len(self.violations) == 0, violations_by_rule
@@ -551,7 +551,7 @@ class EnhancedValidator:
                             file_path=app_dir,
                             line_number=1,
                             message=f"App '{app_dir.name}' missing hive-app.toml",
-                        )
+                        ),
                     )
 
     def _validate_colocated_tests(self) -> None:
@@ -571,7 +571,7 @@ class EnhancedValidator:
                                 file_path=component_dir,
                                 line_number=1,
                                 message=f"{base_dir.name}/{component_dir.name} missing tests/ directory",
-                            )
+                            ),
                         )
 
     def _validate_documentation_hygiene(self) -> None:
@@ -591,7 +591,7 @@ class EnhancedValidator:
                                 file_path=component_dir,
                                 line_number=1,
                                 message=f"{base_dir.name}/{component_dir.name} missing or empty README.md",
-                            )
+                            ),
                         )
 
     def _validate_models_purity(self) -> None:
@@ -632,7 +632,7 @@ class EnhancedValidator:
                                     file_path=py_file,
                                     line_number=node.lineno,
                                     message=f"Invalid import in hive-models: {module}. Only data definitions allowed.",
-                                )
+                                ),
                             )
             except:
                 continue

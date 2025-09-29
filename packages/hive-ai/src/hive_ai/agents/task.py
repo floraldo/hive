@@ -291,9 +291,9 @@ class PromptTask(BaseTask):
                 task_id=self.id,
                 status=TaskStatus.FAILED,
                 result=None,
-                error=str(e)
+                error=str(e),
                 start_time=self.start_time,
-                end_time=datetime.utcnow()
+                end_time=datetime.utcnow(),
                 duration_seconds=duration
             )
 
@@ -400,9 +400,9 @@ class ToolTask(BaseTask):
                 task_id=self.id,
                 status=TaskStatus.FAILED,
                 result=None,
-                error=str(e)
+                error=str(e),
                 start_time=self.start_time,
-                end_time=datetime.utcnow()
+                end_time=datetime.utcnow(),
                 duration_seconds=duration
             )
 
@@ -506,7 +506,7 @@ class TaskSequence:
             # Execute task with timeout
             try:
                 result = await asyncio.wait_for(
-                    task._execute_with_retry_async(agent, input_data, dependency_results)
+                    task._execute_with_retry_async(agent, input_data, dependency_results),
                     timeout=task.config.timeout_seconds
                 )
 
@@ -545,7 +545,7 @@ class TaskSequence:
             "total_tasks": len(self.tasks),
             "completed_tasks": completed_count,
             "failed_tasks": failed_count,
-            "remaining_tasks": len(self.tasks) - len(self.completed_tasks)
+            "remaining_tasks": len(self.tasks) - len(self.completed_tasks),
             "execution_order": self.execution_order,
             "task_status": {task_id: result.status.value for task_id, result in self.completed_tasks.items()}
         }

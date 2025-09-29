@@ -56,7 +56,7 @@ class BaseDeploymentStrategy(ABC):
 
     @abstractmethod
     async def rollback_async(
-        self, task: dict[str, Any], deployment_id: str, previous_deployment: dict[str, Any]
+        self, task: dict[str, Any], deployment_id: str, previous_deployment: dict[str, Any],
     ) -> dict[str, Any]:
         """
         Rollback deployment to previous version

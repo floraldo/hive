@@ -101,7 +101,7 @@ def load_config(base_config: dict | None = None) -> AIReviewerConfig:
 
     # Merge with reviewer-specific config
     return AIReviewerConfig(
-        **hive_config.dict(), review=ReviewConfig(), claude=ClaudeReviewConfig(), notifications=NotificationConfig()
+        **hive_config.dict(), review=ReviewConfig(), claude=ClaudeReviewConfig(), notifications=NotificationConfig(),
     )
 
 

@@ -33,7 +33,7 @@ class HeatPumpTechnicalParams(GenerationTechnicalParams):
 
     # STANDARD fidelity additions
     cop_temperature_curve: dict[str, float] | None = Field(
-        None, description="COP variation with temperature {slope, intercept}"
+        None, description="COP variation with temperature {slope, intercept}",
     )
     defrost_power_penalty: float | None = Field(None, description="Power penalty during defrost cycles [%]")
 
@@ -44,7 +44,7 @@ class HeatPumpTechnicalParams(GenerationTechnicalParams):
 
     # RESEARCH fidelity parameters
     detailed_refrigerant_model: dict[str, Any] | None = Field(
-        None, description="Detailed refrigerant cycle modeling parameters"
+        None, description="Detailed refrigerant cycle modeling parameters",
     )
     control_algorithm: dict[str, Any] | None = Field(None, description="Advanced control algorithm parameters")
 

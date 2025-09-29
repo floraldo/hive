@@ -165,7 +165,7 @@ class TrendAnalyzer:
         return None
 
     def _create_degradation_alert(
-        self, metrics: list[MetricPoint], ema: list[float], threshold: float
+        self, metrics: list[MetricPoint], ema: list[float], threshold: float,
     ) -> DegradationAlert:
         """Create degradation alert from analysis results."""
         current_value = metrics[-1].value
@@ -336,7 +336,7 @@ class TrendAnalyzer:
         return AlertSeverity.LOW
 
     def _generate_recommendations(
-        self, metrics: list[MetricPoint], threshold: float, severity: AlertSeverity
+        self, metrics: list[MetricPoint], threshold: float, severity: AlertSeverity,
     ) -> list[str]:
         """
         Generate recommended actions based on metric type and severity.
@@ -358,14 +358,14 @@ class TrendAnalyzer:
                     "Review recent error logs for root cause",
                     "Check if circuit breakers are functioning",
                     "Consider enabling fallback mechanisms",
-                ]
+                ],
             )
             if severity in [AlertSeverity.CRITICAL, AlertSeverity.HIGH]:
                 recommendations.append("Enable request throttling immediately")
 
         elif metric_type in ["latency_p95", "latency_p99"]:
             recommendations.extend(
-                ["Review slow query logs", "Check connection pool utilization", "Consider enabling response caching"]
+                ["Review slow query logs", "Check connection pool utilization", "Consider enabling response caching"],
             )
             if severity in [AlertSeverity.CRITICAL, AlertSeverity.HIGH]:
                 recommendations.append("Activate load shedding for non-critical requests")
@@ -376,14 +376,14 @@ class TrendAnalyzer:
                     "Scale out additional worker instances",
                     "Review recent resource-intensive operations",
                     "Check for memory leaks or CPU-bound tasks",
-                ]
+                ],
             )
             if severity in [AlertSeverity.CRITICAL, AlertSeverity.HIGH]:
                 recommendations.append("Implement emergency auto-scaling")
 
         elif metric_type == "connection_pool":
             recommendations.extend(
-                ["Increase connection pool size", "Review connection timeout settings", "Check for connection leaks"]
+                ["Increase connection pool size", "Review connection timeout settings", "Check for connection leaks"],
             )
 
         return recommendations
@@ -426,7 +426,7 @@ class TrendAnalyzer:
         if is_anomaly:
             logger.warning(
                 f"Anomaly detected: value={current_value:.2f}, "
-                f"mean={mean:.2f}, std_dev={std_dev:.2f}, z_score={z_score:.2f}"
+                f"mean={mean:.2f}, std_dev={std_dev:.2f}, z_score={z_score:.2f}",
             )
 
         return is_anomaly

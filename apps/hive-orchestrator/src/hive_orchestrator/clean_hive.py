@@ -270,7 +270,7 @@ def main() -> None:
         # Parse arguments
         parser = argparse.ArgumentParser(description="Clean Hive workspace and database for fresh start")
         parser.add_argument(
-            "--keep-branches", action="store_true", help="Preserve git branches (don't delete agent/* branches)"
+            "--keep-branches", action="store_true", help="Preserve git branches (don't delete agent/* branches)",
         )
         parser.add_argument("--db-only", action="store_true", help="Only clean database, skip files and processes")
         args = parser.parse_args()

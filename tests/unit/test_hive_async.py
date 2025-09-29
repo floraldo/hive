@@ -267,7 +267,7 @@ class TestAsyncTimeoutManager:
             return "too_slow"
 
         result = await manager.run_with_timeout_async(
-            slow_operation(), operation_name="slow_op", fallback="fallback_value"
+            slow_operation(), operation_name="slow_op", fallback="fallback_value",
         )
 
         assert result == "fallback_value"
@@ -383,7 +383,7 @@ class TestAsyncDecoratorPatterns:
         call_count = 0
 
         @async_resilient(
-            timeout=0.2, circuit_failure_threshold=2, circuit_recovery_timeout=0.1, operation_name="resilient_test"
+            timeout=0.2, circuit_failure_threshold=2, circuit_recovery_timeout=0.1, operation_name="resilient_test",
         )
         async def decorated_function(should_fail=False, delay=0.01):
             nonlocal call_count
@@ -666,7 +666,7 @@ class TestAdvancedTimeoutManager:
     def test_timeout_config_initialization(self):
         """Test TimeoutConfig initialization."""
         config = TimeoutConfig(
-            default_timeout=30.0, min_timeout=1.0, max_timeout=300.0, adaptive_enabled=True, performance_window=100
+            default_timeout=30.0, min_timeout=1.0, max_timeout=300.0, adaptive_enabled=True, performance_window=100,
         )
 
         assert config.default_timeout == 30.0
@@ -743,7 +743,7 @@ class TestAsyncIntegration:
         # Successful operation
         async def wrapped_success():
             return await breaker.call_async(
-                lambda: timeout_manager.run_with_timeout_async(integrated_operation(), operation_name="integrated_test")
+                lambda: timeout_manager.run_with_timeout_async(integrated_operation(), operation_name="integrated_test"),
             )
 
         result = await wrapped_success()
@@ -753,8 +753,8 @@ class TestAsyncIntegration:
         async def wrapped_timeout():
             return await breaker.call_async(
                 lambda: timeout_manager.run_with_timeout_async(
-                    integrated_operation(delay=1.0), operation_name="timeout_test"
-                )
+                    integrated_operation(delay=1.0), operation_name="timeout_test",
+                ),
             )
 
         # Timeout should cause failures that trigger circuit breaker
