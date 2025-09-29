@@ -26,8 +26,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import xarray as xr
-
 from ecosystemiser.profile_loader.shared.timeseries import zero_night_irradiance
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
