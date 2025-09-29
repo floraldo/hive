@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import cvxpy as cp
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, StorageTechnicalParams

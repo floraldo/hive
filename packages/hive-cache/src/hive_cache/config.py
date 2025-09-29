@@ -68,14 +68,14 @@ class CacheConfig(BaseModel):
     performance_default_ttl: int = Field(default=86400, description="Default TTL for performance caches")
 
     @validator("redis_url")
-    def validate_redis_url(cls, v):
+    def validate_redis_url(cls, v) -> Any:
         """Validate Redis URL format."""
         if not v.startswith(("redis://", "rediss://")):
             raise ValueError("Redis URL must start with redis:// or rediss://")
         return v
 
     @validator("max_connections")
-    def validate_max_connections(cls, v):
+    def validate_max_connections(cls, v) -> Any:
         """Validate connection pool size."""
         if v < 1:
             raise ValueError("max_connections must be at least 1")
@@ -84,21 +84,21 @@ class CacheConfig(BaseModel):
         return v
 
     @validator("default_ttl", "max_ttl", "min_ttl")
-    def validate_ttl_values(cls, v):
+    def validate_ttl_values(cls, v) -> Any:
         """Validate TTL values."""
         if v < 0:
             raise ValueError("TTL values must be non-negative")
         return v
 
     @validator("compression_level")
-    def validate_compression_level(cls, v):
+    def validate_compression_level(cls, v) -> Any:
         """Validate compression level."""
         if not 1 <= v <= 9:
             raise ValueError("Compression level must be between 1 and 9")
         return v
 
     @validator("serialization_format")
-    def validate_serialization_format(cls, v):
+    def validate_serialization_format(cls, v) -> Any:
         """Validate serialization format."""
         valid_formats = ["msgpack", "orjson", "json"]  # Removed pickle for security
         if v not in valid_formats:

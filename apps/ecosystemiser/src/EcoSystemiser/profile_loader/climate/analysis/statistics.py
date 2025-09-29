@@ -36,7 +36,7 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
                 "max": float(np.max(valid_data)),
                 "count": len(valid_data),
                 "missing": int(np.sum(np.isnan(data))),
-                "missing_pct": float(np.sum(np.isnan(data)) / len(data) * 100)
+                "missing_pct": float(np.sum(np.isnan(data)) / len(data) * 100),
             }
 
             # Add percentiles,
@@ -51,8 +51,8 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
                 "min": np.nan,
                 "max": np.nan,
                 "count": 0,
-                "missing": len(data)
-                "missing_pct": 100.0
+                "missing": len(data),
+                "missing_pct": 100.0,
             }
 
     # Calculate correlation matrix

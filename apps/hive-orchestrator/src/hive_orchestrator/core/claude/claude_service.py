@@ -56,13 +56,13 @@ class ClaudeMetrics:
     def to_dict(self) -> Dict[str, Any]:
         """Convert metrics to dictionary"""
         return {
-            "total_calls": self.total_calls
-            "successful_calls": self.successful_calls
-            "failed_calls": self.failed_calls
-            "cached_responses": self.cached_responses
-            "total_tokens": self.total_tokens
-            "average_latency_ms": self.average_latency_ms
-            "success_rate": self.success_rate
+            "total_calls": self.total_calls,
+            "successful_calls": self.successful_calls,
+            "failed_calls": self.failed_calls,
+            "cached_responses": self.cached_responses,
+            "total_tokens": self.total_tokens,
+            "average_latency_ms": self.average_latency_ms,
+            "success_rate": self.success_rate,
             "rate_limited": self.rate_limited
         }
 
@@ -184,12 +184,12 @@ class ClaudeService:
         # Use provided claude_config if available, otherwise use defaults
         if claude_config is None:
             claude_config = {
-                "mock_mode": False
-                "timeout": 30
-                "max_retries": 3
-                "rate_limit_per_minute": 10
-                "rate_limit_per_hour": 100
-                "burst_size": 5
+                "mock_mode": False,
+                "timeout": 30,
+                "max_retries": 3,
+                "rate_limit_per_minute": 10,
+                "rate_limit_per_hour": 100,
+                "burst_size": 5,
                 "cache_ttl": 300
             }
 

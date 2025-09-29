@@ -334,9 +334,9 @@ class ScenarioManager:
                 for t, value in enumerate(values):
                     flows_data.append({
                         "timestep": t,
-                        "flow_name": flow_key
+                        "flow_name": flow_key,
                         "source": flow_data["source"],
-                        "target": flow_data["target"]
+                        "target": flow_data["target"],
                         "type": flow_data["type"],
                         "value": value
                     })
@@ -356,11 +356,11 @@ class ScenarioManager:
                     for t, energy in enumerate(component.E):
                         components_data.append({
                             "timestep": t,
-                            "component": comp_name
+                            "component": comp_name,
                             "type": component.type,
-                            "medium": component.medium
+                            "medium": component.medium,
                             "variable": "E",
-                            "value": energy
+                            "value": energy,
                             "unit": "kWh"
                         })
 
@@ -370,11 +370,11 @@ class ScenarioManager:
                     for t, power in enumerate(component.profile):
                         components_data.append({
                             "timestep": t,
-                            "component": comp_name
+                            "component": comp_name,
                             "type": component.type,
-                            "medium": component.medium
+                            "medium": component.medium,
                             "variable": "profile",
-                            "value": power
+                            "value": power,
                             "unit": "kW"
                         })
 

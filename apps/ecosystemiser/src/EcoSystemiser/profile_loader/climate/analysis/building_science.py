@@ -201,7 +201,7 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
 
             peaks[var] = {
                 "peak_value": float(data.max()),
-                "peak_time": peak_time.isoformat()
+                "peak_time": peak_time.isoformat(),
                 "peak_hour": peak_time.hour,
                 "peak_month": peak_time.month,
                 "peak_day_of_year": peak_time.dayofyear

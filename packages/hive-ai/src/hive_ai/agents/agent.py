@@ -438,17 +438,17 @@ Thoughts:
 
         return {
             "id": self.id,
-            "name": self.config.name
+            "name": self.config.name,
             "state": self.state.value,
-            "current_iteration": self.current_iteration
+            "current_iteration": self.current_iteration,
             "max_iterations": self.config.max_iterations,
-            "created_at": self.created_at.isoformat()
+            "created_at": self.created_at.isoformat(),
             "start_time": self.start_time.isoformat() if self.start_time else None,
-            "end_time": self.end_time.isoformat() if self.end_time else None
+            "end_time": self.end_time.isoformat() if self.end_time else None,
             "duration_seconds": duration,
-            "tools_available": len(self.tools)
+            "tools_available": len(self.tools),
             "messages_sent": len(self.message_queue),
-            "memory_enabled": self.memory is not None
+            "memory_enabled": self.memory is not None,
             "errors": len(self.errors),
             "results": len(self.results)
         }
@@ -460,11 +460,11 @@ Thoughts:
 
         return {
             "memory_enabled": True,
-            "short_term_items": len(self.memory.short_term)
+            "short_term_items": len(self.memory.short_term),
             "long_term_items": len(self.memory.long_term),
-            "episodic_memories": len(self.memory.episodic)
+            "episodic_memories": len(self.memory.episodic),
             "conversation_messages": len(self.memory.conversation),
-            "short_term_keys": list(self.memory.short_term.keys())
+            "short_term_keys": list(self.memory.short_term.keys()),
             "long_term_keys": list(self.memory.long_term.keys())
         }
 
@@ -487,23 +487,23 @@ Thoughts:
             "execution_state": {
                 "state": self.state.value,
                 "current_iteration": self.current_iteration,
-                "start_time": self.start_time.isoformat() if self.start_time else None
+                "start_time": self.start_time.isoformat() if self.start_time else None,
                 "end_time": self.end_time.isoformat() if self.end_time else None,
-                "errors": self.errors
+                "errors": self.errors,
                 "results": self.results
             }
             "memory": {
                 "short_term": self.memory.short_term if self.memory else {}
                 "long_term": self.memory.long_term if self.memory else {},
-                "episodic": self.memory.episodic if self.memory else []
+                "episodic": self.memory.episodic if self.memory else [],
                 "conversation": [
                     {
                         "id": msg.id,
-                        "sender": msg.sender
+                        "sender": msg.sender,
                         "recipient": msg.recipient,
-                        "content": msg.content
+                        "content": msg.content,
                         "message_type": msg.message_type,
-                        "timestamp": msg.timestamp.isoformat()
+                        "timestamp": msg.timestamp.isoformat(),
                         "metadata": msg.metadata
                     }
                     for msg in (self.memory.conversation if self.memory else [])

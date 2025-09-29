@@ -18,24 +18,29 @@ class ServiceDiscoveryError(Exception):
 
 class ServiceNotFoundError(BaseError):
     """Raised when a requested service is not found."""
+
     pass
 
 
 class ServiceRegistrationError(BaseError):
     """Raised when service registration fails."""
+
     pass
 
 
 class ServiceHealthError(BaseError):
     """Raised when service health check fails."""
+
     pass
 
 
 class LoadBalancerError(BaseError):
     """Raised when load balancing operation fails."""
+
     pass
 
 
 class ServiceTimeoutError(BaseError):
     """Raised when service operation times out."""
+
     pass

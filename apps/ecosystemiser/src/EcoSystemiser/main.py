@@ -146,7 +146,7 @@ async def root_async() -> None:
         uptime=get_uptime(),
         build_info={
             "version": settings.api.version,
-            "build_date": datetime.utcnow().isoformat()
+            "build_date": datetime.utcnow().isoformat(),
             "environment": "development" if settings.debug else "production"
         }
     )
@@ -157,7 +157,7 @@ async def health_async() -> None:
     """Enhanced health check endpoint with system status"""
     checks = {
         "database": check_database_health_async(),
-        "profile_loader": check_profile_loader_health_async()
+        "profile_loader": check_profile_loader_health_async(),
         "cache": check_cache_health_async(),
         "filesystem": check_filesystem_health_async()
     }
@@ -405,7 +405,7 @@ async def get_metrics_async() -> None:
     )
     health_checks = {
         "database": check_database_health_async(),
-        "profile_loader": check_profile_loader_health_async()
+        "profile_loader": check_profile_loader_health_async(),
         "cache": check_cache_health_async(),
         "filesystem": check_filesystem_health_async()
     },

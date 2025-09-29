@@ -68,7 +68,7 @@ logger = get_logger(__name__)
     return profiles_df
 
 
-def create_extended_profiles(base_profiles, days=7):
+def create_extended_profiles(base_profiles, days=7) -> Any:
     """Create extended profiles for multi-day testing."""
     extended_profiles = []
 

@@ -50,9 +50,7 @@ class EnvironmentalParameters:
             yearly_embedded_emissions = (
                 total_embedded_emissions / lifetime
                 if distribute_embedded and year < lifetime
-                else total_embedded_emissions
-                if year == 0
-                else 0
+                else total_embedded_emissions if year == 0 else 0
             )
             yearly_operational_emissions = self.get_emissions_annual(relevant_energy, year, co2_change_rate, N)
             emissions_df.loc[year] = yearly_embedded_emissions + yearly_operational_emissions

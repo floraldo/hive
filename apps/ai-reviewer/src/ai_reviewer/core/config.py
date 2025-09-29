@@ -84,15 +84,21 @@ class AIReviewerConfig(HiveConfig):
     notifications: NotificationConfig = NotificationConfig()
 
 
-def load_config() -> AIReviewerConfig:
+def load_config(base_config: dict | None = None) -> AIReviewerConfig:
     """
     Load AI Reviewer configuration extending hive config.
+
+    Args:
+        base_config: Optional base configuration dict to use instead of global config
 
     Returns:
         AIReviewerConfig: Complete configuration with hive base + reviewer extensions
     """
-    # Load base hive configuration
-    hive_config = load_hive_config()
+    # Load base hive configuration or use provided config
+    if base_config:
+        hive_config = HiveConfig(**base_config)
+    else:
+        hive_config = load_hive_config()
 
     # Merge with reviewer-specific config
     return AIReviewerConfig(

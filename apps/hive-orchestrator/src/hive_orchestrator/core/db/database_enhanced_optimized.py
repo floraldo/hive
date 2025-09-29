@@ -106,15 +106,15 @@ def get_queued_tasks_with_planning_optimized(
         # Process results
         for row in cursor.fetchall():
             task = {
-                "id": row[0]
-                "title": row[1]
-                "description": row[2]
-                "task_type": row[3]
-                "priority": row[4]
-                "status": row[5]
+                "id": row[0],
+                "title": row[1],
+                "description": row[2],
+                "task_type": row[3],
+                "priority": row[4],
+                "status": row[5],
                 "payload": json.loads(row[8]) if row[8] else {}
-                "created_at": row[9]
-                "updated_at": row[10]
+                "created_at": row[9],
+                "updated_at": row[10],
                 "assignee": row[15] if len(row) > 15 else None
             }
 
@@ -122,9 +122,9 @@ def get_queued_tasks_with_planning_optimized(
             if task["task_type"] == "planned_subtask":
                 payload = task.get("payload", {})
                 task["planner_context"] = {
-                    "parent_plan_id": payload.get("parent_plan_id")
-                    "workflow_phase": payload.get("workflow_phase")
-                    "estimated_duration": payload.get("estimated_duration")
+                    "parent_plan_id": payload.get("parent_plan_id"),
+                    "workflow_phase": payload.get("workflow_phase"),
+                    "estimated_duration": payload.get("estimated_duration"),
                     "required_skills": payload.get("required_skills", [])
                     "deliverables": payload.get("deliverables", [])
                 }
@@ -345,11 +345,11 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
                 continue
 
             payload = {
-                "parent_plan_id": plan_id
-                "subtask_id": sub_task.get("id")
-                "complexity": sub_task.get("complexity")
-                "estimated_duration": sub_task.get("estimated_duration")
-                "workflow_phase": sub_task.get("workflow_phase")
+                "parent_plan_id": plan_id,
+                "subtask_id": sub_task.get("id"),
+                "complexity": sub_task.get("complexity"),
+                "estimated_duration": sub_task.get("estimated_duration"),
+                "workflow_phase": sub_task.get("workflow_phase"),
                 "required_skills": sub_task.get("required_skills", [])
                 "deliverables": sub_task.get("deliverables", [])
                 "dependencies": sub_task.get("dependencies", [])

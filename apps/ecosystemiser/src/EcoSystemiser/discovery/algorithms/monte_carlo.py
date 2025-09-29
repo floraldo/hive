@@ -259,7 +259,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                         evaluations.append(
                             {
                                 "sample_id": i,
-                                "objectives": [float("inf")] * len(self.config.objectives)
+                                "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
                                 "error": str(e)
                             }
@@ -275,7 +275,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                     evaluations.append(
                         {
                             "sample_id": i,
-                            "objectives": [float("inf")] * len(self.config.objectives)
+                            "objectives": [float("inf")] * len(self.config.objectives),
                             "valid": False,
                             "error": str(e)
                         }
@@ -440,7 +440,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
                     confidence_intervals[obj_name][f"{confidence_level:.0%}"] = {
                         "lower": float(lower),
-                        "upper": float(upper)
+                        "upper": float(upper),
                         "width": float(upper - lower)
                     },
 
@@ -479,9 +479,9 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
                     param_sensitivity[f"param_{param_idx}"] = {
                         "pearson_correlation": float(correlation),
-                        "pearson_p_value": float(p_value)
+                        "pearson_p_value": float(p_value),
                         "spearman_correlation": float(rank_correlation),
-                        "spearman_p_value": float(rank_p_value)
+                        "spearman_p_value": float(rank_p_value),
                         "sensitivity_index": float(abs(correlation))
                     },
 
@@ -520,11 +520,11 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
                 risk_metrics[obj_name] = {
                     "var_95": float(var_95),
-                    "var_99": float(var_99)
+                    "var_99": float(var_99),
                     "cvar_95": float(cvar_95),
-                    "cvar_99": float(cvar_99)
+                    "cvar_99": float(cvar_99),
                     "prob_exceed_mean": float(prob_exceed_mean),
-                    "prob_exceed_2std": float(prob_exceed_2std)
+                    "prob_exceed_2std": float(prob_exceed_2std),
                     "risk_ratio": (float(np.std(obj_values) / abs(mean_value)) if mean_value != 0 else float("inf"))
                 },
 
@@ -784,7 +784,7 @@ class UncertaintyAnalyzer:
                         param_rankings.append(
                             {
                                 "parameter": param_name,
-                                "sensitivity_index": sensitivity_index
+                                "sensitivity_index": sensitivity_index,
                                 "pearson_correlation": sensitivity_data.get("pearson_correlation", 0),
                                 "p_value": sensitivity_data.get("pearson_p_value", 1)
                             }

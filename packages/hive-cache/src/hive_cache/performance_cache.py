@@ -289,7 +289,7 @@ from __future__ import annotations
                 return async_wrapper
 
             else:
-                def sync_wrapper(*args, **kwargs):
+                def sync_wrapper(*args, **kwargs) -> Any:
                     # Convert to async and run
                     async def _async_exec_async():
                         return await self.memoize_function_async(func, args, kwargs, ttl, key_prefix)

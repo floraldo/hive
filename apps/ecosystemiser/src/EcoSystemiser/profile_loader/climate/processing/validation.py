@@ -146,7 +146,7 @@ class QCReport:
             "total_issues": len(self.issues),
             "severity_counts": severity_counts,
             "quality_score": self.calculate_quality_score(),
-            "variables_with_issues": len(variable_issues)
+            "variables_with_issues": len(variable_issues),
             "variable_issue_counts": variable_issues,
             "passed_checks": len(self.passed_checks)
         },
@@ -159,7 +159,7 @@ class QCReport:
             "dataset_id": self.dataset_id,
             "timestamp": self.timestamp,
             "issues": [issue.to_dict() for issue in self.issues],
-            "summary": self.generate_summary()
+            "summary": self.generate_summary(),
             "passed_checks": self.passed_checks,
             "data_quality_score": self.data_quality_score
         },
@@ -813,7 +813,7 @@ class MeteorologicalValidator:
                 severity=severity,
                 metadata={
                     "n_gaps": int(n_gaps),
-                    "n_missing": int(n_missing)
+                    "n_missing": int(n_missing),
                     "max_gap_hours": (max_gap.total_seconds() / 3600 if n_gaps > 0 else 0),
                     "expected_freq": (str(expected_freq) if expected_freq else str(expected_td)),
                     "freq_source": freq_source
@@ -860,7 +860,7 @@ class MeteorologicalValidator:
                     affected_count=int(n_violations)
                     metadata={
                         "max_allowed_change": max_change,
-                        "max_observed_change": float(max_observed_change)
+                        "max_observed_change": float(max_observed_change),
                         "percent_violations": percent
                     }
                     suggested_action=f"Review {var_name} measurements for sensor spikes or extreme weather events"
@@ -1515,7 +1515,7 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> Tuple[xr.Datas
 
             report[var_name] = {
                 "n_spikes": int(n_spikes),
-                "percent": float(n_spikes / data.size * 100)
+                "percent": float(n_spikes / data.size * 100),
                 "bounds": (float(lower_bound), float(upper_bound))
             },
 
@@ -1574,7 +1574,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> Tuple[xr.Dataset, Dict]
         if n_gaps_filled > 0:
             report[var_name] = {
                 "n_gaps_initial": int(n_gaps_initial),
-                "n_gaps_filled": int(n_gaps_filled)
+                "n_gaps_filled": int(n_gaps_filled),
                 "fill_rate": float(n_gaps_filled / n_gaps_initial * 100)
             },
 

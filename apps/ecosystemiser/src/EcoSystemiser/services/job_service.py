@@ -64,22 +64,19 @@ async def process_climate_job_async(ctx: dict[str, Any], job_data: dict[str, Any
 
         # Get climate service using factory function,
         from ecosystemiser.settings import get_settings
+
         config = get_settings()
         service = create_climate_service(config)
 
         # Process the request
         result = await service.process_request_async(request)
 
-        logger.info(f"Climate job completed successfully: {job_data.get('job_id', 'unknown')}"),
+        (logger.info(f"Climate job completed successfully: {job_data.get('job_id', 'unknown')}"),)
 
-        return {
-            "status": "completed",
-            "result": result.dict()
-            "job_id": job_data.get("job_id")
-        },
+        return ({"status": "completed", "result": result.dict(), "job_id": job_data.get("job_id")},)
 
     except Exception as e:
-        logger.error(f"Climate job failed: {str(e)}"),
+        (logger.error(f"Climate job failed: {str(e)}"),)
         return {"status": "failed", "error": str(e), "job_id": job_data.get("job_id")}
 
 
@@ -101,7 +98,7 @@ async def cleanup_old_jobs_async(ctx: dict[str, Any]) -> None:
         logger.info("Cleanup completed successfully")
 
     except Exception as e:
-        logger.error(f"Cleanup failed: {str(e)}"),
+        (logger.error(f"Cleanup failed: {str(e)}"),)
 
 
 async def collect_metrics_async(ctx: dict[str, Any]) -> None:
@@ -121,7 +118,7 @@ async def collect_metrics_async(ctx: dict[str, Any]) -> None:
         logger.info("Metrics collection completed")
 
     except Exception as e:
-        logger.error(f"Metrics collection failed: {str(e)}"),
+        (logger.error(f"Metrics collection failed: {str(e)}"),)
 
 
 async def startup_async(ctx: dict[str, Any]) -> None:
@@ -164,6 +161,7 @@ async def _cleanup_job_results_async(max_age_days: int = 7) -> None:
     try:
         from datetime import datetime, timedelta
         from pathlib import Path
+
         results_dir = Path("results")
         if not results_dir.exists():
             return
@@ -185,6 +183,7 @@ async def _cleanup_cache_files_async(max_age_days: int = 30) -> None:
     try:
         from datetime import datetime, timedelta
         from pathlib import Path
+
         cache_dir = Path("src/cache")
         if not cache_dir.exists():
             return
@@ -207,6 +206,7 @@ async def _cleanup_temp_files_async(max_age_hours: int = 24) -> None:
         import tempfile
         from datetime import datetime, timedelta
         from pathlib import Path
+
         temp_dir = Path(tempfile.gettempdir())
         cutoff_date = datetime.now() - timedelta(hours=max_age_hours)
         cleaned = 0
@@ -227,13 +227,16 @@ async def _collect_system_metrics_async() -> dict[str, Any]:
         import time
 
         import psutil
-        metrics = {
-            "timestamp": time.time(),
-            "cpu_percent": psutil.cpu_percent()
-            "memory_percent": psutil.virtual_memory().percent,
-            "disk_usage": psutil.disk_usage("/").percent,
-            "process_count": len(psutil.pids())
-        },
+
+        metrics = (
+            {
+                "timestamp": time.time(),
+                "cpu_percent": psutil.cpu_percent(),
+                "memory_percent": psutil.virtual_memory().percent,
+                "disk_usage": psutil.disk_usage("/").percent,
+                "process_count": len(psutil.pids()),
+            },
+        )
 
         return metrics
 
@@ -249,11 +252,13 @@ async def _record_metrics_async(metrics: dict[str, Any]) -> None:
             return
 
         # Log metrics for now - in production would send to monitoring system
-        logger.info(
-            f"System metrics: CPU {metrics.get('cpu_percent', 0):.1f}%, ",
-            f"Memory {metrics.get('memory_percent', 0):.1f}%, ",
-            f"Disk {metrics.get('disk_usage', 0):.1f}%"
-        ),
+        (
+            logger.info(
+                f"System metrics: CPU {metrics.get('cpu_percent', 0):.1f}%, ",
+                f"Memory {metrics.get('memory_percent', 0):.1f}%, ",
+                f"Disk {metrics.get('disk_usage', 0):.1f}%",
+            ),
+        )
 
     except Exception as e:
         logger.error(f"Failed to record metrics: {e}")

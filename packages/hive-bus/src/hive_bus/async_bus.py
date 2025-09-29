@@ -60,11 +60,11 @@ class AsyncEvent:
         """Convert event to dictionary"""
         return {
             "event_type": self.event_type,
-            "data": self.data
+            "data": self.data,
             "priority": self.priority.value,
-            "event_id": self.event_id
+            "event_id": self.event_id,
             "timestamp": self.timestamp,
-            "correlation_id": self.correlation_id
+            "correlation_id": self.correlation_id,
             "retry_count": self.retry_count,
             "metadata": self.metadata
         }
@@ -420,7 +420,7 @@ class AsyncEventBus:
         return {
             **self._stats
             "queue_sizes": {event_type: queue.qsize() for event_type, queue in self._queues.items()},
-            "dead_letter_queue_size": self._dead_letter_queue.qsize()
+            "dead_letter_queue_size": self._dead_letter_queue.qsize(),
             "replay_buffer_size": len(self._replay_buffer),
             "handler_count": sum(len(handlers) for handlers in self._handlers.values())
         }

@@ -262,7 +262,7 @@ class ReportingService:
             "report_metadata": {
                 "title": config.title,
                 "type": config.report_type,
-                "generated_at": datetime.now().isoformat()
+                "generated_at": datetime.now().isoformat(),
                 "version": "3.0.0"
             },
             "results": analysis_results,

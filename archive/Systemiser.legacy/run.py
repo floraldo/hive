@@ -171,11 +171,11 @@ def run_simulation(output_dir: Path):  # Renamed main function, added output_dir
             if comp.type == "generation":
                 try:
                     available = sum(
-                        float(flow["value"][t].value)
-                        if hasattr(flow["value"][t], "value") and flow["value"][t].value is not None
-                        else float(flow["value"][t])
-                        if flow["value"][t] is not None
-                        else 0.0
+                        (
+                            float(flow["value"][t].value)
+                            if hasattr(flow["value"][t], "value") and flow["value"][t].value is not None
+                            else float(flow["value"][t]) if flow["value"][t] is not None else 0.0
+                        )
                         for flow in comp.flows["source"].values()
                     )
                     system_logger.info(f"{name} generation: {available:.2f}")
@@ -187,11 +187,11 @@ def run_simulation(output_dir: Path):  # Renamed main function, added output_dir
             if comp.type == "consumption":
                 try:
                     demand = sum(
-                        float(flow["value"][t].value)
-                        if hasattr(flow["value"][t], "value") and flow["value"][t].value is not None
-                        else float(flow["value"][t])
-                        if flow["value"][t] is not None
-                        else 0.0
+                        (
+                            float(flow["value"][t].value)
+                            if hasattr(flow["value"][t], "value") and flow["value"][t].value is not None
+                            else float(flow["value"][t]) if flow["value"][t] is not None else 0.0
+                        )
                         for flow in comp.flows["sink"].values()
                     )
                     system_logger.info(f"{name} demand: {demand:.2f}")

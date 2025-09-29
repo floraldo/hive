@@ -51,7 +51,8 @@
       "Bash(pytest:*)",
       "Bash(poetry show:*)",
       "Bash(pre-commit:*)",
-      "Bash(ruff check:*)"
+      "Bash(ruff check:*)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []

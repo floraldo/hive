@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 class AsyncResourceManager:
     """Manages async resources with proper cleanup."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.resources: Dict[str, Any] = {}
         self._cleanup_callbacks: Dict[str, Any] = {}
 
@@ -101,7 +101,8 @@ async def async_context_async(*resources: AsyncContextManager) -> None:
 
 def async_context(context_name: str) -> None:
     """Decorator for async context management."""
-    def decorator(func):
+
+    def decorator(func) -> Any:
         async def wrapper_async(*args, **kwargs):
             async with AsyncResourceManager() as manager:
                 logger.debug(f"Entering async context: {context_name}")
@@ -112,5 +113,7 @@ def async_context(context_name: str) -> None:
                 except Exception as e:
                     logger.error(f"Error in async context {context_name}: {e}")
                     raise
+
         return wrapper_async
+
     return decorator

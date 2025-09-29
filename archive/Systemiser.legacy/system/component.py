@@ -119,7 +119,7 @@ class Component:
             "Annual CO2 Emissions (kgCO2/year)": self.environmental.co2_annual,
             "Total Material Usage (units)": self.environmental.material_usage,
             "Total Water Usage (L)": self.environmental.water_usage,
-            "Total Land Usage (m²)": self.environmental.land_usage
+            "Total Land Usage (m²)": self.environmental.land_usage,
             # ... additional metrics ...
         }
 

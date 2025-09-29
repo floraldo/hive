@@ -353,13 +353,13 @@ class AIMetricsCollector(MetricsCollectorInterface):
         # Calculate summary statistics
         summary = {
             "overview": {
-                "total_operations": len(self._recent_operations)
+                "total_operations": len(self._recent_operations),
                 "operations_last_hour": len(recent_operations),
-                "operations_last_day": len(day_operations)
+                "operations_last_day": len(day_operations),
                 "active_operations": len(self._active_operations)
             }
             "performance": {
-                "avg_latency_ms": self._calculate_avg_latency(recent_operations)
+                "avg_latency_ms": self._calculate_avg_latency(recent_operations),
                 "success_rate": self._calculate_success_rate(recent_operations),
                 "total_tokens_hour": sum(
                     op.tokens_used.total_tokens for op in recent_operations
@@ -368,12 +368,12 @@ class AIMetricsCollector(MetricsCollectorInterface):
                 "total_cost_hour": sum(op.cost for op in recent_operations)
             }
             "usage_patterns": {
-                "top_models": self._get_top_models(day_operations)
+                "top_models": self._get_top_models(day_operations),
                 "top_operations": self._get_top_operations(day_operations),
                 "provider_distribution": self._get_provider_distribution(day_operations)
             }
             "errors": {
-                "error_rate": self._calculate_error_rate(recent_operations)
+                "error_rate": self._calculate_error_rate(recent_operations),
                 "top_errors": self._get_top_errors(recent_operations)
             }
         }
@@ -494,11 +494,11 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         return {
             "time_period_hours": hours,
-            "hourly_trends": trends
+            "hourly_trends": trends,
             "summary": {
-                "total_operations": len(operations)
+                "total_operations": len(operations),
                 "avg_operations_per_hour": len(operations) / hours,
-                "total_cost": sum(op.cost for op in operations)
+                "total_cost": sum(op.cost for op in operations),
                 "total_tokens": sum(
                     op.tokens_used.total_tokens for op in operations
                     if op.tokens_used

@@ -158,7 +158,7 @@ class System:
                 self.components["Grid"].flows["source"]["P_draw"]["value"]
                 + self.components["Grid"].flows["sink"]["P_feed"]["value"]
             ),
-            "min_cost": lambda: self.total_cost
+            "min_cost": lambda: self.total_cost,
             # You will add your own functions for renewable and storage utilization
         }
 

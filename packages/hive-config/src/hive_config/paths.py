@@ -37,7 +37,7 @@ def _search_for_root(start_path: Path) -> Path:
                 # Look for the workspace root identifier
                 if 'name = "hive-workspace"' in content:
                     return current_path
-            except Exception as e:
+            except Exception:
                 # Continue searching if we can't read the file
                 pass
 
@@ -78,9 +78,9 @@ def get_project_root() -> Path:
 
     # Fourth, check common development locations for Windows
     common_dev_paths = [
-        Path("C:/git/hive")
+        Path("C:/git/hive"),
         Path("C:/src/hive"),
-        Path("C:/code/hive")
+        Path("C:/code/hive"),
         Path("C:/dev/hive"),
         Path.home() / "git" / "hive",
         Path.home() / "src" / "hive",
@@ -96,7 +96,7 @@ def get_project_root() -> Path:
                     # Cache this for future use
                     os.environ["HIVE_PROJECT_ROOT"] = str(dev_path)
                     return dev_path
-            except Exception as e:
+            except Exception:
                 continue
 
     # If we can't find the workspace root, raise an error with helpful information

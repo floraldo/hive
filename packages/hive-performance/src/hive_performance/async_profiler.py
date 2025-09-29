@@ -479,7 +479,7 @@ class AsyncProfiler:
 class profile_async_block:
     """Context manager for profiling async code blocks."""
 
-    def __init__(self, profiler: AsyncProfiler, block_name: str):
+    def __init__(self, profiler: AsyncProfiler, block_name: str) -> None:
         self.profiler = profiler
         self.block_name = block_name
         self._original_profiling = False

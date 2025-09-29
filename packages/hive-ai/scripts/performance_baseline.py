@@ -382,19 +382,19 @@ class PerformanceBenchmark:
 
             if durations:
                 component_stats[component] = {
-                    "operation_count": len(metrics)
-                    "success_count": len(successful_metrics)
-                    "success_rate": len(successful_metrics) / len(metrics)
-                    "avg_duration_ms": statistics.mean(durations)
-                    "median_duration_ms": statistics.median(durations)
-                    "min_duration_ms": min(durations)
-                    "max_duration_ms": max(durations)
-                    "total_duration_ms": sum(durations)
+                    "operation_count": len(metrics),
+                    "success_count": len(successful_metrics),
+                    "success_rate": len(successful_metrics) / len(metrics),
+                    "avg_duration_ms": statistics.mean(durations),
+                    "median_duration_ms": statistics.median(durations),
+                    "min_duration_ms": min(durations),
+                    "max_duration_ms": max(durations),
+                    "total_duration_ms": sum(durations),
                     "operations": [
                         {
-                            "operation": m.operation
-                            "duration_ms": m.duration_ms
-                            "success": m.success
+                            "operation": m.operation,
+                            "duration_ms": m.duration_ms,
+                            "success": m.success,
                             "metadata": m.metadata
                         }
                         for m in metrics
@@ -402,9 +402,9 @@ class PerformanceBenchmark:
                 }
             else:
                 component_stats[component] = {
-                    "operation_count": len(metrics)
-                    "success_count": 0
-                    "success_rate": 0.0
+                    "operation_count": len(metrics),
+                    "success_count": 0,
+                    "success_rate": 0.0,
                     "error": "No successful operations"
                 }
 
@@ -413,10 +413,10 @@ class PerformanceBenchmark:
         all_durations = [m.duration_ms for m in all_successful]
 
         overall_stats = {
-            "total_operations": len(self.metrics)
-            "successful_operations": len(all_successful)
-            "overall_success_rate": len(all_successful) / len(self.metrics) if self.metrics else 0
-            "total_benchmark_duration_ms": sum(all_durations) if all_durations else 0
+            "total_operations": len(self.metrics),
+            "successful_operations": len(all_successful),
+            "overall_success_rate": len(all_successful) / len(self.metrics) if self.metrics else 0,
+            "total_benchmark_duration_ms": sum(all_durations) if all_durations else 0,
             "avg_operation_duration_ms": statistics.mean(all_durations) if all_durations else 0
         }
 
@@ -424,11 +424,11 @@ class PerformanceBenchmark:
         insights = self._generate_performance_insights(component_stats, overall_stats)
 
         return {
-            "timestamp": time.time()
-            "benchmark_version": "1.0.0"
-            "overall_statistics": overall_stats
-            "component_statistics": component_stats
-            "performance_insights": insights
+            "timestamp": time.time(),
+            "benchmark_version": "1.0.0",
+            "overall_statistics": overall_stats,
+            "component_statistics": component_stats,
+            "performance_insights": insights,
             "recommendations": self._generate_recommendations(component_stats)
         }
 

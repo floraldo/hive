@@ -80,15 +80,21 @@ class AIDeployerConfig(HiveConfig):
     deployment: DeploymentConfig = DeploymentConfig()
 
 
-def load_config() -> AIDeployerConfig:
+def load_config(base_config: dict | None = None) -> AIDeployerConfig:
     """
     Load AI Deployer configuration extending hive config.
+
+    Args:
+        base_config: Optional base configuration dict to use instead of global config
 
     Returns:
         AIDeployerConfig: Complete configuration with hive base + deployer extensions
     """
-    # Load base hive configuration
-    hive_config = load_hive_config()
+    # Load base hive configuration or use provided config
+    if base_config:
+        hive_config = HiveConfig(**base_config)
+    else:
+        hive_config = load_hive_config()
 
     # Merge with deployer-specific config
     return AIDeployerConfig(**hive_config.dict(), deployment=DeploymentConfig())

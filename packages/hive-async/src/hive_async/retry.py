@@ -27,7 +27,7 @@ class AsyncRetryConfig:
     min_wait: float = 1.0
     max_wait: float = 10.0
     multiplier: float = 2.0
-    retry_exceptions: tuple = (Exception,)
+    retry_exceptions: tuple = Exception
     stop_on_exceptions: tuple = ()
     log_before_sleep: bool = True
     log_after_attempt: bool = True
@@ -70,9 +70,9 @@ async def run_async_with_retry_async(func: Callable, config: AsyncRetryConfig | 
     retry_strategy = AsyncRetrying(
         stop=stop_after_attempt(config.max_attempts),
         wait=wait_exponential(multiplier=config.multiplier, min=config.min_wait, max=config.max_wait),
-        retry=retry_condition
+        retry=retry_condition,
         before_sleep=(before_sleep_log(logger, "WARNING") if config.log_before_sleep else None),
-        after=after_log(logger, "INFO") if config.log_after_attempt else None
+        after=after_log(logger, "INFO") if config.log_after_attempt else None,
     )
 
     try:
@@ -95,7 +95,7 @@ def create_retry_decorator(config: AsyncRetryConfig | None = None) -> None:
         Decorator function
     """
 
-    def decorator(func: Callable):
+    def decorator(func: Callable) -> Dict[str, Any]:
         async def wrapper_async(*args, **kwargs):
             return await run_async_with_retry_async(func, config, *args, **kwargs)
 
@@ -116,6 +116,6 @@ retry_on_http_error = create_retry_decorator(
         max_attempts=3,
         min_wait=1.0,
         max_wait=10.0,
-        retry_exceptions=(Exception,),  # Will be refined based on HTTP client used
+        retry_exceptions=(Exception),  # Will be refined based on HTTP client used
     )
 )

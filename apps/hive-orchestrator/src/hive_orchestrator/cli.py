@@ -289,17 +289,17 @@ def review_escalated(task_id: str) -> None:
 
         # Update task status based on decision
         new_status = {
-            "approve": TaskStatus.APPROVED.value
-            "reject": TaskStatus.REJECTED.value
-            "rework": TaskStatus.REWORK_NEEDED.value
+            "approve": TaskStatus.APPROVED.value,
+            "reject": TaskStatus.REJECTED.value,
+            "rework": TaskStatus.REWORK_NEEDED.value,
             "defer": TaskStatus.ESCALATED.value
         }[decision]
 
         # Store human review
         human_review = {
-            "decision": decision
-            "notes": notes
-            "timestamp": datetime.now().isoformat()
+            "decision": decision,
+            "notes": notes,
+            "timestamp": datetime.now().isoformat(),
             "reviewer": "human"
         }
 

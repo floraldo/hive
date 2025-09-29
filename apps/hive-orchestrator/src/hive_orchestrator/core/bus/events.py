@@ -76,12 +76,12 @@ class Event:
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary for storage"""
         return {
-            "event_id": self.event_id
-            "event_type": self.event_type
-            "timestamp": self.timestamp.isoformat()
-            "source_agent": self.source_agent
-            "correlation_id": self.correlation_id
-            "payload": self.payload
+            "event_id": self.event_id,
+            "event_type": self.event_type,
+            "timestamp": self.timestamp.isoformat(),
+            "source_agent": self.source_agent,
+            "correlation_id": self.correlation_id,
+            "payload": self.payload,
             "metadata": self.metadata
         }
 
@@ -115,8 +115,8 @@ class TaskEvent(Event):
         # Add task info to payload
         self.payload.update(
             {
-                "task_id": self.task_id
-                "task_status": self.task_status
+                "task_id": self.task_id,
+                "task_status": self.task_status,
                 "assignee": self.assignee
             }
         )
@@ -137,8 +137,8 @@ class AgentEvent(Event):
         # Add agent info to payload
         self.payload.update(
             {
-                "agent_name": self.agent_name
-                "agent_type": self.agent_type
+                "agent_name": self.agent_name,
+                "agent_type": self.agent_type,
                 "agent_status": self.agent_status
             }
         )
@@ -160,9 +160,9 @@ class WorkflowEvent(Event):
         # Add workflow info to payload
         self.payload.update(
             {
-                "workflow_id": self.workflow_id
-                "task_id": self.task_id
-                "phase": self.phase
+                "workflow_id": self.workflow_id,
+                "task_id": self.task_id,
+                "phase": self.phase,
                 "dependencies": self.dependencies or []
             }
         )

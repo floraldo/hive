@@ -341,7 +341,7 @@ class EmbeddingManager:
 
         return {
             "available_embedding_models": available_models,
-            "default_model": self._get_embedding_model()
+            "default_model": self._get_embedding_model(),
             "cache_stats": cache_stats,
             "supported_providers": list(self._default_models.keys())
         }

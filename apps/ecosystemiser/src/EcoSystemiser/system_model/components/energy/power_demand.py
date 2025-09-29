@@ -1,7 +1,7 @@
 """Power demand component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import cvxpy as cp
 from ecosystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
@@ -19,12 +19,10 @@ logger = get_logger(__name__)
 
 
 class PowerDemandTechnicalParams(DemandTechnicalParams):
-    """Power demand-specific technical parameters extending demand archetype.,
-    from __future__ import annotations
+    """Power demand-specific technical parameters extending demand archetype.
 
-
-        This model inherits from DemandTechnicalParams and adds electricity-specific,
-        parameters for different fidelity levels.,
+    This model inherits from DemandTechnicalParams and adds electricity-specific
+    parameters for different fidelity levels.
     """
 
     # STANDARD fidelity additions

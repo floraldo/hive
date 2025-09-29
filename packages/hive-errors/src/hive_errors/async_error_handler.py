@@ -1,17 +1,18 @@
 """Advanced async error handling with monitoring integration."""
 
 import asyncio
-import logging
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, AsyncGenerator, Dict, Optional
 
+from hive_logging import get_logger
+
 from .base_exceptions import AsyncTimeoutError, BaseError, RetryExhaustedError
 from .error_reporter import BaseErrorReporter
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -285,7 +286,7 @@ def handle_async_errors(
 ):
     """Decorator for automatic async error handling with retry logic."""
 
-    def decorator(func):
+    def decorator(func) -> Any:
         async def wrapper(*args, **kwargs):
             last_error = None
 

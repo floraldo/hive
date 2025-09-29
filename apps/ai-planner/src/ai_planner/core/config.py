@@ -72,15 +72,21 @@ class AIPlannerConfig(HiveConfig):
     monitoring: MonitoringConfig = MonitoringConfig()
 
 
-def load_config() -> AIPlannerConfig:
+def load_config(base_config: dict | None = None) -> AIPlannerConfig:
     """
     Load AI Planner configuration extending hive config.
+
+    Args:
+        base_config: Optional base configuration dict to use instead of global config
 
     Returns:
         AIPlannerConfig: Complete configuration with hive base + planner extensions
     """
-    # Load base hive configuration
-    hive_config = load_hive_config()
+    # Load base hive configuration or use provided config
+    if base_config:
+        hive_config = HiveConfig(**base_config)
+    else:
+        hive_config = load_hive_config()
 
     # Merge with planner-specific config
     return AIPlannerConfig(

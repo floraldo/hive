@@ -238,9 +238,9 @@ class CostManager:
                     self._budget_alerts.append(
                         {
                             "type": "budget_warning",
-                            "budget_name": budget_name
+                            "budget_name": budget_name,
                             "message": f"Budget {budget_name} is {status.percentage_used:.1%} used",
-                            "current_spending": status.current_spending
+                            "current_spending": status.current_spending,
                             "budget_limit": status.budget_limit,
                             "timestamp": datetime.utcnow().isoformat()
                         }
@@ -253,9 +253,9 @@ class CostManager:
                     self._budget_alerts.append(
                         {
                             "type": "budget_exceeded",
-                            "budget_name": budget_name
+                            "budget_name": budget_name,
                             "message": f"Budget {budget_name} limit exceeded",
-                            "current_spending": status.current_spending
+                            "current_spending": status.current_spending,
                             "budget_limit": status.budget_limit,
                             "timestamp": datetime.utcnow().isoformat()
                         }
@@ -507,7 +507,7 @@ class CostManager:
 
         return {
             "analysis_period_days": days,
-            "daily_trends": dict(daily_trends)
+            "daily_trends": dict(daily_trends),
             "statistics": {
                 "avg_daily_cost": avg_daily_cost,
                 "min_daily_cost": min_daily_cost,
@@ -535,7 +535,7 @@ class CostManager:
                 recommendations.append(
                     {
                         "type": "model_optimization",
-                        "priority": "high"
+                        "priority": "high",
                         "title": "Consider alternative model",
                         "description": f"Model '{most_expensive_model[0]}' accounts for "
                         f"{most_expensive_model[1]/summary.total_cost:.1%} of costs"
@@ -549,7 +549,7 @@ class CostManager:
             recommendations.append(
                 {
                     "type": "token_optimization",
-                    "priority": "medium"
+                    "priority": "medium",
                     "title": "Optimize prompt length",
                     "description": f"High token usage detected ({summary.total_tokens:,} tokens)"
                     "suggestion": "Review prompts for unnecessary length, use prompt optimization features",
@@ -569,7 +569,7 @@ class CostManager:
                     recommendations.append(
                         {
                             "type": "provider_optimization",
-                            "priority": "medium"
+                            "priority": "medium",
                             "title": "Review provider selection",
                             "description": f"Provider '{most_expensive[0]}' costs significantly more than '{least_expensive[0]}'"
                             "suggestion": "Evaluate if cheaper providers can handle some workloads",

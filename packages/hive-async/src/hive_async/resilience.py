@@ -186,7 +186,7 @@ class AsyncTimeoutManager:
                 f"Operation '{operation_name}' timed out",
                 operation=operation_name,
                 timeout_duration=timeout,
-                elapsed_time=elapsed
+                elapsed_time=elapsed,
             )
         finally:
             if "task" in locals():
@@ -204,17 +204,17 @@ class AsyncTimeoutManager:
                 "success_rate": 0.0,
             }
 
-        stats = self._operation_stats[operation_name],
-        stats["total_calls"] += 1,
+        stats = (self._operation_stats[operation_name],)
+        stats["total_calls"] += (1,)
         stats["total_time"] += elapsed
 
         if success:
-            stats["successful_calls"] += 1,
+            stats["successful_calls"] += (1,)
         else:
             stats["timeouts"] += 1
 
         # Update derived metrics
-        stats["avg_time"] = stats["total_time"] / stats["total_calls"],
+        stats["avg_time"] = (stats["total_time"] / stats["total_calls"],)
         stats["success_rate"] = stats["successful_calls"] / stats["total_calls"]
 
     async def cancel_all_tasks_async(self) -> None:
@@ -250,7 +250,7 @@ def async_circuit_breaker(
     """
     breaker = AsyncCircuitBreaker(failure_threshold, recovery_timeout, expected_exception)
 
-    def decorator(func):
+    def decorator(func) -> Any:
         @wraps(func)
         async def wrapper_async(*args, **kwargs):
             return await breaker.call_async(func, *args, **kwargs)
@@ -269,14 +269,14 @@ def async_timeout(seconds: float, operation_name: str | None = None) -> None:
         operation_name: Name for monitoring (defaults to function name)
     """
 
-    def decorator(func):
+    def decorator(func) -> Any:
         timeout_manager = AsyncTimeoutManager()
 
         @wraps(func)
         async def wrapper_async(*args, **kwargs):
             op_name = operation_name or func.__name__
             return await timeout_manager.run_with_timeout_async(
-                func(*args, **kwargs)
+                func(*args, **kwargs),
                 timeout=seconds,
                 operation_name=op_name,
             )

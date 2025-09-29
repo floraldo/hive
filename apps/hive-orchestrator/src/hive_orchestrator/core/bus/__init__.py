@@ -12,7 +12,6 @@ Extends generic messaging toolkit with Hive-specific agent coordination:
 - Database-backed persistence
 """
 
-from hive_bus import BaseBus, BaseEvent
 
 from .event_bus import (
     create_task_event,

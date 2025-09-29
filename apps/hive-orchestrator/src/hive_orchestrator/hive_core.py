@@ -79,14 +79,14 @@ class HiveCore:
         # Default configuration
         default_config = {
             "max_parallel_per_role": {"backend": 2, "frontend": 2, "infra": 1}
-            "worker_timeout_minutes": 30
-            "zombie_detection_minutes": 5
-            "fresh_cleanup_enabled": True
-            "pr_creation_enabled": False
-            "default_max_retries": 2
+            "worker_timeout_minutes": 30,
+            "zombie_detection_minutes": 5,
+            "fresh_cleanup_enabled": True,
+            "pr_creation_enabled": False,
+            "default_max_retries": 2,
             "orchestration": {
-                "task_retry_limit": 2
-                "status_refresh_seconds": 10
+                "task_retry_limit": 2,
+                "status_refresh_seconds": 10,
                 "graceful_shutdown_seconds": 5
             }
         }
@@ -170,8 +170,8 @@ class HiveCore:
         try:
             result_path = self.get_result_path(task_id, run_id)
             result_data = {
-                "task_id": task_id
-                "run_id": run_id
+                "task_id": task_id,
+                "run_id": run_id,
                 "timestamp": datetime.now(timezone.utc).isoformat()
                 **result
             }
@@ -407,11 +407,11 @@ class HiveCore:
     def get_task_stats(self) -> Dict[str, int]:
         """Get current task statistics"""
         stats = {
-            "queued": 0
-            "assigned": 0
-            "in_progress": 0
-            "completed": 0
-            "failed": 0
+            "queued": 0,
+            "assigned": 0,
+            "in_progress": 0,
+            "completed": 0,
+            "failed": 0,
             "total": 0
         }
 
@@ -426,7 +426,7 @@ class HiveCore:
     def emit_event(self, event_type: str, **data) -> None:
         """Emit event to bus for tracking"""
         event = {
-            "type": event_type
+            "type": event_type,
             "timestamp": datetime.now(timezone.utc).isoformat()
             **data
         }
@@ -702,14 +702,14 @@ def cmd_review_next_task(args, core: HiveCore) -> None:
     # Prepare review data
     if args.format == "json":
         review_data = {
-            "task_id": task_id
-            "run_id": run_id
+            "task_id": task_id,
+            "run_id": run_id,
             "title": task.get("title", "Unknown")
             "description": task.get("description", "")
             "current_phase": task.get("current_phase", "unknown")
-            "workflow": task.get("workflow")
-            "inspection_report": inspection_report
-            "transcript_available": bool(transcript)
+            "workflow": task.get("workflow"),
+            "inspection_report": inspection_report,
+            "transcript_available": bool(transcript),
             "transcript_length": len(transcript) if transcript else 0
         }
         logger.info(json.dumps(review_data, indent=2))
@@ -795,9 +795,9 @@ def cmd_complete_review(args, core: HiveCore) -> None:
     new_status = "completed" if new_phase == "completed" else "failed" if new_phase == "failed" else "queued"
 
     metadata = {
-        "current_phase": new_phase
-        "review_decision": decision
-        "review_reason": reason or "No reason provided"
+        "current_phase": new_phase,
+        "review_decision": decision,
+        "review_reason": reason or "No reason provided",
         "reviewed_at": datetime.utcnow().isoformat()
     }
 

@@ -860,6 +860,9 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                             # Skip if it's inside a multiline string (contains = and quotes)
                             if '="' in line and "print(" in line.split('="')[1]:
                                 continue
+                            # Skip if line starts with + or - (likely a diff)
+                            if stripped_line.startswith(("+", "-")):
+                                continue
                             if (
                                 not stripped_line.startswith("from ")  # Exclude import statements
                                 and not stripped_line.startswith("import ")  # Exclude import statements
@@ -1284,10 +1287,28 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
 
                 for pattern in singleton_patterns:
                     if pattern in content:
-                        # Verify it's actually a global variable declaration
+                        # Verify it's actually a global variable declaration, not in strings
                         lines = content.split("\n")
+                        in_multiline_string = False
                         for line_num, line in enumerate(lines, 1):
                             stripped = line.strip()
+
+                            # Skip content inside multiline strings (triple quotes)
+                            if '"""' in stripped or "'''" in stripped:
+                                in_multiline_string = not in_multiline_string
+                                continue
+                            if in_multiline_string:
+                                continue
+
+                            # Skip if pattern is inside a string literal
+                            if (
+                                f'"{pattern}"' in stripped
+                                or f"'{pattern}'" in stripped
+                                or f'"{pattern}' in stripped
+                                or f"'{pattern}" in stripped
+                            ):
+                                continue
+
                             if (
                                 stripped.startswith(f"{pattern}:")
                                 or stripped.startswith(f"{pattern} =")
@@ -1312,8 +1333,22 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                 for call in forbidden_global_calls:
                     if call in content:
                         lines = content.split("\n")
+                        in_multiline_string = False
                         for line_num, line in enumerate(lines, 1):
-                            if call in line and not line.strip().startswith("#"):
+                            stripped = line.strip()
+
+                            # Skip content inside multiline strings (triple quotes)
+                            if '"""' in stripped or "'''" in stripped:
+                                in_multiline_string = not in_multiline_string
+                                continue
+                            if in_multiline_string:
+                                continue
+
+                            # Skip comments and string literals containing the call
+                            if stripped.startswith("#") or f'"{call}"' in stripped or f"'{call}'" in stripped:
+                                continue
+
+                            if call in line:
                                 violations.append(f"Global config call '{call}' found: {rel_path}:{line_num}")
 
                 # Check for singleton getter functions (common anti-pattern)
@@ -1344,7 +1379,10 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                         line_stripped = line.strip()
 
                         # Detect DI fallback pattern: def __init__(self, config=None):
-                        if line_stripped.startswith("def __init__(") and "config=None" in line_stripped:
+                        # Be more precise - only detect actual config parameter defaults, not rate_config, etc.
+                        if line_stripped.startswith("def __init__(") and (
+                            ", config=None" in line_stripped or "(config=None" in line_stripped
+                        ):
                             violations.append(f"DI fallback anti-pattern 'config=None' found: {rel_path}:{line_num}")
 
                         # Detect other common fallback patterns

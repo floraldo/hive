@@ -43,11 +43,11 @@ class BaseEvent:
         """Convert event to dictionary for serialization"""
         return {
             "event_id": self.event_id,
-            "event_type": self.event_type
+            "event_type": self.event_type,
             "timestamp": self.timestamp.isoformat(),
-            "source": self.source
+            "source": self.source,
             "payload": self.payload,
-            "metadata": self.metadata
+            "metadata": self.metadata,
             "correlation_id": self.correlation_id
         }
 

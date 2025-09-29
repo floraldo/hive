@@ -301,7 +301,7 @@ class ModelClient:
 
         return {
             "healthy": registry_stats["health_percentage"] > 50,
-            "provider_health": health_status
+            "provider_health": health_status,
             "registry_stats": registry_stats,
             "circuit_breakers": {provider: cb.get_stats() for provider, cb in self._circuit_breakers.items()}
         }

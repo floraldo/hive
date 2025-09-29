@@ -78,21 +78,21 @@ class TelemetryEvent:
         """Convert event to dictionary for serialization."""
         return {
             "event_id": self.event_id,
-            "event_type": self.event_type.value
+            "event_type": self.event_type.value,
             "timestamp": self.timestamp.isoformat(),
-            "component": self.component
+            "component": self.component,
             "operation": self.operation,
-            "duration_ms": self.duration_ms
+            "duration_ms": self.duration_ms,
             "success": self.success,
-            "error_message": self.error_message
+            "error_message": self.error_message,
             "metadata": self.metadata,
-            "model_name": self.model_name
+            "model_name": self.model_name,
             "provider": self.provider,
-            "tokens_used": self.tokens_used
+            "tokens_used": self.tokens_used,
             "estimated_cost": self.estimated_cost,
-            "memory_usage_mb": self.memory_usage_mb
+            "memory_usage_mb": self.memory_usage_mb,
             "cpu_percent": self.cpu_percent,
-            "network_latency_ms": self.network_latency_ms
+            "network_latency_ms": self.network_latency_ms,
             "security_risk_level": self.security_risk_level,
             "validation_result": self.validation_result
         }
@@ -178,9 +178,9 @@ class TelemetryBuffer:
 
             return {
                 "event_count": event_count,
-                "total_events": self.total_events
+                "total_events": self.total_events,
                 "buffer_utilization": event_count / self.max_size,
-                "event_types": type_counts
+                "event_types": type_counts,
                 "time_range_hours": time_range_hours,
                 "events_per_hour": event_count / max(time_range_hours, 0.1)
             }
@@ -435,11 +435,11 @@ class TelemetryCollector:
         # Calculate analytics
         analytics = {
             "time_window_hours": time_window_hours,
-            "total_events": len(window_events)
+            "total_events": len(window_events),
             "event_types": self._analyze_event_types(window_events),
-            "performance": self._analyze_performance(window_events)
+            "performance": self._analyze_performance(window_events),
             "model_usage": self._analyze_model_usage(window_events),
-            "error_rates": self._analyze_errors(window_events)
+            "error_rates": self._analyze_errors(window_events),
             "cost_analysis": self._analyze_costs(window_events),
             "security_summary": self._analyze_security(window_events)
         }
@@ -471,11 +471,11 @@ class TelemetryCollector:
 
         return {
             "total_operations": len(perf_events),
-            "avg_duration_ms": sum(durations) / n
+            "avg_duration_ms": sum(durations) / n,
             "median_duration_ms": durations[n // 2],
-            "p95_duration_ms": durations[int(n * 0.95)] if n > 0 else 0
+            "p95_duration_ms": durations[int(n * 0.95)] if n > 0 else 0,
             "p99_duration_ms": durations[int(n * 0.99)] if n > 0 else 0,
-            "min_duration_ms": min(durations)
+            "min_duration_ms": min(durations),
             "max_duration_ms": max(durations)
         }
 
@@ -500,9 +500,9 @@ class TelemetryCollector:
 
         return {
             "total_requests": len(model_events),
-            "total_tokens": total_tokens
+            "total_tokens": total_tokens,
             "model_distribution": model_counts,
-            "provider_distribution": provider_counts
+            "provider_distribution": provider_counts,
             "avg_tokens_per_request": total_tokens / len(model_events) if model_events else 0
         }
 
@@ -524,7 +524,7 @@ class TelemetryCollector:
 
         return {
             "error_rate": (len(error_events) / total_events) * 100,
-            "total_errors": len(error_events)
+            "total_errors": len(error_events),
             "error_by_component": error_components,
             "error_by_operation": error_operations
         }
@@ -545,7 +545,7 @@ class TelemetryCollector:
 
         return {
             "total_cost": total_cost,
-            "cost_by_model": cost_by_model
+            "cost_by_model": cost_by_model,
             "avg_cost_per_request": total_cost / len(cost_events)
         }
 
@@ -578,7 +578,7 @@ class TelemetryCollector:
         # Create export data
         export_data = {
             "export_timestamp": datetime.utcnow().isoformat(),
-            "collection_level": self.level.value
+            "collection_level": self.level.value,
             "events_count": len(events),
             "events": [event.to_dict() for event in events]
         }
@@ -628,11 +628,11 @@ class TelemetryCollector:
 
         return {
             "telemetry_level": self.level.value,
-            "running": self.running
+            "running": self.running,
             "uptime_hours": uptime.total_seconds() / 3600,
-            "events_collected": self.events_collected
+            "events_collected": self.events_collected,
             "events_per_hour": self.events_collected / max(uptime.total_seconds() / 3600, 0.1),
-            "buffer_stats": buffer_stats
+            "buffer_stats": buffer_stats,
             "export_interval_seconds": self.export_interval,
             "export_path": str(self.export_path)
         }

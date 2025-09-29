@@ -135,7 +135,7 @@ class SimulationError(EcoSystemiserError):
 class SimulationConfigError(BaseError):
     """Error in simulation configuration"""
 
-    def __init__(self, message: str, config_key: str | None = None, config_value: Any = None, **kwargs):
+    def __init__(self, message: str, config_key: str | None = None, config_value: Any = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if config_key:
             details["config_key"] = config_key
@@ -184,7 +184,7 @@ class ProfileError(BaseError):
 class ProfileLoadError(BaseError):
     """Error loading profile data"""
 
-    def __init__(self, message: str, profile_type: str | None = None, source: str | None = None, **kwargs):
+    def __init__(self, message: str, profile_type: str | None = None, source: str | None = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if profile_type:
             details["profile_type"] = profile_type
@@ -270,7 +270,7 @@ class OptimizationInfeasibleError(BaseError):
 class SolverConvergenceError(BaseError):
     """Error when solver fails to converge"""
 
-    def __init__(self, message: str, iterations: int | None = None, tolerance: float | None = None, **kwargs):
+    def __init__(self, message: str, iterations: int | None = None, tolerance: float | None = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if iterations is not None:
             details["iterations"] = iterations
@@ -299,7 +299,9 @@ class SolverConvergenceError(BaseError):
 class ComponentError(BaseError):
     """Base class for component-related errors"""
 
-    def __init__(self, message: str, component_name: str | None = None, component_type: str | None = None, **kwargs):
+    def __init__(
+        self, message: str, component_name: str | None = None, component_type: str | None = None, **kwargs
+    ) -> None:
         details = kwargs.get("details", {})
         if component_name:
             details["component_name"] = component_name
@@ -444,7 +446,7 @@ class EventBusError(BaseError):
 class EventPublishError(BaseError):
     """Error publishing event to bus"""
 
-    def __init__(self, message: str, event_type: str | None = None, event_id: str | None = None, **kwargs):
+    def __init__(self, message: str, event_type: str | None = None, event_id: str | None = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if event_type:
             details["event_type"] = event_type

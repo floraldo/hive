@@ -227,16 +227,16 @@ Code Files:
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
 {{
-  "decision": "approve" or "reject" or "rework" or "escalate"
-  "summary": "One sentence summary of your review"
+  "decision": "approve" or "reject" or "rework" or "escalate",
+  "summary": "One sentence summary of your review",
   "issues": ["List of specific issues found", "Or empty list if none"]
   "suggestions": ["List of improvement suggestions", "Or empty list if none"]
-  "quality_score": 75
+  "quality_score": 75,
   "metrics": {{
-    "code_quality": 80
-    "security": 85
-    "testing": 70
-    "architecture": 75
+    "code_quality": 80,
+    "security": 85,
+    "testing": 70,
+    "architecture": 75,
     "documentation": 60
   }}
   "confidence": 0.8

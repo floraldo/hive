@@ -51,7 +51,7 @@ class PerformanceBenchmark:
         self.output_dir.mkdir(exist_ok=True)
         self.results = {
             "timestamp": datetime.now().isoformat(),
-            "system_info": self._get_system_info()
+            "system_info": self._get_system_info(),
             "simulation_benchmarks": {},
             "milp_benchmarks": {},
             "memory_benchmarks": {}
@@ -61,7 +61,7 @@ class PerformanceBenchmark:
         """Capture system configuration for benchmark context."""
         return {
             "cpu_count": psutil.cpu_count(logical=False),
-            "cpu_count_logical": psutil.cpu_count(logical=True)
+            "cpu_count_logical": psutil.cpu_count(logical=True),
             "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 2),
             "python_version": sys.version,
             "platform": sys.platform

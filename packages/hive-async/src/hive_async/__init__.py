@@ -35,7 +35,7 @@ __all__ = [
     "async_context",
     # Retry utilities
     "run_async_with_retry_async",
-    "AsyncRetryConfig", 
+    "AsyncRetryConfig",
     "create_retry_decorator",
     # Connection pooling
     "ConnectionPool",

@@ -92,7 +92,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                         evaluations.append(
                             {
                                 "fitness": float("inf"),
-                                "objectives": [float("inf")] * len(self.config.objectives)
+                                "objectives": [float("inf")] * len(self.config.objectives),
                                 "valid": False,
                                 "error": str(e)
                             }
@@ -108,7 +108,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                     evaluations.append(
                         {
                             "fitness": float("inf"),
-                            "objectives": [float("inf")] * len(self.config.objectives)
+                            "objectives": [float("inf")] * len(self.config.objectives),
                             "valid": False,
                             "error": str(e)
                         }

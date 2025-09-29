@@ -440,7 +440,7 @@ def track_performance(
             return async_wrapper
         else:
 
-            def sync_wrapper(*args, **kwargs):
+            def sync_wrapper(*args, **kwargs) -> Any:
                 with operation_tracker(collector, operation_name, tags):
                     return func(*args, **kwargs)
 

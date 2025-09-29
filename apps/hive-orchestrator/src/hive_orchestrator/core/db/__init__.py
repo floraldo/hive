@@ -12,8 +12,6 @@ Extends the generic hive_db package with Hive Orchestrator-specific functionalit
 """
 
 from hive_db import (
-    create_table_if_not_exists,
-    get_sqlite_connection,
     sqlite_transaction,
 )
 

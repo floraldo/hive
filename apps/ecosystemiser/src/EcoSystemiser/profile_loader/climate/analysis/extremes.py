@@ -11,10 +11,7 @@ logger = get_logger(__name__)
 
 
 def find_extreme_events(
-    ds: xr.Dataset,
-    variable: str = "temp_air",
-    threshold_percentile: float = 95,
-    min_duration_hours: int = 24
+    ds: xr.Dataset, variable: str = "temp_air", threshold_percentile: float = 95, min_duration_hours: int = 24
 ) -> list[dict]:
     """
     Find extreme events (hot/cold spells, high wind, etc).
@@ -65,7 +62,7 @@ def find_extreme_events(
                 event_values = [float(data.values[i])]
             elif is_extreme and in_event:
                 # Continue event,
-                event_values.append(float(data.values[i])),
+                (event_values.append(float(data.values[i])),)
             elif not is_extreme and in_event:
                 # End of event
                 in_event = False
@@ -87,15 +84,12 @@ def find_extreme_events(
                     )
                 event_values = []
 
-    logger.info(f"Found {len(events)} extreme events for {variable}"),
+    (logger.info(f"Found {len(events)} extreme events for {variable}"),)
     return events
 
 
 def identify_heat_waves(
-    ds: xr.Dataset,
-    temp_threshold: float = 32,
-    min_duration_days: int = 3,
-    night_relief_threshold: float = 20
+    ds: xr.Dataset, temp_threshold: float = 32, min_duration_days: int = 3, night_relief_threshold: float = 20
 ) -> list[dict]:
     """
     Identify heat wave events using temperature criteria.
@@ -138,25 +132,27 @@ def identify_heat_waves(
             wave_temps_max = [float(daily_max.values[i])]
             wave_temps_min = [float(daily_min.values[i])]
         elif is_wave and in_wave:
-            wave_temps_max.append(float(daily_max.values[i])),
-            wave_temps_min.append(float(daily_min.values[i])),
+            (wave_temps_max.append(float(daily_max.values[i])),)
+            (wave_temps_min.append(float(daily_min.values[i])),)
         elif not is_wave and in_wave:
             in_wave = False
             duration_days = (date - wave_start).days
 
             if duration_days >= min_duration_days:
-                heat_waves.append(
-                    {
-                        "type": "heat_wave",
-                        "start": wave_start.isoformat(),
-                        "end": dates[i - 1].isoformat(),
-                        "duration_days": duration_days,
-                        "max_temp": max(wave_temps_max),
-                        "mean_max_temp": np.mean(wave_temps_max),
-                        "mean_min_temp": np.mean(wave_temps_min),
-                        "severity_index": np.mean(wave_temps_max) - temp_threshold,
-                    }
-                ),
+                (
+                    heat_waves.append(
+                        {
+                            "type": "heat_wave",
+                            "start": wave_start.isoformat(),
+                            "end": dates[i - 1].isoformat(),
+                            "duration_days": duration_days,
+                            "max_temp": max(wave_temps_max),
+                            "mean_max_temp": np.mean(wave_temps_max),
+                            "mean_min_temp": np.mean(wave_temps_min),
+                            "severity_index": np.mean(wave_temps_max) - temp_threshold,
+                        }
+                    ),
+                )
 
     return heat_waves
 
@@ -198,32 +194,30 @@ def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration
             snap_start = date
             snap_temps = [float(daily_min.values[i])]
         elif is_cold and in_snap:
-            snap_temps.append(float(daily_min.values[i])),
+            (snap_temps.append(float(daily_min.values[i])),)
         elif not is_cold and in_snap:
             in_snap = False
             duration_days = (date - snap_start).days
 
             if duration_days >= min_duration_days:
-                cold_snaps.append(
-                    {
-                        "type": "cold_snap",
-                        "start": snap_start.isoformat()
-                        "end": dates[i - 1].isoformat(),
-                        "duration_days": duration_days,
-                        "min_temp": min(snap_temps),
-                        "mean_min_temp": np.mean(snap_temps)
-                        "severity_index": temp_threshold - np.mean(snap_temps)
-                    }
-                ),
+                (
+                    cold_snaps.append(
+                        {
+                            "type": "cold_snap",
+                            "start": snap_start.isoformat(),
+                            "end": dates[i - 1].isoformat(),
+                            "duration_days": duration_days,
+                            "min_temp": min(snap_temps),
+                            "mean_min_temp": np.mean(snap_temps),
+                            "severity_index": temp_threshold - np.mean(snap_temps),
+                        }
+                    ),
+                )
 
     return cold_snaps
 
 
-def calculate_percentiles(
-    ds: xr.Dataset,
-    variables: list[str] | None = None,
-    percentiles: list[float] = None
-) -> dict:
+def calculate_percentiles(ds: xr.Dataset, variables: list[str] | None = None, percentiles: list[float] = None) -> dict:
     """
     Calculate percentile values for variables.
 
@@ -261,10 +255,7 @@ def calculate_percentiles(
 
 
 def calculate_return_periods(
-    ds: xr.Dataset,
-    variable: str,
-    return_years: list[int] = None,
-    extreme_type: str = "max"
+    ds: xr.Dataset, variable: str, return_years: list[int] = None, extreme_type: str = "max"
 ) -> dict:
     """
     Estimate return period values using simple statistical methods.
@@ -329,11 +320,13 @@ def calculate_return_periods(
             results["return_values"][f"{T}_year"] = float(x_T)
 
     # Add observed percentiles for reference,
-    results["observed_percentiles"] = {
-        "p90": float(np.percentile(extremes, 90)),
-        "p95": float(np.percentile(extremes, 95)),
-        "p99": float(np.percentile(extremes, 99)) if len(extremes) > 100 else None,
-    },
+    results["observed_percentiles"] = (
+        {
+            "p90": float(np.percentile(extremes, 90)),
+            "p95": float(np.percentile(extremes, 95)),
+            "p99": float(np.percentile(extremes, 99)) if len(extremes) > 100 else None,
+        },
+    )
 
     return results
 
@@ -357,10 +350,10 @@ def summarize_extremes(ds: xr.Dataset) -> dict:
 
         summary["temperature"] = {
             "n_heat_waves": len(heat_waves),
-            "n_cold_snaps": len(cold_snaps)
+            "n_cold_snaps": len(cold_snaps),
             "longest_heat_wave_days": (max([h["duration_days"] for h in heat_waves]) if heat_waves else 0),
             "longest_cold_snap_days": (max([c["duration_days"] for c in cold_snaps]) if cold_snaps else 0),
-            "return_periods": calculate_return_periods(ds, "temp_air", extreme_type="max")
+            "return_periods": calculate_return_periods(ds, "temp_air", extreme_type="max"),
         }
 
     # Wind extremes,
@@ -369,15 +362,17 @@ def summarize_extremes(ds: xr.Dataset) -> dict:
         summary["wind"] = {
             "n_high_wind_events": len(wind_extremes),
             "max_wind_speed": float(ds["wind_speed"].max()),
-            "return_periods": calculate_return_periods(ds, "wind_speed", extreme_type="max")
+            "return_periods": calculate_return_periods(ds, "wind_speed", extreme_type="max"),
         }
 
     # Precipitation extremes,
     if "precip" in ds:
         heavy_rain = find_extreme_events(ds, "precip", threshold_percentile=95, min_duration_hours=1)
-        summary["precipitation"] = {
-            "n_heavy_rain_events": len(heavy_rain),
-            "max_hourly_precip": float(ds["precip"].max()) if "precip" in ds else None
-        },
+        summary["precipitation"] = (
+            {
+                "n_heavy_rain_events": len(heavy_rain),
+                "max_hourly_precip": float(ds["precip"].max()) if "precip" in ds else None,
+            },
+        )
 
     return summary

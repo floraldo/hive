@@ -18,29 +18,35 @@ class CacheError(Exception):
 
 class CacheConnectionError(BaseError):
     """Raised when Redis connection fails."""
+
     pass
 
 
 class CacheTimeoutError(BaseError):
     """Raised when cache operation times out."""
+
     pass
 
 
 class CacheCircuitBreakerError(BaseError):
     """Raised when circuit breaker is open."""
+
     pass
 
 
 class CacheSerializationError(BaseError):
     """Raised when serialization/deserialization fails."""
+
     pass
 
 
 class CacheKeyError(BaseError):
     """Raised when cache key is invalid or not found."""
+
     pass
 
 
 class CacheConfigurationError(BaseError):
     """Raised when cache configuration is invalid."""
+
     pass

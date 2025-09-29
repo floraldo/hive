@@ -26,15 +26,15 @@ def run_command(cmd: str, description: str, check_only: bool = False) -> bool:
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         if result.returncode == 0:
-            print("  ✓ Success")
+            print("  [OK] Success")
             return True
         else:
-            print(f"  ✗ Failed (exit code: {result.returncode})")
+            print(f"  [FAIL] Failed (exit code: {result.returncode})")
             if result.stderr:
                 print(f"  Error: {result.stderr[:500]}")
             return False
     except Exception as e:
-        print(f"  ✗ Exception: {e}")
+        print(f"  [FAIL] Exception: {e}")
         return False
 
 
@@ -104,14 +104,14 @@ def main():
     print("\n" + "=" * 60)
     print("CLEANUP SUMMARY")
     print("=" * 60)
-    print(f"✓ Successful steps: {success_count}/{total_count}")
+    print(f"[OK] Successful steps: {success_count}/{total_count}")
 
     if args.check:
         print("\nRun without --check to apply fixes")
     elif success_count == total_count:
-        print("\n✓ All cleanup steps completed successfully!")
+        print("\n[OK] All cleanup steps completed successfully!")
     else:
-        print(f"\n⚠ {total_count - success_count} steps failed - review output above")
+        print(f"\n[WARN] {total_count - success_count} steps failed - review output above")
 
     return 0 if success_count == total_count else 1
 

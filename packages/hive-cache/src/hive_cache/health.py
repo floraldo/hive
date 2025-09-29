@@ -211,7 +211,7 @@ class CacheHealthMonitor:
 
                 return {
                     "success": True,
-                    "result": result
+                    "result": result,
                     "ping_time_ms": ping_time
                 }
 
@@ -240,9 +240,9 @@ class CacheHealthMonitor:
 
             return {
                 "success": set_success and retrieved_value is not None and delete_success,
-                "set_success": set_success
+                "set_success": set_success,
                 "get_success": retrieved_value is not None,
-                "delete_success": delete_success
+                "delete_success": delete_success,
                 "data_integrity": retrieved_value == test_value if retrieved_value else False
             }
 
@@ -267,7 +267,7 @@ class CacheHealthMonitor:
 
             return {
                 "success": deleted_count == len(test_keys),
-                "deleted_count": deleted_count
+                "deleted_count": deleted_count,
                 "expected_count": len(test_keys)
             }
 
@@ -287,13 +287,13 @@ class CacheHealthMonitor:
                 # Extract key metrics
                 return {
                     "version": info.get("redis_version"),
-                    "uptime_seconds": info.get("uptime_in_seconds")
+                    "uptime_seconds": info.get("uptime_in_seconds"),
                     "connected_clients": info.get("connected_clients"),
-                    "used_memory": info.get("used_memory")
+                    "used_memory": info.get("used_memory"),
                     "used_memory_human": info.get("used_memory_human"),
-                    "total_commands_processed": info.get("total_commands_processed")
+                    "total_commands_processed": info.get("total_commands_processed"),
                     "keyspace_hits": info.get("keyspace_hits"),
-                    "keyspace_misses": info.get("keyspace_misses")
+                    "keyspace_misses": info.get("keyspace_misses"),
                     "expired_keys": info.get("expired_keys"),
                     "evicted_keys": info.get("evicted_keys")
                 }
@@ -392,9 +392,9 @@ class CacheHealthMonitor:
             "status": status,
             "health_rate_percent": round(health_rate, 1)
             "average_response_time_ms": round(avg_response_time, 2),
-            "last_check": latest_check.timestamp.isoformat()
+            "last_check": latest_check.timestamp.isoformat(),
             "consecutive_failures": self._consecutive_failures,
-            "total_checks": len(self._health_history)
+            "total_checks": len(self._health_history),
             "monitoring_active": self._monitoring_active
         }
 
@@ -439,7 +439,7 @@ class CacheHealthMonitor:
 
         return {
             "issues": issues,
-            "recommendations": recommendations
+            "recommendations": recommendations,
             "client_metrics": client_metrics,
             "health_summary": self.get_health_summary()
         }

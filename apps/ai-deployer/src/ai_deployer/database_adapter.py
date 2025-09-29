@@ -1,12 +1,12 @@
 """
 Database adapter for deployment agent interactions
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_errors import BaseError
 from hive_logging import get_logger
@@ -32,7 +32,7 @@ class DatabaseAdapter:
         """Initialize database adapter"""
         self.db = get_database()
 
-    def get_deployment_pending_tasks(self) -> List[Dict[str, Any]]:
+    def get_deployment_pending_tasks(self) -> list[dict[str, Any]]:
         """
         Get all tasks with deployment_pending status
 
@@ -62,17 +62,17 @@ class DatabaseAdapter:
                 tasks = []
                 for row in rows:
                     task = {
-                        "id": row[0]
-                        "title": row[1]
-                        "description": row[2]
-                        "created_at": row[3]
-                        "updated_at": row[4]
-                        "worker_id": row[5]
-                        "priority": row[6]
-                        "task_data": self._parse_json_field(row[7])
-                        "metadata": self._parse_json_field(row[8])
-                        "status": row[9]
-                        "estimated_duration": row[10]
+                        "id": row[0],
+                        "title": row[1],
+                        "description": row[2],
+                        "created_at": row[3],
+                        "updated_at": row[4],
+                        "worker_id": row[5],
+                        "priority": row[6],
+                        "task_data": self._parse_json_field(row[7]),
+                        "metadata": self._parse_json_field(row[8]),
+                        "status": row[9],
+                        "estimated_duration": row[10],
                     }
                     tasks.append(task)
 
@@ -83,7 +83,7 @@ class DatabaseAdapter:
             logger.error(f"Error getting deployment pending tasks: {e}")
             raise DeploymentDatabaseError(f"Failed to get deployment tasks: {e}") from e
 
-    def update_task_status(self, task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    def update_task_status(self, task_id: str, status: str, metadata: Optional[dict[str, Any]] = None) -> bool:
         """
         Update task status and optionally metadata
 
@@ -119,8 +119,9 @@ class DatabaseAdapter:
                         UPDATE tasks
                         SET status = ?, metadata = ?, updated_at = ?
                         WHERE id = ?
-                    """
-                        (status, metadata_json, datetime.now().isoformat(), task_id)
+                    """(
+                            status, metadata_json, datetime.now().isoformat(), task_id
+                        )
                     )
                 else:
                     # Update status only
@@ -129,8 +130,9 @@ class DatabaseAdapter:
                         UPDATE tasks
                         SET status = ?, updated_at = ?
                         WHERE id = ?
-                    """
-                        (status, datetime.now().isoformat(), task_id)
+                    """(
+                            status, datetime.now().isoformat(), task_id
+                        )
                     )
 
                 conn.commit()
@@ -146,7 +148,7 @@ class DatabaseAdapter:
             logger.error(f"Error updating task {task_id} status: {e}")
             raise DeploymentDatabaseError(f"Failed to update task status: {e}") from e
 
-    def get_task_by_id(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def get_task_by_id(self, task_id: str) -> Optional[dict[str, Any]]:
         """
         Get task by ID
 
@@ -168,8 +170,9 @@ class DatabaseAdapter:
                         status, estimated_duration
                     FROM tasks
                     WHERE id = ?
-                """
-                    (task_id,)
+                """(
+                        task_id,
+                    )
                 )
 
                 row = cursor.fetchone()
@@ -177,24 +180,24 @@ class DatabaseAdapter:
                     return None
 
                 return {
-                    "id": row[0]
-                    "title": row[1]
-                    "description": row[2]
-                    "created_at": row[3]
-                    "updated_at": row[4]
-                    "worker_id": row[5]
-                    "priority": row[6]
-                    "task_data": self._parse_json_field(row[7])
-                    "metadata": self._parse_json_field(row[8])
-                    "status": row[9]
-                    "estimated_duration": row[10]
+                    "id": row[0],
+                    "title": row[1],
+                    "description": row[2],
+                    "created_at": row[3],
+                    "updated_at": row[4],
+                    "worker_id": row[5],
+                    "priority": row[6],
+                    "task_data": self._parse_json_field(row[7]),
+                    "metadata": self._parse_json_field(row[8]),
+                    "status": row[9],
+                    "estimated_duration": row[10],
                 }
 
         except Exception as e:
             logger.error(f"Error getting task {task_id}: {e}")
             raise DeploymentDatabaseError(f"Failed to get task: {e}") from e
 
-    def record_deployment_event(self, task_id: str, event_type: str, details: Dict[str, Any]) -> bool:
+    def record_deployment_event(self, task_id: str, event_type: str, details: dict[str, Any]) -> bool:
         """
         Record deployment event for audit trail
 
@@ -230,12 +233,11 @@ class DatabaseAdapter:
                     INSERT INTO deployment_events
                     (task_id, event_type, details, timestamp)
                     VALUES (?, ?, ?, ?)
-                """
-                    (
-                        task_id
-                        event_type
-                        json.dumps(details)
-                        datetime.now().isoformat()
+                """(
+                        task_id,
+                        event_type,
+                        json.dumps(details),
+                        datetime.now().isoformat(),
                     )
                 )
 
@@ -247,7 +249,7 @@ class DatabaseAdapter:
             logger.error(f"Error recording deployment event: {e}")
             raise DeploymentDatabaseError(f"Failed to record event: {e}") from e
 
-    def get_deployment_history(self, task_id: str) -> List[Dict[str, Any]]:
+    def get_deployment_history(self, task_id: str) -> list[dict[str, Any]]:
         """
         Get deployment history for a task
 
@@ -267,8 +269,9 @@ class DatabaseAdapter:
                     FROM deployment_events
                     WHERE task_id = ?
                     ORDER BY timestamp DESC
-                """
-                    (task_id,)
+                """(
+                        task_id,
+                    )
                 )
 
                 rows = cursor.fetchall()
@@ -277,9 +280,9 @@ class DatabaseAdapter:
                 for row in rows:
                     events.append(
                         {
-                            "event_type": row[0]
-                            "details": self._parse_json_field(row[1])
-                            "timestamp": row[2]
+                            "event_type": row[0],
+                            "details": self._parse_json_field(row[1]),
+                            "timestamp": row[2],
                         }
                     )
 
@@ -289,7 +292,7 @@ class DatabaseAdapter:
             logger.error(f"Error getting deployment history for {task_id}: {e}")
             raise DeploymentDatabaseError(f"Failed to get deployment history: {e}") from e
 
-    def get_deployment_stats(self) -> Dict[str, Any]:
+    def get_deployment_stats(self) -> dict[str, Any]:
         """
         Get deployment statistics
 
@@ -325,16 +328,16 @@ class DatabaseAdapter:
                 recent_deployments = cursor.fetchone()[0]
 
                 return {
-                    "status_counts": status_counts
-                    "recent_deployments": recent_deployments
-                    "timestamp": datetime.now().isoformat()
+                    "status_counts": status_counts,
+                    "recent_deployments": recent_deployments,
+                    "timestamp": datetime.now().isoformat(),
                 }
 
         except Exception as e:
             logger.error(f"Error getting deployment stats: {e}")
             raise DeploymentDatabaseError(f"Failed to get deployment stats: {e}") from e
 
-    def _parse_json_field(self, field_value: str | None) -> Dict[str, Any]:
+    def _parse_json_field(self, field_value: str | None) -> dict[str, Any]:
         """
         Safely parse JSON field value
 

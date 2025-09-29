@@ -129,7 +129,7 @@ async def health_check_async() -> None:
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
         "version": "2.0.0"
     }
 

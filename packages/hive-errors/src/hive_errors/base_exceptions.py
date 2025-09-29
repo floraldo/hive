@@ -52,7 +52,7 @@ class BaseError(Exception):
             "operation": self.operation,
             "details": self.details,
             "recovery_suggestions": self.recovery_suggestions,
-            "original_error": str(self.original_error) if self.original_error else None
+            "original_error": str(self.original_error) if self.original_error else None,
         }
 
 
@@ -101,7 +101,7 @@ class CircuitBreakerOpenError(BaseError):
         operation: str | None = None,
         failure_count: int | None = None,
         recovery_time: float | None = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(message, component, operation, **kwargs)
         self.failure_count = failure_count
@@ -110,12 +110,7 @@ class CircuitBreakerOpenError(BaseError):
     def to_dict(self) -> Dict[str, Any]:
         """Convert error to dictionary with circuit breaker details"""
         result = super().to_dict()
-        result.update(
-            {
-                "failure_count": self.failure_count,
-                "recovery_time": self.recovery_time
-            }
-        )
+        result.update({"failure_count": self.failure_count, "recovery_time": self.recovery_time})
         return result
 
 
@@ -134,7 +129,7 @@ class AsyncTimeoutError(BaseError):
         operation: str | None = None,
         timeout_duration: float | None = None,
         elapsed_time: float | None = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(message, component, operation, **kwargs)
         self.timeout_duration = timeout_duration
@@ -143,12 +138,7 @@ class AsyncTimeoutError(BaseError):
     def to_dict(self) -> Dict[str, Any]:
         """Convert error to dictionary with timeout details"""
         result = super().to_dict()
-        result.update(
-            {
-                "timeout_duration": self.timeout_duration,
-                "elapsed_time": self.elapsed_time
-            }
-        )
+        result.update({"timeout_duration": self.timeout_duration, "elapsed_time": self.elapsed_time})
         return result
 
 
@@ -168,7 +158,7 @@ class RetryExhaustedError(BaseError):
         max_attempts: int | None = None,
         attempt_count: int | None = None,
         last_error: Exception | None = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(message, component, operation, original_error=last_error, **kwargs)
         self.max_attempts = max_attempts
@@ -182,7 +172,7 @@ class RetryExhaustedError(BaseError):
             {
                 "max_attempts": self.max_attempts,
                 "attempt_count": self.attempt_count,
-                "last_error": str(self.last_error) if self.last_error else None
+                "last_error": str(self.last_error) if self.last_error else None,
             }
         )
         return result
@@ -203,7 +193,7 @@ class PoolExhaustedError(BaseError):
         operation: str | None = None,
         pool_size: int | None = None,
         active_connections: int | None = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(message, component, operation, **kwargs)
         self.pool_size = pool_size
@@ -212,10 +202,5 @@ class PoolExhaustedError(BaseError):
     def to_dict(self) -> Dict[str, Any]:
         """Convert error to dictionary with pool details"""
         result = super().to_dict()
-        result.update(
-            {
-                "pool_size": self.pool_size,
-                "active_connections": self.active_connections
-            }
-        )
+        result.update({"pool_size": self.pool_size, "active_connections": self.active_connections})
         return result

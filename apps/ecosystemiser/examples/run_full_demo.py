@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 class MicrogridDemoRunner:
     """Orchestrates the complete demonstration workflow."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.study_service = StudyService()
         self.plot_factory = PlotFactory()
         self.report_generator = HTMLReportGenerator()

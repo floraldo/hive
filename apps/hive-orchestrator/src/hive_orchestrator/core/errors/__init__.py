@@ -12,7 +12,6 @@ Extends generic error handling toolkit with Hive-specific error management:
 - Workflow error analysis
 """
 
-from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
 
 from .hive_error_reporter import (
     HiveErrorReporter,

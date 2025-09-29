@@ -70,7 +70,7 @@ class ProcessingStep:
             if isinstance(report, QCReport):
                 report_dict = {
                     "qc_report": report,
-                    "quality_score": report.calculate_quality_score()
+                    "quality_score": report.calculate_quality_score(),
                     "issues_count": len(report.issues),
                     "success": True
                 }
@@ -317,7 +317,7 @@ class ProcessingPipeline:
         """Get detailed execution report"""
         return {
             "preprocessing": [r for r in self.execution_reports if r.get("stage") == "preprocessing"],
-            "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"]
+            "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"],
             "errors": [r for r in self.execution_reports if "error" in r],
             "skipped": [r for r in self.execution_reports if r.get("skipped")]
         },

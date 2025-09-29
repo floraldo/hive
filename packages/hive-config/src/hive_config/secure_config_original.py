@@ -4,11 +4,10 @@ Secure Configuration Management for Production Environments
 Provides encrypted secrets management for production deployments.
 Supports both plain .env files (development) and encrypted .env.prod files (production).
 """
+
 from __future__ import annotations
 
-
 import base64
-import json
 import os
 from pathlib import Path
 from typing import Any, Dict
@@ -50,9 +49,9 @@ class SecureConfigLoader:
             # Use PBKDF2 to derive a key from the master key
             kdf = PBKDF2(
                 algorithm=hashes.SHA256(),
-                length=32
+                length=32,
                 salt=b"hive-platform-v3",  # Static salt for deterministic key derivation,
-                iterations=100000
+                iterations=100000,
             )
             key = base64.urlsafe_b64encode(kdf.derive(self.master_key.encode()))
             self._cipher = Fernet(key)
@@ -188,12 +187,9 @@ class SecureConfigLoader:
         # Define potential config files
         app_dir = project_root / "apps" / app_name
         config_files = [
-            (project_root / ".env.prod.encrypted", True)
-            (project_root / ".env.prod", False)
-            (project_root / ".env", False)
-            (app_dir / ".env.prod.encrypted", True)
-            (app_dir / ".env.prod", False)
-            (app_dir / ".env", False)
+            (project_root / ".env.prod.encrypted", True)(project_root / ".env.prod", False)(
+                project_root / ".env", False
+            )(app_dir / ".env.prod.encrypted", True)(app_dir / ".env.prod", False)(app_dir / ".env", False)
         ]
 
         # Load configs in priority order

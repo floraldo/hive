@@ -41,7 +41,7 @@ class GenericRuleEngine:
             ("generation", "consumption", 1),
             ("generation", "storage", 2),
             ("storage", "consumption", 3),
-            ("transmission", "consumption", 4)  # Assuming transmission (Grid) supplies last
+            ("transmission", "consumption", 4),  # Assuming transmission (Grid) supplies last
             # Potential other rules: storage -> transmission (feed-in), transmission -> storage?
         ]
         logger.info(f"Initialized GenericRuleEngine for system '{self.sys.name}'")

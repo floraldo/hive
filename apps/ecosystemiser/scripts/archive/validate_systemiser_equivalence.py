@@ -45,7 +45,7 @@ from ecosystemiser.system_model.components.shared.archetypes import FidelityLeve
 # Import EcoSystemiser components
 from ecosystemiser.system_model.system import System
 
-def load_golden_dataset():
+def load_golden_dataset() -> Any:
     """Load the golden dataset from the Systemiser baseline."""
     golden_path = Path(__file__).parent.parent.parent / "tests" / "systemiser_minimal_golden.json"
     with open(golden_path, "r") as f:

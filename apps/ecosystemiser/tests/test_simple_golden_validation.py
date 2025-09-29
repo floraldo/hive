@@ -10,6 +10,7 @@ import pandas as pd
 
 eco_path = Path(__file__).parent.parent / "src"
 
+from ecosystemiser.solver.base import SolverConfig
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import (
     Battery,
@@ -331,7 +332,7 @@ def run_solver_validation(N=24):
         # Run rule-based solver
         logger.info("Running rule-based solver...")
         start_time = time.time()
-        solver = RuleBasedEngine(system)
+        solver = RuleBasedEngine(system, SolverConfig())
         solver_result = solver.solve()
         solve_time = time.time() - start_time
 

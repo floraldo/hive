@@ -293,9 +293,9 @@ class AsyncConfigLoader:
 
         return {
             "cached_configs": len(self._cache),
-            "cache_ttl": self._cache_ttl
+            "cache_ttl": self._cache_ttl,
             "watched_files": len(self._watched_files),
-            "hot_reload_enabled": self._enable_hot_reload
+            "hot_reload_enabled": self._enable_hot_reload,
             "cache_ages": {key: current_time - timestamp for key, timestamp in self._cache_timestamps.items()}
         }
 

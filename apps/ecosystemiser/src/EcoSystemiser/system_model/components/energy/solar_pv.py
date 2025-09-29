@@ -1,7 +1,7 @@
 """Solar PV component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import cvxpy as cp
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, GenerationTechnicalParams

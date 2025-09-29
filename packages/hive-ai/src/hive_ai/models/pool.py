@@ -5,18 +5,17 @@ Provides efficient resource usage with connection reuse,
 load balancing, and automatic scaling based on demand.
 """
 
-import asyncio
 import time
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_async import AsyncConnectionManager, PoolConfig
 from hive_errors import PoolExhaustedError
 from hive_logging import get_logger
 
-from ..core.config import AIConfig, ModelConfig
-from ..core.interfaces import ModelProviderInterface, ModelResponse
+from ..core.config import AIConfig
+from ..core.interfaces import ModelProviderInterface
 from .registry import ModelRegistry
 
 logger = get_logger(__name__)
@@ -92,7 +91,8 @@ class ModelPool:
 
         # Create async connection manager
         self._pools[provider] = AsyncConnectionManager(
-            pool_config, connection_factory=lambda: self._create_provider_connection_async(provider)
+            pool_config,
+            connection_factory=lambda: self._create_provider_connection_async(provider),
         )
 
         logger.info(f"Created connection pool for {provider}: {pool_size} max connections")
@@ -199,7 +199,7 @@ class ModelPool:
             idle_connections=pool_info["idle"],
             total_requests=total_requests,
             successful_requests=total_requests,  # Approximation,
-            avg_response_time_ms=avg_response_time
+            avg_response_time_ms=avg_response_time,
             pool_efficiency=efficiency,
         )
 
@@ -265,7 +265,11 @@ class ModelPool:
 
         overall_healthy = all(status.get("healthy", False) for status in health_status.values())
 
-        return {"overall_healthy": overall_healthy, "providers": health_status, "total_pools": len(self._pools)}
+        return {
+            "overall_healthy": overall_healthy,
+            "providers": health_status,
+            "total_pools": len(self._pools),
+        }
 
     async def optimize_pools_async(self) -> Dict[str, Any]:
         """Optimize pool sizes based on usage patterns."""
@@ -294,9 +298,15 @@ class ModelPool:
                             "reason": f"efficiency: {stats.pool_efficiency:.2f}",
                         }
                     else:
-                        optimization_results[provider] = {"action": "no_change", "reason": "optimal_size"}
+                        optimization_results[provider] = {
+                            "action": "no_change",
+                            "reason": "optimal_size",
+                        }
                 else:
-                    optimization_results[provider] = {"action": "insufficient_data", "requests": stats.total_requests}
+                    optimization_results[provider] = {
+                        "action": "insufficient_data",
+                        "requests": stats.total_requests,
+                    }
 
             except Exception as e:
                 optimization_results[provider] = {"action": "error", "error": str(e)}

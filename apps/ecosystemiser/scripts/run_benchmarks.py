@@ -160,7 +160,7 @@ class BenchmarkRunner:
             self._log(f"Could not create real system: {e}, using mock system")
             return MockSystem("foundation_benchmark_system")
 
-    def _measure_memory_peak(self, func, *args, **kwargs):
+    def _measure_memory_peak(self, func, *args, **kwargs) -> Any:
         """Measure peak memory usage during function execution"""
         if not self.process:
             result = func(*args, **kwargs)
@@ -233,7 +233,7 @@ class BenchmarkRunner:
                 start_time = datetime(2023, 7, 1, 0, 0)
                 end_time = start_time + timedelta(hours=24)
 
-                def run_simulation():
+                def run_simulation() -> Any:
                     return solver.solve(
                         system=system,
                         start_time=start_time,
@@ -318,7 +318,7 @@ class BenchmarkRunner:
                 start_time = datetime(2023, 7, 1, 0, 0)
                 end_time = start_time + timedelta(days=3)
 
-                def run_rolling_simulation():
+                def run_rolling_simulation() -> Any:
                     return solver.solve(
                         system=system,
                         start_time=start_time,

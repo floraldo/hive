@@ -41,7 +41,7 @@ class CostTracker:
     _last_reset_monthly: datetime = field(default_factory=datetime.now)
     _cache: Optional[CacheClient] = field(default=None, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize cache for persistence."""
         self._cache = CacheClient(ttl_seconds=86400)  # 24 hour TTL
         self._load_from_cache()
@@ -187,7 +187,7 @@ class RateLimiter:
     _hour_window: Deque[float] = field(default_factory=lambda: deque())
     _semaphore: asyncio.Semaphore = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize semaphore for concurrent requests."""
         self._semaphore = asyncio.Semaphore(self.max_concurrent_requests)
 

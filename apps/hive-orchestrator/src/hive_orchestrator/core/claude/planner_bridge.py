@@ -138,19 +138,19 @@ class PlanningResponseValidator(PydanticValidator):
                 critical_path=["fallback-001", "fallback-002", "fallback-003"]
                 parallel_groups=[]
                 blocking_dependencies={
-                    "fallback-002": ["fallback-001"]
+                    "fallback-002": ["fallback-001"],
                     "fallback-003": ["fallback-002"]
                 }
             )
             workflow=WorkflowDefinition(
                 lifecycle_phases=["analysis", "implementation", "testing"]
                 phase_transitions={
-                    "analysis": "implementation"
+                    "analysis": "implementation",
                     "implementation": "testing"
                 }
                 validation_gates={
-                    "analysis": ["requirements_clear"]
-                    "implementation": ["code_complete"]
+                    "analysis": ["requirements_clear"],
+                    "implementation": ["code_complete"],
                     "testing": ["tests_pass"]
                 }
                 rollback_strategy="manual rollback with git revert"
@@ -203,9 +203,9 @@ class ClaudePlannerBridge(BaseClaludeBridge):
         prompt = self._create_planning_prompt(task_description, context_data or {}, priority, requestor)
 
         context = {
-            "task_description": task_description
-            "priority": priority
-            "requestor": requestor
+            "task_description": task_description,
+            "priority": priority,
+            "requestor": requestor,
             "context_data": context_data
         }
 

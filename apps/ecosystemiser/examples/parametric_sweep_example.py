@@ -11,6 +11,7 @@ and find optimal configurations for a renewable energy system.
 """
 
 from datetime import datetime
+from typing import Any
 
 from ecosystemiser.services.study_service import (
     ParameterSweepSpec,
@@ -21,7 +22,7 @@ from ecosystemiser.services.study_service import (
 from ecosystemiser.services.study_service_enhanced import ParametricSweepEnhancement
 
 
-def create_example_system_config():
+def create_example_system_config() -> dict[str, Any]:
     """Create a simple renewable energy system configuration."""
     return {
         "name": "renewable_energy_system",
@@ -75,7 +76,7 @@ def create_example_system_config():
     }
 
 
-def run_battery_capacity_sweep():
+def run_battery_capacity_sweep() -> Any:
     """Run a sweep of battery capacity values to find optimal size."""
     logger.info("=" * 60)
     logger.info("BATTERY CAPACITY OPTIMIZATION")
@@ -157,7 +158,7 @@ def run_battery_capacity_sweep():
     return result
 
 
-def run_multi_parameter_sweep():
+def run_multi_parameter_sweep() -> Any:
     """Run a sweep of both battery and solar capacity."""
     logger.info("\n" + "=" * 60)
     logger.info("MULTI-PARAMETER OPTIMIZATION (Battery + Solar)")
