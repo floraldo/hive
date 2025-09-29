@@ -315,13 +315,13 @@ def main() -> None:
     """Main execution."""
     try:
         summary = save_profiles_and_config()
-        print("\n=== Yearly Profile Extraction Complete ===")
-        print(f"Source: {summary['source']}")
-        print(f"Timesteps: {summary['timesteps']} ({summary['duration_days']:.1f} days)")
-        print(f"Profiles extracted: {len(summary['profiles_extracted'])}")
-        print(f"Profiles saved: {len(summary['profiles_saved'])}")
-        print(f"Configuration: {summary['config_file']}")
-        print(f"Profiles directory: {summary['profiles_directory']}")
+        logger.info("\n=== Yearly Profile Extraction Complete ===")
+        logger.info("Source: {summary['source']}")
+        logger.info("Timesteps: {summary['timesteps']} ({summary['duration_days']:.1f} days)")
+        logger.info("Profiles extracted: {len(summary['profiles_extracted'])}")
+        logger.info("Profiles saved: {len(summary['profiles_saved'])}")
+        logger.info("Configuration: {summary['config_file']}")
+        logger.info("Profiles directory: {summary['profiles_directory']}")
         return True
     except Exception as e:
         logger.error(f"Extraction failed: {e}")

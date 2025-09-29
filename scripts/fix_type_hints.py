@@ -2,9 +2,10 @@
 """Fix missing type hints for Rule 7 compliance."""
 
 import ast
+import re
 import sys
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 def fix_type_hints(file_path: Path) -> bool:
     """Fix missing type hints in a file."""

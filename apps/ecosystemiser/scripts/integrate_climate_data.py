@@ -8,6 +8,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 eco_path = Path(__file__).parent.parent / "src"
 
 try:
@@ -21,7 +25,7 @@ try:
 
     CLIMATE_AVAILABLE = True
 except ImportError as e:
-    print(f"Climate service not available: {e}")
+    logger.info("Climate service not available: {e}")
     CLIMATE_AVAILABLE = False
 
 def create_weather_enhanced_profiles() -> None:
@@ -29,10 +33,10 @@ def create_weather_enhanced_profiles() -> None:
     data_dir = Path(__file__).parent.parent / "data" / "profiles"
 
     if not CLIMATE_AVAILABLE:
-        print("Climate API not available, creating synthetic weather data...")
+        logger.info("Climate API not available, creating synthetic weather data...")
         return create_synthetic_weather_profiles()
 
-    print("Fetching real weather data from Climate API...")
+    logger.info("Fetching real weather data from Climate API...")
 
     try:
         # Initialize climate service
@@ -60,13 +64,13 @@ def create_weather_enhanced_profiles() -> None:
         return weather_profiles
 
     except Exception as e:
-        print(f"Error fetching climate data: {e}")
-        print("Falling back to synthetic weather data...")
+        logger.info("Error fetching climate data: {e}")
+        logger.info("Falling back to synthetic weather data...")
         return create_synthetic_weather_profiles()
 
 def create_synthetic_weather_profiles() -> None:
     """Create synthetic weather profiles when Climate API unavailable."""
-    print("Creating synthetic weather profiles...")
+    logger.info("Creating synthetic weather profiles...")
 
     # 24-hour synthetic weather patterns
     hours = np.arange(24)
@@ -212,9 +216,9 @@ def create_weather_variant_profiles(base_integrated, weather_variants) -> None:
 
 def main() -> None:
     """Main weather integration process."""
-    print("=" * 60)
-    print("CLIMATE DATA INTEGRATION")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("CLIMATE DATA INTEGRATION")
+    logger.info("=" * 60)
 
     data_dir = Path(__file__).parent.parent / "data" / "profiles"
 
@@ -224,7 +228,7 @@ def main() -> None:
     # Save weather-integrated profiles
     integrated_path = data_dir / "golden_24h_weather_integrated.csv"
     integrated_profiles.to_csv(integrated_path, index=False)
-    print(f"Saved weather-integrated profiles: {integrated_path}")
+    logger.info("Saved weather-integrated profiles: {integrated_path}")
 
     # Create seasonal weather variants
     seasonal_profiles = create_weather_variant_profiles(integrated_profiles, weather_variants)
@@ -232,7 +236,7 @@ def main() -> None:
     for season, profiles in seasonal_profiles.items():
         season_path = data_dir / f"golden_24h_weather_{season}.csv"
         profiles.to_csv(season_path, index=False)
-        print(f"Saved {season} weather profiles: {season_path}")
+        logger.info("Saved {season} weather profiles: {season_path}")
 
     # Create 7-day weather-integrated profiles
     weather_7day = []
@@ -248,7 +252,7 @@ def main() -> None:
     weather_7day_df = pd.concat(weather_7day, ignore_index=True)
     weather_7day_path = data_dir / "golden_7day_weather.csv"
     weather_7day_df.to_csv(weather_7day_path, index=False)
-    print(f"Saved 7-day weather profiles: {weather_7day_path}")
+    logger.info("Saved 7-day weather profiles: {weather_7day_path}")
 
     # Update metadata
     metadata_path = data_dir / "profiles_metadata.json"
@@ -274,15 +278,15 @@ def main() -> None:
 
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
-    print(f"Updated metadata: {metadata_path}")
+    logger.info("Updated metadata: {metadata_path}")
 
-    print("\n" + "=" * 60)
-    print("CLIMATE DATA INTEGRATION COMPLETE")
-    print("Available profile types:")
-    print("  - Base electrical (24h, 7-day)")
-    print("  - Thermal integrated (24h, 7-day, seasonal)")
-    print("  - Weather integrated (24h, 7-day, seasonal)")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info("CLIMATE DATA INTEGRATION COMPLETE")
+    logger.info("Available profile types:")
+    logger.info("  - Base electrical (24h, 7-day)")
+    logger.info("  - Thermal integrated (24h, 7-day, seasonal)")
+    logger.info("  - Weather integrated (24h, 7-day, seasonal)")
+    logger.info("=" * 60)
 
 if __name__ == "__main__":
     main()

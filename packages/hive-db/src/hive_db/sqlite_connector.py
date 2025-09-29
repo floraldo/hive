@@ -9,7 +9,7 @@ from __future__ import annotations
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from hive_logging import get_logger
 
@@ -37,7 +37,7 @@ def get_sqlite_connection(
     Config Structure:
         {
             'db_path': '/path/to/database.sqlite',
-            'timeout': 30.0
+            'timeout': 30.0,
             'check_same_thread': False
         }
     """
@@ -56,8 +56,8 @@ def get_sqlite_connection(
 
     # Default connection parameters for reliability
     defaults = {
-        "timeout": config.get("timeout", 30.0)
-        "check_same_thread": config.get("check_same_thread", False)
+        "timeout": config.get("timeout", 30.0),
+        "check_same_thread": config.get("check_same_thread", False),
         "isolation_level": config.get("isolation_level", None),  # Autocommit mode
     }
     defaults.update(kwargs)

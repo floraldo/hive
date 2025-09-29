@@ -26,6 +26,10 @@ import pytest
 try:
     from hive_db.async_pool import AsyncConnectionPool
     from hive_db.sqlite_connector import SQLiteConnector
+
+from hive_async import AsyncExecutor, get_async_connection
+
+async_executor = AsyncExecutor()
 except ImportError:
     # Fallback mock implementations for testing
     class AsyncConnectionPool:
@@ -202,7 +206,7 @@ class TestDatabaseResilience:
         db_path = Path(temp_file.name)
         
         # Create test table
-        async with aiosqlite.connect(str(db_path)) as conn:
+        async with get_async_connection(str(db_path)) as conn:
             await conn.execute('''
                 CREATE TABLE test_table (
                     id INTEGER PRIMARY KEY,
@@ -375,13 +379,13 @@ class TestDatabaseResilience:
         # Execute many concurrent operations
         tasks = []
         for i in range(20):
-            task = asyncio.create_task(
+            task = await async_executor.submit(
                 resilient_service.execute_with_resilience(f"SELECT {i}")
             )
             tasks.append(task)
         
         start_time = time.time()
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        results = await await async_executor.gather(*tasks, return_exceptions=True)
         end_time = time.time()
         
         # All operations should complete successfully

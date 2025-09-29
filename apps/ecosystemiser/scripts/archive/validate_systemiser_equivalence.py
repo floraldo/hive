@@ -153,8 +153,8 @@ def create_minimal_ecosystemiser() -> None:
         )
     )
     solar = SolarPV("SolarPV", solar_params, system.N)
-    print(f"DEBUG: Before assignment - solar.profile: {getattr(solar, 'profile', 'NOT_SET')}")
-    print(f"DEBUG: Assigning solar_profile with daylight values: {solar_profile[7:13]}")  # Show daylight hours
+    logger.info("DEBUG: Before assignment - solar.profile: {getattr(solar, 'profile', 'NOT_SET')}")
+    logger.info("DEBUG: Assigning solar_profile with daylight values: {solar_profile[7:13]}")  # Show daylight hours
     solar.profile = solar_profile  # Already normalized (0-1)
     print(
         f"DEBUG: After assignment - solar.profile daylight: {solar.profile[7:13] if solar.profile is not None else 'None'}"
@@ -170,10 +170,10 @@ def create_minimal_ecosystemiser() -> None:
         )
     )
     demand = PowerDemand("PowerDemand", demand_params, system.N)
-    print(f"DEBUG: Before assignment - demand.profile: {getattr(demand, 'profile', 'NOT_SET')}")
-    print(f"DEBUG: Assigning demand_profile with values: {demand_profile[:5]}")
+    logger.info("DEBUG: Before assignment - demand.profile: {getattr(demand, 'profile', 'NOT_SET')}")
+    logger.info("DEBUG: Assigning demand_profile with values: {demand_profile[:5]}")
     demand.profile = demand_profile  # Already normalized (0-1)
-    print(f"DEBUG: After assignment - demand.profile: {demand.profile[:5] if demand.profile is not None else 'None'}")
+    logger.info("DEBUG: After assignment - demand.profile: {demand.profile[:5] if demand.profile is not None else 'None'}")
 
     # Add components to system
     system.add_component(grid)

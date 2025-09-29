@@ -23,7 +23,7 @@ def create_table_if_not_exists(conn: sqlite3.Connection, table_name: str, schema
 
     Args:
         conn: Database connection,
-        table_name: Name of the table to create
+        table_name: Name of the table to create,
         schema: SQL schema definition for the table
     """
     try:
@@ -47,7 +47,7 @@ def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
 
     Args:
         conn: Database connection,
-        table_name: Name of the table to check
+        table_name: Name of the table to check,
 
     Returns:
         True if table exists, False otherwise
@@ -69,7 +69,7 @@ def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[Dict[str
 
     Args:
         conn: Database connection,
-        table_name: Name of the table
+        table_name: Name of the table,
 
     Returns:
         List of column information dictionaries
@@ -357,7 +357,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
 
     Args:
         conn: Database connection,
-        migrations_dir: Directory containing migration files
+        migrations_dir: Directory containing migration files,
         target_version: Target migration version (applies all if None)
     """
     try:

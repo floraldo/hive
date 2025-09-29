@@ -38,7 +38,7 @@ try:
 except ImportError:
     PSUTIL_AVAILABLE = False
     # Script output
-    print("WARNING: psutil not available, memory monitoring disabled")
+    logger.info("WARNING: psutil not available, memory monitoring disabled")
 
 try:
     from hive_logging import get_logger, setup_logging
@@ -47,7 +47,7 @@ try:
 except ImportError:
     LOGGING_AVAILABLE = False
     # Script output
-    print("WARNING: Logging not available, using print statements")
+    logger.info("WARNING: Logging not available, using print statements")
 
 
 # Mock classes for foundation testing when real components unavailable
@@ -191,7 +191,7 @@ class BenchmarkRunner:
             logger.info(message)
         else:
             # Script output
-            print(message)
+            logger.info(message)
 
     def benchmark_fidelity_levels(self, system) -> List[Dict[str, Any]]:
         """Benchmark all four fidelity levels"""
@@ -660,15 +660,15 @@ def main() -> None:
             json.dump(results, f, indent=2)
 
         # Script output
-    print(f"\nBenchmark results saved to: {output_file}")
+    logger.info("\nBenchmark results saved to: {output_file}")
 
         # Print summary
         # Script output
-    print("\n" + "=" * 60)
+    logger.info("\n" + "=" * 60)
         # Script output
-    print("ECOSYSTEMISER V3.0 PERFORMANCE BASELINE")
+    logger.info("ECOSYSTEMISER V3.0 PERFORMANCE BASELINE")
         # Script output
-    print("=" * 60)
+    logger.info("=" * 60)
 
         summary = results["summary"]
         fidelity_perf = summary.get("fidelity_performance", {})
@@ -687,25 +687,25 @@ def main() -> None:
 
         if rolling_perf.get("warm_start_speedup"):
             # Script output
-    print(f"Warm-start Speedup: {rolling_perf['warm_start_speedup']:.2f}x")
+    logger.info("Warm-start Speedup: {rolling_perf['warm_start_speedup']:.2f}x")
 
         if summary.get("recommendations"):
             # Script output
-    print("\nRecommendations:")
+    logger.info("\nRecommendations:")
             for rec in summary["recommendations"]:
                 # Script output
-    print(f"  - {rec}")
+    logger.info("  - {rec}")
 
         # Script output
-    print(f"\nBaseline file: {output_file}")
+    logger.info("\nBaseline file: {output_file}")
         # Script output
-    print("\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity")
+    logger.info("\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity")
 
         return 0
 
     except Exception as e:
         # Script output
-    print(f"Benchmark failed: {e}")
+    logger.info("Benchmark failed: {e}")
         traceback.print_exc()
         return 1
 

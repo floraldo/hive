@@ -28,9 +28,9 @@ logger = get_logger(__name__)
 def get_postgres_connection(
     config: Dict[str, Any]
     host: str | None = None,
-    port: int | None = None
+    port: int | None = None,
     database: str | None = None,
-    user: str | None = None
+    user: str | None = None,
     password: str | None = None,
     **kwargs
 ) -> "psycopg2.connection":
@@ -57,9 +57,9 @@ def get_postgres_connection(
     Config Structure:
         {
             'host': 'localhost',
-            'port': 5432
+            'port': 5432,
             'database': 'mydb',
-            'user': 'myuser'
+            'user': 'myuser',
             'password': 'mypass',
             'database_url': 'postgresql://...'  # optional full URL
         }
@@ -90,7 +90,7 @@ def get_postgres_connection(
         "host": host or config.get("host", "localhost")
         "port": port or config.get("port", 5432)
         "database": database or config.get("database"),
-        "user": user or config.get("user")
+        "user": user or config.get("user"),
         "password": password or config.get("password"),
         "cursor_factory": RealDictCursor
     }
@@ -124,9 +124,9 @@ def get_postgres_connection(
 def postgres_transaction(
     config: Dict[str, Any]
     host: str | None = None,
-    port: int | None = None
+    port: int | None = None,
     database: str | None = None,
-    user: str | None = None
+    user: str | None = None,
     password: str | None = None,
     **kwargs
 ):
@@ -169,12 +169,12 @@ def postgres_transaction(
 
 def create_connection_pool(
     minconn: int = 1,
-    maxconn: int = 10
+    maxconn: int = 10,
     config: Dict[str, Any]
     host: str | None = None,
-    port: int | None = None
+    port: int | None = None,
     database: str | None = None,
-    user: str | None = None
+    user: str | None = None,
     password: str | None = None,
     **kwargs
 ) -> "psycopg2.pool.ThreadedConnectionPool":
@@ -226,7 +226,7 @@ def create_connection_pool(
         "host": host or config.get("host", "localhost")
         "port": port or config.get("port", 5432)
         "database": database or config.get("database"),
-        "user": user or config.get("user")
+        "user": user or config.get("user"),
         "password": password or config.get("password"),
         "cursor_factory": RealDictCursor
     }
@@ -259,9 +259,9 @@ def create_connection_pool(
 def get_postgres_info(
     config: Dict[str, Any]
     host: str | None = None,
-    port: int | None = None
+    port: int | None = None,
     database: str | None = None,
-    user: str | None = None
+    user: str | None = None,
     password: str | None = None
 ) -> Dict[str, Any]:
     """
@@ -304,9 +304,9 @@ def get_postgres_info(
 
                 return {
                     "database": db_info["current_database"],
-                    "user": db_info["current_user"]
+                    "user": db_info["current_user"],
                     "version": pg_version,
-                    "size": db_size
+                    "size": db_size,
                     "table_count": table_count,
                     "host": host or config.get("host", "localhost")
                     "port": port or config.get("port", 5432)

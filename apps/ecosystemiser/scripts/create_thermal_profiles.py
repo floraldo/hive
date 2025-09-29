@@ -7,6 +7,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 
 def create_thermal_profiles() -> None:
     """Create realistic thermal demand profiles for heating."""
@@ -14,7 +18,7 @@ def create_thermal_profiles() -> None:
     data_dir = Path(__file__).parent.parent / "data" / "profiles"
     base_profiles = pd.read_csv(data_dir / "golden_24h_profiles.csv")
 
-    print("Creating thermal profiles...")
+    logger.info("Creating thermal profiles...")
 
     # Thermal demand profile (typical residential heating)
     # Higher in morning and evening, lower during day and night
@@ -97,12 +101,12 @@ def create_thermal_profiles() -> None:
     )
 
     # Print statistics
-    print(f"\nThermal Profile Statistics:")
-    print(f"  Heat demand peak: {max(thermal_demand_kw):.1f} kW")
-    print(f"  Heat demand daily total: {sum(thermal_demand_kw):.1f} kWh")
-    print(f"  COP range: {min(cop_profile):.1f} - {max(cop_profile):.1f}")
-    print(f"  Heat pump electrical peak: {max(heat_pump_electrical_kw):.1f} kW")
-    print(f"  Total electrical demand peak: {max(thermal_profiles['total_electrical_demand_kw']):.1f} kW")
+    logger.info("\nThermal Profile Statistics:")
+    logger.info("  Heat demand peak: {max(thermal_demand_kw):.1f} kW")
+    logger.info("  Heat demand daily total: {sum(thermal_demand_kw):.1f} kWh")
+    logger.info("  COP range: {min(cop_profile):.1f} - {max(cop_profile):.1f}")
+    logger.info("  Heat pump electrical peak: {max(heat_pump_electrical_kw):.1f} kW")
+    logger.info("  Total electrical demand peak: {max(thermal_profiles['total_electrical_demand_kw']):.1f} kW")
 
     return thermal_profiles
 
@@ -158,9 +162,9 @@ def create_thermal_storage_profile() -> None:
 
 def main() -> None:
     """Main thermal profile creation."""
-    print("=" * 60)
-    print("THERMAL PROFILE CREATION")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("THERMAL PROFILE CREATION")
+    logger.info("=" * 60)
 
     data_dir = Path(__file__).parent.parent / "data" / "profiles"
 
@@ -170,7 +174,7 @@ def main() -> None:
     # Save base thermal profiles
     thermal_path = data_dir / "golden_24h_thermal.csv"
     thermal_profiles.to_csv(thermal_path, index=False)
-    print(f"Saved thermal profiles: {thermal_path}")
+    logger.info("Saved thermal profiles: {thermal_path}")
 
     # Create 7-day thermal profiles
     thermal_7day = []
@@ -183,21 +187,21 @@ def main() -> None:
     thermal_7day_df = pd.concat(thermal_7day, ignore_index=True)
     thermal_7day_path = data_dir / "golden_7day_thermal.csv"
     thermal_7day_df.to_csv(thermal_7day_path, index=False)
-    print(f"Saved 7-day thermal profiles: {thermal_7day_path}")
+    logger.info("Saved 7-day thermal profiles: {thermal_7day_path}")
 
     # Create seasonal thermal variants
     thermal_variants = create_thermal_seasonal_variants(thermal_profiles)
     for season, profiles in thermal_variants.items():
         season_path = data_dir / f"golden_24h_thermal_{season}.csv"
         profiles.to_csv(season_path, index=False)
-        print(f"Saved {season} thermal profiles: {season_path}")
+        logger.info("Saved {season} thermal profiles: {season_path}")
 
     # Create heat buffer parameters
     heat_buffer_params = create_thermal_storage_profile()
     buffer_path = data_dir / "heat_buffer_params.json"
     with open(buffer_path, "w") as f:
         json.dump(heat_buffer_params, f, indent=2)
-    print(f"Saved heat buffer params: {buffer_path}")
+    logger.info("Saved heat buffer params: {buffer_path}")
 
     # Update metadata
     metadata_path = data_dir / "profiles_metadata.json"
@@ -222,11 +226,11 @@ def main() -> None:
 
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
-    print(f"Updated metadata: {metadata_path}")
+    logger.info("Updated metadata: {metadata_path}")
 
-    print("\n" + "=" * 60)
-    print("THERMAL PROFILE CREATION COMPLETE")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info("THERMAL PROFILE CREATION COMPLETE")
+    logger.info("=" * 60)
 
 
 if __name__ == "__main__":

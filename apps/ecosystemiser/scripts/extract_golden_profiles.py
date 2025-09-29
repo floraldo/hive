@@ -10,15 +10,19 @@ import pandas as pd
 
 def extract_profiles_from_golden() -> None:
     """Extract solar and demand profiles from the golden dataset."""
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
     # Load golden dataset
     golden_path = Path(__file__).parent.parent / "tests" / "systemiser_minimal_golden.json"
 
     with open(golden_path, "r") as f:
         golden_data = json.load(f)
 
-    print("Extracting profiles from golden dataset...")
-    print(f"Components: {golden_data['metadata']['components']}")
-    print(f"Timesteps: {golden_data['metadata']['timesteps']}")
+    logger.info("Extracting profiles from golden dataset...")
+    logger.info("Components: {golden_data['metadata']['components']}")
+    logger.info("Timesteps: {golden_data['metadata']['timesteps']}")
 
     # Extract solar generation profile
     solar_to_demand = np.array(golden_data["flows"]["SolarPV_P_PowerDemand"]["values"])
@@ -51,15 +55,15 @@ def extract_profiles_from_golden() -> None:
     )
 
     # Print profile statistics
-    print(f"\nSolar Generation Profile:")
-    print(f"  Peak: {max(solar_generation):.2f} kW at hour {np.argmax(solar_generation)}")
-    print(f"  Daily total: {sum(solar_generation):.2f} kWh")
-    print(f"  Non-zero hours: {np.count_nonzero(solar_generation)}")
+    logger.info("\nSolar Generation Profile:")
+    logger.info("  Peak: {max(solar_generation):.2f} kW at hour {np.argmax(solar_generation)}")
+    logger.info("  Daily total: {sum(solar_generation):.2f} kWh")
+    logger.info("  Non-zero hours: {np.count_nonzero(solar_generation)}")
 
-    print(f"\nPower Demand Profile:")
-    print(f"  Peak: {max(total_demand):.2f} kW at hour {np.argmax(total_demand)}")
-    print(f"  Daily total: {sum(total_demand):.2f} kWh")
-    print(f"  Base load: {min(total_demand[total_demand > 0]):.2f} kW")
+    logger.info("\nPower Demand Profile:")
+    logger.info("  Peak: {max(total_demand):.2f} kW at hour {np.argmax(total_demand)}")
+    logger.info("  Daily total: {sum(total_demand):.2f} kWh")
+    logger.info("  Base load: {min(total_demand[total_demand > 0]):.2f} kW")
 
     return profiles_df
 
@@ -107,9 +111,9 @@ def create_seasonal_variants(base_profiles) -> None:
 
 def main() -> None:
     """Main profile extraction and organization."""
-    print("=" * 60)
-    print("GOLDEN DATASET PROFILE EXTRACTION")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("GOLDEN DATASET PROFILE EXTRACTION")
+    logger.info("=" * 60)
 
     # Create data directory
     data_dir = Path(__file__).parent.parent / "data" / "profiles"
@@ -121,20 +125,20 @@ def main() -> None:
     # Save base 24-hour profiles
     base_path = data_dir / "golden_24h_profiles.csv"
     base_profiles.to_csv(base_path, index=False)
-    print(f"\nSaved base profiles: {base_path}")
+    logger.info("\nSaved base profiles: {base_path}")
 
     # Create 7-day extended profiles
     week_profiles = create_extended_profiles(base_profiles, days=7)
     week_path = data_dir / "golden_7day_profiles.csv"
     week_profiles.to_csv(week_path, index=False)
-    print(f"Saved 7-day profiles: {week_path}")
+    logger.info("Saved 7-day profiles: {week_path}")
 
     # Create seasonal variants
     seasonal_variants = create_seasonal_variants(base_profiles)
     for season, profiles in seasonal_variants.items():
         season_path = data_dir / f"golden_24h_{season}.csv"
         profiles.to_csv(season_path, index=False)
-        print(f"Saved {season} profiles: {season_path}")
+        logger.info("Saved {season} profiles: {season_path}")
 
     # Create summary metadata
     metadata = {
@@ -160,12 +164,12 @@ def main() -> None:
     metadata_path = data_dir / "profiles_metadata.json"
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
-    print(f"Saved metadata: {metadata_path}")
+    logger.info("Saved metadata: {metadata_path}")
 
-    print("\n" + "=" * 60)
-    print("PROFILE EXTRACTION COMPLETE")
-    print(f"Data location: {data_dir}")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info("PROFILE EXTRACTION COMPLETE")
+    logger.info("Data location: {data_dir}")
+    logger.info("=" * 60)
 
 
 if __name__ == "__main__":

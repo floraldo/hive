@@ -297,7 +297,7 @@ from __future__ import annotations
             "timestamp": datetime.utcnow().isoformat(),
             "overall_statistics": self.get_error_statistics(),
             "component_health": {},
-            "alert_summary": {
+            "alert_summary": {,
                 "active_alerts": [],
                 "alert_thresholds": self.alert_thresholds
             },

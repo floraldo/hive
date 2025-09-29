@@ -34,7 +34,7 @@ class ConnectionPool:
     def __init__(
         self,
         db_path: Path,
-        min_connections: int = 2
+        min_connections: int = 2,
         max_connections: int = 10,
         connection_timeout: float = 30.0
     ):
@@ -176,9 +176,9 @@ class ConnectionPool:
         """Get pool statistics."""
         return {
             "db_path": str(self.db_path),
-            "pool_size": self._pool.qsize()
+            "pool_size": self._pool.qsize(),
             "connections_created": self._connections_created,
-            "max_connections": self.max_connections
+            "max_connections": self.max_connections,
             "min_connections": self.min_connections
         }
 
