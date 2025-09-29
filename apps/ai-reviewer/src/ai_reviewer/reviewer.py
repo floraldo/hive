@@ -1,41 +1,29 @@
 from __future__ import annotations
 
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
-
 """
 Core review logic for analyzing code quality, tests, and documentation
 """
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Optional
 
-from hive_claude_bridge import (
-    ClaudeBridgeConfig,
-    ClaudeService,
-    RateLimitConfig,
-    get_claude_service
-)
-from hive_errors import (
-    ErrorReporter,
-    RetryStrategy,
-    ReviewError,
-    ReviewValidationError,
-    with_recovery
-)
+from hive_claude_bridge import ClaudeBridgeConfig, RateLimitConfig, get_claude_service
+from hive_errors import ErrorReporter, ReviewError, ReviewValidationError
+from hive_logging import get_logger
 from pydantic import BaseModel, Field
 
 from .inspector_bridge import InspectorBridge
+
+logger = get_logger(__name__)
 
 
 class ReviewDecision(Enum):
     """Possible review decisions"""
 
-    APPROVE = "approve",
-    REJECT = "reject",
-    REWORK = "rework",
+    APPROVE = ("approve",)
+    REJECT = ("reject",)
+    REWORK = ("rework",)
     ESCALATE = "escalate"
 
 
@@ -56,7 +44,7 @@ class QualityMetrics(BaseModel):
             "test_coverage": 0.25,
             "documentation": 0.15,
             "security": 0.2,
-            "architecture": 0.1
+            "architecture": 0.1,
         }
 
         total = sum(getattr(self, metric) * weight for metric, weight in weights.items())
@@ -71,13 +59,13 @@ class ReviewResult:
     decision: ReviewDecision
     metrics: QualityMetrics
     summary: str
-    issues: List[str]
-    suggestions: List[str]
+    issues: list[str]
+    suggestions: list[str]
     confidence: float
     escalation_reason: str | None = None
-    confusion_points: Optional[List[str]] = None
+    confusion_points: Optional[list[str]] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for storage"""
         result = {
             "task_id": self.task_id,
@@ -87,7 +75,7 @@ class ReviewResult:
             "summary": self.summary,
             "issues": self.issues,
             "suggestions": self.suggestions,
-            "confidence": self.confidence
+            "confidence": self.confidence,
         }
 
         if self.escalation_reason:
@@ -111,10 +99,10 @@ class ReviewEngine:
             mock_mode: If True, use mock responses for testing
         """
         # Initialize Claude service with rate limiting
-        config = ClaudeBridgeConfig(mock_mode=mock_mode),
+        config = (ClaudeBridgeConfig(mock_mode=mock_mode),)
         rate_config = RateLimitConfig(
             max_calls_per_minute=15,  # Reviews are more intensive,
-            max_calls_per_hour=300
+            max_calls_per_hour=300,
         )
         self.claude_service = get_claude_service(config=config, rate_config=rate_config)
         self.inspector = InspectorBridge()
@@ -134,9 +122,9 @@ class ReviewEngine:
         self,
         task_id: str,
         task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]] = None,
-        transcript: str | None = None
+        code_files: dict[str, str],
+        test_results: Optional[dict[str, Any]] = None,
+        transcript: str | None = None,
     ) -> ReviewResult:
         """
         Perform AI review of a task
@@ -155,10 +143,7 @@ class ReviewEngine:
         try:
             objective_analysis = self.inspector.inspect_task_run(task_id)
         except Exception as e:
-            error = ReviewError(
-                message=f"Failed to run objective analysis for task {task_id}",
-                original_error=e
-            )
+            error = ReviewError(message=f"Failed to run objective analysis for task {task_id}", original_error=e)
             self.error_reporter.report_error(error)
             objective_analysis = None
 
@@ -174,10 +159,7 @@ class ReviewEngine:
                 use_cache=False,  # Don't cache reviews as code changes frequently
             )
         except Exception as e:
-            error = ReviewError(
-                message=f"Failed to get Claude review for task {task_id}",
-                original_error=e
-            )
+            error = ReviewError(message=f"Failed to get Claude review for task {task_id}", original_error=e)
             self.error_reporter.report_error(error)
             # Create fallback result,
             claude_result = {
@@ -195,11 +177,9 @@ class ReviewEngine:
             decision = ReviewDecision(decision_str)
         except ValueError:
             error = ReviewValidationError(
-                message=f"Invalid review decision: {decision_str}",
-                field="decision",
-                value=decision_str
+                message=f"Invalid review decision: {decision_str}", field="decision", value=decision_str
             )
-            self.error_reporter.report_error(error, severity="WARNING"),
+            (self.error_reporter.report_error(error, severity="WARNING"),)
             decision = ReviewDecision.ESCALATE
 
         # Extract metrics from validated response,
@@ -209,7 +189,7 @@ class ReviewEngine:
             test_coverage=claude_metrics.get("testing", 50),
             documentation=claude_metrics.get("documentation", 50),
             security=claude_metrics.get("security", 50),
-            architecture=claude_metrics.get("architecture", 50)
+            architecture=claude_metrics.get("architecture", 50),
         )
 
         # Extract other fields from validated response,
@@ -234,5 +214,5 @@ class ReviewEngine:
             suggestions=suggestions,
             confidence=confidence,
             escalation_reason=escalation_reason,
-            confusion_points=confusion_points
+            confusion_points=confusion_points,
         )

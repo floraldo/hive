@@ -11,7 +11,7 @@ import asyncio
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from hive_logging import get_logger
 

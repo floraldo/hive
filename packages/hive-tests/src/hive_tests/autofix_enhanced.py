@@ -18,9 +18,8 @@ import ast
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
-from .autofix import GoldenRulesAutoFixer, AutofixResult
+from .autofix import AutofixResult, GoldenRulesAutoFixer
 
 
 @dataclass
@@ -692,7 +691,7 @@ def main():
     print(f"\nProject Root: {args.project_root}")
     print(f"Mode: {'DRY RUN' if args.dry_run else 'LIVE EXECUTION'}")
     print(f"Backups: {'Enabled' if not args.no_backups else 'Disabled'}")
-    print(f"\nEnhancements:")
+    print("\nEnhancements:")
     print(f"  Type Hints: {'✓' if enable_hints else '✗'}")
     print(f"  Docstrings: {'✓' if enable_docs else '✗'}")
     print(f"  Import Organization: {'✓' if enable_imports else '✗'}")

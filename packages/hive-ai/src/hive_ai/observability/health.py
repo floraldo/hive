@@ -7,21 +7,19 @@ and performance degradation detection for AI infrastructure.
 
 from __future__ import annotations
 
-
 import asyncio
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, AnyCallable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any
 
-from hive_logging import get_logger
+from hive_async import async_timeout
 from hive_cache import CacheManager
-from hive_async import AsyncCircuitBreaker, async_timeout
+from hive_logging import get_logger
 
-from ..core.exceptions import ModelError, AIError
+from ..core.exceptions import AIError
 from ..models.registry import ModelRegistry
-
 
 logger = get_logger(__name__)
 
@@ -42,7 +40,7 @@ class HealthCheckResult:
     status: HealthStatus
     response_time_ms: float
     timestamp: datetime
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
     error_message: str | None = None
 
 
@@ -56,8 +54,8 @@ class ProviderHealth:
     response_time_ms: float
     availability_percentage: float
     error_rate: float
-    recent_checks: List[HealthCheckResult] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    recent_checks: list[HealthCheckResult] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -97,20 +95,20 @@ class ModelHealthChecker:
         self.cache = CacheManager("model_health")
 
         # Health state storage,
-        self._provider_health: Dict[str, ProviderHealth] = ({},)
-        self._model_health: Dict[str, ModelHealth] = {}
+        self._provider_health: dict[str, ProviderHealth] = ({},)
+        self._model_health: dict[str, ModelHealth] = {}
 
         # Health check history,
-        self._health_history: Dict[str, List[HealthCheckResult]] = {}
+        self._health_history: dict[str, list[HealthCheckResult]] = {}
 
         # Monitoring state,
         self._monitoring_active = (False,)
-        self._health_check_tasks: Dict[str, asyncio.Task] = {}
+        self._health_check_tasks: dict[str, asyncio.Task] = {}
 
         # Health check configurations,
         self._health_check_configs = self._load_default_configs()
 
-    def _load_default_configs(self) -> Dict[str, Dict[str, Any]]:
+    def _load_default_configs(self) -> dict[str, dict[str, Any]]:
         """Load default health check configurations for different providers."""
         return {
             "anthropic": {
@@ -241,7 +239,7 @@ class ModelHealthChecker:
             logger.error(f"Provider health check failed: {provider} - {e}")
             return health
 
-    async def _check_connectivity_async(self, provider_instance: Any, config: Dict[str, Any]) -> HealthCheckResult:
+    async def _check_connectivity_async(self, provider_instance: Any, config: dict[str, Any]) -> HealthCheckResult:
         """Check basic connectivity to provider."""
         start_time = time.time()
 
@@ -283,7 +281,7 @@ class ModelHealthChecker:
             )
 
     async def _check_functionality_async(
-        self, provider_name: str, provider_instance: Any, config: Dict[str, Any]
+        self, provider_name: str, provider_instance: Any, config: dict[str, Any]
     ) -> HealthCheckResult:
         """Check functional capability of provider."""
         start_time = time.time()
@@ -387,7 +385,7 @@ class ModelHealthChecker:
         return HealthStatus.HEALTHY
 
     def _update_provider_health(
-        self, provider: str, status: HealthStatus, response_time_ms: float, details: Dict[str, Any]
+        self, provider: str, status: HealthStatus, response_time_ms: float, details: dict[str, Any]
     ) -> ProviderHealth:
         """Update provider health state and history."""
         now = datetime.utcnow()
@@ -436,7 +434,7 @@ class ModelHealthChecker:
 
         return self._provider_health[provider]
 
-    def _calculate_availability(self, checks: List[HealthCheckResult]) -> float:
+    def _calculate_availability(self, checks: list[HealthCheckResult]) -> float:
         """Calculate availability percentage from health checks."""
         if not checks:
             return 0.0
@@ -445,7 +443,7 @@ class ModelHealthChecker:
 
         return (healthy_checks / len(checks)) * 100
 
-    def _calculate_error_rate(self, checks: List[HealthCheckResult]) -> float:
+    def _calculate_error_rate(self, checks: list[HealthCheckResult]) -> float:
         """Calculate error rate from health checks."""
         if not checks:
             return 0.0
@@ -505,7 +503,7 @@ class ModelHealthChecker:
 
         return provider_health.status
 
-    def get_overall_health_async(self) -> Dict[str, Any]:
+    def get_overall_health_async(self) -> dict[str, Any]:
         """Get comprehensive health status for all monitored components."""
         now = datetime.utcnow()
 
@@ -565,7 +563,7 @@ class ModelHealthChecker:
             },
         }
 
-    async def get_health_alerts_async(self) -> List[Dict[str, Any]]:
+    async def get_health_alerts_async(self) -> list[dict[str, Any]]:
         """Get current health alerts requiring attention."""
         alerts = []
 
@@ -611,7 +609,7 @@ class ModelHealthChecker:
 
         return alerts
 
-    def get_metric_history(self, provider: str, metric_name: str, hours: int = 24) -> List[Dict[str, Any]]:
+    def get_metric_history(self, provider: str, metric_name: str, hours: int = 24) -> list[dict[str, Any]]:
         """
         Get historical health metrics for predictive analysis.
 

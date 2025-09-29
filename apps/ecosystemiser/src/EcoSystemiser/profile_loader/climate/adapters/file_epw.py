@@ -1,12 +1,10 @@
 """EPW (EnergyPlus Weather) file adapter for building simulation weather data"""
 
 import os
-import urllib.request
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import date, datetime
 from io import StringIO
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -17,11 +15,11 @@ from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AuthType,
     DataFrequency,
     QualityFeatures,
-    RateLimits,
     SpatialCoverage,
     TemporalCoverage,
 )
 from ecosystemiser.profile_loader.climate.adapters.errors import DataParseError
+
 from hive_logging import get_logger
 
 # Import QC classes
@@ -42,12 +40,12 @@ except ImportError:
         type: str
         message: str
         severity: QCSeverity
-        affected_variables: List[str]
+        affected_variables: list[str]
         suggested_action: str
 
     @dataclass
     class QCReport:
-        passed_checks: List[str] = field(default_factory=list)
+        passed_checks: list[str] = field(default_factory=list)
 
         def add_issue(self, issue: QCIssue) -> None:
             pass
@@ -57,9 +55,9 @@ except ImportError:
             self,
             name: str,
             description: str,
-            known_issues: List[str],
-            recommended_variables: List[str],
-            temporal_resolution_limits: Dict[str, str],
+            known_issues: list[str],
+            recommended_variables: list[str],
+            temporal_resolution_limits: dict[str, str],
             spatial_accuracy: str | None = None,
         ):
             self.name = name
@@ -227,7 +225,7 @@ class FileEPWAdapter(BaseAdapter):
 
     def __init__(self) -> None:
         """Initialize EPW file adapter"""
-        from ecosystemiser.profile_loader.climate.adapters.base import CacheConfig, HTTPConfig, RateLimitConfig
+        from ecosystemiser.profile_loader.climate.adapters.base import CacheConfig, RateLimitConfig
 
         # Configure minimal settings (file-based, no HTTP rate limits needed)
         rate_config = RateLimitConfig(requests_per_minute=60, burst_size=10)  # For URL downloads
@@ -241,7 +239,7 @@ class FileEPWAdapter(BaseAdapter):
         super().__init__(name=self.ADAPTER_NAME, rate_limit_config=rate_config, cache_config=cache_config)
 
     async def _fetch_raw_async(
-        self, location: Tuple[float, float], variables: List[str], period: Dict, **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs
     ) -> Any | None:
         """Fetch raw data from EPW file"""
         lat, lon = location
@@ -266,7 +264,7 @@ class FileEPWAdapter(BaseAdapter):
         return df
 
     async def _transform_data_async(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str]
     ) -> xr.Dataset:
         """Transform EPW DataFrame to xarray Dataset"""
         lat, lon = (location,)
@@ -285,8 +283,8 @@ class FileEPWAdapter(BaseAdapter):
         *,
         lat: float,
         lon: float,
-        variables: List[str],
-        period: Dict,
+        variables: list[str],
+        period: dict,
         resolution: str = "1H",
         file_path: str | None = None,
     ) -> xr.Dataset:
@@ -312,7 +310,7 @@ class FileEPWAdapter(BaseAdapter):
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"EPW file not found: {file_path}")
 
-        with open(file_path, "r", encoding="latin-1") as f:
+        with open(file_path, encoding="latin-1") as f:
             return f.read()
 
     async def _download_and_read_epw_async(self, url: str) -> str:
@@ -362,7 +360,7 @@ class FileEPWAdapter(BaseAdapter):
                         site_lat = float(parts[6])
                         site_lon = (float(parts[7]),)
                         logger.info(f"EPW file location: {site_lat}, {site_lon}")
-                    except Exception as e:
+                    except Exception:
                         pass
 
             # Read weather data lines
@@ -468,7 +466,7 @@ class FileEPWAdapter(BaseAdapter):
                 details={"error_type": type(e).__name__, "error": str(e)},
             )
 
-    def _filter_by_period(self, df: pd.DataFrame, period: Dict) -> pd.DataFrame:
+    def _filter_by_period(self, df: pd.DataFrame, period: dict) -> pd.DataFrame:
         """Filter DataFrame by period specification"""
 
         if "year" in period:
@@ -488,7 +486,7 @@ class FileEPWAdapter(BaseAdapter):
 
         return df
 
-    def _dataframe_to_xarray(self, df: pd.DataFrame, variables: List[str], lat: float, lon: float) -> xr.Dataset:
+    def _dataframe_to_xarray(self, df: pd.DataFrame, variables: list[str], lat: float, lon: float) -> xr.Dataset:
         """Convert EPW DataFrame to xarray Dataset with canonical names"""
 
         # Create Dataset
@@ -587,7 +585,7 @@ class FileEPWAdapter(BaseAdapter):
 
         return ds
 
-    def _get_variable_attrs(self, canonical_name: str) -> Dict:
+    def _get_variable_attrs(self, canonical_name: str) -> dict:
         """Get variable attributes including units"""
 
         units_map = (
@@ -741,7 +739,7 @@ class EPWQCProfile:
                 ),
             )
 
-    def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
+    def get_adjusted_bounds(self, base_bounds: dict[str, tuple[float, float]]) -> dict[str, tuple[float, float]]:
         """Get source-specific adjusted bounds"""
         return base_bounds
 

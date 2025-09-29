@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-
 """
 AI Planner-specific error handling implementation.
 
@@ -12,10 +10,11 @@ Extends the generic error handling toolkit with AI Planner capabilities:
 - AI Planner-specific error reporting
 """
 
-import time
+import asyncio
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any, Optional
 
 from hive_errors import BaseError, BaseErrorReporter, RecoveryStatus, RecoveryStrategy
 from hive_logging import get_logger
@@ -39,8 +38,8 @@ class PlannerError(BaseError):
         task_id: str | None = None,
         plan_id: str | None = None,
         planning_phase: str | None = None,
-        details: Optional[Dict[str, Any]] = None,
-        recovery_suggestions: Optional[List[str]] = None,
+        details: Optional[dict[str, Any]] = None,
+        recovery_suggestions: Optional[list[str]] = None,
         original_error: Exception | None = None,
     ):
         """
@@ -80,9 +79,9 @@ class PlannerError(BaseError):
         self.task_id = (task_id,)
         self.plan_id = (plan_id,)
         self.planning_phase = (planning_phase,)
-        self.timestamp = datetime.now(timezone.utc)
+        self.timestamp = datetime.now(UTC)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary with AI Planner context"""
         data = super().to_dict()
         data["timestamp"] = self.timestamp.isoformat()
@@ -105,7 +104,7 @@ class TaskValidationError(BaseError):
     """Error validating task data"""
 
     def __init__(
-        self, message: str, validation_type: str | None = None, failed_fields: Optional[List[str]] = None, **kwargs
+        self, message: str, validation_type: str | None = None, failed_fields: Optional[list[str]] = None, **kwargs
     ):
         details = kwargs.get("details", {})
         if validation_type:
@@ -171,7 +170,7 @@ class ClaudeServiceError(BaseError):
         message: str,
         api_status_code: int | None = None,
         api_response: str | None = None,
-        rate_limit_info: Optional[Dict[str, Any]] = None,
+        rate_limit_info: Optional[dict[str, Any]] = None,
         **kwargs,
     ):
         details = kwargs.get("details", {})
@@ -217,8 +216,8 @@ class PlanValidationError(BaseError):
     def __init__(
         self,
         message: str,
-        plan_structure_issues: Optional[List[str]] = None,
-        missing_fields: Optional[List[str]] = None,
+        plan_structure_issues: Optional[list[str]] = None,
+        missing_fields: Optional[list[str]] = None,
         **kwargs,
     ):
         details = kwargs.get("details", {})
@@ -287,15 +286,15 @@ class PlannerErrorReporter(BaseErrorReporter):
     def __init__(self) -> None:
         """Initialize the AI Planner error reporter"""
         super().__init__()
-        self.task_errors: List[TaskProcessingError] = []
-        self.plan_errors: List[PlanGenerationError] = []
-        self.claude_errors: List[ClaudeServiceError] = []
+        self.task_errors: list[TaskProcessingError] = []
+        self.plan_errors: list[PlanGenerationError] = []
+        self.claude_errors: list[ClaudeServiceError] = []
 
     def report_error(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
+        additional_info: Optional[dict[str, Any]] = None,
     ) -> str:
         """
         Report an error with AI Planner-specific handling.
@@ -355,7 +354,7 @@ class PlannerErrorReporter(BaseErrorReporter):
         else:
             logger.error(f"Claude service error: {error.message}")
 
-    def get_error_summary(self) -> Dict[str, Any]:
+    def get_error_summary(self) -> dict[str, Any]:
         """Get summary of all reported errors"""
         return {
             "total_errors": self.error_counts.get("total", 0),
@@ -395,7 +394,7 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
         self.max_delay = max_delay
 
     async def attempt_recovery_async(
-        self, error: Exception, context: Optional[Dict[str, Any]] = None
+        self, error: Exception, context: Optional[dict[str, Any]] = None
     ) -> RecoveryStatus:
         """Attempt recovery by waiting with exponential backoff"""
         if not self.can_attempt_recovery():
