@@ -45,7 +45,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         }
 
         # Enhanced tracking
-        self._detailed_history: deque = (deque(maxlen=max_history),)
+        self._detailed_history: deque = deque(maxlen=max_history)
         self._error_rates: dict[str, deque] = defaultdict(lambda: deque(maxlen=60))  # Per-minute tracking,
         self._component_stats: dict[str, dict[str, Any]] = defaultdict(
             lambda: {
@@ -188,6 +188,50 @@ class MonitoringErrorReporter(BaseErrorReporter):
         """Trigger async alert callbacks."""
         # This would integrate with async monitoring systems
         pass
+
+    def _update_metrics(self, error_record: dict[str, Any]) -> None:
+        """Update error metrics from error record."""
+        component = error_record.get("context", {}).get("component") or error_record.get("component", "unknown")
+        error_type = error_record["error_type"]
+        logger.debug(f"Updated metrics for {component}: {error_type}")
+
+    def _update_component_stats(self, error_record: dict[str, Any]) -> None:
+        """Update component statistics from error record."""
+        component = error_record.get("context", {}).get("component") or error_record.get("component", "unknown")
+        stats = self._component_stats[component]
+        stats["total_errors"] += 1
+        stats["last_error"] = error_record["timestamp"]
+        stats["consecutive_failures"] += 1
+        alpha = 0.1
+        stats["failure_rate"] = alpha * 1.0 + (1 - alpha) * stats["failure_rate"]
+        logger.debug(f"Updated component stats for {component}: {stats['total_errors']} total errors")
+
+    def _track_error_rates(self, error_record: dict[str, Any]) -> None:
+        """Track error rates over time."""
+        timestamp = datetime.fromisoformat(error_record["timestamp"])
+        minute_key = timestamp.strftime("%Y-%m-%d %H:%M")
+        component = error_record.get("context", {}).get("component") or error_record.get("component", "unknown")
+        self._error_rates[component].append(minute_key)
+        logger.debug(f"Tracked error rate for {component} at {minute_key}")
+
+    def _get_current_error_rate(self) -> float:
+        """Get current error rate per minute across all components."""
+        current_minute = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+        error_count = 0
+        for component_errors in self._error_rates.values():
+            error_count += sum(1 for minute in component_errors if minute == current_minute)
+        return float(error_count)
+
+    def _get_component_status(self, health_score: float, consecutive_failures: int) -> str:
+        """Determine component status from metrics."""
+        if consecutive_failures >= self.alert_thresholds["consecutive_failures"]:
+            return "critical"
+        elif health_score < 0.5:
+            return "degraded"
+        elif health_score < 0.8:
+            return "warning"
+        else:
+            return "healthy"
 
     def record_success(self, component: str, response_time: float | None = None) -> None:
         """Record successful operation for component health tracking."""
