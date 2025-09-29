@@ -17,7 +17,6 @@ import os
 import sys
 import tempfile
 from pathlib import Path
-from typing import Dict
 
 import pytest
 
@@ -172,7 +171,7 @@ security:
 
         return insecure_env_vars
 
-    def cleanup_environment(self, env_vars: Dict[str, str]):
+    def cleanup_environment(self, env_vars: dict[str, str]):
         """Clean up environment variables"""
         for key in env_vars.keys():
             if key in os.environ:

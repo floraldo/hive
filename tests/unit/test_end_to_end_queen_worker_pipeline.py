@@ -21,7 +21,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -31,9 +31,9 @@ class TaskTestResult:
     task_id: int
     success: bool
     duration: float
-    worker_id: Optional[str] = None
-    error_message: Optional[str] = None
-    result_data: Optional[Dict] = None
+    worker_id: str | None = None
+    error_message: str | None = None
+    result_data: dict | None = None
 
 
 class QueenWorkerPipelineTest:
@@ -44,7 +44,7 @@ class QueenWorkerPipelineTest:
         self.test_db_path = None
         self.queen_process = None
         self.worker_processes = []
-        self.test_results: List[TaskTestResult] = []
+        self.test_results: list[TaskTestResult] = []
 
     def setup_test_environment(self):
         """Set up test environment with database and mock processes"""
@@ -194,8 +194,8 @@ class QueenWorkerPipelineTest:
             for i in range(num_tasks):
                 task_id = self._create_test_task(
                     {
-                        "title": f"Concurrent Test Task {i+1}",
-                        "description": f"Concurrent processing test task {i+1}",
+                        "title": f"Concurrent Test Task {i + 1}",
+                        "description": f"Concurrent processing test task {i + 1}",
                         "priority": 60,
                         "context": json.dumps({"test_type": "concurrent", "task_number": i + 1}),
                     }
@@ -477,7 +477,7 @@ class QueenWorkerPipelineTest:
         conn.commit()
         conn.close()
 
-    def _create_test_task(self, task_data: Dict[str, Any]) -> int:
+    def _create_test_task(self, task_data: dict[str, Any]) -> int:
         """Create a test task in the database"""
         conn = sqlite3.connect(self.test_db_path)
 
@@ -772,7 +772,7 @@ if __name__ == "__main__":
 
         return row and row[0] == "completed"
 
-    def _get_task_status(self, task_id: int) -> Optional[str]:
+    def _get_task_status(self, task_id: int) -> str | None:
         """Get current task status"""
         conn = sqlite3.connect(self.test_db_path)
         cursor = conn.execute("SELECT status FROM tasks WHERE id = ?", (task_id,))
@@ -781,7 +781,7 @@ if __name__ == "__main__":
 
         return row[0] if row else None
 
-    def _get_task_result(self, task_id: int) -> Optional[Dict]:
+    def _get_task_result(self, task_id: int) -> dict | None:
         """Get task result data"""
         conn = sqlite3.connect(self.test_db_path)
         cursor = conn.execute("SELECT result FROM tasks WHERE id = ?", (task_id,))
@@ -798,7 +798,7 @@ if __name__ == "__main__":
 
     def _generate_pipeline_test_report(self, all_passed: bool):
         """Generate pipeline test report"""
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("📊 QUEEN → WORKER PIPELINE TEST REPORT")
         print("=" * 70)
 
@@ -835,7 +835,7 @@ if __name__ == "__main__":
             success_rate = (completed_tasks / total_tasks) * 100
             print(f"   Success Rate: {success_rate:.1f}%")
 
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         if all_passed:
             print("🎉 QUEEN → WORKER PIPELINE VALIDATION COMPLETE!")
             print("✅ All pipeline components working correctly")

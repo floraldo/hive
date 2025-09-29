@@ -10,20 +10,18 @@ Goal: Achieve at least 80% renewable energy fraction
 """
 
 import json
-import os
 import sys
-import tempfile
 import time
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 # Proper imports using Poetry workspace
 from ecosystemiser.datavis.plot_factory import PlotFactory
-from ecosystemiser.reporting.app import create_app
 from ecosystemiser.reporting.generator import HTMLReportGenerator
 from ecosystemiser.services.study_service import StudyService
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -39,7 +37,7 @@ class MicrogridDemoRunner:
         self.results_dir = Path("results")
         self.results_dir.mkdir(exist_ok=True)
 
-    def create_design_problem(self) -> Dict[str, Any]:
+    def create_design_problem(self) -> dict[str, Any]:
         """
         Step 1: Define the Berlin microgrid design problem.
         """
@@ -47,12 +45,12 @@ class MicrogridDemoRunner:
         logger.info("🏗️  STEP 1: DEFINING THE DESIGN PROBLEM")
         logger.info("=" * 70)
         logger.info(
-            """
+            """,
         Location: Berlin, Germany (52.52°N, 13.405°E)
         Objective: Design a residential microgrid that:
         - Minimizes total cost of ownership (TCO)
         - Maximizes renewable energy fraction (≥80%)
-        - Serves 50 households with typical German consumption patterns
+        - Serves 50 households with typical German consumption patterns,
         """
         )
 
@@ -123,7 +121,7 @@ class MicrogridDemoRunner:
         logger.info("\n✅ Design problem configured successfully")
         return config
 
-    def run_ga_optimization(self, config: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+    def run_ga_optimization(self, config: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """
         Step 2: Run Genetic Algorithm optimization to find Pareto-optimal designs.
         """
@@ -131,9 +129,9 @@ class MicrogridDemoRunner:
         logger.info("🧬  STEP 2: RUNNING GENETIC ALGORITHM OPTIMIZATION")
         logger.info("=" * 70)
         logger.info(
-            """
+            """,
         Using NSGA-II (Non-dominated Sorting Genetic Algorithm II)
-        Population: 50 | Generations: 100
+        Population: 50 | Generations: 100,
         This will explore the trade-off between cost and renewable fraction...
         """
         )
@@ -194,13 +192,13 @@ class MicrogridDemoRunner:
         with open(results_file, "w") as f:
             json.dump(results, f, indent=2)
 
-        logger.info(f"\n✅ Optimization completed!")
+        logger.info("\n✅ Optimization completed!")
         logger.info(f"   Found {len(results['best_result']['pareto_front'])} Pareto-optimal solutions")
         logger.info(f"   Results saved to: {results_file}")
 
         return study_id, results
 
-    def extract_best_design(self, ga_results: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_best_design(self, ga_results: dict[str, Any]) -> dict[str, Any]:
         """
         Step 3: Extract the best balanced design from the Pareto front.
         """
@@ -218,8 +216,8 @@ class MicrogridDemoRunner:
 
         for solution in pareto_front:
             logger.info(
-                f"{solution['id']:3d} | {solution['solar_capacity_kw']:6.0f} | "
-                f"{solution['battery_capacity_kwh']:7.0f} | {solution['wind_turbines']:4d} | "
+                f"{solution['id']:3d} | {solution['solar_capacity_kw']:6.0f} | ",
+                f"{solution['battery_capacity_kwh']:7.0f} | {solution['wind_turbines']:4d} | ",
                 f"{solution['tco_million_eur']:7.1f} | {solution['renewable_fraction']*100:8.1f}%"
             )
 
@@ -235,7 +233,7 @@ class MicrogridDemoRunner:
 
         return best_design
 
-    def run_uncertainty_analysis(self, design: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+    def run_uncertainty_analysis(self, design: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """
         Step 4: Run Monte Carlo uncertainty analysis on the selected design.
         """
@@ -243,7 +241,7 @@ class MicrogridDemoRunner:
         logger.info("🎲  STEP 4: RUNNING MONTE CARLO UNCERTAINTY ANALYSIS")
         logger.info("=" * 70)
         logger.info(
-            """
+            """,
         Analyzing financial risk under uncertainty:
         - Electricity price volatility: ±20%
         - Solar/battery cost uncertainty: ±15%
@@ -301,16 +299,16 @@ class MicrogridDemoRunner:
         with open(results_file, "w") as f:
             json.dump(results, f, indent=2)
 
-        logger.info(f"\n✅ Uncertainty analysis completed!")
+        logger.info("\n✅ Uncertainty analysis completed!")
         logger.info(
-            f"   TCO Range (95% CI): €{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['lower']:.1f}M - "
+            f"   TCO Range (95% CI): €{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['lower']:.1f}M - ",
             f"€{results['best_result']['uncertainty_analysis']['confidence_intervals']['95%']['upper']:.1f}M"
         )
         logger.info(f"   Results saved to: {results_file}")
 
         return study_id, results
 
-    def generate_reports(self, ga_study_id -> None: str, mc_study_id: str):
+    def generate_reports(self, ga_study_id: str, mc_study_id: str) -> None:
         """
         Step 5: Generate interactive HTML reports for both studies.
         """
@@ -327,7 +325,7 @@ class MicrogridDemoRunner:
 
         try:
             # Load GA results and generate HTML report
-            with open(ga_results_file, "r") as f:
+            with open(ga_results_file) as f:
                 ga_data = json.load(f)
 
             html_content = self.report_generator.generate_standalone_report(
@@ -352,7 +350,7 @@ class MicrogridDemoRunner:
 
         try:
             # Load MC results and generate HTML report
-            with open(mc_results_file, "r") as f:
+            with open(mc_results_file) as f:
                 mc_data = json.load(f)
 
             html_content = self.report_generator.generate_standalone_report(
@@ -374,9 +372,9 @@ class MicrogridDemoRunner:
 
     def print_summary(
         self,
-        ga_results: Dict[str, Any],
-        mc_results: Dict[str, Any],
-        reports: List[Path],
+        ga_results: dict[str, Any],
+        mc_results: dict[str, Any],
+        reports: list[Path],
     ):
         """
         Print final summary and recommendations.
@@ -386,27 +384,27 @@ class MicrogridDemoRunner:
         logger.info("=" * 70)
 
         logger.info(
-            """
-        📋 EXECUTIVE SUMMARY
+            """,
+        📋 EXECUTIVE SUMMARY,
         ────────────────────
 
-        The EcoSystemiser platform successfully designed and analyzed a residential
+        The EcoSystemiser platform successfully designed and analyzed a residential,
         microgrid for Berlin with the following characteristics:
 
         ✅ OPTIMAL DESIGN FOUND:
-           • 380 kW solar PV capacity
-           • 550 kWh battery storage
-           • 2 × 10kW wind turbines
+           • 380 kW solar PV capacity,
+           • 550 kWh battery storage,
+           • 2 × 10kW wind turbines,
            • 88% renewable energy fraction (exceeds 80% requirement)
 
         💰 FINANCIAL ANALYSIS:
-           • Expected TCO: €2.4M over 20 years
-           • 95% Confidence Range: €1.95M - €2.95M
+           • Expected TCO: €2.4M over 20 years,
+           • 95% Confidence Range: €1.95M - €2.95M,
            • Primary risk factor: Electricity price volatility (65% sensitivity)
 
         🎯 RECOMMENDATIONS:
-           1. The design achieves an excellent balance between cost and sustainability
-           2. Consider hedging strategies for electricity price risk
+           1. The design achieves an excellent balance between cost and sustainability,
+           2. Consider hedging strategies for electricity price risk,
            3. Monitor battery technology improvements for potential future upgrades
 
         📊 INTERACTIVE REPORTS:
@@ -421,13 +419,13 @@ class MicrogridDemoRunner:
             """
 
         🚀 NEXT STEPS:
-           1. Share reports with stakeholders for feedback
-           2. Run sensitivity analysis on specific parameters of interest
+           1. Share reports with stakeholders for feedback,
+           2. Run sensitivity analysis on specific parameters of interest,
            3. Compare with alternative technologies (e.g., hydrogen storage)
            4. Prepare detailed implementation roadmap
 
         Thank you for using EcoSystemiser v3.0!
-        For questions or support: support@ecosystemiser.com
+        For questions or support: support@ecosystemiser.com,
         """
         )
 

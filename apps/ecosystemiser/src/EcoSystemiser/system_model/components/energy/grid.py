@@ -3,11 +3,12 @@
 from typing import Any
 
 import cvxpy as cp
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, TransmissionTechnicalParams
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -170,7 +171,7 @@ class GridOptimizationStandard(GridOptimizationSimple):
         # STANDARD: Acknowledge grid losses (actual implementation would be in energy balance)
         grid_losses = getattr(comp.technical, "grid_losses", None)
         if grid_losses and grid_losses > 0 and comp.P_draw is not None:
-            logger.debug(f"STANDARD: Grid losses of {grid_losses*100:.1f}% acknowledged")
+            logger.debug(f"STANDARD: Grid losses of {grid_losses * 100:.1f}% acknowledged")
             # Note: Actual loss implementation would be in system-level energy balance
             # Could add: constraints.append(comp.P_draw_effective == comp.P_draw * (1 - grid_losses))
 

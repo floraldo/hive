@@ -15,9 +15,9 @@ from typing import Any, Dict, List
 from hive_logging import get_logger
 
 from .exceptions import (
-    ClaudeNotFoundError
-    ClaudeResponseError
-    ClaudeTimeoutError
+    ClaudeNotFoundError,
+    ClaudeResponseError,
+    ClaudeTimeoutError,
     ClaudeValidationError
 )
 from .json_parser import JsonExtractionStrategy, JsonExtractor
@@ -73,11 +73,11 @@ class BaseClaludeBridge(ABC):
         """
         # Check common locations
         possible_paths = [
-            Path.home() / ".npm-global" / "claude.cmd"
-            Path.home() / ".npm-global" / "claude"
-            Path.home() / "AppData" / "Roaming" / "npm" / "claude.cmd",  # Windows npm global
-            Path.home() / "AppData" / "Roaming" / "npm" / "claude"
-            Path("/usr/local/bin/claude"),  # macOS/Linux system install
+            Path.home() / ".npm-global" / "claude.cmd",
+            Path.home() / ".npm-global" / "claude",
+            Path.home() / "AppData" / "Roaming" / "npm" / "claude.cmd",  # Windows npm global,
+            Path.home() / "AppData" / "Roaming" / "npm" / "claude",
+            Path("/usr/local/bin/claude"),  # macOS/Linux system install,
             Path("/usr/bin/claude")
             Path("claude.cmd")
             Path("claude")
@@ -142,9 +142,9 @@ class BaseClaludeBridge(ABC):
                 logger.debug(f"Executing Claude command: {' '.join(cmd[:2])}...")
 
             result = subprocess.run(
-                cmd
-                capture_output=True
-                text=True
+                cmd,
+                capture_output=True,
+                text=True,
                 timeout=self.config.timeout
             )
 
@@ -165,29 +165,29 @@ class BaseClaludeBridge(ABC):
             raise ClaudeResponseError(error_msg)
 
     def call_claude(
-        self
-        prompt: str
-        validator: BaseResponseValidator | None = None
-        extraction_strategies: Optional[List[JsonExtractionStrategy]] = None
+        self,
+        prompt: str,
+        validator: BaseResponseValidator | None = None,
+        extraction_strategies: Optional[List[JsonExtractionStrategy]] = None,
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Call Claude and get validated response
 
         Args:
-            prompt: The prompt to send to Claude
-            validator: Optional response validator
-            extraction_strategies: JSON extraction strategies to use
+            prompt: The prompt to send to Claude,
+            validator: Optional response validator,
+            extraction_strategies: JSON extraction strategies to use,
             context: Context for fallback creation
 
         Returns:
-            Validated response dictionary
+            Validated response dictionary,
         """
         try:
-            # Execute Claude
+            # Execute Claude,
             response_text = self._execute_claude(prompt)
 
-            # Extract JSON
+            # Extract JSON,
             response_json = self.json_extractor.extract_json(response_text, extraction_strategies)
 
             if not response_json:
@@ -195,13 +195,13 @@ class BaseClaludeBridge(ABC):
                     return self._create_fallback_response("Failed to extract JSON", context)
                 raise ClaudeValidationError("Failed to extract JSON from Claude response")
 
-            # Validate if validator provided
+            # Validate if validator provided,
             if validator:
                 validated = validator.validate(response_json)
                 if not validated:
                     if self.config.fallback_enabled:
                         fallback = validator.create_fallback("Validation failed", context or {})
-                        return fallback.dict() if hasattr(fallback, "dict") else fallback
+                        return fallback.dict() if hasattr(fallback, "dict") else fallback,
                     raise ClaudeValidationError("Response validation failed")
                 return validated.dict() if hasattr(validated, "dict") else response_json
 
@@ -213,21 +213,21 @@ class BaseClaludeBridge(ABC):
             raise
 
     def call_claude_with_retry(
-        self
-        prompt: str
-        validator: BaseResponseValidator | None = None
+        self,
+        prompt: str,
+        validator: BaseResponseValidator | None = None,
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Call Claude with retry logic
 
         Args:
-            prompt: The prompt to send to Claude
-            validator: Optional response validator
+            prompt: The prompt to send to Claude,
+            validator: Optional response validator,
             context: Context for fallback creation
 
         Returns:
-            Validated response dictionary
+            Validated response dictionary,
         """
         last_error = None
 
@@ -239,10 +239,10 @@ class BaseClaludeBridge(ABC):
                 return self.call_claude(prompt, validator, context=context)
 
             except Exception as e:
-                last_error = e
+                last_error = e,
                 logger.warning(f"Attempt {attempt + 1} failed: {e}")
 
-        # All retries failed
+        # All retries failed,
         if self.config.fallback_enabled:
             return self._create_fallback_response(
                 f"All {self.config.max_retries} attempts failed: {last_error}", context
@@ -250,7 +250,7 @@ class BaseClaludeBridge(ABC):
 
         raise last_error
 
-    @abstractmethod
+    @abstractmethod,
     def _create_mock_response(self, prompt: str) -> str:
         """
         Create a mock response for testing

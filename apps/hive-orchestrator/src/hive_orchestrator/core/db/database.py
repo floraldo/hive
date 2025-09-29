@@ -24,8 +24,8 @@ from pathlib import Path
 from typing import Any, Dict, ListTuple
 
 from hive_db import (
-    create_table_if_not_exists
-    get_sqlite_connection
+    create_table_if_not_exists,
+    get_sqlite_connection,
     sqlite_transaction
 )
 from hive_logging import get_logger
@@ -41,13 +41,13 @@ from .connection_pool import close_pool, get_pooled_connection
 # Import async functionality for Phase 4.1
 try:
     from .async_compat import (
-        async_database_enabled
-        get_sync_async_connection
+        async_database_enabled,
+        get_sync_async_connection,
         sync_wrapper
     )
     from .async_connection_pool import (
-        close_async_pool
-        get_async_connection
+        close_async_pool,
+        get_async_connection,
         get_async_pool_stats
     )
 
@@ -142,22 +142,22 @@ def init_db() -> None:
     with transaction() as conn:
         # Tasks table - Task definitions (what needs to be done)
         conn.execute(
-            """
+            """,
             CREATE TABLE IF NOT EXISTS tasks (
-                id TEXT PRIMARY KEY
-                title TEXT NOT NULL
-                description TEXT
-                task_type TEXT NOT NULL
-                priority INTEGER DEFAULT 1
-                status TEXT NOT NULL DEFAULT 'queued'
-                current_phase TEXT NOT NULL DEFAULT 'start',  -- Current state in workflow
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                description TEXT,
+                task_type TEXT NOT NULL,
+                priority INTEGER DEFAULT 1,
+                status TEXT NOT NULL DEFAULT 'queued',
+                current_phase TEXT NOT NULL DEFAULT 'start',  -- Current state in workflow,
                 workflow TEXT,  -- JSON workflow definition (state machine)
-                payload TEXT,  -- JSON data for the task
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                assigned_worker TEXT
-                due_date TIMESTAMP
-                max_retries INTEGER DEFAULT 3
+                payload TEXT,  -- JSON data for the task,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                assigned_worker TEXT,
+                due_date TIMESTAMP,
+                max_retries INTEGER DEFAULT 3,
                 tags TEXT  -- JSON array of tags
             )
         """
@@ -165,21 +165,21 @@ def init_db() -> None:
 
         # Runs table - Execution attempts (attempts to execute a task)
         conn.execute(
-            """
+            """,
             CREATE TABLE IF NOT EXISTS runs (
-                id TEXT PRIMARY KEY
-                task_id TEXT NOT NULL
-                worker_id TEXT NOT NULL
-                run_number INTEGER NOT NULL
-                status TEXT NOT NULL DEFAULT 'pending'
-                phase TEXT,  -- current execution phase
-                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                completed_at TIMESTAMP
-                result_data TEXT,  -- JSON result data
-                error_message TEXT
-                output_log TEXT,  -- execution logs
-                transcript TEXT,  -- full Claude conversation transcript
-                FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE
+                id TEXT PRIMARY KEY,
+                task_id TEXT NOT NULL,
+                worker_id TEXT NOT NULL,
+                run_number INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                phase TEXT,  -- current execution phase,
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP,
+                result_data TEXT,  -- JSON result data,
+                error_message TEXT,
+                output_log TEXT,  -- execution logs,
+                transcript TEXT,  -- full Claude conversation transcript,
+                FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE,
                 FOREIGN KEY (worker_id) REFERENCES workers (id)
                 UNIQUE(task_id, run_number)
             )
@@ -188,16 +188,16 @@ def init_db() -> None:
 
         # Workers table - Worker registration and heartbeat
         conn.execute(
-            """
+            """,
             CREATE TABLE IF NOT EXISTS workers (
-                id TEXT PRIMARY KEY
+                id TEXT PRIMARY KEY,
                 role TEXT NOT NULL,  -- backend, frontend, infra, etc.
-                status TEXT NOT NULL DEFAULT 'active'
-                last_heartbeat TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                capabilities TEXT,  -- JSON array of capabilities
-                current_task_id TEXT,  -- currently executing task
-                metadata TEXT,  -- JSON worker metadata
-                registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                status TEXT NOT NULL DEFAULT 'active',
+                last_heartbeat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                capabilities TEXT,  -- JSON array of capabilities,
+                current_task_id TEXT,  -- currently executing task,
+                metadata TEXT,  -- JSON worker metadata,
+                registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (current_task_id) REFERENCES tasks (id)
             )
         """
@@ -207,18 +207,18 @@ def init_db() -> None:
 
         # Planning queue - incoming requests for intelligent planning
         conn.execute(
-            """
+            """,
             CREATE TABLE IF NOT EXISTS planning_queue (
-                id TEXT PRIMARY KEY
-                task_description TEXT NOT NULL
-                priority INTEGER DEFAULT 50
-                requestor TEXT
-                context_data TEXT,  -- JSON context and requirements
-                status TEXT DEFAULT 'pending'
-                complexity_estimate TEXT,  -- simple|medium|complex
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                assigned_at TIMESTAMP NULL
-                completed_at TIMESTAMP NULL
+                id TEXT PRIMARY KEY,
+                task_description TEXT NOT NULL,
+                priority INTEGER DEFAULT 50,
+                requestor TEXT,
+                context_data TEXT,  -- JSON context and requirements,
+                status TEXT DEFAULT 'pending',
+                complexity_estimate TEXT,  -- simple|medium|complex,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                assigned_at TIMESTAMP NULL,
+                completed_at TIMESTAMP NULL,
                 assigned_agent TEXT  -- which ai-planner instance is handling this
             )
         """
@@ -226,18 +226,18 @@ def init_db() -> None:
 
         # Generated execution plans - AI-generated plans for complex tasks
         conn.execute(
-            """
+            """,
             CREATE TABLE IF NOT EXISTS execution_plans (
-                id TEXT PRIMARY KEY
-                planning_task_id TEXT NOT NULL
-                plan_data TEXT NOT NULL,  -- JSON plan structure with subtasks and dependencies
-                estimated_duration INTEGER,  -- estimated minutes to complete
-                estimated_complexity TEXT DEFAULT 'medium'
-                generated_workflow TEXT,  -- Generated Hive workflow JSON
-                subtask_count INTEGER DEFAULT 0
-                dependency_count INTEGER DEFAULT 0
-                generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                status TEXT DEFAULT 'draft',  -- draft|approved|executing|completed|failed
+                id TEXT PRIMARY KEY,
+                planning_task_id TEXT NOT NULL,
+                plan_data TEXT NOT NULL,  -- JSON plan structure with subtasks and dependencies,
+                estimated_duration INTEGER,  -- estimated minutes to complete,
+                estimated_complexity TEXT DEFAULT 'medium',
+                generated_workflow TEXT,  -- Generated Hive workflow JSON,
+                subtask_count INTEGER DEFAULT 0,
+                dependency_count INTEGER DEFAULT 0,
+                generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status TEXT DEFAULT 'draft',  -- draft|approved|executing|completed|failed,
                 FOREIGN KEY (planning_task_id) REFERENCES planning_queue (id) ON DELETE CASCADE
             )
         """
@@ -245,20 +245,20 @@ def init_db() -> None:
 
         # Plan execution monitoring - track progress of plan execution
         conn.execute(
-            """
+            """,
             CREATE TABLE IF NOT EXISTS plan_execution (
-                id TEXT PRIMARY KEY
-                plan_id TEXT NOT NULL
-                current_phase TEXT
-                progress_percent INTEGER DEFAULT 0
-                active_subtasks TEXT,  -- JSON array of currently executing subtasks
-                completed_subtasks TEXT,  -- JSON array of completed subtasks
-                failed_subtasks TEXT,  -- JSON array of failed subtasks
-                blocked_subtasks TEXT,  -- JSON array of blocked subtasks
-                execution_notes TEXT,  -- JSON array of execution notes and adjustments
-                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                completed_at TIMESTAMP NULL
+                id TEXT PRIMARY KEY,
+                plan_id TEXT NOT NULL,
+                current_phase TEXT,
+                progress_percent INTEGER DEFAULT 0,
+                active_subtasks TEXT,  -- JSON array of currently executing subtasks,
+                completed_subtasks TEXT,  -- JSON array of completed subtasks,
+                failed_subtasks TEXT,  -- JSON array of failed subtasks,
+                blocked_subtasks TEXT,  -- JSON array of blocked subtasks,
+                execution_notes TEXT,  -- JSON array of execution notes and adjustments,
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP NULL,
                 FOREIGN KEY (plan_id) REFERENCES execution_plans (id) ON DELETE CASCADE
             )
         """
@@ -288,51 +288,51 @@ def init_db() -> None:
 
 
 def create_task(
-    title: str
-    task_type: str
-    description: str = ""
-    workflow: Optional[Dict[str, Any]] = None
-    payload: Optional[Dict[str, Any]] = None
-    priority: int = 1
-    max_retries: int = 3
-    tags: Optional[List[str]] = None
+    title: str,
+    task_type: str,
+    description: str = "",
+    workflow: Optional[Dict[str, Any]] = None,
+    payload: Optional[Dict[str, Any]] = None,
+    priority: int = 1,
+    max_retries: int = 3,
+    tags: Optional[List[str]] = None,
     current_phase: str = "start"
 ) -> str:
     """
     Create a new task with optional workflow definition.
 
     Args:
-        title: Human-readable task title
+        title: Human-readable task title,
         task_type: Type of task (determines which worker can handle it)
-        description: Detailed task description
+        description: Detailed task description,
         workflow: Workflow definition (state machine as JSON)
         payload: Task-specific data (JSON serializable)
         priority: Task priority (higher numbers = higher priority)
-        max_retries: Maximum retry attempts
-        tags: List of tags for categorization
+        max_retries: Maximum retry attempts,
+        tags: List of tags for categorization,
         current_phase: Initial phase of the task (default: "start")
 
     Returns:
-        Task ID
+        Task ID,
     """
     task_id = str(uuid.uuid4())
 
     with transaction() as conn:
         conn.execute(
-            """
+            """,
             INSERT INTO tasks (id, title, description, task_type, priority, current_phase, workflow, payload, max_retries, tags)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """
+        """,
             (
-                task_id
-                title
-                description
-                task_type
-                priority
-                current_phase
-                json.dumps(workflow) if workflow else None
-                json.dumps(payload) if payload else None
-                max_retries
+                task_id,
+                title,
+                description,
+                task_type,
+                priority,
+                current_phase,
+                json.dumps(workflow) if workflow else None,
+                json.dumps(payload) if payload else None,
+                max_retries,
                 json.dumps(tags) if tags else None
             )
         )
@@ -371,22 +371,22 @@ def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> List[Dict
     with get_connection() as conn:
         if task_type:
             cursor = conn.execute(
-                """
-                SELECT * FROM tasks
-                WHERE status = 'queued' AND task_type = ?
-                ORDER BY priority DESC, created_at ASC
+                """,
+                SELECT * FROM tasks,
+                WHERE status = 'queued' AND task_type = ?,
+                ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
-            """
+            """,
                 (task_type, limit)
             )
         else:
             cursor = conn.execute(
-                """
-                SELECT * FROM tasks
-                WHERE status = 'queued'
-                ORDER BY priority DESC, created_at ASC
+                """,
+                SELECT * FROM tasks,
+                WHERE status = 'queued',
+                ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
-            """
+            """,
                 (limit,)
             )
 
@@ -412,13 +412,13 @@ def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, A
         if metadata:
             for key, value in metadata.items():
                 if key in [
-                    "assignee"
-                    "assigned_at"
-                    "current_phase"
-                    "started_at"
-                    "failure_reason"
-                    "retry_count"
-                    "worktree"
+                    "assignee",
+                    "assigned_at",
+                    "current_phase",
+                    "started_at",
+                    "failure_reason",
+                    "retry_count",
+                    "worktree",
                     "workspace_type"
                 ]:
                     fields.append(f"{key} = ?")
@@ -432,15 +432,15 @@ def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, A
 
         # Add missing columns if needed
         required_columns = {
-            "assignee": "TEXT"
-            "assigned_at": "TEXT"
-            "current_phase": "TEXT DEFAULT 'start'"
-            "workflow": "TEXT",  # JSON workflow definition
-            "started_at": "TEXT"
-            "failure_reason": "TEXT"
-            "retry_count": "INTEGER DEFAULT 0"
-            "worktree": "TEXT"
-            "workspace_type": "TEXT"
+            "assignee": "TEXT",
+            "assigned_at": "TEXT",
+            "current_phase": "TEXT DEFAULT 'start'",
+            "workflow": "TEXT",  # JSON workflow definition,
+            "started_at": "TEXT",
+            "failure_reason": "TEXT",
+            "retry_count": "INTEGER DEFAULT 0",
+            "worktree": "TEXT",
+            "workspace_type": "TEXT",
             "depends_on": "TEXT",  # JSON array of dependency task IDs
         }
 
@@ -458,11 +458,11 @@ def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, A
                     pass
 
         cursor = conn.execute(
-            f"""
-            UPDATE tasks
+            f""",
+            UPDATE tasks,
             SET {', '.join(fields)}
-            WHERE id = ?
-        """
+            WHERE id = ?,
+        """,
             values
         )
 
@@ -493,16 +493,16 @@ def create_run(task_id: str, worker_id: str, phase: str = "init") -> str:
     with transaction() as conn:
         # Get the next run number for this task
         cursor = conn.execute(
-            "SELECT COALESCE(MAX(run_number), 0) + 1 FROM runs WHERE task_id = ?"
+            "SELECT COALESCE(MAX(run_number), 0) + 1 FROM runs WHERE task_id = ?",
             (task_id,)
         )
         run_number = cursor.fetchone()[0]
 
         conn.execute(
-            """
+            """,
             INSERT INTO runs (id, task_id, worker_id, run_number, phase, status)
             VALUES (?, ?, ?, ?, ?, 'running')
-        """
+        """,
             (run_id, task_id, worker_id, run_number, phase)
         )
 
@@ -511,12 +511,12 @@ def create_run(task_id: str, worker_id: str, phase: str = "init") -> str:
 
 
 def update_run_status(
-    run_id: str
-    status: str
-    phase: str | None = None
-    result_data: Optional[Dict[str, Any]] = None
-    error_message: str | None = None
-    output_log: str | None = None
+    run_id: str,
+    status: str,
+    phase: str | None = None,
+    result_data: Optional[Dict[str, Any]] = None,
+    error_message: str | None = None,
+    output_log: str | None = None,
     transcript: str | None = None
 ) -> bool:
     """Update run status and execution details."""
@@ -550,15 +550,15 @@ def update_run_status(
         values.append(run_id)
 
         cursor = conn.execute(
-            f"""
-            UPDATE runs
+            f""",
+            UPDATE runs,
             SET {', '.join(fields)}
-            WHERE id = ?
-        """
+            WHERE id = ?,
+        """,
             values
         )
 
-        success = cursor.rowcount > 0
+        success = cursor.rowcount > 0,
         if success:
             logger.info(f"Run {run_id} status updated to {status}")
 
@@ -579,7 +579,7 @@ def get_run(run_id: str) -> Optional[Dict[str, Any]]:
             # Queen looks for run_data.get("result", {}).get("status", "failed")
             run["result"] = {
                 "status": run.get("status", "failed")
-                "data": result_data
+                "data": result_data,
                 "error_message": run.get("error_message")
                 "output_log": run.get("output_log")
             }
@@ -592,11 +592,11 @@ def get_task_runs(task_id: str) -> List[Dict[str, Any]]:
     """Get all runs for a task, ordered by run number."""
     with get_connection() as conn:
         cursor = conn.execute(
-            """
-            SELECT * FROM runs
-            WHERE task_id = ?
-            ORDER BY run_number ASC
-        """
+            """,
+            SELECT * FROM runs,
+            WHERE task_id = ?,
+            ORDER BY run_number ASC,
+        """,
             (task_id,)
         )
 
@@ -621,11 +621,11 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
     """
     with get_connection() as conn:
         cursor = conn.execute(
-            """
-            SELECT * FROM tasks
-            WHERE status = ?
-            ORDER BY created_at ASC
-        """
+            """,
+            SELECT * FROM tasks,
+            WHERE status = ?,
+            ORDER BY created_at ASC,
+        """,
             (status,)
         )
 
@@ -644,22 +644,22 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
 
 
 def register_worker(
-    worker_id: str
-    role: str
-    capabilities: Optional[List[str]] = None
+    worker_id: str,
+    role: str,
+    capabilities: Optional[List[str]] = None,
     metadata: Optional[Dict[str, Any]] = None
 ) -> bool:
     """Register a new worker or update existing worker registration."""
     with transaction() as conn:
         conn.execute(
-            """
+            """,
             INSERT OR REPLACE INTO workers (id, role, capabilities, metadata, last_heartbeat)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """
+        """,
             (
-                worker_id
-                role
-                json.dumps(capabilities) if capabilities else None
+                worker_id,
+                role,
+                json.dumps(capabilities) if capabilities else None,
                 json.dumps(metadata) if metadata else None
             )
         )
@@ -673,20 +673,20 @@ def update_worker_heartbeat(worker_id: str, status: str | None = None) -> bool:
     with transaction() as conn:
         if status:
             cursor = conn.execute(
-                """
-                UPDATE workers
-                SET last_heartbeat = CURRENT_TIMESTAMP, status = ?
-                WHERE id = ?
-            """
+                """,
+                UPDATE workers,
+                SET last_heartbeat = CURRENT_TIMESTAMP, status = ?,
+                WHERE id = ?,
+            """,
                 (status, worker_id)
             )
         else:
             cursor = conn.execute(
-                """
-                UPDATE workers
-                SET last_heartbeat = CURRENT_TIMESTAMP
-                WHERE id = ?
-            """
+                """,
+                UPDATE workers,
+                SET last_heartbeat = CURRENT_TIMESTAMP,
+                WHERE id = ?,
+            """,
                 (worker_id,)
             )
 
@@ -698,19 +698,19 @@ def get_active_workers(role: str | None = None) -> List[Dict[str, Any]]:
     with get_connection() as conn:
         if role:
             cursor = conn.execute(
-                """
-                SELECT * FROM workers
-                WHERE role = ? AND status = 'active'
-                ORDER BY last_heartbeat DESC
-            """
+                """,
+                SELECT * FROM workers,
+                WHERE role = ? AND status = 'active',
+                ORDER BY last_heartbeat DESC,
+            """,
                 (role,)
             )
         else:
             cursor = conn.execute(
-                """
-                SELECT * FROM workers
-                WHERE status = 'active'
-                ORDER BY last_heartbeat DESC
+                """,
+                SELECT * FROM workers,
+                WHERE status = 'active',
+                ORDER BY last_heartbeat DESC,
             """
             )
 
@@ -725,10 +725,10 @@ def get_active_workers(role: str | None = None) -> List[Dict[str, Any]]:
 
 
 def log_run_result(
-    run_id: str
-    status: str
+    run_id: str,
+    status: str,
     result_data: Dict[str, Any]
-    error_message: str | None = None
+    error_message: str | None = None,
     transcript: str | None = None
 ) -> bool:
     """
@@ -737,21 +737,21 @@ def log_run_result(
     This is a convenience wrapper around update_run_status for Worker result reporting.
 
     Args:
-        run_id: ID of the run to update
+        run_id: ID of the run to update,
         status: Final status ('success', 'failure', 'timeout', 'cancelled')
-        result_data: Dictionary containing execution results
-        error_message: Optional error message if status is failure
+        result_data: Dictionary containing execution results,
+        error_message: Optional error message if status is failure,
         transcript: Optional full transcript of Claude execution
 
     Returns:
-        True if the result was logged successfully, False otherwise
+        True if the result was logged successfully, False otherwise,
     """
     try:
         success = update_run_status(
-            run_id=run_id
-            status=status
-            result_data=result_data
-            error_message=error_message
+            run_id=run_id,
+            status=status,
+            result_data=result_data,
+            error_message=error_message,
             transcript=transcript
         )
 
@@ -780,7 +780,7 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
     try:
         with get_connection() as conn:
             cursor = conn.execute(
-                "SELECT * FROM tasks WHERE status = ? ORDER BY created_at ASC"
+                "SELECT * FROM tasks WHERE status = ? ORDER BY created_at ASC",
                 (status,)
             )
             rows = cursor.fetchall()
@@ -811,16 +811,16 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
 if ASYNC_AVAILABLE:
 
     async def create_task_async(
-        description: str
-        title: str = None
-        assignee: str = None
-        priority: int = None
-        tags: List[str] = None
-        context_data: Dict[str, Any] = None
-        depends_on: List[str] = None
-        workspace: str = "repo"
-        task_type: str = "user_request"
-        requestor: str = "unknown"
+        description: str,
+        title: str = None,
+        assignee: str = None,
+        priority: int = None,
+        tags: List[str] = None,
+        context_data: Dict[str, Any] = None,
+        depends_on: List[str] = None,
+        workspace: str = "repo",
+        task_type: str = "user_request",
+        requestor: str = "unknown",
         metadata: Dict[str, Any] = None
     ) -> str:
         """
@@ -853,31 +853,31 @@ if ASYNC_AVAILABLE:
 
         async with get_async_connection() as conn:
             await conn.execute(
-                """
+                """,
                 INSERT INTO tasks (
-                    id, title, description, assignee, priority, status, tags
+                    id, title, description, assignee, priority, status, tags,
                     payload, workspace_type, task_type, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
+            """,
                 (
-                    task_id
+                    task_id,
                     title or description[:50]
-                    description
-                    assignee
-                    priority
-                    TaskStatus.QUEUED.value
+                    description,
+                    assignee,
+                    priority,
+                    TaskStatus.QUEUED.value,
                     json.dumps(tags)
                     json.dumps(
                         {
-                            "context_data": context_data
-                            "depends_on": depends_on
-                            "metadata": metadata
+                            "context_data": context_data,
+                            "depends_on": depends_on,
+                            "metadata": metadata,
                             "requestor": requestor
                         }
                     )
-                    workspace
-                    task_type
-                    created_at
+                    workspace,
+                    task_type,
+                    created_at,
                     created_at
                 )
             )
@@ -921,22 +921,22 @@ if ASYNC_AVAILABLE:
         async with get_async_connection() as conn:
             if task_type:
                 cursor = await conn.execute(
-                    """
-                    SELECT * FROM tasks
-                    WHERE status = ? AND task_type = ?
-                    ORDER BY priority DESC, created_at ASC
+                    """,
+                    SELECT * FROM tasks,
+                    WHERE status = ? AND task_type = ?,
+                    ORDER BY priority DESC, created_at ASC,
                     LIMIT ?
-                """
+                """,
                     (TaskStatus.QUEUED.value, task_type, limit)
                 )
             else:
                 cursor = await conn.execute(
-                    """
-                    SELECT * FROM tasks
+                    """,
+                    SELECT * FROM tasks,
                     WHERE status = ?
-                    ORDER BY priority DESC, created_at ASC
+                    ORDER BY priority DESC, created_at ASC,
                     LIMIT ?
-                """
+                """,
                     (TaskStatus.QUEUED.value, limit)
                 )
 
@@ -987,20 +987,20 @@ if ASYNC_AVAILABLE:
                         merged_metadata = json.dumps(metadata)
 
                     await conn.execute(
-                        """
-                        UPDATE tasks
-                        SET status = ?, metadata = ?, updated_at = ?
-                        WHERE id = ?
-                    """
+                        """,
+                        UPDATE tasks,
+                        SET status = ?, metadata = ?, updated_at = ?,
+                        WHERE id = ?,
+                    """,
                         (status, merged_metadata, updated_at, task_id)
                     )
                 else:
                     await conn.execute(
-                        """
-                        UPDATE tasks
+                        """,
+                        UPDATE tasks,
                         SET status = ?, updated_at = ?
-                        WHERE id = ?
-                    """
+                        WHERE id = ?,
+                    """,
                         (status, updated_at, task_id)
                     )
 
@@ -1018,7 +1018,7 @@ if ASYNC_AVAILABLE:
         try:
             async with get_async_connection() as conn:
                 cursor = await conn.execute(
-                    "SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC"
+                    "SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC",
                     (status,)
                 )
                 rows = await cursor.fetchall()
@@ -1060,18 +1060,18 @@ if ASYNC_AVAILABLE:
 
         async with get_async_connection() as conn:
             await conn.execute(
-                """
+                """,
                 INSERT INTO runs (
                     id, task_id, worker_id, phase, status, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            """
+            """,
                 (
-                    run_id
-                    task_id
-                    worker_id
-                    phase
-                    RunStatus.PENDING.value
-                    created_at
+                    run_id,
+                    task_id,
+                    worker_id,
+                    phase,
+                    RunStatus.PENDING.value,
+                    created_at,
                     created_at
                 )
             )

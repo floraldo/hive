@@ -277,7 +277,7 @@ class ResultsIO:
                     data.append(
                         {
                             "timestep": t,
-                            "flow_name": flow_name
+                            "flow_name": flow_name,
                             "source": flow_info["source"],
                             "target": flow_info["target"]
                             "type": flow_info["type"],
@@ -326,7 +326,7 @@ class ResultsIO:
                     summary_data.append(
                         {
                             "category": "Flow",
-                            "name": flow_name
+                            "name": flow_name,
                             "source": flow_info["source"],
                             "target": flow_info["target"]
                             "mean": np.mean(values),
@@ -343,9 +343,9 @@ class ResultsIO:
                     summary_data.append(
                         {
                             "category": "Storage",
-                            "name": comp_name
+                            "name": comp_name,
                             "source": "-",
-                            "target": "-"
+                            "target": "-",
                             "mean": np.mean(levels),
                             "max": np.max(levels)
                             "total": "-"

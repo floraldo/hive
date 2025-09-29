@@ -20,7 +20,6 @@ import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
 
 
 class LogEntry:
@@ -37,9 +36,9 @@ class LogEntry:
 
 
 class LogIntelligenceAnalyzer:
-    def __init__(self, log_directories: List[Path] = None):
+    def __init__(self, log_directories: list[Path] = None):
         self.log_directories = log_directories or [Path("logs")]
-        self.log_entries: List[LogEntry] = []
+        self.log_entries: list[LogEntry] = []
         self.analysis_results = {
             "total_entries": 0,
             "error_count": 0,
@@ -84,7 +83,7 @@ class LogIntelligenceAnalyzer:
             (r"unauthorized.*api.*access", "Unauthorized API Access"),
         ]
 
-    def discover_log_files(self) -> List[Path]:
+    def discover_log_files(self) -> list[Path]:
         """Discover all log files in configured directories"""
         log_files = []
 
@@ -104,7 +103,7 @@ class LogIntelligenceAnalyzer:
 
         return log_files
 
-    def parse_log_line(self, line: str, source: str) -> Optional[LogEntry]:
+    def parse_log_line(self, line: str, source: str) -> LogEntry | None:
         """Parse a single log line into a LogEntry"""
         line = line.strip()
         if not line:
@@ -160,7 +159,7 @@ class LogIntelligenceAnalyzer:
         # If no pattern matches, treat as INFO level
         return LogEntry(datetime.now(), "INFO", line, source, line)
 
-    def read_log_file(self, log_file: Path, max_lines: int = 10000) -> List[LogEntry]:
+    def read_log_file(self, log_file: Path, max_lines: int = 10000) -> list[LogEntry]:
         """Read and parse a single log file"""
         entries = []
         lines_read = 0

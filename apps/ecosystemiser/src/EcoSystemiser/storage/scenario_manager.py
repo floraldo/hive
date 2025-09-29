@@ -45,7 +45,7 @@ class ScenarioManager:
             "profiles/climate",
             "profiles/demand",
             "profiles/generation",
-            "results"
+            "results",
             "cache/preprocessed_profiles",
             "cache/kpi_aggregations",
             "cache/visualization_data"
@@ -58,7 +58,7 @@ class ScenarioManager:
         """Ensure scenario management tables exist."""
         with get_ecosystemiser_connection() as conn:
             # Scenarios table,
-            conn.execute("""
+            conn.execute(""",
                 CREATE TABLE IF NOT EXISTS scenarios (
                     scenario_id TEXT PRIMARY KEY,
                     scenario_type TEXT NOT NULL,
@@ -70,7 +70,7 @@ class ScenarioManager:
             """)
 
             # Simulation runs table (extends base schema),
-            conn.execute("""
+            conn.execute(""",
                 CREATE TABLE IF NOT EXISTS simulation_runs_enhanced (
                     run_id TEXT PRIMARY KEY,
                     scenario_id TEXT NOT NULL,
@@ -87,7 +87,7 @@ class ScenarioManager:
             """)
 
             # KPI results table,
-            conn.execute("""
+            conn.execute(""",
                 CREATE TABLE IF NOT EXISTS kpi_results (
                     run_id TEXT,
                     kpi_name TEXT NOT NULL,
@@ -100,7 +100,7 @@ class ScenarioManager:
             """)
 
             # Profile files table,
-            conn.execute("""
+            conn.execute(""",
                 CREATE TABLE IF NOT EXISTS profile_files (
                     run_id TEXT,
                     profile_type TEXT NOT NULL,
@@ -136,8 +136,8 @@ class ScenarioManager:
         config_hash = hashlib.md5(json.dumps(config, sort_keys=True).encode()).hexdigest()
 
         with get_ecosystemiser_connection() as conn:
-            conn.execute("""
-                INSERT OR REPLACE INTO scenarios
+            conn.execute(""",
+                INSERT OR REPLACE INTO scenarios,
                 (scenario_id, scenario_type, scenario_name, config_hash, metadata)
                 VALUES (?, ?, ?, ?, ?)
             """ (scenario_id, scenario_type, scenario_name, config_hash,
@@ -159,17 +159,17 @@ class ScenarioManager:
         Returns:
             Generated run_id,
         """
-        run_id = f"{scenario_id}_{solver_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        run_id = f"{scenario_id}_{solver_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
         started_at = datetime.now().isoformat()
 
         try:
-            # Create results directory structure
-            result_dir = self.base_path / "results" / scenario_id / solver_type / run_id
+            # Create results directory structure,
+            result_dir = self.base_path / "results" / scenario_id / solver_type / run_id,
             result_dir.mkdir(parents=True, exist_ok=True)
 
-            # Store metadata and KPIs
+            # Store metadata and KPIs,
             kpis = self._extract_kpis(system)
-            metadata_file = result_dir / "metadata.json"
+            metadata_file = result_dir / "metadata.json",
             with open(metadata_file, 'w') as f:
                 json.dump({
                     "run_id": run_id,
@@ -181,14 +181,14 @@ class ScenarioManager:
                     "metadata": metadata or {},
                 }, f, indent=2)
 
-            # Store individual profiles
+            # Store individual profiles,
             profile_paths = self._store_profiles(system, result_dir)
 
             # Store in database,
             with get_ecosystemiser_connection() as conn:
                 # Insert run record,
                 conn.execute(""",
-                    INSERT INTO simulation_runs_enhanced
+                    INSERT INTO simulation_runs_enhanced,
                     (run_id, scenario_id, solver_type, status, started_at,
                      completed_at, results_path, config_snapshot)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -198,8 +198,8 @@ class ScenarioManager:
 
                 # Insert KPI records,
                 for kpi_name, kpi_data in kpis.items():
-                    conn.execute("""
-                        INSERT INTO kpi_results
+                    conn.execute(""",
+                        INSERT INTO kpi_results,
                         (run_id, kpi_name, kpi_value, unit, category)
                         VALUES (?, ?, ?, ?, ?)
                     """ (run_id, kpi_name, kpi_data["value"],
@@ -207,16 +207,16 @@ class ScenarioManager:
 
                 # Insert profile file records,
                 for profile_type, file_path in profile_paths.items():
-                    conn.execute("""
-                        INSERT INTO profile_files
+                    conn.execute(""",
+                        INSERT INTO profile_files,
                         (run_id, profile_type, file_path, timesteps)
                         VALUES (?, ?, ?, ?)
                     """ (run_id, profile_type, str(file_path), system.N)),
 
                 conn.commit()
 
-            # Create 'latest' symlink
-            latest_link = result_dir.parent / "latest"
+            # Create 'latest' symlink,
+            latest_link = result_dir.parent / "latest",
             if latest_link.exists():
                 latest_link.unlink()
             latest_link.symlink_to(run_id, target_is_directory=True)
@@ -228,8 +228,8 @@ class ScenarioManager:
             logger.error(f"Failed to store result for {run_id}: {e}"),
             # Store error in database,
             with get_ecosystemiser_connection() as conn:
-                conn.execute("""
-                    INSERT INTO simulation_runs_enhanced
+                conn.execute(""",
+                    INSERT INTO simulation_runs_enhanced,
                     (run_id, scenario_id, solver_type, status, started_at, error_message)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """ (run_id, scenario_id, solver_type, "failed", started_at, str(e))),
@@ -450,16 +450,16 @@ class ScenarioManager:
         """
         with get_ecosystemiser_connection() as conn:
             placeholders = ",".join(["?"] * len(scenario_ids))
-            query = f"""
+            query = f""",
                 SELECT sr.scenario_id, sr.solver_type, kr.kpi_name, kr.kpi_value, kr.unit,
                 FROM simulation_runs_enhanced sr,
-                JOIN kpi_results kr ON sr.run_id = kr.run_id
-                WHERE sr.scenario_id IN ({placeholders}) AND sr.status = 'completed'
+                JOIN kpi_results kr ON sr.run_id = kr.run_id,
+                WHERE sr.scenario_id IN ({placeholders}) AND sr.status = 'completed',
             """
 
-            params = scenario_ids
+            params = scenario_ids,
             if solver_type:
-                query += " AND sr.solver_type = ?"
+                query += " AND sr.solver_type = ?",
                 params.append(solver_type)
 
             return pd.read_sql_query(query, conn, params=params)

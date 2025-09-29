@@ -9,7 +9,6 @@ that no functionality has been lost during the refactoring process.
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 
 class IntegrationVerifier:
@@ -19,7 +18,7 @@ class IntegrationVerifier:
         self.scripts_root = scripts_root
         self.verification_results = {}
 
-    def verify_tool(self, tool_path: Path, test_args: List[str]) -> Tuple[bool, str]:
+    def verify_tool(self, tool_path: Path, test_args: list[str]) -> tuple[bool, str]:
         """Verify a single consolidated tool"""
         try:
             result = subprocess.run(
@@ -181,7 +180,7 @@ class IntegrationVerifier:
         """Generate verification report"""
         report = f"""# Consolidated Tools Verification Report
 
-**Generated**: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Generated**: {__import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Verification Results
 
@@ -199,8 +198,8 @@ class IntegrationVerifier:
 ## Summary
 
 - **Tools Verified**: {len(self.verification_results)}
-- **Passed**: {len([r for r in self.verification_results.values() if r == 'PASS'])}
-- **Failed**: {len([r for r in self.verification_results.values() if r != 'PASS'])}
+- **Passed**: {len([r for r in self.verification_results.values() if r == "PASS"])}
+- **Failed**: {len([r for r in self.verification_results.values() if r != "PASS"])}
 
 ## Next Steps
 

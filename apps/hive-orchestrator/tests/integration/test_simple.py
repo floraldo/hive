@@ -125,7 +125,7 @@ def test_configuration_handling():
             config_path = f.name
 
         # Test reading the config
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             loaded_config = json.load(f)
 
         assert loaded_config["test"] == "value"

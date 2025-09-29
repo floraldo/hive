@@ -114,7 +114,7 @@ def example_function():
                 violations = 0
                 for file_path in test_files:
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
                             # Simple check for print statements (logging rule)
                             if "print(" in content:

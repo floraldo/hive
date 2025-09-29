@@ -1,7 +1,8 @@
 """Unit tests for hive_service_discovery.config module."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 
 class TestServiceDiscoveryConfig:
@@ -71,8 +72,8 @@ class TestServiceDiscoveryConfig:
 
             # Test invalid configurations
             invalid_configs = [
-                {"timeout": -1},  # Negative timeout
-                {"retry_attempts": 0},  # Zero retries
+                {"timeout": -1},  # Negative timeout,
+                {"retry_attempts": 0},  # Zero retries,
                 {"registry_url": "invalid-url"},  # Invalid URL
             ]
 

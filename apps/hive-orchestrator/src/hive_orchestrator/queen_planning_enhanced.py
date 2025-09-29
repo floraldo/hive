@@ -8,8 +8,8 @@ Provides reliable task handoff, status synchronization, and error recovery.
 
 import asyncio
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any
 
 # Hive logging system
 from hive_logging import get_logger
@@ -206,7 +206,7 @@ class QueenPlanningEnhanced(QueenLite):
             # Fall back to regular processing
             super().process_queued_tasks()
 
-    def _process_task_list_enhanced(self, tasks: List[Dict[str, Any]], slots_free: int) -> None:
+    def _process_task_list_enhanced(self, tasks: list[dict[str, Any]], slots_free: int) -> None:
         """Process task list with enhanced planning integration"""
         # Count active workers per role
         active_per_role = {"backend": 0, "frontend": 0, "infra": 0}
@@ -268,7 +268,7 @@ class QueenPlanningEnhanced(QueenLite):
             if success:
                 active_per_role[worker] += 1
 
-    def _process_app_task_enhanced(self, task: Dict[str, Any]) -> bool:
+    def _process_app_task_enhanced(self, task: dict[str, Any]) -> bool:
         """Enhanced app task processing with planning integration"""
         task_id = task["id"]
 
@@ -280,7 +280,7 @@ class QueenPlanningEnhanced(QueenLite):
                 "assigned",
                 {
                     "assignee": assignee,
-                    "assigned_at": datetime.now(timezone.utc).isoformat(),
+                    "assigned_at": datetime.now(UTC).isoformat(),
                     "current_phase": "execute",
                 },
             )
@@ -308,7 +308,7 @@ class QueenPlanningEnhanced(QueenLite):
                 hive_core_db.update_task_status(
                     task_id,
                     "in_progress",
-                    {"started_at": datetime.now(timezone.utc).isoformat()},
+                    {"started_at": datetime.now(UTC).isoformat()},
                 )
 
                 # Publish task started event
@@ -335,7 +335,7 @@ class QueenPlanningEnhanced(QueenLite):
             logger.error(f"Error processing enhanced app task {task_id}: {e}")
             return False
 
-    def _process_worker_task_enhanced(self, task: Dict[str, Any], worker: str) -> bool:
+    def _process_worker_task_enhanced(self, task: dict[str, Any], worker: str) -> bool:
         """Enhanced worker task processing with planning integration"""
         task_id = task["id"]
 
@@ -346,7 +346,7 @@ class QueenPlanningEnhanced(QueenLite):
                 "assigned",
                 {
                     "assignee": worker,
-                    "assigned_at": datetime.now(timezone.utc).isoformat(),
+                    "assigned_at": datetime.now(UTC).isoformat(),
                     "current_phase": "apply",
                 },
             )
@@ -376,7 +376,7 @@ class QueenPlanningEnhanced(QueenLite):
                 hive_core_db.update_task_status(
                     task_id,
                     "in_progress",
-                    {"started_at": datetime.now(timezone.utc).isoformat()},
+                    {"started_at": datetime.now(UTC).isoformat()},
                 )
 
                 # Publish task started event
@@ -435,9 +435,9 @@ class QueenPlanningEnhanced(QueenLite):
         # Add planning-specific stats
         stats = self.planning_stats
         logger.info(
-            f"[PLANNING] Plans triggered: {stats['plans_triggered']}, "
-            f"Subtasks completed: {stats['subtasks_completed']}, "
-            f"Plans completed: {stats['plans_completed']}, "
+            f"[PLANNING] Plans triggered: {stats['plans_triggered']}, ",
+            f"Subtasks completed: {stats['subtasks_completed']}, ",
+            f"Plans completed: {stats['plans_completed']}, ",
             f"Sync errors: {stats['sync_errors']}"
         )
 
@@ -446,10 +446,10 @@ class QueenPlanningEnhanced(QueenLite):
             # Get active execution plans
             with planning_integration._get_connection() as conn:
                 cursor = conn.execute(
-                    """
-                    SELECT id, status FROM execution_plans
+                    """,
+                    SELECT id, status FROM execution_plans,
                     WHERE status IN ('executing', 'generated', 'approved')
-                    LIMIT 5
+                    LIMIT 5,
                 """
                 )
 
@@ -496,10 +496,10 @@ class QueenPlanningEnhanced(QueenLite):
                 review_pending = len(hive_core_db.get_tasks_by_status("review_pending"))
 
                 if (
-                    len(self.active_workers) == 0
-                    and stats["queued"] == 0
-                    and stats["assigned"] == 0
-                    and stats["in_progress"] == 0
+                    len(self.active_workers) == 0,
+                    and stats["queued"] == 0,
+                    and stats["assigned"] == 0,
+                    and stats["in_progress"] == 0,
                     and review_pending == 0
                 ):
                     if stats["completed"] > 0 or stats["failed"] > 0:
@@ -552,10 +552,10 @@ class QueenPlanningEnhanced(QueenLite):
                 review_pending = len(review_pending_tasks) if review_pending_tasks else 0
 
                 if (
-                    len(self.active_workers) == 0
-                    and stats["queued"] == 0
-                    and stats["assigned"] == 0
-                    and stats["in_progress"] == 0
+                    len(self.active_workers) == 0,
+                    and stats["queued"] == 0,
+                    and stats["assigned"] == 0,
+                    and stats["in_progress"] == 0,
                     and review_pending == 0
                 ):
                     if stats["completed"] > 0 or stats["failed"] > 0:
@@ -655,5 +655,5 @@ def main() -> None:
         queen.run_forever_enhanced()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":,
     main()

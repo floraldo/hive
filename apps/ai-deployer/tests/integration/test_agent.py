@@ -90,9 +90,10 @@ class TestDeploymentAgent:
     @pytest.mark.asyncio
     async def test_get_pending_tasks_with_async_db_async(self):
         """Test getting pending tasks with async database"""
-        with patch("ai_deployer.agent.ASYNC_DB_AVAILABLE", True), patch(
-            "ai_deployer.agent.get_tasks_by_status_async"
-        ) as mock_get_tasks:
+        with (
+            patch("ai_deployer.agent.ASYNC_DB_AVAILABLE", True),
+            patch("ai_deployer.agent.get_tasks_by_status_async") as mock_get_tasks,
+        ):
             mock_tasks = [{"id": "task-1", "status": "deployment_pending"}]
             mock_get_tasks.return_value = mock_tasks
 
@@ -213,9 +214,10 @@ class TestDeploymentAgent:
     @pytest.mark.asyncio
     async def test_update_task_status_async(self):
         """Test updating task status with async operations"""
-        with patch("ai_deployer.agent.ASYNC_DB_AVAILABLE", True), patch(
-            "ai_deployer.agent.update_task_status_async"
-        ) as mock_update:
+        with (
+            patch("ai_deployer.agent.ASYNC_DB_AVAILABLE", True),
+            patch("ai_deployer.agent.update_task_status_async") as mock_update,
+        ):
             agent = DeploymentAgent(test_mode=True)
 
             await agent._update_task_status("task-001", "deployed", {"deployment_id": "deploy-123"})
@@ -287,9 +289,10 @@ class TestDeploymentAgent:
     @pytest.mark.asyncio
     async def test_event_bus_integration_async(self, mock_orchestrator, sample_task):
         """Test event bus integration for deployment events"""
-        with patch("ai_deployer.agent.get_event_bus") as mock_get_bus, patch(
-            "ai_deployer.agent.create_task_event"
-        ) as mock_create_event:
+        with (
+            patch("ai_deployer.agent.get_event_bus") as mock_get_bus,
+            patch("ai_deployer.agent.create_task_event") as mock_create_event,
+        ):
             mock_bus = Mock()
             mock_get_bus.return_value = mock_bus
             mock_event = Mock()
@@ -331,9 +334,11 @@ class TestDeploymentAgent:
 @pytest.mark.asyncio
 async def test_main_function_async():
     """Test the main function entry point"""
-    with patch("ai_deployer.agent.DeploymentAgent") as mock_agent_class, patch(
-        "ai_deployer.agent.asyncio.run"
-    ) as mock_run, patch("sys.argv", ["agent.py", "--test-mode"]):
+    with (
+        patch("ai_deployer.agent.DeploymentAgent") as mock_agent_class,
+        patch("ai_deployer.agent.asyncio.run") as mock_run,
+        patch("sys.argv", ["agent.py", "--test-mode"]),
+    ):
         mock_agent = Mock()
         mock_agent_class.return_value = mock_agent
 

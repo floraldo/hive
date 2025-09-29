@@ -4,16 +4,15 @@ import asyncio
 import json
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from hive_ai import ModelClient
-from hive_db import SQLiteConnection
-from hive_logging import get_logger
-from hive_performance import MetricsCollector
+from typing import Any
 
 from guardian_agent.core.config import GuardianConfig
 from guardian_agent.learning.review_history import ReviewHistory
 from guardian_agent.prompts.review_prompts import ReviewPromptBuilder
+from hive_ai import ModelClient
+from hive_db import SQLiteConnection
+from hive_logging import get_logger
+from hive_performance import MetricsCollector
 
 logger = get_logger(__name__)
 metrics = MetricsCollector()
@@ -29,15 +28,15 @@ class FeedbackProcessor:
 
     def __init__(
         self,
-        config: Optional[GuardianConfig] = None,
-        history: Optional[ReviewHistory] = None,
+        config: GuardianConfig | None = None,
+        history: ReviewHistory | None = None,
     ) -> None:
         """Initialize feedback processor."""
         self.config = config or GuardianConfig()
         self.history = history or ReviewHistory(self.config.learning.history_path)
 
         self.model_client = ModelClient(
-            model_name="gpt-3.5-turbo",  # Use cheaper model for analysis
+            model_name="gpt-3.5-turbo",  # Use cheaper model for analysis,
             temperature=0.2,  # Lower temperature for consistency
         )
 
@@ -50,10 +49,10 @@ class FeedbackProcessor:
     async def process_feedback(
         self,
         review_id: str,
-        violation_id: Optional[str],
+        violation_id: str | None,
         feedback_type: str,
-        feedback_text: Optional[str],
-    ) -> Dict[str, Any]:
+        feedback_text: str | None,
+    ) -> dict[str, Any]:
         """
         Process individual feedback item.
 
@@ -106,7 +105,7 @@ class FeedbackProcessor:
     async def _calculate_confidence_adjustment(
         self,
         feedback_type: str,
-        violation_id: Optional[str],
+        violation_id: str | None,
     ) -> float:
         """Calculate confidence adjustment based on feedback."""
         adjustments = {
@@ -137,11 +136,11 @@ class FeedbackProcessor:
             cursor = conn.cursor()
 
             cursor.execute(
-                """
-                SELECT
+                """,
+                SELECT,
                     COUNT(CASE WHEN f.feedback_type = 'positive' THEN 1 END) as positive,
                     COUNT(CASE WHEN f.feedback_type IN ('negative', 'false_positive') THEN 1 END) as negative,
-                    COUNT(*) as total
+                    COUNT(*) as total,
                 FROM violations v
                 JOIN feedback f ON v.id = f.violation_id
                 WHERE v.rule = (
@@ -170,8 +169,8 @@ class FeedbackProcessor:
 
             # Get current pattern
             cursor.execute(
-                """
-                SELECT rule, confidence FROM violations WHERE id = ?
+                """,
+                SELECT rule, confidence FROM violations WHERE id = ?,
             """,
                 (violation_id,),
             )
@@ -184,10 +183,10 @@ class FeedbackProcessor:
 
                 # Update all similar patterns
                 cursor.execute(
-                    """
-                    UPDATE violations
-                    SET confidence = ?
-                    WHERE rule = ?
+                    """,
+                    UPDATE violations,
+                    SET confidence = ?,
+                    WHERE rule = ?,
                     AND timestamp > datetime('now', '-7 days')
                 """,
                     (new_confidence, rule),
@@ -197,7 +196,7 @@ class FeedbackProcessor:
 
                 logger.info(f"Updated confidence for {rule}: {current_confidence:.2f} -> {new_confidence:.2f}")
 
-    async def run_learning_cycle(self) -> Dict[str, Any]:
+    async def run_learning_cycle(self) -> dict[str, Any]:
         """
         Run comprehensive learning cycle.
 
@@ -247,17 +246,17 @@ class FeedbackProcessor:
             metrics.increment("learning_cycle_errors")
             raise
 
-    async def _get_unprocessed_feedback(self) -> List[Dict[str, Any]]:
+    async def _get_unprocessed_feedback(self) -> list[dict[str, Any]]:
         """Get all unprocessed feedback."""
         with SQLiteConnection(self.history.db_path) as conn:
             cursor = conn.cursor()
 
             cursor.execute(
-                """
-                SELECT
+                """,
+                SELECT,
                     f.id, f.review_id, f.violation_id,
                     f.feedback_type, f.feedback_text,
-                    v.rule, v.message, v.severity
+                    v.rule, v.message, v.severity,
                 FROM feedback f
                 LEFT JOIN violations v ON f.violation_id = v.id
                 WHERE f.processed = 0
@@ -267,12 +266,12 @@ class FeedbackProcessor:
             )
 
             columns = [desc[0] for desc in cursor.description]
-            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+            return [dict(zip(columns, row, strict=False)) for row in cursor.fetchall()]
 
     async def _analyze_feedback_patterns(
         self,
-        feedback_data: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        feedback_data: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """Analyze feedback to identify patterns."""
         patterns = {
             "false_positive_rules": defaultdict(int),
@@ -322,8 +321,8 @@ class FeedbackProcessor:
 
     async def _generate_improvements(
         self,
-        patterns: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
+        patterns: dict[str, Any],
+    ) -> list[dict[str, Any]]:
         """Generate improvement suggestions based on patterns."""
         improvements = []
 
@@ -372,8 +371,8 @@ class FeedbackProcessor:
 
     async def _extract_themes(
         self,
-        complaints: List[str],
-    ) -> List[Dict[str, Any]]:
+        complaints: list[str],
+    ) -> list[dict[str, Any]]:
         """Use AI to extract common themes from complaints."""
         if not complaints:
             return []
@@ -404,7 +403,7 @@ class FeedbackProcessor:
 
     async def _create_improvement_pr(
         self,
-        improvements: List[Dict[str, Any]],
+        improvements: list[dict[str, Any]],
     ) -> str:
         """Create a pull request with improvement suggestions."""
         # Generate improvement summary
@@ -428,7 +427,7 @@ class FeedbackProcessor:
 
     def _generate_improvement_summary(
         self,
-        improvements: List[Dict[str, Any]],
+        improvements: list[dict[str, Any]],
     ) -> str:
         """Generate human-readable summary of improvements."""
         summary_lines = ["# Guardian Agent Automated Improvements\n"]
@@ -448,7 +447,7 @@ class FeedbackProcessor:
 
     async def _mark_feedback_processed(
         self,
-        feedback_data: List[Dict[str, Any]],
+        feedback_data: list[dict[str, Any]],
     ) -> None:
         """Mark feedback as processed."""
         with SQLiteConnection(self.history.db_path) as conn:
@@ -520,7 +519,7 @@ class ContinuousLearningScheduler:
                 # Wait before retry
                 await asyncio.sleep(60)
 
-    async def trigger_immediate_learning(self) -> Dict[str, Any]:
+    async def trigger_immediate_learning(self) -> dict[str, Any]:
         """Trigger an immediate learning cycle."""
         logger.info("Immediate learning cycle triggered")
         return await self.processor.run_learning_cycle()

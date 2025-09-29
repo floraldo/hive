@@ -6,7 +6,6 @@ Intelligent task planning and workflow generation agent that monitors
 the planning_queue and generates executable plans for complex tasks.
 """
 
-
 # Now import and run
 from ai_planner.agent import main
 

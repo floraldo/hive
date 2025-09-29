@@ -7,9 +7,10 @@ for non-blocking database operations, built on the generic hive-async pool.
 
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import aiosqlite
+
 from hive_async.pools import ConnectionPool, PoolConfig
 from hive_logging import get_logger
 
@@ -129,7 +130,7 @@ class AsyncDatabaseManager:
 
             self._pools.clear()
 
-    async def get_all_stats_async(self) -> Dict[str, Dict[str, Any]]:
+    async def get_all_stats_async(self) -> dict[str, dict[str, Any]]:
         """Get statistics for all async connection pools."""
         async with self._lock:
             stats = {}
@@ -142,7 +143,7 @@ class AsyncDatabaseManager:
                 }
             return stats
 
-    async def health_check_async(self) -> Dict[str, Any]:
+    async def health_check_async(self) -> dict[str, Any]:
         """Perform health check on all async connection pools."""
         results = {}
         async with self._lock:

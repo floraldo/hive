@@ -12,10 +12,10 @@ demand, grid connection, and renewable sources.
 # Import all water components and their parameter models to register them
 
 __all__ = [
-    "WaterStorage" "WaterStorageParams",
-    "WaterDemand" "WaterDemandParams",
-    "WaterGrid" "WaterGridParams",
-    "RainwaterSource" "RainwaterSourceParams",
+    "WaterStorageWaterStorageParams",
+    "WaterDemandWaterDemandParams",
+    "WaterGridWaterGridParams",
+    "RainwaterSourceRainwaterSourceParams",
 ]
 
 # Component metadata for documentation

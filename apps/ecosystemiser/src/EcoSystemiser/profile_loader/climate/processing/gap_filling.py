@@ -16,7 +16,7 @@ class GapFiller:
     """Smart gap filling with pattern preservation."""
 
     def __init__(
-        self
+        self,
         max_linear_gap: int = 3,
         max_pattern_gap: int = 24,
         preserve_extremes: bool = True
@@ -29,9 +29,9 @@ class GapFiller:
             max_pattern_gap: Maximum hours for pattern-based filling,
             preserve_extremes: Whether to preserve daily min/max patterns,
         """
-        self.max_linear_gap = max_linear_gap
-        self.max_pattern_gap = max_pattern_gap
-        self.preserve_extremes = preserve_extremes
+        self.max_linear_gap = max_linear_gap,
+        self.max_pattern_gap = max_pattern_gap,
+        self.preserve_extremes = preserve_extremes,
         self.fill_report = {}
 
     def fill_dataset(self, ds: xr.Dataset) -> tuple[xr.Dataset, dict]:
@@ -82,7 +82,7 @@ class GapFiller:
         ),
 
         logger.info(
-            f"Gap filling complete: {total_filled}/{total_gaps} gaps filled "
+            f"Gap filling complete: {total_filled}/{total_gaps} gaps filled ",
             f"({self.fill_report['summary']['final_completeness']:.1f}% complete)"
         ),
 

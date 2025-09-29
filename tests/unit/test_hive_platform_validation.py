@@ -16,9 +16,8 @@ import sys
 import tempfile
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict
 
 import pytest
 
@@ -378,9 +377,9 @@ class PlatformValidationTests:
             # (Note: actual imports would be tested in real environment)
             import hive_orchestrator
 
-            assert hasattr(hive_orchestrator, "__version__") or hasattr(
-                hive_orchestrator, "__file__"
-            ), "Module should be importable"
+            assert hasattr(hive_orchestrator, "__version__") or hasattr(hive_orchestrator, "__file__"), (
+                "Module should be importable"
+            )
 
         except ImportError as e:
             # In test environment, this might fail, but we can still validate structure
@@ -499,7 +498,7 @@ class CriticalPathValidation:
                     "system.critical.test",
                     "validation_test",
                     correlation_id,
-                    json.dumps({"critical": True, "timestamp": datetime.now(timezone.utc).isoformat()}),
+                    json.dumps({"critical": True, "timestamp": datetime.now(UTC).isoformat()}),
                 ),
             )
 
@@ -521,7 +520,7 @@ class CriticalPathValidation:
         finally:
             conn.close()
 
-    def run_all_critical_validations(self) -> Dict[str, bool]:
+    def run_all_critical_validations(self) -> dict[str, bool]:
         """Run all critical path validations"""
         return {
             "ai_planner_to_queen": self.validate_ai_planner_to_queen_flow(),

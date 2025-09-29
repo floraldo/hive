@@ -121,7 +121,7 @@ from __future__ import annotations
             burst_size=10
         )
 
-        # Configure caching
+        # Configure caching,
         cache_config = CacheConfig(
             memory_ttl=1800,  # 30 minutes,
             disk_ttl=86400,  # 24 hours (station data changes slowly)
@@ -129,7 +129,7 @@ from __future__ import annotations
 
         super().__init__(
             name=self.ADAPTER_NAME,
-            rate_limit_config=rate_config
+            rate_limit_config=rate_config,
             cache_config=cache_config
         )
         self._meteostat_available = self._check_meteostat()
@@ -145,7 +145,7 @@ from __future__ import annotations
             return False
 
     async def _fetch_raw_async(
-        self
+        self,
         location: Tuple[float, float],
         variables: List[str],
         period: Dict,
@@ -247,7 +247,7 @@ from __future__ import annotations
             raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
     async def fetch_async(
-        self
+        self,
         *
         lat: float,
         lon: float,
@@ -282,7 +282,7 @@ from __future__ import annotations
             # Use base class fetch method,
             return await super().fetch_async(
                 location=(lat, lon),
-                variables=variables
+                variables=variables,
                 period=period,
                 resolution=resolution
             ),
@@ -342,9 +342,9 @@ from __future__ import annotations
 
                     # Create DataArray
                     da = xr.DataArray(
-                        data
+                        data,
                         coords={"time": df.index},
-                        name=canonical_name
+                        name=canonical_name,
                         attrs=self._get_variable_attrs(canonical_name)
                     ),
 
@@ -368,25 +368,25 @@ from __future__ import annotations
             # For hourly data, this is effectively mm/h,
             "prcp": lambda x: x,  # Already in appropriate units (mm/h for hourly)
             # Meteostat pressure in hPa, we want Pa,
-            "pres": lambda x: x * 100
+            "pres": lambda x: x * 100,
             # Meteostat wind speed in km/h, we want m/s,
-            "wspd": lambda x: x * 0.277778
+            "wspd": lambda x: x * 0.277778,
             # Meteostat wind gust in km/h, we want m/s,
-            "wpgt": lambda x: x * 0.277778
+            "wpgt": lambda x: x * 0.277778,
             # Snow depth from m to mm (canonical unit),
-            "snow": lambda x: x * 1000
+            "snow": lambda x: x * 1000,
             # Cloud cover from oktas (0-8) to percentage (0-100),
-            "coco": lambda x: x * 12.5
+            "coco": lambda x: x * 12.5,
             # Wind direction already in degrees - no conversion needed,
-            "wdir": lambda x: x
+            "wdir": lambda x: x,
             # Temperature fields already in degC - no conversion needed,
             "temp": lambda x: x,
             "tavg": lambda x: x,
             "tmin": lambda x: x,
             "tmax": lambda x: x,
-            "dwpt": lambda x: x
+            "dwpt": lambda x: x,
             # Humidity already in % - no conversion needed,
-            "rhum": lambda x: x
+            "rhum": lambda x: x,
             # Sunshine duration already in minutes - no conversion needed,
             "tsun": lambda x: x
         },
@@ -417,7 +417,7 @@ from __future__ import annotations
                         cloud_data[i] = np.nan
 
                 ds[var] = xr.DataArray(
-                    cloud_data
+                    cloud_data,
                     coords={"time": ds.time},
                     attrs=self._get_variable_attrs(var)
                 ),
@@ -447,7 +447,7 @@ from __future__ import annotations
                         visibility_data[i] = np.nan
 
                 ds[var] = xr.DataArray(
-                    visibility_data
+                    visibility_data,
                     coords={"time": ds.time},
                     attrs=self._get_variable_attrs(var)
                 ),
@@ -457,7 +457,7 @@ from __future__ import annotations
                 # Convert sunshine duration to GHI using Ångström-Prescott model
                 ghi_data = self._sunshine_to_ghi(df["tsun"].values, ds.time.values, ds.attrs.get("latitude", 0))
                 ds[var] = xr.DataArray(
-                    ghi_data
+                    ghi_data,
                     coords={"time": ds.time},
                     attrs=self._get_variable_attrs(var)
                 ),
@@ -654,13 +654,13 @@ from __future__ import annotations
         """Return Meteostat adapter capabilities"""
         return AdapterCapabilities(
             name="Meteostat",
-            version=self.ADAPTER_VERSION
+            version=self.ADAPTER_VERSION,
             description="Global weather station data with quality control and gap filling",
             temporal=TemporalCoverage(
                 start_date=None,  # Varies by station (some from 1900s),
-                end_date=None,  # Present
+                end_date=None,  # Present,
                 historical_years=50,  # Typical station coverage,
-                forecast_days=0
+                forecast_days=0,
                 real_time=True,
                 delay_hours=1,  # Near real-time
             )
@@ -674,10 +674,10 @@ from __future__ import annotations
             )
             supported_variables=list(self.VARIABLE_MAPPING.keys()) + list(self.SPECIAL_VARIABLES.keys()),
             primary_variables=[
-                "temp_air"
+                "temp_air",
                 "precip",
                 "wind_speed",  # Best for basic met vars,
-                "pressure"
+                "pressure",
                 "rel_humidity"
             ]
             derived_variables=[],
@@ -687,7 +687,7 @@ from __future__ import annotations
                 DataFrequency.MONTHLY
             ]
             native_frequency=DataFrequency.HOURLY,
-            auth_type=AuthType.NONE,  # Uses RapidAPI internally but handled by library
+            auth_type=AuthType.NONE,  # Uses RapidAPI internally but handled by library,
             requires_subscription=False,  # Free tier available,
             free_tier_limits=RateLimits(
                 requests_per_month=500,
@@ -724,7 +724,7 @@ class MeteostatQCProfile(QCProfile):
     def __init__(self) -> None:
         super().__init__(
             name="Meteostat",
-            description="Weather station data aggregated from multiple national weather services"
+            description="Weather station data aggregated from multiple national weather services",
             known_issues=[
                 "Data gaps common due to station maintenance",
                 "Quality varies by region and station density",
@@ -732,9 +732,9 @@ class MeteostatQCProfile(QCProfile):
                 "Interpolation used between stations can introduce artifacts"
             ]
             recommended_variables=[
-                "temp_air"
+                "temp_air",
                 "rel_humidity",
-                "precip"
+                "precip",
                 "wind_speed",
                 "pressure"
             ]
@@ -753,7 +753,7 @@ class MeteostatQCProfile(QCProfile):
             if gap_length > 24:  # Gaps longer than 24 hours
                 issue = QCIssue(
                     type="data_gaps",
-                    message=f"Long data gaps detected in {var_name} (max: {gap_length} consecutive NaN values)"
+                    message=f"Long data gaps detected in {var_name} (max: {gap_length} consecutive NaN values)",
                     severity=QCSeverity.MEDIUM if gap_length < 72 else QCSeverity.HIGH,
                     affected_variables=[var_name]
                     metadata={"max_gap_hours": int(gap_length)},
@@ -763,14 +763,14 @@ class MeteostatQCProfile(QCProfile):
 
         # Check for station-specific issues (simplified),
         if "wind_speed" in ds:
-            wind_data = ds["wind_speed"].values
+            wind_data = ds["wind_speed"].values,
             # Check for suspiciously low wind variability (sheltered station)
             wind_std = np.nanstd(wind_data)
-            if wind_std < 0.5:  # Very low wind variability
+            if wind_std < 0.5:  # Very low wind variability,
                 issue = QCIssue(
                     type="station_exposure",
                     message=f"Very low wind speed variability (std={wind_std:.2f}) suggests sheltered station",
-                    severity=QCSeverity.LOW
+                    severity=QCSeverity.LOW,
                     affected_variables=["wind_speed"],
                     metadata={"wind_std": float(wind_std)}
                     suggested_action="Consider station exposure conditions in analysis"

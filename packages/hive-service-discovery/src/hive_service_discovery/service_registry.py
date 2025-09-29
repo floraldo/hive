@@ -5,16 +5,16 @@
 
 from __future__ import annotations
 
-
 import asyncio
 import json
 import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Set
+from typing import Any
 
 import aioredis
+
 from hive_logging import get_logger
 
 from .config import ServiceDiscoveryConfig
@@ -31,15 +31,15 @@ class ServiceInfo:
     service_name: str
     host: str
     port: int
-    tags: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    tags: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
     health_check_url: str | None = None
     ttl: int = 60
     registered_at: datetime = field(default_factory=datetime.utcnow)
     last_heartbeat: datetime = field(default_factory=datetime.utcnow)
     healthy: bool = True
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "service_id": self.service_id,
@@ -56,7 +56,7 @@ class ServiceInfo:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ServiceInfo":
+    def from_dict(cls, data: dict[str, Any]) -> ServiceInfo:
         """Create from dictionary."""
         return cls(
             service_id=data["service_id"],
@@ -105,7 +105,7 @@ class ServiceRegistry:
         self._heartbeat_key_prefix = f"{self._service_key_prefix}:heartbeat_async"
 
         # Local cache
-        self._service_cache: Dict[str, ServiceInfo] = {}
+        self._service_cache: dict[str, ServiceInfo] = {}
         self._cache_last_updated = 0
 
     async def initialize_async(self) -> None:
@@ -150,8 +150,8 @@ class ServiceRegistry:
         host: str,
         port: int,
         service_id: str | None = None,
-        tags: List[str] = None,
-        metadata: Dict[str, Any] = None,
+        tags: list[str] = None,
+        metadata: dict[str, Any] = None,
         health_check_url: str | None = None,
         ttl: int | None = None,
     ) -> str:
@@ -304,7 +304,7 @@ class ServiceRegistry:
             logger.error(f"Failed to get service {service_id}: {e}")
             return None
 
-    async def get_services_by_name_async(self, service_name: str, healthy_only: bool = True) -> List[ServiceInfo]:
+    async def get_services_by_name_async(self, service_name: str, healthy_only: bool = True) -> list[ServiceInfo]:
         """Get all instances of a service by name.
 
         Args:
@@ -330,7 +330,7 @@ class ServiceRegistry:
             logger.error(f"Failed to get services for {service_name}: {e}")
             return []
 
-    async def get_services_by_tags_async(self, tags: List[str], match_all: bool = True) -> List[ServiceInfo]:
+    async def get_services_by_tags_async(self, tags: list[str], match_all: bool = True) -> list[ServiceInfo]:
         """Get services by tags.
 
         Args:
@@ -358,7 +358,7 @@ class ServiceRegistry:
             logger.error(f"Failed to get services by tags {tags}: {e}")
             return []
 
-    async def get_all_services_async(self) -> List[ServiceInfo]:
+    async def get_all_services_async(self) -> list[ServiceInfo]:
         """Get all registered services.
 
         Returns:
@@ -372,7 +372,7 @@ class ServiceRegistry:
             logger.error(f"Failed to get all services: {e}")
             return []
 
-    async def get_service_names_async(self) -> Set[str]:
+    async def get_service_names_async(self) -> set[str]:
         """Get all unique service names.
 
         Returns:
@@ -437,7 +437,7 @@ class ServiceRegistry:
 
                 # Update cache
                 new_cache = {}
-                for service_id, data in zip(service_ids, service_data):
+                for service_id, data in zip(service_ids, service_data, strict=False):
                     if data:
                         try:
                             service_info = ServiceInfo.from_dict(json.loads(data))
@@ -483,7 +483,7 @@ class ServiceRegistry:
                 logger.error(f"Error in service cleanup: {e}")
                 await asyncio.sleep(30)  # Wait before retrying
 
-    async def get_registry_stats_async(self) -> Dict[str, Any]:
+    async def get_registry_stats_async(self) -> dict[str, Any]:
         """Get registry statistics.
 
         Returns:

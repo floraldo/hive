@@ -139,6 +139,7 @@ class V3CertificationTest:
                 get_claude_service,
                 reset_claude_service,
             )
+
             from hive_config import get_config
 
             # Reset for clean test
@@ -247,6 +248,7 @@ class V3CertificationTest:
                 get_claude_service,
                 reset_claude_service,
             )
+
             from hive_config import get_config
             from hive_db import get_pooled_connection
 

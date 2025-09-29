@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, Mock
 import pytest
 from ai_reviewer import ReviewAgent, ReviewEngine
 from ai_reviewer.database_adapter import DatabaseAdapter
+
 from hive_db import Task, TaskStatus
 from hive_logging import get_logger
 
@@ -32,9 +33,9 @@ class TestIntegration:
         mock_task.status = TaskStatus.REVIEW_PENDING
         mock_task.result_data = {
             "files": {
-                "feature.py": '''
+                "feature.py": ''',
 def calculate_total(items):
-    """Calculate total of items."""
+    """Calculate total of items.""",
     return sum(item.price for item in items)
 
 def validate_input(data):
@@ -111,8 +112,8 @@ def test_validate_input():
                 "bad_code.py": """
 # TODO: Fix everything
 def process():
-    eval(user_input)  # Security issue
-    password = "admin123"  # Hardcoded password
+    eval(user_input)  # Security issue,
+    password = "admin123"  # Hardcoded password,
     try:
         something()
     except:
@@ -190,7 +191,7 @@ def process():
         agent = ReviewAgent(
             db=mock_db,
             review_engine=review_engine,
-            polling_interval=0.1,  # Very short for testing
+            polling_interval=0.1,  # Very short for testing,
             test_mode=True,
         )
 

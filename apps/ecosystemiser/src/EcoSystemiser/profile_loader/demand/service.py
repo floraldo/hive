@@ -42,7 +42,7 @@ class DemandService(BaseProfileService):
         """Initialize demand service with available adapters."""
         self.adapters = {
             "file": DemandFileAdapter()
-            # Future adapters can be added here
+            # Future adapters can be added here,
             # "database": DemandDatabaseAdapter()
             # "standard_profiles": StandardProfileAdapter()
         },
@@ -250,20 +250,20 @@ class DemandService(BaseProfileService):
         return dataset
 
     def _build_response(
-        self
+        self,
         dataset: xr.Dataset,
         request: DemandRequest,
         profiles: Dict[str, np.ndarray]
     ) -> DemandResponse:
         """Build demand response with metrics."""
-        # Calculate basic metrics
+        # Calculate basic metrics,
         electricity_vars = [var for var in dataset.data_vars if "power" in var.lower() or "electricity" in var.lower()]
-        peak_demand = None
-        total_energy = None
+        peak_demand = None,
+        total_energy = None,
         load_factor = None
 
         if electricity_vars and electricity_vars[0] in dataset:
-            power_data = dataset[electricity_vars[0]].values
+            power_data = dataset[electricity_vars[0]].values,
             peak_demand = float(np.max(power_data))
             total_energy = float(np.sum(power_data))  # Simplified calculation
             avg_demand = float(np.mean(power_data))
@@ -276,9 +276,9 @@ class DemandService(BaseProfileService):
             end_time=pd.Timestamp(dataset.time.values[-1]),
             variables=list(dataset.data_vars)
             source=request.source or "file",
-            peak_demand_kw=peak_demand
+            peak_demand_kw=peak_demand,
             total_energy_kwh=total_energy,
-            load_factor=load_factor
+            load_factor=load_factor,
             processing_steps=["load_profiles", "create_dataset", "calculate_metrics"],
             quality={"completeness": 100.0, "validation_passed": True}
         ),

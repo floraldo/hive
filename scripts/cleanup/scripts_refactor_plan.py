@@ -12,7 +12,6 @@ import re
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
 
 
 @dataclass
@@ -22,7 +21,7 @@ class ScriptMetadata:
     path: str
     name: str
     purpose: str
-    dependencies: List[str]
+    dependencies: list[str]
     execution_type: str  # python, shell, batch
     size_lines: int
     last_modified: str
@@ -38,7 +37,7 @@ class RedundancyGroup:
 
     group_name: str
     primary_script: str  # The best one to keep as base
-    redundant_scripts: List[str]
+    redundant_scripts: list[str]
     consolidation_strategy: str
 
 
@@ -48,8 +47,8 @@ class ScriptsAnalyzer:
     def __init__(self, scripts_root: Path):
         self.scripts_root = scripts_root
         self.project_root = scripts_root.parent
-        self.metadata_map: Dict[str, ScriptMetadata] = {}
-        self.redundancy_groups: List[RedundancyGroup] = []
+        self.metadata_map: dict[str, ScriptMetadata] = {}
+        self.redundancy_groups: list[RedundancyGroup] = []
 
     def analyze_script(self, script_path: Path) -> ScriptMetadata:
         """Analyze a single script file and extract metadata"""
@@ -108,7 +107,7 @@ class ScriptsAnalyzer:
                 is_executable=False,
             )
 
-    def _extract_purpose(self, content: str, lines: List[str]) -> str:
+    def _extract_purpose(self, content: str, lines: list[str]) -> str:
         """Extract purpose from docstring or initial comments"""
         # Try to extract from module docstring
         try:
@@ -134,7 +133,7 @@ class ScriptsAnalyzer:
 
         return "No clear purpose found"
 
-    def _extract_dependencies(self, content: str, file_ext: str) -> List[str]:
+    def _extract_dependencies(self, content: str, file_ext: str) -> list[str]:
         """Extract import dependencies"""
         dependencies = []
 
@@ -168,7 +167,7 @@ class ScriptsAnalyzer:
         else:
             return "unknown"
 
-    def full_audit(self) -> Dict[str, ScriptMetadata]:
+    def full_audit(self) -> dict[str, ScriptMetadata]:
         """Perform full audit of all scripts"""
         print("Phase 1: Full Script Audit")
         print("=" * 50)
@@ -188,7 +187,7 @@ class ScriptsAnalyzer:
         print(f"\n[OK] Analyzed {len(self.metadata_map)} scripts")
         return self.metadata_map
 
-    def identify_redundancy_groups(self) -> List[RedundancyGroup]:
+    def identify_redundancy_groups(self) -> list[RedundancyGroup]:
         """Identify groups of scripts with overlapping functionality"""
         print("\nPhase 1b: Identifying Redundancy Groups")
         print("=" * 50)
@@ -263,7 +262,7 @@ class ScriptsAnalyzer:
         print(f"\n[OK] Identified {len(self.redundancy_groups)} redundancy groups")
         return self.redundancy_groups
 
-    def _select_primary_script(self, script_paths: List[str]) -> str:
+    def _select_primary_script(self, script_paths: list[str]) -> str:
         """Select the best script to keep as primary from a group"""
         scripts_data = [(path, self.metadata_map[path]) for path in script_paths]
 
@@ -303,16 +302,16 @@ class ScriptsAnalyzer:
         """Generate comprehensive audit report"""
         report = f"""# Scripts Directory Audit Report
 
-**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Generated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 **Total Scripts Analyzed**: {len(self.metadata_map)}
 
 ## Executive Summary
 
 ### Current State Analysis
 - **Total Files**: {len(self.metadata_map)}
-- **Python Scripts**: {len([m for m in self.metadata_map.values() if m.execution_type == 'python'])}
-- **Shell Scripts**: {len([m for m in self.metadata_map.values() if m.execution_type == 'shell'])}
-- **Batch Scripts**: {len([m for m in self.metadata_map.values() if m.execution_type == 'batch'])}
+- **Python Scripts**: {len([m for m in self.metadata_map.values() if m.execution_type == "python"])}
+- **Shell Scripts**: {len([m for m in self.metadata_map.values() if m.execution_type == "shell"])}
+- **Batch Scripts**: {len([m for m in self.metadata_map.values() if m.execution_type == "batch"])}
 
 ### Quality Metrics
 - **Scripts with Main Functions**: {len([m for m in self.metadata_map.values() if m.has_main])}

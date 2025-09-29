@@ -8,7 +8,6 @@ fixer scripts into the main code_fixers.py tool.
 
 import shutil
 from pathlib import Path
-from typing import List
 
 
 class FinalConsolidator:
@@ -19,7 +18,7 @@ class FinalConsolidator:
         self.project_root = scripts_root.parent
         self.consolidations_made = []
 
-    def identify_remaining_fixers(self) -> List[Path]:
+    def identify_remaining_fixers(self) -> list[Path]:
         """Find remaining individual fixer scripts"""
         remaining_fixers = []
 
@@ -242,7 +241,7 @@ if __name__ == "__main__":
             print(f"[ERROR] Failed to enhance main fixer: {e}")
             return False
 
-    def move_remaining_fixers_to_archive(self, remaining_fixers: List[Path]) -> bool:
+    def move_remaining_fixers_to_archive(self, remaining_fixers: list[Path]) -> bool:
         """Move remaining individual fixer scripts to archive"""
         archive_dir = self.scripts_root / "archive"
 
@@ -298,7 +297,7 @@ if __name__ == "__main__":
         """Generate final consolidation report"""
         report = f"""# Final Consolidation Report
 
-**Generated**: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Generated**: {__import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Summary
 

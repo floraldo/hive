@@ -5,9 +5,9 @@ Provides quality assessment and iterative refinement capabilities
 """
 
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -23,7 +23,7 @@ class ReviewerCore:
         self.tasks_dir = self.hive_dir / "tasks"
         self.results_dir = self.hive_dir / "results"
 
-    def review_task_output(self, task: Dict[str, Any], worktree_path: Path) -> Dict[str, Any]:
+    def review_task_output(self, task: dict[str, Any], worktree_path: Path) -> dict[str, Any]:
         """
         Review the output of a completed task
 
@@ -47,7 +47,7 @@ class ReviewerCore:
             "feedback": "",
             "improvements": [],
             "strengths": [],
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         # Check if worktree exists
@@ -118,7 +118,7 @@ class ReviewerCore:
 
         return review
 
-    def _get_changed_files(self, worktree_path: Path) -> List[str]:
+    def _get_changed_files(self, worktree_path: Path) -> list[str]:
         """Get list of files changed in the worktree"""
         try:
             result = subprocess.run(
@@ -146,7 +146,7 @@ class ReviewerCore:
 
         return []
 
-    def _check_criterion(self, criterion: str, worktree_path: Path, changed_files: List[str]) -> bool:
+    def _check_criterion(self, criterion: str, worktree_path: Path, changed_files: list[str]) -> bool:
         """Check if a specific acceptance criterion is met"""
         criterion_lower = criterion.lower()
 
@@ -167,7 +167,7 @@ class ReviewerCore:
         # Default: assume met if we have changes (basic heuristic)
         return len(changed_files) > 0
 
-    def _check_code_quality(self, worktree_path: Path, python_files: List[str]) -> List[str]:
+    def _check_code_quality(self, worktree_path: Path, python_files: list[str]) -> list[str]:
         """Basic code quality checks for Python files"""
         issues = []
 
@@ -177,7 +177,7 @@ class ReviewerCore:
                 continue
 
             try:
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     content = f.read()
 
                 # Check for basic issues
@@ -196,7 +196,7 @@ class ReviewerCore:
 
         return issues
 
-    def generate_refinement_task(self, original_task: Dict[str, Any], review: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_refinement_task(self, original_task: dict[str, Any], review: dict[str, Any]) -> dict[str, Any]:
         """Generate a refinement task based on review feedback"""
         task_id = original_task["id"]
         iteration = original_task.get("iteration", 0) + 1
@@ -213,21 +213,21 @@ class ReviewerCore:
             "tags": original_task.get("tags", []),
             "parent_task": task_id,
             "iteration": iteration,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
         }
 
         return refinement_task
 
-    def _generate_refinement_instructions(self, original_task: Dict[str, Any], review: Dict[str, Any]) -> str:
+    def _generate_refinement_instructions(self, original_task: dict[str, Any], review: dict[str, Any]) -> str:
         """Generate specific instructions for refinement"""
-        instructions = f"""Continue work on task '{original_task['id']}' from the existing branch.
+        instructions = f"""Continue work on task '{original_task["id"]}' from the existing branch.
 
 ORIGINAL TASK:
-{original_task.get('description', '')}
+{original_task.get("description", "")}
 
-REVIEW FEEDBACK (Score: {review['score']}%):
-{review['feedback']}
+REVIEW FEEDBACK (Score: {review["score"]}%):
+{review["feedback"]}
 
 SPECIFIC IMPROVEMENTS NEEDED:
 """

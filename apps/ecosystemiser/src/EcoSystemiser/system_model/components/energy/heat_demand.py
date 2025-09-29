@@ -4,12 +4,13 @@ import logging
 from typing import Any
 
 import cvxpy as cp
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
 from ecosystemiser.system_model.components.shared.base_classes import BaseDemandOptimization, BaseDemandPhysics
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -32,23 +33,23 @@ class HeatDemandTechnicalParams(DemandTechnicalParams):
     temperature_requirement: float | None = Field(None, description="Required supply temperature [°C]")
 
     # STANDARD fidelity additions
-    thermal_comfort_band: Optional[dict[str, float]] = Field(
+    thermal_comfort_band: dict[str, float] | None = Field(
         None, description="Acceptable temperature range {min_temp, max_temp}"
     )
     building_thermal_mass: float | None = Field(None, description="Building thermal inertia factor")
 
     # DETAILED fidelity parameters
-    weather_dependency: Optional[dict[str, float]] = Field(None, description="Weather correlation parameters")
-    occupancy_schedule: Optional[dict[str, Any]] = Field(None, description="Occupancy-driven demand variations")
-    demand_response_capability: Optional[dict[str, float]] = Field(
+    weather_dependency: dict[str, float] | None = Field(None, description="Weather correlation parameters")
+    occupancy_schedule: dict[str, Any] | None = Field(None, description="Occupancy-driven demand variations")
+    demand_response_capability: dict[str, float] | None = Field(
         None, description="Demand response parameters {shift_capacity, shed_capacity}"
     )
 
     # RESEARCH fidelity parameters
-    building_physics_model: Optional[dict[str, Any]] = Field(
+    building_physics_model: dict[str, Any] | None = Field(
         None, description="Detailed building physics model parameters"
     )
-    behavioral_model: Optional[dict[str, Any]] = Field(None, description="Occupant behavior modeling parameters")
+    behavioral_model: dict[str, Any] | None = Field(None, description="Occupant behavior modeling parameters")
 
 
 class HeatDemandParams(ComponentParams):
@@ -328,7 +329,7 @@ class HeatDemand(Component):
 
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, " f"demand={demand_output:.3f}kW")
+            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, demand={demand_output:.3f}kW")
 
         return demand_output
 

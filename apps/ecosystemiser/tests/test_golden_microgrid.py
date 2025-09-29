@@ -14,6 +14,7 @@ eco_path = Path(__file__).parent.parent / "src"
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.utils.system_builder import create_system_from_config
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -91,8 +92,8 @@ class GoldenMicrogridValidator:
         )
 
         logger.info(
-            f"{domain.title()} energy balance: max_imbalance={balance_results['max_imbalance']:.2e}, "
-            f"violations={len(balance_results['balance_violations'])}"
+            f"{domain.title()} energy balance: max_imbalance={balance_results['max_imbalance']:.2e}, ",
+            f"violations={len(balance_results['balance_violations'])}",
         )
 
         return balance_results
@@ -214,8 +215,8 @@ class GoldenMicrogridValidator:
         performance_results = {
             "solve_time": solve_time,
             "memory_usage": memory_usage,
-            "time_acceptable": solve_time < 5.0,  # Should solve in under 5 seconds for 24h
-            "memory_acceptable": memory_usage < 100.0,  # Should use less than 100 MB
+            "time_acceptable": solve_time < 5.0,  # Should solve in under 5 seconds for 24h,
+            "memory_acceptable": memory_usage < 100.0,  # Should use less than 100 MB,
             "passed": False,
         }
 

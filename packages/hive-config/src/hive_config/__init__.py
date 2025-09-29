@@ -1,5 +1,6 @@
-from hive_logging import get_logger
 from pydantic import BaseModel
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

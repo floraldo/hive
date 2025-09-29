@@ -49,11 +49,11 @@ class TestHiveOrchestratorIntegration:
 
         # Mock query results
         mock_cursor.fetchone.side_effect = [
-            (5,),  # queued
-            (2,),  # running
-            (10,),  # completed
-            (1,),  # failed
-            (3,),  # active workers
+            (5,),  # queued,
+            (2,),  # running,
+            (10,),  # completed,
+            (1,),  # failed,
+            (3,),  # active workers,
             (20,),  # total runs
         ]
 
@@ -140,14 +140,16 @@ class TestHiveOrchestratorIntegration:
 
         # Mock count queries
         mock_cursor.fetchone.side_effect = [
-            (5,),  # tasks count
-            (3,),  # runs count
+            (5,),  # tasks count,
+            (3,),  # runs count,
             (2,),  # workers count
         ]
 
-        with patch("hive_orchestrator.clean_hive.get_connection", return_value=mock_conn), patch(
-            "hive_orchestrator.clean_hive.transaction"
-        ) as mock_transaction, patch("hive_orchestrator.clean_hive.close_connection") as mock_close:
+        with (
+            patch("hive_orchestrator.clean_hive.get_connection", return_value=mock_conn),
+            patch("hive_orchestrator.clean_hive.transaction") as mock_transaction,
+            patch("hive_orchestrator.clean_hive.close_connection") as mock_close,
+        ):
             # Capture print output
             import contextlib
             import io
@@ -167,9 +169,12 @@ class TestHiveOrchestratorIntegration:
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchone.side_effect = [(0,), (0,), (0,)]  # Empty database
 
-        with patch("hive_orchestrator.clean_hive.get_connection", return_value=mock_conn), patch(
-            "hive_orchestrator.clean_hive.transaction"
-        ), patch("hive_orchestrator.clean_hive.close_connection"), patch("sys.argv", ["clean_hive.py", "--db-only"]):
+        with (
+            patch("hive_orchestrator.clean_hive.get_connection", return_value=mock_conn),
+            patch("hive_orchestrator.clean_hive.transaction"),
+            patch("hive_orchestrator.clean_hive.close_connection"),
+            patch("sys.argv", ["clean_hive.py", "--db-only"]),
+        ):
             result = clean_main()
             assert result == 0  # Success
 

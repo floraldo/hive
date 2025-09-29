@@ -1,7 +1,7 @@
 """Custom cost calculator for Guardian Agent operations."""
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from hive_app_toolkit.cost import ResourceCost, ResourceType
 
@@ -12,9 +12,9 @@ class GuardianCostCalculator:
     # Cost per operation by type and model
     COSTS = {
         "gpt-4": {
-            "file_review": 0.05,  # $0.05 per file review
-            "full_analysis": 0.10,  # $0.10 for comprehensive analysis
-            "security_scan": 0.08,  # $0.08 for security-focused review
+            "file_review": 0.05,  # $0.05 per file review,
+            "full_analysis": 0.10,  # $0.10 for comprehensive analysis,
+            "security_scan": 0.08,  # $0.08 for security-focused review,
             "quick_review": 0.02,  # $0.02 for quick review
         },
         "gpt-3.5-turbo": {
@@ -31,7 +31,7 @@ class GuardianCostCalculator:
         },
     }
 
-    def calculate_cost(self, operation: str, parameters: Dict[str, Any]) -> ResourceCost:
+    def calculate_cost(self, operation: str, parameters: dict[str, Any]) -> ResourceCost:
         """Calculate cost based on model, operation type, and file complexity."""
         model = parameters.get("model", "gpt-3.5-turbo")
         review_type = parameters.get("review_type", "file_review")

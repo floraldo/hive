@@ -10,7 +10,7 @@ import argparse
 import os
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Hive utilities for path management
 # Hive logging system
@@ -67,7 +67,7 @@ class QueenLite:
     def __init__(
         self,
         hive_core: HiveCore,
-        config: Optional[HiveConfig] = None,
+        config: HiveConfig | None = None,
         live_output: bool = False,
     ):
         """
@@ -102,7 +102,7 @@ class QueenLite:
         self._validate_system_configuration()
 
         # State management: track active worker processes
-        self.active_workers: Dict[str, Dict[str, Any]] = {}  # task_id -> {process, run_id, phase}
+        self.active_workers: dict[str, dict[str, Any]] = {}  # task_id -> {process, run_id, phase}
 
         # Register Queen as a worker to satisfy foreign key constraints
         self._register_as_worker()
@@ -185,7 +185,7 @@ class QueenLite:
             self.log.warning(f"System validation failed unexpectedly: {e}")
             # Continue anyway - validation is helpful but not critical
 
-    def _create_enhanced_environment(self, root_path: Optional[Path] = None) -> Dict[str, str]:
+    def _create_enhanced_environment(self, root_path: Path | None = None) -> dict[str, str]:
         """
         Create enhanced environment with proper Python paths for worker processes.
 
@@ -218,8 +218,8 @@ class QueenLite:
         self,
         event_type: TaskEventType,
         task_id: str,
-        task: Dict[str, Any],
-        correlation_id: Optional[str] = None,
+        task: dict[str, Any],
+        correlation_id: str | None = None,
         **additional_payload,
     ) -> str:
         """

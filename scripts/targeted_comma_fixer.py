@@ -11,45 +11,33 @@ Based on analysis of the 58 failing files, this fixer targets:
 import ast
 import re
 from pathlib import Path
-from typing import List
+
 
 def fix_dictionary_patterns(content: str) -> str:
     """Fix missing commas in dictionary literals."""
 
     # Pattern 1: "key": value\n    "next_key": next_value
     # Look for lines ending with ] or ) or identifier followed by newline and quoted key
-    content = re.sub(
-        r'(\s*"[^"]+"\s*:\s*[^\n,}]+)(\n\s*"[^"]+"\s*:)',
-        r'\1,\2',
-        content,
-        flags=re.MULTILINE
-    )
+    content = re.sub(r'(\s*"[^"]+"\s*:\s*[^\n,}]+)(\n\s*"[^"]+"\s*:)', r"\1,\2", content, flags=re.MULTILINE)
 
     # Pattern 2: Handle function call results like row[0], row[1], etc.
     content = re.sub(
-        r'(\s*"[^"]+"\s*:\s*[a-zA-Z_][a-zA-Z0-9_]*\[[^\]]+\])(\n\s*"[^"]+"\s*:)',
-        r'\1,\2',
-        content,
-        flags=re.MULTILINE
+        r'(\s*"[^"]+"\s*:\s*[a-zA-Z_][a-zA-Z0-9_]*\[[^\]]+\])(\n\s*"[^"]+"\s*:)', r"\1,\2", content, flags=re.MULTILINE
     )
 
     # Pattern 3: Handle method call results like self._parse_json_field(row[7])
     content = re.sub(
         r'(\s*"[^"]+"\s*:\s*[a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*\([^)]+\))(\n\s*"[^"]+"\s*:)',
-        r'\1,\2',
+        r"\1,\2",
         content,
-        flags=re.MULTILINE
+        flags=re.MULTILINE,
     )
 
     # Pattern 4: Simple identifiers like row[9], row[10]
-    content = re.sub(
-        r'(\s*"[^"]+"\s*:\s*row\[\d+\])(\n\s*"[^"]+"\s*:)',
-        r'\1,\2',
-        content,
-        flags=re.MULTILINE
-    )
+    content = re.sub(r'(\s*"[^"]+"\s*:\s*row\[\d+\])(\n\s*"[^"]+"\s*:)', r"\1,\2", content, flags=re.MULTILINE)
 
     return content
+
 
 def fix_sql_comma_patterns(content: str) -> str:
     """Fix missing commas in SQL SELECT statements."""
@@ -59,51 +47,49 @@ def fix_sql_comma_patterns(content: str) -> str:
     # worker_id, priority  <- Missing comma after updated_at
 
     # Look for SELECT statements and fix missing commas between columns
-    lines = content.split('\n')
+    lines = content.split("\n")
     in_select = False
     fixed_lines = []
 
     for i, line in enumerate(lines):
         # Track if we're in a SELECT statement
-        if 'SELECT' in line.upper():
+        if "SELECT" in line.upper():
             in_select = True
-        elif line.strip().startswith('FROM') and in_select:
+        elif line.strip().startswith("FROM") and in_select:
             in_select = False
 
         # If in SELECT and line ends with identifier and next line starts with identifier
-        if (in_select and
-            i < len(lines) - 1 and
-            line.strip() and
-            not line.strip().endswith(',') and
-            not line.strip().endswith('(') and
-            lines[i + 1].strip() and
-            not lines[i + 1].strip().startswith('FROM')):
-
+        if (
+            in_select
+            and i < len(lines) - 1
+            and line.strip()
+            and not line.strip().endswith(",")
+            and not line.strip().endswith("(")
+            and lines[i + 1].strip()
+            and not lines[i + 1].strip().startswith("FROM")
+        ):
             # Add comma to current line
-            line = line.rstrip() + ','
+            line = line.rstrip() + ","
 
         fixed_lines.append(line)
 
-    return '\n'.join(fixed_lines)
+    return "\n".join(fixed_lines)
+
 
 def fix_function_arg_patterns(content: str) -> str:
     """Fix missing commas in function arguments."""
 
     # Pattern: function arguments on separate lines without commas
-    content = re.sub(
-        r'(\w+\s*=\s*[^,\n)]+)(\n\s*\w+\s*=)',
-        r'\1,\2',
-        content,
-        flags=re.MULTILINE
-    )
+    content = re.sub(r"(\w+\s*=\s*[^,\n)]+)(\n\s*\w+\s*=)", r"\1,\2", content, flags=re.MULTILINE)
 
     return content
+
 
 def fix_file_targeted(filepath: Path) -> bool:
     """Apply targeted fixes to a single file."""
     try:
         # Read original content
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             original_content = f.read()
 
         # Check if file already has syntax errors
@@ -111,7 +97,7 @@ def fix_file_targeted(filepath: Path) -> bool:
             ast.parse(original_content)
             return True  # Already valid
         except SyntaxError as e:
-            if 'comma' not in str(e).lower():
+            if "comma" not in str(e).lower():
                 return False  # Not a comma error
 
         print(f"Fixing {filepath}")
@@ -128,7 +114,7 @@ def fix_file_targeted(filepath: Path) -> bool:
 
             # Write only if we made changes
             if fixed_content != original_content:
-                with open(filepath, 'w', encoding='utf-8') as f:
+                with open(filepath, "w", encoding="utf-8") as f:
                     f.write(fixed_content)
                 print(f"  [OK] Fixed syntax errors in {filepath}")
                 return True
@@ -143,6 +129,7 @@ def fix_file_targeted(filepath: Path) -> bool:
     except Exception as e:
         print(f"  [ERROR] Failed to process {filepath}: {e}")
         return False
+
 
 def main():
     """Run targeted comma fixing on known problem files."""
@@ -177,6 +164,8 @@ def main():
     print(f"\nResults: {fixed_count} fixed, {failed_count} failed")
     return 0 if failed_count == 0 else 1
 
+
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

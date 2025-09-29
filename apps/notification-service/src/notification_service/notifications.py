@@ -1,7 +1,7 @@
 """Notification providers - business logic only (infrastructure handled by toolkit)."""
 
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -27,7 +27,7 @@ class NotificationTemplate:
     }
 
     @classmethod
-    def render(cls, template_name: str, data: Dict[str, Any]) -> Dict[str, str]:
+    def render(cls, template_name: str, data: dict[str, Any]) -> dict[str, str]:
         """Render a template with data."""
         if template_name not in cls.templates:
             raise ValueError(f"Unknown template: {template_name}")
@@ -59,8 +59,8 @@ class EmailNotifier:
         recipient: str,
         subject: str,
         message: str,
-        template: Optional[str] = None,
-        template_data: Optional[Dict[str, Any]] = None,
+        template: str | None = None,
+        template_data: dict[str, Any] | None = None,
     ) -> bool:
         """Send email notification."""
         try:
@@ -102,10 +102,10 @@ class SlackNotifier:
 
     async def send(
         self,
-        recipient: str,  # Channel or user ID
+        recipient: str,  # Channel or user ID,
         message: str,
-        template: Optional[str] = None,
-        template_data: Optional[Dict[str, Any]] = None,
+        template: str | None = None,
+        template_data: dict[str, Any] | None = None,
     ) -> bool:
         """Send Slack notification."""
         try:

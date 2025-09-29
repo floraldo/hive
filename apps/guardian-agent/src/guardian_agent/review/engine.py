@@ -2,12 +2,7 @@
 
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-from hive_ai import ModelClient, VectorStore
-from hive_async import AsyncExecutor
-from hive_cache import CacheClient
-from hive_logging import get_logger
+from typing import Any
 
 from guardian_agent.analyzers.code_analyzer import CodeAnalyzer
 from guardian_agent.analyzers.golden_rules import GoldenRulesAnalyzer
@@ -18,6 +13,10 @@ from guardian_agent.core.interfaces import (
     Severity,
 )
 from guardian_agent.prompts.review_prompts import ReviewPromptBuilder
+from hive_ai import ModelClient, VectorStore
+from hive_async import AsyncExecutor
+from hive_cache import CacheClient
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -30,7 +29,7 @@ class ReviewEngine:
     and coordinates multiple analyzers for comprehensive review.
     """
 
-    def __init__(self, config: Optional[GuardianConfig] = None) -> None:
+    def __init__(self, config: GuardianConfig | None = None) -> None:
         """Initialize the review engine."""
         self.config = config or GuardianConfig()
 
@@ -71,7 +70,7 @@ class ReviewEngine:
 
         logger.info("ReviewEngine initialized with %d analyzers", len(self.analyzers))
 
-    def _initialize_analyzers(self) -> List[Any]:
+    def _initialize_analyzers(self) -> list[Any]:
         """Initialize all configured analyzers."""
         analyzers = []
 
@@ -149,7 +148,7 @@ class ReviewEngine:
 
         return result
 
-    async def _run_analyzers_parallel(self, file_path: Path, content: str) -> List[AnalysisResult]:
+    async def _run_analyzers_parallel(self, file_path: Path, content: str) -> list[AnalysisResult]:
         """Run all analyzers in parallel."""
         tasks = []
         for analyzer in self.analyzers:
@@ -159,7 +158,7 @@ class ReviewEngine:
         results = await self.async_executor.gather(*tasks)
         return results
 
-    async def _run_analyzers_sequential(self, file_path: Path, content: str) -> List[AnalysisResult]:
+    async def _run_analyzers_sequential(self, file_path: Path, content: str) -> list[AnalysisResult]:
         """Run analyzers sequentially."""
         results = []
         for analyzer in self.analyzers:
@@ -181,15 +180,15 @@ class ReviewEngine:
         self,
         file_path: Path,
         content: str,
-        analysis_results: List[AnalysisResult],
-    ) -> Dict[str, Any]:
+        analysis_results: list[AnalysisResult],
+    ) -> dict[str, Any]:
         """Get AI-powered review using hive-ai."""
         # Find similar code patterns if vector search is enabled
         similar_patterns = []
         if self.vector_store:
             try:
                 similar_patterns = await self.vector_store.search(
-                    query=content[:1000],  # Use first 1000 chars as query
+                    query=content[:1000],  # Use first 1000 chars as query,
                     k=self.config.vector_search.max_results,
                     threshold=self.config.vector_search.similarity_threshold,
                 )
@@ -232,8 +231,8 @@ class ReviewEngine:
     def _combine_results(
         self,
         file_path: Path,
-        analysis_results: List[AnalysisResult],
-        ai_review: Dict[str, Any],
+        analysis_results: list[AnalysisResult],
+        ai_review: dict[str, Any],
     ) -> ReviewResult:
         """Combine all analysis results into final review."""
         # Count violations by severity
@@ -269,7 +268,7 @@ class ReviewEngine:
             metadata=ai_review.get("metadata", {}),
         )
 
-    async def review_directory(self, directory: Path, recursive: bool = True) -> List[ReviewResult]:
+    async def review_directory(self, directory: Path, recursive: bool = True) -> list[ReviewResult]:
         """
         Review all files in a directory.
 

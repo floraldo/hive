@@ -152,7 +152,7 @@ class SSHClient:
                 stdin, stdout, stderr = self.client.exec_command(command)
                 exit_code = stdout.channel.recv_exit_status()
                 return (
-                    exit_code
+                    exit_code,
                     stdout.read().decode().strip()
                     stderr.read().decode().strip()
                 )

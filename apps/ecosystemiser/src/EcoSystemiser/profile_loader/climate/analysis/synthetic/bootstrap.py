@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -39,7 +40,7 @@ def multivariate_block_bootstrap(
         np.random.seed(seed)
 
     logger.info(
-        f"Generating synthetic data: block={block}, seasons={season_bins}, " f"overlap={overlap_hours}h, seed={seed}"
+        f"Generating synthetic data: block={block}, seasons={season_bins}, overlap={overlap_hours}h, seed={seed}"
     )
 
     # Convert block size to timedelta

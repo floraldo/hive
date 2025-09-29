@@ -1,15 +1,16 @@
 """Solar PV component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import cvxpy as cp
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, GenerationTechnicalParams
 from ecosystemiser.system_model.components.shared.base_classes import BaseGenerationOptimization, BaseGenerationPhysics
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -40,7 +41,7 @@ class SolarPVTechnicalParams(GenerationTechnicalParams):
     soiling_factor: float | None = Field(None, description="Soiling derating factor")
 
     # RESEARCH fidelity parameters
-    spectral_model: Optional[dict[str, Any]] = Field(None, description="Spectral irradiance model parameters")
+    spectral_model: dict[str, Any] | None = Field(None, description="Spectral irradiance model parameters")
     bifacial_gain: float | None = Field(None, description="Bifacial module gain factor")
 
 
@@ -286,7 +287,7 @@ class SolarPV(Component):
 
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, " f"output={generation_output:.3f}kW")
+            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, output={generation_output:.3f}kW")
 
         return generation_output
 

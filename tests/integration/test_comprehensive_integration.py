@@ -23,9 +23,9 @@ import tempfile
 import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Test imports
 test_root = Path(__file__).parent.parent
@@ -48,8 +48,8 @@ class TestMetrics:
     events_consumed: int = 0
     database_operations: int = 0
     async_operations: int = 0
-    errors_encountered: List[str] = None
-    performance_samples: List[Dict] = None
+    errors_encountered: list[str] = None
+    performance_samples: list[dict] = None
 
     def __post_init__(self):
         if self.errors_encountered is None:
@@ -478,7 +478,7 @@ class EndToEndWorkflowTests:
 
         return plan_id
 
-    def _generate_complex_execution_plan(self, task_id: str) -> Dict[str, Any]:
+    def _generate_complex_execution_plan(self, task_id: str) -> dict[str, Any]:
         """Generate a realistic complex execution plan"""
         return {
             "plan_id": f"plan_{uuid.uuid4()}",
@@ -569,7 +569,7 @@ class EndToEndWorkflowTests:
                 "complexity_breakdown": {"medium": 2, "high": 3, "very_high": 1},
             },
             "status": "generated",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
 
     def _simulate_queen_worker_execution(self, plan_id: str) -> bool:
@@ -959,7 +959,7 @@ class CrossAppCommunicationTests:
             events_consumed = []
 
             # Setup event tracking
-            def track_event(event_type: str, payload: Dict):
+            def track_event(event_type: str, payload: dict):
                 events_published.append({"type": event_type, "payload": payload})
                 self.env.metrics.events_published += 1
 
@@ -1057,7 +1057,7 @@ class CrossAppCommunicationTests:
         self.env.metrics.database_operations += 1
         return task_id
 
-    def _read_as_ecosystemiser(self, task_id: str) -> Dict:
+    def _read_as_ecosystemiser(self, task_id: str) -> dict:
         """Read task data as if from EcoSystemiser app"""
         conn = sqlite3.connect(self.env.db_path)
         cursor = conn.execute(
@@ -1073,7 +1073,7 @@ class CrossAppCommunicationTests:
         # Simulate EcoSystemiser adding its data
         payload["ecosystemiser_data"] = {
             "read_by": "ecosystemiser",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         conn.execute(
@@ -1193,7 +1193,7 @@ class CrossAppCommunicationTests:
             self._publish_event("workflow.progress", progress_payload)
             track_event("workflow.progress", progress_payload)
 
-    def _publish_event(self, event_type: str, payload: Dict):
+    def _publish_event(self, event_type: str, payload: dict):
         """Publish event to event bus"""
         event_id = str(uuid.uuid4())
 
@@ -1938,7 +1938,7 @@ class GoldenRulesIntegrationTests:
 
         return True  # Simulated pass
 
-    def _check_inheritance_violations(self) -> List[str]:
+    def _check_inheritance_violations(self) -> list[str]:
         """Check for inheritance pattern violations"""
         violations = []
 
@@ -1948,7 +1948,7 @@ class GoldenRulesIntegrationTests:
 
         return violations
 
-    def _check_extension_violations(self) -> List[str]:
+    def _check_extension_violations(self) -> list[str]:
         """Check for extension pattern violations"""
         violations = []
 
@@ -2361,7 +2361,7 @@ class FailureRecoveryTests:
 
         return escalated and failed_attempts >= 2
 
-    def _create_stress_test_scenario(self) -> List[str]:
+    def _create_stress_test_scenario(self) -> list[str]:
         """Create a high-load scenario for stress testing"""
         task_count = 50
         task_ids = []
@@ -2394,7 +2394,7 @@ class FailureRecoveryTests:
 
         return task_ids
 
-    def _introduce_stress_failures(self, task_ids: List[str]) -> Dict[str, Any]:
+    def _introduce_stress_failures(self, task_ids: list[str]) -> dict[str, Any]:
         """Introduce various failure conditions during stress test"""
         failure_conditions = {
             "database_contention": False,
@@ -2432,7 +2432,7 @@ class FailureRecoveryTests:
 
         return failure_conditions
 
-    def _measure_stress_recovery(self, task_ids: List[str], failure_conditions: Dict[str, Any]) -> Dict[str, Any]:
+    def _measure_stress_recovery(self, task_ids: list[str], failure_conditions: dict[str, Any]) -> dict[str, Any]:
         """Measure system recovery under stress"""
         start_time = time.time()
 
@@ -2468,9 +2468,7 @@ class FailureRecoveryTests:
                 SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed
             FROM tasks
             WHERE id IN ({})
-        """.format(
-                ",".join("?" * len(task_ids))
-            ),
+        """.format(",".join("?" * len(task_ids))),
             task_ids,
         )
 
@@ -2711,7 +2709,7 @@ class PlatformIntegrationTests:
         conn.commit()
         conn.close()
 
-    def _verify_dashboard_data(self) -> Dict[str, Any]:
+    def _verify_dashboard_data(self) -> dict[str, Any]:
         """Verify dashboard data integrity"""
         conn = sqlite3.connect(self.env.db_path)
 
@@ -2828,7 +2826,7 @@ class PlatformIntegrationTests:
         conn.commit()
         conn.close()
 
-    def _verify_status_synchronization(self, workflow_id: str) -> Dict[str, Any]:
+    def _verify_status_synchronization(self, workflow_id: str) -> dict[str, Any]:
         """Verify status synchronization across components"""
         conn = sqlite3.connect(self.env.db_path)
 
@@ -2962,7 +2960,7 @@ class ComprehensiveIntegrationTestSuite:
             passed_tests = 0
 
             for category_name, tests in test_categories:
-                print(f"\n{'='*20} {category_name} {'='*20}")
+                print(f"\n{'=' * 20} {category_name} {'=' * 20}")
                 category_results = []
 
                 for test_name, test_func in tests:
@@ -3017,7 +3015,7 @@ class ComprehensiveIntegrationTestSuite:
                 print(f"{test_icon} {test_name}")
 
         # Overall summary
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print(f"📊 OVERALL RESULTS: {passed_tests}/{total_tests} tests passed")
         print(f"⏱️  Test Duration: {self.env.metrics.total_duration:.2f} seconds")
         print(f"📈 Task Throughput: {self.env.metrics.throughput:.2f} tasks/second")
@@ -3043,7 +3041,7 @@ class ComprehensiveIntegrationTestSuite:
                     print(f"   {test_name}: {sample['improvement_factor']:.1f}x improvement")
 
         # Final verdict
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         if all_passed:
             print("🎉 ALL INTEGRATION TESTS PASSED!")
             print("✨ Hive platform is functioning correctly across all components")

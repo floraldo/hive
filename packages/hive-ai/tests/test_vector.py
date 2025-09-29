@@ -8,14 +8,15 @@ with property-based testing.
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
 from hive_ai.core.config import AIConfig, VectorConfig
 from hive_ai.core.exceptions import VectorError
 from hive_ai.vector.embedding import EmbeddingManager, EmbeddingResult
 from hive_ai.vector.metrics import VectorMetrics
 from hive_ai.vector.search import Document, SearchResult, SemanticSearch
 from hive_ai.vector.store import VectorStore
-from hypothesis import given, settings
-from hypothesis import strategies as st
 
 
 # Vector generation strategies for property-based testing
@@ -715,7 +716,7 @@ class TestVectorIntegration:
     @given(
         st.lists(
             st.tuples(
-                st.text(min_size=5, max_size=100),  # content
+                st.text(min_size=5, max_size=100),  # content,
                 st.dictionaries(
                     st.text(min_size=1, max_size=10),
                     st.text(min_size=1, max_size=20),

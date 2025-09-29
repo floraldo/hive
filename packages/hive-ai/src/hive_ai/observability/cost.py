@@ -125,7 +125,7 @@ class CostManager:
             self.add_budget(
                 CostBudget(
                     name="daily_limit",
-                    period=BudgetPeriod.DAILY
+                    period=BudgetPeriod.DAILY,
                     limit=self.config.daily_cost_limit,
                     warning_threshold=0.8
                 )
@@ -135,7 +135,7 @@ class CostManager:
             self.add_budget(
                 CostBudget(
                     name="monthly_limit",
-                    period=BudgetPeriod.MONTHLY
+                    period=BudgetPeriod.MONTHLY,
                     limit=self.config.monthly_cost_limit,
                     warning_threshold=0.9
                 )
@@ -155,7 +155,7 @@ class CostManager:
         return False
 
     async def record_cost_async(
-        self
+        self,
         model: str,
         provider: str,
         operation: str,
@@ -193,16 +193,16 @@ class CostManager:
             metadata=metadata or {}
         )
 
-        # Store record
+        # Store record,
         self._cost_records.append(record)
 
-        # Update aggregations
+        # Update aggregations,
         self._update_cost_aggregations(record)
 
-        # Check budgets
+        # Check budgets,
         await self._check_budgets_async(record)
 
-        # Persist to database if available
+        # Persist to database if available,
         try:
             await self._persist_cost_record_async(record)
         except Exception as e:
@@ -262,15 +262,15 @@ class CostManager:
                     )
 
                     logger.error(
-                        f"Budget limit exceeded: {budget_name} "
+                        f"Budget limit exceeded: {budget_name} ",
                         f"(${status.current_spending:.2f} / ${status.budget_limit:.2f})"
                     )
 
                     # Raise exception to halt operation
                     raise CostLimitError(
-                        f"Budget '{budget_name}' limit exceeded"
+                        f"Budget '{budget_name}' limit exceeded",
                         current_cost=status.current_spending,
-                        limit=status.budget_limit
+                        limit=status.budget_limit,
                         period=budget.period.value
                     )
 
@@ -308,13 +308,13 @@ class CostManager:
 
         return BudgetStatus(
             budget_name=budget_name,
-            period=budget.period
+            period=budget.period,
             current_spending=current_spending,
-            budget_limit=budget.limit
+            budget_limit=budget.limit,
             percentage_used=percentage_used,
-            remaining_budget=remaining_budget
+            remaining_budget=remaining_budget,
             warning_triggered=warning_triggered,
-            limit_exceeded=limit_exceeded
+            limit_exceeded=limit_exceeded,
             time_remaining=time_remaining
         )
 
@@ -412,9 +412,9 @@ class CostManager:
         if not period_records:
             return CostSummary(
                 period=f"{start_date.date()} to {end_date.date()}",
-                total_cost=0.0
+                total_cost=0.0,
                 total_tokens=0,
-                total_requests=0
+                total_requests=0,
                 breakdown_by_model={},
                 breakdown_by_provider={}
                 breakdown_by_operation={},
@@ -447,7 +447,7 @@ class CostManager:
                     "tokens": record.tokens_used,
                     "timestamp": record.timestamp.isoformat(),
                 }
-                for record in period_records
+                for record in period_records,
             ]
             key=lambda x: x["cost"],
             reverse=True
@@ -455,9 +455,9 @@ class CostManager:
 
         return CostSummary(
             period=f"{start_date.date()} to {end_date.date()}",
-            total_cost=total_cost
+            total_cost=total_cost,
             total_tokens=total_tokens,
-            total_requests=total_requests
+            total_requests=total_requests,
             breakdown_by_model=dict(model_costs),
             breakdown_by_provider=dict(provider_costs)
             breakdown_by_operation=dict(operation_costs),
@@ -494,7 +494,7 @@ class CostManager:
             else:
                 trend_direction = "stable"
 
-            # Project next 7 days
+            # Project next 7 days,
             projected_weekly_cost = avg_daily_cost * 7,
             projected_monthly_cost = avg_daily_cost * 30,
         else:
@@ -512,11 +512,11 @@ class CostManager:
                 "avg_daily_cost": avg_daily_cost,
                 "min_daily_cost": min_daily_cost,
                 "max_daily_cost": max_daily_cost,
-                "trend_direction": trend_direction
+                "trend_direction": trend_direction,
             }
             "projections": {
                 "projected_weekly_cost": projected_weekly_cost,
-                "projected_monthly_cost": projected_monthly_cost
+                "projected_monthly_cost": projected_monthly_cost,
             }
         }
 
@@ -524,10 +524,10 @@ class CostManager:
         """Get cost optimization recommendations."""
         recommendations = []
 
-        # Analyze recent costs
+        # Analyze recent costs,
         summary = await self.get_cost_summary_async()
 
-        # High-cost model recommendations
+        # High-cost model recommendations,
         if summary.breakdown_by_model:
             most_expensive_model = max(summary.breakdown_by_model.items(), key=lambda x: x[1])
 
@@ -537,8 +537,8 @@ class CostManager:
                         "type": "model_optimization",
                         "priority": "high",
                         "title": "Consider alternative model",
-                        "description": f"Model '{most_expensive_model[0]}' accounts for "
-                        f"{most_expensive_model[1]/summary.total_cost:.1%} of costs"
+                        "description": f"Model '{most_expensive_model[0]}' accounts for ",
+                        f"{most_expensive_model[1]/summary.total_cost:.1%} of costs",
                         "suggestion": "Evaluate if a more cost-effective model could achieve similar results",
                         "potential_savings": most_expensive_model[1] * 0.3,  # Estimated 30% savings
                     }
@@ -551,7 +551,7 @@ class CostManager:
                     "type": "token_optimization",
                     "priority": "medium",
                     "title": "Optimize prompt length",
-                    "description": f"High token usage detected ({summary.total_tokens:,} tokens)"
+                    "description": f"High token usage detected ({summary.total_tokens:,} tokens)",
                     "suggestion": "Review prompts for unnecessary length, use prompt optimization features",
                     "potential_savings": summary.total_cost * 0.2,  # Estimated 20% savings
                 }
@@ -571,7 +571,7 @@ class CostManager:
                             "type": "provider_optimization",
                             "priority": "medium",
                             "title": "Review provider selection",
-                            "description": f"Provider '{most_expensive[0]}' costs significantly more than '{least_expensive[0]}'"
+                            "description": f"Provider '{most_expensive[0]}' costs significantly more than '{least_expensive[0]}'",
                             "suggestion": "Evaluate if cheaper providers can handle some workloads",
                             "potential_savings": (most_expensive[1] - least_expensive[1]) * 0.5
                         }

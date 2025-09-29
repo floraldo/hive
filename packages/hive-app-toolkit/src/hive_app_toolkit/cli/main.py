@@ -3,9 +3,9 @@
 import asyncio
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
+
 from hive_logging import get_logger
 
 from .generator import ApplicationGenerator, ServiceType
@@ -48,13 +48,13 @@ def main(verbose: bool = False) -> None:
 def init(
     app_name: str,
     service_type: str,
-    output: Optional[str] = None,
+    output: str | None = None,
     namespace: str = "hive-platform",
     port: int = 8000,
     enable_database: bool = False,
     enable_cache: bool = True,
     enable_auth: bool = False,
-    cost_limits: Optional[str] = None,
+    cost_limits: str | None = None,
     dry_run: bool = False,
 ) -> None:
     """Initialize a new Hive application with production-grade foundation."""

@@ -21,6 +21,7 @@ from typing import Any
 
 import httpx
 import xarray as xr
+from tenacity import before_sleep_log, retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 # Import config models from centralized location to avoid circular dependency
 from ecosystemiser.profile_loader.climate.config_models import (
@@ -29,7 +30,6 @@ from ecosystemiser.profile_loader.climate.config_models import (
     RateLimitConfig,
 )
 from hive_logging import get_logger
-from tenacity import before_sleep_log, retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 # Import centralized settings
 

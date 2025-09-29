@@ -14,7 +14,7 @@ COMPONENT_REGISTRY: dict[str, type["Component"]] = {}
 
 def register_component(name: str) -> None:
     (
-        """
+        """,
     A class decorator that registers a component blueprint in the global registry.,
 
     This decorator enables plug-and-play extensibility. New components simply,
@@ -62,7 +62,7 @@ def get_component_class(name: str) -> type["Component"]:
     """
     if name not in COMPONENT_REGISTRY:
         available = list(COMPONENT_REGISTRY.keys())
-        raise ValueError(f"Component class '{name}' not found in registry. " f"Available components: {available}")
+        raise ValueError(f"Component class '{name}' not found in registry. Available components: {available}")
     return COMPONENT_REGISTRY[name]
 
 

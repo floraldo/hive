@@ -34,6 +34,7 @@ from ecosystemiser.system_model.components.energy.solar_pv import (
 )
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -126,8 +127,8 @@ def create_7day_system():
     demand_profile = np.array(demand_profile)
 
     logger.info(
-        f"Created 7-day profiles: solar range {np.min(solar_profile):.3f}-{np.max(solar_profile):.3f}, "
-        f"demand range {np.min(demand_profile):.3f}-{np.max(demand_profile):.3f}"
+        f"Created 7-day profiles: solar range {np.min(solar_profile):.3f}-{np.max(solar_profile):.3f}, ",
+        f"demand range {np.min(demand_profile):.3f}-{np.max(demand_profile):.3f}",
     )
 
     # Create components
@@ -143,7 +144,7 @@ def create_7day_system():
 
     battery_params = BatteryParams(
         technical=BatteryTechnicalParams(
-            capacity_nominal=15.0,  # Slightly larger for long-term operation
+            capacity_nominal=15.0,  # Slightly larger for long-term operation,
             max_charge_rate=6.0,
             max_discharge_rate=6.0,
             efficiency_roundtrip=0.95,
@@ -155,7 +156,7 @@ def create_7day_system():
 
     solar_params = SolarPVParams(
         technical=SolarPVTechnicalParams(
-            capacity_nominal=40.0,  # 40 kW solar for good generation
+            capacity_nominal=40.0,  # 40 kW solar for good generation,
             efficiency_nominal=1.0,
             fidelity_level=FidelityLevel.SIMPLE,
         )
@@ -393,7 +394,7 @@ def run_7day_stress_test():
             logger.info("=" * 60)
             logger.info(f"Solve time: {solve_time:.2f}s")
             logger.info(
-                f"Memory usage: {initial_memory:.1f} → {peak_memory:.1f} MB (+{peak_memory-initial_memory:.1f})"
+                f"Memory usage: {initial_memory:.1f} → {peak_memory:.1f} MB (+{peak_memory - initial_memory:.1f})"
             )
             logger.info(f"Numerical stability: {'PASS' if stability['numerical_stability'] else 'FAIL'}")
             logger.info(f"Energy balance: max daily imbalance = {stability.get('max_daily_imbalance', 0):.2e}")
@@ -465,8 +466,8 @@ def main():
     logger.info(f"Status: {'PASSED' if results.get('validation_passed', False) else 'FAILED'}")
     if results.get("solve_time"):
         logger.info(
-            f"Performance: {results['solve_time']:.2f}s solve time, "
-            f"{results.get('memory_increase_mb', 0):.1f} MB memory increase"
+            f"Performance: {results['solve_time']:.2f}s solve time, ",
+            f"{results.get('memory_increase_mb', 0):.1f} MB memory increase",
         )
 
     return results.get("validation_passed", False)

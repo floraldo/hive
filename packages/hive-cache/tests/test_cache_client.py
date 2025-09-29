@@ -3,6 +3,7 @@
 import time
 
 import pytest
+
 from hive_cache import CacheConfig, HiveCacheClient
 from hive_cache.exceptions import CacheConnectionError
 
@@ -11,7 +12,7 @@ from hive_cache.exceptions import CacheConnectionError
 def cache_config():
     """Test cache configuration."""
     return CacheConfig(
-        redis_url="redis://localhost:6379/15",  # Use test database
+        redis_url="redis://localhost:6379/15",  # Use test database,
         max_connections=5,
         default_ttl=3600,
         circuit_breaker_threshold=3,

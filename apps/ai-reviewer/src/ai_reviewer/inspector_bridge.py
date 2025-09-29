@@ -8,7 +8,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -29,7 +29,7 @@ class InspectorBridge:
         if not self.inspect_script.exists():
             logger.warning(f"inspect_run.py not found at {self.inspect_script}")
 
-    def inspect_task_run(self, task_id: str, run_id: str | None = None) -> Dict[str, Any]:
+    def inspect_task_run(self, task_id: str, run_id: str | None = None) -> dict[str, Any]:
         """
         Run objective analysis on a task using inspect_run.py
 
@@ -86,7 +86,7 @@ class InspectorBridge:
             logger.error(f"Error running inspect_run.py for task {task_id}: {e}")
             return self._create_error_response(task_id, str(e))
 
-    def _create_error_response(self, task_id: str, error_msg: str) -> Dict[str, Any]:
+    def _create_error_response(self, task_id: str, error_msg: str) -> dict[str, Any]:
         """Create standardized error response"""
         return {
             "error": error_msg,
@@ -99,7 +99,7 @@ class InspectorBridge:
             "summary": {"total_files": 0, "total_lines": 0, "total_issues": 1},
         }
 
-    def extract_code_quality_metrics(self, analysis: Dict[str, Any]) -> Dict[str, float]:
+    def extract_code_quality_metrics(self, analysis: dict[str, Any]) -> dict[str, float]:
         """
         Extract standardized quality metrics from analysis
 
@@ -168,7 +168,7 @@ class InspectorBridge:
             logger.error(f"Error extracting metrics: {e}")
             return metrics
 
-    def get_review_summary(self, analysis: Dict[str, Any]) -> str:
+    def get_review_summary(self, analysis: dict[str, Any]) -> str:
         """
         Generate a human-readable summary of the objective analysis
 

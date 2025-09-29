@@ -12,7 +12,7 @@ Provides structured exceptions for all components
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 
 class HiveError(Exception):
@@ -32,8 +32,8 @@ class HiveError(Exception):
         message: str,
         component: str | None = None,
         operation: str | None = None,
-        details: Optional[Dict[str, Any]] = None,
-        recovery_suggestions: Optional[List[str]] = None,
+        details: Optional[dict[str, Any]] = None,
+        recovery_suggestions: Optional[list[str]] = None,
     ):
         super().__init__(message)
         self.message = message
@@ -43,7 +43,7 @@ class HiveError(Exception):
         self.timestamp = datetime.now()
         self.recovery_suggestions = recovery_suggestions or []
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert exception to dictionary for logging/storage"""
         return {
             "error_type": self.__class__.__name__,
@@ -73,10 +73,10 @@ class HiveConfigError(BaseError):
 
         # Add recovery suggestions
         self.recovery_suggestions = [
-            "Check configuration file exists and is valid JSON"
-            "Verify all required configuration keys are present"
-            "Check environment variables for overrides"
-            "Use default configuration as fallback"
+            "Check configuration file exists and is valid JSON",
+            "Verify all required configuration keys are present",
+            "Check environment variables for overrides",
+            "Use default configuration as fallback",
         ]
 
 
@@ -94,16 +94,16 @@ class HiveDatabaseError(BaseError):
         # Add recovery suggestions based on error type
         if "locked" in message.lower():
             self.recovery_suggestions = [
-                "Wait for current operation to complete"
-                "Check for zombie processes holding locks"
-                "Consider using WAL mode for better concurrency"
+                "Wait for current operation to complete",
+                "Check for zombie processes holding locks",
+                "Consider using WAL mode for better concurrency",
             ]
         elif "connection" in message.lower():
             self.recovery_suggestions = (
                 [
-                    "Check database file exists and is accessible"
-                    "Verify database path is correct"
-                    "Check file permissions"
+                    "Check database file exists and is accessible",
+                    "Verify database path is correct",
+                    "Check file permissions",
                 ],
             )
         else:
@@ -126,10 +126,10 @@ class HiveTaskError(BaseError):
         self.details["phase"] = phase
 
         self.recovery_suggestions = [
-            "Check task dependencies are satisfied"
-            "Verify worker availability for task type"
-            "Review task configuration and parameters"
-            "Check logs for detailed error information"
+            "Check task dependencies are satisfied",
+            "Verify worker availability for task type",
+            "Review task configuration and parameters",
+            "Check logs for detailed error information",
         ]
 
 
@@ -152,9 +152,9 @@ class HiveWorkerError(BaseError):
         if exit_code and exit_code < 0:
             self.recovery_suggestions = (
                 [
-                    "Worker was terminated by signal"
-                    "Check system resources (memory, CPU)"
-                    "Review worker timeout settings"
+                    "Worker was terminated by signal",
+                    "Check system resources (memory, CPU)",
+                    "Review worker timeout settings",
                 ],
             )
         else:
@@ -184,19 +184,19 @@ class HiveAPIError(BaseError):
         # Add recovery suggestions based on status code
         if status_code == 401:
             self.recovery_suggestions = [
-                "Check API credentials are valid" "Verify API key is set in configuration" "Check API key permissions"
+                "Check API credentials are validVerify API key is set in configurationCheck API key permissions"
             ]
         elif status_code == 429:
             self.recovery_suggestions = [
-                "Rate limit exceeded - wait before retrying" "Implement exponential backoff" "Consider request batching"
+                "Rate limit exceeded - wait before retryingImplement exponential backoffConsider request batching"
             ]
         elif status_code and status_code >= 500:
             self.recovery_suggestions = (
-                ["API service error - wait and retry" "Check API service status" "Use fallback mechanism if available"],
+                ["API service error - wait and retryCheck API service statusUse fallback mechanism if available"],
             )
         else:
             self.recovery_suggestions = [
-                "Check API request format" "Verify API endpoint is correct" "Review API documentation"
+                "Check API request formatVerify API endpoint is correctReview API documentation"
             ]
 
 
@@ -209,10 +209,10 @@ class HiveTimeoutError(BaseError):
         self.details["operation_type"] = operation_type
 
         self.recovery_suggestions = [
-            "Increase timeout duration for this operation"
-            "Check if operation is stuck or deadlocked"
-            "Break operation into smaller chunks"
-            "Verify system resources are not exhausted"
+            "Increase timeout duration for this operation",
+            "Check if operation is stuck or deadlocked",
+            "Break operation into smaller chunks",
+            "Verify system resources are not exhausted",
         ]
 
 
@@ -232,10 +232,10 @@ class HiveValidationError(BaseError):
         self.details["validation_rule"] = validation_rule
 
         self.recovery_suggestions = [
-            "Check input data format and types"
-            "Verify data meets validation requirements"
-            "Review validation rules for correctness"
-            "Sanitize input data before validation"
+            "Check input data format and types",
+            "Verify data meets validation requirements",
+            "Review validation rules for correctness",
+            "Sanitize input data before validation",
         ]
 
 
@@ -255,10 +255,10 @@ class HiveResourceError(BaseError):
         self.details["available"] = available
 
         self.recovery_suggestions = [
-            "Free up resources by stopping unused processes"
-            "Increase resource limits if possible"
-            "Queue operation for when resources are available"
-            "Use resource pooling for better efficiency"
+            "Free up resources by stopping unused processes",
+            "Increase resource limits if possible",
+            "Queue operation for when resources are available",
+            "Use resource pooling for better efficiency",
         ]
 
 
@@ -278,10 +278,10 @@ class HiveStateError(BaseError):
         self.details["transition"] = transition
 
         self.recovery_suggestions = [
-            "Check system state consistency"
-            "Verify state transition is valid"
-            "Reset to known good state if needed"
-            "Review state machine logic"
+            "Check system state consistency",
+            "Verify state transition is valid",
+            "Reset to known good state if needed",
+            "Review state machine logic",
         ]
 
 
@@ -291,10 +291,10 @@ class EventBusError(BaseError):
     def __init__(self, message: str, **kwargs) -> None:
         super().__init__(message, component="event_bus", **kwargs)
         self.recovery_suggestions = [
-            "Check event bus connection and configuration"
-            "Verify event bus service is running"
-            "Review event format and structure"
-            "Check database connectivity for persistent events"
+            "Check event bus connection and configuration",
+            "Verify event bus service is running",
+            "Review event format and structure",
+            "Check database connectivity for persistent events",
         ]
 
 
@@ -307,10 +307,10 @@ class EventPublishError(BaseError):
         self.details["event_id"] = event_id
 
         self.recovery_suggestions = [
-            "Check event data format and serialization"
-            "Verify database connection for persistent events"
-            "Check event bus capacity and queue status"
-            "Retry with exponential backoff"
+            "Check event data format and serialization",
+            "Verify database connection for persistent events",
+            "Check event bus capacity and queue status",
+            "Retry with exponential backoff",
         ]
 
 
@@ -323,8 +323,8 @@ class EventSubscribeError(BaseError):
         self.details["subscriber_name"] = subscriber_name
 
         self.recovery_suggestions = [
-            "Check subscription pattern syntax"
-            "Verify subscriber callback function"
-            "Check event bus subscription limits"
-            "Review subscription permissions"
+            "Check subscription pattern syntax",
+            "Verify subscriber callback function",
+            "Check event bus subscription limits",
+            "Review subscription permissions",
         ]

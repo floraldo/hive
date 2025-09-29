@@ -87,8 +87,8 @@ async def demo_oracle_intelligence():
 
     console.print(
         Panel.fit(
-            "🔮 [bold blue]HIVE ORACLE INTELLIGENCE SYSTEM[/bold blue]\n"
-            "Guardian Agent → Oracle Evolution\n\n"
+            "🔮 [bold blue]HIVE ORACLE INTELLIGENCE SYSTEM[/bold blue]\n",
+            "Guardian Agent → Oracle Evolution\n\n",
             "[green]From Reactive Protection to Proactive Wisdom[/green]",
             border_style="blue",
         )
@@ -98,8 +98,8 @@ async def demo_oracle_intelligence():
     console.print("\n🚀 [bold]Initializing Oracle Intelligence System...[/bold]")
 
     oracle_config = OracleConfig(
-        collection_interval=60,  # 1 minute for demo
-        analysis_interval=300,  # 5 minutes for demo
+        collection_interval=60,  # 1 minute for demo,
+        analysis_interval=300,  # 5 minutes for demo,
         enable_predictive_analysis=True,
         enable_github_integration=False,  # Disable for demo
     )
@@ -127,9 +127,9 @@ async def demo_oracle_intelligence():
 
     console.print(
         Panel.fit(
-            "🌟 [bold green]ORACLE INTELLIGENCE DEMO COMPLETE[/bold green]\n\n"
-            "The Guardian Agent has successfully evolved into the Oracle,\n"
-            "providing strategic intelligence and proactive insights\n"
+            "🌟 [bold green]ORACLE INTELLIGENCE DEMO COMPLETE[/bold green]\n\n",
+            "The Guardian Agent has successfully evolved into the Oracle,\n",
+            "providing strategic intelligence and proactive insights\n",
             "for the entire Hive platform ecosystem.",
             border_style="green",
         )

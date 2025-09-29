@@ -10,7 +10,6 @@ import json
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
 
 
 class ScriptsExecutor:
@@ -73,13 +72,13 @@ class ScriptsExecutor:
         print("[OK] Dependency verification complete")
         return True
 
-    def load_file_operations(self) -> List[Dict]:
+    def load_file_operations(self) -> list[dict]:
         """Load the file operations plan"""
         operations_file = self.plans_dir / "file_operations.json"
-        with open(operations_file, "r") as f:
+        with open(operations_file) as f:
             return json.load(f)
 
-    def execute_operation(self, operation: Dict) -> bool:
+    def execute_operation(self, operation: dict) -> bool:
         """Execute a single file operation"""
         op_type = operation["operation"]
         source_path = operation["source_path"]
@@ -130,7 +129,7 @@ class ScriptsExecutor:
 
         # Load consolidation plans
         plans_file = self.plans_dir / "consolidation_plans.json"
-        with open(plans_file, "r") as f:
+        with open(plans_file) as f:
             plans = json.load(f)
 
         for plan in plans:
@@ -143,13 +142,13 @@ class ScriptsExecutor:
             # Create consolidated script with basic structure
             script_content = f'''#!/usr/bin/env python3
 """
-{plan['group_name'].replace('_', ' ').title()} - Consolidated Tool
+{plan["group_name"].replace("_", " ").title()} - Consolidated Tool
 
 This script consolidates the functionality of multiple related scripts:
-{chr(10).join(f"- {Path(script).name}" for script in plan['source_scripts'])}
+{chr(10).join(f"- {Path(script).name}" for script in plan["source_scripts"])}
 
 Features:
-{chr(10).join(f"- {feature}" for feature in plan['new_features'])}
+{chr(10).join(f"- {feature}" for feature in plan["new_features"])}
 
 Usage:
     python {target_path.name} --help
@@ -161,7 +160,7 @@ from pathlib import Path
 
 def main():
     """Main execution function"""
-    parser = argparse.ArgumentParser(description="{plan['group_name'].replace('_', ' ').title()}")
+    parser = argparse.ArgumentParser(description="{plan["group_name"].replace("_", " ").title()}")
     parser.add_argument('--version', action='version', version='1.0.0')
     parser.add_argument('--dry-run', action='store_true', help='Show what would be done without executing')
 
@@ -192,7 +191,7 @@ if __name__ == "__main__":
         """Create README for the new scripts structure"""
         readme_content = f"""# Scripts Directory
 
-**Reorganized**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Reorganized**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 This directory has been systematically reorganized to eliminate redundancy and improve maintainability.
 
@@ -282,16 +281,16 @@ python security/run_audit.py --help
         """Generate execution report"""
         report = f"""# Scripts Refactoring Execution Report
 
-**Executed**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Executed**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 **Operations Completed**: {len(self.executed_operations)}
 **Backup Location**: {self.backup_dir}
 
 ## Execution Summary
 
 ### Operations Performed
-- **Directories Created**: {len([op for op in self.executed_operations if op['operation'] == 'create'])}
-- **Files Moved**: {len([op for op in self.executed_operations if op['operation'] == 'move'])}
-- **Files Copied**: {len([op for op in self.executed_operations if op['operation'] == 'copy'])}
+- **Directories Created**: {len([op for op in self.executed_operations if op["operation"] == "create"])}
+- **Files Moved**: {len([op for op in self.executed_operations if op["operation"] == "move"])}
+- **Files Copied**: {len([op for op in self.executed_operations if op["operation"] == "copy"])}
 
 ### New Structure
 The scripts directory has been reorganized into a clean, purpose-driven structure:

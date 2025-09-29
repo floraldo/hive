@@ -6,6 +6,7 @@ from typing import Any
 
 import cvxpy as cp
 import numpy as np
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -426,4 +427,4 @@ class System:
 
     def __repr__(self):
         """String representation of system."""
-        return f"System(id='{self.system_id}', " f"components={len(self.components)}, " f"flows={len(self.flows)})"
+        return f"System(id='{self.system_id}', components={len(self.components)}, flows={len(self.flows)})"

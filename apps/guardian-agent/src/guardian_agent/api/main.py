@@ -3,7 +3,7 @@
 import hmac
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import BackgroundTasks, Header, HTTPException, Request
 from guardian_agent.core.config import GuardianConfig
@@ -11,10 +11,11 @@ from guardian_agent.cost_calculator import GuardianCostCalculator
 from guardian_agent.learning.review_history import ReviewHistory
 from guardian_agent.review.engine import ReviewEngine
 from guardian_agent.webhooks.github_handler import GitHubWebhookHandler
+from pydantic import BaseModel, Field
+
 from hive_app_toolkit.api import create_hive_app
 from hive_app_toolkit.cost import with_cost_tracking
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -53,9 +54,9 @@ review_history = ReviewHistory(config.learning.history_path)
 class ReviewRequest(BaseModel):
     """Request model for manual review trigger."""
 
-    file_paths: List[str] = Field(..., description="List of file paths to review")
+    file_paths: list[str] = Field(..., description="List of file paths to review")
     review_type: str = Field("full", description="Type of review: full, quick, security")
-    context: Optional[Dict[str, Any]] = Field(None, description="Additional context")
+    context: dict[str, Any] | None = Field(None, description="Additional context")
 
 
 class ReviewResponse(BaseModel):
@@ -63,8 +64,8 @@ class ReviewResponse(BaseModel):
 
     review_id: str
     status: str
-    results: List[Dict[str, Any]]
-    summary: Dict[str, Any]
+    results: list[dict[str, Any]]
+    summary: dict[str, Any]
     cost: float
     timestamp: str
 
@@ -73,9 +74,9 @@ class FeedbackRequest(BaseModel):
     """Request model for feedback submission."""
 
     review_id: str
-    violation_id: Optional[str] = None
+    violation_id: str | None = None
     feedback_type: str = Field(..., description="positive, negative, false_positive")
-    feedback_text: Optional[str] = None
+    feedback_text: str | None = None
 
 
 # Note: HealthResponse and CostReportResponse are provided by hive-app-toolkit
@@ -163,7 +164,7 @@ async def get_review_status(review_id: str):
 async def github_webhook(
     request: Request,
     background_tasks: BackgroundTasks,
-    x_hub_signature_256: Optional[str] = Header(None),
+    x_hub_signature_256: str | None = Header(None),
 ):
     """Handle GitHub webhook events."""
     try:

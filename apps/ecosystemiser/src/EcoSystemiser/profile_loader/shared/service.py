@@ -14,13 +14,11 @@ This module defines the common service interface that all profile loaders
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, ListTuple
+from typing import Any
 
 import xarray as xr
-from ecosystemiser.profile_loader.shared.models import (
-    BaseProfileRequest,
-    BaseProfileResponse
-)
+
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
 
 
 class BaseProfileService(ABC):
@@ -87,7 +85,7 @@ class BaseProfileService(ABC):
         pass
 
     @abstractmethod
-    def get_available_variables(self, source: str | None = None) -> Dict[str, Dict[str, str]]:
+    def get_available_variables(self, source: str | None = None) -> dict[str, dict[str, str]]:
         """
         Get available variables for this profile type.
 
@@ -100,7 +98,7 @@ class BaseProfileService(ABC):
         pass
 
     @abstractmethod
-    def get_source_coverage(self, source: str) -> Dict[str, Any]:
+    def get_source_coverage(self, source: str) -> dict[str, Any]:
         """
         Get geographical and temporal coverage for a data source.
 
@@ -112,34 +110,27 @@ class BaseProfileService(ABC):
         """
         pass
 
-    def get_service_info(self) -> Dict[str, Any]:
+    def get_service_info(self) -> dict[str, Any]:
         """
         Get information about this service.
 
         Returns:
             Service metadata including capabilities and version,
         """
-        return {
-            "service_type": self.__class__.__name__,
-            "version": "1.0.0",
-            "available_sources": self.get_available_sources(),
-            "capabilities": {
-                "async_processing": True,
-                "caching": True,
-                "validation": True
-            }
-        },
+        return (
+            {
+                "service_type": self.__class__.__name__,
+                "version": "1.0.0",
+                "available_sources": self.get_available_sources(),
+                "capabilities": {"async_processing": True, "caching": True, "validation": True},
+            },
+        )
 
 
 class ProfileServiceError(Exception):
     """Base exception for profile service errors."""
 
-    def __init__(
-        self
-        message: str,
-        error_code: str | None = None,
-        details: Optional[Dict[str, Any]] = None
-    ):
+    def __init__(self, message: str, error_code: str | None = None, details: Optional[dict[str, Any]] = None):
         super().__init__(message)
         self.error_code = error_code
         self.details = details or {}

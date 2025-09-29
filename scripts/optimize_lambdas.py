@@ -13,7 +13,6 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from hive_logging import get_logger
 
@@ -39,7 +38,7 @@ class LambdaOptimizer:
         self.hive_root = hive_root or Path.cwd()
         self.optimizations = []
 
-    def find_python_files(self) -> List[Path]:
+    def find_python_files(self) -> list[Path]:
         """Find all Python files in packages and apps"""
         python_files = []
 
@@ -55,12 +54,12 @@ class LambdaOptimizer:
 
         return filtered_files
 
-    def analyze_file(self, file_path: Path) -> List[LambdaOptimization]:
+    def analyze_file(self, file_path: Path) -> list[LambdaOptimization]:
         """Analyze a single file for lambda optimization opportunities"""
         optimizations = []
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
                 lines = content.split("\n")
 
@@ -143,7 +142,7 @@ class LambdaOptimizer:
 
         return optimizations
 
-    def analyze_all(self) -> Tuple[int, Dict[str, int]]:
+    def analyze_all(self) -> tuple[int, dict[str, int]]:
         """Analyze all Python files for lambda optimizations"""
         python_files = self.find_python_files()
         logger.info(f"Analyzing {len(python_files)} Python files")
@@ -166,18 +165,18 @@ class LambdaOptimizer:
 
         report = f"""
 # Lambda Optimization Report
-Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Summary
 - Files analyzed: {files_analyzed}
-- Total optimizations found: {stats['total']}
-- Simple optimizations (itemgetter/attrgetter): {stats.get('itemgetter', 0) + stats.get('attrgetter', 0)}
-- Complex refactoring needed: {stats.get('named_function', 0)}
+- Total optimizations found: {stats["total"]}
+- Simple optimizations (itemgetter/attrgetter): {stats.get("itemgetter", 0) + stats.get("attrgetter", 0)}
+- Complex refactoring needed: {stats.get("named_function", 0)}
 
 ## Optimization Breakdown
-- operator.itemgetter opportunities: {stats.get('itemgetter', 0)}
-- operator.attrgetter opportunities: {stats.get('attrgetter', 0)}
-- Named function extractions needed: {stats.get('named_function', 0)}
+- operator.itemgetter opportunities: {stats.get("itemgetter", 0)}
+- operator.attrgetter opportunities: {stats.get("attrgetter", 0)}
+- Named function extractions needed: {stats.get("named_function", 0)}
 
 ## Top Files for Optimization
 """
@@ -202,7 +201,7 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
         return report
 
-    def apply_simple_optimizations(self, dry_run: bool = True) -> Dict[str, int]:
+    def apply_simple_optimizations(self, dry_run: bool = True) -> dict[str, int]:
         """Apply simple optimizations automatically"""
         operations = {"files_updated": 0, "optimizations_applied": 0, "skipped": 0}
 
@@ -216,7 +215,7 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
         for file_path, opts in by_file.items():
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     lines = f.readlines()
 
                 modified = False

@@ -61,9 +61,9 @@ class TestReviewEngine:
     def sample_code(self):
         """Sample code files for testing"""
         return {
-            "main.py": """
+            "main.py": """,
 def calculate_sum(a, b):
-    \"\"\"Calculate the sum of two numbers\"\"\"
+    \"\"\"Calculate the sum of two numbers\"\"\",
     return a + b
 
 def process_data(data):
@@ -108,9 +108,9 @@ def test_process_data():
     def test_score_code_quality(self, engine):
         """Test code quality scoring"""
         good_code = {
-            "good.py": """
+            "good.py": """,
 def add(x: int, y: int) -> int:
-    \"\"\"Add two integers.\"\"\"
+    \"\"\"Add two integers.\"\"\",
     return x + y
 """
         }
@@ -122,7 +122,7 @@ def add(x: int, y: int) -> int:
 def very_long_function_that_does_too_many_things():
     # TODO: refactor this
     # TODO: add tests
-    x = 12345
+    x = 12345,
     y = 67890
     z = 11111
     for i in range(100):
@@ -153,9 +153,9 @@ def very_long_function_that_does_too_many_things():
     def test_score_documentation(self, engine):
         """Test documentation scoring"""
         well_documented = {
-            "main.py": '''
+            "main.py": ''',
 def function_one():
-    """This function does something."""
+    """This function does something.""",
     pass
 
 def function_two():
@@ -181,7 +181,7 @@ def function_two():
     def test_score_security(self, engine):
         """Test security scoring"""
         secure_code = {
-            "secure.py": """
+            "secure.py": """,
 import json
 
 def process_data(data):
@@ -313,11 +313,11 @@ class TestReviewWorkflow:
         engine = ReviewEngine(mock_mode=True)
 
         excellent_code = {
-            "calculator.py": '''
+            "calculator.py": ''',
 """Calculator module with basic operations."""
 
 def add(x: float, y: float) -> float:
-    """
+    """,
     Add two numbers.
 
     Args:
@@ -381,8 +381,8 @@ def test_subtract():
             "hack.py": """
 # Quick hack, TODO: fix everything
 def do_stuff(x):
-    eval(x)  # Process input
-    password = "admin123"
+    eval(x)  # Process input,
+    password = "admin123",
     try:
         # Lots of nested logic
         if x:

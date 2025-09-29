@@ -11,7 +11,7 @@ No business logic, only interface definitions.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any
 
 
 class ClaudeServiceInterface(ABC):
@@ -20,7 +20,7 @@ class ClaudeServiceInterface(ABC):
     @abstractmethod
     async def call_claude_async(
         self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Make an async call to Claude API.
 
@@ -36,7 +36,7 @@ class ClaudeServiceInterface(ABC):
         pass
 
     @abstractmethod
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get service metrics"""
         pass
 
@@ -51,8 +51,8 @@ class PlannerBridgeInterface(ABC):
 
     @abstractmethod
     async def create_plan_async(
-        self, task_description: str, context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, task_description: str, context: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """
         Create a plan for the given task.
 
@@ -66,7 +66,7 @@ class PlannerBridgeInterface(ABC):
         pass
 
     @abstractmethod
-    async def refine_plan_async(self, plan: Dict[str, Any], feedback: str) -> Dict[str, Any]:
+    async def refine_plan_async(self, plan: dict[str, Any], feedback: str) -> dict[str, Any]:
         """
         Refine an existing plan based on feedback.
 
@@ -86,7 +86,7 @@ class ReviewerBridgeInterface(ABC):
     @abstractmethod
     async def review_code_async(
         self, code: str, language: str = "python", context: str | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Review code using Claude.
 
@@ -101,7 +101,7 @@ class ReviewerBridgeInterface(ABC):
         pass
 
     @abstractmethod
-    async def suggest_improvements_async(self, code: str, issues: List[str]) -> Dict[str, Any]:
+    async def suggest_improvements_async(self, code: str, issues: list[str]) -> dict[str, Any]:
         """
         Suggest improvements for identified issues.
 
@@ -119,7 +119,7 @@ class MonitoringInterface(ABC):
     """Abstract interface for monitoring services"""
 
     @abstractmethod
-    def record_metric(self, metric_name: str, value: float, tags: Optional[Dict[str, str]] = None) -> None:
+    def record_metric(self, metric_name: str, value: float, tags: Optional[dict[str, str]] = None) -> None:
         """Record a metric"""
         pass
 
@@ -129,6 +129,6 @@ class MonitoringInterface(ABC):
         pass
 
     @abstractmethod
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get health status"""
         pass

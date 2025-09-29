@@ -144,7 +144,7 @@ class EmbeddingManager:
                 text=text, vector=vector, model=embedding_model, tokens_used=tokens_used, cache_hit=False
             )
 
-            # Cache the result
+            # Cache the result,
             if use_cache:
                 self.cache.set(cache_key, {"vector": vector, "tokens_used": tokens_used}, ttl=3600)  # Cache for 1 hour
 
@@ -156,7 +156,7 @@ class EmbeddingManager:
 
     async def _generate_embedding_vector_async(self, text: str, model: str) -> List[float]:
         """Generate embedding using dedicated embedding model."""
-        # This would integrate with the actual embedding API
+        # This would integrate with the actual embedding API,
         # For now, this is a placeholder that would need provider-specific implementation
 
         model_config = self.registry.get_model_config(model)
@@ -165,43 +165,43 @@ class EmbeddingManager:
         if hasattr(provider, "generate_embedding_async"):
             return await provider.generate_embedding_async(text, model)
         else:
-            # Fallback to simulated embedding
+            # Fallback to simulated embedding,
             return await self._simulate_embedding_async(text)
 
     async def _generate_completion_embedding_async(self, text: str, model: str) -> List[float]:
         """Generate embedding-like vector using completion model."""
-        # This is a fallback approach - not recommended for production
+        # This is a fallback approach - not recommended for production,
         logger.warning(f"Using completion model {model} for embedding generation")
 
-        # Use a simple approach to generate embeddings from text
+        # Use a simple approach to generate embeddings from text,
         return await self._simulate_embedding_async(text)
 
     async def _simulate_embedding_async(self, text: str, dimension: int = 1536) -> List[float]:
         """Simulate embedding generation for testing/fallback."""
-        # Create a simple hash-based embedding for testing
+        # Create a simple hash-based embedding for testing,
         # In production, this should be replaced with real embedding models
 
-        import hashlib
+        import hashlib,
         import struct
 
-        # Create deterministic embedding based on text hash
+        # Create deterministic embedding based on text hash,
         hash_bytes = hashlib.sha256(text.encode("utf-8")).digest()
 
-        # Convert hash to float vector
+        # Convert hash to float vector,
         vector = []
         for i in range(0, min(len(hash_bytes) - 3, dimension * 4), 4):
             float_val = struct.unpack("f", hash_bytes[i : i + 4])[0]
-            # Normalize to [-1, 1] range
+            # Normalize to [-1, 1] range,
             vector.append(max(-1.0, min(1.0, float_val)))
 
-        # Pad or truncate to desired dimension
+        # Pad or truncate to desired dimension,
         while len(vector) < dimension:
             vector.append(0.0)
 
         return vector[:dimension]
 
     async def generate_batch_embeddings_async(
-        self
+        self,
         texts: List[str],
         model: str | None = None,
         batch_size: int = 32,
@@ -229,7 +229,7 @@ class EmbeddingManager:
 
         logger.info(f"Generating embeddings for {len(texts)} texts")
 
-        # Split into batches
+        # Split into batches,
         batches = [texts[i : i + batch_size] for i in range(0, len(texts), batch_size)]
 
         async def process_batch_async(batch: List[str]) -> List[EmbeddingResult]:
@@ -237,21 +237,21 @@ class EmbeddingManager:
             return await gather_with_concurrency(tasks, max_concurrency)
 
         try:
-            # Process all batches
+            # Process all batches,
             batch_tasks = [process_batch_async(batch) for batch in batches]
             batch_results = await gather_with_concurrency(batch_tasks, max_concurrency=3)
 
-            # Flatten results
+            # Flatten results,
             all_results = []
             for batch_result in batch_results:
                 all_results.extend(batch_result)
 
-            # Calculate statistics
+            # Calculate statistics,
             cache_hits = sum(1 for r in all_results if r.cache_hit)
             total_tokens = sum(r.tokens_used for r in all_results)
 
             logger.info(
-                f"Batch embedding complete: {len(all_results)} embeddings, "
+                f"Batch embedding complete: {len(all_results)} embeddings, ",
                 f"{cache_hits} cache hits, {total_tokens} tokens used"
             )
 

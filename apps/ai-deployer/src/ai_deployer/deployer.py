@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from hive_deployment import (
-    connect_to_server
-    deploy_application
-    determine_deployment_paths
+    connect_to_server,
+    deploy_application,
+    determine_deployment_paths,
     rollback_deployment
 )
 from hive_errors import BaseError, RecoveryStrategy
@@ -45,11 +45,11 @@ class DeploymentResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary"""
         return {
-            "success": self.success
-            "strategy": self.strategy.value
-            "deployment_id": self.deployment_id
-            "error": self.error
-            "rollback_attempted": self.rollback_attempted
+            "success": self.success,
+            "strategy": self.strategy.value,
+            "deployment_id": self.deployment_id,
+            "error": self.error,
+            "rollback_attempted": self.rollback_attempted,
             "metrics": self.metrics or {}
         }
 
@@ -133,11 +133,11 @@ class DeploymentOrchestrator:
             rollback_success = await self._attempt_rollback_async(task, deployment_id)
 
             return DeploymentResult(
-                success=False
-                strategy=strategy
-                deployment_id=deployment_id
+                success=False,
+                strategy=strategy,
+                deployment_id=deployment_id,
                 error=str(e)
-                rollback_attempted=True
+                rollback_attempted=True,
                 metrics={"rollback_success": rollback_success}
             )
 
@@ -156,9 +156,9 @@ class DeploymentOrchestrator:
 
         # Map to enum
         strategy_map = {
-            "direct": DeploymentStrategy.DIRECT
-            "blue-green": DeploymentStrategy.BLUE_GREEN
-            "rolling": DeploymentStrategy.ROLLING
+            "direct": DeploymentStrategy.DIRECT,
+            "blue-green": DeploymentStrategy.BLUE_GREEN,
+            "rolling": DeploymentStrategy.ROLLING,
             "canary": DeploymentStrategy.CANARY
         }
 
@@ -227,8 +227,8 @@ class DeploymentOrchestrator:
 
         return DeploymentResult(
             success=deploy_result["success"]
-            strategy=strategy_impl.strategy
-            deployment_id=deployment_id
+            strategy=strategy_impl.strategy,
+            deployment_id=deployment_id,
             metrics=deploy_result.get("metrics", {})
         )
 
@@ -330,7 +330,7 @@ class DeploymentOrchestrator:
             overall_healthy = all(health_checks.values())
 
             return HealthStatus(
-                healthy=overall_healthy
+                healthy=overall_healthy,
                 message=("All health checks passed" if overall_healthy else "Some health checks failed")
                 checks=health_checks
             )
@@ -338,7 +338,7 @@ class DeploymentOrchestrator:
         except Exception as e:
             logger.error(f"Health check error: {e}", exc_info=True)
             return HealthStatus(
-                healthy=False
+                healthy=False,
                 message=f"Health check error: {e}"
             )
 

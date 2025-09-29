@@ -13,9 +13,9 @@ import subprocess
 import sys
 import time
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Windows console color support
 if sys.platform == "win32":
@@ -26,7 +26,7 @@ if sys.platform == "win32":
 class HiveStatus:
     """Pure read-only status viewer for Hive MAS with DI support"""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         self.config = config or {}
         self.root = Path.cwd()
         self.hive_dir = self.root / "hive"
@@ -65,7 +65,7 @@ class HiveStatus:
             return f"{self.colors[color_name]}{text}{self.colors['reset']}"
         return text
 
-    def load_tasks(self) -> Dict[str, Dict[str, Any]]:
+    def load_tasks(self) -> dict[str, dict[str, Any]]:
         """Load all tasks from per-task files"""
         tasks = {}
 
@@ -77,29 +77,29 @@ class HiveStatus:
                 continue
 
             try:
-                with open(task_file, "r") as f:
+                with open(task_file) as f:
                     task = json.load(f)
                     tasks[task["id"]] = task
-            except (json.JSONDecodeError, KeyError, IOError):
+            except (OSError, json.JSONDecodeError, KeyError):
                 # Silently skip corrupted task files
                 pass
 
         return tasks
 
-    def load_queue(self) -> List[str]:
+    def load_queue(self) -> list[str]:
         """Load task queue order"""
         index_file = self.tasks_dir / "index.json"
         if index_file.exists():
             try:
-                with open(index_file, "r") as f:
+                with open(index_file) as f:
                     data = json.load(f)
                     return data.get("queue", [])
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 # Silently skip if queue file not readable
                 pass
         return []
 
-    def load_results(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def load_results(self, task_id: str) -> dict[str, Any] | None:
         """Load latest result for a task"""
         results_dir = self.results_dir / task_id
 
@@ -110,15 +110,15 @@ class HiveStatus:
         result_files = sorted(results_dir.glob("*.json"))
         if result_files:
             try:
-                with open(result_files[-1], "r") as f:
+                with open(result_files[-1]) as f:
                     return json.load(f)
-            except (json.JSONDecodeError, IOError, IndexError):
+            except (OSError, json.JSONDecodeError, IndexError):
                 # Silently skip if result file not readable
                 pass
 
         return None
 
-    def tail_events(self) -> List[Dict[str, Any]]:
+    def tail_events(self) -> list[dict[str, Any]]:
         """Tail new events from the event bus"""
         events = []
 
@@ -132,7 +132,7 @@ class HiveStatus:
             return events
 
         try:
-            with open(self.events_file, "r") as f:
+            with open(self.events_file) as f:
                 f.seek(self.last_event_pos)
                 for line in f:
                     try:
@@ -141,7 +141,7 @@ class HiveStatus:
                         # Skip malformed event lines
                         pass
                 self.last_event_pos = f.tell()
-        except (IOError, OSError):
+        except OSError:
             # Event file not accessible
             pass
 
@@ -151,7 +151,7 @@ class HiveStatus:
         """Format ISO time as 'X ago'"""
         try:
             dt = datetime.fromisoformat(iso_time.replace("Z", "+00:00"))
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             delta = now - dt
 
             if delta.days > 0:
@@ -235,13 +235,13 @@ class HiveStatus:
         logger.info(self.color("TASK PIPELINE", "bold"))
         logger.info(self.get_border_char("single") * 40)
         status_line = (
-            f"Queued: {self.color(str(stats['queued']), 'white'):>3} | "
-            f"Assigned: {self.color(str(stats['assigned']), 'cyan'):>3} | "
-            f"In Progress: {self.color(str(stats['in_progress']), 'yellow'):>3} | "
-            f"Testing: {self.color(str(stats['testing']), 'blue'):>3} | "
-            f"PR Open: {self.color(str(stats['pr_open']), 'cyan'):>3} | "
+            f"Queued: {self.color(str(stats['queued']), 'white'):>3} | ",
+            f"Assigned: {self.color(str(stats['assigned']), 'cyan'):>3} | ",
+            f"In Progress: {self.color(str(stats['in_progress']), 'yellow'):>3} | ",
+            f"Testing: {self.color(str(stats['testing']), 'blue'):>3} | ",
+            f"PR Open: {self.color(str(stats['pr_open']), 'cyan'):>3} | ",
             f"Completed: {self.color(str(stats['completed']), 'green'):>3} | "
-            f"Failed: {self.color(str(stats['failed']), 'red'):>3}"
+            f"Failed: {self.color(str(stats['failed']), 'red'):>3}",
         )
         logger.info(status_line)
         logger.info()
@@ -271,7 +271,7 @@ class HiveStatus:
                     notes = ""
 
                 logger.info(
-                    f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | " f"{assignee:8} | {duration:6} | {notes}"
+                    f"{icon} [{task['id']}] {task.get('title', '')[:35]:35} | {assignee:8} | {duration:6} | {notes}"
                 )
             logger.info()
 
@@ -294,8 +294,8 @@ class HiveStatus:
                 if pr:
                     pr_short = pr.split("/")[-1] if "/" in pr else pr[:20]
                     logger.info(
-                        f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | "
-                        f"{duration:6} | PR: {self.color(pr_short, 'cyan')}"
+                        f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | ",
+                        f"{duration:6} | PR: {self.color(pr_short, 'cyan')}",
                     )
                 else:
                     logger.info(f"{icon} [{task['id']}] {task.get('title', '')[:30]:30} | {duration:6}")
@@ -316,7 +316,7 @@ class HiveStatus:
                 has_fix = fix_task_id in tasks
 
                 if has_fix:
-                    logger.info(f"{icon} [{task['id']}] {reason} | " f"Fix: {self.color(fix_task_id, 'yellow')}")
+                    logger.info(f"{icon} [{task['id']}] {reason} | Fix: {self.color(fix_task_id, 'yellow')}")
                 else:
                     logger.info(f"{icon} [{task['id']}] {reason}")
             logger.info()
@@ -352,8 +352,8 @@ class HiveStatus:
                 elif evt_type == "inspector_task_created":
                     tool = "🔧" if self.use_emoji else "FIX"
                     logger.info(
-                        f"  {tool} Inspector {self.color(event.get('inspector', '?'), 'yellow')} "
-                        f"for {event.get('parent_task', '?')} ({ts} ago)"
+                        f"  {tool} Inspector {self.color(event.get('inspector', '?'), 'yellow')} ",
+                        f"for {event.get('parent_task', '?')} ({ts} ago)",
                     )
                 elif evt_type == "queen_started":
                     crown = "👑" if self.use_emoji else "Q"

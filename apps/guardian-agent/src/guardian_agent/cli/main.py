@@ -2,7 +2,6 @@
 
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -22,7 +21,7 @@ console = Console()
 @click.group()
 @click.option("--config", "-c", type=click.Path(exists=True), help="Path to configuration file")
 @click.pass_context
-def cli(ctx: click.Context, config: Optional[str]) -> None:
+def cli(ctx: click.Context, config: str | None) -> None:
     """Hive Guardian Agent - AI-powered code review and platform intelligence Oracle."""
     ctx.ensure_object(dict)
 
@@ -170,7 +169,7 @@ def oracle(ctx: click.Context) -> None:
 @click.option("--daemon", "-d", is_flag=True, help="Run as daemon service")
 @click.option("--config", "-c", type=click.Path(), help="Oracle configuration file")
 @click.pass_context
-def start(ctx: click.Context, daemon: bool, config: Optional[str]) -> None:
+def start(ctx: click.Context, daemon: bool, config: str | None) -> None:
     """Start the Hive Oracle Intelligence Service."""
 
     # Load Oracle configuration
@@ -222,7 +221,7 @@ def genesis(ctx: click.Context) -> None:
 @click.option("--path", "-p", type=click.Path(), help="Target path for the new application")
 @click.option("--no-oracle", is_flag=True, help="Disable Oracle consultation")
 @click.pass_context
-def create_app(ctx: click.Context, name: str, description: str, path: Optional[str], no_oracle: bool) -> None:
+def create_app(ctx: click.Context, name: str, description: str, path: str | None, no_oracle: bool) -> None:
     """Create a new Hive application with Oracle intelligence."""
 
     console.print("🔮 [bold blue]Hive Genesis Agent - Creating Application[/bold blue]")
@@ -277,8 +276,8 @@ def create_app(ctx: click.Context, name: str, description: str, path: Optional[s
                     )
 
                     business_value = (
-                        feature.business_value[:40] + "..."
-                        if len(feature.business_value) > 40
+                        feature.business_value[:40] + "...",
+                        if len(feature.business_value) > 40,
                         else feature.business_value
                     )
 
@@ -884,7 +883,7 @@ def ecosystem_analysis(ctx: click.Context, force_refresh: bool) -> None:
 @click.option("--max-prs", type=int, help="Maximum PRs to generate")
 @click.option("--dry-run", is_flag=True, help="Show what would be generated without creating PRs")
 @click.pass_context
-def generate_prs(ctx: click.Context, max_prs: Optional[int], dry_run: bool) -> None:
+def generate_prs(ctx: click.Context, max_prs: int | None, dry_run: bool) -> None:
     """Generate autonomous pull requests for optimizations."""
 
     console.print("🤖 [bold blue]Oracle Autonomous PR Generation[/bold blue]")
@@ -906,7 +905,7 @@ def generate_prs(ctx: click.Context, max_prs: Optional[int], dry_run: bool) -> N
                     analysis_result = await oracle_service.analyze_ecosystem_optimization_async()
                     if "optimization_opportunities" in analysis_result:
                         auto_implementable = [
-                            opt
+                            opt,
                             for opt in analysis_result["optimization_opportunities"]
                             if opt["can_auto_implement"] and opt["oracle_confidence"] >= 0.8
                         ]
@@ -1128,27 +1127,27 @@ def validate_optimization(ctx: click.Context, optimization_id: str) -> None:
 @click.pass_context
 def architect(
     ctx: click.Context,
-    design_doc: Optional[str],
-    code_path: Optional[str],
-    query: Optional[str],
+    design_doc: str | None,
+    code_path: str | None,
+    query: str | None,
     generate_pr: bool,
-    opportunity_id: Optional[str],
+    opportunity_id: str | None,
     full_cycle: bool,
     wisdom_mode: bool,
 ) -> None:
     """
     The Oracle's Unified Architectural Intelligence Interface.
 
-    This is the Oracle's ultimate command - synthesizing prophecy and symbiosis
+    This is the Oracle's ultimate command - synthesizing prophecy and symbiosis,
     into unified architectural wisdom. The single interface for all Oracle capabilities.
 
     Examples:
-      hive oracle architect --design-doc docs/new-app.md  # Prophecy analysis
-      hive oracle architect --code-path packages/hive-ai  # Symbiosis analysis
-      hive oracle architect --design-doc docs/app.md --code-path packages/  # Full-cycle audit
-      hive oracle architect --query "How to optimize database performance?"  # Wisdom query
-      hive oracle architect --generate-pr --opportunity-id opt_123  # Unified PR generation
-      hive oracle architect --wisdom-mode  # Interactive wisdom mode
+      hive oracle architect --design-doc docs/new-app.md  # Prophecy analysis,
+      hive oracle architect --code-path packages/hive-ai  # Symbiosis analysis,
+      hive oracle architect --design-doc docs/app.md --code-path packages/  # Full-cycle audit,
+      hive oracle architect --query "How to optimize database performance?"  # Wisdom query,
+      hive oracle architect --generate-pr --opportunity-id opt_123  # Unified PR generation,
+      hive oracle architect --wisdom-mode  # Interactive wisdom mode,
     """
 
     console.print("🌟 [bold blue]Oracle Unified Architectural Intelligence[/bold blue]")
@@ -1171,7 +1170,7 @@ def architect(
     if code_path:
         return asyncio.run(perform_symbiosis_analysis(code_path))
 
-    # Default: Show unified status
+    # Default: Show unified status,
     asyncio.run(show_unified_status())
 
 

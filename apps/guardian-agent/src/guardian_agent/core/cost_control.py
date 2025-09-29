@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Deque, Dict, Optional
+from typing import Any
 
 from hive_cache import CacheClient
 from hive_logging import get_logger
@@ -35,11 +35,11 @@ class CostTracker:
 
     daily_usage: float = field(default_factory=float)
     monthly_usage: float = field(default_factory=float)
-    usage_history: Deque[Dict[str, Any]] = field(default_factory=lambda: deque(maxlen=10000))
+    usage_history: deque[dict[str, Any]] = field(default_factory=lambda: deque(maxlen=10000))
 
     _last_reset_daily: datetime = field(default_factory=datetime.now)
     _last_reset_monthly: datetime = field(default_factory=datetime.now)
-    _cache: Optional[CacheClient] = field(default=None, init=False)
+    _cache: CacheClient | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         """Initialize cache for persistence."""
@@ -131,7 +131,7 @@ class CostTracker:
 
         return True, "OK"
 
-    def record_usage(self, model: str, tokens: int, file_path: Optional[str] = None) -> None:
+    def record_usage(self, model: str, tokens: int, file_path: str | None = None) -> None:
         """Record actual token usage."""
         cost = self.calculate_cost(model, tokens)
 
@@ -154,7 +154,7 @@ class CostTracker:
 
         logger.info(f"Recorded usage: {tokens} tokens (${cost:.4f}) for {model}. Daily total: ${self.daily_usage:.2f}")
 
-    def get_usage_report(self) -> Dict[str, Any]:
+    def get_usage_report(self) -> dict[str, Any]:
         """Get current usage report."""
         self._check_and_reset_limits()
 
@@ -183,8 +183,8 @@ class RateLimiter:
     max_requests_per_hour: int = 100
     max_concurrent_requests: int = 5
 
-    _minute_window: Deque[float] = field(default_factory=lambda: deque())
-    _hour_window: Deque[float] = field(default_factory=lambda: deque())
+    _minute_window: deque[float] = field(default_factory=lambda: deque())
+    _hour_window: deque[float] = field(default_factory=lambda: deque())
     _semaphore: asyncio.Semaphore = field(init=False)
 
     def __post_init__(self) -> None:
@@ -327,7 +327,7 @@ class CostControlManager:
         self,
         estimated_tokens: int,
         model: str,
-        files: Optional[list[Path]] = None,
+        files: list[Path] | None = None,
     ) -> tuple[bool, str]:
         """Check all limits before making a request."""
         # Check cost limits
@@ -343,11 +343,11 @@ class CostControlManager:
 
         return True, "All checks passed"
 
-    def record_usage(self, model: str, tokens: int, file_path: Optional[str] = None) -> None:
+    def record_usage(self, model: str, tokens: int, file_path: str | None = None) -> None:
         """Record actual usage after request."""
         self.cost_tracker.record_usage(model, tokens, file_path)
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get current cost control status."""
         return {
             "usage": self.cost_tracker.get_usage_report(),

@@ -11,7 +11,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewEngine
@@ -87,7 +87,7 @@ async def distributed_compute_async(tasks: List[Dict[str, Any]]) -> List[Any]:
         ),
         "assigned_worker": "backend",
         "workspace_type": "repo",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
 
     # Insert into database
@@ -96,7 +96,7 @@ async def distributed_compute_async(tasks: List[Dict[str, Any]]) -> List[Any]:
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute(
-        """
+        """,
         INSERT INTO tasks (
             id, title, description, task_type, priority, status,
             payload, assigned_worker, workspace_type, created_at

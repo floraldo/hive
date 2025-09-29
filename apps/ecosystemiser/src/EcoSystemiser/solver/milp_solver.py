@@ -4,6 +4,7 @@ import time
 from typing import Any
 
 import cvxpy as cp
+
 from ecosystemiser.solver.base import BaseSolver, SolverResult
 from hive_logging import get_logger
 
@@ -48,13 +49,13 @@ class MILPSolver(BaseSolver):
 
             # Update source component's output flow,
             if source_comp and "output" in source_comp.flows:
-                output_key = f'{var_prefix}_{flow_data["target"]}'
+                output_key = f"{var_prefix}_{flow_data['target']}"
                 if output_key in source_comp.flows["output"]:
                     source_comp.flows["output"][output_key]["value"] = flow_var
 
             # Update target component's input flow,
             if target_comp and "input" in target_comp.flows:
-                input_key = f'{var_prefix}_{flow_data["source"]}'
+                input_key = f"{var_prefix}_{flow_data['source']}"
                 if input_key in target_comp.flows["input"]:
                     target_comp.flows["input"][input_key]["value"] = flow_var
 

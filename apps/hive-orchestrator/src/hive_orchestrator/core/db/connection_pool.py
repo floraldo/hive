@@ -35,36 +35,36 @@ class ConnectionPool:
     """
 
     def __init__(
-        self
-        min_connections: int = None
-        max_connections: int = None
-        connection_timeout: float = None
+        self,
+        min_connections: int = None,
+        max_connections: int = None,
+        connection_timeout: float = None,
         db_config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize connection pool.
 
         Args:
-            min_connections: Minimum connections to maintain
-            max_connections: Maximum connections allowed
-            connection_timeout: Timeout for acquiring connections
-            db_config: Database configuration dictionary
+            min_connections: Minimum connections to maintain,
+            max_connections: Maximum connections allowed,
+            connection_timeout: Timeout for acquiring connections,
+            db_config: Database configuration dictionary,
         """
-        # Use provided db_config or defaults
+        # Use provided db_config or defaults,
         if db_config is None:
             db_config = {"max_connections": 10, "connection_timeout": 30.0}
 
-        self.min_connections = min_connections if min_connections is not None else 2
+        self.min_connections = min_connections if min_connections is not None else 2,
         self.max_connections = max_connections if max_connections is not None else db_config.get("max_connections", 10)
         self.connection_timeout = (
             connection_timeout if connection_timeout is not None else db_config.get("connection_timeout", 30.0)
         )
 
         self._pool = Queue(maxsize=self.max_connections)
-        self._connections_created = 0
+        self._connections_created = 0,
         self._lock = threading.RLock()
 
-        # Initialize minimum connections
+        # Initialize minimum connections,
         self._initialize_pool()
 
     def _initialize_pool(self) -> None:
@@ -81,8 +81,8 @@ class ConnectionPool:
 
             conn = sqlite3.connect(
                 str(DB_PATH)
-                check_same_thread=False
-                timeout=30.0,  # 30 second timeout for locks
+                check_same_thread=False,
+                timeout=30.0,  # 30 second timeout for locks,
                 isolation_level="DEFERRED",  # Better concurrency
             )
 
@@ -183,8 +183,8 @@ class ConnectionPool:
         """Get pool statistics."""
         return {
             "pool_size": self._pool.qsize()
-            "connections_created": self._connections_created
-            "max_connections": self.max_connections
+            "connections_created": self._connections_created,
+            "max_connections": self.max_connections,
             "min_connections": self.min_connections
         }
 

@@ -622,26 +622,34 @@ __all__ = [
     # Base classes,
     "EcoSystemiserError"
     # Simulation errors,
-    "SimulationError" "SimulationConfigError",
+    "SimulationError"
+    "SimulationConfigError",
     "SimulationExecutionError"
     # Profile errors,
-    "ProfileError" "ProfileLoadError",
+    "ProfileError"
+    "ProfileLoadError",
     "ProfileValidationError"
     # Solver errors,
-    "SolverError" "OptimizationInfeasibleError",
+    "SolverError"
+    "OptimizationInfeasibleError",
     "SolverConvergenceError"
     # Component errors,
-    "ComponentError" "ComponentConnectionError",
+    "ComponentError"
+    "ComponentConnectionError",
     "ComponentValidationError"
     # Database errors,
-    "DatabaseError" "DatabaseConnectionError",
+    "DatabaseError"
+    "DatabaseConnectionError",
     "DatabaseTransactionError"
     # Event bus errors,
-    "EventBusError" "EventPublishError"
+    "EventBusError"
+    "EventPublishError"
     # Reporter,
-    "EcoSystemiserErrorReporter" "get_error_reporter"
+    "EcoSystemiserErrorReporter"
+    "get_error_reporter"
     # Legacy aliases for backward compatibility,
-    "AdapterError" "ValidationError",
+    "AdapterError"
+    "ValidationError",
 ]
 
 

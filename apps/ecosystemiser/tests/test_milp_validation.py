@@ -33,6 +33,7 @@ from ecosystemiser.system_model.components.energy.solar_pv import (
 )
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -53,18 +54,18 @@ def create_optimization_test_system():
             0.0,
             0.0,
             0.0,
-            0.0,  # Night
+            0.0,  # Night,
             0.2,
             0.4,
             0.6,
             0.8,
             0.9,
-            1.0,  # Morning to noon
+            1.0,  # Morning to noon,
             0.9,
             0.8,
             0.6,
             0.4,
-            0.2,  # Afternoon
+            0.2,  # Afternoon,
             0.0,
             0.0,
             0.0,
@@ -83,9 +84,9 @@ def create_optimization_test_system():
             0.3,
             0.3,
             0.3,
-            0.4,  # Night low
+            0.4,  # Night low,
             0.8,
-            0.9,  # Morning peak
+            0.9,  # Morning peak,
             0.4,
             0.4,
             0.4,
@@ -94,10 +95,10 @@ def create_optimization_test_system():
             0.4,
             0.4,
             0.4,
-            0.5,  # Day moderate
+            0.5,  # Day moderate,
             1.0,
             0.9,
-            0.8,  # Evening peak
+            0.8,  # Evening peak,
             0.4,
             0.3,
             0.3,  # Night low
@@ -107,9 +108,9 @@ def create_optimization_test_system():
     # Create components with parameters that enable meaningful optimization
     grid_params = GridParams(
         technical=GridTechnicalParams(
-            capacity_nominal=50.0,  # Smaller grid capacity to encourage storage use
-            import_tariff=0.30,  # Higher import tariff
-            export_tariff=0.05,  # Lower export tariff to discourage export
+            capacity_nominal=50.0,  # Smaller grid capacity to encourage storage use,
+            import_tariff=0.30,  # Higher import tariff,
+            export_tariff=0.05,  # Lower export tariff to discourage export,
             fidelity_level=FidelityLevel.SIMPLE,
         )
     )
@@ -117,10 +118,10 @@ def create_optimization_test_system():
 
     battery_params = BatteryParams(
         technical=BatteryTechnicalParams(
-            capacity_nominal=20.0,  # Larger battery for more optimization potential
-            max_charge_rate=8.0,  # Higher charge rate
-            max_discharge_rate=8.0,  # Higher discharge rate
-            efficiency_roundtrip=0.90,  # Realistic efficiency for optimization
+            capacity_nominal=20.0,  # Larger battery for more optimization potential,
+            max_charge_rate=8.0,  # Higher charge rate,
+            max_discharge_rate=8.0,  # Higher discharge rate,
+            efficiency_roundtrip=0.90,  # Realistic efficiency for optimization,
             initial_soc_pct=0.5,
             fidelity_level=FidelityLevel.SIMPLE,
         )
@@ -129,7 +130,7 @@ def create_optimization_test_system():
 
     solar_params = SolarPVParams(
         technical=SolarPVTechnicalParams(
-            capacity_nominal=30.0,  # 30 kW solar
+            capacity_nominal=30.0,  # 30 kW solar,
             efficiency_nominal=1.0,
             fidelity_level=FidelityLevel.SIMPLE,
         )
@@ -139,7 +140,7 @@ def create_optimization_test_system():
 
     demand_params = PowerDemandParams(
         technical=PowerDemandTechnicalParams(
-            capacity_nominal=15.0,  # 15 kW peak demand
+            capacity_nominal=15.0,  # 15 kW peak demand,
             peak_demand=15.0,
             load_profile_type="variable",
             fidelity_level=FidelityLevel.SIMPLE,
@@ -316,7 +317,7 @@ def run_milp_validation():
 
         # Overall validation
         results["validation_passed"] = (
-            rule_result.status == "optimal"
+            rule_result.status == "optimal",
             and results.get("milp_success", False)
             and results.get("optimization_valid", False)
         )

@@ -4,7 +4,6 @@ import asyncio
 import time
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Deque, Dict, Optional
 
 from hive_logging import get_logger
 from hive_performance import MetricsCollector
@@ -31,7 +30,7 @@ class RateLimitWindow:
 
     window_seconds: float
     max_requests: float
-    requests: Deque[float] = field(default_factory=deque)
+    requests: deque[float] = field(default_factory=deque)
 
     def add_request(self) -> None:
         """Add a request to the window."""
@@ -92,18 +91,18 @@ class RateLimiter:
     - Automatic backoff and retry logic
     """
 
-    def __init__(self, default_limits: Optional[RateLimit] = None) -> None:
+    def __init__(self, default_limits: RateLimit | None = None) -> None:
         """Initialize rate limiter."""
         self.default_limits = default_limits or RateLimit("default")
 
         # Per-operation rate limits
-        self.operation_limits: Dict[str, RateLimit] = {}
+        self.operation_limits: dict[str, RateLimit] = {}
 
         # Rate limiting windows for each operation
-        self.windows: Dict[str, Dict[str, RateLimitWindow]] = {}
+        self.windows: dict[str, dict[str, RateLimitWindow]] = {}
 
         # Semaphores for concurrent request limiting
-        self.semaphores: Dict[str, asyncio.Semaphore] = {}
+        self.semaphores: dict[str, asyncio.Semaphore] = {}
 
         logger.info("RateLimiter initialized")
 
@@ -113,10 +112,10 @@ class RateLimiter:
         self._initialize_operation_windows(operation, limits)
 
         logger.info(
-            f"Set rate limits for {operation}: "
-            f"{limits.max_requests_per_second}/s, "
-            f"{limits.max_requests_per_minute}/min, "
-            f"{limits.max_concurrent} concurrent"
+            f"Set rate limits for {operation}: ",
+            f"{limits.max_requests_per_second}/s, ",
+            f"{limits.max_requests_per_minute}/min, ",
+            f"{limits.max_concurrent} concurrent",
         )
 
     def _initialize_operation_windows(self, operation: str, limits: RateLimit) -> None:
@@ -176,7 +175,7 @@ class RateLimiter:
                     # Long wait time, reject immediately
                     metrics.increment(f"rate_limit_rejected_{operation}")
                     logger.warning(
-                        f"Rate limit exceeded for {operation} ({window_name}), " f"would need to wait {wait_time:.1f}s"
+                        f"Rate limit exceeded for {operation} ({window_name}), would need to wait {wait_time:.1f}s"
                     )
                     return False
 
@@ -232,7 +231,7 @@ class RateLimiter:
                 logger.error(f"Operation {operation} failed: {e}")
                 raise
 
-    def get_status(self, operation: Optional[str] = None) -> Dict[str, any]:
+    def get_status(self, operation: str | None = None) -> dict[str, any]:
         """
         Get current rate limiter status.
 

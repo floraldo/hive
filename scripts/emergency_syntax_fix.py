@@ -11,7 +11,6 @@ Designed to fix the systematic comma errors in the Hive codebase.
 import ast
 import re
 from pathlib import Path
-from typing import List
 
 
 class CommaFixer:
@@ -25,7 +24,7 @@ class CommaFixer:
     def fix_file(self, file_path: Path) -> bool:
         """Fix missing commas in a single Python file."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 original_content = f.read()
 
             # Try to parse the file first
@@ -110,7 +109,7 @@ class CommaFixer:
 
         return "\n".join(fixed_lines)
 
-    def add_missing_comma_to_line(self, line: str, all_lines: List[str], line_idx: int) -> str:
+    def add_missing_comma_to_line(self, line: str, all_lines: list[str], line_idx: int) -> str:
         """Add comma to a line if it's missing in a multi-line construct."""
         stripped = line.rstrip()
 
@@ -178,33 +177,33 @@ def main():
     fixer = CommaFixer()
     project_root = Path(__file__).parent.parent
 
-    # Phase 1: Critical path files
-    critical_files = [
-        "packages/hive-config/src/hive_config/unified_config.py",
-        "packages/hive-config/src/hive_config/async_config.py",
-        "packages/hive-config/src/hive_config/secure_config.py",
-        "packages/hive-config/src/hive_config/secure_config_original.py",
-        "packages/hive-ai/src/hive_ai/core/config.py",
-        "packages/hive-ai/src/hive_ai/agents/agent.py",
-        "packages/hive-ai/src/hive_ai/models/registry.py",
-        "packages/hive-db/src/hive_db/pool.py",
-        "packages/hive-db/src/hive_db/async_pool.py",
-        "packages/hive-cache/src/hive_cache/cache_client.py",
-        "packages/hive-cache/src/hive_cache/performance_cache.py",
-    ]
+    # Find all Python files in apps and packages
+    print("Scanning for Python files with syntax errors...")
+    python_files = []
 
-    print("Phase 1: Fixing critical path files...")
-    for file_path_str in critical_files:
-        file_path = project_root / file_path_str
-        if file_path.exists():
-            fixer.fix_file(file_path)
+    for directory in ["apps", "packages"]:
+        dir_path = project_root / directory
+        if dir_path.exists():
+            for py_file in dir_path.rglob("*.py"):
+                # Skip test files, venv, archive
+                if ".venv" not in str(py_file) and "archive" not in str(py_file) and "__pycache__" not in str(py_file):
+                    python_files.append(py_file)
 
-    print("\nPhase 1 Results:")
-    print(f"Fixed: {fixer.fixed_files} files")
-    print(f"Failed: {fixer.failed_files} files")
-    print(f"Errors found: {fixer.errors_found}")
+    print(f"Found {len(python_files)} Python files to check")
+    print("\nFixing syntax errors...")
 
-    return fixer.fixed_files > 0
+    for py_file in python_files:
+        fixer.fix_file(py_file)
+
+    print("\n" + "=" * 80)
+    print("RESULTS:")
+    print(f"Files scanned: {len(python_files)}")
+    print(f"Files fixed: {fixer.fixed_files}")
+    print(f"Files failed: {fixer.failed_files}")
+    print(f"Syntax errors found: {fixer.errors_found}")
+    print("=" * 80)
+
+    return fixer.fixed_files > 0 or fixer.errors_found == 0
 
 
 if __name__ == "__main__":

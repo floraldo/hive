@@ -4,7 +4,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Deque, Dict, Optional, Protocol
+from typing import Any, Protocol
 
 from hive_cache import CacheClient
 from hive_logging import get_logger
@@ -34,7 +34,7 @@ class ResourceCost:
     resource_type: ResourceType
     units: float  # e.g., tokens, seconds, bytes, requests
     cost_per_unit: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def total_cost(self) -> float:
@@ -45,7 +45,7 @@ class ResourceCost:
 class CostCalculator(Protocol):
     """Protocol for custom cost calculation."""
 
-    def calculate_cost(self, operation: str, parameters: Dict[str, Any]) -> ResourceCost:
+    def calculate_cost(self, operation: str, parameters: dict[str, Any]) -> ResourceCost:
         """Calculate cost for an operation."""
         ...
 
@@ -90,30 +90,30 @@ class CostManager:
 
     def __init__(
         self,
-        limits: Optional[BudgetLimits] = None,
-        cache_client: Optional[CacheClient] = None,
+        limits: BudgetLimits | None = None,
+        cache_client: CacheClient | None = None,
     ) -> None:
         """Initialize cost manager."""
         self.limits = limits or BudgetLimits()
         self.cache = cache_client or CacheClient(ttl_seconds=86400)
 
-        # Usage tracking
+        # Usage tracking,
         self.hourly_usage = defaultdict(float)
         self.daily_usage = defaultdict(float)
         self.monthly_usage = defaultdict(float)
 
-        # Operation history
-        self.usage_history: Deque[Dict[str, Any]] = deque(maxlen=10000)
+        # Operation history,
+        self.usage_history: deque[dict[str, Any]] = deque(maxlen=10000)
 
-        # Reset timestamps
+        # Reset timestamps,
         self._last_reset = {
             "hourly": datetime.now(),
             "daily": datetime.now(),
             "monthly": datetime.now(),
         }
 
-        # Custom cost calculators
-        self.cost_calculators: Dict[str, CostCalculator] = {}
+        # Custom cost calculators,
+        self.cost_calculators: dict[str, CostCalculator] = {}
 
         self._load_from_cache()
 
@@ -179,7 +179,7 @@ class CostManager:
     async def estimate_cost(
         self,
         operation: str,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> ResourceCost:
         """
         Estimate cost for an operation before execution.
@@ -203,10 +203,10 @@ class CostManager:
     def _default_cost_estimation(
         self,
         operation: str,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
     ) -> ResourceCost:
         """Default cost estimation logic."""
-        # Simple defaults - should be customized per application
+        # Simple defaults - should be customized per application,
         cost_defaults = {
             "ai_request": ResourceCost(ResourceType.API_CALL, 1000, 0.002),  # AI tokens,
             "email_send": ResourceCost(ResourceType.EMAIL, 1, 0.001),
@@ -220,7 +220,7 @@ class CostManager:
     async def check_budget(
         self,
         estimated_cost: ResourceCost,
-        operation: Optional[str] = None,
+        operation: str | None = None,
     ) -> tuple[bool, str]:
         """
         Check if operation can proceed within budget limits.
@@ -234,16 +234,16 @@ class CostManager:
         """
         self._check_and_reset_periods()
 
-        cost = estimated_cost.total_cost
+        cost = estimated_cost.total_cost,
         operation = operation or "unknown"
 
-        # Check per-operation limit
+        # Check per-operation limit,
         if cost > self.limits.per_operation_limit:
             reason = (f"Operation cost ${cost:.2f} exceeds per-operation limit ${self.limits.per_operation_limit:.2f}",)
             (logger.warning(f"Budget check failed for {operation}: {reason}"),)
             return False, reason
 
-        # Check hourly limit
+        # Check hourly limit,
         hourly_total = sum(self.hourly_usage.values())
         if hourly_total + cost > self.limits.hourly_limit:
             reason = (f"Hourly limit ${self.limits.hourly_limit:.2f} would be exceeded (current: ${hourly_total:.2f})",)
@@ -272,7 +272,7 @@ class CostManager:
         self,
         actual_cost: ResourceCost,
         operation: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Record actual resource usage.
@@ -282,15 +282,15 @@ class CostManager:
             operation: Operation that incurred the cost,
             metadata: Additional metadata for tracking,
         """
-        cost = actual_cost.total_cost
+        cost = actual_cost.total_cost,
         resource_key = f"{operation}_{actual_cost.resource_type.value}"
 
-        # Update usage tracking
-        self.hourly_usage[resource_key] += cost
-        self.daily_usage[resource_key] += cost
+        # Update usage tracking,
+        self.hourly_usage[resource_key] += cost,
+        self.daily_usage[resource_key] += cost,
         self.monthly_usage[resource_key] += cost
 
-        # Record in history
+        # Record in history,
         self.usage_history.append(
             {
                 "timestamp": datetime.now().isoformat(),
@@ -303,18 +303,18 @@ class CostManager:
             }
         )
 
-        # Update metrics
+        # Update metrics,
         metrics.increment(f"cost_operations_{operation}")
         metrics.record_histogram(f"cost_amount_{operation}", cost)
 
-        # Save to cache
+        # Save to cache,
         self._save_to_cache()
 
         logger.info(
             f"Recorded usage: {operation} cost ${cost:.4f} " f"(daily total: ${sum(self.daily_usage.values()):.2f})"
         )
 
-    def get_usage_report(self) -> Dict[str, Any]:
+    def get_usage_report(self) -> dict[str, Any]:
         """Get comprehensive usage report."""
         self._check_and_reset_periods()
 
@@ -325,8 +325,8 @@ class CostManager:
                 limit=self.limits.hourly_limit,
                 operations=len(
                     [
-                        h
-                        for h in self.usage_history
+                        h,
+                        for h in self.usage_history,
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(hours=1)
                     ]
                 ),
@@ -337,8 +337,8 @@ class CostManager:
                 limit=self.limits.daily_limit,
                 operations=len(
                     [
-                        h
-                        for h in self.usage_history
+                        h,
+                        for h in self.usage_history,
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(days=1)
                     ]
                 ),
@@ -349,8 +349,8 @@ class CostManager:
                 limit=self.limits.monthly_limit,
                 operations=len(
                     [
-                        h
-                        for h in self.usage_history
+                        h,
+                        for h in self.usage_history,
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(days=30)
                     ]
                 ),
@@ -365,7 +365,7 @@ class CostManager:
             },
         }
 
-    def _get_usage_by_operation(self) -> Dict[str, float]:
+    def _get_usage_by_operation(self) -> dict[str, float]:
         """Get usage breakdown by operation type."""
         usage_by_op = defaultdict(float)
 
@@ -377,7 +377,7 @@ class CostManager:
         return dict(usage_by_op)
 
     async def with_cost_control(
-        self, operation: str, operation_func, parameters: Optional[Dict[str, Any]] = None, **kwargs
+        self, operation: str, operation_func, parameters: dict[str, Any] | None = None, **kwargs
     ):
         """
         Execute an operation with automatic cost control.

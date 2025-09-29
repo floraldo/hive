@@ -3,6 +3,7 @@
 from typing import Any
 
 import numpy as np
+
 from ecosystemiser.analyser.strategies.base import BaseAnalysis
 from hive_logging import get_logger
 

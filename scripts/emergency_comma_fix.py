@@ -15,47 +15,53 @@ import ast
 import re
 from pathlib import Path
 
+
 def add_dict_commas(content: str) -> str:
     """Add commas to dictionary patterns."""
 
-    lines = content.split('\n')
+    lines = content.split("\n")
     fixed_lines = []
 
     for i, line in enumerate(lines):
         # Look for dictionary patterns
-        if (i < len(lines) - 1 and
+        if (
+            i < len(lines) - 1
+            and
             # Current line looks like: "key": value (without comma)
-            re.match(r'^\s*"[^"]+"\s*:\s*[^,\n{}]+\s*$', line) and
+            re.match(r'^\s*"[^"]+"\s*:\s*[^,\n{}]+\s*$', line)
+            and
             # Next line looks like: "key":
-            re.match(r'^\s*"[^"]+"\s*:', lines[i + 1])):
+            re.match(r'^\s*"[^"]+"\s*:', lines[i + 1])
+        ):
             # Add comma
-            line = line.rstrip() + ','
+            line = line.rstrip() + ","
 
         fixed_lines.append(line)
 
-    return '\n'.join(fixed_lines)
+    return "\n".join(fixed_lines)
+
 
 def bulk_fix_files():
     """Apply comma fix to all problematic files."""
 
     # Get all Python files with syntax errors
     problem_files = []
-    patterns = ['apps/**/*.py', 'packages/**/*.py']
+    patterns = ["apps/**/*.py", "packages/**/*.py"]
 
     print("Finding files with comma syntax errors...")
 
     for pattern in patterns:
-        files = list(Path('.').glob(pattern))
+        files = list(Path(".").glob(pattern))
         for filepath in files:
-            if any(skip in str(filepath) for skip in ['.venv', '__pycache__', '.git']):
+            if any(skip in str(filepath) for skip in [".venv", "__pycache__", ".git"]):
                 continue
 
             try:
-                with open(filepath, 'r', encoding='utf-8') as f:
+                with open(filepath, encoding="utf-8") as f:
                     content = f.read()
                 ast.parse(content)
             except SyntaxError as e:
-                if 'comma' in str(e).lower() or 'perhaps you forgot' in str(e).lower():
+                if "comma" in str(e).lower() or "perhaps you forgot" in str(e).lower():
                     problem_files.append(filepath)
             except:
                 pass
@@ -66,7 +72,7 @@ def bulk_fix_files():
 
     for filepath in problem_files:
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding="utf-8") as f:
                 original = f.read()
 
             fixed = add_dict_commas(original)
@@ -76,14 +82,14 @@ def bulk_fix_files():
                 try:
                     ast.parse(fixed)
                     # Write fixed version
-                    with open(filepath, 'w', encoding='utf-8') as f:
+                    with open(filepath, "w", encoding="utf-8") as f:
                         f.write(fixed)
                     print(f"FIXED: {filepath}")
                     fixed_count += 1
                 except SyntaxError:
                     print(f"PARTIAL: {filepath} (some fixes applied)")
                     # Write partial fix anyway - it might help
-                    with open(filepath, 'w', encoding='utf-8') as f:
+                    with open(filepath, "w", encoding="utf-8") as f:
                         f.write(fixed)
             else:
                 print(f"NO CHANGE: {filepath}")
@@ -92,6 +98,7 @@ def bulk_fix_files():
             print(f"ERROR: {filepath} - {e}")
 
     print(f"\nCompleted: {fixed_count} files successfully fixed")
+
 
 if __name__ == "__main__":
     bulk_fix_files()

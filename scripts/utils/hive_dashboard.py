@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Launch the Hive Dashboard."""
+
 import sys
 from pathlib import Path
 

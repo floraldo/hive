@@ -19,7 +19,6 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import List
 
 import pytest
 from aiohttp import web
@@ -37,7 +36,7 @@ class MockGitHubAPI:
         self.issues_closed = []
         self.comments_created = []
 
-    async def create_issue(self, title: str, body: str, labels: List[str] = None):
+    async def create_issue(self, title: str, body: str, labels: list[str] = None):
         """Mock issue creation"""
         issue = {
             "number": len(self.issues_created) + 1,
@@ -62,7 +61,7 @@ class MockGitHubAPI:
         self.comments_created.append(comment)
         return comment
 
-    async def list_issues(self, labels: List[str] = None, state: str = "open"):
+    async def list_issues(self, labels: list[str] = None, state: str = "open"):
         """Mock issue listing"""
         matching_issues = []
         for issue in self.issues_created:

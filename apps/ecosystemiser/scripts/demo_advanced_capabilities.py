@@ -26,6 +26,7 @@ try:
         StudyConfig,
         StudyService,
     )
+
     from hive_logging import get_logger
 
     logger = get_logger(__name__)
@@ -53,14 +54,14 @@ try:
         demo_result = {
             "study_id": "ga_demo_system_design",
             "study_type": "genetic_algorithm",
-            "num_simulations": 600,  # 30 population * 20 generations
+            "num_simulations": 600,  # 30 population * 20 generations,
             "successful_simulations": 580,
             "failed_simulations": 20,
             "execution_time": 145.3,
             "best_result": {
-                "best_solution": [85.4, 42.1, 35.8],  # battery, solar, inverter
+                "best_solution": [85.4, 42.1, 35.8],  # battery, solar, inverter,
                 "best_fitness": 125400.50,
-                "best_objectives": [125400.50, 0.847],  # cost, renewable fraction
+                "best_objectives": [125400.50, 0.847],  # cost, renewable fraction,
                 "pareto_front": [
                     [98500.20, 0.726],
                     [110200.30, 0.781],
@@ -144,7 +145,7 @@ try:
             "failed_simulations": 13,
             "execution_time": 78.6,
             "best_result": {
-                "best_solution": [0.118, 5.45, 0.032, 0.023],  # parameter samples
+                "best_solution": [0.118, 5.45, 0.032, 0.023],  # parameter samples,
                 "best_fitness": 98750.25,
                 "best_objectives": [98750.25],
                 "uncertainty_analysis": {

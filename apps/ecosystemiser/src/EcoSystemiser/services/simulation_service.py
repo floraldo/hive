@@ -103,9 +103,9 @@ class SimulationService:
 
             return SimulationResult(
                 simulation_id=config.simulation_id,
-                status=solver_result.status
+                status=solver_result.status,
                 results_path=results_path,
-                kpis=kpis
+                kpis=kpis,
                 solver_metrics={
                     "solve_time": solver_result.solve_time,
                     "iterations": solver_result.iterations,
@@ -164,16 +164,16 @@ class SimulationService:
                 # Build and solve this stage's system
                 stage_config = SimulationConfig(
                     simulation_id=f"{config.simulation_id}_{stage.stage_name}",
-                    system_config_path=stage.system_config_path
+                    system_config_path=stage.system_config_path,
                     solver_type=stage.solver_type,
-                    solver_config=config.solver_config,  # Use global solver config
+                    solver_config=config.solver_config,  # Use global solver config,
                     output_config=config.output_config
                 )
 
-                # Build system for this stage
+                # Build system for this stage,
                 stage_system = self._build_system(stage_config, stage_profiles)
 
-                # Run solver for this stage
+                # Run solver for this stage,
                 stage_solver_result = self._run_solver(stage_system, stage_config)
 
                 # Extract outputs to pass to next stage,
@@ -226,9 +226,9 @@ class SimulationService:
 
             return SimulationResult(
                 simulation_id=config.simulation_id,
-                status="optimal" if all_success else "feasible"
+                status="optimal" if all_success else "feasible",
                 results_path=Path(config.output_config.get("directory", "outputs")),
-                kpis=aggregated_kpis
+                kpis=aggregated_kpis,
                 solver_metrics={
                     "solve_time": total_solve_time,
                     "stages": stage_results,
@@ -339,7 +339,7 @@ class SimulationService:
             system,
             config.simulation_id,
             output_dir,
-            output_format
+            output_format,
             metadata={
                 "solver_type": config.solver_type,
                 "solver_status": solver_result.status,
@@ -404,7 +404,7 @@ class SimulationService:
         return self.run_simulation(config)
 
     def run_simulation_from_path(
-        self
+        self,
         config_path: Path,
         solver_type: str = "milp",
         output_path: Path | None = None,
@@ -432,7 +432,7 @@ class SimulationService:
         with open(config_path, "r") as f:
             config_data = yaml.safe_load(f)
 
-        # Create simulation configuration
+        # Create simulation configuration,
         sim_config = SimulationConfig(
             simulation_id=f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             system_config_path=str(config_path)

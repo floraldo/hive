@@ -282,14 +282,14 @@ class TestSimpleResultsIO:
         )
         system.add_component(grid)
 
-        # Add demand
+        # Add demand,
         demand = PowerDemand(
             name="DEMAND",
             profile=np.ones(24) * 2.0  # 2 kW constant
         )
         system.add_component(demand)
 
-        # Add flow
+        # Add flow,
         system.add_flow("grid_import", "GRID", "DEMAND")
 
         return system
@@ -306,10 +306,10 @@ class TestSimpleResultsIO:
         )
         system.add_component(grid)
 
-        # Add solar
+        # Add solar,
         solar_profile = np.array([
             0, 0, 0, 0, 0, 0.5, 1, 2, 3, 4, 4.5, 5,
-            5, 4.5, 4, 3, 2, 1, 0.5, 0, 0, 0, 0, 0
+            5, 4.5, 4, 3, 2, 1, 0.5, 0, 0, 0, 0, 0,
         ])
         solar = SolarPV(
             name="SOLAR",
@@ -318,7 +318,7 @@ class TestSimpleResultsIO:
         )
         system.add_component(solar)
 
-        # Add battery
+        # Add battery,
         battery = Battery(
             name="BATTERY",
             capacity_kWh=10.0,
@@ -328,14 +328,14 @@ class TestSimpleResultsIO:
         )
         system.add_component(battery)
 
-        # Add demand
+        # Add demand,
         demand = PowerDemand(
             name="DEMAND",
             profile=np.ones(24) * 2.0
         )
         system.add_component(demand)
 
-        # Add flows
+        # Add flows,
         system.add_flow("grid_import", "GRID", "DEMAND")
         system.add_flow("grid_export", "SOLAR", "GRID")
         system.add_flow("solar_to_demand", "SOLAR", "DEMAND")
@@ -346,5 +346,5 @@ class TestSimpleResultsIO:
         return system
 
 if __name__ == "__main__":
-    # Run tests
+    # Run tests,
     pytest.main([__file__, "-v"])

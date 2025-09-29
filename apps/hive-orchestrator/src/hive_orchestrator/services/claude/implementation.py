@@ -13,7 +13,7 @@ from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
 from threading import Lock
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -46,7 +46,7 @@ class ClaudeMetrics:
             return 0.0
         return (self.successful_calls / self.total_calls) * 100
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert metrics to dictionary"""
         return {
             "total_calls": self.total_calls,
@@ -174,7 +174,7 @@ class ResponseCache:
     """Cache for Claude API responses"""
 
     def __init__(self, ttl_seconds: int = 300) -> None:
-        self.cache: Dict[str, CacheEntry] = {}
+        self.cache: dict[str, CacheEntry] = {}
         self.ttl_seconds = ttl_seconds
         self.lock = Lock()
 
@@ -216,7 +216,7 @@ class ResponseCache:
             self.cache.clear()
             logger.info("Response cache cleared")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics"""
         with self.lock:
             total_entries = len(self.cache)

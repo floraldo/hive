@@ -10,9 +10,10 @@ enabling provider independence and testability.
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, AsyncIterable, Dict, List, Optional
+from typing import Any
 
 
 class ModelType(Enum):
@@ -41,7 +42,7 @@ class ModelResponse:
     tokens_used: int
     cost: float
     latency_ms: int
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -94,7 +95,7 @@ class ModelProviderInterface(ABC):
         pass
 
     @abstractmethod
-    def get_available_models(self) -> List[str]:
+    def get_available_models(self) -> list[str]:
         """Return list of available models.
 
         Returns:
@@ -122,10 +123,10 @@ class VectorStoreInterface(ABC):
     @abstractmethod
     async def store_async(
         self,
-        vectors: List[List[float]],
-        metadata: List[Dict[str, Any]],
-        ids: Optional[List[str]] = None,
-    ) -> List[str]:
+        vectors: list[list[float]],
+        metadata: list[dict[str, Any]],
+        ids: list[str] | None = None,
+    ) -> list[str]:
         """Store vectors with metadata.
 
         Args:
@@ -141,10 +142,10 @@ class VectorStoreInterface(ABC):
     @abstractmethod
     async def search_async(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Search for similar vectors.
 
         Args:
@@ -158,7 +159,7 @@ class VectorStoreInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_async(self, ids: List[str]) -> bool:
+    async def delete_async(self, ids: list[str]) -> bool:
         """Delete vectors by IDs.
 
         Args:
@@ -202,7 +203,7 @@ class PromptTemplateInterface(ABC):
         pass
 
     @abstractmethod
-    def get_required_variables(self) -> List[str]:
+    def get_required_variables(self) -> list[str]:
         """Get list of required template variables.
 
         Returns:
@@ -243,7 +244,7 @@ class MetricsCollectorInterface(ABC):
         pass
 
     @abstractmethod
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get aggregated metrics summary.
 
         Returns:

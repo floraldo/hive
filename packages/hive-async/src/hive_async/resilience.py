@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any
 
 from hive_errors import AsyncTimeoutError, CircuitBreakerOpenError
 from hive_logging import get_logger
@@ -139,9 +140,9 @@ class AsyncTimeoutManager:
     async def run_with_timeout_async(
         self,
         coro,
-        timeout: Optional[float] = None,
-        operation_name: Optional[str] = None,
-        fallback: Optional[Any] = None,
+        timeout: float | None = None,
+        operation_name: str | None = None,
+        fallback: Any | None = None,
     ) -> Any:
         """
         Run coroutine with timeout and enhanced error context.
@@ -174,7 +175,7 @@ class AsyncTimeoutManager:
 
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             elapsed = time.time() - start_time
             self._update_stats(operation_name, elapsed, success=False)
 
@@ -291,7 +292,7 @@ def async_resilient(
     timeout: float = 30.0,
     circuit_failure_threshold: int = 5,
     circuit_recovery_timeout: int = 60,
-    operation_name: Optional[str] = None,
+    operation_name: str | None = None,
 ):
     """
     Composite decorator providing both timeout and circuit breaker protection.

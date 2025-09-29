@@ -18,7 +18,7 @@ import sqlite3
 import sys
 import tempfile
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
@@ -206,7 +206,7 @@ class TestAIPlannerQueenIntegration:
             ],
             "metrics": {"total_estimated_duration": 75, "complexity_breakdown": {"medium": 2}},
             "status": "generated",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
 
         with patch.object(planner, "generate_execution_plan", return_value=mock_plan):
@@ -427,7 +427,7 @@ class TestAIPlannerQueenIntegration:
             UPDATE tasks SET status = ?, assignee = ?, assigned_at = ?
             WHERE id = ?
         """,
-            ("assigned", "worker:backend", datetime.now(timezone.utc).isoformat(), subtask_id),
+            ("assigned", "worker:backend", datetime.now(UTC).isoformat(), subtask_id),
         )
 
         # 2. Task starts execution
@@ -445,7 +445,7 @@ class TestAIPlannerQueenIntegration:
             UPDATE tasks SET status = ?, started_at = ?
             WHERE id = ?
         """,
-            ("in_progress", datetime.now(timezone.utc).isoformat(), subtask_id),
+            ("in_progress", datetime.now(UTC).isoformat(), subtask_id),
         )
 
         # 3. Task completes successfully
@@ -454,7 +454,7 @@ class TestAIPlannerQueenIntegration:
             UPDATE runs SET status = ?, result = ?, completed_at = ?
             WHERE id = ?
         """,
-            ("completed", json.dumps({"status": "success"}), datetime.now(timezone.utc).isoformat(), run_id),
+            ("completed", json.dumps({"status": "success"}), datetime.now(UTC).isoformat(), run_id),
         )
 
         conn.execute(
@@ -462,7 +462,7 @@ class TestAIPlannerQueenIntegration:
             UPDATE tasks SET status = ?, completed_at = ?
             WHERE id = ?
         """,
-            ("completed", datetime.now(timezone.utc).isoformat(), subtask_id),
+            ("completed", datetime.now(UTC).isoformat(), subtask_id),
         )
 
         conn.commit()

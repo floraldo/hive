@@ -34,31 +34,31 @@ class DatabaseConnectionPool:
     """
 
     def __init__(
-        self
-        db_path: Path
-        min_connections: int = 2
-        max_connections: int = 10
+        self,
+        db_path: Path,
+        min_connections: int = 2,
+        max_connections: int = 10,
         connection_timeout: float = 30.0
     ):
         """
         Initialize connection pool for a specific database.
 
         Args:
-            db_path: Path to the SQLite database file
-            min_connections: Minimum connections to maintain
-            max_connections: Maximum connections allowed
-            connection_timeout: Timeout for acquiring connections
+            db_path: Path to the SQLite database file,
+            min_connections: Minimum connections to maintain,
+            max_connections: Maximum connections allowed,
+            connection_timeout: Timeout for acquiring connections,
         """
         self.db_path = Path(db_path)
-        self.min_connections = min_connections
-        self.max_connections = max_connections
+        self.min_connections = min_connections,
+        self.max_connections = max_connections,
         self.connection_timeout = connection_timeout
 
         self._pool = Queue(maxsize=self.max_connections)
-        self._connections_created = 0
+        self._connections_created = 0,
         self._lock = threading.RLock()
 
-        # Initialize minimum connections
+        # Initialize minimum connections,
         self._initialize_pool()
 
     def _initialize_pool(self) -> None:
@@ -75,8 +75,8 @@ class DatabaseConnectionPool:
 
             conn = sqlite3.connect(
                 str(self.db_path)
-                check_same_thread=False
-                timeout=30.0,  # 30 second timeout for locks
+                check_same_thread=False,
+                timeout=30.0,  # 30 second timeout for locks,
                 isolation_level="DEFERRED",  # Better concurrency
             )
 
@@ -178,8 +178,8 @@ class DatabaseConnectionPool:
         return {
             "db_path": str(self.db_path)
             "pool_size": self._pool.qsize()
-            "connections_created": self._connections_created
-            "max_connections": self.max_connections
+            "connections_created": self._connections_created,
+            "max_connections": self.max_connections,
             "min_connections": self.min_connections
         }
 
@@ -220,8 +220,8 @@ class SharedDatabaseService:
                     db_config = self._config.get("database", {})
 
                     self._pools[db_name] = DatabaseConnectionPool(
-                        db_path=db_path
-                        min_connections=2
+                        db_path=db_path,
+                        min_connections=2,
                         max_connections=db_config.get("max_connections", 10)
                         connection_timeout=db_config.get("connection_timeout", 30.0)
                     )
@@ -289,7 +289,7 @@ def get_shared_database_service(
     """Get or create the global shared database service with DI support.
 
     Args:
-        config: Optional configuration dictionary for database settings
+        config: Optional configuration dictionary for database settings,
     """
     global _shared_service
 

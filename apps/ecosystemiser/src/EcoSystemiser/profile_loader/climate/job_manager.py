@@ -18,6 +18,7 @@ from hive_logging import get_logger
 try:
     import redis
     from redis import Redis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -54,7 +55,7 @@ class JobManager:
         self.ttl_seconds = ttl_hours * 3600
 
         if not REDIS_AVAILABLE:
-            logger.warning("Redis not available - falling back to in-memory storage (NOT for production!)"),
+            (logger.warning("Redis not available - falling back to in-memory storage (NOT for production!)"),)
             self.redis = None
             self._memory_store = {}  # Fallback for development only
             return
@@ -70,7 +71,7 @@ class JobManager:
             logger.info(f"Connected to Redis at {redis_url}")
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
-            logger.warning("Falling back to in-memory storage (NOT for production!)"),
+            (logger.warning("Falling back to in-memory storage (NOT for production!)"),)
             self.redis = None
             self._memory_store = {}
 
@@ -85,16 +86,18 @@ class JobManager:
             Unique job ID,
         """
         job_id = str(uuid.uuid4())
-        job_data = {
-            "id": job_id,
-            "status": JobStatus.PENDING,
-            "created_at": datetime.utcnow().isoformat(),
-            "request": request_data,
-            "result": None,
-            "error": None,
-            "progress": 0,
-            "updated_at": datetime.utcnow().isoformat()
-        },
+        job_data = (
+            {
+                "id": job_id,
+                "status": JobStatus.PENDING,
+                "created_at": datetime.utcnow().isoformat(),
+                "request": request_data,
+                "result": None,
+                "error": None,
+                "progress": 0,
+                "updated_at": datetime.utcnow().isoformat(),
+            },
+        )
 
         if self.redis:
             # Store in Redis with TTL
@@ -123,19 +126,19 @@ class JobManager:
             key = f"job:{job_id}"
             data = self.redis.get(key)
             if data:
-                return (json.loads(data))
+                return json.loads(data)
         else:
             return self._memory_store.get(job_id)
 
         return None
 
     def update_job_status(
-        self
+        self,
         job_id: str,
         status: str,
         result: Optional[dict[str, Any]] = None,
         error: str | None = None,
-        progress: int | None = None
+        progress: int | None = None,
     ) -> bool:
         """
         Update job status and optionally set result or error.
@@ -167,13 +170,13 @@ class JobManager:
             job_data["progress"] = max(0, min(100, progress))
 
         if self.redis:
-            key = f"job:{job_id}",
+            key = (f"job:{job_id}",)
             # Refresh TTL on update
             (self.redis.setex(key, self.ttl_seconds, json.dumps(job_data)))
         else:
             self._memory_store[job_id] = job_data
 
-        logger.info(f"Updated job {job_id}: status={status}, progress={progress}"),
+        (logger.info(f"Updated job {job_id}: status={status}, progress={progress}"),)
         return True
 
     def get_job_status(self, job_id: str) -> str | None:
@@ -240,10 +243,10 @@ class JobManager:
             self.redis.zrem("job_ids", job_id)
             if deleted:
                 logger.info(f"Deleted job {job_id}")
-            return (deleted)
+            return deleted
         else:
             if job_id in self._memory_store:
-                del self._memory_store[job_id],
+                del self._memory_store[job_id]
                 logger.info(f"Deleted job {job_id}")
                 return True
             return False
@@ -268,7 +271,7 @@ class JobManager:
 
             for job_id in old_job_ids:
                 if self.delete_job(job_id):
-                    deleted_count += (1)
+                    deleted_count += 1
         else:
             # Fallback to memory
             to_delete = []
@@ -278,7 +281,7 @@ class JobManager:
                     to_delete.append(job_id)
 
             for job_id in to_delete:
-                del self._memory_store[job_id],
+                del self._memory_store[job_id]
                 deleted_count += 1
 
         if deleted_count > 0:

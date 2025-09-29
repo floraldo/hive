@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
-from typing import Any, AsyncContextManager, Dict
+from typing import Any, AsyncContextManager
 
 from hive_logging import get_logger
 
@@ -15,8 +15,8 @@ class AsyncResourceManager:
     """Manages async resources with proper cleanup."""
 
     def __init__(self) -> None:
-        self.resources: Dict[str, Any] = {}
-        self._cleanup_callbacks: Dict[str, Any] = {}
+        self.resources: dict[str, Any] = {}
+        self._cleanup_callbacks: dict[str, Any] = {}
 
     async def __aenter__(self):
         return self

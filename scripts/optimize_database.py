@@ -8,7 +8,6 @@ Adds indexes, analyzes query patterns, and optimizes database performance.
 import sqlite3
 import time
 from pathlib import Path
-from typing import Dict, List
 
 from hive_config.paths import DB_PATH
 from hive_logging import get_logger
@@ -38,7 +37,7 @@ class DatabaseOptimizer:
             self.conn.close()
             logger.info("Disconnected from database")
 
-    def analyze_current_state(self) -> Dict[str, any]:
+    def analyze_current_state(self) -> dict[str, any]:
         """Analyze current database state and performance"""
         cursor = self.conn.cursor()
 
@@ -74,7 +73,7 @@ class DatabaseOptimizer:
 
         return {"tables": [dict(t) for t in tables], "indexes": [dict(i) for i in indexes], "table_stats": table_stats}
 
-    def create_indexes(self) -> List[str]:
+    def create_indexes(self) -> list[str]:
         """Create optimized indexes for common query patterns"""
         cursor = self.conn.cursor()
         indexes = []
@@ -147,7 +146,7 @@ class DatabaseOptimizer:
             except Exception as e:
                 logger.error(f"Failed to apply {optimization}: {e}")
 
-    def benchmark_queries(self) -> Dict[str, float]:
+    def benchmark_queries(self) -> dict[str, float]:
         """Benchmark common query patterns"""
         cursor = self.conn.cursor()
         benchmarks = {}

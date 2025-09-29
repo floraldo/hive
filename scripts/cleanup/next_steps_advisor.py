@@ -7,7 +7,6 @@ the available next steps and provides strategic recommendations.
 """
 
 from pathlib import Path
-from typing import Dict, List
 
 
 class NextStepsAdvisor:
@@ -16,7 +15,7 @@ class NextStepsAdvisor:
     def __init__(self, project_root: Path):
         self.project_root = project_root
 
-    def analyze_current_state(self) -> Dict[str, str]:
+    def analyze_current_state(self) -> dict[str, str]:
         """Analyze the current state of the platform"""
         return {
             "scripts_refactoring": "✅ COMPLETE (70 → 19 tools, 72.9% reduction)",
@@ -27,7 +26,7 @@ class NextStepsAdvisor:
             "platform_stability": "✅ STABLE (All core functionality preserved)",
         }
 
-    def get_strategic_options(self) -> Dict[str, Dict]:
+    def get_strategic_options(self) -> dict[str, dict]:
         """Get available strategic options"""
         return {
             "Option A: Complete Logging Cleanup": {
@@ -67,7 +66,7 @@ class NextStepsAdvisor:
             },
         }
 
-    def recommend_next_steps(self) -> List[str]:
+    def recommend_next_steps(self) -> list[str]:
         """Provide recommended next steps based on current state"""
         return [
             "🎯 **IMMEDIATE RECOMMENDATION**: Option A - Complete Logging Cleanup",
@@ -95,7 +94,7 @@ class NextStepsAdvisor:
 
         report = f"""# 🎯 NEXT STEPS STRATEGIC ANALYSIS
 
-**Generated**: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Generated**: {__import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## 📊 **CURRENT STATE ANALYSIS**
 
@@ -115,11 +114,11 @@ class NextStepsAdvisor:
 
         for option_name, details in options.items():
             report += f"""### **{option_name}**
-- **Description**: {details['description']}
-- **Effort Required**: {details['effort']}
-- **Impact**: {details['impact']}
-- **Priority**: {details['priority']}
-- **Next Action**: {details['next_action']}
+- **Description**: {details["description"]}
+- **Effort Required**: {details["effort"]}
+- **Impact**: {details["impact"]}
+- **Priority**: {details["priority"]}
+- **Next Action**: {details["next_action"]}
 
 """
 

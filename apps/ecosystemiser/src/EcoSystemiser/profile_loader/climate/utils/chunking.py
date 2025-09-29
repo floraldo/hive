@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 import xarray as xr
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -160,7 +161,7 @@ def apply_chunked_operation(ds: xr.Dataset, operation: callable, chunk_days: int
     results = []
 
     for i, chunk in enumerate(create_time_chunks_generator(ds, chunk_days)):
-        logger.debug(f"Processing chunk {i+1}")
+        logger.debug(f"Processing chunk {i + 1}")
         result = operation(chunk, **kwargs)
         results.append(result)
 

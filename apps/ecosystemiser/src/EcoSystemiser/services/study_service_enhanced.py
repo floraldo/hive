@@ -26,10 +26,10 @@ def apply_parameter_to_config(
     Returns:
         Modified configuration dictionary,
     """
-    # Deep copy to avoid modifying original
+    # Deep copy to avoid modifying original,
     config = copy.deepcopy(config_dict)
 
-    # Find the component in the configuration
+    # Find the component in the configuration,
     components = config.get("components", [])
     component_found = False
 
@@ -37,7 +37,7 @@ def apply_parameter_to_config(
         if component.get("name") == component_name:
             component_found = True
 
-            # Navigate the parameter path
+            # Navigate the parameter path,
             path_parts = parameter_path.split(".")
             current = component
 
@@ -47,7 +47,7 @@ def apply_parameter_to_config(
                     current[part] = {}
                 current = current[part]
 
-            # Set the final value
+            # Set the final value,
             final_key = path_parts[-1]
             old_value = current.get(final_key, "NOT_SET")
             current[final_key] = value
@@ -105,13 +105,13 @@ class ParametricSweepEnhancement:
         Returns:
             List of capacity values to sweep,
         """
-        import numpy as np
-        min_capacity = base_capacity / range_factor
+        import numpy as np,
+        min_capacity = base_capacity / range_factor,
         max_capacity = base_capacity * range_factor
 
         return list(np.linspace(min_capacity, max_capacity, num_points))
 
-    @staticmethod
+    @staticmethod,
     def create_solar_capacity_sweep(base_capacity: float, num_points: int = 5) -> list[float]:
         """Create a sweep of solar PV capacity values.
 

@@ -37,7 +37,7 @@ class AnalyserFactory:
             TypeError: If strategy_class doesn't inherit from BaseAnalysis,
         """
         if not issubclass(strategy_class, BaseAnalysis):
-            raise TypeError(f"Strategy class must inherit from BaseAnalysis, " f"got {strategy_class}")
+            raise TypeError(f"Strategy class must inherit from BaseAnalysis, got {strategy_class}")
 
         cls._strategies[name] = strategy_class
         logger.info(f"Registered strategy class: {name}")
@@ -58,7 +58,7 @@ class AnalyserFactory:
         """
         if name not in cls._strategies:
             available = ", ".join(cls._strategies.keys())
-            raise ValueError(f"Unknown strategy: {name}. " f"Available strategies: {available}")
+            raise ValueError(f"Unknown strategy: {name}. Available strategies: {available}")
         strategy_class = cls._strategies[name]
 
         # Create instance with configuration if supported,

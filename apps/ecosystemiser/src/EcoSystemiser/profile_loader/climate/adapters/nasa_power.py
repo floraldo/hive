@@ -76,11 +76,11 @@ from __future__ import annotations
         "par": "ALLSKY_SFC_PAR_TOT",  # Photosynthetically active radiation,
         "par_clearsky": "CLRSKY_SFC_PAR_TOT",  # Clear sky PAR,
         "uv": "ALLSKY_SFC_UVA",  # UV-A irradiance,
-        "uvb": "ALLSKY_SFC_UVB",  # UV-B irradiance
+        "uvb": "ALLSKY_SFC_UVB",  # UV-B irradiance,
         # Longwave radiation parameters,
         "lw_down": "ALLSKY_SFC_LW_DWN",  # Longwave radiation downward,
         "lw_up": "ALLSKY_SFC_LW_UP",  # Longwave radiation upward (estimated),
-        "lw_net": "ALLSKY_SFC_LW_NET",  # Net longwave radiation
+        "lw_net": "ALLSKY_SFC_LW_NET",  # Net longwave radiation,
         # Precipitation parameters,
         "precip": "PRECTOTCORR",  # Corrected precipitation (mm/hour),
         "precip_land": "PRECTOTLAND",  # Precipitation over land (mm/hour),
@@ -94,7 +94,7 @@ from __future__ import annotations
         "wind_shear": "WS_SHEAR",  # Wind shear between 10m and 50m,
         "atmospheric_water": "TQV",  # Total column water vapor (g/cm2),
         "ozone": "TO3",  # Total ozone (Dobson Units),
-        "aerosol_optical_depth": "AOD",  # Aerosol optical depth
+        "aerosol_optical_depth": "AOD",  # Aerosol optical depth,
         # Evapotranspiration and soil parameters,
         "evapotranspiration": "EVPTRNS",  # Evapotranspiration energy flux (MJ/m2/day),
         "evaporation": "EVAP",  # Evaporation from wet soil (mm/day),
@@ -114,7 +114,7 @@ from __future__ import annotations
     REVERSE_MAPPING = {v: k for k, v in VARIABLE_MAPPING.items()}
 
     async def _fetch_raw_async(
-        self
+        self,
         location: Tuple[float, float],
         variables: List[str],
         period: Dict[str, Any],
@@ -139,7 +139,7 @@ from __future__ import annotations
         if "properties" not in data:
             raise DataParseError(
                 self.ADAPTER_NAME,
-                "Invalid NASA POWER response structure"
+                "Invalid NASA POWER response structure",
                 field="properties"
             )
 
@@ -171,7 +171,7 @@ from __future__ import annotations
         return ds
 
     async def fetch_async(
-        self
+        self,
         *
         lat: float,
         lon: float,
@@ -216,7 +216,7 @@ from __future__ import annotations
             # Use base class fetch method,
             return await super().fetch_async(
                 location=(lat, lon),
-                variables=variables
+                variables=variables,
                 period=period,
                 resolution=resolution
             ),
@@ -231,7 +231,7 @@ from __future__ import annotations
             raise error,
 
     def build_request_params(
-        self
+        self,
         lat: float,
         lon: float,
         variables: List[str],
@@ -254,7 +254,7 @@ from __future__ import annotations
         # Parse period,
         start_date, end_date = self._parse_period(period)
 
-        # Map canonical variables to NASA POWER parameters
+        # Map canonical variables to NASA POWER parameters,
         nasa_params = []
         for var in variables:
             if var in self.VARIABLE_MAPPING:
@@ -266,7 +266,7 @@ from __future__ import annotations
             raise ValidationError(
                 f"No valid variables for NASA POWER from: {variables}",
                 field="variables",
-                value=variables
+                value=variables,
                 recovery_suggestion=f"Available variables: {list(self.VARIABLE_MAPPING.keys())}"
             ),
 
@@ -282,7 +282,7 @@ from __future__ import annotations
         },
 
     def parse_response_to_dataset(
-        self
+        self,
         response_data: Dict[str, Any],
         variables: List[str],
         lat: float,
@@ -326,7 +326,7 @@ from __future__ import annotations
             if not parameters:
                 raise DataParseError(
                     self.ADAPTER_NAME,
-                    "No parameter data in NASA POWER response"
+                    "No parameter data in NASA POWER response",
                     field="properties.parameter"
                 )
 
@@ -350,7 +350,7 @@ from __future__ import annotations
 
                         # Create DataArray with proper metadata
                         da = xr.DataArray(
-                            data_array
+                            data_array,
                             dims=["time"],
                             coords={"time": timestamps}
                             name=canonical_name
@@ -369,7 +369,7 @@ from __future__ import annotations
             if not data_vars:
                 raise DataParseError(
                     self.ADAPTER_NAME,
-                    f"No matching variables found in response for: {requested_vars}"
+                    f"No matching variables found in response for: {requested_vars}",
                     details={"available_params": list(parameters.keys())}
                 )
 
@@ -388,7 +388,7 @@ from __future__ import annotations
             # Wrap unexpected parsing errors,
             raise DataParseError(
                 self.ADAPTER_NAME,
-                f"Failed to parse NASA POWER response: {str(e)}"
+                f"Failed to parse NASA POWER response: {str(e)}",
                 details={"variables": requested_vars}
             ),
 
@@ -452,13 +452,13 @@ from __future__ import annotations
         """Return NASA POWER adapter capabilities"""
         return AdapterCapabilities(
             name="NASA POWER",
-            version=self.ADAPTER_VERSION
+            version=self.ADAPTER_VERSION,
             description="NASA's Prediction Of Worldwide Energy Resources - global meteorological and solar data",
             temporal=TemporalCoverage(
                 start_date=date(1981, 1, 1),
-                end_date=None,  # Present
+                end_date=None,  # Present,
                 historical_years=43,
-                forecast_days=0
+                forecast_days=0,
                 real_time=False,
                 delay_hours=24,  # Typically 1 day delay
             )
@@ -472,10 +472,10 @@ from __future__ import annotations
             )
             supported_variables=list(self.VARIABLE_MAPPING.keys()),
             primary_variables=[
-                "ghi"
+                "ghi",
                 "dni",
                 "dhi",  # Solar radiation - primary strength,
-                "temp_air"
+                "temp_air",
                 "wind_speed",  # Also good for these
             ]
             derived_variables=[],
@@ -485,9 +485,9 @@ from __future__ import annotations
                 DataFrequency.MONTHLY
             ]
             native_frequency=DataFrequency.HOURLY,
-            auth_type=AuthType.NONE
+            auth_type=AuthType.NONE,
             requires_subscription=False,
-            free_tier_limits=None,  # No rate limits
+            free_tier_limits=None,  # No rate limits,
             quality=QualityFeatures(
                 gap_filling=True,  # Uses MERRA-2 reanalysis,
                 quality_flags=False,
@@ -510,7 +510,7 @@ from __future__ import annotations
         ),
 
     async def _fetch_chunked_async(
-        self
+        self,
         lat: float,
         lon: float,
         variables: List[str],
@@ -567,7 +567,7 @@ from __future__ import annotations
         return combined
 
     async def _fetch_batched_async(
-        self
+        self,
         lat: float,
         lon: float,
         variables: List[str],
@@ -633,11 +633,11 @@ class NASAPowerQCProfile(QCProfile):
             "Limited accuracy for mountainous terrain due to 0.5deg resolution"
         ],
         self.recommended_variables = [
-            "temp_air"
+            "temp_air",
             "ghi",
-            "dni"
+            "dni",
             "dhi",
-            "wind_speed"
+            "wind_speed",
             "pressure"
         ],
         self.temporal_resolution_limits = {"all": "hourly"}  # NASA POWER provides hourly data
@@ -663,12 +663,12 @@ class NASAPowerQCProfile(QCProfile):
 
         # Check temperature bias in arid regions (simplified check),
         if "temp_air" in ds and "rel_humidity" in ds:
-            temp_data = ds["temp_air"].values
+            temp_data = ds["temp_air"].values,
             humidity_data = ds["rel_humidity"].values
 
-            # Arid conditions: high temperature, low humidity
+            # Arid conditions: high temperature, low humidity,
             arid_mask = (temp_data > 30) & (humidity_data < 30)
-            if np.sum(arid_mask & ~np.isnan(temp_data)) > len(temp_data) * 0.3:  # >30% arid conditions
+            if np.sum(arid_mask & ~np.isnan(temp_data)) > len(temp_data) * 0.3:  # >30% arid conditions,
                 issue = QCIssue(
                     type="source_bias",
                     message="NASA POWER may show warm bias in arid regions",

@@ -12,7 +12,7 @@ import re
 import secrets
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -47,18 +47,18 @@ class InputValidator:
 
     # Common injection patterns to detect
     INJECTION_PATTERNS = [
-        r"<script[^>]*>.*?</script>",  # Script tags
-        r"javascript:",  # JavaScript URLs
-        r"data:text/html",  # Data URLs with HTML
-        r"vbscript:",  # VBScript URLs
-        r"on\w+\s*=",  # Event handlers
-        r"expression\s*\(",  # CSS expressions
-        r'import\s+["\']',  # Python imports
-        r"exec\s*\(",  # Code execution
-        r"eval\s*\(",  # Code evaluation
-        r"__import__",  # Direct imports
-        r"subprocess",  # System commands
-        r"os\.system",  # OS commands
+        r"<script[^>]*>.*?</script>",  # Script tags,
+        r"javascript:",  # JavaScript URLs,
+        r"data:text/html",  # Data URLs with HTML,
+        r"vbscript:",  # VBScript URLs,
+        r"on\w+\s*=",  # Event handlers,
+        r"expression\s*\(",  # CSS expressions,
+        r'import\s+["\']',  # Python imports,
+        r"exec\s*\(",  # Code execution,
+        r"eval\s*\(",  # Code evaluation,
+        r"__import__",  # Direct imports,
+        r"subprocess",  # System commands,
+        r"os\.system",  # OS commands,
         r"shell=True",  # Shell execution
     ]
 
@@ -66,9 +66,9 @@ class InputValidator:
     PROMPT_INJECTION_PATTERNS = [
         r"ignore\s+previous\s+instructions"
         r"forget\s+everything"
-        r"act\s+as\s+if"
-        r"pretend\s+to\s+be"
-        r"system\s*:\s*"
+        r"act\s+as\s+if",
+        r"pretend\s+to\s+be",
+        r"system\s*:\s*",
         r"assistant\s*:\s*"
         r"human\s*:\s*"
         r"\\n\\n",  # Multiple newlines
@@ -166,7 +166,7 @@ class InputValidator:
 
         return sanitized
 
-    def validate_metadata(self, metadata: Dict[str, Any]) -> ValidationResult:
+    def validate_metadata(self, metadata: dict[str, Any]) -> ValidationResult:
         """Validate metadata dictionary for safety.
 
         Args:
@@ -321,7 +321,7 @@ class RateLimiter:
         """
         self.max_requests = max_requests
         self.window_seconds = window_seconds
-        self._requests: Dict[str, List[float]] = {}
+        self._requests: dict[str, List[float]] = {}
 
     def is_allowed(self, identifier: str) -> bool:
         """Check if a request is allowed.

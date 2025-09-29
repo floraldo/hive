@@ -94,9 +94,9 @@ def test_cli_validation_logic():
     try:
         # Test input validation concepts used in CLI
         test_cases = [
-            ("", False),  # Empty string should be invalid
-            ("x" * 6000, False),  # Too long should be invalid
-            ("normal task", True),  # Normal string should be valid
+            ("", False),  # Empty string should be invalid,
+            ("x" * 6000, False),  # Too long should be invalid,
+            ("normal task", True),  # Normal string should be valid,
             ("task with spaces", True),  # Spaces should be ok
         ]
 

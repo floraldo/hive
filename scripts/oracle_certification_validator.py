@@ -13,7 +13,6 @@ to active certification mentor providing precise, context-aware guidance.
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
 
 # Add hive packages to path
 project_root = Path(__file__).parent.parent
@@ -31,11 +30,11 @@ class CertificationGap:
 
     rule_name: str
     severity: str  # CRITICAL, HIGH, MEDIUM, LOW
-    violations: List[str]
+    violations: list[str]
     effort_estimate: str  # Time estimate for resolution
     impact_score: float  # Certification points gained by fixing
     oracle_guidance: str  # Specific guidance from Oracle knowledge base
-    similar_fixes: Optional[str] = None  # Reference to similar successful fixes
+    similar_fixes: str | None = None  # Reference to similar successful fixes
 
 
 @dataclass
@@ -49,8 +48,8 @@ class ComponentScorecard:
     operational_readiness: float  # 30 points max
     platform_integration: float  # 20 points max
     innovation_score: float  # 10 points max
-    gaps: List[CertificationGap]
-    quick_wins: List[str]
+    gaps: list[CertificationGap]
+    quick_wins: list[str]
 
 
 @dataclass
@@ -63,9 +62,9 @@ class PlatformCertificationStatus:
     certified_architects: int  # 80-89 points
     associate_architects: int  # 70-79 points
     non_certified: int  # <70 points
-    component_scorecards: List[ComponentScorecard]
-    critical_issues: List[str]
-    immediate_actions: List[str]
+    component_scorecards: list[ComponentScorecard]
+    critical_issues: list[str]
+    immediate_actions: list[str]
 
 
 class OracleCertificationMentor:
@@ -84,7 +83,7 @@ class OracleCertificationMentor:
         self.knowledge_base = self._load_architect_knowledge_base()
         logger.info("Oracle Certification Mentor initialized")
 
-    def _load_architect_knowledge_base(self) -> Dict:
+    def _load_architect_knowledge_base(self) -> dict:
         """Load Oracle's Architect v2.0 knowledge base."""
         # In a real implementation, this would load from the Oracle's vectorized documentation
         return {
@@ -166,7 +165,7 @@ class OracleCertificationMentor:
             immediate_actions=immediate_actions,
         )
 
-    def _generate_component_scorecards(self, validation_results: Dict) -> List[ComponentScorecard]:
+    def _generate_component_scorecards(self, validation_results: dict) -> list[ComponentScorecard]:
         """Generate detailed scorecards for each component based on Golden Rules compliance."""
         # For this proof-of-concept, create a single platform-wide scorecard
         # In full implementation, this would analyze each package/app individually
@@ -242,7 +241,7 @@ class OracleCertificationMentor:
         else:
             return "LOW"
 
-    def _estimate_effort(self, rule_name: str, violations: List[str]) -> str:
+    def _estimate_effort(self, rule_name: str, violations: list[str]) -> str:
         """Oracle-based effort estimation using historical patterns."""
         violation_count = len(violations)
 
@@ -255,7 +254,7 @@ class OracleCertificationMentor:
             if total_minutes < 60:
                 return f"{int(total_minutes)} minutes"
             else:
-                return f"{int(total_minutes/60)} hour{'s' if total_minutes >= 120 else ''}"
+                return f"{int(total_minutes / 60)} hour{'s' if total_minutes >= 120 else ''}"
         elif "Global State" in rule_name:
             days = 1 + (violation_count * 0.3)
             return f"{int(days)}-{int(days * 1.5)} days"
@@ -263,7 +262,7 @@ class OracleCertificationMentor:
             hours = 1 + (violation_count * 0.5)
             return f"{int(hours)}-{int(hours * 1.5)} hours"
 
-    def _generate_oracle_guidance(self, rule_name: str, violations: List[str]) -> str:
+    def _generate_oracle_guidance(self, rule_name: str, violations: list[str]) -> str:
         """Generate Oracle-specific guidance based on rule type and violations."""
         guidance_map = {
             "Package vs App Discipline": "Review package boundaries and ensure packages provide reusable infrastructure while apps implement business logic. Move business logic to apps/ and infrastructure to packages/.",
@@ -280,7 +279,7 @@ class OracleCertificationMentor:
 
         return "Apply standard architectural patterns consistent with the Hive platform conventions. Review similar components that pass this rule for implementation guidance."
 
-    def _identify_critical_issues(self, results: Dict, scorecards: List[ComponentScorecard]) -> List[str]:
+    def _identify_critical_issues(self, results: dict, scorecards: list[ComponentScorecard]) -> list[str]:
         """Identify platform-wide critical issues requiring immediate attention."""
         critical_issues = []
 
@@ -291,7 +290,7 @@ class OracleCertificationMentor:
 
         return critical_issues
 
-    def _generate_immediate_actions(self, scorecards: List[ComponentScorecard]) -> List[str]:
+    def _generate_immediate_actions(self, scorecards: list[ComponentScorecard]) -> list[str]:
         """Generate immediate actionable recommendations."""
         actions = []
 

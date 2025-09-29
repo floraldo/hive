@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from pydantic import BaseModel
+
 from ecosystemiser.system_model.components.shared.economic_params import EconomicParamsModel
 from ecosystemiser.system_model.components.shared.environmental_params import EnvironmentalParamsModel
 from hive_logging import get_logger
-from pydantic import BaseModel
 
 logger = get_logger(__name__)
 

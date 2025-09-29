@@ -15,6 +15,7 @@ import sys
 from datetime import datetime
 
 from ai_planner.agent import AIPlanner
+
 from hive_db import get_connection, init_db
 
 
@@ -44,11 +45,11 @@ def demonstrate_claude_planning() -> None:
     logger.info("-" * 30)
 
     complex_task = {
-        "id": f'demo-{datetime.now().strftime("%Y%m%d-%H%M%S")}',
-        "task_description": """
+        "id": f"demo-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+        "task_description": """,
         Design and implement a complete real-time collaboration platform with the following features:
-        - Multi-user document editing with operational transforms
-        - Real-time video/audio conferencing with WebRTC
+        - Multi-user document editing with operational transforms,
+        - Real-time video/audio conferencing with WebRTC,
         - Persistent chat system with message history
         - User authentication and authorization with role-based access
         - File sharing and version control integration
@@ -98,8 +99,8 @@ def demonstrate_claude_planning() -> None:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        """
-        INSERT INTO planning_queue
+        """,
+        INSERT INTO planning_queue,
         (id, task_description, priority, requestor, context_data, status)
         VALUES (?, ?, ?, ?, ?, ?)
     """,

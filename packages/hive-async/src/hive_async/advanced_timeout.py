@@ -2,11 +2,12 @@
 
 import asyncio
 import time
-from collections import defaultdict, deque
+from collections import deque
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Union
+from datetime import datetime
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -72,7 +73,7 @@ class AdvancedTimeoutManager:
         self.config = config or TimeoutConfig()
 
         # Metrics tracking
-        self._operation_metrics: Dict[str, TimeoutMetrics] = {}
+        self._operation_metrics: dict[str, TimeoutMetrics] = {}
         self._global_stats = {
             "total_operations": 0,
             "total_timeouts": 0,
@@ -80,11 +81,11 @@ class AdvancedTimeoutManager:
         }
 
         # Adaptive timeout cache
-        self._adaptive_timeouts: Dict[str, float] = {}
-        self._last_adaptation: Dict[str, datetime] = {}
+        self._adaptive_timeouts: dict[str, float] = {}
+        self._last_adaptation: dict[str, datetime] = {}
 
         # Alert callbacks
-        self._alert_callbacks: List[Callable] = []
+        self._alert_callbacks: list[Callable] = []
 
     def get_timeout(self, operation_name: str, timeout_type: str = "default", retry_attempt: int = 0) -> float:
         """
@@ -121,7 +122,7 @@ class AdvancedTimeoutManager:
         self,
         operation: Callable,
         operation_name: str,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         timeout_type: str = "default",
         retry_attempt: int = 0,
         *args,
@@ -168,7 +169,7 @@ class AdvancedTimeoutManager:
 
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Record timeout
             duration = time.perf_counter() - start_time
             await self._record_timeout_async(operation_name, duration, timeout, retry_attempt)
@@ -182,7 +183,7 @@ class AdvancedTimeoutManager:
             # Record failure (not timeout)
             duration = time.perf_counter() - start_time
             metrics.durations.append(duration)
-            logger.debug(f"Operation {operation_name} failed with error: {e}"),
+            (logger.debug(f"Operation {operation_name} failed with error: {e}"),)
             raise
 
     async def _record_success_async(self, operation_name: str, duration: float, timeout: float) -> None:
@@ -221,7 +222,7 @@ class AdvancedTimeoutManager:
         # Log timeout
         logger.warning(
             f"Timeout in operation {operation_name} after {duration:.3f}s ",
-            f"(timeout: {timeout:.1f}s, attempt: {retry_attempt + 1})"
+            f"(timeout: {timeout:.1f}s, attempt: {retry_attempt + 1})",
         )
 
         # Check for alert conditions
@@ -271,8 +272,8 @@ class AdvancedTimeoutManager:
             self._last_adaptation[operation_name] = datetime.utcnow()
 
             logger.info(
-                f"Updated adaptive timeout for {operation_name}: {recommended:.2f}s "
-                f"(based on P95: {metrics.p95_duration:.2f}s)"
+                f"Updated adaptive timeout for {operation_name}: {recommended:.2f}s ",
+                f"(based on P95: {metrics.p95_duration:.2f}s)",
             )
 
     async def _escalate_adaptive_timeout_async(self, operation_name: str) -> None:
@@ -286,7 +287,7 @@ class AdvancedTimeoutManager:
         self._adaptive_timeouts[operation_name] = new_timeout
         self._last_adaptation[operation_name] = datetime.utcnow()
 
-        logger.warning(f"Escalated timeout for {operation_name} to {new_timeout:.2f}s " f"due to consecutive timeouts")
+        logger.warning(f"Escalated timeout for {operation_name} to {new_timeout:.2f}s due to consecutive timeouts")
 
     async def _check_timeout_alerts_async(self, operation_name: str, metrics: TimeoutMetrics) -> None:
         """Check if timeout conditions warrant alerts."""
@@ -322,7 +323,7 @@ class AdvancedTimeoutManager:
         if alerts:
             await self._trigger_alerts_async(alerts)
 
-    async def _trigger_alerts_async(self, alerts: List[Dict[str, Any]]) -> None:
+    async def _trigger_alerts_async(self, alerts: list[dict[str, Any]]) -> None:
         """Trigger alert callbacks."""
         for callback in self._alert_callbacks:
             try:
@@ -341,11 +342,11 @@ class AdvancedTimeoutManager:
         """Get metrics for a specific operation."""
         return self._operation_metrics.get(operation_name)
 
-    def get_all_metrics(self) -> Dict[str, TimeoutMetrics]:
+    def get_all_metrics(self) -> dict[str, TimeoutMetrics]:
         """Get metrics for all operations."""
         return self._operation_metrics.copy()
 
-    def get_global_stats(self) -> Dict[str, Any]:
+    def get_global_stats(self) -> dict[str, Any]:
         """Get global timeout statistics."""
         return {
             **self._global_stats,
@@ -353,7 +354,7 @@ class AdvancedTimeoutManager:
             "adaptive_timeouts_active": len(self._adaptive_timeouts),
         }
 
-    def get_recommendations(self) -> List[Dict[str, Any]]:
+    def get_recommendations(self) -> list[dict[str, Any]]:
         """Get timeout optimization recommendations."""
         recommendations = []
 
@@ -428,9 +429,9 @@ class AdvancedTimeoutManager:
                     "total_attempts": metrics.total_attempts,
                     "successful_attempts": metrics.successful_attempts,
                     "timeout_count": metrics.timeout_count,
-                    "timeout_rate": metrics.timeout_count / metrics.total_attempts,
-                    if metrics.total_attempts > 0
-                    else 0.0,
+                    "timeout_rate": (
+                        metrics.timeout_count / metrics.total_attempts if metrics.total_attempts > 0 else 0.0
+                    ),
                     "average_duration": metrics.average_duration,
                     "p95_duration": metrics.p95_duration,
                     "p99_duration": metrics.p99_duration,
@@ -455,7 +456,7 @@ class AdvancedTimeoutManager:
 async def timeout_context_async(
     manager: AdvancedTimeoutManager,
     operation_name: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     timeout_type: str = "default",
     retry_attempt: int = 0,
 ) -> AsyncGenerator[float, None]:
@@ -472,7 +473,7 @@ async def timeout_context_async(
         duration = time.perf_counter() - start_time
         await manager._record_success_async(operation_name, duration, actual_timeout)
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         # Record timeout
         duration = time.perf_counter() - start_time
         await manager._record_timeout_async(operation_name, duration, actual_timeout, retry_attempt)
@@ -482,9 +483,9 @@ async def timeout_context_async(
 # Decorator for automatic timeout management
 def with_adaptive_timeout(
     manager: AdvancedTimeoutManager,
-    operation_name: Optional[str] = None,
+    operation_name: str | None = None,
     timeout_type: str = "default",
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
 ):
     """Decorator for automatic timeout management."""
 
@@ -499,7 +500,7 @@ def with_adaptive_timeout(
                 operation_name,
                 timeout=timeout,
                 timeout_type=timeout_type,
-                retry_attempt=kwargs.pop("_retry_attempt", 0)
+                retry_attempt=kwargs.pop("_retry_attempt", 0),
                 *args,
                 **kwargs,
             )

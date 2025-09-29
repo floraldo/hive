@@ -24,7 +24,7 @@ class SimpleResultsIO:
 
     def save_results(
         self,
-        system
+        system,
         simulation_id: str,
         output_dir: Path,
         metadata: dict | None = None
@@ -132,7 +132,7 @@ class SimpleResultsIO:
                     data.append(
                         {
                             "timestep": t,
-                            "variable": f"flow.{flow_name}"
+                            "variable": f"flow.{flow_name}",
                             "value": float(val)
                         }
                     )
@@ -156,7 +156,7 @@ class SimpleResultsIO:
                         data.append(
                             {
                                 "timestep": t,
-                                "variable": f"state.{comp_name}.energy"
+                                "variable": f"state.{comp_name}.energy",
                                 "value": float(val)
                             }
                         )
@@ -168,7 +168,7 @@ class SimpleResultsIO:
                         data.append(
                             {
                                 "timestep": t,
-                                "variable": f"profile.{comp_name}"
+                                "variable": f"profile.{comp_name}",
                                 "value": float(val)
                             }
                         )

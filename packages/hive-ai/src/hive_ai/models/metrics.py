@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict
+from typing import Any
 
 from hive_cache import CacheManager
 from hive_db import AsyncSession, get_async_session
@@ -59,7 +59,7 @@ class ModelMetrics(MetricsCollectorInterface):
         self.cache = CacheManager("model_metrics")
         self.cache_ttl = cache_ttl
         self._recent_usage: deque = deque(maxlen=1000)  # Keep last 1000 operations
-        self._hourly_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        self._hourly_stats: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     async def record_model_usage_async(
         self,
@@ -106,7 +106,7 @@ class ModelMetrics(MetricsCollectorInterface):
 
         logger.debug(
             f"Recorded usage: {model} ",
-            f"({tokens.total_tokens} tokens, {latency_ms}ms, " f"${cost:.4f}, {'success' if success else 'failure'})",
+            f"({tokens.total_tokens} tokens, {latency_ms}ms, ${cost:.4f}, {'success' if success else 'failure'})",
         )
 
     async def record_vector_operation_async(self, operation: str, count: int, latency_ms: int, success: bool) -> None:
@@ -177,7 +177,7 @@ class ModelMetrics(MetricsCollectorInterface):
         self.cache.set(cache_key, total_cost, ttl=3600)
         return total_cost
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get real-time metrics summary from in-memory data."""
         if not self._recent_usage:
             return {
@@ -243,7 +243,7 @@ class ModelMetrics(MetricsCollectorInterface):
         self.cache.set(cache_key, asdict(stats), ttl=120)
         return stats
 
-    async def get_usage_summary_async(self) -> Dict[str, Any]:
+    async def get_usage_summary_async(self) -> dict[str, Any]:
         """Get comprehensive usage summary."""
         now = datetime.utcnow()
         today_cost = await self.get_daily_cost_async()

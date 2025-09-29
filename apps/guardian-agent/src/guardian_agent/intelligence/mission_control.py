@@ -11,7 +11,7 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -91,7 +91,7 @@ class CostIntelligence:
     daily_budget: float = 100.0
     monthly_budget: float = 3000.0
     budget_utilization: float = 0.0
-    days_until_budget_exhausted: Optional[int] = None
+    days_until_budget_exhausted: int | None = None
 
     # Cost breakdown
     cost_by_service: dict[str, float] = field(default_factory=dict)
@@ -176,7 +176,7 @@ class ArchitecturalHealth:
     estimated_fix_effort: str = ""  # e.g., "2-3 days", "1 week"
 
     # Metadata
-    last_scan_time: Optional[datetime] = None
+    last_scan_time: datetime | None = None
     scan_type: str = "unknown"  # comprehensive, quick, etc.
 
     last_updated: datetime = field(default_factory=datetime.utcnow)
@@ -385,7 +385,7 @@ class CertificationReadiness:
     components_needing_immediate_action: int = 0
 
     # Burndown metrics for Operation Bedrock
-    target_completion_date: Optional[datetime] = None
+    target_completion_date: datetime | None = None
     estimated_effort_days: int = 0
     progress_percentage: float = 0.0
     velocity_points_per_week: float = 0.0
@@ -393,7 +393,7 @@ class CertificationReadiness:
     # Trends and projections
     score_trend: str = "stable"  # "improving", "declining", "stable"
     weekly_improvement: float = 0.0
-    projected_certification_date: Optional[datetime] = None
+    projected_certification_date: datetime | None = None
 
     # Top recommendations from Oracle
     top_recommendations: list[str] = field(default_factory=list)
@@ -449,8 +449,8 @@ class MissionControlDashboard:
         self.health_thresholds = {"excellent": 90.0, "good": 80.0, "warning": 70.0, "critical": 0.0}
 
         # Cache for expensive computations
-        self._dashboard_cache: Optional[DashboardData] = None
-        self._cache_expiry: Optional[datetime] = None
+        self._dashboard_cache: DashboardData | None = None
+        self._cache_expiry: datetime | None = None
         self._cache_ttl = 300  # 5 minutes
 
     async def get_dashboard_data_async(self, force_refresh: bool = False) -> DashboardData:
@@ -629,9 +629,9 @@ class MissionControlDashboard:
 
             # Calculate component score
             score = (
-                uptime * 0.4  # Uptime is most important
-                + (100 - error_rate) * 0.3  # Lower error rate is better
-                + max(0, 100 - response_time / 10) * 0.2  # Lower response time is better
+                uptime * 0.4  # Uptime is most important,
+                + (100 - error_rate) * 0.3  # Lower error rate is better,
+                + max(0, 100 - response_time / 10) * 0.2  # Lower response time is better,
                 + (100 - resource_usage) * 0.1  # Lower resource usage is better
             )
 
@@ -701,7 +701,9 @@ class MissionControlDashboard:
                 (
                     float(m.value)
                     if isinstance(m.value, (int, float))
-                    else float(m.value.get("cost_usd", 0)) if isinstance(m.value, dict) else 0
+                    else float(m.value.get("cost_usd", 0))
+                    if isinstance(m.value, dict)
+                    else 0
                 )
                 for m in cost_metrics
                 if m.timestamp >= today_start
@@ -711,7 +713,9 @@ class MissionControlDashboard:
                 (
                     float(m.value)
                     if isinstance(m.value, (int, float))
-                    else float(m.value.get("cost_usd", 0)) if isinstance(m.value, dict) else 0
+                    else float(m.value.get("cost_usd", 0))
+                    if isinstance(m.value, dict)
+                    else 0
                 )
                 for m in cost_metrics
                 if m.timestamp >= month_start
@@ -1101,9 +1105,9 @@ class MissionControlDashboard:
             return CustomerHealthScore(
                 overall_health_score=overall_health_score,
                 health_status=health_status,
-                health_trend="stable",  # Would need historical data for trend
+                health_trend="stable",  # Would need historical data for trend,
                 daily_active_users=daily_active_users,
-                weekly_active_users=daily_active_users * 5,  # Estimated
+                weekly_active_users=daily_active_users * 5,  # Estimated,
                 monthly_active_users=daily_active_users * 20,  # Estimated
                 avg_session_duration=avg_session_duration,
                 engagement_trend="stable",
@@ -1491,7 +1495,7 @@ class MissionControlDashboard:
             component_type=component_type,
             overall_score=overall_score,
             certification_level=certification_level,
-            technical_excellence=code_quality_score * 0.4,  # Scale to /40 points
+            technical_excellence=code_quality_score * 0.4,  # Scale to /40 points,
             operational_readiness=deployment_readiness * 0.3,  # Scale to /30 points
             platform_integration=platform_integration * 0.2,  # Scale to /20 points
             innovation=innovation_score,  # Already /10 points
@@ -1655,7 +1659,7 @@ class MissionControlDashboard:
         </head>
         <body>
             <h1>🎯 Hive Mission Control Dashboard</h1>
-            <p>Generated at: {data.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+            <p>Generated at: {data.generated_at.strftime("%Y-%m-%d %H:%M:%S UTC")}</p>
 
             <div class="dashboard">
                 <!-- Platform Health -->
@@ -1821,7 +1825,7 @@ class MissionControlDashboard:
                 <p>{insight.description}</p>
                 <strong>Recommended Actions:</strong>
                 <ul>
-                    {''.join(f'<li>{action}</li>' for action in insight.recommended_actions)}
+                    {"".join(f"<li>{action}</li>" for action in insight.recommended_actions)}
                 </ul>
             </div>
             """

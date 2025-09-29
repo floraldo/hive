@@ -101,9 +101,9 @@ class ReportingService:
         # Create result
         result = ReportResult(
             report_id=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            report_type=config.report_type
+            report_type=config.report_type,
             html_content=html_content,
-            json_content=json_content
+            json_content=json_content,
             plots=plots,
             generation_time=datetime.now()
             save_path=config.save_path,
@@ -241,7 +241,7 @@ class ReportingService:
         Returns:
             Complete HTML string,
         """
-        # Use the HTMLReportGenerator to create the HTML
+        # Use the HTMLReportGenerator to create the HTML,
         html_content = self._html_generator.generate_standalone_report(
             analysis_results=analysis_results, plots=plots, title=config.title, report_type=config.report_type
         )
@@ -368,7 +368,7 @@ class ReportingService:
         """
         config = config or ReportConfig(report_type="comparison", title="EcoSystemiser Comparison Report")
 
-        # Prepare comparison data
+        # Prepare comparison data,
         comparison_data = {
             "num_results": len(results_list),
             "results": results_list,

@@ -21,7 +21,6 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -206,7 +205,7 @@ class E2ETestRunner:
         elapsed = time.time() - start
         self.log(f"Processing phase completed in {elapsed:.1f} seconds")
 
-    def get_task_states(self) -> Dict[str, str]:
+    def get_task_states(self) -> dict[str, str]:
         """Query database for current task states"""
         states = {}
         conn = None

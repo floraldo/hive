@@ -109,29 +109,29 @@ class ResponseValidator:
         self.validator = validator
 
     def validate_response(
-        self
+        self,
         data: Dict[str, Any]
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
         use_fallback: bool = True
     ) -> BaseModel | None:
         """
         Validate response with optional fallback
 
         Args:
-            data: Response data to validate
-            context: Context for fallback creation
+            data: Response data to validate,
+            context: Context for fallback creation,
             use_fallback: Whether to create fallback on validation failure
 
         Returns:
-            Validated model or fallback (if enabled) or None
+            Validated model or fallback (if enabled) or None,
         """
-        # Try to validate the response
+        # Try to validate the response,
         validated = self.validator.validate(data)
 
         if validated:
             return validated
 
-        # Create fallback if enabled
+        # Create fallback if enabled,
         if use_fallback and context:
             logger.info("Creating fallback response")
             return self.validator.create_fallback("Validation failed", context or {})

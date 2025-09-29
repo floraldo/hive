@@ -48,13 +48,13 @@ def validate_hive_ai_compliance() -> bool:
         return True
 
     logger.info(f"FAIL: Found {total_violations} Golden Rules violations in hive-ai package:")
-    logger.info(str())
+    logger.info("")
 
     for rule_name, violations in hive_ai_violations.items():
         logger.info(f"RULE: {rule_name}")
         for violation in violations:
             logger.info(f"   - {violation}")
-        logger.info(str())
+        logger.info("")
 
     return False
 
@@ -75,11 +75,11 @@ Generated on: {Path(__file__).stat().st_mtime}
 
 ## Summary
 
-**Overall Status**: {'COMPLIANT' if all_passed else 'NON-COMPLIANT'}
+**Overall Status**: {"COMPLIANT" if all_passed else "NON-COMPLIANT"}
 
 **Rules Evaluated**: {len(results)}
-**Rules Passed**: {sum(1 for r in results.values() if r['passed'])}
-**Rules Failed**: {sum(1 for r in results.values() if not r['passed'])}
+**Rules Passed**: {sum(1 for r in results.values() if r["passed"])}
+**Rules Failed**: {sum(1 for r in results.values() if not r["passed"])}
 
 ## Rule-by-Rule Analysis
 

@@ -8,7 +8,6 @@ a wide range of input scenarios that might occur in real deployments.
 import json
 import os
 import tempfile
-from typing import Dict
 
 import pytest
 from hypothesis import given, settings
@@ -268,11 +267,11 @@ class TestConfigurationProperties:
         if not raw_value:
             assert not sanitized
 
-    def _parse_env_file(self, file_path: str) -> Dict[str, str]:
+    def _parse_env_file(self, file_path: str) -> dict[str, str]:
         """Simple env file parser for testing"""
         config = {}
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#") and "=" in line:
@@ -358,7 +357,7 @@ class TestConfigSecurityProperties:
         key_lower = key.lower()
         return any(sensitive_key in key_lower for sensitive_key in sensitive_keys)
 
-    def _mask_sensitive_values(self, config: Dict[str, str]) -> Dict[str, str]:
+    def _mask_sensitive_values(self, config: dict[str, str]) -> dict[str, str]:
         """Mask sensitive values in configuration"""
         masked = {}
         for key, value in config.items():

@@ -11,10 +11,11 @@ Follows the inherit-extend pattern by building upon hive-config
 with AI-specific configuration needs.
 """
 
-from typing import Any, Dict
+from typing import Any
+
+from pydantic import BaseModel, Field, validator
 
 from hive_config import BaseConfig
-from pydantic import BaseModel, Field, validator
 
 
 class ModelConfig(BaseModel):
@@ -88,7 +89,7 @@ class AIConfig(BaseConfig):
     """
 
     # Model configurations
-    models: Dict[str, ModelConfig] = Field(default_factory=dict, description="Available model configurations")
+    models: dict[str, ModelConfig] = Field(default_factory=dict, description="Available model configurations")
     default_model: str = Field("claude-3-sonnet", description="Default model name")
 
     # Vector database configuration
@@ -116,7 +117,7 @@ class AIConfig(BaseConfig):
     log_requests: bool = Field(False, description="Log all requests")
 
     @validator("models")
-    def validate_models(cls, v: Dict[str, "ModelConfig"]) -> Dict[str, "ModelConfig"]:
+    def validate_models(cls, v: dict[str, ModelConfig]) -> dict[str, ModelConfig]:
         """Validate models configuration and provide defaults if empty."""
         if not v:
             # Provide default model configurations
@@ -146,7 +147,7 @@ class AIConfig(BaseConfig):
         return v
 
     @validator("default_model")
-    def validate_default_model(cls, v: str, values: Dict[str, Any]) -> str:
+    def validate_default_model(cls, v: str, values: dict[str, Any]) -> str:
         """Validate default model exists in configured models."""
         models = values.get("models", {})
         if models and v not in models:

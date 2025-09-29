@@ -10,10 +10,10 @@ import json
 import statistics
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 import aioredis
 import msgpack
+
 from hive_cache import CacheConfig, HiveCacheClient
 
 try:
@@ -92,7 +92,7 @@ class CacheLatencyBenchmark:
             "large": {"payload": "x" * 10000, "array": list(range(1000))},
         }
 
-    async def benchmark_direct_redis(self) -> List[BenchmarkResult]:
+    async def benchmark_direct_redis(self) -> list[BenchmarkResult]:
         """Benchmark direct aioredis operations."""
         results = []
 
@@ -133,7 +133,7 @@ class CacheLatencyBenchmark:
 
         return results
 
-    async def benchmark_serialization(self) -> List[BenchmarkResult]:
+    async def benchmark_serialization(self) -> list[BenchmarkResult]:
         """Benchmark different serialization methods."""
         results = []
 
@@ -177,7 +177,7 @@ class CacheLatencyBenchmark:
 
         return results
 
-    async def benchmark_connection_pool_overhead(self) -> List[BenchmarkResult]:
+    async def benchmark_connection_pool_overhead(self) -> list[BenchmarkResult]:
         """Benchmark connection pool vs direct connection overhead."""
         results = []
 
@@ -215,7 +215,7 @@ class CacheLatencyBenchmark:
 
         return results
 
-    async def benchmark_hive_cache_client(self) -> List[BenchmarkResult]:
+    async def benchmark_hive_cache_client(self) -> list[BenchmarkResult]:
         """Benchmark the current HiveCacheClient implementation."""
         results = []
 
@@ -276,7 +276,7 @@ class CacheLatencyBenchmark:
 
         return results
 
-    async def run_all_benchmarks(self) -> Dict[str, List[BenchmarkResult]]:
+    async def run_all_benchmarks(self) -> dict[str, list[BenchmarkResult]]:
         """Run all benchmark suites."""
         print("Starting cache latency benchmark suite...")
 
@@ -300,7 +300,7 @@ class CacheLatencyBenchmark:
 
         return results
 
-    def print_results(self, all_results: Dict[str, List[BenchmarkResult]]):
+    def print_results(self, all_results: dict[str, list[BenchmarkResult]]):
         """Print formatted benchmark results."""
         print("\n" + "=" * 80)
         print("CACHE LATENCY BENCHMARK RESULTS")

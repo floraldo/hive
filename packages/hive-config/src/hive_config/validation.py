@@ -8,7 +8,6 @@ integrity and catch configuration issues early.
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Tuple
 
 from hive_logging import get_logger
 
@@ -23,7 +22,7 @@ class ValidationError(Exception):
     pass
 
 
-def validate_python_environment() -> Dict[str, any]:
+def validate_python_environment() -> dict[str, any]:
     """
     Validate Python environment and interpreter requirements.
 
@@ -45,7 +44,7 @@ def validate_python_environment() -> Dict[str, any]:
     # Check Python version compatibility
     if not results["python_version"]["compatible"]:
         results["issues"].append(
-            f"Python {results['python_version']['current']} is not supported. " f"Minimum required: Python 3.8"
+            f"Python {results['python_version']['current']} is not supported. Minimum required: Python 3.8"
         )
     elif not results["python_version"]["recommended"]:
         results["recommendations"].append("Consider upgrading to Python 3.11+ for better performance and features")
@@ -63,7 +62,7 @@ def validate_python_environment() -> Dict[str, any]:
     return results
 
 
-def validate_project_structure() -> Dict[str, any]:
+def validate_project_structure() -> dict[str, any]:
     """
     Validate Hive project directory structure and required files.
 
@@ -109,7 +108,7 @@ def validate_project_structure() -> Dict[str, any]:
     return results
 
 
-def validate_database_connectivity() -> Dict[str, any]:
+def validate_database_connectivity() -> dict[str, any]:
     """
     Test database connectivity and basic operations.
 
@@ -160,7 +159,7 @@ def validate_database_connectivity() -> Dict[str, any]:
     return results
 
 
-def validate_worker_requirements() -> Dict[str, any]:
+def validate_worker_requirements() -> dict[str, any]:
     """
     Validate that worker spawning requirements are met.
 
@@ -200,7 +199,7 @@ def validate_worker_requirements() -> Dict[str, any]:
     return results
 
 
-def run_comprehensive_validation() -> Tuple[bool, Dict[str, any]]:
+def run_comprehensive_validation() -> tuple[bool, dict[str, any]]:
     """
     Run all validation checks and return comprehensive results.
 
@@ -248,7 +247,7 @@ def run_comprehensive_validation() -> Tuple[bool, Dict[str, any]]:
     return validation_results["overall_status"] == "PASSED", validation_results
 
 
-def format_validation_report(results: Dict[str, any], include_details: bool = True) -> str:
+def format_validation_report(results: dict[str, any], include_details: bool = True) -> str:
     """
     Format validation results into a human-readable report.
 

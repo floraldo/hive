@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any
 
 import aiofiles
 import aiofiles.os
@@ -41,7 +41,7 @@ class ConfigFileHandler:
         """Initialize with callback function"""
         if not WATCHDOG_AVAILABLE:
             raise ImportError(
-                "watchdog package is required for hot-reload functionality. " "Install with: pip install watchdog"
+                "watchdog package is required for hot-reload functionality. Install with: pip install watchdog"
             )
 
         # Only inherit from FileSystemEventHandler if watchdog is available
@@ -95,23 +95,23 @@ class AsyncConfigLoader:
         self.secure_loader = secure_loader or SecureConfigLoader()
 
         # Configuration cache
-        self._config_cache: Dict[str, Dict[str, Any]] = ({},)
-        self._file_timestamps: Dict[str, float] = {}
+        self._config_cache: dict[str, dict[str, Any]] = ({},)
+        self._file_timestamps: dict[str, float] = {}
 
         # Hot-reload infrastructure (only if enabled and available)
         self._observer: Observer | None = (None,)
-        self._watched_paths: Set[str] = (set(),)
-        self._reload_callbacks: List[callable] = []
+        self._watched_paths: set[str] = (set(),)
+        self._reload_callbacks: list[callable] = []
 
         # Validate hot-reload capability
         if self.enable_hot_reload and not WATCHDOG_AVAILABLE:
             logger.warning(
-                "Hot-reload requested but watchdog package not available. "
-                "Install with: pip install watchdog. Disabling hot-reload."
+                "Hot-reload requested but watchdog package not available. ",
+                "Install with: pip install watchdog. Disabling hot-reload.",
             )
             self.enable_hot_reload = False
 
-    async def load_config_async(self, config_path: Path, config_type: str = "env") -> Dict[str, Any]:
+    async def load_config_async(self, config_path: Path, config_type: str = "env") -> dict[str, Any]:
         """
         Load configuration file asynchronously
 
@@ -164,7 +164,7 @@ class AsyncConfigLoader:
             logger.error(f"Failed to load config from {config_path}: {e}")
             return {}
 
-    async def _load_env_config_async(self, config_path: Path) -> Dict[str, Any]:
+    async def _load_env_config_async(self, config_path: Path) -> dict[str, Any]:
         """Load environment-style configuration file"""
         config = {}
 
@@ -175,7 +175,7 @@ class AsyncConfigLoader:
                 content = self.secure_loader.decrypt_file(config_path)
             else:
                 # Read plain text file
-                async with aiofiles.open(config_path, "r") as f:
+                async with aiofiles.open(config_path) as f:
                     content = await f.read()
 
             # Parse env format
@@ -190,23 +190,23 @@ class AsyncConfigLoader:
 
         return config
 
-    async def _load_json_config_async(self, config_path: Path) -> Dict[str, Any]:
+    async def _load_json_config_async(self, config_path: Path) -> dict[str, Any]:
         """Load JSON configuration file"""
         try:
-            async with aiofiles.open(config_path, "r") as f:
+            async with aiofiles.open(config_path) as f:
                 content = await f.read()
                 return json.loads(content)
         except Exception as e:
             logger.error(f"Failed to load JSON config: {e}")
             return {}
 
-    async def _load_yaml_config_async(self, config_path: Path) -> Dict[str, Any]:
+    async def _load_yaml_config_async(self, config_path: Path) -> dict[str, Any]:
         """Load YAML configuration file"""
         try:
             # YAML support is optional
             import yaml
 
-            async with aiofiles.open(config_path, "r") as f:
+            async with aiofiles.open(config_path) as f:
                 content = await f.read()
                 return yaml.safe_load(content) or {}
         except ImportError:
@@ -216,7 +216,7 @@ class AsyncConfigLoader:
             logger.error(f"Failed to load YAML config: {e}")
             return {}
 
-    async def load_multiple_configs_async(self, config_paths: List[Path]) -> Dict[str, Any]:
+    async def load_multiple_configs_async(self, config_paths: list[Path]) -> dict[str, Any]:
         """
         Load multiple configuration files concurrently
 
@@ -357,13 +357,13 @@ def create_async_config_loader(
     )
 
     if enable_hot_reload and not WATCHDOG_AVAILABLE:
-        logger.warning("Hot-reload requested but watchdog not available. " "Install with: pip install watchdog")
+        logger.warning("Hot-reload requested but watchdog not available. Install with: pip install watchdog")
 
     return loader
 
 
 # Async utility functions
-async def load_app_config_async(app_name: str, project_root: Path, enable_hot_reload: bool = False) -> Dict[str, Any]:
+async def load_app_config_async(app_name: str, project_root: Path, enable_hot_reload: bool = False) -> dict[str, Any]:
     """
     Load application configuration with standard fallback hierarchy
 

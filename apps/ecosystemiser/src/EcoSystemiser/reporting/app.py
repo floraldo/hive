@@ -6,9 +6,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from flask import Flask, Response, jsonify, render_template, request, send_file
+
 from ecosystemiser.analyser import AnalyserService
 from ecosystemiser.services.reporting_service import ReportConfig, ReportingService
-from flask import Flask, Response, jsonify, render_template, request, send_file
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -96,9 +97,9 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if session_key not in app.config:
             return (
                 render_template(
-                    "error.html"
+                    "error.html",
                     error="Session not found. Please upload results again."
-                )
+                ),
                 404
             )
         data = app.config[session_key]
@@ -125,7 +126,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             study_file = results_dir / f"{study_id}.json"
             if not study_file.exists():
                 return (
-                    render_template("error.html", error=f"Study results not found: {study_id}")
+                    render_template("error.html", error=f"Study results not found: {study_id}"),
                     404
                 )
 
@@ -136,7 +137,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         # Use ReportingService to generate GA report
         report_config = ReportConfig(
             report_type="genetic_algorithm",
-            title=f"Genetic Algorithm Optimization - {study_id}"
+            title=f"Genetic Algorithm Optimization - {study_id}",
             include_plots=True,
             output_format="html"
         )
@@ -157,7 +158,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             study_file = results_dir / f"{study_id}.json"
             if not study_file.exists():
                 return (
-                    render_template("error.html", error=f"Study results not found: {study_id}")
+                    render_template("error.html", error=f"Study results not found: {study_id}"),
                     404
                 )
 
@@ -168,7 +169,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         # Use ReportingService to generate MC report
         report_config = ReportConfig(
             report_type="monte_carlo",
-            title=f"Monte Carlo Uncertainty Analysis - {study_id}"
+            title=f"Monte Carlo Uncertainty Analysis - {study_id}",
             include_plots=True,
             output_format="html"
         )
@@ -257,7 +258,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         # Generate report using ReportingService
         report_config = ReportConfig(
             report_type="standard",
-            title=f"EcoSystemiser Analysis Report - {session_id}"
+            title=f"EcoSystemiser Analysis Report - {session_id}",
             include_plots=True,
             output_format="html"
         )
@@ -270,9 +271,9 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             tmp_path = tmp.name
 
         return send_file(
-            tmp_path
+            tmp_path,
             as_attachment=True,
-            download_name=f"ecosystemiser_report_{session_id}.html"
+            download_name=f"ecosystemiser_report_{session_id}.html",
             mimetype="text/html"
         )
 

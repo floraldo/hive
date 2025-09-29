@@ -11,7 +11,7 @@ for any event-driven system.
 
 import threading
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List
+from collections.abc import Callable
 
 from .base_events import BaseEvent
 from .subscribers import BaseSubscriber
@@ -31,7 +31,7 @@ class BaseBus(ABC):
 
     def __init__(self) -> None:
         """Initialize the base bus"""
-        self._subscribers: Dict[str, List[BaseSubscriber]] = {}
+        self._subscribers: dict[str, list[BaseSubscriber]] = {}
         self._subscriber_lock = threading.Lock()
 
     @abstractmethod

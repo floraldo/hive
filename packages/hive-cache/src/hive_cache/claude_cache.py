@@ -2,29 +2,29 @@
 
 import hashlib
 import time
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from typing import Any
 
 from hive_logging import get_logger
 
 from .cache_client import HiveCacheClient, get_cache_client
 from .config import CacheConfig
-from .exceptions import CacheError
 
 logger = get_logger(__name__)
 
 
 class ClaudeAPICache:
     """
-from __future__ import annotations
+    from __future__ import annotations
 
-    Specialized cache for Claude API responses with intelligent TTL and optimization.
+        Specialized cache for Claude API responses with intelligent TTL and optimization.
 
-    Features:
-    - Smart cache key generation from prompts and parameters
-    - Response-size-aware TTL management
-    - Claude model-specific caching strategies
-    - Automatic cache warming for common prompts
-    - Response compression for large outputs
+        Features:
+        - Smart cache key generation from prompts and parameters
+        - Response-size-aware TTL management
+        - Claude model-specific caching strategies
+        - Automatic cache warming for common prompts
+        - Response compression for large outputs
     """
 
     def __init__(self, cache_client: HiveCacheClient, config: CacheConfig) -> None:
@@ -38,7 +38,7 @@ from __future__ import annotations
             "total_cache_checks": 0,
             "cache_hit_rate": 0.0,
             "total_response_size_cached": 0,
-            "largest_response_cached": 0
+            "largest_response_cached": 0,
         }
 
     @classmethod
@@ -58,13 +58,13 @@ from __future__ import annotations
         return cls(cache_client, config)
 
     def _generate_cache_key(
-        self
+        self,
         prompt: str,
         model: str = "claude-3-opus",
         max_tokens: int | None = None,
         temperature: float = 0.0,
         system: str | None = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Generate consistent cache key for Claude API parameters.
 
@@ -101,7 +101,7 @@ from __future__ import annotations
 
         return f"claude_api_{model}_{cache_hash}"
 
-    def _calculate_response_ttl(self, response: Dict[str, Any], base_ttl: int | None = None) -> int:
+    def _calculate_response_ttl(self, response: dict[str, Any], base_ttl: int | None = None) -> int:
         """Calculate intelligent TTL based on response characteristics.
 
         Args:
@@ -128,9 +128,9 @@ from __future__ import annotations
 
         # Model factor (more expensive models cached longer)
         model_factors = {
-            "claude-3-opus": 2.0,    # Most expensive,
+            "claude-3-opus": 2.0,  # Most expensive,
             "claude-3-sonnet": 1.5,  # Medium cost,
-            "claude-3-haiku": 1.0,   # Least expensive
+            "claude-3-haiku": 1.0,  # Least expensive
         }
 
         model = response.get("model", "claude-3-opus")
@@ -140,12 +140,9 @@ from __future__ import annotations
         calculated_ttl = int(base_ttl * size_factor * model_factor)
 
         # Clamp to configured limits
-        return max(
-            self.config.min_ttl
-            min(calculated_ttl, self.config.max_ttl)
-        )
+        return max(self.config.min_ttl, min(calculated_ttl, self.config.max_ttl))
 
-    def _should_cache_response(self, response: Dict[str, Any]) -> bool:
+    def _should_cache_response(self, response: dict[str, Any]) -> bool:
         """Determine if response should be cached based on size and content.
 
         Args:
@@ -176,14 +173,14 @@ from __future__ import annotations
         return True
 
     async def get_cached_response_async(
-        self
+        self,
         prompt: str,
         model: str = "claude-3-opus",
         max_tokens: int | None = None,
         temperature: float = 0.0,
         system: str | None = None,
-        **kwargs
-    ) -> Optional[Dict[str, Any]]:
+        **kwargs,
+    ) -> Optional[dict[str, Any]]:
         """Get cached Claude API response if available.
 
         Args:
@@ -199,12 +196,10 @@ from __future__ import annotations
         """
         try:
             # Generate cache key
-            cache_key = self._generate_cache_key(
-                prompt, model, max_tokens, temperature, system, **kwargs
-            )
+            cache_key = self._generate_cache_key(prompt, model, max_tokens, temperature, system, **kwargs)
 
             # Check cache
-            self.claude_metrics["total_cache_checks"] += 1,
+            self.claude_metrics["total_cache_checks"] += (1,)
             cached_response = await self.cache_client.get(cache_key, self.namespace)
 
             if cached_response is not None:
@@ -221,19 +216,19 @@ from __future__ import annotations
             return None
 
         except Exception as e:
-            logger.warning(f"Failed to get cached Claude response: {e}"),
+            (logger.warning(f"Failed to get cached Claude response: {e}"),)
             return None
 
     async def cache_response_async(
-        self
+        self,
         prompt: str,
-        response: Dict[str, Any],
+        response: dict[str, Any],
         model: str = "claude-3-opus",
         max_tokens: int | None = None,
         temperature: float = 0.0,
         system: str | None = None,
         ttl: int | None = None,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """Cache Claude API response.
 
@@ -256,9 +251,7 @@ from __future__ import annotations
                 return False
 
             # Generate cache key
-            cache_key = self._generate_cache_key(
-                prompt, model, max_tokens, temperature, system, **kwargs
-            )
+            cache_key = self._generate_cache_key(prompt, model, max_tokens, temperature, system, **kwargs)
 
             # Calculate TTL
             if ttl is None:
@@ -266,12 +259,12 @@ from __future__ import annotations
 
             # Add caching metadata
             cached_response = {
-                **response
+                **response,
                 "_cache_metadata": {
                     "cached_at": time.time(),
                     "ttl": ttl,
                     "cache_key": cache_key,
-                }
+                },
             }
 
             # Cache the response
@@ -283,8 +276,7 @@ from __future__ import annotations
                 response_size = len(response_text.encode("utf-8"))
                 self.claude_metrics["total_response_size_cached"] += response_size
                 self.claude_metrics["largest_response_cached"] = max(
-                    self.claude_metrics["largest_response_cached"],
-                    response_size
+                    self.claude_metrics["largest_response_cached"], response_size
                 )
 
                 logger.info(f"Cached Claude API response: {cache_key} (TTL: {ttl}s, Size: {response_size} bytes)")
@@ -292,11 +284,11 @@ from __future__ import annotations
             return success
 
         except Exception as e:
-            logger.error(f"Failed to cache Claude response: {e}"),
+            (logger.error(f"Failed to cache Claude response: {e}"),)
             return False
 
     async def get_or_fetch_async(
-        self
+        self,
         prompt: str,
         fetcher: Callable,
         model: str = "claude-3-opus",
@@ -304,8 +296,8 @@ from __future__ import annotations
         temperature: float = 0.0,
         system: str | None = None,
         cache_ttl: int | None = None,
-        **kwargs
-    ) -> Dict[str, Any]:
+        **kwargs,
+    ) -> dict[str, Any]:
         """Get cached response or fetch from Claude API if not cached.
 
         Args:
@@ -322,9 +314,7 @@ from __future__ import annotations
             Claude API response (cached or fresh)
         """
         # Try cache first
-        cached_response = await self.get_cached_response_async(
-            prompt, model, max_tokens, temperature, system, **kwargs
-        )
+        cached_response = await self.get_cached_response_async(prompt, model, max_tokens, temperature, system, **kwargs)
 
         if cached_response is not None:
             return cached_response
@@ -339,13 +329,11 @@ from __future__ import annotations
             raise ValueError("Fetcher must be callable")
 
         # Cache the response
-        await self.cache_response_async(
-            prompt, response, model, max_tokens, temperature, system, cache_ttl, **kwargs
-        )
+        await self.cache_response_async(prompt, response, model, max_tokens, temperature, system, cache_ttl, **kwargs)
 
         return response
 
-    async def warm_cache_async(self, common_prompts: List[Dict[str, Any]]) -> Dict[str, bool]:
+    async def warm_cache_async(self, common_prompts: list[dict[str, Any]]) -> dict[str, bool]:
         """Pre-warm cache with common prompts.
 
         Args:
@@ -393,7 +381,7 @@ from __future__ import annotations
             logger.error(f"Failed to invalidate cache pattern: {e}")
             return 0
 
-    async def get_cache_stats_async(self) -> Dict[str, Any]:
+    async def get_cache_stats_async(self) -> dict[str, Any]:
         """Get Claude-specific cache statistics.
 
         Returns:
@@ -404,13 +392,13 @@ from __future__ import annotations
 
         # Combine with Claude-specific metrics
         return {
-            **self.claude_metrics
+            **self.claude_metrics,
             "general_cache_metrics": general_metrics,
-            "namespace": self.namespace
+            "namespace": self.namespace,
             "config": {
                 "default_ttl": self.config.claude_default_ttl,
-                "max_response_size": self.config.claude_max_response_size
-            }
+                "max_response_size": self.config.claude_max_response_size,
+            },
         }
 
     async def cleanup_expired_async(self) -> int:

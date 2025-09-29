@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -72,17 +72,17 @@ class GuardianConfig:
     cache: CacheConfig = field(default_factory=CacheConfig)
 
     # API keys (loaded from environment)
-    openai_api_key: Optional[str] = None
+    openai_api_key: str | None = None
 
     # File patterns
-    include_patterns: List[str] = field(default_factory=lambda: ["*.py", "*.js", "*.ts"])
-    exclude_patterns: List[str] = field(
+    include_patterns: list[str] = field(default_factory=lambda: ["*.py", "*.js", "*.ts"])
+    exclude_patterns: list[str] = field(
         default_factory=lambda: ["*_test.py", "*.test.js", "__pycache__", ".git", "node_modules"]
     )
 
     # Logging
     log_level: str = "INFO"
-    log_file: Optional[Path] = None
+    log_file: Path | None = None
 
     def validate(self) -> None:
         """Validate configuration."""
@@ -111,7 +111,7 @@ class GuardianConfig:
         return config
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "GuardianConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "GuardianConfig":
         """Create configuration from dictionary."""
         config = cls()
 

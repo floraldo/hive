@@ -15,16 +15,17 @@ import subprocess
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # No sys.path manipulation needed - use Poetry workspace imports
 project_root = Path(__file__).parent.parent.parent.parent
 # All packages available through Poetry workspace imports
 
-from hive_config.paths import DB_PATH
 from hive_orchestrator.core import db as hive_core_db
 from hive_orchestrator.hive_core import HiveCore
+
+from hive_config.paths import DB_PATH
 
 
 class HiveTestSuite:
@@ -67,7 +68,7 @@ class HiveTestSuite:
             "payload": json.dumps({"message": f"Test message for {worker}", "action": "test"}),
             "assigned_worker": worker,
             "workspace_type": "repo",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
 
         conn = sqlite3.connect(DB_PATH)

@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import cvxpy as cp
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, StorageTechnicalParams
 from ecosystemiser.system_model.components.shared.base_classes import BaseStorageOptimization, BaseStoragePhysics
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -39,15 +40,13 @@ class BatteryTechnicalParams(StorageTechnicalParams):
     )
 
     # STANDARD fidelity additions
-    degradation_model: Optional[dict[str, float]] = Field(None, description="Battery degradation model parameters")
+    degradation_model: dict[str, float] | None = Field(None, description="Battery degradation model parameters")
 
     # DETAILED fidelity parameters
-    voltage_curve: Optional[dict[str, Any]] = Field(None, description="Voltage vs SOC curve for detailed modeling")
+    voltage_curve: dict[str, Any] | None = Field(None, description="Voltage vs SOC curve for detailed modeling")
 
     # RESEARCH fidelity parameters
-    electrochemical_model: Optional[dict[str, Any]] = Field(
-        None, description="Detailed electrochemical model parameters"
-    )
+    electrochemical_model: dict[str, Any] | None = Field(None, description="Detailed electrochemical model parameters")
 
 
 class BatteryParams(ComponentParams):
@@ -362,9 +361,9 @@ class Battery(Component):
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
-                f"{self.name} at t={t}: charge={charge_power:.3f}kW, "
-                f"discharge={discharge_power:.3f}kW, initial={initial_level:.3f}kWh, "
-                f"E[{t}]={self.E[t]:.3f}kWh"
+                f"{self.name} at t={t}: charge={charge_power:.3f}kW, ",
+                f"discharge={discharge_power:.3f}kW, initial={initial_level:.3f}kWh, ",
+                f"E[{t}]={self.E[t]:.3f}kWh",
             )
 
     def add_optimization_vars(self, N: int) -> None:

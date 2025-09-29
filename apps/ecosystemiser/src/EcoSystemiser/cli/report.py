@@ -23,15 +23,15 @@ from __future__ import annotations
 @click.option("--output", "-o", type=click.Path(), help="Output directory for report files")
 @click.option(
     "--strategies",
-    "-s"
+    "-s",
     multiple=True,
     help="Analysis strategies to run (default: all)"
 )
 @click.option(
     "--format",
-    "output_format"
+    "output_format",
     type=click.Choice(["json", "html"]),
-    default="json"
+    default="json",
     help="Output format"
 )
 def analyze(results_file: str, output: str | None, strategies: tuple, output_format: str) -> None:
@@ -132,9 +132,9 @@ def server(host: str, port: int, debug: bool) -> None:
 @click.argument("results_file", type=click.Path(exists=True))
 @click.option(
     "--output",
-    "-o"
+    "-o",
     type=click.Path(),
-    default="report.html"
+    default="report.html",
     help="Output HTML file path"
 )
 def generate(results_file: str, output: str) -> None:
@@ -232,9 +232,9 @@ def create_basic_html_report(analysis_results: dict, plots: dict) -> str:
         const plots = {json.dumps(plots)};
         Object.keys(plots).forEach(key => {{
             if (plots[key]) {{
-                const div = document.createElement('div');
-                div.id = key;
-                div.className = 'plot';
+                const div = document.createElement('div');,
+                div.id = key;,
+                div.className = 'plot';,
                 document.getElementById('plots').appendChild(div);,
                 Plotly.newPlot(key, plots[key]);
             }}
@@ -350,9 +350,9 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
         """
         economic = analyses["economic"]
         economic_keys = [
-            "lcoe"
+            "lcoe",
             "npv",
-            "payback_period_years"
+            "payback_period_years",
             "capex_total",
             "opex_annual"
         ],

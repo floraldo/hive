@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hive_db import SQLiteConnection
 from hive_logging import get_logger
@@ -35,7 +35,7 @@ class ReviewHistory:
 
             # Reviews table
             cursor.execute(
-                """
+                """,
                 CREATE TABLE IF NOT EXISTS reviews (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_path TEXT NOT NULL,
@@ -136,7 +136,7 @@ class ReviewHistory:
 
             # Store main review
             cursor.execute(
-                """
+                """,
                 INSERT INTO reviews (
                     file_path, score, violations_count,
                     suggestions_count, ai_confidence,
@@ -164,7 +164,7 @@ class ReviewHistory:
             # Store violations
             for violation in review_result.all_violations:
                 cursor.execute(
-                    """
+                    """,
                     INSERT INTO violations (
                         review_id, type, severity, rule,
                         message, line_number
@@ -190,7 +190,7 @@ class ReviewHistory:
         review_id: int,
         feedback_type: str,
         feedback_text: str,
-        violation_id: Optional[int] = None,
+        violation_id: int | None = None,
     ) -> None:
         """
         Store feedback on a review.
@@ -205,7 +205,7 @@ class ReviewHistory:
             cursor = conn.cursor()
 
             cursor.execute(
-                """
+                """,
                 INSERT INTO feedback (
                     review_id, violation_id, feedback_type,
                     feedback_text
@@ -222,7 +222,7 @@ class ReviewHistory:
         self,
         file_path: Path,
         limit: int = 5,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get similar past reviews for learning.
 
@@ -238,11 +238,11 @@ class ReviewHistory:
 
             # Get reviews for similar files
             cursor.execute(
-                """
+                """,
                 SELECT r.*,
                        COUNT(f.id) as feedback_count,
-                       AVG(CASE WHEN f.feedback_type = 'positive' THEN 1 ELSE 0 END) as positive_ratio
-                FROM reviews r
+                       AVG(CASE WHEN f.feedback_type = 'positive' THEN 1 ELSE 0 END) as positive_ratio,
+                FROM reviews r,
                 LEFT JOIN feedback f ON r.id = f.review_id
                 WHERE r.file_path LIKE ?
                 GROUP BY r.id
@@ -286,10 +286,10 @@ class ReviewHistory:
 
             # Check if preference exists
             cursor.execute(
-                """
-                SELECT id, confidence, examples
-                FROM team_preferences
-                WHERE preference_key = ?
+                """,
+                SELECT id, confidence, examples,
+                FROM team_preferences,
+                WHERE preference_key = ?,
             """,
                 (preference_key,),
             )
@@ -303,8 +303,8 @@ class ReviewHistory:
                 examples.append(example)
 
                 cursor.execute(
-                    """
-                    UPDATE team_preferences
+                    """,
+                    UPDATE team_preferences,
                     SET preference_value = ?,
                         confidence = ?,
                         examples = ?,
@@ -313,8 +313,8 @@ class ReviewHistory:
                 """,
                     (
                         preference_value,
-                        min(confidence + 0.1, 1.0),  # Increase confidence
-                        json.dumps(examples[-10:]),  # Keep last 10 examples
+                        min(confidence + 0.1, 1.0),  # Increase confidence,
+                        json.dumps(examples[-10:]),  # Keep last 10 examples,
                         pref_id,
                     ),
                 )
@@ -339,7 +339,7 @@ class ReviewHistory:
 
         logger.info("Learned team preference: %s", preference_key)
 
-    async def get_team_preferences(self) -> Dict[str, Dict[str, Any]]:
+    async def get_team_preferences(self) -> dict[str, dict[str, Any]]:
         """
         Get all learned team preferences.
 
@@ -350,11 +350,11 @@ class ReviewHistory:
             cursor = conn.cursor()
 
             cursor.execute(
-                """
+                """,
                 SELECT preference_key, preference_value,
-                       confidence, examples
-                FROM team_preferences
-                WHERE confidence > 0.6
+                       confidence, examples,
+                FROM team_preferences,
+                WHERE confidence > 0.6,
                 ORDER BY confidence DESC
             """
             )
@@ -373,7 +373,7 @@ class ReviewHistory:
         self,
         violation_type: str,
         time_window_days: int = 30,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Get accuracy metrics for a violation type.
 
@@ -388,11 +388,11 @@ class ReviewHistory:
             cursor = conn.cursor()
 
             cursor.execute(
-                """
-                SELECT
+                """,
+                SELECT,
                     COUNT(*) as total,
                     SUM(CASE WHEN was_fixed THEN 1 ELSE 0 END) as fixed,
-                    SUM(CASE WHEN fix_confirmed THEN 1 ELSE 0 END) as confirmed
+                    SUM(CASE WHEN fix_confirmed THEN 1 ELSE 0 END) as confirmed,
                 FROM violations v
                 JOIN reviews r ON v.review_id = r.id
                 WHERE v.type = ?
@@ -428,10 +428,10 @@ class ReviewHistory:
             cursor = conn.cursor()
 
             cursor.execute(
-                """
-                UPDATE violations
-                SET was_fixed = ?, fix_confirmed = ?
-                WHERE id = ?
+                """,
+                UPDATE violations,
+                SET was_fixed = ?, fix_confirmed = ?,
+                WHERE id = ?,
             """,
                 (was_fixed, fix_confirmed, violation_id),
             )

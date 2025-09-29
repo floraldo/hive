@@ -19,7 +19,7 @@ from typing import Any
 
 def run_command(cmd: list[str], description: str) -> dict[str, Any]:
     """Run a command and return results."""
-    logger.info(f"\n{'='*60}")
+    logger.info(f"\n{'=' * 60}")
     logger.info(f"Running: {description}")
     logger.info(f"Command: {' '.join(cmd)}")
     logger.info("=" * 60)
@@ -99,9 +99,9 @@ def run_all_tests(args: argparse.Namespace) -> None:
     total_duration = time.time() - start_time
 
     # Generate summary
-    logger.info(f"\n{'='*60}")
+    logger.info(f"\n{'=' * 60}")
     logger.info("TEST SUMMARY")
-    logger.info(f"{'='*60}")
+    logger.info(f"{'=' * 60}")
 
     passed = failed = 0
     total_test_time = 0
@@ -136,9 +136,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="EcoSystemiser v3.0 Test Runner",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+        epilog=""",
 Examples:
-  python run_tests.py --all              # Run all tests
+  python run_tests.py --all              # Run all tests,
   python run_tests.py --unit             # Unit tests only
   python run_tests.py --integration      # Integration tests only
         """,

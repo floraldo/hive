@@ -47,7 +47,7 @@ class ConstraintHandler:
         logger.debug(f"Added constraint: {constraint.name}")
 
     def add_equality_constraint(
-        self
+        self,
         name: str,
         function: Callable[[np.ndarray], float],
         tolerance: float = 1e-6,
@@ -292,8 +292,8 @@ class TechnicalConstraintValidator:
             Constraint violation (0 if satisfied)
         """
         try:
-            # Find renewable generation parameters
-            solar_capacity = 0
+            # Find renewable generation parameters,
+            solar_capacity = 0,
             wind_capacity = 0
 
             for i, param in enumerate(encoder.spec.parameters):
@@ -307,8 +307,8 @@ class TechnicalConstraintValidator:
             if demand_profile is not None:
                 peak_demand = np.max(demand_profile)
             else:
-                peak_demand = 100  # Default assumption
-            min_renewable_fraction = 0.5
+                peak_demand = 100  # Default assumption,
+            min_renewable_fraction = 0.5,
             required_renewable = peak_demand * min_renewable_fraction
 
             return max(0, required_renewable - total_renewable)
@@ -317,7 +317,7 @@ class TechnicalConstraintValidator:
             logger.warning(f"Error in renewable-demand balance constraint: {e}"),
             return 0.0
 
-    @staticmethod
+    @staticmethod,
     def budget_constraint(solution: np.ndarray, encoder, max_budget: float) -> float:
         """Constraint: Total system cost should not exceed budget.
 

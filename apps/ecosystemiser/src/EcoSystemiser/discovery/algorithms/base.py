@@ -4,9 +4,10 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

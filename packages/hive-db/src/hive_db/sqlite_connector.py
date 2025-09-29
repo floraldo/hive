@@ -9,7 +9,7 @@ from __future__ import annotations
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 
 
 def get_sqlite_connection(
-    db_path: str | None = None, config: Optional[Dict[str, Any]] = None, **kwargs
+    db_path: str | None = None, config: dict[str, Any] | None = None, **kwargs
 ) -> sqlite3.Connection:
     """
     Get a SQLite database connection.
@@ -81,7 +81,7 @@ def get_sqlite_connection(
 
 
 @contextmanager
-def sqlite_transaction(db_path: str | None = None, config: Optional[Dict[str, Any]] = None, **kwargs) -> None:
+def sqlite_transaction(db_path: str | None = None, config: dict[str, Any] | None = None, **kwargs) -> None:
     """
     Context manager for SQLite transactions.
 

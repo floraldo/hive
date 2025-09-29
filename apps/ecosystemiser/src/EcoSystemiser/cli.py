@@ -45,7 +45,7 @@ def simulate() -> None:
 @option("--vars", "-v", default="temp_air,ghi,wind_speed", help="Variables (comma-separated)")
 @option(
     "--source",
-    "-s"
+    "-s",
     default="nasa_power",
     type=click.Choice(["nasa_power", "meteostat", "pvgis", "era5", "file_epw", "epw"])
 )
@@ -85,14 +85,14 @@ def get(
         ecosys climate get --file weather.epw --source epw --vars temp_air,ghi,
     """
     try:
-        # Validate input based on source
+        # Validate input based on source,
         is_file_source = source in ["file_epw", "epw"]
 
         if is_file_source:
             if not file:
                 info("Error: --file is required for file-based sources", err=True),
                 sys.exit(1)
-            # Use file path as location for file sources
+            # Use file path as location for file sources,
             location = str(Path(file).resolve())
         else:
             if not loc:
@@ -147,7 +147,7 @@ def get(
         info(f"[SUCCESS] Retrieved climate data: shape={response.shape}")
 
         if out:
-            # Save to custom path
+            # Save to custom path,
             out_path = Path(out)
             out_path.parent.mkdir(parents=True, exist_ok=True)
             df = ds.to_dataframe()
@@ -331,7 +331,7 @@ def discover() -> None:
 @click.argument("config", type=click.Path(exists=True))
 @option(
     "--objectives",
-    "-obj"
+    "-obj",
     default="minimize_cost",
     help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")'
 )
@@ -389,14 +389,14 @@ def optimize(
         info(f"  Algorithm: {'NSGA-II' if multi_objective else 'Single-objective GA'}"),
         info(f"  Population: {population}, Generations: {generations}")
 
-        # Load optimization variables if provided
-        optimization_variables = None
+        # Load optimization variables if provided,
+        optimization_variables = None,
         if variables:
             with open(variables) as f:
                 optimization_variables = json.load(f)
             info(f"  Variables: Loaded {len(optimization_variables)} custom variables")
 
-        # Create study service
+        # Create study service,
         study_service = StudyService()
 
         # Configure GA parameters
@@ -412,7 +412,7 @@ def optimize(
             base_config_path=Path(config),
             optimization_variables=optimization_variables or []
             objectives=objectives,
-            multi_objective=multi_objective
+            multi_objective=multi_objective,
             **ga_config
         )
 
@@ -446,7 +446,7 @@ def optimize(
                             "ga_config": ga_config,
                         }
                     },
-                    f
+                    f,
                     indent=2,
                     default=str
                 ),
@@ -475,7 +475,7 @@ def optimize(
 
                 # Generate report using the centralized service,
                 reporting_service.generate_report(analysis_results=result.dict(), config=report_config)
-                report_file = output_dir / f"ga_report_{result.study_id}.html"
+                report_file = output_dir / f"ga_report_{result.study_id}.html",
                 info(f"  HTML report saved to: {report_file}"),
         else:
             info(f"  Study ID: {result.study_id}")
@@ -510,7 +510,7 @@ def optimize(
 @click.argument("config", type=click.Path(exists=True))
 @option(
     "--objectives",
-    "-obj"
+    "-obj",
     default="total_cost",
     help='Comma-separated objectives to analyze (e.g., "total_cost,renewable_fraction")'
 )
@@ -571,10 +571,10 @@ def uncertainty(
             uncertainty_variables = json.load(f)
         info(f"  Uncertainties: Loaded {len(uncertainty_variables)} uncertain parameters")
 
-        # Parse confidence levels
+        # Parse confidence levels,
         confidence_levels = [float(x.strip()) for x in confidence.split(",")]
 
-        # Create study service
+        # Create study service,
         study_service = StudyService()
 
         # Configure MC parameters
@@ -589,8 +589,8 @@ def uncertainty(
         # Run uncertainty analysis
         result = study_service.run_monte_carlo_uncertainty(
             base_config_path=Path(config),
-            uncertainty_variables=uncertainty_variables
-            objectives=objectives
+            uncertainty_variables=uncertainty_variables,
+            objectives=objectives,
             **mc_config
         )
 
@@ -657,7 +657,7 @@ def uncertainty(
                             "mc_config": mc_config,
                         }
                     },
-                    f
+                    f,
                     indent=2,
                     default=str
                 ),
@@ -704,14 +704,14 @@ def uncertainty(
 @click.argument("config", type=click.Path(exists=True))
 @option(
     "--variables",
-    "-v"
+    "-v",
     type=click.Path(exists=True),
-    required=True
+    required=True,
     help="JSON file defining design variables (required)"
 )
 @option(
     "--objectives",
-    "-obj"
+    "-obj",
     default="minimize_cost,maximize_renewable",
     help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")'
 )
@@ -760,11 +760,11 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
         # Run design space exploration
         result = study_service.run_design_space_exploration(
             base_config_path=Path(config),
-            design_variables=design_variables
+            design_variables=design_variables,
             objectives=objectives,
-            exploration_method=method
+            exploration_method=method,
             population_size=samples if method == "nsga2" else None,
-            max_generations=100 if method == "nsga2" else None
+            max_generations=100 if method == "nsga2" else None,
             n_samples=samples if method == "monte_carlo" else None,
             sampling_method="lhs" if method == "monte_carlo" else None
         )
@@ -806,7 +806,7 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
                             "samples": samples
                         }
                     },
-                    f
+                    f,
                     indent=2,
                     default=str
                 ),
@@ -983,9 +983,9 @@ def server(host, port, debug) -> None:
 @option("--output", "-o", type=click.Path(), default="report.html", help="Output HTML file path")
 @option(
     "--type",
-    "study_type"
+    "study_type",
     type=click.Choice(["auto", "ga", "mc", "standard"]),
-    default="auto"
+    default="auto",
     help="Type of study (auto-detect by default)"
 )
 def generate(study_file, output, study_type) -> None:
@@ -1027,9 +1027,9 @@ def generate(study_file, output, study_type) -> None:
         # Configure report generation
         report_config = ReportConfig(
             report_type=study_type,
-            title=f"EcoSystemiser {study_type.replace('_', ' ').title()} Report"
+            title=f"EcoSystemiser {study_type.replace('_', ' ').title()} Report",
             include_plots=True,
-            output_format="html"
+            output_format="html",
             save_path=Path(output)
         )
 

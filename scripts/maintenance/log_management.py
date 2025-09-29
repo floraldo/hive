@@ -11,7 +11,6 @@ import shutil
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List
 
 from hive_logging import get_logger
 
@@ -47,7 +46,7 @@ class LogOrganizer:
             "tests": self.logs_root / "tests",
         }
 
-    def scan_log_files(self) -> List[LogFileInfo]:
+    def scan_log_files(self) -> list[LogFileInfo]:
         """Scan for all log files in the project"""
         log_files = []
 
@@ -80,7 +79,7 @@ class LogOrganizer:
                 )
                 log_files.append(log_info)
 
-            except (OSError, IOError) as e:
+            except OSError as e:
                 logger.warning(f"Could not access log file {log_file}: {e}")
 
         logger.info(f"Found {len(log_files)} log files")
@@ -127,7 +126,7 @@ class LogOrganizer:
 
         return category, component
 
-    def organize_logs(self, dry_run: bool = True) -> Dict[str, int]:
+    def organize_logs(self, dry_run: bool = True) -> dict[str, int]:
         """Organize scattered logs into proper structure"""
         log_files = self.scan_log_files()
 
@@ -184,7 +183,7 @@ class LogOrganizer:
         else:
             return self.directories["current"] / log_file.path.name
 
-    def cleanup_old_logs(self, days_old: int = 30, dry_run: bool = True) -> Dict[str, int]:
+    def cleanup_old_logs(self, days_old: int = 30, dry_run: bool = True) -> dict[str, int]:
         """Clean up log files older than specified days"""
         cutoff_date = datetime.now() - timedelta(days=days_old)
 
@@ -213,7 +212,7 @@ class LogOrganizer:
 
         return operations
 
-    def consolidate_duplicate_logs(self, dry_run: bool = True) -> Dict[str, int]:
+    def consolidate_duplicate_logs(self, dry_run: bool = True) -> dict[str, int]:
         """Consolidate duplicate log files"""
         log_files = self.scan_log_files()
 
@@ -274,7 +273,7 @@ class LogOrganizer:
 
         report = f"""
 # Hive Log Management Report
-Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Summary
 - Total log files: {total_files}

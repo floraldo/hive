@@ -50,7 +50,7 @@ class WorkerSettings:
 
     # Cron jobs
     cron_jobs = [
-        cron(cleanup_old_jobs, hour=3, minute=0),  # Clean up at 3 AM daily
+        cron(cleanup_old_jobs, hour=3, minute=0),  # Clean up at 3 AM daily,
         cron(collect_metrics, minute={0, 15, 30, 45}),  # Collect metrics every 15 min
     ]
 

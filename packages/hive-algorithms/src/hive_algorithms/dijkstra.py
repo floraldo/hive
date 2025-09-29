@@ -11,7 +11,6 @@ This implementation provides efficient shortest path calculation in weighted gra
 
 import heapq
 from dataclasses import dataclass
-from typing import Dict, Tuple
 
 # Use hive-logging for consistent logging
 from hive_logging import get_logger
@@ -39,7 +38,7 @@ class Graph:
     """
 
     def __init__(self) -> None:
-        self._adjacency_list: Dict[str, List[Edge]] = {}
+        self._adjacency_list: dict[str, List[Edge]] = {}
 
     def add_vertex(self, vertex: str) -> None:
         """Add a vertex to the graph"""
@@ -73,8 +72,8 @@ class Graph:
 class DijkstraResult:
     """Result of Dijkstra's algorithm execution"""
 
-    distances: Dict[str, float]
-    previous: Dict[str, str | None]
+    distances: dict[str, float]
+    previous: dict[str, str | None]
     source: str
 
     def get_shortest_path(self, destination: str) -> Optional[List[str]]:
@@ -128,8 +127,8 @@ def dijkstra(graph: Graph, source: str) -> DijkstraResult:
         raise ValueError(f"Source vertex '{source}' does not exist in graph")
 
     # Initialize distances and previous vertex tracking
-    distances: Dict[str, float] = {}
-    previous: Dict[str, str | None] = {}
+    distances: dict[str, float] = {}
+    previous: dict[str, str | None] = {}
     visited: Set[str] = set()
 
     # Initialize all distances to infinity
@@ -142,7 +141,7 @@ def dijkstra(graph: Graph, source: str) -> DijkstraResult:
 
     # Priority queue: (distance, vertex)
     # Using negative distances to simulate min-heap behavior
-    pq: List[Tuple[float, str]] = [(0, source)]
+    pq: List[tuple[float, str]] = [(0, source)]
     heapq.heapify(pq)
 
     while pq:
@@ -176,7 +175,7 @@ def dijkstra(graph: Graph, source: str) -> DijkstraResult:
     return DijkstraResult(distances, previous, source)
 
 
-def find_shortest_path(graph: Graph, source: str, destination: str) -> Tuple[Optional[List[str]], float]:
+def find_shortest_path(graph: Graph, source: str, destination: str) -> tuple[Optional[List[str]], float]:
     """
     Convenience function to find shortest path between two vertices.
 

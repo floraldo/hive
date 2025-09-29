@@ -3,7 +3,6 @@
 Standalone entry point for AI Reviewer Agent
 """
 
-
 # Now import and run
 from ai_reviewer.agent import main
 

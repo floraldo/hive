@@ -13,9 +13,9 @@ import os
 import platform
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Hive utilities for path management
 from hive_config.paths import (
@@ -46,7 +46,7 @@ class WorkerCore:
         mode: str = None,
         live_output: bool = False,
         async_mode: bool = False,
-        config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
     ):
         self.worker_id = worker_id
         self.task_id = task_id
@@ -214,7 +214,7 @@ class WorkerCore:
         self.log.info(f"Created git worktree: {workspace_path} (branch: {branch})")
         return workspace_path
 
-    def find_claude_cmd(self) -> Optional[str]:
+    def find_claude_cmd(self) -> str | None:
         """Find Claude command with fallbacks"""
         # Check config for claude binary path
         claude_bin = self.config.get("claude_bin")
@@ -293,7 +293,7 @@ class WorkerCore:
         else:
             self.log.info("[OK] Fresh mode - skipping git checks.")
 
-    def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def load_task(self, task_id: str) -> dict[str, Any] | None:
         """Load task definition from database"""
         try:
             # Initialize database if not already done
@@ -304,7 +304,7 @@ class WorkerCore:
                 # Fallback to file system for legacy support
                 task_file = self.tasks_dir / f"{task_id}.json"
                 if task_file.exists():
-                    with open(task_file, "r") as f:
+                    with open(task_file) as f:
                         return json.load(f)
                 return None
             return task
@@ -312,7 +312,7 @@ class WorkerCore:
             self.log.error(f"[ERROR] Failed to load task {task_id}: {e}")
             return None
 
-    def _load_context_from_tasks(self, context_from: List[str]) -> str:
+    def _load_context_from_tasks(self, context_from: list[str]) -> str:
         """Load context from previous task results"""
         if not context_from:
             return ""
@@ -333,7 +333,7 @@ class WorkerCore:
             # Get the most recent result
             latest = max(result_files, key=lambda f: f.stat().st_mtime)
             try:
-                with open(latest, "r") as f:
+                with open(latest) as f:
                     result = json.load(f)
 
                 # Extract relevant context
@@ -346,12 +346,12 @@ class WorkerCore:
                 if files.get("created"):
                     context_text += f"- Files created: {', '.join(files['created'][:5])}"
                     if len(files["created"]) > 5:
-                        context_text += f" (+{len(files['created'])-5} more)"
+                        context_text += f" (+{len(files['created']) - 5} more)"
                     context_text += "\n"
                 if files.get("modified"):
                     context_text += f"- Files modified: {', '.join(files['modified'][:5])}"
                     if len(files["modified"]) > 5:
-                        context_text += f" (+{len(files['modified'])-5} more)"
+                        context_text += f" (+{len(files['modified']) - 5} more)"
                     context_text += "\n"
 
                 # Include any additional context hints
@@ -367,7 +367,7 @@ class WorkerCore:
             return "\n".join(context_sections) + "\n"
         return ""
 
-    def create_prompt(self, task: Dict[str, Any]) -> str:
+    def create_prompt(self, task: dict[str, Any]) -> str:
         """Create execution prompt for Claude"""
         task_id = task["id"]
         title = task.get("title", task_id)
@@ -411,9 +411,9 @@ PHASE: {self.phase.upper()}
 {phase_focus}
 
 EXECUTION REQUIREMENTS:
-1. {'Create the implementation with proper structure and functionality' if self.phase == 'apply' else 'Write and run comprehensive tests for the implementation'}
-2. {'Focus on making it work correctly' if self.phase == 'apply' else 'Verify all functionality works as expected'}
-3. {'Include basic validation/checks in the code' if self.phase == 'apply' else 'Test edge cases and error conditions'}
+1. {"Create the implementation with proper structure and functionality" if self.phase == "apply" else "Write and run comprehensive tests for the implementation"}
+2. {"Focus on making it work correctly" if self.phase == "apply" else "Verify all functionality works as expected"}
+3. {"Include basic validation/checks in the code" if self.phase == "apply" else "Test edge cases and error conditions"}
 4. Run any tests to verify they pass
 5. If tests fail, attempt ONE minimal fix
 6. Keep changes focused and minimal
@@ -429,7 +429,7 @@ CRITICAL PATH CONSTRAINT:
 
         return prompt
 
-    def _get_workspace_files(self) -> Dict[str, List[str]]:
+    def _get_workspace_files(self) -> dict[str, list[str]]:
         """Get list of files created/modified in workspace"""
         created_files = []
         modified_files = []
@@ -478,20 +478,20 @@ CRITICAL PATH CONSTRAINT:
 
         return {"created": created_files, "modified": modified_files}
 
-    def _format_live_output(self, line: str) -> Optional[str]:
+    def _format_live_output(self, line: str) -> str | None:
         """Format line for live output - shows Claude messages, commands, and results with worker ID"""
         if not self.live_output:
             return None
 
         # Worker identification with color coding
         worker_colors = {
-            "backend": "\033[94m",  # Blue
-            "frontend": "\033[92m",  # Green
-            "infra": "\033[93m",  # Yellow
+            "backend": "\033[94m",  # Blue,
+            "frontend": "\033[92m",  # Green,
+            "infra": "\033[93m",  # Yellow,
             "test": "\033[95m",  # Magenta
         }
-        reset_color = "\033[0m"
-        color = worker_colors.get(self.worker_id, "\033[97m")  # White default
+        reset_color = ("\033[0m",)
+        color = worker_colors.get(self.worker_id, "\033[97m")  # White default,
         worker_prefix = f"{color}[{self.worker_id.upper()}]{reset_color}"
 
         try:
@@ -541,7 +541,7 @@ CRITICAL PATH CONSTRAINT:
                                 if len(result) > 200:
                                     lines = result.split("\n")
                                     if len(lines) > 10:
-                                        result = "\n".join(lines[:8]) + f"\n... ({len(lines)-8} more lines)"
+                                        result = "\n".join(lines[:8]) + f"\n... ({len(lines) - 8} more lines)"
                                     else:
                                         result = result[:200] + "..."
                                 return f"{worker_prefix} 📤 {result}"
@@ -555,7 +555,7 @@ CRITICAL PATH CONSTRAINT:
 
         return None
 
-    def run_claude(self, prompt: str) -> Dict[str, Any]:
+    def run_claude(self, prompt: str) -> dict[str, Any]:
         """Execute Claude with workspace-aware path handling"""
         if not self.claude_cmd:
             return {
@@ -698,8 +698,8 @@ CRITICAL PATH CONSTRAINT:
             try:
                 process = subprocess.Popen(
                     cmd,
-                    cwd=str(self.workspace),  # Claude runs from workspace
-                    env=env,  # Isolated environment
+                    cwd=str(self.workspace),  # Claude runs from workspace,
+                    env=env,  # Isolated environment,
                     stdout=stdout_pipe,
                     stderr=stderr_pipe,
                     stdin=subprocess.DEVNULL,  # Prevent hanging on input
@@ -875,7 +875,7 @@ CRITICAL PATH CONSTRAINT:
                 "next_state": "failed",
             }
 
-    def emit_result(self, result: Dict[str, Any]) -> None:
+    def emit_result(self, result: dict[str, Any]) -> None:
         """Save execution result"""
         if not self.task_id or not self.run_id:
             self.log.error("[ERROR] Cannot emit result - missing task_id or run_id")
@@ -891,7 +891,7 @@ CRITICAL PATH CONSTRAINT:
             "worker": self.worker_id,
             "phase": self.phase,
             "workspace": str(self.workspace),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             **result,
         }
 
@@ -916,7 +916,7 @@ CRITICAL PATH CONSTRAINT:
         except Exception as e:
             self.log.error(f"[ERROR] Database save failed: {e}")
 
-    def execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """Execute task with streamlined workflow"""
         task_id = task["id"]
         title = task.get("title", task_id)
@@ -935,7 +935,7 @@ CRITICAL PATH CONSTRAINT:
 
         return result
 
-    def run_one_shot(self) -> Dict[str, Any]:
+    def run_one_shot(self) -> dict[str, Any]:
         """Run in one-shot mode (called by Queen)"""
         if not self.task_id:
             self.log.error("[ERROR] One-shot mode requires task_id")
@@ -955,7 +955,7 @@ CRITICAL PATH CONSTRAINT:
         # Execute task
         return self.execute_task(task)
 
-    async def run_one_shot_async(self) -> Dict[str, Any]:
+    async def run_one_shot_async(self) -> dict[str, Any]:
         """Run in async one-shot mode for 3-5x performance improvement"""
         if not self.task_id:
             self.log.error("[ERROR] Async one-shot mode requires task_id")

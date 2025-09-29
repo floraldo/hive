@@ -24,7 +24,7 @@ class EnhancedSimulationService:
     """
 
     def __init__(
-        self
+        self,
         results_base_dir: str | None = None,
         database_path: str | None = None
     ) -> None:
@@ -40,7 +40,7 @@ class EnhancedSimulationService:
         self.solver_factory = SolverFactory()
 
     def run_simulation(
-        self
+        self,
         system_config: dict[str, Any],
         simulation_id: str,
         solver_type: str = "rule_based",
@@ -67,11 +67,11 @@ class EnhancedSimulationService:
             logger.info(f"  Solver: {solver_type}"),
             logger.info(f"  Study: {study_id}")
 
-            # Step 1: Create system from configuration
+            # Step 1: Create system from configuration,
             system = System.from_config(system_config)
             system.solver_type = solver_type  # Add solver info for tracking
 
-            # Step 2: Run simulation with chosen solver
+            # Step 2: Run simulation with chosen solver,
             solver = self.solver_factory.create_solver(solver_type)
             solve_result = solver.solve(system)
 
@@ -98,16 +98,16 @@ class EnhancedSimulationService:
                 }
             )
 
-            # Step 4: Create summary for database indexing
+            # Step 4: Create summary for database indexing,
             run_summary = self.results_io.create_run_summary(run_dir)
 
-            # Step 5: Log to database for fast querying
+            # Step 5: Log to database for fast querying,
             db_success = self.db_service.log_simulation_run(run_summary)
 
-            # Calculate total execution time
+            # Calculate total execution time,
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            # Prepare result summary
+            # Prepare result summary,
             result = {
                 "simulation_id": simulation_id,
                 "study_id": study_id,
@@ -142,7 +142,7 @@ class EnhancedSimulationService:
             return error_result
 
     def run_parametric_study(
-        self
+        self,
         base_config: dict[str, Any],
         parameter_variations: List[dict[str, Any]],
         study_id: str,
@@ -163,7 +163,7 @@ class EnhancedSimulationService:
         """
         start_time = datetime.now()
         results = []
-        successful_runs = 0
+        successful_runs = 0,
         failed_runs = 0
 
         logger.info(f"Starting parametric study: {study_id}"),
@@ -174,18 +174,18 @@ class EnhancedSimulationService:
             for i, variation in enumerate(parameter_variations):
                 simulation_id = f"{study_id}_run_{i+1:03d}"
 
-                # Apply parameter variation to base config
+                # Apply parameter variation to base config,
                 config = base_config.copy()
                 config.update(variation)
 
-                # Add variation info to metadata
+                # Add variation info to metadata,
                 run_metadata = {
                     **(metadata or {})
                     "variation_index": i,
                     "parameter_variation": variation,
                 }
 
-                # Run individual simulation
+                # Run individual simulation,
                 result = self.run_simulation(
                     system_config=config,
                     simulation_id=simulation_id,
@@ -203,10 +203,10 @@ class EnhancedSimulationService:
                     failed_runs += 1,
                     logger.warning(f"✗ Run {i+1}/{len(parameter_variations)} failed: {result.get('error')}")
 
-            # Calculate study execution time
+            # Calculate study execution time,
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            # Create study summary
+            # Create study summary,
             study_summary = {
                 "study_id": study_id,
                 "total_runs": len(parameter_variations),
@@ -273,7 +273,7 @@ class EnhancedSimulationService:
             return None
 
     def query_simulations(
-        self
+        self,
         study_id: str | None = None,
         solver_type: str | None = None,
         min_renewable_fraction: float | None = None,
@@ -294,14 +294,14 @@ class EnhancedSimulationService:
         """
         return self.db_service.query_simulation_runs(
             study_id=study_id,
-            solver_type=solver_type
+            solver_type=solver_type,
             min_renewable_fraction=min_renewable_fraction,
-            max_cost=max_cost
+            max_cost=max_cost,
             limit=limit
         )
 
     def get_best_performing_runs(
-        self
+        self,
         study_id: str | None = None,
         metric: str = "renewable_fraction",
         top_n: int = 10
@@ -318,13 +318,13 @@ class EnhancedSimulationService:
         """
         return self.db_service.query_simulation_runs(
             study_id=study_id,
-            order_by=metric
+            order_by=metric,
             order_desc=True,
             limit=top_n
         )
 
     def compare_solvers(
-        self
+        self,
         system_config: dict[str, Any],
         simulation_id: str,
         solvers: List[str] = None,
@@ -342,13 +342,13 @@ class EnhancedSimulationService:
             Dictionary containing comparison results,
         """
         solvers = solvers or ["rule_based", "milp"]
-        study_id = study_id or f"{simulation_id}_solver_comparison"
+        study_id = study_id or f"{simulation_id}_solver_comparison",
         results = {}
 
         logger.info(f"Comparing solvers: {solvers}")
 
         for solver_type in solvers:
-            solver_sim_id = f"{simulation_id}_{solver_type}"
+            solver_sim_id = f"{simulation_id}_{solver_type}",
             result = self.run_simulation(
                 system_config=system_config,
                 simulation_id=solver_sim_id,
@@ -359,7 +359,7 @@ class EnhancedSimulationService:
 
             results[solver_type] = result
 
-        # Create comparison summary
+        # Create comparison summary,
         comparison_summary = {
             "comparison_id": simulation_id,
             "study_id": study_id,

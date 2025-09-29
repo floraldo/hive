@@ -13,7 +13,7 @@ Provides structured exception hierarchy for event bus operations
 with proper error context and recovery strategies.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
 class EventBusError(BaseError):
@@ -27,7 +27,7 @@ def __init__(
     event_type: str | None = None,
     source_agent: str | None = None,
     original_error: Exception | None = None,
-    context: Optional[Dict[str, Any]] = None,
+    context: Optional[dict[str, Any]] = None,
 ):
     super().__init__(message, original_error=original_error, context=context)
     self.event_id = event_id

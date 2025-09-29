@@ -61,7 +61,7 @@ class AsyncResourcePool:
         try:
             # Try to get from pool
             return await asyncio.wait_for(self._pool.get(), timeout=5.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Create new resource if pool is empty
             async with self._lock:
                 return await self._create_resource()

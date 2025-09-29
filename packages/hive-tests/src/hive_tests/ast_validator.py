@@ -23,7 +23,6 @@ import ast
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
 
 
 @dataclass
@@ -46,13 +45,13 @@ class FileContext:
     path: Path
     content: str
     ast_tree: ast.AST | None
-    lines: List[str]
+    lines: list[str]
     is_test_file: bool
     is_cli_file: bool
     is_init_file: bool
     package_name: str | None
     app_name: str | None
-    suppressions: Dict[int, Set[str]] = field(default_factory=dict)
+    suppressions: dict[int, set[str]] = field(default_factory=dict)
 
 
 class GoldenRuleVisitor(ast.NodeVisitor):
@@ -64,7 +63,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
     def __init__(self, file_context: FileContext, project_root: Path) -> None:
         self.context = file_context
         self.project_root = project_root
-        self.violations: List[Violation] = []
+        self.violations: list[Violation] = []
         self.current_line = 1
 
     def add_violation(self, rule_id: str, rule_name: str, line_num: int, message: str, severity: str = "error") -> None:
@@ -414,24 +413,24 @@ class GoldenRuleVisitor(ast.NodeVisitor):
 
 
 class EnhancedValidator:
-    """
-    Enhanced single-pass validator system with suppression support
+    """,
+    Enhanced single-pass validator system with suppression support,
     """
 
     def __init__(self, project_root: Path) -> None:
-        self.project_root = project_root
-        self.violations: List[Violation] = []
+        self.project_root = project_root,
+        self.violations: list[Violation] = []
 
-    def validate_all(self) -> Tuple[bool, Dict[str, List[str]]]:
-        """
+    def validate_all(self) -> tuple[bool, dict[str, list[str]]]:
+        """,
         Run all Golden Rules validation in a single pass
 
         Returns:
             Tuple of (all_passed, violations_by_rule)
-        """
+        """,
         self.violations = []
 
-        # Traverse all Python files once
+        # Traverse all Python files once,
         for py_file in self._get_python_files():
             try:
                 context = self._create_file_context(py_file)
@@ -440,19 +439,19 @@ class EnhancedValidator:
                     visitor.visit(context.ast_tree)
                     self.violations.extend(visitor.violations)
             except Exception:
-                # Skip files that can't be parsed
+                # Skip files that can't be parsed,
                 continue
 
-        # Add non-AST rules
+        # Add non-AST rules,
         self._validate_app_contracts()
         self._validate_colocated_tests()
         self._validate_documentation_hygiene()
         self._validate_models_purity()
 
-        # Group violations by rule
+        # Group violations by rule,
         violations_by_rule = {}
         for violation in self.violations:
-            rule_name = violation.rule_name
+            rule_name = violation.rule_name,
             if rule_name not in violations_by_rule:
                 violations_by_rule[rule_name] = []
             violations_by_rule[rule_name].append(
@@ -461,8 +460,8 @@ class EnhancedValidator:
 
         return len(self.violations) == 0, violations_by_rule
 
-    def _get_python_files(self) -> List[Path]:
-        """Get all Python files to validate"""
+    def _get_python_files(self) -> list[Path]:
+        """Get all Python files to validate""",
         files = []
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if base_dir.exists():
@@ -478,13 +477,13 @@ class EnhancedValidator:
         return filtered_files
 
     def _create_file_context(self, file_path: Path) -> FileContext:
-        """Create context for a single file"""
-        with open(file_path, "r", encoding="utf-8") as f:
+        """Create context for a single file""",
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         lines = content.split("\n")
 
-        # Parse suppressions
+        # Parse suppressions,
         suppressions = {}
         for i, line in enumerate(lines, 1):
             match = re.search(r"#\s*golden-rule-ignore:\s*([^-]+(?:-\d+)?)\s*-?\s*(.*)", line)
@@ -494,23 +493,23 @@ class EnhancedValidator:
                     suppressions[i] = set()
                 suppressions[i].add(rule_id)
 
-        # Parse AST
-        ast_tree = None
+        # Parse AST,
+        ast_tree = None,
         try:
             ast_tree = ast.parse(content)
         except SyntaxError:
             pass  # Skip files with syntax errors
 
-        # Determine file characteristics
+        # Determine file characteristics,
         is_test_file = "test" in str(file_path).lower()
-        is_cli_file = "cli.py" in str(file_path) or "secure_config.py" in str(file_path) or "__main__" in content
+        is_cli_file = "cli.py" in str(file_path) or "secure_config.py" in str(file_path) or "__main__" in content,
         is_init_file = file_path.name == "__init__.py"
 
-        # Determine package/app context
-        package_name = None
+        # Determine package/app context,
+        package_name = None,
         app_name = None
 
-        parts = file_path.parts
+        parts = file_path.parts,
         if "packages" in parts:
             pkg_idx = parts.index("packages")
             if pkg_idx + 1 < len(parts):
@@ -534,14 +533,14 @@ class EnhancedValidator:
         )
 
     def _validate_app_contracts(self) -> None:
-        """Golden Rule 1: App Contract Compliance"""
-        apps_dir = self.project_root / "apps"
+        """Golden Rule 1: App Contract Compliance""",
+        apps_dir = self.project_root / "apps",
         if not apps_dir.exists():
             return
 
         for app_dir in apps_dir.iterdir():
             if app_dir.is_dir() and not app_dir.name.startswith("."):
-                contract_file = app_dir / "hive-app.toml"
+                contract_file = app_dir / "hive-app.toml",
                 if not contract_file.exists():
                     self.violations.append(
                         Violation(
@@ -554,14 +553,14 @@ class EnhancedValidator:
                     )
 
     def _validate_colocated_tests(self) -> None:
-        """Golden Rule 2: Co-located Tests Pattern"""
+        """Golden Rule 2: Co-located Tests Pattern""",
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if not base_dir.exists():
                 continue
 
             for component_dir in base_dir.iterdir():
                 if component_dir.is_dir() and not component_dir.name.startswith("."):
-                    tests_dir = component_dir / "tests"
+                    tests_dir = component_dir / "tests",
                     if not tests_dir.exists():
                         self.violations.append(
                             Violation(
@@ -574,14 +573,14 @@ class EnhancedValidator:
                         )
 
     def _validate_documentation_hygiene(self) -> None:
-        """Golden Rule 22: Documentation Hygiene"""
+        """Golden Rule 22: Documentation Hygiene""",
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if not base_dir.exists():
                 continue
 
             for component_dir in base_dir.iterdir():
                 if component_dir.is_dir() and not component_dir.name.startswith("."):
-                    readme_file = component_dir / "README.md"
+                    readme_file = component_dir / "README.md",
                     if not readme_file.exists() or readme_file.stat().st_size == 0:
                         self.violations.append(
                             Violation(
@@ -594,8 +593,8 @@ class EnhancedValidator:
                         )
 
     def _validate_models_purity(self) -> None:
-        """Golden Rule 21: hive-models Purity"""
-        models_dir = self.project_root / "packages" / "hive-models"
+        """Golden Rule 21: hive-models Purity""",
+        models_dir = self.project_root / "packages" / "hive-models",
         if not models_dir.exists():
             return
 
@@ -606,7 +605,7 @@ class EnhancedValidator:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 tree = ast.parse(content)

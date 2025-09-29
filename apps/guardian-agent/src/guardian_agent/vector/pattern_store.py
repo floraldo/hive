@@ -3,9 +3,10 @@
 import json
 import pickle
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
+
 from hive_ai.vector import VectorStore as HiveVectorStore
 from hive_logging import get_logger
 
@@ -56,7 +57,7 @@ class PatternStore:
         pattern_content: str,
         embedding: np.ndarray,
         pattern_type: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Add a new pattern to the store.
@@ -109,9 +110,9 @@ class PatternStore:
         self,
         query_embedding: np.ndarray,
         k: int = 5,
-        pattern_type: Optional[str] = None,
+        pattern_type: str | None = None,
         threshold: float = 0.8,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search for similar patterns.
 
@@ -127,7 +128,7 @@ class PatternStore:
         # Search using vector store
         results = await self.vector_store.search(
             query=query_embedding,
-            k=k * 2 if pattern_type else k,  # Get more if filtering
+            k=k * 2 if pattern_type else k,  # Get more if filtering,
             threshold=threshold,
         )
 
@@ -157,7 +158,7 @@ class PatternStore:
         self,
         code_embedding: np.ndarray,
         threshold: float = 0.75,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Find anti-patterns in the code.
 
@@ -178,8 +179,8 @@ class PatternStore:
     async def find_best_practices(
         self,
         code_embedding: np.ndarray,
-        context: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        context: str | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Find relevant best practices for the code.
 
@@ -207,7 +208,7 @@ class PatternStore:
         self,
         violation_embedding: np.ndarray,
         violation_type: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get fix suggestions for a violation.
 
@@ -291,7 +292,7 @@ cursor.execute(query, (user_id,))""",
         logger.info("Initializing default patterns...")
         # Note: In a real implementation, would generate embeddings for these
 
-    def _load_patterns(self) -> Dict[str, Any]:
+    def _load_patterns(self) -> dict[str, Any]:
         """Load patterns from disk."""
         if self.patterns_file.exists():
             with open(self.patterns_file) as f:
@@ -303,7 +304,7 @@ cursor.execute(query, (user_id,))""",
         with open(self.patterns_file, "w") as f:
             json.dump(self.patterns, f, indent=2)
 
-    def _load_embeddings(self) -> Optional[np.ndarray]:
+    def _load_embeddings(self) -> np.ndarray | None:
         """Load embeddings from disk."""
         if self.embeddings_file.exists():
             return np.load(self.embeddings_file)
@@ -314,7 +315,7 @@ cursor.execute(query, (user_id,))""",
         if self.embeddings is not None:
             np.save(self.embeddings_file, self.embeddings)
 
-    def _load_metadata(self) -> Dict[str, Any]:
+    def _load_metadata(self) -> dict[str, Any]:
         """Load metadata from disk."""
         if self.metadata_file.exists():
             with open(self.metadata_file, "rb") as f:

@@ -6,9 +6,9 @@ built-in resilience, cost tracking, and observability.
 """
 from __future__ import annotations
 
-
 import time
-from typing import Any, AsyncIterable, Dict
+from collections.abc import AsyncIterable
+from typing import Any
 
 from hive_async import AsyncCircuitBreaker, async_retry
 from hive_logging import get_logger
@@ -16,7 +16,6 @@ from hive_logging import get_logger
 from ..core.config import AIConfig
 from ..core.exceptions import CostLimitError, ModelError, ModelUnavailableError
 from ..core.interfaces import ModelResponse, TokenUsage
-from ..core.security import default_validator, generate_request_id, secret_manager
 from .metrics import ModelMetrics
 from .registry import ModelRegistry
 
@@ -35,7 +34,7 @@ class ModelClient:
         self.config = config
         self.registry = ModelRegistry(config)
         self.metrics = ModelMetrics()
-        self._circuit_breakers: Dict[str, AsyncCircuitBreaker] = {}
+        self._circuit_breakers: dict[str, AsyncCircuitBreaker] = {}
 
     def _get_circuit_breaker(self, provider: str) -> AsyncCircuitBreaker:
         """Get or create circuit breaker for provider."""
@@ -52,7 +51,7 @@ class ModelClient:
 
         if daily_cost + estimated_cost > self.config.daily_cost_limit:
             raise CostLimitError(
-                f"Operation would exceed daily cost limit",
+                "Operation would exceed daily cost limit",
                 current_cost=daily_cost,
                 limit=self.config.daily_cost_limit,
                 period="daily"
@@ -60,7 +59,7 @@ class ModelClient:
 
         if monthly_cost + estimated_cost > self.config.monthly_cost_limit:
             raise CostLimitError(
-                f"Operation would exceed monthly cost limit",
+                "Operation would exceed monthly cost limit",
                 current_cost=monthly_cost,
                 limit=self.config.monthly_cost_limit,
                 period="monthly"
@@ -157,7 +156,7 @@ class ModelClient:
             )
 
             logger.info(
-                f"Model generation successful: {model_name} "
+                f"Model generation successful: {model_name} ",
                 f"({response.tokens_used} tokens, {latency_ms}ms, ${response.cost:.4f})"
             )
 
@@ -178,13 +177,13 @@ class ModelClient:
             logger.error(f"Model generation failed: {model_name} " f"({latency_ms}ms) - {str(e)}")
 
             raise ModelError(
-                f"Generation failed for model '{model_name}': {str(e)}"
+                f"Generation failed for model '{model_name}': {str(e)}",
                 model=model_name,
                 provider=model_config.provider
             ) from e
 
     async def generate_stream_async(
-        self
+        self,
         prompt: str,
         model: str | None = None,
         temperature: float | None = None,
@@ -266,12 +265,12 @@ class ModelClient:
             logger.error(f"Streaming generation failed: {model_name} - {str(e)}")
 
             raise ModelError(
-                f"Streaming generation failed for model '{model_name}': {str(e)}"
+                f"Streaming generation failed for model '{model_name}': {str(e)}",
                 model=model_name,
                 provider=model_config.provider
             ) from e
 
-    async def list_models_async(self) -> Dict[str, Any]:
+    async def list_models_async(self) -> dict[str, Any]:
         """Get detailed information about available models."""
         models_info = {}
 
@@ -290,11 +289,11 @@ class ModelClient:
 
         return models_info
 
-    async def get_usage_stats_async(self) -> Dict[str, Any]:
+    async def get_usage_stats_async(self) -> dict[str, Any]:
         """Get comprehensive usage statistics."""
         return await self.metrics.get_usage_summary_async()
 
-    async def health_check_async(self) -> Dict[str, Any]:
+    async def health_check_async(self) -> dict[str, Any]:
         """Perform comprehensive health check."""
         health_status = self.registry.refresh_health_status()
         registry_stats = self.registry.get_registry_stats()

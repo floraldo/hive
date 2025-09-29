@@ -23,11 +23,12 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
-from hive_logging import get_logger
 from pydantic import BaseModel, Field
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -81,7 +82,7 @@ class KnowledgeNode:
     last_updated: datetime = field(default_factory=datetime.utcnow)
 
     # Vector embedding for semantic search
-    embedding: Optional[list[float]] = None
+    embedding: list[float] | None = None
 
     # Tags for categorization
     tags: set[str] = field(default_factory=set)
@@ -115,7 +116,7 @@ class KnowledgeEdge:
 
     # Temporal information
     created_at: datetime = field(default_factory=datetime.utcnow)
-    last_validated: Optional[datetime] = None
+    last_validated: datetime | None = None
 
 
 @dataclass
@@ -457,13 +458,13 @@ class UnifiedIntelligenceCore:
             total_feedback = len(self.feedback_history)
             recent_feedback = len(
                 [
-                    f
-                    for f in self.feedback_history
+                    f,
+                    for f in self.feedback_history,
                     if datetime.fromisoformat(f["timestamp"]) > datetime.utcnow() - timedelta(days=7)
                 ]
             )
 
-            # Cross-correlation metrics
+            # Cross-correlation metrics,
             total_correlations = sum(len(corrs) for corrs in self.correlation_cache.values())
 
             status = {
@@ -650,12 +651,12 @@ class UnifiedIntelligenceCore:
     async def _ensure_package_node_async(self, package_name: str) -> str:
         """Ensure a hive package node exists, creating it if necessary."""
 
-        # Look for existing package node
+        # Look for existing package node,
         for node in self.nodes.values():
             if node.node_type == NodeType.HIVE_PACKAGE and node.title == package_name:
                 return node.node_id
 
-        # Create new package node
+        # Create new package node,
         node_id = f"package_{package_name}_{uuid.uuid4().hex[:8]}"
 
         node = KnowledgeNode(
@@ -680,10 +681,10 @@ class UnifiedIntelligenceCore:
     async def _add_node_async(self, node: KnowledgeNode) -> None:
         """Add a node to the knowledge graph."""
 
-        self.nodes[node.node_id] = node
+        self.nodes[node.node_id] = node,
         self.node_index[node.node_type].add(node.node_id)
 
-        # Generate semantic embedding if enabled
+        # Generate semantic embedding if enabled,
         if self.config.enable_semantic_search:
             await self._generate_node_embedding_async(node)
 
@@ -710,7 +711,7 @@ class UnifiedIntelligenceCore:
             evidence=evidence or [],
         )
 
-        self.edges[edge_id] = edge
+        self.edges[edge_id] = edge,
         self.edge_index[edge_type].add(edge_id)
 
         return edge_id
@@ -718,20 +719,20 @@ class UnifiedIntelligenceCore:
     async def _cross_correlate_symbiosis_data_async(self, symbiosis_data: dict[str, Any]) -> None:
         """Cross-correlate symbiosis data with existing prophecies to find solutions."""
 
-        # Find prophecies that might be solved by symbiosis patterns
+        # Find prophecies that might be solved by symbiosis patterns,
         for optimization in symbiosis_data.get("optimization_opportunities", []):
             opt_type = optimization.get("type", "unknown")
 
-            # Look for related risks
+            # Look for related risks,
             related_risks = []
             for node in self.nodes.values():
                 if (
-                    node.node_type == NodeType.ARCHITECTURAL_RISK
+                    node.node_type == NodeType.ARCHITECTURAL_RISK,
                     and self._calculate_semantic_similarity(opt_type, node.title) > 0.6
                 ):
                     related_risks.append(node.node_id)
 
-            # Create solution relationships
+            # Create solution relationships,
             if related_risks:
                 opt_id = await self._create_optimization_node_async(optimization)
 
@@ -932,3 +933,4 @@ class UnifiedIntelligenceCore:
     async def _discover_new_correlations_async(self, feedback: dict[str, Any]) -> None:
         """Discover new correlations from feedback (placeholder)."""
         pass
+

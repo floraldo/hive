@@ -76,7 +76,7 @@ async def demonstrate_operation_unification():
             "solves": 28,  # Pattern -> Risk
             "implements": 73,  # Package -> Pattern
             "affects": 45,  # Risk -> Business Metric
-            "correlates_with": 156,  # Cross-correlations
+            "correlates_with": 156,  # Cross-correlations,
             "validates": 22,  # Metric -> Prophecy
             "mitigates": 31,  # Solution -> Risk
             "references": 89,  # Various references
@@ -380,7 +380,7 @@ async def demonstrate_operation_unification():
     print()
 
     for i, example in enumerate(wisdom_queries, 1):
-        print(f"Query {i}: \"{example['query']}\"")
+        print(f'Query {i}: "{example["query"]}"')
         print()
 
         response = example["oracle_response"]

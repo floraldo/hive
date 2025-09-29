@@ -3,9 +3,7 @@
 import ast
 import time
 from pathlib import Path
-from typing import Any, Dict, List
-
-from hive_logging import get_logger
+from typing import Any
 
 from guardian_agent.core.interfaces import (
     AnalysisResult,
@@ -14,6 +12,7 @@ from guardian_agent.core.interfaces import (
     Violation,
     ViolationType,
 )
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -94,7 +93,7 @@ class CodeAnalyzer:
             execution_time_ms=execution_time,
         )
 
-    def _check_complexity(self, tree: ast.AST, file_path: Path) -> List[Violation]:
+    def _check_complexity(self, tree: ast.AST, file_path: Path) -> list[Violation]:
         """Check cyclomatic complexity of functions."""
         violations = []
 
@@ -133,7 +132,7 @@ class CodeAnalyzer:
 
         return complexity
 
-    def _check_function_length(self, tree: ast.AST, file_path: Path, content: str) -> List[Violation]:
+    def _check_function_length(self, tree: ast.AST, file_path: Path, content: str) -> list[Violation]:
         """Check function length."""
         violations = []
         lines = content.split("\n")
@@ -175,7 +174,7 @@ class CodeAnalyzer:
 
         return violations
 
-    def _estimate_function_length(self, node: ast.FunctionDef, lines: List[str]) -> int:
+    def _estimate_function_length(self, node: ast.FunctionDef, lines: list[str]) -> int:
         """Estimate function length for older Python versions."""
         start_line = node.lineno - 1
         indent_level = len(lines[start_line]) - len(lines[start_line].lstrip())
@@ -189,7 +188,7 @@ class CodeAnalyzer:
 
         return end_line - start_line
 
-    def _check_naming_conventions(self, tree: ast.AST, file_path: Path) -> List[Violation]:
+    def _check_naming_conventions(self, tree: ast.AST, file_path: Path) -> list[Violation]:
         """Check Python naming conventions."""
         violations = []
 
@@ -237,7 +236,7 @@ class CodeAnalyzer:
         s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
         return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
-    def _check_imports(self, tree: ast.AST, file_path: Path) -> List[Violation]:
+    def _check_imports(self, tree: ast.AST, file_path: Path) -> list[Violation]:
         """Check import organization and usage."""
         violations = []
         imports = []
@@ -263,7 +262,7 @@ class CodeAnalyzer:
 
         return violations
 
-    def _suggest_refactoring(self, tree: ast.AST, file_path: Path) -> List[Suggestion]:
+    def _suggest_refactoring(self, tree: ast.AST, file_path: Path) -> list[Suggestion]:
         """Suggest refactoring opportunities."""
         suggestions = []
 
@@ -288,7 +287,7 @@ class CodeAnalyzer:
 
         return suggestions
 
-    def _suggest_type_hints(self, tree: ast.AST, file_path: Path) -> List[Suggestion]:
+    def _suggest_type_hints(self, tree: ast.AST, file_path: Path) -> list[Suggestion]:
         """Suggest adding type hints."""
         suggestions = []
 
@@ -325,7 +324,7 @@ class CodeAnalyzer:
 
         return suggestions
 
-    def _collect_metrics(self, tree: ast.AST, content: str) -> Dict[str, Any]:
+    def _collect_metrics(self, tree: ast.AST, content: str) -> dict[str, Any]:
         """Collect code metrics."""
         metrics = {
             "lines_of_code": len(content.split("\n")),

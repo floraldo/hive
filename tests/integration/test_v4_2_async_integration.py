@@ -118,7 +118,7 @@ class MockAsyncAIPlanner:
                 result = await self.generate_plan_async(task)
                 processed_tasks.append(result)
                 task_count += 1
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 break
 
         return processed_tasks

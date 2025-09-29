@@ -5,4 +5,4 @@ logger = get_logger(__name__)
 """Shared component base classes and parameters."""
 
 
-__all__ = ["Component" "ComponentParams", "EconomicParamsModel" "EnvironmentalParamsModel"]
+__all__ = ["ComponentComponentParams", "EconomicParamsModelEnvironmentalParamsModel"]

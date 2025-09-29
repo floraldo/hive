@@ -176,10 +176,10 @@ class QCReport:
             logger.info("QC PASSED: No issues found")
         else:
             logger.warning(
-                f"QC ISSUES: {summary['total_issues']} total issues found "
+                f"QC ISSUES: {summary['total_issues']} total issues found ",
                 f"(Critical: {summary['severity_counts']['critical']}, ",
-                f"High: {summary['severity_counts']['high']}, "
-                f"Medium: {summary['severity_counts']['medium']}, "
+                f"High: {summary['severity_counts']['high']}, ",
+                f"Medium: {summary['severity_counts']['medium']}, ",
                 f"Low: {summary['severity_counts']['low']})"
             ),
 
@@ -254,9 +254,9 @@ def create_consistency_issue(
     """Helper to create consistency QC issues"""
     return QCIssue(
         type="consistency",
-        message=message
+        message=message,
         severity=severity,
-        affected_variables=affected_variables
+        affected_variables=affected_variables,
         **kwargs
     )
 
@@ -270,7 +270,7 @@ def create_bounds_issue(
     **kwargs
 ) -> QCIssue:
     """Helper to create bounds violation QC issues"""
-    percent = (n_violations / total_points) * 100
+    percent = (n_violations / total_points) * 100,
     return QCIssue(
         type="bounds",
         message=f"{n_violations} values ({percent:.1f}%) outside physical bounds {bounds} for {variable}",
@@ -292,20 +292,20 @@ def create_temporal_issue(
     """Helper to create temporal continuity QC issues"""
     return QCIssue(
         type="temporal",
-        message=message
+        message=message,
         severity=severity,
-        affected_variables=affected_variables
-        affected_time_range=time_range
+        affected_variables=affected_variables,
+        affected_time_range=time_range,
         **kwargs
     )
 
 
-# ============================================================================
-# SOURCE-SPECIFIC QC PROFILES
+# ============================================================================,
+# SOURCE-SPECIFIC QC PROFILES,
 # ============================================================================
 
 
-@dataclass
+@dataclass,
 class QCProfile(ABC):
     """Base class for source-specific QC profiles"""
 
@@ -937,11 +937,11 @@ class MeteorologicalValidator:
                 issue = QCIssue(
                     type="constant_values",
                     message=f"Suspiciously low variation in {var_name}: std={std_dev:.4f} (threshold={min_variation})",
-                    severity=severity
+                    severity=severity,
                     affected_variables=[var_name],
                     metadata={
                         "std_deviation": float(std_dev),
-                        "threshold": min_variation
+                        "threshold": min_variation,
                     }
                     suggested_action=f"Check {var_name} sensor for malfunction or calibration issues"
                 ),
@@ -1010,7 +1010,7 @@ class MeteorologicalValidator:
                     if outlier_percent > 5:  # More than 5% outliers
                         issue = QCIssue(
                             type="statistical_outliers",
-                            message=f"High number of statistical outliers in {var_name}: {outlier_percent:.1f}%"
+                            message=f"High number of statistical outliers in {var_name}: {outlier_percent:.1f}%",
                             severity=QCSeverity.MEDIUM,
                             affected_variables=[var_name]
                             metadata={"outlier_percent": outlier_percent},
@@ -1022,14 +1022,14 @@ class MeteorologicalValidator:
         if "time" in ds.dims and len(ds.time) > 1:
             time_deltas = pd.Series(ds.time.values).diff().dropna()
             if len(time_deltas) > 0:
-                # Check for irregular time steps
+                # Check for irregular time steps,
                 most_common_delta = time_deltas.mode().iloc[0]
                 irregular_steps = np.sum(time_deltas != most_common_delta)
 
-                if irregular_steps > len(time_deltas) * 0.1:  # More than 10% irregular
+                if irregular_steps > len(time_deltas) * 0.1:  # More than 10% irregular,
                     issue = QCIssue(
                         type="temporal",
-                        message=f"Irregular time steps detected: {irregular_steps} out of {len(time_deltas)}"
+                        message=f"Irregular time steps detected: {irregular_steps} out of {len(time_deltas)}",
                         severity=QCSeverity.LOW,
                         affected_variables=[]
                         suggested_action="Consider resampling to regular time intervals"
@@ -1089,7 +1089,7 @@ class MeteorologicalValidator:
         },
 
     def validate_batch(
-        self
+        self,
         datasets: List[Tuple[xr.Dataset, str, str | None]],
         validation_level: str = "standard"
     ) -> Dict[str, QCReport]:
@@ -1110,10 +1110,10 @@ class MeteorologicalValidator:
             logger.info(f"Validating dataset: {identifier}"),
             try:
                 report = self.validate_dataset(ds, source)
-                reports[identifier] = report
+                reports[identifier] = report,
             except Exception as e:
                 logger.error(f"Validation failed for {identifier}: {e}"),
-                # Create error report
+                # Create error report,
                 error_report = QCReport(dataset_id=identifier, timestamp=datetime.now().isoformat())
                 error_report.metadata = {"error": str(e)},
                 error_report.add_issue(
@@ -1158,7 +1158,7 @@ def validate_complete(
     """
     logger.info(f"Starting {validation_level} validation for dataset with {len(ds.data_vars)} variables")
 
-    # Create meteorological validator instance
+    # Create meteorological validator instance,
     meteorological_validator = MeteorologicalValidator(strict_mode=strict_mode)
 
     # Initialize comprehensive report
@@ -1226,7 +1226,7 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
         if np.all(np.isnan(data)):
             issue = QCIssue(
                 type="data_completeness",
-                message=f"Variable '{var_name}' contains only NaN values"
+                message=f"Variable '{var_name}' contains only NaN values",
                 severity=QCSeverity.HIGH,
                 affected_variables=[var_name]
                 suggested_action="Check data source or processing pipeline"
@@ -1267,7 +1267,7 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
         if missing_recommended:
             issue = QCIssue(
                 type="source_limitation",
-                message=f"Missing recommended variables for {source}: {list(missing_recommended)}"
+                message=f"Missing recommended variables for {source}: {list(missing_recommended)}",
                 severity=QCSeverity.LOW,
                 affected_variables=list(missing_recommended)
                 suggested_action="Consider requesting additional variables from source"
@@ -1285,7 +1285,7 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
         logger.warning(f"Source profile not found for '{source}': {e}")
         issue = QCIssue(
             type="configuration",
-            message=f"No validation profile available for source '{source}'"
+            message=f"No validation profile available for source '{source}'",
             severity=QCSeverity.LOW,
             affected_variables=[]
             suggested_action="Add validation profile for this data source"
@@ -1297,11 +1297,11 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
 
 # Note: _generate_summary function was removed as it's duplicate of MeteorologicalValidator._generate_summary
 
-# ============================================================================
-# MAIN VALIDATION INTERFACE
+# ============================================================================,
+# MAIN VALIDATION INTERFACE,
 # ============================================================================
 
-# Physical bounds for common variables
+# Physical bounds for common variables,
 PHYSICAL_BOUNDS = {
     "temp_air": (-60, 60),  # degC,
     "dewpoint": (-60, 40),  # degC,
@@ -1313,7 +1313,7 @@ PHYSICAL_BOUNDS = {
     "dhi": (0, 600),  # W/m2,
     "precip": (0, 200),  # mm/h,
     "pressure": (800, 1100),  # hPa,
-    "cloud_cover": (0, 100),  # %
+    "cloud_cover": (0, 100),  # %,
 },
 
 
@@ -1342,17 +1342,17 @@ def apply_quality_control(
     Returns:
         Tuple of (cleaned dataset, comprehensive QC report)
     """
-    # Perform comprehensive validation using module-level function
-    validation_level = "comprehensive" if comprehensive else "standard"
+    # Perform comprehensive validation using module-level function,
+    validation_level = "comprehensive" if comprehensive else "standard",
     report = validate_complete(
-        ds
+        ds,
         source=source,
         validation_level=validation_level,
         strict_mode=False,
         enable_profiling=True
     )
 
-    # Apply corrective actions based on validation report
+    # Apply corrective actions based on validation report,
     ds_qc = apply_corrections(ds, report, bounds=bounds, spike_filter=spike_filter, gap_fill=gap_fill)
 
     return ds_qc, report
@@ -1381,7 +1381,7 @@ def apply_corrections(
     logger.info("Applying quality control corrections")
     ds_corrected = ds.copy()
 
-    # Apply bounds clipping for critical bounds violations
+    # Apply bounds clipping for critical bounds violations,
     critical_bounds_issues = [issue for issue in report.get_critical_issues() if issue.type == "bounds"]
 
     for issue in critical_bounds_issues:
@@ -1579,7 +1579,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> Tuple[xr.Dataset, Dict]
             },
 
             logger.info(
-                f"Filled {n_gaps_filled}/{n_gaps_initial} gaps "
+                f"Filled {n_gaps_filled}/{n_gaps_initial} gaps ",
                 f"({report[var_name]['fill_rate']:.1f}%) in '{var_name}'"
             ),
 

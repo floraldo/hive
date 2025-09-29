@@ -184,7 +184,7 @@ class CacheHealthMonitor:
                 healthy=healthy,
                 timestamp=datetime.utcnow()
                 response_time_ms=response_time_ms,
-                details=details
+                details=details,
                 errors=errors
             )
 
@@ -196,14 +196,14 @@ class CacheHealthMonitor:
                 healthy=False,
                 timestamp=datetime.utcnow()
                 response_time_ms=response_time_ms,
-                details=details
+                details=details,
                 errors=errors
             )
 
     async def _test_ping_async(self) -> Dict[str, Any]:
         """Test Redis ping operation."""
         try:
-            import aioredis
+            import aioredis,
             async with aioredis.Redis(connection_pool=self.cache_client._redis_pool) as redis:
                 start_time = time.time()
                 result = await redis.ping()
@@ -212,7 +212,7 @@ class CacheHealthMonitor:
                 return {
                     "success": True,
                     "result": result,
-                    "ping_time_ms": ping_time
+                    "ping_time_ms": ping_time,
                 }
 
         except Exception as e:
@@ -224,18 +224,18 @@ class CacheHealthMonitor:
     async def _test_set_get_async(self) -> Dict[str, Any]:
         """Test set/get operations."""
         try:
-            test_key = f"health_check_{int(time.time())}"
+            test_key = f"health_check_{int(time.time())}",
             test_value = {"test": True, "timestamp": time.time()}
 
-            # Test set
+            # Test set,
             set_success = await self.cache_client.set(
                 test_key, test_value, ttl=60, namespace="health"
             )
 
-            # Test get
+            # Test get,
             retrieved_value = await self.cache_client.get(test_key, namespace="health")
 
-            # Test delete
+            # Test delete,
             delete_success = await self.cache_client.delete(test_key, namespace="health")
 
             return {
@@ -243,7 +243,7 @@ class CacheHealthMonitor:
                 "set_success": set_success,
                 "get_success": retrieved_value is not None,
                 "delete_success": delete_success,
-                "data_integrity": retrieved_value == test_value if retrieved_value else False
+                "data_integrity": retrieved_value == test_value if retrieved_value else False,
             }
 
         except Exception as e:
@@ -255,12 +255,12 @@ class CacheHealthMonitor:
     async def _test_pattern_operations_async(self) -> Dict[str, Any]:
         """Test pattern-based operations."""
         try:
-            # Create test keys
+            # Create test keys,
             test_keys = [f"pattern_test_{i}" for i in range(3)]
             for key in test_keys:
                 await self.cache_client.set(key, f"value_{key}", ttl=60, namespace="health")
 
-            # Test pattern delete
+            # Test pattern delete,
             deleted_count = await self.cache_client.delete_pattern(
                 "pattern_test_*", namespace="health"
             )
@@ -280,11 +280,11 @@ class CacheHealthMonitor:
     async def _get_redis_info_async(self) -> Dict[str, Any]:
         """Get Redis server information."""
         try:
-            import aioredis
+            import aioredis,
             async with aioredis.Redis(connection_pool=self.cache_client._redis_pool) as redis:
                 info = await redis.info()
 
-                # Extract key metrics
+                # Extract key metrics,
                 return {
                     "version": info.get("redis_version"),
                     "uptime_seconds": info.get("uptime_in_seconds"),
@@ -310,9 +310,9 @@ class CacheHealthMonitor:
 
             return {
                 "max_connections": pool._max_connections if hasattr(pool, '_max_connections') else "unknown",
-                "created_connections": pool.created_connections if hasattr(pool, 'created_connections') else "unknown"
+                "created_connections": pool.created_connections if hasattr(pool, 'created_connections') else "unknown",
                 "available_connections": pool.available_connections if hasattr(pool, 'available_connections') else "unknown",
-                "in_use_connections": pool.in_use_connections if hasattr(pool, 'in_use_connections') else "unknown"
+                "in_use_connections": pool.in_use_connections if hasattr(pool, 'in_use_connections') else "unknown",
             }
 
         except Exception as e:
@@ -324,24 +324,24 @@ class CacheHealthMonitor:
         """Get current performance metrics.
 
         Returns:
-            PerformanceMetrics object
+            PerformanceMetrics object,
         """
         try:
-            # Get cache client metrics
+            # Get cache client metrics,
             client_metrics = self.cache_client.get_metrics()
 
-            # Calculate performance metrics
+            # Calculate performance metrics,
             total_ops = client_metrics.get("total_operations", 0)
             hits = client_metrics.get("hits", 0)
             errors = client_metrics.get("errors", 0)
 
             return PerformanceMetrics(
                 total_operations=total_ops,
-                successful_operations=total_ops - errors
+                successful_operations=total_ops - errors,
                 failed_operations=errors,
-                average_response_time_ms=0.0,  # Would need to track this separately
+                average_response_time_ms=0.0,  # Would need to track this separately,
                 cache_hit_rate=client_metrics.get("hit_rate_percent", 0.0),
-                connection_pool_usage=0.0,  # Would need pool monitoring
+                connection_pool_usage=0.0,  # Would need pool monitoring,
                 memory_usage_bytes=0  # Would need Redis memory info
             )
 

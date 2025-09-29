@@ -62,23 +62,23 @@ async def lifespan_async(app: FastAPI) -> None:
 
 # OpenAPI documentation tags
 tags_metadata = [
-    {"name": "Platform", "description": "Platform information and health checks"}
+    {"name": "Platform", "description": "Platform information and health checks"},
     {
         "name": "Profile Loader",
         "description": "Climate and demand profile data loading with multiple adapters"
-    }
+    },
     {
         "name": "Climate Data",
         "description": "Climate data endpoints with batch processing and streaming"
-    }
+    },
     {
         "name": "Solver",
         "description": "Optimization solver for energy system analysis (planned)"
-    }
+    },
     {
         "name": "Analyser",
         "description": "Post-processing analytics and visualization (planned)"
-    }
+    },
     {
         "name": "Reporting",
         "description": "Automated report generation and export (planned)"
@@ -98,28 +98,28 @@ app = FastAPI(
     contact={
         "name": "EcoSystemiser Support",
         "email": "support@ecosystemiser.com",
-        "url": "https://docs.ecosystemiser.com"
+        "url": "https://docs.ecosystemiser.com",
     }
     license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
 )
 
-# Configure CORS
+# Configure CORS,
 app.add_middleware(
-    CORSMiddleware
+    CORSMiddleware,
     allow_origins=settings.api.cors_origins,
-    allow_methods=settings.api.cors_methods
+    allow_methods=settings.api.cors_methods,
     allow_headers=settings.api.cors_headers,
     allow_credentials=True
 )
 
 
-# Root router
+# Root router,
 @app.get("/", response_model=PlatformInfo, tags=["Platform"])
 async def root_async() -> None:
     """Root endpoint with platform information"""
     return PlatformInfo(
         platform="EcoSystemiser",
-        version=settings.api.version
+        version=settings.api.version,
         modules={
             "profile_loader": ModuleInfo(
                 status=ModuleStatus.ACTIVE,
@@ -166,9 +166,9 @@ async def health_async() -> None:
 
     return HealthCheck(
         status=overall_status,
-        platform="EcoSystemiser"
+        platform="EcoSystemiser",
         timestamp=datetime.utcnow(),
-        version=settings.api.version
+        version=settings.api.version,
         checks=checks
     )
 
@@ -203,7 +203,7 @@ async def solver_status_async() -> None:
     """Get solver module status"""
     return SolverStatus(
         module="solver",
-        status="not_implemented"
+        status="not_implemented",
         version="1.0.0-planned",
         capabilities=["linear_programming", "mixed_integer", "nonlinear"]
         solver_type="multi_engine",
@@ -222,13 +222,13 @@ async def analyser_status_async() -> None:
     """Get analyser module status"""
     return AnalyserStatus(
         module="analyser",
-        status="not_implemented"
+        status="not_implemented",
         version="1.0.0-planned",
         capabilities=["technical_kpi", "economic", "sensitivity", "scenario"]
         analysis_strategies=[
-            "technical_kpi"
+            "technical_kpi",
             "economic",
-            "sensitivity"
+            "sensitivity",
             "optimization_post"
         ]
         supported_formats=["json", "html", "pdf", "excel"]
@@ -246,7 +246,7 @@ async def reporting_status_async() -> None:
     """Get reporting module status"""
     return ReportingStatus(
         module="reporting",
-        status="not_implemented"
+        status="not_implemented",
         version="1.0.0-planned",
         capabilities=["html_reports", "pdf_export", "interactive_dashboard"]
         report_types=["comprehensive", "executive_summary", "technical_detail"],
@@ -266,16 +266,16 @@ async def legacy_v2_redirect_async(path: str) -> None:
     """Redirect v2 API calls to v3 with migration guidance"""
     redirect_response = LegacyRedirect(
         message="API v2 deprecated, please use v3",
-        redirect=f"/api/v3/{path}"
+        redirect=f"/api/v3/{path}",
         deprecated_version="v2",
-        current_version="v3"
+        current_version="v3",
         migration_guide="https://docs.ecosystemiser.com/api/migration-v2-to-v3"
     )
 
     return JSONResponse(status_code=301, content=redirect_response.model_dump())
 
 
-# Error handlers
+# Error handlers,
 @app.exception_handler(ClimateError)
 async def climate_error_handler_async(request: Request, exc: ClimateError) -> None:
     """Handle platform-specific errors with structured response"""
@@ -307,7 +307,7 @@ async def general_error_handler_async(request: Request, exc: Exception) -> None:
 
 # Helper functions for enhanced endpoints
 
-# Global startup time for uptime calculation
+# Global startup time for uptime calculation,
 STARTUP_TIME = time.time()
 
 
@@ -391,7 +391,7 @@ async def get_metrics_async() -> None:
         disk_usage=disk.percent,
         active_connections=len(psutil.net_connections())
         request_rate=0.0,  # Would be tracked by middleware,
-        error_rate=0.0,  # Would be tracked by middleware
+        error_rate=0.0,  # Would be tracked by middleware,
         uptime_seconds=int(time.time() - STARTUP_TIME)
     )
 
@@ -412,7 +412,7 @@ async def get_metrics_async() -> None:
 
     return MonitoringResponse(
         system_metrics=system_metrics,
-        performance_metrics=performance_metrics
+        performance_metrics=performance_metrics,
         health_checks=health_checks
     )
 
@@ -436,7 +436,7 @@ async def get_version_async() -> None:
             "reporting": False,
             "async_jobs": True,
             "streaming": True,
-            "batch_processing": True
+            "batch_processing": True,
         }
     },
 
@@ -444,9 +444,9 @@ async def get_version_async() -> None:
 if __name__ == "__main__":
     # Run the application,
     uvicorn.run(
-        "main:app"
+        "main:app",
         host="0.0.0.0",
-        port=8000
+        port=8000,
         reload=settings.debug,
         log_level=settings.observability.log_level.lower()
     )

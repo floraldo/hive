@@ -10,6 +10,9 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
 from hive_ai.agents.agent import (
     AgentConfig,
     AgentState,
@@ -39,8 +42,6 @@ from hive_ai.prompts.template import (
     PromptTemplate,
     PromptVariable,
 )
-from hypothesis import given, settings
-from hypothesis import strategies as st
 
 
 # Prompt generation strategies for property-based testing
@@ -203,7 +204,7 @@ class TestPromptTemplate:
             template = PromptTemplate(template=template_data["template"], variables=variables)
 
             # Should be able to validate
-            variable_values = {var_name: "test_value" for var_name in template_data["variables"]}
+            variable_values = dict.fromkeys(template_data["variables"], "test_value")
             is_valid = template.validate_variables(**variable_values)
             assert isinstance(is_valid, bool)
 
@@ -840,7 +841,7 @@ class TestIntegrationScenarios:
                 task_id = workflow.add_task(task)
 
                 # Create step with dependencies (sequential)
-                dependencies = [f"step_{i-1}"] if i > 0 else []
+                dependencies = [f"step_{i - 1}"] if i > 0 else []
                 step_id = workflow.create_step(
                     name=f"step_{i}",
                     agent_id=agent_id,

@@ -6,6 +6,7 @@ Standardize tool versions across all Hive packages and apps.
 from pathlib import Path
 
 import toml
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -14,14 +15,14 @@ logger = get_logger(__name__)
 def load_standard_versions():
     """Load standard tool versions from tool-versions.toml"""
     versions_file = Path(__file__).parent.parent / "tool-versions.toml"
-    with open(versions_file, "r") as f:
+    with open(versions_file) as f:
         return toml.load(f)
 
 
 def update_pyproject_tools(pyproject_path: Path, standard_versions: dict):
     """Update tool versions in a pyproject.toml file"""
     try:
-        with open(pyproject_path, "r") as f:
+        with open(pyproject_path) as f:
             data = toml.load(f)
 
         updated = False

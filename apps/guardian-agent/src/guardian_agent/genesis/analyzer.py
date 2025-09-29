@@ -340,7 +340,7 @@ class SemanticAnalyzer:
         """Analyze data storage and processing requirements."""
 
         requirements = {
-            "storage_type": "sqlite",  # Default
+            "storage_type": "sqlite",  # Default,
             "data_volume": "low",
             "data_types": [],
             "relationships": False,

@@ -11,7 +11,6 @@ import statistics
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional
 
 from hive_logging import get_logger
 
@@ -59,8 +58,8 @@ class TrendAnalysis:
     r_squared: float
 
     # Predictions
-    predicted_value_1h: Optional[float] = None
-    predicted_value_24h: Optional[float] = None
+    predicted_value_1h: float | None = None
+    predicted_value_24h: float | None = None
 
 
 @dataclass
@@ -90,7 +89,7 @@ class Correlation:
     strength: str  # weak, moderate, strong
 
     description: str
-    time_lag: Optional[timedelta] = None
+    time_lag: timedelta | None = None
 
 
 @dataclass
@@ -110,7 +109,7 @@ class Insight:
 
     # Recommendations
     recommended_actions: list[str] = field(default_factory=list)
-    estimated_impact: Optional[str] = None
+    estimated_impact: str | None = None
     urgency: str = "medium"  # low, medium, high, critical
 
     # Metadata
@@ -140,7 +139,7 @@ class AnalyticsEngine:
         self._anomaly_cache: dict[str, list[Anomaly]] = {}
 
     async def analyze_trends_async(
-        self, metric_types: Optional[list[MetricType]] = None, hours: int = 24
+        self, metric_types: list[MetricType] | None = None, hours: int = 24
     ) -> list[TrendAnalysis]:
         """Analyze trends across specified metrics."""
 
@@ -154,7 +153,7 @@ class AnalyticsEngine:
                 # Get time series data
                 metrics = await self.warehouse.get_time_series_async(
                     metric_type=metric_type,
-                    source="*",  # All sources
+                    source="*",  # All sources,
                     hours=hours,
                 )
 
@@ -207,7 +206,7 @@ class AnalyticsEngine:
 
     def _analyze_trend(
         self, metric_name: str, values: list[float], timestamps: list[datetime], time_period: timedelta
-    ) -> Optional[TrendAnalysis]:
+    ) -> TrendAnalysis | None:
         """Analyze trend for a single metric."""
 
         if len(values) < 2:
@@ -303,7 +302,7 @@ class AnalyticsEngine:
         return slope, r_squared
 
     async def detect_anomalies_async(
-        self, metric_types: Optional[list[MetricType]] = None, hours: int = 24
+        self, metric_types: list[MetricType] | None = None, hours: int = 24
     ) -> list[Anomaly]:
         """Detect anomalies in metrics using statistical methods."""
 
@@ -445,7 +444,7 @@ class AnalyticsEngine:
         return actions
 
     async def find_correlations_async(
-        self, metric_types: Optional[list[MetricType]] = None, hours: int = 24
+        self, metric_types: list[MetricType] | None = None, hours: int = 24
     ) -> list[Correlation]:
         """Find correlations between different metrics."""
 
@@ -501,7 +500,7 @@ class AnalyticsEngine:
 
     def _calculate_correlation(
         self, series1: list[tuple[datetime, float]], series2: list[tuple[datetime, float]]
-    ) -> Optional[Correlation]:
+    ) -> Correlation | None:
         """Calculate correlation between two time series."""
 
         try:
@@ -524,7 +523,7 @@ class AnalyticsEngine:
             mean1 = sum(values1) / len(values1)
             mean2 = sum(values2) / len(values2)
 
-            numerator = sum((v1 - mean1) * (v2 - mean2) for v1, v2 in zip(values1, values2))
+            numerator = sum((v1 - mean1) * (v2 - mean2) for v1, v2 in zip(values1, values2, strict=False))
 
             sum_sq1 = sum((v1 - mean1) ** 2 for v1 in values1)
             sum_sq2 = sum((v2 - mean2) ** 2 for v2 in values2)
@@ -555,8 +554,8 @@ class AnalyticsEngine:
             description = f"{strength.title()} {direction} correlation detected"
 
             return Correlation(
-                metric1=series1[0][0] if series1 else "unknown",  # This needs to be fixed
-                metric2=series2[0][0] if series2 else "unknown",  # This needs to be fixed
+                metric1=series1[0][0] if series1 else "unknown",  # This needs to be fixed,
+                metric2=series2[0][0] if series2 else "unknown",  # This needs to be fixed,
                 correlation_coefficient=correlation_coef,
                 p_value=p_value,
                 strength=strength,

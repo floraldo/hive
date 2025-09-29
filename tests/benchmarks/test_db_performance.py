@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+
 from hive_db import (
     batch_insert,
     create_table_if_not_exists,

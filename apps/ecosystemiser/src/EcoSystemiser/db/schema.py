@@ -39,7 +39,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
 
     # Main simulations table,
     conn.execute(
-        """
+        """,
         CREATE TABLE IF NOT EXISTS simulations (
             simulation_id TEXT PRIMARY KEY,
             system_config_path TEXT NOT NULL,
@@ -73,7 +73,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
     # Create indexes,
     (
         conn.execute(
-            """
+            """,
         CREATE INDEX IF NOT EXISTS idx_simulations_status,
         ON simulations(status, created_at)
     """
@@ -95,7 +95,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
 
     # Studies table,
     conn.execute(
-        """
+        """,
         CREATE TABLE IF NOT EXISTS studies (
             study_id TEXT PRIMARY KEY,
             study_type TEXT NOT NULL,
@@ -130,7 +130,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
     # Create indexes,
     (
         conn.execute(
-            """
+            """,
         CREATE INDEX IF NOT EXISTS idx_studies_status,
         ON studies(status, created_at)
     """
@@ -152,7 +152,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
 
     # Analysis runs table,
     conn.execute(
-        """
+        """,
         CREATE TABLE IF NOT EXISTS analysis_runs (
             analysis_id TEXT PRIMARY KEY,
             source_type TEXT NOT NULL,
@@ -187,7 +187,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
     # Create indexes,
     (
         conn.execute(
-            """
+            """,
         CREATE INDEX IF NOT EXISTS idx_analysis_runs_source,
         ON analysis_runs(source_type, source_id)
     """
@@ -209,7 +209,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
 
     # Optimization runs table,
     conn.execute(
-        """
+        """,
         CREATE TABLE IF NOT EXISTS optimization_runs (
             optimization_id TEXT PRIMARY KEY,
             algorithm_type TEXT NOT NULL,
@@ -246,7 +246,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
     # Create indexes,
     (
         conn.execute(
-            """
+            """,
         CREATE INDEX IF NOT EXISTS idx_optimization_runs_status,
         ON optimization_runs(status, created_at)
     """
@@ -268,7 +268,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
 
     # Component types table,
     conn.execute(
-        """
+        """,
         CREATE TABLE IF NOT EXISTS component_types (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
@@ -304,7 +304,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
     # Create indexes,
     (
         conn.execute(
-            """
+            """,
         CREATE INDEX IF NOT EXISTS idx_component_type,
         ON component_specs (component_type_id)
     """
@@ -326,7 +326,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
 
     # Events table,
     conn.execute(
-        """
+        """,
         CREATE TABLE IF NOT EXISTS ecosystemiser_events (
             event_id TEXT PRIMARY KEY,
             event_type TEXT NOT NULL,
@@ -357,7 +357,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
     # Create indexes,
     (
         conn.execute(
-            """
+            """,
         CREATE INDEX IF NOT EXISTS idx_ecosystemiser_events_type,
         ON ecosystemiser_events(event_type, timestamp)
     """
@@ -396,7 +396,7 @@ def drop_all_tables(db_path: Path | None = None) -> None:
     try:
         # Get list of all tables
         cursor = conn.execute(
-            """
+            """,
             SELECT name FROM sqlite_master,
             WHERE type='table' AND name NOT LIKE 'sqlite_%',
         """

@@ -1,11 +1,10 @@
 """Prompt templates for code review generation."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-from hive_ai import PromptTemplate
+from typing import Any
 
 from guardian_agent.core.interfaces import AnalysisResult, Severity
+from hive_ai import PromptTemplate
 
 
 class ReviewPromptBuilder:
@@ -15,7 +14,7 @@ class ReviewPromptBuilder:
         """Initialize the prompt builder."""
         self.base_template = PromptTemplate(
             name="code_review",
-            template="""You are an expert code reviewer for the Hive platform.
+            template="""You are an expert code reviewer for the Hive platform.,
 Review the following code and provide a comprehensive analysis.
 
 File: {file_path}
@@ -68,8 +67,8 @@ Format your response as JSON:
         self,
         file_path: Path,
         content: str,
-        analysis_results: List[AnalysisResult],
-        similar_patterns: Optional[List[Dict[str, Any]]] = None,
+        analysis_results: list[AnalysisResult],
+        similar_patterns: list[dict[str, Any]] | None = None,
     ) -> str:
         """
         Build a comprehensive review prompt.
@@ -142,7 +141,7 @@ Format your response as JSON:
 
         return "\n".join(truncated)
 
-    def _build_context_section(self, analysis_results: List[AnalysisResult]) -> str:
+    def _build_context_section(self, analysis_results: list[AnalysisResult]) -> str:
         """Build context section from analysis results."""
         if not analysis_results:
             return ""
@@ -162,7 +161,7 @@ Format your response as JSON:
 
         return "\n".join(lines)
 
-    def _build_violations_section(self, analysis_results: List[AnalysisResult]) -> str:
+    def _build_violations_section(self, analysis_results: list[AnalysisResult]) -> str:
         """Build violations section from analysis results."""
         all_violations = []
         for result in analysis_results:
@@ -196,7 +195,7 @@ Format your response as JSON:
 
         return "\n".join(lines)
 
-    def _build_patterns_section(self, similar_patterns: Optional[List[Dict[str, Any]]]) -> str:
+    def _build_patterns_section(self, similar_patterns: list[dict[str, Any]] | None) -> str:
         """Build similar patterns section from vector search results."""
         if not similar_patterns:
             return ""

@@ -13,7 +13,7 @@ These contain the business logic for agent coordination.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 from hive_bus import BaseEvent
 
@@ -68,7 +68,7 @@ class AgentEvent(BaseEvent):
     agent_id: str = ""
     agent_type: str = ""  # queen, worker, reviewer, etc.
     status: AgentStatus = AgentStatus.IDLE
-    capabilities: Dict[str, Any] = field(default_factory=dict)
+    capabilities: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Set event type for agent events"""
@@ -87,7 +87,7 @@ class WorkflowEvent(BaseEvent):
     workflow_id: str = ""
     phase: str = ""  # planning, execution, review, completion
     progress: float = 0.0  # 0.0 to 1.0
-    dependencies: Dict[str, str] = field(default_factory=dict)
+    dependencies: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Set event type for workflow events"""

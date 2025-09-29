@@ -11,7 +11,6 @@ import asyncio
 import statistics
 import time
 from dataclasses import dataclass
-from typing import List
 
 try:
     from hive_cache import CacheConfig, HiveCacheClient
@@ -95,7 +94,7 @@ class OptimizedCacheBenchmark:
             },
         }
 
-    async def benchmark_optimized_cache_client(self) -> List[BenchmarkResult]:
+    async def benchmark_optimized_cache_client(self) -> list[BenchmarkResult]:
         """Benchmark the optimized HiveCacheClient implementation."""
         if not HAS_HIVE_CACHE:
             print("  SKIP: hive_cache not available")
@@ -164,7 +163,7 @@ class OptimizedCacheBenchmark:
 
         return results
 
-    async def benchmark_bulk_operations(self) -> List[BenchmarkResult]:
+    async def benchmark_bulk_operations(self) -> list[BenchmarkResult]:
         """Benchmark bulk cache operations."""
         if not HAS_HIVE_CACHE:
             return []
@@ -215,7 +214,7 @@ class OptimizedCacheBenchmark:
 
         return results
 
-    async def run_all_benchmarks(self) -> List[BenchmarkResult]:
+    async def run_all_benchmarks(self) -> list[BenchmarkResult]:
         """Run all optimization validation benchmarks."""
         print("Starting optimized cache benchmark suite...")
         print("Target: Sub-1ms P95 latency for local Redis operations")
@@ -232,7 +231,7 @@ class OptimizedCacheBenchmark:
 
         return all_results
 
-    def print_results(self, results: List[BenchmarkResult]):
+    def print_results(self, results: list[BenchmarkResult]):
         """Print formatted benchmark results."""
         print("\n" + "=" * 80)
         print("OPTIMIZED CACHE PERFORMANCE RESULTS")
@@ -287,7 +286,7 @@ class OptimizedCacheBenchmark:
             print("\nPERFORMANCE SUMMARY:")
             print(f"  Operations tested: {len(working_results)}")
             print(f"  Sub-1ms operations: {success_count}/{len(working_results)}")
-            print(f"  Success rate: {success_count/len(working_results)*100:.1f}%")
+            print(f"  Success rate: {success_count / len(working_results) * 100:.1f}%")
             print(f"  Fastest operation: {fastest.name} ({fastest.p95_ms:.2f}ms P95)")
             print(f"  Slowest operation: {slowest.name} ({slowest.p95_ms:.2f}ms P95)")
 

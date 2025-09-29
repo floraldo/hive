@@ -26,10 +26,9 @@ import pytest
 try:
     from hive_db.async_pool import AsyncConnectionPool
     from hive_db.sqlite_connector import SQLiteConnector
+    from hive_async import AsyncExecutor, get_async_connection
 
-from hive_async import AsyncExecutor, get_async_connection
-
-async_executor = AsyncExecutor()
+    async_executor = AsyncExecutor()
 except ImportError:
     # Fallback mock implementations for testing
     class AsyncConnectionPool:
@@ -207,7 +206,7 @@ class TestDatabaseResilience:
         
         # Create test table
         async with get_async_connection(str(db_path)) as conn:
-            await conn.execute('''
+            await conn.execute(''',
                 CREATE TABLE test_table (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -385,7 +384,7 @@ class TestDatabaseResilience:
             tasks.append(task)
         
         start_time = time.time()
-        results = await await async_executor.gather(*tasks, return_exceptions=True)
+        results = await async_executor.gather(*tasks, return_exceptions=True)
         end_time = time.time()
         
         # All operations should complete successfully

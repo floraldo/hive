@@ -5,7 +5,6 @@ Performance benchmarks for async operations.
 import asyncio
 import tempfile
 from pathlib import Path
-from typing import List
 
 import aiofiles
 import pytest
@@ -47,7 +46,7 @@ class TestAsyncPerformance:
                 read_tasks = []
 
                 async def read_file(file_path):
-                    async with aiofiles.open(file_path, "r") as f:
+                    async with aiofiles.open(file_path) as f:
                         return await f.read()
 
                 for file_path in temp_files:
@@ -98,7 +97,7 @@ class TestAsyncPerformance:
             batch_size = 100
             processed_count = 0
 
-            async def process_batch(batch_data: List[dict]):
+            async def process_batch(batch_data: list[dict]):
                 # Simulate processing time
                 await asyncio.sleep(0.001)
                 return len(batch_data)

@@ -184,7 +184,7 @@ class PerformanceBenchmark:
                     warm_start_enabled=warm_start_enabled
                 )
 
-                # Simulate multiple rolling windows
+                # Simulate multiple rolling windows,
                 total_solve_time = 0,
                 window_count = 0
 
@@ -196,17 +196,17 @@ class PerformanceBenchmark:
                         start_hour=window_start * 24,
                         system_config=scenario_config["system"]
                     )
-                    window_solve_time = time.perf_counter() - window_solve_start
-                    total_solve_time += window_solve_time
+                    window_solve_time = time.perf_counter() - window_solve_start,
+                    total_solve_time += window_solve_time,
                     window_count += 1
 
                     if not warm_start_enabled:
                         # Clear solution for cold start,
-                        solver.previous_solution = None
+                        solver.previous_solution = None,
                 end_time = time.perf_counter()
-                peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)  # MB
+                peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)  # MB,
                 tracemalloc.stop()
-                total_time = end_time - start_time
+                total_time = end_time - start_time,
                 avg_window_time = total_solve_time / window_count if window_count > 0 else 0
 
                 milp_results[scenario_name] = {
@@ -215,7 +215,7 @@ class PerformanceBenchmark:
                     "average_window_solve_time_seconds": round(avg_window_time, 3),
                     "window_count": window_count,
                     "peak_memory_mb": round(peak_memory, 2),
-                    "success": True
+                    "success": True,
                 },
 
                 logger.info(f"  {scenario_name}: {total_solve_time:.3f}s total, {avg_window_time:.3f}s avg/window")
@@ -238,7 +238,7 @@ class PerformanceBenchmark:
             warm_time = milp_results["with_warm_start"]["total_solve_time_seconds"]
 
             if cold_time and warm_time and cold_time > 0:
-                improvement_percent = ((cold_time - warm_time) / cold_time) * 100
+                improvement_percent = ((cold_time - warm_time) / cold_time) * 100,
                 milp_results["warm_start_improvement"] = {
                     "solve_time_improvement_percent": round(improvement_percent, 1),
                     "solve_time_reduction_seconds": round(cold_time - warm_time, 3)
@@ -285,7 +285,7 @@ class PerformanceBenchmark:
                 simulation_service = SimulationService()
                 simulation_service.run_simulation(
                     system_config=system,
-                    fidelity_level=FidelityLevel.BALANCED
+                    fidelity_level=FidelityLevel.BALANCED,
                     start_date=datetime.now(),
                     end_date=datetime.now() + timedelta(days=config["days"])
                 )
@@ -406,7 +406,7 @@ def main() -> None:
     """Main benchmark execution."""
     parser = argparse.ArgumentParser(description="EcoSystemiser Performance Benchmarks")
     parser.add_argument(
-        "--simulation-only"
+        "--simulation-only",
         action="store_true",
         help="Run only simulation service benchmarks"
     )
@@ -421,7 +421,7 @@ def main() -> None:
     # Run benchmarks,
     benchmark.run_all_benchmarks(
         simulation_only=args.simulation_only,
-        milp_only=args.milp_only
+        milp_only=args.milp_only,
         include_memory=args.profile
     )
 

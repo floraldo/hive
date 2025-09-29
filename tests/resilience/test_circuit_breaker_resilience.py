@@ -13,7 +13,6 @@ Part of the Production Shield Initiative for foundational chaos engineering.
 
 import asyncio
 import time
-from typing import Dict
 
 import aiohttp
 import pytest
@@ -80,7 +79,7 @@ class MockFailingService:
         self.call_count = 0
         self.failure_count = 0
 
-    async def make_request(self, endpoint: str = "/api/data") -> Dict:
+    async def make_request(self, endpoint: str = "/api/data") -> dict:
         """Simulate an API request that may fail"""
         self.call_count += 1
 
@@ -110,7 +109,7 @@ class ServiceWithCircuitBreaker:
         )
         self.fallback_responses = 0
 
-    async def get_data(self, endpoint: str = "/api/data") -> Dict:
+    async def get_data(self, endpoint: str = "/api/data") -> dict:
         """Get data with circuit breaker protection"""
         try:
             async with self.circuit_breaker:

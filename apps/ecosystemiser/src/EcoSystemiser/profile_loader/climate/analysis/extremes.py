@@ -5,6 +5,7 @@ Extreme event analysis for climate data.
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

@@ -25,7 +25,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Test imports - add paths
 test_root = Path(__file__).parent.parent
@@ -49,8 +49,8 @@ class TestMetrics:
     async_operations: int = 0
     events_published: int = 0
     events_handled: int = 0
-    errors_encountered: List[str] = None
-    performance_samples: List[Dict] = None
+    errors_encountered: list[str] = None
+    performance_samples: list[dict] = None
     throughput: float = 0.0
     improvement_factor: float = 0.0
 
@@ -218,7 +218,7 @@ class PlatformTestEnvironment:
         """Add cleanup function"""
         self.cleanup_funcs.append(func)
 
-    def log_event(self, event_type: str, event_data: Dict[str, Any], component: str = "test"):
+    def log_event(self, event_type: str, event_data: dict[str, Any], component: str = "test"):
         """Log test event"""
         self.metrics.events_published += 1
 
@@ -401,7 +401,7 @@ class AIPlannerIntegrationTests:
             print(f"❌ Status synchronization test failed: {e}")
             return False
 
-    def _create_planning_task(self, task_data: Dict[str, Any]) -> int:
+    def _create_planning_task(self, task_data: dict[str, Any]) -> int:
         """Create planning task in database"""
         conn = sqlite3.connect(self.env.test_db_path)
         cursor = conn.execute(
@@ -422,7 +422,7 @@ class AIPlannerIntegrationTests:
         self.env.log_event("planning_task_created", {"task_id": task_id, **task_data}, "ai_planner")
         return task_id
 
-    def _simulate_ai_planner_processing(self, planning_task_id: int) -> Optional[int]:
+    def _simulate_ai_planner_processing(self, planning_task_id: int) -> int | None:
         """Simulate AI Planner processing planning task"""
         try:
             # Simulate plan generation
@@ -460,7 +460,7 @@ class AIPlannerIntegrationTests:
             self.env.metrics.errors_encountered.append(f"AI Planner processing simulation failed: {e}")
             return None
 
-    def _create_execution_plan(self, planning_task_id: int, plan_data: Dict[str, Any]) -> int:
+    def _create_execution_plan(self, planning_task_id: int, plan_data: dict[str, Any]) -> int:
         """Create execution plan in database"""
         conn = sqlite3.connect(self.env.test_db_path)
         cursor = conn.execute(
@@ -473,7 +473,7 @@ class AIPlannerIntegrationTests:
         conn.close()
         return plan_id
 
-    def _simulate_queen_subtask_pickup(self, plan_id: int) -> List[int]:
+    def _simulate_queen_subtask_pickup(self, plan_id: int) -> list[int]:
         """Simulate Queen picking up planned subtasks"""
         try:
             # Get plan data
@@ -511,7 +511,7 @@ class AIPlannerIntegrationTests:
             self.env.metrics.errors_encountered.append(f"Queen subtask pickup simulation failed: {e}")
             return []
 
-    def _simulate_subtask_execution(self, subtask_ids: List[int]) -> bool:
+    def _simulate_subtask_execution(self, subtask_ids: list[int]) -> bool:
         """Simulate workers executing subtasks"""
         try:
             for subtask_id in subtask_ids:
@@ -557,7 +557,7 @@ class AIPlannerIntegrationTests:
             self.env.metrics.errors_encountered.append(f"Plan completion sync verification failed: {e}")
             return False
 
-    def _get_ready_subtasks(self, plan_id: int) -> List[Dict[str, Any]]:
+    def _get_ready_subtasks(self, plan_id: int) -> list[dict[str, Any]]:
         """Get subtasks ready for execution (dependencies met)"""
         conn = sqlite3.connect(self.env.test_db_path)
         cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
@@ -597,7 +597,7 @@ class AIPlannerIntegrationTests:
         conn.commit()
         conn.close()
 
-    def _get_plan_progress(self, plan_id: int) -> Dict[str, Any]:
+    def _get_plan_progress(self, plan_id: int) -> dict[str, Any]:
         """Get plan progress statistics"""
         conn = sqlite3.connect(self.env.test_db_path)
         cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
@@ -1142,7 +1142,7 @@ class DatabaseIntegrationTests:
             print(f"❌ Transaction handling test failed: {e}")
             return False
 
-    def _create_eco_component(self, component_data: Dict[str, Any]) -> int:
+    def _create_eco_component(self, component_data: dict[str, Any]) -> int:
         """Create EcoSystemiser component"""
         conn = sqlite3.connect(self.env.test_db_path)
         cursor = conn.execute(
@@ -1156,7 +1156,7 @@ class DatabaseIntegrationTests:
         self.env.log_event("eco_component_created", {"component_id": component_id, **component_data}, "ecosystemiser")
         return component_id
 
-    def _create_eco_simulation(self, component_id: int, simulation_data: Dict[str, Any]) -> int:
+    def _create_eco_simulation(self, component_id: int, simulation_data: dict[str, Any]) -> int:
         """Create EcoSystemiser simulation"""
         conn = sqlite3.connect(self.env.test_db_path)
         cursor = conn.execute(
@@ -1274,8 +1274,8 @@ class PerformanceIntegrationTests:
 
             for i in range(num_tasks):
                 task_data = {
-                    "title": f"Performance Test Task {i+1}",
-                    "description": f"Task {i+1} for performance testing",
+                    "title": f"Performance Test Task {i + 1}",
+                    "description": f"Task {i + 1} for performance testing",
                     "priority": 60,
                     "context": json.dumps({"performance_test": True, "task_number": i + 1}),
                 }
@@ -1584,25 +1584,25 @@ class ComprehensiveHiveIntegrationTestSuite:
             test_results = {}
 
             # 1. AI Planner Integration Tests
-            print(f"\n{'='*20} AI PLANNER INTEGRATION TESTS {'='*20}")
+            print(f"\n{'=' * 20} AI PLANNER INTEGRATION TESTS {'=' * 20}")
             ai_planner_results = self._run_ai_planner_tests()
             test_results["ai_planner"] = ai_planner_results
             all_passed &= ai_planner_results
 
             # 2. Cross-App Communication Tests
-            print(f"\n{'='*20} CROSS-APP COMMUNICATION TESTS {'='*20}")
+            print(f"\n{'=' * 20} CROSS-APP COMMUNICATION TESTS {'=' * 20}")
             cross_app_results = self._run_cross_app_tests()
             test_results["cross_app"] = cross_app_results
             all_passed &= cross_app_results
 
             # 3. Database Integration Tests
-            print(f"\n{'='*20} DATABASE INTEGRATION TESTS {'='*20}")
+            print(f"\n{'=' * 20} DATABASE INTEGRATION TESTS {'=' * 20}")
             database_results = self._run_database_tests()
             test_results["database"] = database_results
             all_passed &= database_results
 
             # 4. Performance Integration Tests
-            print(f"\n{'='*20} PERFORMANCE INTEGRATION TESTS {'='*20}")
+            print(f"\n{'=' * 20} PERFORMANCE INTEGRATION TESTS {'=' * 20}")
             performance_results = self._run_performance_tests()
             test_results["performance"] = performance_results
             all_passed &= performance_results
@@ -1675,7 +1675,7 @@ class ComprehensiveHiveIntegrationTestSuite:
 
         return self._execute_test_group(tests, "Performance")
 
-    def _execute_test_group(self, tests: List[Tuple[str, callable]], group_name: str) -> bool:
+    def _execute_test_group(self, tests: list[tuple[str, callable]], group_name: str) -> bool:
         """Execute a group of tests"""
         group_passed = True
 
@@ -1702,9 +1702,9 @@ class ComprehensiveHiveIntegrationTestSuite:
 
         return group_passed
 
-    def _print_final_summary(self, test_results: Dict[str, bool], all_passed: bool):
+    def _print_final_summary(self, test_results: dict[str, bool], all_passed: bool):
         """Print comprehensive test summary"""
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print("🏆 COMPREHENSIVE INTEGRATION TEST SUMMARY")
         print("=" * 80)
 
@@ -1755,7 +1755,7 @@ class ComprehensiveHiveIntegrationTestSuite:
                     print(f"   ⏱️  {test_name}: {value:.3f}s")
 
         # Final verdict
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         if all_passed:
             print("🎉 ALL INTEGRATION TESTS PASSED!")
             print("✨ Hive platform is functioning correctly across all components")

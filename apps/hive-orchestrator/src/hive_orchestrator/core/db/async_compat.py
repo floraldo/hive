@@ -9,8 +9,9 @@ operations transparently during the migration period. Ensures zero breaking chan
 import asyncio
 import functools
 import threading
+from collections.abc import Callable
 from contextlib import contextmanager
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from hive_logging import get_logger
 

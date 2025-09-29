@@ -41,11 +41,11 @@ def get_queued_tasks_with_planning(limit: int = 10, task_type: str | None = None
             SELECT * FROM tasks
             WHERE (
                 -- Regular queued tasks (existing behavior)
-                status = 'queued'
-                OR
-                -- AI Planner-generated tasks ready for execution
+                status = 'queued',
+                OR,
+                -- AI Planner-generated tasks ready for execution,
                 (
-                    task_type = 'planned_subtask'
+                    task_type = 'planned_subtask',
                     AND status = 'queued'
                 )
             )
@@ -59,18 +59,18 @@ def get_queued_tasks_with_planning(limit: int = 10, task_type: str | None = None
             SELECT * FROM tasks
             WHERE (
                 -- Regular queued tasks (existing behavior preserved)
-                status = 'queued'
-                OR
-                -- AI Planner-generated sub-tasks that are ready
+                status = 'queued',
+                OR,
+                -- AI Planner-generated sub-tasks that are ready,
                 (
-                    task_type = 'planned_subtask'
-                    AND status = 'queued'
-                    -- Only pick up sub-tasks whose parent plan is approved/active
+                    task_type = 'planned_subtask',
+                    AND status = 'queued',
+                    -- Only pick up sub-tasks whose parent plan is approved/active,
                     AND EXISTS (
-                        SELECT 1 FROM execution_plans ep
+                        SELECT 1 FROM execution_plans ep,
                         WHERE ep.id = (
                             SELECT json_extract(payload, '$.parent_plan_id')
-                            FROM tasks t2
+                            FROM tasks t2,
                             WHERE t2.id = tasks.id
                         )
                         AND ep.status IN ('generated', 'approved', 'executing')
@@ -157,10 +157,10 @@ def check_subtask_dependencies(task_id: str) -> bool:
     # Check if all dependency tasks are completed
     for dep_id in dependencies:
         cursor = conn.execute(
-            """
-            SELECT status FROM tasks
+            """,
+            SELECT status FROM tasks,
             WHERE (id = ? OR json_extract(payload, '$.subtask_id') = ?)
-        """
+        """,
             (dep_id, dep_id)
         )
 
@@ -204,12 +204,12 @@ def mark_plan_execution_started(plan_id: str) -> bool:
     try:
         conn = get_connection()
         cursor = conn.execute(
-            """
-            UPDATE execution_plans
-            SET status = 'executing'
-                updated_at = CURRENT_TIMESTAMP
+            """,
+            UPDATE execution_plans,
+            SET status = 'executing',
+                updated_at = CURRENT_TIMESTAMP,
             WHERE id = ? AND status IN ('generated', 'approved')
-        """
+        """,
             (plan_id,)
         )
 
@@ -234,17 +234,17 @@ def get_next_planned_subtask(plan_id: str) -> Optional[Dict[str, Any]]:
 
     # Find the next sub-task that hasn't been started and has dependencies met
     cursor = conn.execute(
-        """
-        SELECT * FROM tasks
-        WHERE task_type = 'planned_subtask'
+        """,
+        SELECT * FROM tasks,
+        WHERE task_type = 'planned_subtask',
         AND json_extract(payload, '$.parent_plan_id') = ?
-        AND status = 'queued'
-        ORDER BY
+        AND status = 'queued',
+        ORDER BY,
             json_extract(payload, '$.workflow_phase')
-            priority DESC
-            created_at ASC
-        LIMIT 1
-    """
+            priority DESC,
+            created_at ASC,
+        LIMIT 1,
+    """,
         (plan_id,)
     )
 
@@ -303,11 +303,11 @@ def create_planned_subtasks_from_plan(plan_id: str) -> int:
     for sub_task in sub_tasks:
         # Check if sub-task already exists
         cursor = conn.execute(
-            """
-            SELECT id FROM tasks
-            WHERE task_type = 'planned_subtask'
+            """,
+            SELECT id FROM tasks,
+            WHERE task_type = 'planned_subtask',
             AND json_extract(payload, '$.subtask_id') = ?
-        """
+        """,
             (sub_task.get("id", ""),)
         )
 
@@ -329,18 +329,18 @@ def create_planned_subtasks_from_plan(plan_id: str) -> int:
         }
 
         cursor = conn.execute(
-            """
+            """,
             INSERT INTO tasks (
-                id, title, task_type, status, priority
+                id, title, task_type, status, priority,
                 assignee, description, created_at, updated_at, payload
             ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)
-        """
+        """,
             (
-                task_id
+                task_id,
                 sub_task.get("title", "Planned Sub-task")
-                "planned_subtask"
-                "queued"
-                50,  # Default priority for sub-tasks
+                "planned_subtask",
+                "queued",
+                50,  # Default priority for sub-tasks,
                 sub_task.get("assignee", "worker:backend")
                 sub_task.get("description", "")
                 json.dumps(payload)

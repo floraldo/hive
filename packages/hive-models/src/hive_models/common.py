@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import Field, field_validator
 
@@ -54,15 +54,15 @@ class ExecutionResult(BaseModel):
 
     success: bool = Field(description="Whether the execution succeeded")
     message: str | None = Field(default=None, description="Human-readable message about the execution")
-    data: Optional[Dict[str, Any]] = Field(default=None, description="Any data returned from the execution")
+    data: Optional[dict[str, Any]] = Field(default=None, description="Any data returned from the execution")
     error: str | None = Field(default=None, description="Error message if execution failed")
-    error_details: Optional[Dict[str, Any]] = Field(
+    error_details: Optional[dict[str, Any]] = Field(
         default=None, description="Detailed error information for debugging"
     )
     duration_ms: float | None = Field(default=None, description="Execution duration in milliseconds")
 
     @field_validator("error")
-    def validate_error_consistency(cls, v: str | None, values: Dict[str, Any]) -> str | None:
+    def validate_error_consistency(cls, v: str | None, values: dict[str, Any]) -> str | None:
         """Ensure error is only set when success is False."""
         if v and values.get("success", True):
             raise ValueError("Error cannot be set when success is True")
@@ -90,7 +90,7 @@ class HealthStatus(BaseModel, TimestampMixin):
     healthy: bool = Field(description="Whether the component is healthy")
     status: Status = Field(default=Status.PENDING, description="Current status of the component")
     message: str | None = Field(default=None, description="Additional health information")
-    checks: Dict[str, bool] = Field(default_factory=dict, description="Individual health check results")
+    checks: dict[str, bool] = Field(default_factory=dict, description="Individual health check results")
     metrics: ResourceMetrics | None = Field(default=None, description="Resource usage metrics")
     last_check: datetime = Field(default_factory=datetime.utcnow, description="When health was last checked")
 
@@ -110,9 +110,9 @@ class Configuration(BaseModel):
 
     name: str = Field(description="Configuration name or identifier")
     version: str = Field(default="1.0.0", description="Configuration version")
-    values: Dict[str, Any] = Field(default_factory=dict, description="Configuration key-value pairs")
+    values: dict[str, Any] = Field(default_factory=dict, description="Configuration key-value pairs")
     environment: Environment | None = Field(default=None, description="Target environment for this configuration")
-    encrypted_values: List[str] = Field(default_factory=list, description="List of keys that contain encrypted values")
+    encrypted_values: list[str] = Field(default_factory=list, description="List of keys that contain encrypted values")
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value with optional default."""

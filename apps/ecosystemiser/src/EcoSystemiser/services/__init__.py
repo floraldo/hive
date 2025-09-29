@@ -6,4 +6,4 @@ logger = get_logger(__name__)
 
 from .study_service import StudyService
 
-__all__ = ["SimulationService" "SimulationConfig", "SimulationResult" "JobService", "StudyService"]
+__all__ = ["SimulationServiceSimulationConfig", "SimulationResultJobService", "StudyService"]

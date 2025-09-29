@@ -167,21 +167,21 @@ class ClaudeService:
     """
 
     def __init__(
-        self
-        config: ClaudeBridgeConfig | None = None
-        rate_config: RateLimitConfig | None = None
-        cache_ttl: int | None = None
+        self,
+        config: ClaudeBridgeConfig | None = None,
+        rate_config: RateLimitConfig | None = None,
+        cache_ttl: int | None = None,
         claude_config: Optional[Dict[str, Any]] = None
     ):
         """Initialize Claude service
 
         Args:
-            config: Bridge configuration
-            rate_config: Rate limiting configuration
-            cache_ttl: Cache TTL in seconds
-            claude_config: Full Claude configuration dictionary
+            config: Bridge configuration,
+            rate_config: Rate limiting configuration,
+            cache_ttl: Cache TTL in seconds,
+            claude_config: Full Claude configuration dictionary,
         """
-        # Use provided claude_config if available, otherwise use defaults
+        # Use provided claude_config if available, otherwise use defaults,
         if claude_config is None:
             claude_config = {
                 "mock_mode": False,
@@ -190,10 +190,10 @@ class ClaudeService:
                 "rate_limit_per_minute": 10,
                 "rate_limit_per_hour": 100,
                 "burst_size": 5,
-                "cache_ttl": 300
+                "cache_ttl": 300,
             }
 
-        # Use provided config or create from claude_config
+        # Use provided config or create from claude_config,
         if config is None:
             config = ClaudeBridgeConfig(
                 mock_mode=claude_config.get("mock_mode", False)
@@ -208,18 +208,18 @@ class ClaudeService:
                 burst_size=claude_config.get("burst_size", 5)
             )
 
-        self.config = config
+        self.config = config,
         self.rate_limiter = RateLimiter(rate_config)
         self.cache: Dict[str, CacheEntry] = {}
         self.cache_ttl = cache_ttl if cache_ttl is not None else claude_config.get("cache_ttl", 300)
         self.metrics = ClaudeMetrics()
         self.error_reporter = ErrorReporter()
 
-        # Initialize bridges
+        # Initialize bridges,
         self.planner_bridge = ClaudePlannerBridge(config=self.config)
         self.reviewer_bridge = ClaudeReviewerBridge(config=self.config)
 
-        # Callback hooks for monitoring
+        # Callback hooks for monitoring,
         self.pre_call_hooks: List[Callable] = []
         self.post_call_hooks: List[Callable] = []
 
@@ -345,13 +345,13 @@ class ClaudeService:
             self.metrics.failed_calls += 1
 
             error = ClaudeServiceError(
-                message=f"Claude operation {operation} failed"
-                operation=operation
+                message=f"Claude operation {operation} failed",
+                operation=operation,
                 original_error=e
             )
             self.error_reporter.report_error(error)
 
-            # Execute post-call hooks with error
+            # Execute post-call hooks with error,
             for hook in self.post_call_hooks:
                 try:
                     hook(operation, kwargs, None, 0, error=e)
@@ -363,116 +363,116 @@ class ClaudeService:
     # Planning Operations
 
     def generate_execution_plan(
-        self
-        task_description: str
-        context_data: Optional[Dict[str, Any]] = None
-        priority: int = 1
-        requestor: str | None = None
+        self,
+        task_description: str,
+        context_data: Optional[Dict[str, Any]] = None,
+        priority: int = 1,
+        requestor: str | None = None,
         use_cache: bool = True
     ) -> Dict[str, Any]:
         """Generate execution plan for a task
 
         Args:
-            task_description: Description of the task
-            context_data: Additional context
-            priority: Task priority
-            requestor: Who requested the task
+            task_description: Description of the task,
+            context_data: Additional context,
+            priority: Task priority,
+            requestor: Who requested the task,
             use_cache: Whether to use caching
 
         Returns:
-            Execution plan dictionary
+            Execution plan dictionary,
         """
         return self._execute_with_metrics(
-            "generate_plan"
-            self.planner_bridge.generate_execution_plan
-            use_cache=use_cache
-            task_description=task_description
+            "generate_plan",
+            self.planner_bridge.generate_execution_plan,
+            use_cache=use_cache,
+            task_description=task_description,
             context_data=context_data or {}
-            priority=priority
+            priority=priority,
             requestor=requestor
         )
 
     # Review Operations
 
     def review_code(
-        self
-        task_id: str
-        task_description: str
+        self,
+        task_id: str,
+        task_description: str,
         code_files: Dict[str, str]
-        test_results: Optional[Dict[str, Any]] = None
-        objective_analysis: Optional[Dict[str, Any]] = None
-        transcript: str | None = None
+        test_results: Optional[Dict[str, Any]] = None,
+        objective_analysis: Optional[Dict[str, Any]] = None,
+        transcript: str | None = None,
         use_cache: bool = False,  # Don't cache reviews by default
     ) -> Dict[str, Any]:
         """Review code implementation
 
         Args:
-            task_id: Task identifier
-            task_description: What the task was supposed to do
-            code_files: Dictionary of filename -> content
-            test_results: Test execution results
-            objective_analysis: Static analysis results
-            transcript: Claude conversation transcript
+            task_id: Task identifier,
+            task_description: What the task was supposed to do,
+            code_files: Dictionary of filename -> content,
+            test_results: Test execution results,
+            objective_analysis: Static analysis results,
+            transcript: Claude conversation transcript,
             use_cache: Whether to use caching
 
         Returns:
-            Review result dictionary
+            Review result dictionary,
         """
         return self._execute_with_metrics(
-            "review_code"
-            self.reviewer_bridge.review_code
-            use_cache=use_cache
-            task_id=task_id
-            task_description=task_description
-            code_files=code_files
-            test_results=test_results
-            objective_analysis=objective_analysis
+            "review_code",
+            self.reviewer_bridge.review_code,
+            use_cache=use_cache,
+            task_id=task_id,
+            task_description=task_description,
+            code_files=code_files,
+            test_results=test_results,
+            objective_analysis=objective_analysis,
             transcript=transcript
         )
 
     # Async Support
 
     async def generate_execution_plan_async(
-        self
-        task_description: str
-        context_data: Optional[Dict[str, Any]] = None
-        priority: int = 1
-        requestor: str | None = None
+        self,
+        task_description: str,
+        context_data: Optional[Dict[str, Any]] = None,
+        priority: int = 1,
+        requestor: str | None = None,
         use_cache: bool = True
     ) -> Dict[str, Any]:
         """Async version of generate_execution_plan"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None
-            self.generate_execution_plan
-            task_description
-            context_data
-            priority
-            requestor
+            None,
+            self.generate_execution_plan,
+            task_description,
+            context_data,
+            priority,
+            requestor,
             use_cache
         )
 
     async def review_code_async(
-        self
-        task_id: str
-        task_description: str
+        self,
+        task_id: str,
+        task_description: str,
         code_files: Dict[str, str]
-        test_results: Optional[Dict[str, Any]] = None
-        objective_analysis: Optional[Dict[str, Any]] = None
-        transcript: str | None = None
+        test_results: Optional[Dict[str, Any]] = None,
+        objective_analysis: Optional[Dict[str, Any]] = None,
+        transcript: str | None = None,
         use_cache: bool = False
     ) -> Dict[str, Any]:
         """Async version of review_code"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None
-            self.review_code
-            task_id
-            task_description
-            code_files
-            test_results
-            objective_analysis
-            transcript
+            None,
+            self.review_code,
+            task_id,
+            task_description,
+            code_files,
+            test_results,
+            objective_analysis,
+            transcript,
             use_cache
         )
 
@@ -506,19 +506,19 @@ _service: ClaudeService | None = None
 
 
 def get_claude_service(
-    config: ClaudeBridgeConfig | None = None
+    config: ClaudeBridgeConfig | None = None,
     rate_config: RateLimitConfig | None = None
 ) -> ClaudeService:
     """Get or create the global Claude service
 
     Args:
-        config: Bridge configuration
+        config: Bridge configuration,
         rate_config: Rate limiting configuration
 
     Returns:
-        ClaudeService singleton instance
+        ClaudeService singleton instance,
     """
-    global _service
+    global _service,
     if _service is None:
         _service = ClaudeService(config=config, rate_config=rate_config)
     return _service

@@ -12,7 +12,7 @@ Uses the rich library for beautiful terminal UI with live updates.
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from rich import box
 from rich.columns import Columns
@@ -34,7 +34,7 @@ class HiveDashboard:
         self.console = Console()
         self.refresh_rate = 2  # seconds
 
-    def get_task_stats(self) -> Dict[str, int]:
+    def get_task_stats(self) -> dict[str, int]:
         """Get task counts by status."""
         conn = get_connection()
         cursor = conn.cursor()
@@ -60,17 +60,17 @@ class HiveDashboard:
 
         return stats
 
-    def get_recent_tasks(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_tasks(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent tasks with their details."""
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
-            """
+            """,
             SELECT id, title, task_type, status, priority,
-                   assigned_worker, created_at, updated_at
-            FROM tasks
-            ORDER BY updated_at DESC
+                   assigned_worker, created_at, updated_at,
+            FROM tasks,
+            ORDER BY updated_at DESC,
             LIMIT ?
         """,
             (limit,),
@@ -93,17 +93,17 @@ class HiveDashboard:
 
         return tasks
 
-    def get_escalated_tasks(self) -> List[Dict[str, Any]]:
+    def get_escalated_tasks(self) -> list[dict[str, Any]]:
         """Get tasks requiring human review."""
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
-            """
-            SELECT id, title, priority, created_at, result_data
-            FROM tasks
-            WHERE status = 'escalated'
-            ORDER BY priority DESC, created_at ASC
+            """,
+            SELECT id, title, priority, created_at, result_data,
+            FROM tasks,
+            WHERE status = 'escalated',
+            ORDER BY priority DESC, created_at ASC,
             LIMIT 5
         """
         )
@@ -127,17 +127,17 @@ class HiveDashboard:
 
         return escalated
 
-    def get_worker_info(self) -> List[Dict[str, Any]]:
+    def get_worker_info(self) -> list[dict[str, Any]]:
         """Get information about active workers."""
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
-            """
+            """,
             SELECT id, role, status, current_task_id,
-                   last_heartbeat, registered_at
-            FROM workers
-            ORDER BY last_heartbeat DESC
+                   last_heartbeat, registered_at,
+            FROM workers,
+            ORDER BY last_heartbeat DESC,
         """
         )
 
@@ -156,17 +156,17 @@ class HiveDashboard:
 
         return workers
 
-    def get_recent_runs(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_runs(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent task execution runs."""
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
-            """
+            """,
             SELECT r.id, r.task_id, t.title, r.worker_id,
-                   r.status, r.phase, r.started_at, r.completed_at
-            FROM runs r
-            JOIN tasks t ON r.task_id = t.id
+                   r.status, r.phase, r.started_at, r.completed_at,
+            FROM runs r,
+            JOIN tasks t ON r.task_id = t.id,
             ORDER BY r.started_at DESC
             LIMIT ?
         """,
@@ -415,7 +415,7 @@ class HiveDashboard:
             # With escalation alert - make it prominent
             layout.split_column(
                 Layout(name="header", size=3),
-                Layout(name="escalation", size=8),  # Prominent alert
+                Layout(name="escalation", size=8),  # Prominent alert,
                 Layout(name="status", size=5),
                 Layout(name="main", size=18),
                 Layout(name="footer", size=3),

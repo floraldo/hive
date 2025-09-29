@@ -17,7 +17,7 @@ from datetime import datetime
 # Simplified demo without full dependencies
 def print_section(title, emoji=""):
     """Print a formatted section header."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"{emoji} {title}")
     print("=" * 60)
 

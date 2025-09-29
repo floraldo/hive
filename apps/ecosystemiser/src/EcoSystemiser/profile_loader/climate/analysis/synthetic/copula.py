@@ -352,7 +352,7 @@ class CopulaSyntheticGenerator:
         return synthetic_data
 
     def _create_synthetic_dataset(
-        self
+        self,
         synthetic_data: np.ndarray,
         variables: List[str],
         original_ds: xr.Dataset,
@@ -361,22 +361,22 @@ class CopulaSyntheticGenerator:
     ) -> xr.Dataset:
         """Create xarray dataset from synthetic data"""
 
-        # Create time index
+        # Create time index,
         n_samples = synthetic_data.shape[0]
 
-        # Start from a reference year
+        # Start from a reference year,
         start_time = pd.Timestamp("2010-01-01")
-        inferred_freq = time_info.get("freq", "h")  # Use inferred frequency
+        inferred_freq = time_info.get("freq", "h")  # Use inferred frequency,
         time_index = pd.date_range(
             start=start_time,
             periods=n_samples,
             freq=inferred_freq,  # Use original data frequency
         )
 
-        # Create dataset
+        # Create dataset,
         data_vars = {}
         for i, var in enumerate(variables):
-            # Get original attributes if available
+            # Get original attributes if available,
             attrs = original_ds[var].attrs.copy() if var in original_ds.data_vars else {}
 
             data_vars[var] = xr.DataArray(
@@ -421,7 +421,7 @@ def copula_synthetic_generation(
     Returns:
         Synthetic dataset preserving correlations and marginal distributions,
     """
-    # Create configuration
+    # Create configuration,
     try:
         copula_enum = CopulaType(copula_type.lower())
     except ValueError:

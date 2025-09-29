@@ -11,12 +11,13 @@ Initializes all components with the new architecture:
 
 from contextlib import asynccontextmanager
 
-from ecosystemiser.observability import init_observability, shutdown_observability
-from ecosystemiser.profile_loader.logging_config import get_logger, setup_logging
-from ecosystemiser.settings import get_settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+
+from ecosystemiser.observability import init_observability, shutdown_observability
+from ecosystemiser.profile_loader.logging_config import get_logger, setup_logging
+from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
 
 # Initialize logging first
@@ -36,9 +37,7 @@ async def lifespan_async(app: FastAPI) -> None:
     """
     # Startup,
     logger.info(
-        "Starting EcoSystemiser Climate Platform"
-        version=settings.api.version,
-        environment=settings.environment
+        "Starting EcoSystemiser Climate Platform", version=settings.api.version, environment=settings.environment
     )
 
     # Initialize observability,
@@ -48,6 +47,7 @@ async def lifespan_async(app: FastAPI) -> None:
 
     # Initialize job service,
     from ecosystemiser.profile_loader.services.job_service import JobService
+
     job_service = JobService()
     await job_service.initialize()
     logger.info("Job service initialized")
@@ -95,11 +95,11 @@ def create_app() -> FastAPI:
     app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     app.add_middleware(
-        CORSMiddleware
+        CORSMiddleware,
         allow_origins=settings.api.cors_origins,
-        allow_methods=settings.api.cors_methods
+        allow_methods=settings.api.cors_methods,
         allow_headers=settings.api.cors_headers,
-        allow_credentials=True
+        allow_credentials=True,
     )
 
     # Add custom middleware for correlation IDs
@@ -107,10 +107,7 @@ def create_app() -> FastAPI:
     async def correlation_id_middleware_async(request, call_next) -> None:
         """Add correlation ID to requests"""
         from ecosystemiser.core.errors import CorrelationIDMiddleware
-        from ecosystemiser.profile_loader.logging_config import (
-            clear_context,
-            set_correlation_id
-        )
+        from ecosystemiser.profile_loader.logging_config import clear_context, set_correlation_id
 
         # Get or create correlation ID
         correlation_id = CorrelationIDMiddleware.get_or_create_correlation_id(dict(request.headers))
@@ -148,9 +145,9 @@ def create_app() -> FastAPI:
             app.openapi_url = openapi_url
 
     logger.info(
-        "Application created"
+        "Application created",
         supported_versions=settings.api.supported_versions,
-        default_version=settings.api.default_version
+        default_version=settings.api.default_version,
     )
 
     return app
@@ -164,24 +161,17 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "ecosystemiser.profile_loader.climate.main:app"
+        "ecosystemiser.profile_loader.climate.main:app",
         host="0.0.0.0",
-        port=8000
+        port=8000,
         reload=settings.debug,
         log_config={
             "version": 1,
             "disable_existing_loggers": False,
             "formatters": {"default": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
             "handlers": {
-                "default": {
-                    "formatter": "default",
-                    "class": "logging.StreamHandler",
-                    "stream": "ext://sys.stdout"
-                }
+                "default": {"formatter": "default", "class": "logging.StreamHandler", "stream": "ext://sys.stdout"}
             },
-            "root": {
-                "level": settings.observability.log_level,
-                "handlers": ["default"]
-            }
-        }
+            "root": {"level": settings.observability.log_level, "handlers": ["default"]},
+        },
     )

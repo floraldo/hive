@@ -7,7 +7,7 @@ that can be extended for any system.
 
 from abc import ABC
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .base_exceptions import BaseError
 
@@ -27,8 +27,8 @@ class BaseErrorReporter(ABC):
     def report_error(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """
         Report an error with context.
@@ -46,9 +46,9 @@ class BaseErrorReporter(ABC):
     def _build_error_record(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]],
-        additional_info: Optional[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        context: dict[str, Any] | None,
+        additional_info: dict[str, Any] | None,
+    ) -> dict[str, Any]:
         """Build structured error record"""
         record = {
             "timestamp": datetime.now().isoformat(),
@@ -86,7 +86,7 @@ class BaseErrorReporter(ABC):
 
         return record
 
-    def get_error_statistics(self) -> Dict[str, Any]:
+    def get_error_statistics(self) -> dict[str, Any]:
         """Get error statistics"""
         return {
             "total_errors": self.error_counts["total"],
@@ -99,7 +99,7 @@ class BaseErrorReporter(ABC):
             "recent_errors": self.error_history[-10:],
         }
 
-    def get_recovery_suggestions(self, error_type: str) -> List[str]:
+    def get_recovery_suggestions(self, error_type: str) -> list[str]:
         """Get recovery suggestions for an error type"""
         # Find recent errors of this type
         recent_errors = [e for e in self.error_history if e["error_type"] == error_type]

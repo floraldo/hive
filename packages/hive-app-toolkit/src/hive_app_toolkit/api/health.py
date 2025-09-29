@@ -1,7 +1,8 @@
 """Health check endpoints for Kubernetes integration."""
 
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -14,9 +15,9 @@ class HealthStatus(BaseModel):
 
     status: str
     timestamp: str
-    version: Optional[str] = None
-    components: Optional[Dict[str, str]] = None
-    metrics: Optional[Dict[str, Any]] = None
+    version: str | None = None
+    components: dict[str, str] | None = None
+    metrics: dict[str, Any] | None = None
 
 
 class ComponentCheck:
@@ -41,8 +42,8 @@ class HealthManager:
 
     def __init__(self) -> None:
         """Initialize health manager."""
-        self.components: List[ComponentCheck] = []
-        self.custom_metrics: Dict[str, Callable[[], Any]] = {}
+        self.components: list[ComponentCheck] = []
+        self.custom_metrics: dict[str, Callable[[], Any]] = {}
 
     def add_component(self, name: str, check_func: Callable[[], bool]) -> None:
         """Add a component health check."""

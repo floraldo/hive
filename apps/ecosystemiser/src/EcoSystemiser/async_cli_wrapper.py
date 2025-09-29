@@ -54,7 +54,7 @@ class AsyncCLIWrapper:
             raise,
 
     async def run_simulation_async_cli_async(
-        self
+        self,
         config_path: str,
         output: str | None = None,
         solver: str = "milp",
@@ -82,7 +82,7 @@ class AsyncCLIWrapper:
             from datetime import datetime
             sim_config = SimulationConfig(
                 simulation_id=f"async_sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                system_config_path=config_path
+                system_config_path=config_path,
                 solver_type=solver,
                 solver_config=SolverConfig(verbose=verbose, solver_type=solver),
                 output_config={"save_results": output is not None, "directory": output or "outputs", "format": "json"}
@@ -121,7 +121,7 @@ class AsyncCLIWrapper:
             return {"status": "error", "error": str(e)}
 
     async def run_batch_simulations_async_cli_async(
-        self
+        self,
         config_paths: List[str],
         output_dir: str | None = None,
         solver: str = "milp",
@@ -151,7 +151,7 @@ class AsyncCLIWrapper:
             for i, config_path in enumerate(config_paths):
                 sim_config = SimulationConfig(
                     simulation_id=f"batch_sim_{i}_{datetime.now().strftime('%H%M%S')}",
-                    system_config_path=config_path
+                    system_config_path=config_path,
                     solver_type=solver,
                     solver_config=SolverConfig(verbose=verbose, solver_type=solver),
                     output_config={
@@ -187,7 +187,7 @@ class AsyncCLIWrapper:
             return [{"status": "error", "error": str(e)}]
 
     async def get_climate_async_cli_async(
-        self
+        self,
         location: str,
         year: int | None = None,
         start: str | None = None,
@@ -259,7 +259,7 @@ class AsyncCLIWrapper:
             success(f"Retrieved climate data: shape={response.shape}")
 
             if output:
-                # Save to custom path
+                # Save to custom path,
                 output_path = Path(output)
                 output_path.parent.mkdir(parents=True, exist_ok=True)
 

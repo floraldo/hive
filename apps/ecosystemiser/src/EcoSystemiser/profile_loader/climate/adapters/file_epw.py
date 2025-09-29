@@ -19,7 +19,7 @@ from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     QualityFeatures,
     RateLimits,
     SpatialCoverage,
-    TemporalCoverage
+    TemporalCoverage,
 )
 from ecosystemiser.profile_loader.climate.adapters.errors import DataParseError
 from hive_logging import get_logger
@@ -30,10 +30,10 @@ try:
         QCIssue,
         QCProfile,
         QCReport,
-        QCSeverity
+        QCSeverity,
     )
 except ImportError:
-    # Fallback: Define minimal QC classes for testing,
+    # Fallback: Define minimal QC classes for testing
     from abc import ABC, abstractmethod
     from enum import Enum
 
@@ -43,15 +43,15 @@ except ImportError:
         HIGH = "high"
 
     @dataclass
-    class QCIssue:
-        type: str
-        message: str
-        severity: QCSeverity
-        affected_variables: List[str]
+    class QCIssue:,
+        type: str,
+        message: str,
+        severity: QCSeverity,
+        affected_variables: List[str],
         suggested_action: str
 
     @dataclass
-    class QCReport:
+    class QCReport:,
         passed_checks: List[str] = field(default_factory=list)
 
         def add_issue(self, issue: QCIssue) -> None:
@@ -59,22 +59,22 @@ except ImportError:
 
     class QCProfile(ABC):
         def __init__(
-            self
+            self,
             name: str,
             description: str,
             known_issues: List[str],
             recommended_variables: List[str],
             temporal_resolution_limits: Dict[str, str],
-            spatial_accuracy: str | None = None
+            spatial_accuracy: str | None = None,
         ):
-            self.name = name
-            self.description = description
-            self.known_issues = known_issues
-            self.recommended_variables = recommended_variables
-            self.temporal_resolution_limits = temporal_resolution_limits
+            self.name = name,
+            self.description = description,
+            self.known_issues = known_issues,
+            self.recommended_variables = recommended_variables,
+            self.temporal_resolution_limits = temporal_resolution_limits,
             self.spatial_accuracy = spatial_accuracy
 
-        @abstractmethod
+        @abstractmethod,
         def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
             pass
 
@@ -83,18 +83,18 @@ logger = get_logger(__name__)
 
 class FileEPWAdapter(BaseAdapter):
     """Adapter for EPW (EnergyPlus Weather) file import"""
-from __future__ import annotations
+
     ADAPTER_NAME = "file_epw"
     ADAPTER_VERSION = "0.1.0"
 
     # EPW file column mapping to canonical names
     # Standard EPW format has 35 columns of weather data
     EPW_COLUMNS = [
-        "Year"
+        "Year",
         "Month",
-        "Day"
+        "Day",
         "Hour",
-        "Minute"
+        "Minute",
         "Data Source and Uncertainty Flags",
         "Dry Bulb Temperature",  # C,
         "Dew Point Temperature",  # C,
@@ -143,7 +143,7 @@ from __future__ import annotations
         "extraterrestrial_normal": 11,  # Extraterrestrial Direct Normal Radiation,
         "ghi": 13,  # Global Horizontal Radiation,
         "dni": 14,  # Direct Normal Radiation,
-        "dhi": 15,  # Diffuse Horizontal Radiation
+        "dhi": 15,  # Diffuse Horizontal Radiation,
         # Longwave radiation parameters,
         "horizontal_infrared": 12,  # Horizontal Infrared Radiation Intensity (Wh/m2)
         # Illuminance parameters (lux and Cd/m2),
@@ -196,7 +196,7 @@ from __future__ import annotations
     }
 
     # Weather condition codes mapping (Present Weather Codes)
-    WEATHER_CODES = {
+    WEATHER_CODES = {,
         0: "Clear",
         1: "Partly Cloudy",
         2: "Cloudy",
@@ -232,7 +232,7 @@ from __future__ import annotations
         from ecosystemiser.profile_loader.climate.adapters.base import (
             CacheConfig,
             HTTPConfig,
-            RateLimitConfig
+            RateLimitConfig,
         )
 
         # Configure minimal settings (file-based, no HTTP rate limits needed)
@@ -241,21 +241,21 @@ from __future__ import annotations
         # Configure caching (files don't change)
         cache_config = CacheConfig(
             memory_ttl=3600,  # 1 hour,
-            disk_ttl=86400,  # 24 hours
+            disk_ttl=86400,  # 24 hours,
         )
 
         super().__init__(
             name=self.ADAPTER_NAME,
             rate_limit_config=rate_config,
-            cache_config=cache_config
+            cache_config=cache_config,
         )
 
     async def _fetch_raw_async(
-        self
+        self,
         location: Tuple[float, float],
         variables: List[str],
         period: Dict,
-        **kwargs
+        **kwargs,
     ) -> Any | None:
         """Fetch raw data from EPW file"""
         lat, lon = location
@@ -270,7 +270,7 @@ from __future__ import annotations
         else:
             raise ValueError("EPW adapter requires 'file' or 'url' in period dict")
 
-        # Parse EPW data to DataFrame
+        # Parse EPW data to DataFrame,
         df = self._parse_epw_data(epw_data)
 
         # Filter by date range if specified,
@@ -280,13 +280,13 @@ from __future__ import annotations
         return df
 
     async def _transform_data_async(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+        self, raw_data: Any, location: Tuple[float, float], variables: List[str],
     ) -> xr.Dataset:
         """Transform EPW DataFrame to xarray Dataset"""
-        lat, lon = location
+        lat, lon = location,
         df = raw_data
 
-        # Convert to xarray Dataset
+        # Convert to xarray Dataset,
         ds = self._dataframe_to_xarray(df, variables, lat, lon)
 
         # Add metadata,
@@ -296,34 +296,34 @@ from __future__ import annotations
                 "adapter_version": self.ADAPTER_VERSION,
                 "latitude": lat,
                 "longitude": lon,
-            }
+            },
         )
 
         return ds
 
     async def fetch_async(
-        self
-        *
+        self,
+        *,
         lat: float,
         lon: float,
         variables: List[str],
         period: Dict,
         resolution: str = "1H",
-        file_path: str | None = None
+        file_path: str | None = None,
     ) -> xr.Dataset:
         """
         Import climate data from EPW file.
 
-        Note: The file_path should be provided in the period dict as:
+        Note: The file_path should be provided in the period dict as:,
         period = {"file": "/path/to/file.epw"} or {"url": "http://..."},
         """
 
-        # Use base class fetch method
+        # Use base class fetch method,
         ds = await super().fetch_async(
             location=(lat, lon),
-            variables=variables
+            variables=variables,
             period=period,
-            resolution=resolution
+            resolution=resolution,
         )
 
         # Resample if needed,
@@ -335,7 +335,7 @@ from __future__ import annotations
     def _read_epw_file(self, file_path: str) -> str:
         """Read EPW file from local path"""
 
-        if not os.path.exists(file_path):
+        if not os.path.exists(file_path):,
             raise FileNotFoundError(f"EPW file not found: {file_path}")
 
         with open(file_path, "r", encoding="latin-1") as f:
@@ -350,7 +350,7 @@ from __future__ import annotations
             response = await self.http_client.get(url)
             data = response.text
             return data
-        except Exception as e:
+        except Exception as e:,
             raise ValueError(f"Failed to download EPW file: {e}")
 
     def _parse_epw_data(self, epw_content: str) -> pd.DataFrame:
@@ -362,7 +362,7 @@ from __future__ import annotations
             # Validate minimum file length,
             if len(lines) < 9:  # At least 8 header lines + 1 data line
                 raise DataParseError(
-                    "EPW file too short - missing header or data rows"
+                    "EPW file too short - missing header or data rows",
                     field="file_content",
                     details={"line_count": len(lines), "minimum_required": 9}
                 )
@@ -386,7 +386,7 @@ from __future__ import annotations
                 if len(parts) >= 8:
                     try:
                         site_lat = float(parts[6])
-                        site_lon = float(parts[7])
+                        site_lon = float(parts[7]),
                         logger.info(f"EPW file location: {site_lat}, {site_lon}")
                     except Exception as e:
                         pass
@@ -396,7 +396,7 @@ from __future__ import annotations
 
             if not data_lines:
                 raise DataParseError(
-                    "No data lines found after header"
+                    "No data lines found after header",
                     field="data_content",
                     details={"header_lines": data_start, "total_lines": len(lines)}
                 )
@@ -407,17 +407,17 @@ from __future__ import annotations
                 df = pd.read_csv(StringIO(data_str), header=None, names=self.EPW_COLUMNS)
             except pd.errors.ParserError as e:
                 raise DataParseError(
-                    f"Failed to parse EPW CSV data: {str(e)}"
+                    f"Failed to parse EPW CSV data: {str(e)}",
                     field="csv_data",
                     details={
                         "parser_error": str(e),
                         "data_lines": len(data_lines)
                         "first_line": data_lines[0][:100] if data_lines else None
-                    }
+                    },
                 ),
             except Exception as e:
                 raise DataParseError(
-                    f"Unexpected error parsing EPW data: {str(e)}"
+                    f"Unexpected error parsing EPW data: {str(e)}",
                     field="data_parsing",
                     details={"error_type": type(e).__name__, "error": str(e)}
                 )
@@ -434,18 +434,18 @@ from __future__ import annotations
 
             # Handle day overflow (assuming standard calendar)
             # This is a simplified approach - more complex logic needed for proper calendar handling
-            days_in_month = {
-                1: 31
-                2: 28
-                3: 31
-                4: 30
-                5: 31
-                6: 30
-                7: 31
-                8: 31
-                9: 30
-                10: 31
-                11: 30
+            days_in_month = {,
+                1: 31,
+                2: 28,
+                3: 31,
+                4: 30,
+                5: 31,
+                6: 30,
+                7: 31,
+                8: 31,
+                9: 30,
+                10: 31,
+                11: 30,
                 12: 31
             },
 
@@ -470,12 +470,12 @@ from __future__ import annotations
             try:
                 df["datetime"] = pd.to_datetime(
                     df_time.astype(str).agg("-".join, axis=1),
-                    format="%Y-%m-%d-%H"
-                    errors="coerce"
+                    format="%Y-%m-%d-%H",
+                    errors="coerce",
                 ),
             except Exception as e:
                 raise DataParseError(
-                    f"Failed to create datetime index: {str(e)}"
+                    f"Failed to create datetime index: {str(e)}",
                     field="datetime_creation",
                     details={"error": str(e), "sample_dates": df_time.head().to_dict()}
                 )
@@ -491,7 +491,7 @@ from __future__ import annotations
 
             if df.empty:
                 raise DataParseError(
-                    "All datetime values were invalid after parsing"
+                    "All datetime values were invalid after parsing",
                     field="datetime_values",
                     details={"original_rows": len(data_lines)}
                 ),
@@ -504,7 +504,7 @@ from __future__ import annotations
         except Exception as e:
             # Catch any other unexpected errors,
             raise DataParseError(
-                f"Failed to parse EPW file: {str(e)}"
+                f"Failed to parse EPW file: {str(e)}",
                 field="file_parsing",
                 details={"error_type": type(e).__name__, "error": str(e)}
             ),
@@ -517,7 +517,7 @@ from __future__ import annotations
 
             # EPW files often contain typical year data
             # Update year to requested year if it's a TMY file,
-            if df.index.year.unique()[0] < 2000:  # Likely TMY data
+            if df.index.year.unique()[0] < 2000:  # Likely TMY data,
                 df.index = df.index.map(lambda x: x.replace(year=year))
 
             # Filter by year
@@ -556,9 +556,9 @@ from __future__ import annotations
 
                     # Create DataArray,
                     ds[canonical_name] = xr.DataArray(
-                        data
+                        data,
                         coords={"time": df.index},
-                        attrs=self._get_variable_attrs(canonical_name)
+                        attrs=self._get_variable_attrs(canonical_name),
                     )
                 else:
                     logger.warning(f"Variable {canonical_name} not found in EPW file")
@@ -655,7 +655,7 @@ from __future__ import annotations
         """Return EPW file adapter capabilities"""
         return AdapterCapabilities(
             name="EPW Files",
-            version=self.ADAPTER_VERSION
+            version=self.ADAPTER_VERSION,
             description="EnergyPlus Weather file format for building energy simulation",
             temporal=TemporalCoverage(
                 start_date=None,  # Depends on file,
@@ -663,7 +663,7 @@ from __future__ import annotations
                 historical_years=None,  # File-specific,
                 forecast_days=0,
                 real_time=False,
-                delay_hours=None
+                delay_hours=None,
             )
             spatial=SpatialCoverage(
                 global_coverage=False,  # Only specific locations,
@@ -671,15 +671,15 @@ from __future__ import annotations
                 resolution_km=None,  # Point data,
                 station_based=True,
                 grid_based=False,
-                custom_locations=False,  # Fixed to file location
+                custom_locations=False,  # Fixed to file location,
             )
             supported_variables=list(self.VARIABLE_MAPPING.keys()),
             primary_variables=[
-                "temp_air"
+                "temp_air",
                 "rel_humidity",
-                "ghi"
+                "ghi",
                 "dni",
-                "dhi"
+                "dhi",
                 "wind_speed",
                 "wind_dir",  # Building simulation essentials
             ]
@@ -691,15 +691,15 @@ from __future__ import annotations
                 DataFrequency.MONTHLY
             ]
             native_frequency=DataFrequency.HOURLY,
-            auth_type=AuthType.FILE,  # Local file or URL
+            auth_type=AuthType.FILE,  # Local file or URL,
             requires_subscription=False,
-            free_tier_limits=None
+            free_tier_limits=None,
             quality=QualityFeatures(
                 gap_filling=False,  # Depends on file source,
                 quality_flags=True,  # Data source flags included,
                 uncertainty_estimates=False,
                 ensemble_members=False,
-                bias_correction=False
+                bias_correction=False,
             )
             max_request_days=None,  # Depends on file,
             max_variables_per_request=35,  # All EPW variables,
@@ -735,15 +735,15 @@ class EPWQCProfile:
             "Variable quality depending on data source and processing"
         ],
         self.recommended_variables = [
-            "temp_air"
+            "temp_air",
             "dewpoint",
-            "rel_humidity"
+            "rel_humidity",
             "wind_speed",
-            "wind_dir"
+            "wind_dir",
             "ghi",
-            "dni"
+            "dni",
             "dhi",
-            "pressure"
+            "pressure",
             "cloud_cover"
         ],
         self.temporal_resolution_limits = {"all": "hourly"}
@@ -764,11 +764,11 @@ class EPWQCProfile:
 
                 if small_changes > 0.7:  # 70% of changes < 0.1degC
                     report.warnings.append(
-                        f"Temperature profile appears over-processed (small_changes={small_changes:.2f}) - typical of some EPW files"
+                        f"Temperature profile appears over-processed (small_changes={small_changes:.2f}) - typical of some EPW files",
                     )
 
         # Check for temporal coverage (EPW should be full year),
-        if len(ds.time) < 8000:  # Less than ~11 months of hourly data
+        if len(ds.time) < 8000:  # Less than ~11 months of hourly data,
             report.warnings.append(f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)"),
 
     def get_adjusted_bounds(self, base_bounds: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
@@ -782,7 +782,7 @@ class EPWQCProfile(QCProfile):
     def __init__(self) -> None:
         super().__init__(
             name="EPW",
-            description="EnergyPlus Weather file format - processed for building simulation"
+            description="EnergyPlus Weather file format - processed for building simulation",
             known_issues=[
                 "May be based on older TMY data",
                 "Processing for building simulation may alter original measurements",
@@ -790,19 +790,19 @@ class EPWQCProfile(QCProfile):
                 "Variable quality depending on data source and processing"
             ]
             recommended_variables=[
-                "temp_air"
+                "temp_air",
                 "dewpoint",
-                "rel_humidity"
+                "rel_humidity",
                 "wind_speed",
-                "wind_dir"
+                "wind_dir",
                 "ghi",
-                "dni"
+                "dni",
                 "dhi",
-                "pressure"
+                "pressure",
                 "cloud_cover"
-            ]
+            ],
             temporal_resolution_limits={"all": "hourly"},
-            spatial_accuracy="Point data, location-dependent"
+            spatial_accuracy="Point data, location-dependent",
         ),
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
@@ -821,10 +821,10 @@ class EPWQCProfile(QCProfile):
                 if small_changes > 0.7:  # 70% of changes < 0.1degC
                     issue = QCIssue(
                         type="processing_artifact",
-                        message="Temperature profile appears over-processed (typical of some EPW files)"
+                        message="Temperature profile appears over-processed (typical of some EPW files)",
                         severity=QCSeverity.LOW,
                         affected_variables=["temp_air"]
-                        suggested_action="Consider using original meteorological data if available"
+                        suggested_action="Consider using original meteorological data if available",
                     ),
                     report.add_issue(issue)
 
@@ -835,10 +835,10 @@ class EPWQCProfile(QCProfile):
         if missing_vars:
             issue = QCIssue(
                 type="data_completeness",
-                message=f"EPW file missing expected variables: {missing_vars}"
+                message=f"EPW file missing expected variables: {missing_vars}",
                 severity=QCSeverity.MEDIUM,
-                affected_variables=missing_vars
-                suggested_action="Verify EPW file completeness or use alternative source"
+                affected_variables=missing_vars,
+                suggested_action="Verify EPW file completeness or use alternative source",
             )
             report.add_issue(issue)
 

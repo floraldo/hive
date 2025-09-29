@@ -5,7 +5,7 @@ logger = get_logger(__name__)
 """Configuration management for Hive Cache."""
 
 import os
-from typing import Any, Dict
+from typing import Any
 
 from pydantic import BaseModel, Field, validator
 
@@ -17,7 +17,7 @@ class CacheConfig(BaseModel):
     redis_url: str = Field(default="redis://localhost:6379/0", description="Redis connection URL")
     max_connections: int = Field(default=20, description="Maximum Redis connections in pool")
     socket_keepalive: bool = Field(default=True, description="Enable TCP keepalive")
-    socket_keepalive_options: Dict[str, int] = Field(
+    socket_keepalive_options: dict[str, int] = Field(
         default_factory=lambda: {"TCP_KEEPIDLE": 1, "TCP_KEEPINTVL": 3, "TCP_KEEPCNT": 5}
     )
 
@@ -138,7 +138,7 @@ class CacheConfig(BaseModel):
 
         return cls(**env_config)
 
-    def get_redis_connection_kwargs(self) -> Dict[str, Any]:
+    def get_redis_connection_kwargs(self) -> dict[str, Any]:
         """Get Redis connection parameters."""
         return {
             "socket_connect_timeout": self.socket_connect_timeout,

@@ -9,7 +9,7 @@ from __future__ import annotations
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -59,7 +59,7 @@ def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
         return False
 
 
-def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[Dict[str, Any]]:
+def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[dict[str, Any]]:
     """
     Get the schema information for a table.
 
@@ -104,13 +104,13 @@ def execute_script(conn: sqlite3.Connection, script_path: Path) -> None:
         script_path: Path to the SQL script file
     """
     try:
-        with open(script_path, "r") as f:
+        with open(script_path) as f:
             script = f.read()
 
         conn.executescript(script)
         conn.commit()
         logger.info(f"Executed SQL script: {script_path}")
-    except (sqlite3.Error, IOError) as e:
+    except (OSError, sqlite3.Error) as e:
         logger.error(f"Failed to execute script {script_path}: {e}")
         raise
 
@@ -151,7 +151,7 @@ def vacuum_database(conn: sqlite3.Connection) -> None:
         raise
 
 
-def get_database_info(conn: sqlite3.Connection) -> Dict[str, Any]:
+def get_database_info(conn: sqlite3.Connection) -> dict[str, Any]:
     """
     Get information about the database.
 
@@ -240,7 +240,7 @@ def database_transaction(conn: sqlite3.Connection, isolation_level: str | None =
 def insert_or_update(
     conn: sqlite3.Connection,
     table: str,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     conflict_columns: List[str],
 ) -> str:
     """
@@ -271,8 +271,8 @@ def insert_or_update(
 
         # Build the INSERT statement
         insert_sql = f"""
-            INSERT INTO {table} ({', '.join(columns)})
-            VALUES ({', '.join(placeholders)})
+            INSERT INTO {table} ({", ".join(columns)})
+            VALUES ({", ".join(placeholders)})
         """
 
         # Build the ON CONFLICT clause
@@ -301,7 +301,7 @@ def insert_or_update(
 def batch_insert(
     conn: sqlite3.Connection,
     table: str,
-    data: List[Dict[str, Any]],
+    data: List[dict[str, Any]],
     chunk_size: int = 1000,
 ):
     """
@@ -408,7 +408,7 @@ async def table_exists_async(conn, table_name: str) -> bool:
         return False
 
 
-async def get_database_info_async(conn) -> Dict[str, Any]:
+async def get_database_info_async(conn) -> dict[str, Any]:
     ("""Async version of get_database_info.""",)
     try:
         info = {}

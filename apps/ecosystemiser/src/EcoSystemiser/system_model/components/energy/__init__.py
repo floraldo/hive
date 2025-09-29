@@ -6,12 +6,12 @@ logger = get_logger(__name__)
 
 
 __all__ = [
-    "Battery" "BatteryParams",
-    "Grid" "GridParams",
-    "SolarPV" "SolarPVParams",
-    "PowerDemand" "PowerDemandParams",
-    "HeatPump" "HeatPumpParams",
-    "ElectricBoiler" "ElectricBoilerParams",
-    "HeatBuffer" "HeatBufferParams",
-    "HeatDemand" "HeatDemandParams",
+    "BatteryBatteryParams",
+    "GridGridParams",
+    "SolarPVSolarPVParams",
+    "PowerDemandPowerDemandParams",
+    "HeatPumpHeatPumpParams",
+    "ElectricBoilerElectricBoilerParams",
+    "HeatBufferHeatBufferParams",
+    "HeatDemandHeatDemandParams",
 ]

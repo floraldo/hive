@@ -21,7 +21,7 @@ class EnhancedResultsIO:
 
     def save_results_structured(
         self,
-        system
+        system,
         simulation_id: str,
         output_dir: Path,
         study_id: str | None = None,
@@ -32,9 +32,9 @@ class EnhancedResultsIO:
         Creates directory structure:
         output_dir/
         ├── simulation_runs/{study_id}/{run_id}/
-        │   ├── flows.parquet              # High-res time-series flows
-        │   ├── components.parquet         # Component states
-        │   ├── simulation_config.json     # Full simulation configuration
+        │   ├── flows.parquet              # High-res time-series flows,
+        │   ├── components.parquet         # Component states,
+        │   ├── simulation_config.json     # Full simulation configuration,
         │   └── kpis.json                  # Calculated KPIs and summary
 
         Args:
@@ -220,7 +220,7 @@ class EnhancedResultsIO:
                     data.append(
                         {
                             "timestep": t,
-                            "flow_name": flow_name
+                            "flow_name": flow_name,
                             "source": flow_info["source"],
                             "target": flow_info["target"]
                             "type": flow_info["type"],
@@ -251,11 +251,11 @@ class EnhancedResultsIO:
                     data.append(
                         {
                             "timestep": t,
-                            "component_name": comp_name
+                            "component_name": comp_name,
                             "type": comp_data["type"],
                             "medium": comp_data["medium"]
                             "variable": "energy_level",
-                            "value": energy
+                            "value": energy,
                             "unit": "kWh"
                         }
                     )
@@ -266,11 +266,11 @@ class EnhancedResultsIO:
                     data.append(
                         {
                             "timestep": t,
-                            "component_name": comp_name
+                            "component_name": comp_name,
                             "type": comp_data["type"],
                             "medium": comp_data["medium"]
                             "variable": "generation",
-                            "value": generation
+                            "value": generation,
                             "unit": "kW"
                         }
                     )

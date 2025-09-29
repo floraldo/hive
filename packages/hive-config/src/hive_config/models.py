@@ -8,7 +8,7 @@ Configuration models and data structures for Hive config management.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 
 class ConfigSources(Enum):
@@ -30,8 +30,8 @@ class AppConfig:
     """
 
     app_name: str
-    config: Dict[str, Any]
-    sources: Dict[str, ConfigSources]  # Track where each config came from
+    config: dict[str, Any]
+    sources: dict[str, ConfigSources]  # Track where each config came from
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get a configuration value with optional default"""
@@ -45,11 +45,11 @@ class AppConfig:
         """Check if a configuration key exists"""
         return key in self.config
 
-    def get_keys_by_source(self, source: ConfigSources) -> Dict[str, Any]:
+    def get_keys_by_source(self, source: ConfigSources) -> dict[str, Any]:
         """Get all configuration keys from a specific source"""
         return {key: value for key, value in self.config.items() if self.sources.get(key) == source}
 
-    def audit_report(self) -> Dict[str, Any]:
+    def audit_report(self) -> dict[str, Any]:
         """Generate an audit report of configuration sources"""
         report = {
             "app_name": self.app_name,

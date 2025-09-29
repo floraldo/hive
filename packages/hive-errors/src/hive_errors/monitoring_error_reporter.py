@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict, deque
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -29,7 +30,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
     """
 
     def __init__(
-        self, enable_alerts: bool = True, alert_thresholds: Optional[Dict[str, Any]] = None, max_history: int = 10000
+        self, enable_alerts: bool = True, alert_thresholds: dict[str, Any] | None = None, max_history: int = 10000
     ):
         super().__init__()
         self.enable_alerts = enable_alerts
@@ -45,8 +46,8 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         # Enhanced tracking
         self._detailed_history: deque = (deque(maxlen=max_history),)
-        self._error_rates: Dict[str, deque] = defaultdict(lambda: deque(maxlen=60))  # Per-minute tracking,
-        self._component_stats: Dict[str, Dict[str, Any]] = defaultdict(
+        self._error_rates: dict[str, deque] = defaultdict(lambda: deque(maxlen=60))  # Per-minute tracking,
+        self._component_stats: dict[str, dict[str, Any]] = defaultdict(
             lambda: {
                 "total_errors": 0,
                 "last_error": None,
@@ -57,16 +58,16 @@ class MonitoringErrorReporter(BaseErrorReporter):
         )
 
         # Alert callbacks
-        self._alert_callbacks: List[Callable] = []
+        self._alert_callbacks: list[Callable] = []
 
         # Performance tracking
-        self._error_impact: Dict[str, List[float]] = defaultdict(list)  # Response time impact
+        self._error_impact: dict[str, list[float]] = defaultdict(list)  # Response time impact
 
     def report_error(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """Report an error with enhanced monitoring."""
         # Build error record
@@ -91,8 +92,8 @@ class MonitoringErrorReporter(BaseErrorReporter):
     async def report_error_async(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """Async version of error reporting."""
         error_id = self.report_error(error, context, additional_info)
@@ -103,7 +104,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         return error_id
 
-    def _check_alert_conditions(self, error_record: Dict[str, Any]) -> None:
+    def _check_alert_conditions(self, error_record: dict[str, Any]) -> None:
         """Check if error triggers any alert conditions."""
         alerts = []
 
@@ -161,14 +162,12 @@ class MonitoringErrorReporter(BaseErrorReporter):
         if alerts:
             self._trigger_alerts(alerts, error_record)
 
-    def _is_critical_error(self, error_record: Dict[str, Any]) -> bool:
+    def _is_critical_error(self, error_record: dict[str, Any]) -> bool:
         """Determine if an error is critical."""
         error_type = error_record["error_type"]
 
         # Critical error types
-        critical_types = {
-            "MemoryError" "SystemExit" "KeyboardInterrupt" "ConnectionError" "TimeoutError" "CircuitBreakerOpenError"
-        }
+        critical_types = {"MemoryErrorSystemExitKeyboardInterruptConnectionErrorTimeoutErrorCircuitBreakerOpenError"}
 
         if error_type in critical_types:
             return True
@@ -181,7 +180,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         return False
 
-    def _trigger_alerts(self, alerts: List[Dict[str, Any]], error_record: Dict[str, Any]) -> None:
+    def _trigger_alerts(self, alerts: list[dict[str, Any]], error_record: dict[str, Any]) -> None:
         """Trigger alert callbacks."""
         for callback in self._alert_callbacks:
             try:
@@ -190,7 +189,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                 logger.error(f"Error in alert callback: {e}")
 
     async def _trigger_async_alerts_async(
-        self, error: Exception, context: Optional[Dict[str, Any]], additional_info: Optional[Dict[str, Any]]
+        self, error: Exception, context: dict[str, Any] | None, additional_info: dict[str, Any] | None
     ) -> None:
         """Trigger async alert callbacks."""
         # This would integrate with async monitoring systems
@@ -214,7 +213,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
             if len(impact_list) > 100:
                 impact_list.pop(0)
 
-    def get_component_health(self, component: str) -> Dict[str, Any]:
+    def get_component_health(self, component: str) -> dict[str, Any]:
         """Get health metrics for a component."""
         stats = self._component_stats[component]
 
@@ -232,7 +231,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
             "status": self._get_component_status(health_score, stats["consecutive_failures"]),
         }
 
-    def get_error_trends(self, time_window: timedelta = timedelta(hours=1)) -> Dict[str, Any]:
+    def get_error_trends(self, time_window: timedelta = timedelta(hours=1)) -> dict[str, Any]:
         """Get error trends over time window."""
         cutoff_time = datetime.utcnow() - time_window
 
@@ -266,7 +265,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
             "average_errors_per_hour": len(recent_errors) / max(1, time_window.total_seconds() / 3600),
         }
 
-    def get_performance_impact(self, component: str) -> Dict[str, Any]:
+    def get_performance_impact(self, component: str) -> dict[str, Any]:
         """Get performance impact analysis for a component."""
         impact_data = self._error_impact.get(component, [])
 
@@ -284,7 +283,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
             ),
         }
 
-    def generate_health_report(self) -> Dict[str, Any]:
+    def generate_health_report(self) -> dict[str, Any]:
         """Generate comprehensive health report."""
         report = {
             "timestamp": datetime.utcnow().isoformat(),

@@ -71,11 +71,11 @@ async def get_async_connection_async(db_manager: AsyncDatabaseManager | None = N
 
 # Async database operations using dependency injection
 async def create_task_async(
-    task_type: str
+    task_type: str,
     task_data: Dict[str, Any]
-    db_manager: AsyncDatabaseManager
-    priority: int = 5
-    worker_hint: str | None = None
+    db_manager: AsyncDatabaseManager,
+    priority: int = 5,
+    worker_hint: str | None = None,
     timeout_seconds: int | None = None
 ) -> str:
     """Create a new task asynchronously using dependency injection."""
@@ -85,19 +85,19 @@ async def create_task_async(
 
     async with get_async_connection_async(db_manager) as conn:
         await conn.execute(
-            """
-            INSERT INTO tasks (task_id, task_type, task_data, status, priority, worker_hint
+            """,
+            INSERT INTO tasks (task_id, task_type, task_data, status, priority, worker_hint,
                              timeout_seconds, created_at, updated_at)
             VALUES (?, ?, ?, 'queued', ?, ?, ?, ?, ?)
-        """
+        """,
             (
-                task_id
-                task_type
-                task_data_json
-                priority
-                worker_hint
-                timeout_seconds
-                created_at
+                task_id,
+                task_type,
+                task_data_json,
+                priority,
+                worker_hint,
+                timeout_seconds,
+                created_at,
                 created_at
             )
         )
@@ -127,22 +127,22 @@ async def get_queued_tasks_async(
     async with get_async_connection_async(db_manager) as conn:
         if task_type:
             cursor = await conn.execute(
-                """
-                SELECT * FROM tasks
-                WHERE status = 'queued' AND task_type = ?
-                ORDER BY priority DESC, created_at ASC
+                """,
+                SELECT * FROM tasks,
+                WHERE status = 'queued' AND task_type = ?,
+                ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
-            """
+            """,
                 (task_type, limit)
             )
         else:
             cursor = await conn.execute(
-                """
-                SELECT * FROM tasks
-                WHERE status = 'queued'
-                ORDER BY priority DESC, created_at ASC
+                """,
+                SELECT * FROM tasks,
+                WHERE status = 'queued',
+                ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
-            """
+            """,
                 (limit,)
             )
 
@@ -163,12 +163,12 @@ async def get_tasks_by_status_async(
     """Get tasks by status asynchronously using dependency injection."""
     async with get_async_connection_async(db_manager) as conn:
         cursor = await conn.execute(
-            """
-            SELECT * FROM tasks
-            WHERE status = ?
-            ORDER BY updated_at DESC
+            """,
+            SELECT * FROM tasks,
+            WHERE status = ?,
+            ORDER BY updated_at DESC,
             LIMIT ?
-        """
+        """,
             (status, limit)
         )
 
@@ -184,10 +184,10 @@ async def get_tasks_by_status_async(
 
 
 async def update_task_status_async(
-    task_id: str
-    status: str
-    db_manager: AsyncDatabaseManager
-    worker_id: str | None = None
+    task_id: str,
+    status: str,
+    db_manager: AsyncDatabaseManager,
+    worker_id: str | None = None,
     result_data: Optional[Dict[str, Any]] = None
 ) -> bool:
     """Update task status asynchronously using dependency injection."""
@@ -197,20 +197,20 @@ async def update_task_status_async(
     async with get_async_connection_async(db_manager) as conn:
         if worker_id:
             cursor = await conn.execute(
-                """
-                UPDATE tasks
-                SET status = ?, assigned_worker = ?, result_data = ?, updated_at = ?
-                WHERE task_id = ?
-            """
+                """,
+                UPDATE tasks,
+                SET status = ?, assigned_worker = ?, result_data = ?, updated_at = ?,
+                WHERE task_id = ?,
+            """,
                 (status, worker_id, result_json, updated_at, task_id)
             )
         else:
             cursor = await conn.execute(
-                """
-                UPDATE tasks
+                """,
+                UPDATE tasks,
                 SET status = ?, result_data = ?, updated_at = ?
-                WHERE task_id = ?
-            """
+                WHERE task_id = ?,
+            """,
                 (status, result_json, updated_at, task_id)
             )
 
@@ -227,10 +227,10 @@ async def create_run_async(
 
     async with get_async_connection_async(db_manager) as conn:
         await conn.execute(
-            """
+            """,
             INSERT INTO task_runs (run_id, task_id, worker_id, run_type, status, started_at)
             VALUES (?, ?, ?, ?, 'running', ?)
-        """
+        """,
             (run_id, task_id, worker_id, run_type, started_at)
         )
         await conn.commit()

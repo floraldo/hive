@@ -6,7 +6,7 @@ vector database providers with hive-db integration patterns.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hive_async import AsyncCircuitBreaker, async_retry
 from hive_cache import CacheManager
@@ -28,30 +28,30 @@ class BaseVectorProvider(ABC):
     @abstractmethod
     async def store_vectors_async(
         self,
-        vectors: List[List[float]],
-        metadata: List[Dict[str, Any]],
-        ids: Optional[List[str]] = None,
-    ) -> List[str]:
+        vectors: list[list[float]],
+        metadata: list[dict[str, Any]],
+        ids: list[str] | None = None,
+    ) -> list[str]:
         """Store vectors in the database."""
         pass
 
     @abstractmethod
     async def search_vectors_async(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Search for similar vectors."""
         pass
 
     @abstractmethod
-    async def delete_vectors_async(self, ids: List[str]) -> bool:
+    async def delete_vectors_async(self, ids: list[str]) -> bool:
         """Delete vectors by IDs."""
         pass
 
     @abstractmethod
-    async def get_collection_info_async(self) -> Dict[str, Any]:
+    async def get_collection_info_async(self) -> dict[str, Any]:
         """Get information about the collection."""
         pass
 
@@ -113,10 +113,10 @@ class ChromaProvider(BaseVectorProvider):
 
     async def store_vectors_async(
         self,
-        vectors: List[List[float]],
-        metadata: List[Dict[str, Any]],
-        ids: Optional[List[str]] = None,
-    ) -> List[str]:
+        vectors: list[list[float]],
+        metadata: list[dict[str, Any]],
+        ids: list[str] | None = None,
+    ) -> list[str]:
         """Store vectors in ChromaDB."""
         _, collection = await self._get_client_async()
 
@@ -139,10 +139,10 @@ class ChromaProvider(BaseVectorProvider):
 
     async def search_vectors_async(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Search for similar vectors in ChromaDB."""
         _, collection = await self._get_client_async()
 
@@ -171,7 +171,7 @@ class ChromaProvider(BaseVectorProvider):
                 operation="search",
             ) from e
 
-    async def delete_vectors_async(self, ids: List[str]) -> bool:
+    async def delete_vectors_async(self, ids: list[str]) -> bool:
         """Delete vectors from ChromaDB."""
         _, collection = await self._get_client_async()
 
@@ -184,7 +184,7 @@ class ChromaProvider(BaseVectorProvider):
             logger.error(f"Failed to delete vectors: {str(e)}")
             return False
 
-    async def get_collection_info_async(self) -> Dict[str, Any]:
+    async def get_collection_info_async(self) -> dict[str, Any]:
         """Get ChromaDB collection information."""
         _, collection = await self._get_client_async()
 
@@ -257,10 +257,10 @@ class VectorStore(VectorStoreInterface):
     @async_retry(max_attempts=3, delay=1.0)
     async def store_async(
         self,
-        vectors: List[List[float]],
-        metadata: List[Dict[str, Any]],
-        ids: Optional[List[str]] = None,
-    ) -> List[str]:
+        vectors: list[list[float]],
+        metadata: list[dict[str, Any]],
+        ids: list[str] | None = None,
+    ) -> list[str]:
         """Store vectors with retry and circuit breaker."""
         if len(vectors) != len(metadata):
             raise VectorError(
@@ -283,10 +283,10 @@ class VectorStore(VectorStoreInterface):
     @async_retry(max_attempts=3, delay=1.0)
     async def search_async(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Search vectors with caching and circuit breaker."""
         if len(query_vector) != self.config.dimension:
             raise VectorError(
@@ -312,7 +312,7 @@ class VectorStore(VectorStoreInterface):
         self._cache.set(cache_key, results, ttl=300)
         return results
 
-    async def delete_async(self, ids: List[str]) -> bool:
+    async def delete_async(self, ids: list[str]) -> bool:
         """Delete vectors with circuit breaker."""
         if not ids:
             return True
@@ -322,7 +322,7 @@ class VectorStore(VectorStoreInterface):
 
         return await self._circuit_breaker.call_async(self._provider.delete_vectors_async, ids)
 
-    async def get_info_async(self) -> Dict[str, Any]:
+    async def get_info_async(self) -> dict[str, Any]:
         """Get collection information."""
         cache_key = "collection_info"
         cached_info = self._cache.get(cache_key)
@@ -336,7 +336,7 @@ class VectorStore(VectorStoreInterface):
         self._cache.set(cache_key, info, ttl=120)
         return info
 
-    async def health_check_async(self) -> Dict[str, Any]:
+    async def health_check_async(self) -> dict[str, Any]:
         """Comprehensive health check."""
         try:
             provider_healthy = await self._provider.health_check_async()
@@ -358,7 +358,7 @@ class VectorStore(VectorStoreInterface):
                 "collection": self.config.collection_name,
             }
 
-    async def optimize_async(self) -> Dict[str, Any]:
+    async def optimize_async(self) -> dict[str, Any]:
         """Optimize vector store performance."""
         # Clear old cache entries
         self._cache.clear()

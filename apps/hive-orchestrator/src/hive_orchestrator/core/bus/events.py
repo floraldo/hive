@@ -92,7 +92,7 @@ class Event:
         return cls(
             event_id=data["event_id"]
             event_type=data["event_type"]
-            timestamp=timestamp
+            timestamp=timestamp,
             source_agent=data["source_agent"]
             correlation_id=data.get("correlation_id")
             payload=data.get("payload", {})
@@ -169,64 +169,64 @@ class WorkflowEvent(Event):
 
 
 def create_task_event(
-    event_type: TaskEventType | str
-    task_id: str
-    source_agent: str
-    task_status: str | None = None
-    assignee: str | None = None
-    correlation_id: str | None = None
+    event_type: TaskEventType | str,
+    task_id: str,
+    source_agent: str,
+    task_status: str | None = None,
+    assignee: str | None = None,
+    correlation_id: str | None = None,
     **payload_data
 ) -> TaskEvent:
     """Factory function to create task events"""
     return TaskEvent(
         event_type=str(event_type)
-        task_id=task_id
-        source_agent=source_agent
-        task_status=task_status
-        assignee=assignee
-        correlation_id=correlation_id
+        task_id=task_id,
+        source_agent=source_agent,
+        task_status=task_status,
+        assignee=assignee,
+        correlation_id=correlation_id,
         payload=payload_data
     )
 
 
 def create_agent_event(
-    event_type: AgentEventType | str
-    agent_name: str
-    agent_type: str | None = None
-    agent_status: str | None = None
-    correlation_id: str | None = None
+    event_type: AgentEventType | str,
+    agent_name: str,
+    agent_type: str | None = None,
+    agent_status: str | None = None,
+    correlation_id: str | None = None,
     **payload_data
 ) -> AgentEvent:
     """Factory function to create agent events"""
     return AgentEvent(
         event_type=str(event_type)
-        agent_name=agent_name
-        source_agent=agent_name
-        agent_type=agent_type
-        agent_status=agent_status
-        correlation_id=correlation_id
+        agent_name=agent_name,
+        source_agent=agent_name,
+        agent_type=agent_type,
+        agent_status=agent_status,
+        correlation_id=correlation_id,
         payload=payload_data
     )
 
 
 def create_workflow_event(
-    event_type: WorkflowEventType | str
-    workflow_id: str
-    task_id: str
-    source_agent: str
-    phase: str | None = None
-    dependencies: list | None = None
-    correlation_id: str | None = None
+    event_type: WorkflowEventType | str,
+    workflow_id: str,
+    task_id: str,
+    source_agent: str,
+    phase: str | None = None,
+    dependencies: list | None = None,
+    correlation_id: str | None = None,
     **payload_data
 ) -> WorkflowEvent:
     """Factory function to create workflow events"""
     return WorkflowEvent(
         event_type=str(event_type)
-        workflow_id=workflow_id
-        task_id=task_id
-        source_agent=source_agent
-        phase=phase
-        dependencies=dependencies
-        correlation_id=correlation_id
+        workflow_id=workflow_id,
+        task_id=task_id,
+        source_agent=source_agent,
+        phase=phase,
+        dependencies=dependencies,
+        correlation_id=correlation_id,
         payload=payload_data
     )

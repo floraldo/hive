@@ -10,7 +10,6 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
 
 
 class IntegrationReporter:
@@ -20,7 +19,7 @@ class IntegrationReporter:
         self.project_root = project_root
         self.scripts_root = project_root / "scripts"
 
-    def count_scripts_by_category(self) -> Dict[str, int]:
+    def count_scripts_by_category(self) -> dict[str, int]:
         """Count scripts in each category"""
         categories = {
             "analysis": 0,
@@ -41,7 +40,7 @@ class IntegrationReporter:
 
         return categories
 
-    def run_golden_tests(self) -> Dict[str, str]:
+    def run_golden_tests(self) -> dict[str, str]:
         """Run key golden tests and capture results"""
         tests = {
             "test_no_root_python_files": "UNKNOWN",
@@ -86,7 +85,7 @@ class IntegrationReporter:
 
         report = f"""# 🎉 HIVE INTEGRATION COMPLETION REPORT
 
-**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Generated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 **Integration Phase**: COMPLETED ✅
 
 ---
@@ -100,19 +99,19 @@ class IntegrationReporter:
 
 | Category | Scripts | Purpose |
 |----------|---------|---------|
-| Analysis | {script_counts['analysis']} | Code analysis and reporting |
-| Database | {script_counts['database']} | DB management (consolidated) |
-| Daemons | {script_counts['daemons']} | Long-running services |
-| Maintenance | {script_counts['maintenance']} | Repository hygiene tools |
-| Security | {script_counts['security']} | Security auditing (consolidated) |
-| Setup | {script_counts['setup']} | Environment setup |
-| Testing | {script_counts['testing']} | Test runners (consolidated) |
-| Utils | {script_counts['utils']} | System launchers |
-| **Archive** | {script_counts['archive']} | **Safely preserved originals** |
+| Analysis | {script_counts["analysis"]} | Code analysis and reporting |
+| Database | {script_counts["database"]} | DB management (consolidated) |
+| Daemons | {script_counts["daemons"]} | Long-running services |
+| Maintenance | {script_counts["maintenance"]} | Repository hygiene tools |
+| Security | {script_counts["security"]} | Security auditing (consolidated) |
+| Setup | {script_counts["setup"]} | Environment setup |
+| Testing | {script_counts["testing"]} | Test runners (consolidated) |
+| Utils | {script_counts["utils"]} | System launchers |
+| **Archive** | {script_counts["archive"]} | **Safely preserved originals** |
 
-**Total Active Scripts**: {sum(v for k, v in script_counts.items() if k != 'archive')}
-**Archived Scripts**: {script_counts['archive']}
-**Reduction**: {((70 - sum(v for k, v in script_counts.items() if k != 'archive')) / 70) * 100:.1f}% fewer active scripts
+**Total Active Scripts**: {sum(v for k, v in script_counts.items() if k != "archive")}
+**Archived Scripts**: {script_counts["archive"]}
+**Reduction**: {((70 - sum(v for k, v in script_counts.items() if k != "archive")) / 70) * 100:.1f}% fewer active scripts
 
 ---
 
@@ -120,9 +119,9 @@ class IntegrationReporter:
 
 | Golden Rule | Status | Impact |
 |-------------|--------|--------|
-| No Root Python Files | {golden_tests.get('test_no_root_python_files', 'UNKNOWN')} | ✅ Root directory cleaned |
-| No sys.path Hacks | {golden_tests.get('test_no_syspath_hacks', 'UNKNOWN')} | ✅ Import patterns fixed |
-| Logging Standards | {golden_tests.get('test_logging_standards', 'UNKNOWN')} | 🚀 **1044 violations fixed** |
+| No Root Python Files | {golden_tests.get("test_no_root_python_files", "UNKNOWN")} | ✅ Root directory cleaned |
+| No sys.path Hacks | {golden_tests.get("test_no_syspath_hacks", "UNKNOWN")} | ✅ Import patterns fixed |
+| Logging Standards | {golden_tests.get("test_logging_standards", "UNKNOWN")} | 🚀 **1044 violations fixed** |
 
 ---
 
@@ -197,7 +196,7 @@ python scripts/maintenance/fixers/code_fixers.py --all
 ## 📈 **QUANTIFIED IMPROVEMENTS**
 
 ### **Organization Metrics**
-- **Scripts Reduced**: 70 → {sum(v for k, v in script_counts.items() if k != 'archive')} ({((70 - sum(v for k, v in script_counts.items() if k != 'archive')) / 70) * 100:.1f}% reduction)
+- **Scripts Reduced**: 70 → {sum(v for k, v in script_counts.items() if k != "archive")} ({((70 - sum(v for k, v in script_counts.items() if k != "archive")) / 70) * 100:.1f}% reduction)
 - **Functionality Preserved**: 100% (all scripts archived, not deleted)
 - **Consolidated Tools**: 5 powerful, unified interfaces
 - **CI/CD Workflows Updated**: 4 workflows modernized

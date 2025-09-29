@@ -67,34 +67,34 @@ class MetricsCollector:
     """
 
     def __init__(
-        self
+        self,
         collection_interval: float = 1.0,
         max_history: int = 1000,
         enable_system_metrics: bool = True,
         enable_async_metrics: bool = True
     ):
-        self.collection_interval = collection_interval
-        self.max_history = max_history
-        self.enable_system_metrics = enable_system_metrics
+        self.collection_interval = collection_interval,
+        self.max_history = max_history,
+        self.enable_system_metrics = enable_system_metrics,
         self.enable_async_metrics = enable_async_metrics
 
-        # Metrics storage
+        # Metrics storage,
         self._metrics_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=max_history)),
         self._active_operations: Dict[str, Dict[str, Any]] = {},
         self._operation_counters: Dict[str, int] = defaultdict(int),
         self._error_counters: Dict[str, int] = defaultdict(int)
 
-        # Thread safety
+        # Thread safety,
         self._lock = threading.RLock()
 
-        # Collection state
-        self._collecting = False
+        # Collection state,
+        self._collecting = False,
         self._collection_task: asyncio.Task | None = None
 
-        # Process handle for system metrics
+        # Process handle for system metrics,
         self._process = psutil.Process() if enable_system_metrics else None
 
-        # Performance baselines
+        # Performance baselines,
         self._baselines: Dict[str, PerformanceMetrics] = {}
 
     async def start_collection_async(self) -> None:
@@ -102,19 +102,19 @@ class MetricsCollector:
         if self._collecting:
             return
 
-        self._collecting = True
+        self._collecting = True,
         self._collection_task = asyncio.create_task(self._collection_loop_async())
         logger.info("Started performance metrics collection")
 
     async def stop_collection_async(self) -> None:
         """Stop automatic metrics collection."""
-        self._collecting = False
+        self._collecting = False,
         if self._collection_task:
             self._collection_task.cancel()
             try:
-                await self._collection_task
+                await self._collection_task,
             except asyncio.CancelledError:
-                pass
+                pass,
         logger.info("Stopped performance metrics collection")
 
     async def _collection_loop_async(self) -> None:
@@ -133,12 +133,12 @@ class MetricsCollector:
             return
 
         try:
-            # CPU and memory metrics
+            # CPU and memory metrics,
             cpu_percent = self._process.cpu_percent()
             memory_info = self._process.memory_info()
 
-            # Async task metrics
-            active_tasks = 0
+            # Async task metrics,
+            active_tasks = 0,
             if self.enable_async_metrics:
                 try:
                     loop = asyncio.get_running_loop()
@@ -151,7 +151,7 @@ class MetricsCollector:
                 cpu_percent=cpu_percent,
                 memory_usage=memory_info.rss,
                 peak_memory=memory_info.peak_wset if hasattr(memory_info, "peak_wset") else memory_info.vms,
-                active_tasks=active_tasks
+                active_tasks=active_tasks,
                 operation_name="system",
                 timestamp=datetime.utcnow()
             )
@@ -168,9 +168,9 @@ class MetricsCollector:
 
         start_info = {
             "operation_name": operation_name,
-            "start_time": time.perf_counter()
+            "start_time": time.perf_counter(),
             "start_cpu": time.process_time(),
-            "start_memory": self._get_memory_usage()
+            "start_memory": self._get_memory_usage(),
             "tags": tags or {},
             "timestamp": datetime.utcnow()
         }
@@ -182,7 +182,7 @@ class MetricsCollector:
         return operation_id
 
     def end_operation(
-        self
+        self,
         operation_id: str,
         success: bool = True,
         bytes_processed: int = 0,
@@ -199,7 +199,7 @@ class MetricsCollector:
                 logger.warning(f"Operation {operation_id} not found in active operations")
                 return PerformanceMetrics()
 
-            # Calculate metrics
+            # Calculate metrics,
             execution_time = end_time - start_info["start_time"]
             cpu_time = end_cpu - start_info["start_cpu"]
             memory_delta = end_memory - start_info["start_memory"]
@@ -215,13 +215,13 @@ class MetricsCollector:
                 wall_time=execution_time,
                 memory_usage=end_memory,
                 peak_memory=max(start_info["start_memory"], end_memory),
-                operations_count=1
+                operations_count=1,
                 operations_per_second=1.0 / execution_time if execution_time > 0 else 0.0,
-                bytes_processed=bytes_processed
+                bytes_processed=bytes_processed,
                 error_count=1 if not success else 0,
-                error_rate=self._calculate_error_rate(operation_name)
+                error_rate=self._calculate_error_rate(operation_name),
                 operation_name=operation_name,
-                tags=start_info["tags"]
+                tags=start_info["tags"],
                 custom_metrics=custom_metrics or {},
                 timestamp=datetime.utcnow()
             )
@@ -276,7 +276,7 @@ class MetricsCollector:
         if not metrics_list:
             return PerformanceMetrics(operation_name=operation_name or "unknown")
 
-        # Aggregate metrics
+        # Aggregate metrics,
         total_ops = len(metrics_list)
         total_execution_time = sum(m.execution_time for m in metrics_list)
         total_cpu_time = sum(m.cpu_time for m in metrics_list)
@@ -290,17 +290,17 @@ class MetricsCollector:
 
         return PerformanceMetrics(
             execution_time=avg_execution_time,
-            cpu_time=total_cpu_time
+            cpu_time=total_cpu_time,
             wall_time=total_execution_time,
-            memory_usage=int(avg_memory)
+            memory_usage=int(avg_memory),
             peak_memory=peak_memory,
-            cpu_percent=avg_cpu
+            cpu_percent=avg_cpu,
             operations_count=total_ops,
-            operations_per_second=total_ops / total_execution_time if total_execution_time > 0 else 0.0
+            operations_per_second=total_ops / total_execution_time if total_execution_time > 0 else 0.0,
             bytes_processed=total_bytes,
-            error_count=total_errors
+            error_count=total_errors,
             error_rate=total_errors / total_ops if total_ops > 0 else 0.0,
-            operation_name=operation_name or "aggregated"
+            operation_name=operation_name or "aggregated",
             timestamp=datetime.utcnow()
         )
 
@@ -324,13 +324,13 @@ class MetricsCollector:
 
         return {
             "execution_time_change": (current.execution_time - baseline.execution_time) / baseline.execution_time * 100,
-            "memory_change": (current.memory_usage - baseline.memory_usage) / baseline.memory_usage * 100
+            "memory_change": (current.memory_usage - baseline.memory_usage) / baseline.memory_usage * 100,
             "throughput_change": (current.operations_per_second - baseline.operations_per_second)
-            / baseline.operations_per_second
-            * 100
+            / baseline.operations_per_second,
+            * 100,
             "error_rate_change": current.error_rate - baseline.error_rate,
-            "cpu_change": (current.cpu_percent - baseline.cpu_percent) / baseline.cpu_percent * 100
-            if baseline.cpu_percent > 0
+            "cpu_change": (current.cpu_percent - baseline.cpu_percent) / baseline.cpu_percent * 100,
+            if baseline.cpu_percent > 0,
             else 0.0
         }
 
@@ -345,11 +345,11 @@ class MetricsCollector:
                 [
                     {
                         "operation_name": m.operation_name,
-                        "execution_time": m.execution_time
+                        "execution_time": m.execution_time,
                         "memory_usage": m.memory_usage,
-                        "operations_per_second": m.operations_per_second
+                        "operations_per_second": m.operations_per_second,
                         "error_rate": m.error_rate,
-                        "timestamp": m.timestamp.isoformat()
+                        "timestamp": m.timestamp.isoformat(),
                         "tags": m.tags,
                         "custom_metrics": m.custom_metrics
                     }
@@ -362,9 +362,9 @@ class MetricsCollector:
                 "metrics": all_metrics,
                 "summary": {
                     "total_operations": len(all_metrics),
-                    "operation_types": len(set(m.operation_name for m in all_metrics))
+                    "operation_types": len(set(m.operation_name for m in all_metrics)),
                     "time_span": (all_metrics[-1].timestamp - all_metrics[0].timestamp).total_seconds()
-                    if all_metrics
+                    if all_metrics,
                     else 0
                 }
             }
@@ -391,18 +391,18 @@ class operation_tracker:
     """Context manager for automatic operation performance tracking."""
 
     def __init__(
-        self
+        self,
         collector: MetricsCollector,
         operation_name: str,
         tags: Optional[Dict[str, str]] = None,
         bytes_processed: int = 0,
         custom_metrics: Optional[Dict[str, Any]] = None
     ):
-        self.collector = collector
-        self.operation_name = operation_name
-        self.tags = tags
-        self.bytes_processed = bytes_processed
-        self.custom_metrics = custom_metrics
+        self.collector = collector,
+        self.operation_name = operation_name,
+        self.tags = tags,
+        self.bytes_processed = bytes_processed,
+        self.custom_metrics = custom_metrics,
         self.operation_id: str | None = None
 
     def __enter__(self) -> "operation_tracker":
@@ -413,9 +413,9 @@ class operation_tracker:
         success = exc_type is None
         if self.operation_id:
             self.collector.end_operation(
-                self.operation_id
+                self.operation_id,
                 success=success,
-                bytes_processed=self.bytes_processed
+                bytes_processed=self.bytes_processed,
                 custom_metrics=self.custom_metrics
             )
 

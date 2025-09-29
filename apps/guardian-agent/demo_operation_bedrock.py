@@ -16,7 +16,7 @@ from datetime import datetime
 # ASCII-safe demo without full dependencies
 def print_section(title, icon=""):
     """Print a formatted section header."""
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"{icon} {title}")
     print("=" * 80)
 
@@ -246,10 +246,10 @@ def demonstrate_platform_burndown():
     # Platform-wide statistics
     stats = {
         "total_components": 15,
-        "senior_architects": 3,  # 90+ points
-        "certified_architects": 6,  # 80-89 points
-        "associate_architects": 4,  # 70-79 points
-        "non_certified": 2,  # <70 points
+        "senior_architects": 3,  # 90+ points,
+        "certified_architects": 6,  # 80-89 points,
+        "associate_architects": 4,  # 70-79 points,
+        "non_certified": 2,  # <70 points,
         "overall_platform_score": 82.4,
         "certification_rate": 86.7,  # (13/15) * 100
         "total_violations": 12,

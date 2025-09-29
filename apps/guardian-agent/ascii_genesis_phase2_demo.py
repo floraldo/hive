@@ -187,8 +187,8 @@ async def demonstrate_genesis_phase2():
             "pr_id": f"pr_{opt['id']}",
             "title": f"Oracle Optimization: {opt['title']}",
             "branch_name": f"oracle/optimization/{opt['id'].replace('_', '-')}",
-            "files_modified": len(opt["affected_packages"]) * 2,  # Estimate
-            "lines_added": opt["estimated_effort_hours"] * 15,  # Estimate
+            "files_modified": len(opt["affected_packages"]) * 2,  # Estimate,
+            "lines_added": opt["estimated_effort_hours"] * 15,  # Estimate,
             "lines_removed": opt["estimated_effort_hours"] * 8,  # Estimate
             "oracle_confidence": opt["oracle_confidence"],
             "validation_passed": True,

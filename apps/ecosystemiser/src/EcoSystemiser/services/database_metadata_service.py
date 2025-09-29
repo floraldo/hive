@@ -33,7 +33,7 @@ class DatabaseMetadataService:
             timesteps INTEGER,
             timestamp TEXT,
             solver_type TEXT,
-            simulation_status TEXT DEFAULT 'completed'
+            simulation_status TEXT DEFAULT 'completed',
             -- Key Performance Indicators (for fast querying)
             total_cost REAL,
             total_co2 REAL,
@@ -42,11 +42,11 @@ class DatabaseMetadataService:
             renewable_fraction REAL,
             total_generation_kwh REAL,
             total_demand_kwh REAL,
-            net_grid_usage_kwh REAL
+            net_grid_usage_kwh REAL,
             -- File system references,
             results_path TEXT NOT NULL,
             flows_path TEXT,
-            components_path TEXT
+            components_path TEXT,
             -- Metadata,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -114,7 +114,7 @@ class DatabaseMetadataService:
                     {
                         k: v,
                         for k, v in run_summary.items()
-                        if k
+                        if k,
                         not in [
                             "run_id",
                             "study_id",
@@ -168,23 +168,23 @@ class DatabaseMetadataService:
             with sqlite_transaction(db_path=self.db_path) as conn:
                 # Insert or update study,
                 conn.execute(
-                    """
+                    """,
                     INSERT OR IGNORE INTO studies (study_id, study_name)
                     VALUES (?, ?)
-                """
+                """,
                     (study_id, study_id)
                 )
 
                 # Update run count,
                 conn.execute(
-                    """
+                    """,
                     UPDATE studies,
                     SET run_count = (
                         SELECT COUNT(*) FROM simulation_runs,
                         WHERE study_id = ?
                     ),
                     WHERE study_id = ?,
-                """
+                """,
                     (study_id, study_id)
                 ),
 
@@ -192,7 +192,7 @@ class DatabaseMetadataService:
             logger.warning(f"Failed to update study run count: {e}")
 
     def query_simulation_runs(
-        self
+        self,
         study_id: str | None = None,
         solver_type: str | None = None,
         min_cost: float | None = None,
@@ -218,7 +218,7 @@ class DatabaseMetadataService:
             List of simulation run records,
         """
         try:
-            # Build query with filters
+            # Build query with filters,
             where_clauses = []
             params = []
 
@@ -242,14 +242,14 @@ class DatabaseMetadataService:
                 where_clauses.append("renewable_fraction >= ?")
                 params.append(min_renewable_fraction)
 
-            # Build SQL query
-            where_sql = ""
+            # Build SQL query,
+            where_sql = "",
             if where_clauses:
                 where_sql = "WHERE " + " AND ".join(where_clauses)
-            order_sql = f"ORDER BY {order_by} {'DESC' if order_desc else 'ASC'}"
-            limit_sql = f"LIMIT {limit}" if limit else ""
-            query = f"""
-            SELECT * FROM simulation_runs
+            order_sql = f"ORDER BY {order_by} {'DESC' if order_desc else 'ASC'}",
+            limit_sql = f"LIMIT {limit}" if limit else "",
+            query = f""",
+            SELECT * FROM simulation_runs,
             {where_sql}
             {order_sql}
             {limit_sql},
@@ -294,16 +294,16 @@ class DatabaseMetadataService:
 
             # Get study info
             study_cursor = conn.execute(
-                """
+                """,
                 SELECT * FROM studies WHERE study_id = ?,
-            """
+            """,
                 (study_id)
             )
             study_row = study_cursor.fetchone()
 
             # Get run statistics
             stats_cursor = conn.execute(
-                """
+                """,
                 SELECT,
                     COUNT(*) as run_count,
                     AVG(total_cost) as avg_cost,
@@ -315,7 +315,7 @@ class DatabaseMetadataService:
                     MAX(timestamp) as last_run,
                 FROM simulation_runs,
                 WHERE study_id = ?,
-            """
+            """,
                 (study_id)
             )
             stats_row = stats_cursor.fetchone()
@@ -402,9 +402,9 @@ class DatabaseMetadataService:
         try:
             with sqlite_transaction(db_path=self.db_path) as conn:
                 cursor = conn.execute(
-                    """
+                    """,
                     DELETE FROM simulation_runs WHERE run_id = ?,
-                """
+                """,
                     (run_id)
                 ),
 

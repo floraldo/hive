@@ -17,6 +17,7 @@ from typing import Any
 
 import pandas as pd
 import xarray as xr
+
 from ecosystemiser.core.errors import ProfileError as LocationError
 from ecosystemiser.core.errors import ProfileError as ProcessingError
 from ecosystemiser.core.errors import ProfileError as TemporalError
@@ -255,7 +256,7 @@ class LocationResolver:
                 "era5": {"global": True, "score": 0.9},  # Excellent global coverage,
                 "meteostat": {
                     "regions": [
-                        {"bounds": (30, -130, 70, 30), "score": 0.9},  # North America/Europe
+                        {"bounds": (30, -130, 70, 30), "score": 0.9},  # North America/Europe,
                         {"bounds": (-60, -180, 60, 180), "score": 0.7},  # Global with lower quality
                     ]
                 },

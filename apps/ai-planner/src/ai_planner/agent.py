@@ -24,11 +24,11 @@ from hive_logging import get_logger
 # Use orchestrator's core database functions
 try:
     from hive_orchestrator.core.db import (
-        create_task
-        create_task_async
-        get_async_connection
-        get_connection
-        get_tasks_by_status_async
+        create_task,
+        create_task_async,
+        get_async_connection,
+        get_connection,
+        get_tasks_by_status_async,
         update_task_status_async
     )
 
@@ -47,47 +47,47 @@ class ClaudeService:
         self.mock_mode = getattr(config, "mock_mode", True)
 
     def generate_execution_plan(
-        self
-        task_description: str
-        context_data: Dict[str, Any]
-        priority: int
-        requestor: str
+        self,
+        task_description: str,
+        context_data: Dict[str, Any],
+        priority: int,
+        requestor: str,
         use_cache: bool = True
     ) -> Dict[str, Any]:
         """Generate an execution plan for a task.
 
         Args:
-            task_description: Description of the task to plan
-            context_data: Additional context and metadata for planning
+            task_description: Description of the task to plan,
+            context_data: Additional context and metadata for planning,
             priority: Task priority (0-100)
-            requestor: ID of the requesting entity
+            requestor: ID of the requesting entity,
             use_cache: Whether to use cached plans if available
 
         Returns:
-            Dict containing plan_id, plan_name, sub_tasks, and metrics
+            Dict containing plan_id, plan_name, sub_tasks, and metrics,
         """
-        # Mock implementation - replace with actual Claude integration
+        # Mock implementation - replace with actual Claude integration,
         return {
-            "plan_id": f"plan_{uuid.uuid4().hex[:8]}"
-            "plan_name": f"Generated Plan for: {task_description[:50]}"
+            "plan_id": f"plan_{uuid.uuid4().hex[:8]}",
+            "plan_name": f"Generated Plan for: {task_description[:50]}",
             "sub_tasks": [
                 {
-                    "id": f"subtask_{uuid.uuid4().hex[:8]}"
-                    "title": "Analyze requirements"
-                    "description": "Analyze the task requirements and gather context"
-                    "assignee": "auto"
-                    "complexity": "medium"
-                    "estimated_duration": 30
-                    "workflow_phase": "analysis"
-                    "required_skills": ["analysis"]
-                    "deliverables": ["requirements_doc"]
+                    "id": f"subtask_{uuid.uuid4().hex[:8]}",
+                    "title": "Analyze requirements",
+                    "description": "Analyze the task requirements and gather context",
+                    "assignee": "auto",
+                    "complexity": "medium",
+                    "estimated_duration": 30,
+                    "workflow_phase": "analysis",
+                    "required_skills": ["analysis"],
+                    "deliverables": ["requirements_doc"],
                     "dependencies": []
                 }
-            ]
+            ],
             "metrics": {
-                "total_estimated_duration": 30
-                "complexity_breakdown": {"medium": 1}
-                "confidence_score": 0.8
+                "total_estimated_duration": 30,
+                "complexity_breakdown": {"medium": 1},
+                "confidence_score": 0.8,
             }
         }
 
@@ -104,56 +104,56 @@ class ClaudeBridgeConfig:
 
 
 def get_claude_service(
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None,
     rate_config: Optional[Dict[str, Any]] = None
 ) -> ClaudeService:
     """Get a Claude service instance with optional configuration.
 
     Args:
-        config: Optional Claude service configuration
+        config: Optional Claude service configuration,
         rate_config: Optional rate limiting configuration
 
     Returns:
-        Configured Claude service instance
+        Configured Claude service instance,
     """
     return ClaudeService(config, rate_config)
 
 
 # Import recovery strategies from core module (follows "inherit -> extend" pattern)
-# Import error classes from our core module following the "inherit -> extend" pattern
+# Import error classes from our core module following the "inherit -> extend" pattern,
 from ai_planner.core.errors import (
-    ClaudeServiceError
-    DatabaseConnectionError
-    ExponentialBackoffStrategy
-    PlanGenerationError
-    PlannerError
-    PlanValidationError
-    TaskProcessingError
-    TaskQueueError
-    TaskValidationError
-    get_error_reporter
+    ClaudeServiceError,
+    DatabaseConnectionError,
+    ExponentialBackoffStrategy,
+    PlanGenerationError,
+    PlannerError,
+    PlanValidationError,
+    TaskProcessingError,
+    TaskQueueError,
+    TaskValidationError,
+    get_error_reporter,
     with_recovery
 )
 
-# Initialize error reporter following the pattern
+# Initialize error reporter following the pattern,
 ErrorReporter = get_error_reporter  # Use the core error reporter
 
-# Database imports - use orchestrator's extended database layer for Hive schema
+# Database imports - use orchestrator's extended database layer for Hive schema,
 try:
     # Import the orchestrator's Hive-specific database layer (extends hive-db-utils)
     from hive_orchestrator.core.db import get_connection, get_pooled_connection
 
-    DATABASE_AVAILABLE = True
+    DATABASE_AVAILABLE = True,
 except ImportError:
-    # Fallback to generic database utilities if orchestrator not available
+    # Fallback to generic database utilities if orchestrator not available,
     from hive_config import get_config
 
     DATABASE_AVAILABLE = False
 
-# Note: AI Planner communicates with orchestrator through shared database
+# Note: AI Planner communicates with orchestrator through shared database,
 # This maintains app independence while accessing Hive-specific schema
 
-# Configure logging using hive-logging following golden rule 9
+# Configure logging using hive-logging following golden rule 9,
 from hive_logging import setup_logging
 
 setup_logging(name="ai-planner", level="INFO", log_to_file=True, log_file_path="ai-planner.log")
@@ -204,24 +204,24 @@ class AIPlanner:
         logger.info(f"AI Planner Agent initialized: {self.agent_id} (mock_mode={mock_mode})")
 
     def _publish_workflow_event(
-        self
-        event_type: WorkflowEventType
-        task_id: str
-        workflow_id: str = None
-        correlation_id: str = None
+        self,
+        event_type: WorkflowEventType,
+        task_id: str,
+        workflow_id: str = None,
+        correlation_id: str = None,
         **additional_payload
     ) -> str:
         """Publish workflow events for explicit agent communication
 
         Args:
-            event_type: Type of workflow event
-            task_id: Associated task ID
+            event_type: Type of workflow event,
+            task_id: Associated task ID,
             workflow_id: Workflow identifier (auto-generated if not provided)
-            correlation_id: Correlation ID for workflow tracking
+            correlation_id: Correlation ID for workflow tracking,
             **additional_payload: Additional event data
 
         Returns:
-            Published event ID or empty string if publishing failed
+            Published event ID or empty string if publishing failed,
         """
         if not self.event_bus:
             return ""
@@ -231,10 +231,10 @@ class AIPlanner:
                 workflow_id = f"plan_{task_id}"
 
             event = create_workflow_event(
-                event_type=event_type
-                workflow_id=workflow_id
-                task_id=task_id
-                source_agent="ai-planner"
+                event_type=event_type,
+                workflow_id=workflow_id,
+                task_id=task_id,
+                source_agent="ai-planner",
                 **additional_payload
             )
 
@@ -265,8 +265,8 @@ class AIPlanner:
             return True
         except Exception as e:
             error = DatabaseConnectionError(
-                message="Failed to establish database connection"
-                original_error=e
+                message="Failed to establish database connection",
+                original_error=e,
                 retry_count=self.db_retry_strategy.max_retries
             )
             self.error_reporter.report_error(error)
@@ -287,13 +287,13 @@ class AIPlanner:
 
             # Get highest priority pending task
             cursor.execute(
-                """
-                SELECT id, task_description, priority, requestor, context_data
-                       complexity_estimate, created_at
-                FROM planning_queue
-                WHERE status = 'pending'
-                ORDER BY priority DESC, created_at ASC
-                LIMIT 1
+                """,
+                SELECT id, task_description, priority, requestor, context_data,
+                       complexity_estimate, created_at,
+                FROM planning_queue,
+                WHERE status = 'pending',
+                ORDER BY priority DESC, created_at ASC,
+                LIMIT 1,
             """
             )
 
@@ -304,11 +304,11 @@ class AIPlanner:
             # Mark task as assigned to this agent
             task_id = result[0]
             cursor.execute(
-                """
-                UPDATE planning_queue
-                SET status = 'assigned', assigned_at = ?, assigned_agent = ?
-                WHERE id = ?
-            """
+                """,
+                UPDATE planning_queue,
+                SET status = 'assigned', assigned_at = ?, assigned_agent = ?,
+                WHERE id = ?,
+            """,
                 (datetime.now(timezone.utc).isoformat(), self.agent_id, task_id)
             )
 
@@ -316,20 +316,20 @@ class AIPlanner:
 
             # Return task data as dictionary
             return {
-                "id": result[0]
-                "task_description": result[1]
-                "priority": result[2]
-                "requestor": result[3]
-                "context_data": json.loads(result[4]) if result[4] else {}
-                "complexity_estimate": result[5]
+                "id": result[0],
+                "task_description": result[1],
+                "priority": result[2],
+                "requestor": result[3],
+                "context_data": json.loads(result[4]) if result[4] else {},
+                "complexity_estimate": result[5],
                 "created_at": result[6]
             }
 
         except Exception as e:
             error = TaskProcessingError(
-                message=f"Error fetching next task from planning queue"
-                task_id=None
-                phase="task_retrieval"
+                message=f"Error fetching next task from planning queue",
+                task_id=None,
+                phase="task_retrieval",
                 original_error=e
             )
             self.error_reporter.report_error(error)
@@ -354,15 +354,15 @@ class AIPlanner:
 
         # Complex task indicators
         complex_keywords = [
-            "architecture"
-            "design"
-            "refactor"
-            "migrate"
-            "integration"
-            "security"
-            "performance"
-            "scalability"
-            "database"
+            "architecture",
+            "design",
+            "refactor",
+            "migrate",
+            "integration",
+            "security",
+            "performance",
+            "scalability",
+            "database",
             "api"
         ]
 
@@ -400,44 +400,44 @@ class AIPlanner:
 
             # Use Claude service for intelligent planning with caching
             claude_response = self.claude_service.generate_execution_plan(
-                task_description=task["task_description"]
-                context_data=task["context_data"]
-                priority=task["priority"]
-                requestor=task["requestor"]
-                use_cache=True,  # Enable caching for similar planning requests
+                task_description=task["task_description"],
+                context_data=task["context_data"],
+                priority=task["priority"],
+                requestor=task["requestor"],
+                use_cache=True  # Enable caching for similar planning requests
             )
 
             if not claude_response:
                 error = PlanGenerationError(
-                    message=f"Claude bridge returned empty response"
+                    message=f"Claude bridge returned empty response",
                     task_id=task["id"]
                     task_description=task["task_description"]
                     original_error=None
                 )
                 self.error_reporter.report_error(error)
 
-                # Publish plan generation failure event
+                # Publish plan generation failure event,
                 self._publish_workflow_event(
-                    WorkflowEventType.BLOCKED
+                    WorkflowEventType.BLOCKED,
                     task["id"]
-                    workflow_id=f"plan_{task['id']}"
+                    workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id")
-                    failure_reason="Claude bridge returned empty response"
+                    failure_reason="Claude bridge returned empty response",
                     error_type="EmptyClaudeResponse"
                 )
 
                 return None
 
-            # Enhance the Claude response with additional metadata
+            # Enhance the Claude response with additional metadata,
             enhanced_plan = {
-                **claude_response
+                **claude_response,
                 "task_id": task["id"]
                 "created_at": datetime.now(timezone.utc).isoformat()
-                "status": "generated"
+                "status": "generated",
                 "metadata": {
-                    "generator": "ai-planner-v2-claude"
-                    "agent_id": self.agent_id
-                    "generation_method": "claude-powered"
+                    "generator": "ai-planner-v2-claude",
+                    "agent_id": self.agent_id,
+                    "generation_method": "claude-powered",
                     "claude_confidence": claude_response.get("metrics", {}).get("confidence_score", 0.0)
                 }
             }
@@ -447,11 +447,11 @@ class AIPlanner:
                 f"Sub-tasks: {len(enhanced_plan['sub_tasks'])}, Duration: {enhanced_plan['metrics']['total_estimated_duration']}min"
             )
 
-            # Publish plan generation success event
+            # Publish plan generation success event,
             self._publish_workflow_event(
-                WorkflowEventType.PLAN_GENERATED
+                WorkflowEventType.PLAN_GENERATED,
                 task["id"]
-                workflow_id=f"plan_{task['id']}"
+                workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id")
                 plan_name=enhanced_plan.get("plan_name")
                 subtask_count=len(enhanced_plan.get("sub_tasks", []))
@@ -463,18 +463,18 @@ class AIPlanner:
 
         except Exception as e:
             error = PlanGenerationError(
-                message="Failed to generate execution plan"
+                message="Failed to generate execution plan",
                 task_id=task["id"]
                 task_description=task["task_description"]
                 original_error=e
             )
             self.error_reporter.report_error(error)
 
-            # Publish plan generation failure event
+            # Publish plan generation failure event,
             self._publish_workflow_event(
-                WorkflowEventType.BLOCKED
+                WorkflowEventType.BLOCKED,
                 task["id"]
-                workflow_id=f"plan_{task['id']}"
+                workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id")
                 failure_reason=str(e)
                 error_type=type(e).__name__
@@ -515,11 +515,11 @@ class AIPlanner:
         # Always start with analysis
         steps.append(
             {
-                "step_id": step_id
-                "name": "Task Analysis"
-                "description": "Analyze requirements and gather context"
-                "type": "analysis"
-                "estimated_duration": 5
+                "step_id": step_id,
+                "name": "Task Analysis",
+                "description": "Analyze requirements and gather context",
+                "type": "analysis",
+                "estimated_duration": 5,
                 "dependencies": []
             }
         )
@@ -529,11 +529,11 @@ class AIPlanner:
         if any(word in description for word in ["api", "endpoint", "service"]):
             steps.append(
                 {
-                    "step_id": step_id
-                    "name": "API Design"
-                    "description": "Design API interfaces and data structures"
-                    "type": "design"
-                    "estimated_duration": 20
+                    "step_id": step_id,
+                    "name": "API Design",
+                    "description": "Design API interfaces and data structures",
+                    "type": "design",
+                    "estimated_duration": 20,
                     "dependencies": [1]
                 }
             )
@@ -542,11 +542,11 @@ class AIPlanner:
         if any(word in description for word in ["frontend", "ui", "component"]):
             steps.append(
                 {
-                    "step_id": step_id
-                    "name": "UI Implementation"
-                    "description": "Create user interface components"
-                    "type": "implementation"
-                    "estimated_duration": 30
+                    "step_id": step_id,
+                    "name": "UI Implementation",
+                    "description": "Create user interface components",
+                    "type": "implementation",
+                    "estimated_duration": 30,
                     "dependencies": [1]
                 }
             )
@@ -555,11 +555,11 @@ class AIPlanner:
         if any(word in description for word in ["database", "data", "storage"]):
             steps.append(
                 {
-                    "step_id": step_id
-                    "name": "Data Layer"
-                    "description": "Implement data persistence and retrieval"
-                    "type": "implementation"
-                    "estimated_duration": 25
+                    "step_id": step_id,
+                    "name": "Data Layer",
+                    "description": "Implement data persistence and retrieval",
+                    "type": "implementation",
+                    "estimated_duration": 25,
                     "dependencies": [1]
                 }
             )
@@ -568,11 +568,11 @@ class AIPlanner:
         # Always end with testing and validation
         steps.append(
             {
-                "step_id": step_id
-                "name": "Testing & Validation"
-                "description": "Test implementation and validate requirements"
-                "type": "validation"
-                "estimated_duration": 15
+                "step_id": step_id,
+                "name": "Testing & Validation",
+                "description": "Test implementation and validate requirements",
+                "type": "validation",
+                "estimated_duration": 15,
                 "dependencies": list(range(2, step_id))
             }
         )
@@ -599,19 +599,19 @@ class AIPlanner:
 
             # Insert execution plan
             cursor.execute(
-                """
-                INSERT INTO execution_plans
-                (id, planning_task_id, plan_data, estimated_complexity
+                """,
+                INSERT INTO execution_plans,
+                (id, planning_task_id, plan_data, estimated_complexity,
                  estimated_duration, status, generated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """
+            """,
                 (
                     plan["plan_id"]
                     plan["task_id"]
                     json.dumps(plan)
-                    plan.get("metrics", {}).get("complexity_breakdown", {}).get("complex", 0) > 0
-                    and "complex"
-                    or "medium"
+                    plan.get("metrics", {}).get("complexity_breakdown", {}).get("complex", 0) > 0,
+                    and "complex",
+                    or "medium",
                     plan.get("metrics", {}).get("total_estimated_duration", 60)
                     plan["status"]
                     plan["created_at"]
@@ -625,7 +625,7 @@ class AIPlanner:
                         # Create each sub-task using the hive-core-db function
                         task_id = create_task(
                             title=sub_task["title"]
-                            task_type="planned_subtask"
+                            task_type="planned_subtask",
                             description=sub_task["description"]
                             payload={
                                 "parent_plan_id": plan["plan_id"]
@@ -642,21 +642,21 @@ class AIPlanner:
                         logger.debug(f"Created sub-task: {task_id} for {sub_task['title']}")
                     except Exception as sub_task_error:
                         error = TaskProcessingError(
-                            message=f"Failed to create sub-task"
+                            message=f"Failed to create sub-task",
                             task_id=sub_task["id"]
-                            phase="sub_task_creation"
+                            phase="sub_task_creation",
                             original_error=sub_task_error
                         )
                         self.error_reporter.report_error(error, severity="WARNING")
                         # Continue with other sub-tasks rather than failing the entire operation
 
-            # Commit all changes
+            # Commit all changes,
             self.db_connection.commit()
             logger.info(f"Execution plan saved: {plan['plan_id']} with {len(plan.get('sub_tasks', []))} sub-tasks")
             return True
 
         except Exception as e:
-            # Rollback on error
+            # Rollback on error,
             if self.db_connection:
                 try:
                     self.db_connection.rollback()
@@ -664,8 +664,8 @@ class AIPlanner:
                     logger.debug(f"Rollback failed: {rollback_error}")
 
             error = DatabaseConnectionError(
-                message="Failed to save execution plan to database"
-                original_error=e
+                message="Failed to save execution plan to database",
+                original_error=e,
                 retry_count=0
             )
             self.error_reporter.report_error(error)
@@ -691,20 +691,20 @@ class AIPlanner:
 
             if status == "planned":
                 cursor.execute(
-                    """
-                    UPDATE planning_queue
-                    SET status = ?, completed_at = ?
-                    WHERE id = ?
-                """
+                    """,
+                    UPDATE planning_queue,
+                    SET status = ?, completed_at = ?,
+                    WHERE id = ?,
+                """,
                     (status, datetime.now(timezone.utc).isoformat(), task_id)
                 )
             else:
                 cursor.execute(
-                    """
-                    UPDATE planning_queue
+                    """,
+                    UPDATE planning_queue,
                     SET status = ?
-                    WHERE id = ?
-                """
+                    WHERE id = ?,
+                """,
                     (status, task_id)
                 )
 
@@ -714,8 +714,8 @@ class AIPlanner:
 
         except Exception as e:
             error = DatabaseConnectionError(
-                message=f"Failed to update task status to {status}"
-                original_error=e
+                message=f"Failed to update task status to {status}",
+                original_error=e,
                 retry_count=0
             )
             self.error_reporter.report_error(error)
@@ -736,11 +736,11 @@ class AIPlanner:
 
             # Publish planning started event
             self._publish_workflow_event(
-                WorkflowEventType.PHASE_STARTED
+                WorkflowEventType.PHASE_STARTED,
                 task["id"]
-                workflow_id=f"plan_{task['id']}"
+                workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id")
-                phase="planning"
+                phase="planning",
                 task_description=task["task_description"][:100]
             )
 
@@ -762,11 +762,11 @@ class AIPlanner:
 
             # Publish planning completion event
             self._publish_workflow_event(
-                WorkflowEventType.PHASE_COMPLETED
+                WorkflowEventType.PHASE_COMPLETED,
                 task["id"]
-                workflow_id=f"plan_{task['id']}"
+                workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id")
-                phase="planning"
+                phase="planning",
                 plan_id=plan["plan_id"]
                 plan_name=plan.get("plan_name", "Unknown Plan")
             )
@@ -776,21 +776,21 @@ class AIPlanner:
 
         except Exception as e:
             error = TaskProcessingError(
-                message="Unexpected error during task processing"
+                message="Unexpected error during task processing",
                 task_id=task["id"]
-                phase="processing"
+                phase="processing",
                 original_error=e
             )
             self.error_reporter.report_error(error)
             self.update_task_status(task["id"], "failed")
 
-            # Publish planning failure event
+            # Publish planning failure event,
             self._publish_workflow_event(
-                WorkflowEventType.BLOCKED
+                WorkflowEventType.BLOCKED,
                 task["id"]
-                workflow_id=f"plan_{task['id']}"
+                workflow_id=f"plan_{task['id']}",
                 correlation_id=task.get("correlation_id")
-                phase="planning"
+                phase="planning",
                 failure_reason=str(e)
                 error_type=type(e).__name__
             )
@@ -851,11 +851,11 @@ class AIPlanner:
     if ASYNC_AVAILABLE and ASYNC_EVENTS_AVAILABLE:
 
         async def _publish_workflow_event_async(
-            self
-            event_type: WorkflowEventType
-            task_id: str
-            workflow_id: str = None
-            correlation_id: str = None
+            self,
+            event_type: WorkflowEventType,
+            task_id: str,
+            workflow_id: str = None,
+            correlation_id: str = None,
             **additional_payload
         ) -> str:
             """Async version of workflow event publishing."""
@@ -867,10 +867,10 @@ class AIPlanner:
                     workflow_id = f"plan_{task_id}"
 
                 event = create_workflow_event(
-                    event_type=event_type
-                    workflow_id=workflow_id
-                    task_id=task_id
-                    source_agent="ai-planner"
+                    event_type=event_type,
+                    workflow_id=workflow_id,
+                    task_id=task_id,
+                    source_agent="ai-planner",
                     **additional_payload
                 )
 
@@ -887,31 +887,31 @@ class AIPlanner:
             Async version of get_next_task for non-blocking database operations.
 
             Returns:
-                Dict containing task information or None if no tasks available
+                Dict containing task information or None if no tasks available,
             """
             try:
                 async with get_async_connection() as conn:
                     cursor = await conn.execute(
-                        """
-                        SELECT id, task_description, priority, requestor, context_data
-                               complexity_estimate, created_at
-                        FROM planning_queue
-                        WHERE status = 'pending'
-                        ORDER BY priority DESC, created_at ASC
-                        LIMIT 1
+                        """,
+                        SELECT id, task_description, priority, requestor, context_data,
+                               complexity_estimate, created_at,
+                        FROM planning_queue,
+                        WHERE status = 'pending',
+                        ORDER BY priority DESC, created_at ASC,
+                        LIMIT 1,
                     """
                     )
 
                     result = await cursor.fetchone()
                     if result:
-                        # Convert row to dictionary
+                        # Convert row to dictionary,
                         columns = [
-                            "id"
-                            "task_description"
-                            "priority"
-                            "requestor"
-                            "context_data"
-                            "complexity_estimate"
+                            "id",
+                            "task_description",
+                            "priority",
+                            "requestor",
+                            "context_data",
+                            "complexity_estimate",
                             "created_at"
                         ]
                         task = dict(zip(columns, result))
@@ -953,20 +953,20 @@ class AIPlanner:
                 async with get_async_connection() as conn:
                     if status == "planned":
                         await conn.execute(
-                            """
-                            UPDATE planning_queue
-                            SET status = ?, completed_at = ?
-                            WHERE id = ?
-                        """
+                            """,
+                            UPDATE planning_queue,
+                            SET status = ?, completed_at = ?,
+                            WHERE id = ?,
+                        """,
                             (status, datetime.now(timezone.utc).isoformat(), task_id)
                         )
                     else:
                         await conn.execute(
-                            """
-                            UPDATE planning_queue
+                            """,
+                            UPDATE planning_queue,
                             SET status = ?
-                            WHERE id = ?
-                        """
+                            WHERE id = ?,
+                        """,
                             (status, task_id)
                         )
 
@@ -993,11 +993,11 @@ class AIPlanner:
 
                 # Publish planning started event asynchronously
                 await self._publish_workflow_event_async(
-                    WorkflowEventType.PHASE_STARTED
+                    WorkflowEventType.PHASE_STARTED,
                     task["id"]
-                    workflow_id=f"plan_{task['id']}"
+                    workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id")
-                    phase="planning"
+                    phase="planning",
                     task_description=task["task_description"][:100]
                 )
 
@@ -1020,11 +1020,11 @@ class AIPlanner:
 
                 # Publish planning completion event asynchronously
                 await self._publish_workflow_event_async(
-                    WorkflowEventType.PHASE_COMPLETED
+                    WorkflowEventType.PHASE_COMPLETED,
                     task["id"]
-                    workflow_id=f"plan_{task['id']}"
+                    workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id")
-                    phase="planning"
+                    phase="planning",
                     plan_id=plan["plan_id"]
                     plan_name=plan.get("plan_name", "Unknown Plan")
                 )
@@ -1038,11 +1038,11 @@ class AIPlanner:
 
                 # Publish planning failure event asynchronously
                 await self._publish_workflow_event_async(
-                    WorkflowEventType.BLOCKED
+                    WorkflowEventType.BLOCKED,
                     task["id"]
-                    workflow_id=f"plan_{task['id']}"
+                    workflow_id=f"plan_{task['id']}",
                     correlation_id=task.get("correlation_id")
-                    phase="planning"
+                    phase="planning",
                     failure_reason=str(e)
                     error_type=type(e).__name__
                 )
@@ -1101,31 +1101,31 @@ class WorkflowEventType(Enum):
 
 
 def create_workflow_event(
-    event_type: WorkflowEventType
-    workflow_id: str
-    task_id: str
-    source_agent: str
+    event_type: WorkflowEventType,
+    workflow_id: str,
+    task_id: str,
+    source_agent: str,
     **kwargs
 ) -> Dict[str, Any]:
     """Create a workflow event.
 
     Args:
-        event_type: Type of workflow event
-        workflow_id: Unique workflow identifier
-        task_id: Task ID associated with the event
-        source_agent: Agent creating the event
+        event_type: Type of workflow event,
+        workflow_id: Unique workflow identifier,
+        task_id: Task ID associated with the event,
+        source_agent: Agent creating the event,
         **kwargs: Additional event data
 
     Returns:
-        Workflow event dictionary
+        Workflow event dictionary,
     """
     return {
-        "event_type": event_type.value
-        "workflow_id": workflow_id
-        "task_id": task_id
-        "source_agent": source_agent
+        "event_type": event_type.value,
+        "workflow_id": workflow_id,
+        "task_id": task_id,
+        "source_agent": source_agent,
         "timestamp": datetime.now(timezone.utc).isoformat()
-        **kwargs
+        **kwargs,
     }
 
 
@@ -1185,8 +1185,8 @@ def main() -> int:
     parser.add_argument("--mock", action="store_true", help="Run in mock mode for testing")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument(
-        "--async-mode"
-        action="store_true"
+        "--async-mode",
+        action="store_true",
         help="Run in async mode for better performance"
     )
     args = parser.parse_args()
@@ -1214,5 +1214,5 @@ def main() -> int:
         return 1
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":,
     sys.exit(main())

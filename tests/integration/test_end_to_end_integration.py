@@ -15,9 +15,9 @@ import sys
 import tempfile
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Add paths for test imports
 test_root = Path(__file__).parent.parent
@@ -163,7 +163,7 @@ class EndToEndIntegrationTest:
         """Get connection to test database"""
         return sqlite3.connect(self.temp_db_path)
 
-    def create_planning_task(self, description: str, priority: int = 50, context: Dict = None) -> str:
+    def create_planning_task(self, description: str, priority: int = 50, context: dict = None) -> str:
         """Create a task in the planning queue"""
         task_id = str(uuid.uuid4())
         conn = self.get_test_connection()
@@ -242,7 +242,7 @@ class EndToEndIntegrationTest:
             ],
             "metrics": {"total_estimated_duration": 100, "complexity_breakdown": {"simple": 1, "medium": 2}},
             "status": "generated",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
 
         # Insert execution plan
@@ -305,7 +305,7 @@ class EndToEndIntegrationTest:
         self.test_stats["plans_generated"] += 1
         return plan_id
 
-    def get_ready_subtasks(self) -> List[Dict[str, Any]]:
+    def get_ready_subtasks(self) -> list[dict[str, Any]]:
         """Get subtasks that are ready for execution (dependencies met)"""
         conn = self.get_test_connection()
 
@@ -431,7 +431,7 @@ class EndToEndIntegrationTest:
         result = {
             "status": "success" if success else "failed",
             "output": "Task completed successfully" if success else "Task failed with error",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         conn.execute(
@@ -460,7 +460,7 @@ class EndToEndIntegrationTest:
         if success:
             self.test_stats["tasks_completed"] += 1
 
-    def check_plan_completion(self, plan_id: str) -> Dict[str, Any]:
+    def check_plan_completion(self, plan_id: str) -> dict[str, Any]:
         """Check if an execution plan is complete"""
         conn = self.get_test_connection()
 
@@ -566,12 +566,12 @@ class EndToEndIntegrationTest:
 
         # Assertions
         assert final_completion["complete"], f"Plan should be complete but is {final_completion['progress']:.1f}% done"
-        assert (
-            final_completion["failed_tasks"] == 0
-        ), f"No tasks should fail but {final_completion['failed_tasks']} failed"
-        assert (
-            self.test_stats["tasks_completed"] == 3
-        ), f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
+        assert final_completion["failed_tasks"] == 0, (
+            f"No tasks should fail but {final_completion['failed_tasks']} failed"
+        )
+        assert self.test_stats["tasks_completed"] == 3, (
+            f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
+        )
 
         print("✅ All assertions passed!")
         print("📊 Final Statistics:")
@@ -597,9 +597,9 @@ class EndToEndIntegrationTest:
 
         print(f"Initially ready tasks: {ready_titles}")
         assert "Design Authentication Schema" in ready_titles, "Design task should be ready (no dependencies)"
-        assert (
-            "Implement Authentication Service" not in ready_titles
-        ), "Implementation should not be ready (has dependencies)"
+        assert "Implement Authentication Service" not in ready_titles, (
+            "Implementation should not be ready (has dependencies)"
+        )
         assert "Create Login UI" not in ready_titles, "Frontend should not be ready (has dependencies)"
 
         # Complete the design task

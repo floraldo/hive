@@ -56,55 +56,55 @@ class AsyncQueen:
     """
 
     def __init__(
-        self
-        hive_core: HiveCore
-        config: HiveConfig | None = None
+        self,
+        hive_core: HiveCore,
+        config: HiveConfig | None = None,
         live_output: bool = False
     ):
         """Initialize AsyncQueen with async-first architecture"""
-        self.hive = hive_core
-        self.live_output = live_output
+        self.hive = hive_core,
+        self.live_output = live_output,
         self.log = get_logger(__name__)
 
-        # Configuration
+        # Configuration,
         self.config = config if config is not None else create_orchestrator_config()
 
-        # Async components from Phase 1
-        self.db_ops: AsyncDatabaseOperations | None = None
+        # Async components from Phase 1,
+        self.db_ops: AsyncDatabaseOperations | None = None,
         self.event_bus = None
 
-        # State management
+        # State management,
         self.active_workers: Dict[str, Dict[str, Any]] = {}
         self.worker_semaphore = None  # Will be initialized in async context
 
-        # Performance tracking
+        # Performance tracking,
         self.metrics = {
-            "tasks_processed": 0
-            "average_processing_time": 0
-            "concurrent_peak": 0
-            "db_operations": 0
-            "events_published": 0
+            "tasks_processed": 0,
+            "average_processing_time": 0,
+            "concurrent_peak": 0,
+            "db_operations": 0,
+            "events_published": 0,
         }
 
-        # Simple mode toggle
+        # Simple mode toggle,
         self.simple_mode = self.config.get("simple_mode", False)
         if self.simple_mode:
             self.log.info("Running in SIMPLE_MODE")
 
     async def initialize_async(self) -> None:
         """Async initialization of database and event bus"""
-        # Initialize async database operations
+        # Initialize async database operations,
         self.db_ops = await get_async_db_operations()
         self.log.info("Async database operations initialized with connection pooling")
 
-        # Initialize async event bus
+        # Initialize async event bus,
         self.event_bus = await get_async_event_bus()
         self.log.info("Async event bus initialized with priority queues")
 
-        # Setup event subscriptions
+        # Setup event subscriptions,
         await self._setup_event_subscriptions_async()
 
-        # Initialize worker semaphore for concurrency control
+        # Initialize worker semaphore for concurrency control,
         max_workers = sum(self.hive.config["max_parallel_per_role"].values())
         self.worker_semaphore = asyncio.Semaphore(max_workers * 2)  # 2x for async efficiency
 
@@ -118,18 +118,18 @@ class AsyncQueen:
         """Register Queen as a worker in the database"""
         try:
             await self.db_ops.register_worker_async(
-                worker_id="async-queen-orchestrator"
-                role="orchestrator"
+                worker_id="async-queen-orchestrator",
+                role="orchestrator",
                 capabilities=[
-                    "async_orchestration"
-                    "high_performance"
-                    "workflow_management"
+                    "async_orchestration",
+                    "high_performance",
+                    "workflow_management",
                     "concurrent_execution"
                 ]
                 metadata={
-                    "version": "4.0.0"
-                    "type": "AsyncQueen"
-                    "phase": "V4.0 Phase 2"
+                    "version": "4.0.0",
+                    "type": "AsyncQueen",
+                    "phase": "V4.0 Phase 2",
                     "performance": "3-5x"
                 }
             )
@@ -222,19 +222,19 @@ class AsyncQueen:
 
         # Build command
         cmd = [
-            sys.executable
-            "-m"
-            "hive_orchestrator.worker"
-            worker
-            "--one-shot"
-            "--task-id"
-            task_id
-            "--run-id"
-            run_id
-            "--phase"
-            phase.value
-            "--mode"
-            mode
+            sys.executable,
+            "-m",
+            "hive_orchestrator.worker",
+            worker,
+            "--one-shot",
+            "--task-id",
+            task_id,
+            "--run-id",
+            run_id,
+            "--phase",
+            phase.value,
+            "--mode",
+            mode,
             "--async",  # Enable async mode in worker
         ]
 
@@ -244,10 +244,10 @@ class AsyncQueen:
         try:
             # Create async subprocess
             process = await asyncio.create_subprocess_exec(
-                *cmd
-                stdin=asyncio.subprocess.DEVNULL
-                stdout=asyncio.subprocess.PIPE
-                stderr=asyncio.subprocess.PIPE
+                *cmd,
+                stdin=asyncio.subprocess.DEVNULL,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 env=self._create_enhanced_environment()
             )
 
@@ -323,10 +323,10 @@ class AsyncQueen:
 
             # Update status
             await self.db_ops.update_task_status_async(
-                task_id
-                "assigned"
+                task_id,
+                "assigned",
                 {
-                    "assignee": worker
+                    "assignee": worker,
                     "assigned_at": datetime.now(timezone.utc).isoformat()
                     "current_phase": Phase.APPLY.value
                 }
@@ -337,10 +337,10 @@ class AsyncQueen:
             if result:
                 process, run_id = result
                 self.active_workers[task_id] = {
-                    "process": process
-                    "run_id": run_id
-                    "phase": Phase.APPLY.value
-                    "worker_type": worker
+                    "process": process,
+                    "run_id": run_id,
+                    "phase": Phase.APPLY.value,
+                    "worker_type": worker,
                     "start_time": time.time()
                 }
 
@@ -350,8 +350,8 @@ class AsyncQueen:
 
                 # Publish event
                 await self.event_bus.publish_async(
-                    event_type="task.started"
-                    task_id=task_id
+                    event_type="task.started",
+                    task_id=task_id,
                     priority=2
                 )
 
@@ -418,9 +418,9 @@ class AsyncQueen:
             if result:
                 process, run_id = result
                 self.active_workers[task_id] = {
-                    "process": process
-                    "run_id": run_id
-                    "phase": Phase.TEST.value
+                    "process": process,
+                    "run_id": run_id,
+                    "phase": Phase.TEST.value,
                     "worker_type": metadata["worker_type"]
                     "start_time": time.time()
                 }
@@ -437,8 +437,8 @@ class AsyncQueen:
 
             # Publish completion event
             await self.event_bus.publish_async(
-                event_type="task.completed"
-                task_id=task_id
+                event_type="task.completed",
+                task_id=task_id,
                 priority=1
             )
 
@@ -458,8 +458,8 @@ class AsyncQueen:
 
             # Publish failure event
             await self.event_bus.publish_async(
-                event_type="task.failed"
-                task_id=task_id
+                event_type="task.failed",
+                task_id=task_id,
                 priority=0
             )
 
@@ -525,11 +525,11 @@ class AsyncQueen:
                 self.log.info(f"[RECOVER] Zombie task {task_id} (stale {age_minutes:.1f}m)")
 
                 await self.db_ops.update_task_status_async(
-                    task_id
-                    "queued"
+                    task_id,
+                    "queued",
                     {
-                        "current_phase": "plan"
-                        "assignee": None
+                        "current_phase": "plan",
+                        "assignee": None,
                         "started_at": None
                     }
                 )
@@ -540,14 +540,14 @@ class AsyncQueen:
         active_count = len(self.active_workers)
 
         self.log.info(
-            f"\n[ASYNC-STATUS] Q:{stats['queued']} I:{stats['in_progress']} "
+            f"\n[ASYNC-STATUS] Q:{stats['queued']} I:{stats['in_progress']} ",
             f"C:{stats['completed']} F:{stats['failed']} | Active: {active_count}"
         )
 
         # Show performance metrics
         self.log.info(
-            f"[PERF] Processed: {self.metrics['tasks_processed']} | "
-            f"Avg Time: {self.metrics['average_processing_time']:.1f}s | "
+            f"[PERF] Processed: {self.metrics['tasks_processed']} | ",
+            f"Avg Time: {self.metrics['average_processing_time']:.1f}s | ",
             f"Peak Concurrent: {self.metrics['concurrent_peak']}"
         )
 
@@ -567,9 +567,9 @@ class AsyncQueen:
 
             # Log performance metrics
             self.log.info(
-                f"[METRICS] Tasks: {self.metrics['tasks_processed']} | "
-                f"DB Ops: {self.metrics['db_operations']} | "
-                f"Events: {self.metrics['events_published']} | "
+                f"[METRICS] Tasks: {self.metrics['tasks_processed']} | ",
+                f"DB Ops: {self.metrics['db_operations']} | ",
+                f"Events: {self.metrics['events_published']} | ",
                 f"Avg Time: {self.metrics['average_processing_time']:.1f}s"
             )
 

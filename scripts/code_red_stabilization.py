@@ -7,7 +7,6 @@ Systematically fixes all syntax errors in the Hive codebase.
 import re
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 
 class CodeRedStabilizer:
@@ -19,7 +18,7 @@ class CodeRedStabilizer:
         self.fixed_count = 0
         self.error_files = []
 
-    def scan_all_files(self) -> List[Tuple[Path, str]]:
+    def scan_all_files(self) -> list[tuple[Path, str]]:
         """Scan all Python files for syntax errors."""
         print("=" * 80)
         print("CODE RED: SCANNING FOR SYNTAX ERRORS")
@@ -54,7 +53,7 @@ class CodeRedStabilizer:
     def check_syntax(self, file_path: Path) -> str:
         """Check if a file has syntax errors."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
             compile(content, str(file_path), "exec")
             return None
@@ -118,7 +117,7 @@ class CodeRedStabilizer:
     def fix_file(self, file_path: Path) -> bool:
         """Fix syntax errors in a single file."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             original = content

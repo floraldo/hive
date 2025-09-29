@@ -7,6 +7,9 @@ Tests ModelRegistry, ModelClient, ModelPool, and ModelMetrics with property-base
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
 from hive_ai.core.config import AIConfig, ModelConfig
 from hive_ai.core.exceptions import CostLimitError, ModelUnavailableError
 from hive_ai.core.interfaces import ModelResponse, TokenUsage
@@ -14,8 +17,6 @@ from hive_ai.models.client import ModelClient
 from hive_ai.models.metrics import ModelMetrics
 from hive_ai.models.pool import ModelPool, PoolStats
 from hive_ai.models.registry import ModelRegistry
-from hypothesis import given, settings
-from hypothesis import strategies as st
 
 
 class TestModelRegistry:
@@ -463,8 +464,8 @@ class TestModelIntegration:
     @given(
         st.lists(
             st.tuples(
-                st.text(min_size=1, max_size=20),  # model name
-                st.integers(min_value=10, max_value=1000),  # tokens
+                st.text(min_size=1, max_size=20),  # model name,
+                st.integers(min_value=10, max_value=1000),  # tokens,
                 st.floats(min_value=0.0001, max_value=0.1),  # cost
             ),
             min_size=1,

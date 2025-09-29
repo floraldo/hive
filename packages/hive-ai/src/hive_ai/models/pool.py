@@ -8,7 +8,7 @@ load balancing, and automatic scaling based on demand.
 import time
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_async import AsyncConnectionManager, PoolConfig
 from hive_errors import PoolExhaustedError
@@ -47,12 +47,12 @@ class ModelPool:
         self.registry = ModelRegistry(config)
 
         # Connection pools per provider
-        self._pools: Dict[str, AsyncConnectionManager] = {}
-        self._pool_configs: Dict[str, PoolConfig] = {}
+        self._pools: dict[str, AsyncConnectionManager] = {}
+        self._pool_configs: dict[str, PoolConfig] = {}
 
         # Request tracking
-        self._request_counts: Dict[str, int] = defaultdict(int)
-        self._response_times: Dict[str, List[float]] = defaultdict(list)
+        self._request_counts: dict[str, int] = defaultdict(int)
+        self._response_times: dict[str, list[float]] = defaultdict(list)
         self._last_cleanup = time.time()
 
         # Initialize pools for configured providers
@@ -89,7 +89,7 @@ class ModelPool:
 
         self._pool_configs[provider] = pool_config
 
-        # Create async connection manager
+        # Create async connection manager,
         self._pools[provider] = AsyncConnectionManager(
             pool_config,
             connection_factory=lambda: self._create_provider_connection_async(provider),
@@ -106,7 +106,7 @@ class ModelPool:
         Execute request using pooled connection.
 
         Args:
-            model_name: Name of the model to use
+            model_name: Name of the model to use,
             operation: Operation to perform (generate_async, etc.)
             *args, **kwargs: Arguments for the operation
 
@@ -114,8 +114,8 @@ class ModelPool:
             Result from the operation
 
         Raises:
-            PoolExhaustedError: No connections available
-            ModelError: Operation failed
+            PoolExhaustedError: No connections available,
+            ModelError: Operation failed,
         """
         model_config = self.registry.get_model_config(model_name)
         provider = model_config.provider
@@ -127,9 +127,9 @@ class ModelPool:
         start_time = time.time()
 
         try:
-            # Get connection from pool
+            # Get connection from pool,
             async with pool.get_connection() as connection:
-                # Execute operation
+                # Execute operation,
                 operation_func = getattr(connection, operation)
                 result = await operation_func(*args, **kwargs)
 
@@ -223,7 +223,7 @@ class ModelPool:
         logger.info(f"Scaled pool for {provider} to target size: {target_size}")
         return True
 
-    async def warm_pools_async(self) -> Dict[str, bool]:
+    async def warm_pools_async(self) -> dict[str, bool]:
         """Pre-warm all connection pools for faster initial requests."""
         results = {}
 
@@ -239,7 +239,7 @@ class ModelPool:
 
         return results
 
-    async def health_check_async(self) -> Dict[str, Any]:
+    async def health_check_async(self) -> dict[str, Any]:
         """Comprehensive health check of all pools."""
         health_status = {}
 
@@ -249,8 +249,8 @@ class ModelPool:
 
                 # Health criteria
                 healthy = (
-                    stats.total_connections > 0
-                    and stats.pool_efficiency > 0.1
+                    stats.total_connections > 0,
+                    and stats.pool_efficiency > 0.1,
                     and stats.avg_response_time_ms < 10000  # At least 10% efficiency  # Under 10 seconds
                 )
 
@@ -271,7 +271,7 @@ class ModelPool:
             "total_pools": len(self._pools),
         }
 
-    async def optimize_pools_async(self) -> Dict[str, Any]:
+    async def optimize_pools_async(self) -> dict[str, Any]:
         """Optimize pool sizes based on usage patterns."""
         optimization_results = {}
 

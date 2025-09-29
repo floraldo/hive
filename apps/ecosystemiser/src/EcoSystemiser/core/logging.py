@@ -15,6 +15,7 @@ from hive_logging import setup_logging as setup_hive_logging
 # Re-export structlog logger for EcoSystemiser components that need it
 try:
     import structlog
+
     from ecosystemiser.profile_loader.climate.logging_config import get_logger as get_structlog_logger
 
     STRUCTLOG_AVAILABLE = True
@@ -68,8 +69,8 @@ def get_logger(name: str, use_structlog: bool | None = None) -> None:
 
 # Re-export context management functions for structured logging
 __all__ = [
-    "setup_logging" "get_logger" "LoggingContext",
-    "set_correlation_id" "set_request_id",
-    "clear_context" "log_with_context",
+    "setup_loggingget_loggerLoggingContext",
+    "set_correlation_idset_request_id",
+    "clear_contextlog_with_context",
     "STRUCTLOG_AVAILABLE",
 ]

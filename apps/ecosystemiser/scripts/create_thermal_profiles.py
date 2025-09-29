@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -148,11 +149,11 @@ def create_thermal_storage_profile() -> None:
     """Create heat buffer (thermal storage) parameters."""
     # Heat buffer sizing: typically 200-500L for residential
     heat_buffer_params = {
-        "capacity_thermal_kwh": 20.0,  # 20 kWh thermal storage
-        "max_charge_rate_kw": 15.0,  # Can absorb full heat pump output
-        "max_discharge_rate_kw": 15.0,  # Can supply full thermal demand
-        "thermal_efficiency": 0.95,  # 5% thermal losses
-        "initial_energy_pct": 0.5,  # Start 50% charged
+        "capacity_thermal_kwh": 20.0,  # 20 kWh thermal storage,
+        "max_charge_rate_kw": 15.0,  # Can absorb full heat pump output,
+        "max_discharge_rate_kw": 15.0,  # Can supply full thermal demand,
+        "thermal_efficiency": 0.95,  # 5% thermal losses,
+        "initial_energy_pct": 0.5,  # Start 50% charged,
         "temperature_range_c": {"min": 40, "max": 80, "nominal": 60},
     }
 

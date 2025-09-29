@@ -5,14 +5,15 @@ logger = get_logger(__name__)
 """Basic async task utilities for infrastructure use."""
 
 import asyncio
-from typing import Any, Awaitable, List, TypeVar
+from collections.abc import Awaitable
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
 
 async def gather_with_concurrency_async(
     *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False
-) -> List[Any]:
+) -> list[Any]:
     """
     Gather coroutines with concurrency limit.
 

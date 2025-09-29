@@ -14,10 +14,11 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 from .data_unification import DataUnificationLayer, MetricType, UnifiedMetric
 from .oracle_service import OracleService
@@ -52,11 +53,11 @@ class CitadelViolation:
     severity: ViolationSeverity
     description: str
     file_path: str
-    line_number: Optional[int] = None
+    line_number: int | None = None
 
     # Fix suggestions
     suggested_fix: str = ""
-    fix_command: Optional[str] = None
+    fix_command: str | None = None
     documentation_link: str = ""
 
     # Context
@@ -98,8 +99,8 @@ class CitadelReport:
 
     # Context
     scan_type: str = "pr_validation"
-    commit_sha: Optional[str] = None
-    pr_number: Optional[int] = None
+    commit_sha: str | None = None
+    pr_number: int | None = None
     branch_name: str = ""
 
     # Oracle insights
@@ -124,7 +125,7 @@ class CitadelGuardianConfig(BaseModel):
     enable_auto_fixes: bool = Field(default=False, description="Attempt automatic fixes")
 
     # GitHub integration
-    github_token: Optional[str] = Field(default=None, description="GitHub API token")
+    github_token: str | None = Field(default=None, description="GitHub API token")
     github_repository: str = Field(default="hive", description="Repository name")
 
     # Oracle consultation
@@ -151,7 +152,7 @@ class CitadelGuardian:
     - Cross-package optimization recommendations
     """
 
-    def __init__(self, config: CitadelGuardianConfig, oracle: Optional[OracleService] = None):
+    def __init__(self, config: CitadelGuardianConfig, oracle: OracleService | None = None):
         self.config = config
         self.oracle = oracle
         self.data_layer = DataUnificationLayer(oracle.warehouse) if oracle else None
@@ -225,11 +226,11 @@ class CitadelGuardian:
                 predicted_fix_effort=self._estimate_fix_effort(violations),
             )
 
-            # Store report for analytics
+            # Store report for analytics,
             await self._store_compliance_report_async(report)
 
             logger.info(
-                f"🏰 Compliance validation complete: {compliance_status.value} "
+                f"🏰 Compliance validation complete: {compliance_status.value} ",
                 f"(score: {current_score:.1f}, change: {score_change:+.1f})"
             )
 
@@ -237,7 +238,7 @@ class CitadelGuardian:
 
         except Exception as e:
             logger.error(f"Failed to validate PR compliance: {e}")
-            # Return permissive report on error to avoid blocking legitimate PRs
+            # Return permissive report on error to avoid blocking legitimate PRs,
             return CitadelReport(
                 compliance_status=ComplianceAction.WARN,
                 overall_score=0.0,
@@ -262,16 +263,16 @@ class CitadelGuardian:
         violations = []
 
         try:
-            # Run Golden Rules validation
+            # Run Golden Rules validation,
             violations.extend(await self._run_golden_rules_scan_async(changed_files))
 
-            # Run cross-package integration analysis
+            # Run cross-package integration analysis,
             violations.extend(await self._run_cross_package_analysis_async(changed_files))
 
-            # Run optimization opportunity detection
+            # Run optimization opportunity detection,
             violations.extend(await self._detect_optimization_opportunities_async(changed_files))
 
-            # Run certification impact analysis
+            # Run certification impact analysis,
             violations.extend(await self._analyze_certification_impact_async(changed_files))
 
         except Exception as e:
@@ -292,8 +293,8 @@ class CitadelGuardian:
         violations = []
 
         try:
-            # Import architectural validators
-            import sys
+            # Import architectural validators,
+            import sys,
             from pathlib import Path
 
             project_root = Path(__file__).parent.parent.parent.parent.parent
@@ -340,27 +341,27 @@ class CitadelGuardian:
         violations = []
 
         try:
-            # This is where we implement the cross-cutting analysis
+            # This is where we implement the cross-cutting analysis,
             # Looking for opportunities to use one hive package to improve another
 
             for file_path in changed_files:
                 if not file_path.endswith(".py"):
                     continue
 
-                # Read file content
+                # Read file content,
                 try:
                     with open(file_path, encoding="utf-8") as f:
                         content = f.read()
                 except (FileNotFoundError, UnicodeDecodeError):
                     continue
 
-                # Analyze for integration opportunities
+                # Analyze for integration opportunities,
                 integration_opportunities = self._analyze_integration_opportunities(file_path, content)
 
                 for opportunity in integration_opportunities:
                     violation = CitadelViolation(
                         rule_name="cross_package_integration",
-                        severity=ViolationSeverity.MINOR,  # Optimizations are typically minor
+                        severity=ViolationSeverity.MINOR,  # Optimizations are typically minor,
                         description=opportunity["description"],
                         file_path=file_path,
                         suggested_fix=opportunity["suggested_fix"],
@@ -542,7 +543,7 @@ class CitadelGuardian:
         else:
             return ViolationSeverity.MINOR
 
-    def _extract_file_path_from_violation(self, violation_desc: str, changed_files: list[str]) -> Optional[str]:
+    def _extract_file_path_from_violation(self, violation_desc: str, changed_files: list[str]) -> str | None:
         """Extract file path from violation description."""
         # Try to match violation description with changed files
         for file_path in changed_files:
@@ -550,7 +551,7 @@ class CitadelGuardian:
                 return file_path
         return None
 
-    def _extract_component_from_path(self, file_path: Optional[str]) -> str:
+    def _extract_component_from_path(self, file_path: str | None) -> str:
         """Extract component name from file path."""
         if not file_path:
             return "unknown"
@@ -608,10 +609,10 @@ class CitadelGuardian:
     def _estimate_rule_fix_time(self, rule_name: str) -> str:
         """Estimate time required to fix a rule violation."""
         time_estimates = {
-            "Golden Rule 16": "2-4 hours",  # Global state refactoring
-            "Golden Rule 17": "30-60 minutes",  # Adding tests
-            "Golden Rule 5": "1-3 hours",  # Moving business logic
-            "Golden Rule 6": "3-6 hours",  # Dependency refactoring
+            "Golden Rule 16": "2-4 hours",  # Global state refactoring,
+            "Golden Rule 17": "30-60 minutes",  # Adding tests,
+            "Golden Rule 5": "1-3 hours",  # Moving business logic,
+            "Golden Rule 6": "3-6 hours",  # Dependency refactoring,
             "Golden Rule 8": "1-2 hours",  # Error handling
         }
 
@@ -697,27 +698,27 @@ class CitadelGuardian:
     ) -> ComplianceAction:
         """Determine what action to take based on compliance results."""
 
-        # Zero tolerance for blockers
+        # Zero tolerance for blockers,
         if blocker_count > self.config.blocker_threshold:
             return ComplianceAction.BLOCK
 
-        # Block if score drops below minimum
+        # Block if score drops below minimum,
         if score < self.config.minimum_score_to_pass:
             return ComplianceAction.BLOCK
 
-        # Block if too many critical violations
+        # Block if too many critical violations,
         if critical_count > self.config.critical_threshold:
             return ComplianceAction.BLOCK
 
-        # Block if score drops significantly
-        if score_change < -5.0:  # More than 5 point drop
+        # Block if score drops significantly,
+        if score_change < -5.0:  # More than 5 point drop,
             return ComplianceAction.BLOCK
 
-        # Require review for moderate issues
+        # Require review for moderate issues,
         if critical_count > 0 or score_change < -2.0:
             return ComplianceAction.REQUIRE_REVIEW
 
-        # Warn for minor issues
+        # Warn for minor issues,
         if score_change < 0:
             return ComplianceAction.WARN
 
@@ -732,15 +733,15 @@ class CitadelGuardian:
             if not self.oracle:
                 return recommendations
 
-            # Group violations by component
+            # Group violations by component,
             component_violations = {}
             for violation in violations:
-                component = violation.component_affected or "unknown"
+                component = violation.component_affected or "unknown",
                 if component not in component_violations:
                     component_violations[component] = []
                 component_violations[component].append(violation)
 
-            # Generate recommendations for each component
+            # Generate recommendations for each component,
             for component, comp_violations in component_violations.items():
                 blocker_violations = [v for v in comp_violations if v.severity == ViolationSeverity.BLOCKER]
                 critical_violations = [v for v in comp_violations if v.severity == ViolationSeverity.CRITICAL]
@@ -755,8 +756,8 @@ class CitadelGuardian:
                         f"CRITICAL: {component} has {len(critical_violations)} critical violations - fix before merge"
                     )
 
-                # Generate specific fix suggestions
-                for violation in comp_violations[:3]:  # Top 3 violations per component
+                # Generate specific fix suggestions,
+                for violation in comp_violations[:3]:  # Top 3 violations per component,
                     if violation.suggested_fix:
                         recommendations["fixes"].append(f"{component}: {violation.suggested_fix}")
 
@@ -958,8 +959,8 @@ Excellent work! This PR meets all architectural standards.
 
             # Identify components needing immediate attention
             critical_components = [
-                scorecard
-                for scorecard in cert_readiness.component_scorecards
+                scorecard,
+                for scorecard in cert_readiness.component_scorecards,
                 if scorecard.urgency == "high" or scorecard.overall_score < 70
             ]
 

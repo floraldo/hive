@@ -6,7 +6,6 @@ logger = get_logger(__name__)
 
 import ast
 from pathlib import Path
-from typing import List, Set
 
 
 class CircularImportValidator:
@@ -18,7 +17,7 @@ class CircularImportValidator:
         self.visited = set()
         self.rec_stack = set()
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Check for circular imports"""
         violations = []
 
@@ -49,11 +48,11 @@ class CircularImportValidator:
         parts = list(relative.parts[:-1]) + [relative.stem]
         return ".".join(parts)
 
-    def _get_imports(self, file_path: Path) -> Set[str]:
+    def _get_imports(self, file_path: Path) -> set[str]:
         """Extract imports from a Python file"""
         imports = set()
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 tree = ast.parse(f.read())
 
             for node in ast.walk(tree):
@@ -68,7 +67,7 @@ class CircularImportValidator:
 
         return imports
 
-    def _detect_cycle(self, module: str, path: List[str]) -> List[str]:
+    def _detect_cycle(self, module: str, path: list[str]) -> list[str]:
         """Detect cycles using DFS"""
         cycles = []
         path.append(module)
@@ -93,7 +92,7 @@ class AsyncPatternValidator:
     def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Check for async pattern violations"""
         violations = []
 
@@ -105,12 +104,12 @@ class AsyncPatternValidator:
 
         return violations
 
-    def _check_file(self, file_path: Path) -> List[str]:
+    def _check_file(self, file_path: Path) -> list[str]:
         """Check a single file for async violations"""
         violations = []
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 tree = ast.parse(f.read())
 
             for node in ast.walk(tree):
@@ -150,7 +149,7 @@ class ErrorHandlingValidator:
     def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Check for error handling violations"""
         violations = []
 
@@ -162,12 +161,12 @@ class ErrorHandlingValidator:
 
         return violations
 
-    def _check_file(self, file_path: Path) -> List[str]:
+    def _check_file(self, file_path: Path) -> list[str]:
         """Check a single file for error handling issues"""
         violations = []
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 tree = ast.parse(f.read())
 
             for node in ast.walk(tree):

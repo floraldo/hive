@@ -21,14 +21,14 @@ class BaseModel(PydanticBaseModel):
     """
 
     model_config = ConfigDict(
-        # Use Enum values instead of names
+        # Use Enum values instead of names,
         use_enum_values=True,
-        # Validate on assignment
+        # Validate on assignment,
         validate_assignment=True,
-        # Allow population by field name
+        # Allow population by field name,
         populate_by_name=True,
         # Include fields with None values in dict()
-        # exclude_none=False
+        # exclude_none=False,
         # Custom JSON encoder for datetime, UUID, etc.
         json_encoders={
             datetime: lambda v: v.isoformat()

@@ -1,15 +1,16 @@
 """Power demand component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import cvxpy as cp
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
 from ecosystemiser.system_model.components.shared.base_classes import BaseDemandOptimization, BaseDemandPhysics
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -29,13 +30,13 @@ class PowerDemandTechnicalParams(DemandTechnicalParams):
     power_factor: float | None = Field(0.95, description="Power factor for the load")
 
     # DETAILED fidelity parameters
-    demand_flexibility: Optional[dict[str, float]] = Field(
+    demand_flexibility: dict[str, float] | None = Field(
         None, description="Demand response capabilities {shift_capacity_kw, shed_capacity_kw}"
     )
 
     # RESEARCH fidelity parameters
-    stochastic_model: Optional[dict[str, Any]] = Field(None, description="Stochastic demand model parameters")
-    occupancy_coupling: Optional[dict[str, Any]] = Field(None, description="Coupling to occupancy patterns")
+    stochastic_model: dict[str, Any] | None = Field(None, description="Stochastic demand model parameters")
+    occupancy_coupling: dict[str, Any] | None = Field(None, description="Coupling to occupancy patterns")
 
 
 class PowerDemandParams(ComponentParams):
@@ -180,8 +181,8 @@ class PowerDemandOptimizationStandard(PowerDemandOptimizationSimple):
             power_factor = getattr(comp.technical, "power_factor", 1.0)
             if power_factor < 1.0:
                 logger.debug(
-                    f"STANDARD fidelity: Acknowledging power factor of {power_factor}, "
-                    "but not modifying real power constraints."
+                    f"STANDARD fidelity: Acknowledging power factor of {power_factor}, ",
+                    "but not modifying real power constraints.",
                 )
 
             # Apply exact demand constraint (same as SIMPLE),
@@ -291,7 +292,7 @@ class PowerDemand(Component):
 
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, " f"demand={demand_output:.3f}kW")
+            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, demand={demand_output:.3f}kW")
 
         return demand_output
 

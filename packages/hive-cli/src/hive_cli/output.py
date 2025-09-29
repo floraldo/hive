@@ -7,7 +7,7 @@ logger = get_logger(__name__)
 """Output formatting utilities for CLI commands."""
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 import click
 import yaml
@@ -60,7 +60,7 @@ class HiveOutput:
         else:
             click.echo(str(data))
 
-    def _create_table_from_dicts(self, data: List[Dict], title: str | None = None) -> Table:
+    def _create_table_from_dicts(self, data: list[dict], title: str | None = None) -> Table:
         """Create a Rich table from a list of dictionaries."""
         table = Table(title=title)
 
@@ -74,7 +74,7 @@ class HiveOutput:
 
         return table
 
-    def _create_table_from_dict(self, data: Dict, title: str | None = None) -> Table:
+    def _create_table_from_dict(self, data: dict, title: str | None = None) -> Table:
         """Create a Rich table from a dictionary."""
         table = Table(title=title)
         table.add_column("Key")

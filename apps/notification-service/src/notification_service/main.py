@@ -6,15 +6,15 @@ This entire service was built in <1 day using the toolkit.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import BackgroundTasks, HTTPException
+from pydantic import BaseModel, Field
 
 # Import the entire production foundation from toolkit
 from hive_app_toolkit import CostManager, HiveAppConfig, RateLimiter, create_hive_app
 from hive_app_toolkit.cost import BudgetLimits, ResourceCost, ResourceType
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 from .cost_calculator import NotificationCostCalculator
 from .notifications import EmailNotifier, SlackNotifier
@@ -70,7 +70,7 @@ rate_limiter.set_operation_limits(
     "email",
     RateLimiter.RateLimit(
         operation="email",
-        max_requests_per_minute=30.0,  # SendGrid limits
+        max_requests_per_minute=30.0,  # SendGrid limits,
         max_requests_per_hour=1000.0,
     ),
 )
@@ -79,7 +79,7 @@ rate_limiter.set_operation_limits(
     "slack",
     RateLimiter.RateLimit(
         operation="slack",
-        max_requests_per_minute=60.0,  # Slack limits
+        max_requests_per_minute=60.0,  # Slack limits,
         max_requests_per_hour=3600.0,
     ),
 )
@@ -102,8 +102,8 @@ class NotificationRequest(BaseModel):
     recipient: str = Field(..., description="Email address or Slack channel/user")
     subject: str = Field(..., description="Notification subject")
     message: str = Field(..., description="Notification message")
-    template: Optional[str] = Field(None, description="Template name")
-    template_data: Optional[Dict[str, Any]] = Field(None, description="Template variables")
+    template: str | None = Field(None, description="Template name")
+    template_data: dict[str, Any] | None = Field(None, description="Template variables")
     priority: str = Field("normal", description="Priority: low, normal, high, urgent")
     provider: str = Field(..., description="Provider: email, slack")
 
@@ -121,7 +121,7 @@ class NotificationResponse(BaseModel):
 class BulkNotificationRequest(BaseModel):
     """Request model for bulk notifications."""
 
-    notifications: List[NotificationRequest]
+    notifications: list[NotificationRequest]
     batch_size: int = Field(10, description="Batch size for processing")
 
 

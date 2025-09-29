@@ -72,7 +72,7 @@ class TestLocalGoldenRules:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for sys.path manipulation patterns
@@ -97,7 +97,7 @@ class TestLocalGoldenRules:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 for other_app in other_apps:
@@ -132,7 +132,7 @@ class TestLocalGoldenRules:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for print statements
@@ -164,7 +164,7 @@ class TestLocalGoldenRules:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for bare except clauses

@@ -6,7 +6,7 @@ import json
 import re
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -26,7 +26,7 @@ class BaseExtractor(ABC):
     """Base class for JSON extraction strategies"""
 
     @abstractmethod
-    def extract(self, text: str) -> Optional[Dict[str, Any]]:
+    def extract(self, text: str) -> dict[str, Any] | None:
         """Extract JSON from text"""
         pass
 
@@ -34,7 +34,7 @@ class BaseExtractor(ABC):
 class PureJsonExtractor(BaseExtractor):
     """Extract pure JSON from text"""
 
-    def extract(self, text: str) -> Optional[Dict[str, Any]]:
+    def extract(self, text: str) -> dict[str, Any] | None:
         try:
             return json.loads(text.strip())
         except json.JSONDecodeError:
@@ -46,7 +46,7 @@ class MarkdownBlockExtractor(BaseExtractor):
 
     PATTERNS = [r"```json\s*(.*?)\s*```", r"```\s*(.*?)\s*```", r"`(.*?)`"]
 
-    def extract(self, text: str) -> Optional[Dict[str, Any]]:
+    def extract(self, text: str) -> dict[str, Any] | None:
         for pattern in self.PATTERNS:
             matches = re.findall(pattern, text, re.DOTALL)
             for match in matches:
@@ -62,7 +62,7 @@ class RegexObjectExtractor(BaseExtractor):
 
     JSON_PATTERN = r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"
 
-    def extract(self, text: str) -> Optional[Dict[str, Any]]:
+    def extract(self, text: str) -> dict[str, Any] | None:
         matches = re.findall(self.JSON_PATTERN, text, re.DOTALL)
 
         for match in matches:
@@ -87,9 +87,7 @@ class JsonExtractor:
             JsonExtractionStrategy.REGEX_OBJECT: RegexObjectExtractor(),
         }
 
-    def extract_json(
-        self, text: str, strategies: Optional[List[JsonExtractionStrategy]] = None
-    ) -> Optional[Dict[str, Any]]:
+    def extract_json(self, text: str, strategies: list[JsonExtractionStrategy] | None = None) -> dict[str, Any] | None:
         """
         Extract JSON from text using multiple strategies
 
@@ -121,7 +119,7 @@ class JsonExtractor:
         logger.warning("All JSON extraction strategies failed")
         return None
 
-    def extract_multiple(self, text: str, max_items: int = 10) -> List[Dict[str, Any]]:
+    def extract_multiple(self, text: str, max_items: int = 10) -> list[dict[str, Any]]:
         """
         Extract multiple JSON objects from text
 

@@ -16,6 +16,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 import pytest
+
 from hive_tests.architectural_validators import (
     validate_app_contracts,
     validate_colocated_tests,
@@ -59,19 +60,18 @@ class TestArchitecturalCompliance:
 
         if not is_valid:
             failure_message = (
-                "❌ App Contract Compliance FAILED\n\n" "The following apps violate the Hive app contract standard:\n\n"
+                "❌ App Contract Compliance FAILED\n\nThe following apps violate the Hive app contract standard:\n\n"
             )
             for violation in violations:
                 failure_message += f"  • {violation}\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Create hive-app.toml in each missing app directory\n"
-                "  2. Add required [app] section with name field\n"
-                "  3. Add at least one service section: [daemons], [tasks], or [endpoints]\n"
-                "  4. See existing apps for examples\n\n"
+                "\n🔧 To fix this:\n  1. Create hive-app.toml in each missing app directory\n",
+                "  2. Add required [app] section with name field\n",
+                "  3. Add at least one service section: [daemons], [tasks], or [endpoints]\n",
+                "  4. See existing apps for examples\n\n",
                 "📖 This enforces that every app properly declares its capabilities\n"
-                "   and integration points with the Hive platform."
+                "   and integration points with the Hive platform.",
             )
 
             pytest.fail(failure_message)
@@ -93,7 +93,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_service_layer_discipline(project_root)
 
         if not is_valid:
-            failure_message = "Service Layer Discipline FAILED\n\n" "The following violations were found:\n\n"
+            failure_message = "Service Layer Discipline FAILED\n\nThe following violations were found:\n\n"
             for violation in violations[:15]:
                 failure_message += f"  - {violation}\n"
 
@@ -101,12 +101,12 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 15} more violations\n"
 
             failure_message += (
-                "\nTo fix this:\n"
-                "  1. Move business logic from core/ to app implementation\n"
-                "  2. Keep only service interfaces in core/\n"
-                "  3. Add docstrings to all service classes\n"
-                "  4. Follow the service layer pattern documented in ARCHITECTURE.md\n\n"
-                "This maintains clean separation between interfaces and implementation."
+                "\nTo fix this:\n",
+                "  1. Move business logic from core/ to app implementation\n",
+                "  2. Keep only service interfaces in core/\n",
+                "  3. Add docstrings to all service classes\n",
+                "  4. Follow the service layer pattern documented in ARCHITECTURE.md\n\n",
+                "This maintains clean separation between interfaces and implementation.",
             )
 
             # Warning for now as this is a new rule
@@ -129,7 +129,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_communication_patterns(project_root)
 
         if not is_valid:
-            failure_message = "Communication Patterns FAILED\n\n" "The following violations were found:\n\n"
+            failure_message = "Communication Patterns FAILED\n\nThe following violations were found:\n\n"
             for violation in violations[:15]:
                 failure_message += f"  - {violation}\n"
 
@@ -137,12 +137,12 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 15} more violations\n"
 
             failure_message += (
-                "\nTo fix this:\n"
-                "  1. Use approved communication patterns (DB queues, event bus, REST)\n"
-                "  2. Remove direct socket or shared memory usage\n"
-                "  3. Configure daemons properly in hive-app.toml\n"
-                "  4. Follow communication patterns in ARCHITECTURE.md\n\n"
-                "This ensures clean, scalable inter-app communication."
+                "\nTo fix this:\n",
+                "  1. Use approved communication patterns (DB queues, event bus, REST)\n",
+                "  2. Remove direct socket or shared memory usage\n",
+                "  3. Configure daemons properly in hive-app.toml\n",
+                "  4. Follow communication patterns in ARCHITECTURE.md\n\n",
+                "This ensures clean, scalable inter-app communication.",
             )
 
             # Warning for now as this is a new rule
@@ -166,18 +166,17 @@ class TestArchitecturalCompliance:
 
         if not is_valid:
             failure_message = (
-                "❌ Co-located Tests Pattern FAILED\n\n" "The following components lack proper test structure:\n\n"
+                "❌ Co-located Tests Pattern FAILED\n\nThe following components lack proper test structure:\n\n"
             )
             for violation in violations:
                 failure_message += f"  • {violation}\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Create tests/ directory in each component\n"
-                "  2. Add tests/__init__.py file for pytest discovery\n"
-                "  3. Follow the pattern: component/tests/test_*.py\n\n"
-                "📖 This enforces that tests live next to the code they test,\n"
-                "   making the codebase more maintainable and testable."
+                "\n🔧 To fix this:\n  1. Create tests/ directory in each component\n",
+                "  2. Add tests/__init__.py file for pytest discovery\n",
+                "  3. Follow the pattern: component/tests/test_*.py\n\n",
+                "📖 This enforces that tests live next to the code they test,\n",
+                "   making the codebase more maintainable and testable.",
             )
 
             pytest.fail(failure_message)
@@ -200,7 +199,7 @@ class TestArchitecturalCompliance:
 
         if not is_valid:
             failure_message = (
-                "❌ Path Import Violations FAILED\n\n" "The following files contain path import manipulations:\n\n"
+                "❌ Path Import Violations FAILED\n\nThe following files contain path import manipulations:\n\n"
             )
             for violation in violations[:10]:  # Show first 10
                 failure_message += f"  • {violation}\n"
@@ -209,13 +208,13 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 10} more files\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Remove all path manipulation calls\n"
-                "  2. Use Poetry workspace imports instead\n"
-                "  3. Rely on pyproject.toml script entrypoints\n"
-                "  4. Ensure packages are properly installed in development mode\n\n"
+                "\n🔧 To fix this:\n",
+                "  1. Remove all path manipulation calls\n",
+                "  2. Use Poetry workspace imports instead\n",
+                "  3. Rely on pyproject.toml script entrypoints\n",
+                "  4. Ensure packages are properly installed in development mode\n\n",
                 "📖 This enforces clean import practices and prevents the\n"
-                "   'sys.path hell' that makes codebases unmaintainable."
+                "   'sys.path hell' that makes codebases unmaintainable.",
             )
 
             pytest.fail(failure_message)
@@ -237,18 +236,18 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_single_config_source(project_root)
 
         if not is_valid:
-            failure_message = "❌ Single Config Source FAILED\n\n" "Configuration violations found:\n\n"
+            failure_message = "❌ Single Config Source FAILED\n\nConfiguration violations found:\n\n"
             for violation in violations:
                 failure_message += f"  • {violation}\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Remove any setup.py files - use pyproject.toml instead\n"
-                "  2. Ensure root pyproject.toml has [tool.poetry.group.workspace]\n"
-                "  3. Use Poetry for all dependency and package management\n"
-                "  4. Convert any setuptools configurations to Poetry format\n\n"
+                "\n🔧 To fix this:\n",
+                "  1. Remove any setup.py files - use pyproject.toml instead\n",
+                "  2. Ensure root pyproject.toml has [tool.poetry.group.workspace]\n",
+                "  3. Use Poetry for all dependency and package management\n",
+                "  4. Convert any setuptools configurations to Poetry format\n\n",
                 "📖 This enforces modern Python packaging standards and\n"
-                "   prevents the confusion of multiple config systems."
+                "   prevents the confusion of multiple config systems.",
             )
 
             pytest.fail(failure_message)
@@ -271,7 +270,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_no_hardcoded_env_values(project_root)
 
         if not is_valid:
-            failure_message = "❌ Hardcoded Environment Values FOUND\n\n" "Environment coupling violations found:\n\n"
+            failure_message = "❌ Hardcoded Environment Values FOUND\n\nEnvironment coupling violations found:\n\n"
             for violation in violations[:10]:
                 failure_message += f"  • {violation}\n"
 
@@ -279,13 +278,13 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 10} more violations\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Replace hardcoded paths with environment variables\n"
-                "  2. Use get_deployment_config() in hive-deployment\n"
-                "  3. Pass deployment_config to functions instead of constants\n"
-                "  4. Make packages configurable, not environment-specific\n\n"
+                "\n🔧 To fix this:\n",
+                "  1. Replace hardcoded paths with environment variables\n",
+                "  2. Use get_deployment_config() in hive-deployment\n",
+                "  3. Pass deployment_config to functions instead of constants\n",
+                "  4. Make packages configurable, not environment-specific\n\n",
                 "📖 This enforces portability and prevents coupling between\n"
-                "   generic infrastructure and specific deployment environments."
+                "   generic infrastructure and specific deployment environments.",
             )
 
             pytest.fail(failure_message)
@@ -307,7 +306,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_package_app_discipline(project_root)
 
         if not is_valid:
-            failure_message = "❌ Package vs App Discipline FAILED\n\n" "The following violations were found:\n\n"
+            failure_message = "❌ Package vs App Discipline FAILED\n\nThe following violations were found:\n\n"
             for violation in violations[:10]:
                 failure_message += f"  • {violation}\n"
 
@@ -315,13 +314,13 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 10} more violations\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Move business logic from packages to apps\n"
-                "  2. Keep packages generic and reusable\n"
-                "  3. Apps should extend package functionality\n"
-                "  4. Follow the inherit → extend pattern\n\n"
+                "\n🔧 To fix this:\n",
+                "  1. Move business logic from packages to apps\n",
+                "  2. Keep packages generic and reusable\n",
+                "  3. Apps should extend package functionality\n",
+                "  4. Follow the inherit → extend pattern\n\n",
                 "📖 This enforces clean architecture where packages\n"
-                "   provide tools and apps use them for business needs."
+                "   provide tools and apps use them for business needs.",
             )
 
             pytest.fail(failure_message)
@@ -343,7 +342,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_dependency_direction(project_root)
 
         if not is_valid:
-            failure_message = "❌ Dependency Direction FAILED\n\n" "Invalid dependencies detected:\n\n"
+            failure_message = "❌ Dependency Direction FAILED\n\nInvalid dependencies detected:\n\n"
             for violation in violations[:10]:
                 failure_message += f"  • {violation}\n"
 
@@ -351,13 +350,12 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 10} more violations\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Remove package imports from apps\n"
-                "  2. Use shared packages for app-to-app communication\n"
-                "  3. Consider hive-orchestrator.core for shared app logic\n"
-                "  4. Refactor to eliminate circular dependencies\n\n"
-                "📖 This maintains clean architectural layers and\n"
-                "   prevents dependency hell."
+                "\n🔧 To fix this:\n",
+                "  1. Remove package imports from apps\n",
+                "  2. Use shared packages for app-to-app communication\n",
+                "  3. Consider hive-orchestrator.core for shared app logic\n",
+                "  4. Refactor to eliminate circular dependencies\n\n",
+                "📖 This maintains clean architectural layers and\n   prevents dependency hell.",
             )
 
             pytest.fail(failure_message)
@@ -380,7 +378,7 @@ class TestArchitecturalCompliance:
 
         # This is a strict rule but we'll start with warnings
         if not is_valid and len(violations) < 100:  # Only fail if reasonable number
-            failure_message = "❌ Interface Contracts FAILED\n\n" "Missing type hints or documentation:\n\n"
+            failure_message = "❌ Interface Contracts FAILED\n\nMissing type hints or documentation:\n\n"
             for violation in violations[:20]:  # Show more for this rule
                 failure_message += f"  • {violation}\n"
 
@@ -388,12 +386,12 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 20} more violations\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Add type hints to all public function parameters\n"
-                "  2. Add return type hints to all functions\n"
-                "  3. Add docstrings to all public functions\n"
-                "  4. Rename async functions to end with _async\n\n"
-                "📖 This ensures APIs are self-documenting and type-safe."
+                "\n🔧 To fix this:\n",
+                "  1. Add type hints to all public function parameters\n",
+                "  2. Add return type hints to all functions\n",
+                "  3. Add docstrings to all public functions\n",
+                "  4. Rename async functions to end with _async\n\n",
+                "📖 This ensures APIs are self-documenting and type-safe.",
             )
 
             # For now, just warn instead of fail for this rule
@@ -417,7 +415,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_error_handling_standards(project_root)
 
         if not is_valid:
-            failure_message = "❌ Error Handling Standards FAILED\n\n" "Poor error handling detected:\n\n"
+            failure_message = "❌ Error Handling Standards FAILED\n\nPoor error handling detected:\n\n"
             for violation in violations[:15]:
                 failure_message += f"  • {violation}\n"
 
@@ -425,12 +423,12 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 15} more violations\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Replace bare except with specific exception types\n"
-                "  2. Use hive-error-handling base classes\n"
-                "  3. Include context in error messages\n"
-                "  4. Consider error recovery strategies\n\n"
-                "📖 This prevents silent failures and makes debugging easier."
+                "\n🔧 To fix this:\n",
+                "  1. Replace bare except with specific exception types\n",
+                "  2. Use hive-error-handling base classes\n",
+                "  3. Include context in error messages\n",
+                "  4. Consider error recovery strategies\n\n",
+                "📖 This prevents silent failures and makes debugging easier.",
             )
 
             pytest.fail(failure_message)
@@ -452,7 +450,7 @@ class TestArchitecturalCompliance:
         is_valid, violations = validate_logging_standards(project_root)
 
         if not is_valid:
-            failure_message = "❌ Logging Standards FAILED\n\n" "Logging violations found:\n\n"
+            failure_message = "❌ Logging Standards FAILED\n\nLogging violations found:\n\n"
             for violation in violations[:15]:
                 failure_message += f"  • {violation}\n"
 
@@ -460,12 +458,12 @@ class TestArchitecturalCompliance:
                 failure_message += f"  ... and {len(violations) - 15} more violations\n"
 
             failure_message += (
-                "\n🔧 To fix this:\n"
-                "  1. Replace print() with proper logging calls\n"
-                "  2. Import and use hive_logging\n"
-                "  3. Use appropriate log levels (DEBUG, INFO, WARNING, ERROR)\n"
-                "  4. Include structured context in log messages\n\n"
-                "📖 This ensures professional logging and observability."
+                "\n🔧 To fix this:\n",
+                "  1. Replace print() with proper logging calls\n",
+                "  2. Import and use hive_logging\n",
+                "  3. Use appropriate log levels (DEBUG, INFO, WARNING, ERROR)\n",
+                "  4. Include structured context in log messages\n\n",
+                "📖 This ensures professional logging and observability.",
             )
 
             pytest.fail(failure_message)
@@ -496,7 +494,7 @@ class TestArchitecturalCompliance:
 
         if not is_valid:
             failure_message = (
-                "🚀 Enhanced Golden Rules FAILED\n\n" "The next-generation validation framework found violations:\n\n"
+                "🚀 Enhanced Golden Rules FAILED\n\nThe next-generation validation framework found violations:\n\n"
             )
 
             for rule_name, rule_violations in violations_by_rule.items():
@@ -508,14 +506,14 @@ class TestArchitecturalCompliance:
                 failure_message += "\n"
 
             failure_message += (
-                "🔧 To fix violations:\n"
-                "  1. Review each violation message for specific guidance\n"
-                "  2. Use suppression comments for valid exceptions:\n"
-                "     # golden-rule-ignore: rule-17 - Legacy system integration\n"
-                "  3. Run tests frequently to catch violations early\n"
+                "🔧 To fix violations:\n",
+                "  1. Review each violation message for specific guidance\n",
+                "  2. Use suppression comments for valid exceptions:\n",
+                "     # golden-rule-ignore: rule-17 - Legacy system integration\n",
+                "  3. Run tests frequently to catch violations early\n",
                 "  4. Consider the architectural intent behind each rule\n\n"
                 "📖 This enhanced framework provides superior accuracy and performance\n"
-                "   while maintaining the architectural integrity of your platform."
+                "   while maintaining the architectural integrity of your platform.",
             )
 
             pytest.fail(failure_message)
@@ -534,8 +532,8 @@ class TestPlatformStandards:
         root_py_files = [f for f in project_root.glob("*.py") if f.name not in ["conftest.py"]]  # Allow conftest.py
 
         assert not root_py_files, (
-            f"Found Python files in project root: {root_py_files}\n"
-            "Move these to appropriate apps/ or packages/ directories."
+            f"Found Python files in project root: {root_py_files}\n",
+            "Move these to appropriate apps/ or packages/ directories.",
         )
 
     def test_proper_package_structure(self, packages_dir):

@@ -12,11 +12,12 @@ import base64
 import os
 import secrets
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -90,7 +91,7 @@ class SecureConfigLoader:
 
         try:
             # Read plain text config
-            with open(input_path, "r") as f:
+            with open(input_path) as f:
                 plain_text = f.read()
 
             # Generate random salt for this encryption (32 bytes = 256 bits)
@@ -179,7 +180,7 @@ class SecureConfigLoader:
             logger.error(f"Failed to decrypt file: {e}")
             raise ValueError("Failed to decrypt configuration - invalid key or corrupted file")
 
-    def load_config(self, config_path: Path) -> Dict[str, Any]:
+    def load_config(self, config_path: Path) -> dict[str, Any]:
         """
         Load configuration from file (plain or encrypted)
 
@@ -212,7 +213,7 @@ class SecureConfigLoader:
                 logger.warning(f"Config file not found: {config_path}")
                 return config
 
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#") and "=" in line:
@@ -221,7 +222,7 @@ class SecureConfigLoader:
 
         return config
 
-    def load_secure_config(self, app_name: str, project_root: Path) -> Dict[str, Any]:
+    def load_secure_config(self, app_name: str, project_root: Path) -> dict[str, Any]:
         """
         Load configuration with production/development fallback
 

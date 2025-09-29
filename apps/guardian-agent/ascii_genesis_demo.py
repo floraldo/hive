@@ -17,7 +17,7 @@ from datetime import datetime
 # ASCII-safe demo without full dependencies
 def print_section(title, icon=""):
     """Print a formatted section header."""
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"{icon} {title}")
     print("=" * 70)
 

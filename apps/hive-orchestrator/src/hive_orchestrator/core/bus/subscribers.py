@@ -7,9 +7,10 @@ for flexible event handling patterns.
 
 import asyncio
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Callable
+from datetime import UTC, datetime
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -32,7 +33,7 @@ class EventSubscriber:
         if not self.subscription_id:
             self.subscription_id = str(uuid.uuid4())
         if not self.created_at:
-            self.created_at = datetime.now(timezone.utc)
+            self.created_at = datetime.now(UTC)
 
     def handle_event(self, event: Event) -> None:
         """Handle an incoming event"""
@@ -58,7 +59,7 @@ class AsyncEventSubscriber:
         if not self.subscription_id:
             self.subscription_id = str(uuid.uuid4())
         if not self.created_at:
-            self.created_at = datetime.now(timezone.utc)
+            self.created_at = datetime.now(UTC)
 
     async def handle_event_async(self, event: Event) -> None:
         """Handle an incoming event asynchronously"""

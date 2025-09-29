@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -75,7 +75,7 @@ class StrategicInsight:
     # Predictions
     predicted_outcome: str = ""
     probability: float = 0.0  # 0.0 to 1.0
-    time_to_impact: Optional[timedelta] = None
+    time_to_impact: timedelta | None = None
 
     generated_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -93,7 +93,7 @@ class Recommendation:
     # Impact assessment
     expected_impact: ImpactLevel
     impact_description: str
-    estimated_benefit: Optional[str] = None  # e.g., "60% cost reduction"
+    estimated_benefit: str | None = None  # e.g., "60% cost reduction"
     risk_assessment: str = "low"
 
     # Implementation details
@@ -110,7 +110,7 @@ class Recommendation:
 
     # Metadata
     generated_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     tags: dict[str, str] = field(default_factory=dict)
 
     # GitHub integration
@@ -236,7 +236,7 @@ class RecommendationEngine:
                 "estimated_effort": "2-3 days",
                 "expected_impact": ImpactLevel.HIGH,
             },
-            # New architectural compliance templates
+            # New architectural compliance templates,
             "global_state_violations": {
                 "type": RecommendationType.ARCHITECTURAL_IMPROVEMENT,
                 "title_template": "Critical: Global State Access Violations in {package}",
@@ -307,7 +307,7 @@ class RecommendationEngine:
                 "estimated_effort": "2-3 days",
                 "expected_impact": ImpactLevel.MEDIUM,
             },
-            # Business strategy and product recommendation templates
+            # Business strategy and product recommendation templates,
             "feature_deprecation": {
                 "type": RecommendationType.PRODUCT_STRATEGY,
                 "title_template": "Feature Deprecation Recommendation: {feature}",
@@ -526,7 +526,7 @@ class RecommendationEngine:
 
                 recommendations.append(recommendation)
 
-        # Check for budget exhaustion predictions
+        # Check for budget exhaustion predictions,
         cost_insights = [i for i in insights if i.category == "cost"]
 
         for insight in cost_insights:
@@ -563,7 +563,7 @@ class RecommendationEngine:
 
         recommendations = []
 
-        # Check for performance degradation trends
+        # Check for performance degradation trends,
         perf_trends = [
             t for t in trends if "performance" in t.metric_name.lower() or "response" in t.metric_name.lower()
         ]
@@ -572,17 +572,17 @@ class RecommendationEngine:
             if trend.direction.value == "degrading" and trend.confidence > 0.6:
                 template = self.recommendation_templates["performance_degradation"]
 
-                # Determine service name
-                service_name = "application"
+                # Determine service name,
+                service_name = "application",
                 if "database" in trend.metric_name.lower():
-                    service_name = "database"
+                    service_name = "database",
                 elif "api" in trend.metric_name.lower():
                     service_name = "API service"
 
-                # Determine component
-                component = "application layer"
+                # Determine component,
+                component = "application layer",
                 if "database" in trend.metric_name.lower():
-                    component = "database queries"
+                    component = "database queries",
                 elif "network" in trend.metric_name.lower():
                     component = "network connectivity"
 
@@ -614,10 +614,10 @@ class RecommendationEngine:
 
                 recommendations.append(recommendation)
 
-        # Check for performance anomalies
+        # Check for performance anomalies,
         perf_anomalies = [a for a in anomalies if "performance" in a.metric_name.lower()]
 
-        if len(perf_anomalies) > 2:  # Multiple performance anomalies
+        if len(perf_anomalies) > 2:  # Multiple performance anomalies,
             recommendation = Recommendation(
                 title="System-Wide Performance Investigation",
                 description=f"Multiple performance anomalies detected: {len(perf_anomalies)} issues",
@@ -650,20 +650,20 @@ class RecommendationEngine:
 
         recommendations = []
 
-        # Check for CI/CD performance issues
+        # Check for CI/CD performance issues,
         cicd_trends = [t for t in trends if "cicd" in t.metric_name.lower() or "pipeline" in t.metric_name.lower()]
 
         for trend in cicd_trends:
             if trend.direction.value == "degrading" and trend.confidence > 0.6:
                 template = self.recommendation_templates["cicd_bottleneck"]
 
-                pipeline_name = "CI/CD pipeline"
+                pipeline_name = "CI/CD pipeline",
                 if "test" in trend.metric_name.lower():
-                    pipeline_name = "test pipeline"
+                    pipeline_name = "test pipeline",
                 elif "build" in trend.metric_name.lower():
                     pipeline_name = "build pipeline"
 
-                # Estimate time impact
+                # Estimate time impact,
                 time_minutes = trend.current_value if trend.current_value > 10 else 15
 
                 recommendation = Recommendation(
@@ -698,23 +698,23 @@ class RecommendationEngine:
 
         recommendations = []
 
-        # Look for trends that predict future issues
+        # Look for trends that predict future issues,
         for trend in trends:
             if trend.confidence > 0.8 and trend.predicted_value_24h:
-                current = trend.current_value
+                current = trend.current_value,
                 predicted = trend.predicted_value_24h
 
-                # Check for resource exhaustion prediction
+                # Check for resource exhaustion prediction,
                 if "memory" in trend.metric_name.lower() or "disk" in trend.metric_name.lower():
-                    if predicted > 90 and current < 80:  # Predict resource exhaustion
+                    if predicted > 90 and current < 80:  # Predict resource exhaustion,
                         resource_name = "memory" if "memory" in trend.metric_name.lower() else "disk"
 
                         template = self.recommendation_templates["resource_exhaustion"]
 
-                        # Calculate time to exhaustion
+                        # Calculate time to exhaustion,
                         if trend.slope > 0:
-                            time_to_exhaustion = (95 - current) / (trend.slope * 24)  # hours
-                            timeframe = f"{time_to_exhaustion:.1f} hours"
+                            time_to_exhaustion = (95 - current) / (trend.slope * 24)  # hours,
+                            timeframe = f"{time_to_exhaustion:.1f} hours",
                         else:
                             timeframe = "unknown"
 
@@ -748,11 +748,11 @@ class RecommendationEngine:
 
         recommendations = []
 
-        # Look for security-related anomalies
+        # Look for security-related anomalies,
         security_anomalies = [
-            a
-            for a in anomalies
-            if "error" in a.metric_name.lower() or "security" in a.metric_name.lower() or a.deviation_score > 4.0
+            a,
+            for a in anomalies,
+            if "error" in a.metric_name.lower() or "security" in a.metric_name.lower() or a.deviation_score > 4.0,
         ]  # Very high deviation
 
         if len(security_anomalies) > 1:
@@ -789,10 +789,10 @@ class RecommendationEngine:
         recommendations = []
 
         try:
-            # Get recent architectural metrics
+            # Get recent architectural metrics,
             violation_metrics = await self.warehouse.query_metrics_async(
                 metric_types=[MetricType.ARCHITECTURAL_VIOLATION],
-                start_time=datetime.utcnow() - timedelta(hours=48),  # Look back 48 hours for trends
+                start_time=datetime.utcnow() - timedelta(hours=48),  # Look back 48 hours for trends,
                 limit=500,
             )
 
@@ -806,7 +806,7 @@ class RecommendationEngine:
                 metric_types=[MetricType.TECHNICAL_DEBT], start_time=datetime.utcnow() - timedelta(hours=24), limit=10
             )
 
-            # Analyze violations by rule type and package
+            # Analyze violations by rule type and package,
             violations_by_rule = {}
             violations_by_package = {}
 
@@ -814,21 +814,21 @@ class RecommendationEngine:
                 rule_name = violation.tags.get("rule_name", "unknown")
                 violations_by_rule[rule_name] = violations_by_rule.get(rule_name, 0) + 1
 
-                # Extract package from violation description
+                # Extract package from violation description,
                 description = violation.metadata.get("violation_description", "")
                 if "hive-" in description:
                     parts = description.split("hive-")
                     if len(parts) > 1:
                         package_part = parts[1].split("'")[0].split(" ")[0].split("/")[0]
-                        package_name = f"hive-{package_part}"
+                        package_name = f"hive-{package_part}",
                         violations_by_package[package_name] = violations_by_package.get(package_name, 0) + 1
 
             # Generate recommendations based on violation patterns
 
-            # 1. Global State Access Violations
+            # 1. Global State Access Violations,
             global_state_violations = violations_by_rule.get("Golden Rule 16: No Global State Access", 0)
             if global_state_violations > 0:
-                # Find the package with most violations
+                # Find the package with most violations,
                 affected_packages = {}
                 for violation in violation_metrics:
                     if "Global State" in violation.tags.get("rule_name", ""):
@@ -836,7 +836,7 @@ class RecommendationEngine:
                         if "hive-" in desc:
                             parts = desc.split("hive-")
                             if len(parts) > 1:
-                                package = f"hive-{parts[1].split('\'')[0].split(' ')[0].split('/')[0]}"
+                                package = f"hive-{parts[1].split('\'')[0].split(' ')[0].split('/')[0]}",
                                 affected_packages[package] = affected_packages.get(package, 0) + 1
 
                 if affected_packages:
@@ -849,7 +849,7 @@ class RecommendationEngine:
                             package=worst_package[0], violation_count=worst_package[1]
                         ),
                         recommendation_type=template["type"],
-                        priority=Priority.CRITICAL,  # Global state is critical
+                        priority=Priority.CRITICAL,  # Global state is critical,
                         expected_impact=template["expected_impact"],
                         impact_description=f"Eliminate architectural debt and improve maintainability in {worst_package[0]}",
                         estimated_benefit="15% reduction in maintenance costs, improved testability",
@@ -865,10 +865,10 @@ class RecommendationEngine:
 
                     recommendations.append(recommendation)
 
-            # 2. Test Coverage Gaps
+            # 2. Test Coverage Gaps,
             test_violations = violations_by_rule.get("Golden Rule 17: Test-to-Source File Mapping", 0)
-            if test_violations > 10:  # Significant test coverage gap
-                # Find package with most missing tests
+            if test_violations > 10:  # Significant test coverage gap,
+                # Find package with most missing tests,
                 test_packages = {}
                 for violation in violation_metrics:
                     if "Test-to-Source" in violation.tags.get("rule_name", ""):
@@ -876,7 +876,7 @@ class RecommendationEngine:
                         if "hive-" in desc:
                             parts = desc.split("hive-")
                             if len(parts) > 1:
-                                package = f"hive-{parts[1].split(':')[0]}"
+                                package = f"hive-{parts[1].split(':')[0]}",
                                 test_packages[package] = test_packages.get(package, 0) + 1
 
                 if test_packages:
@@ -907,7 +907,7 @@ class RecommendationEngine:
 
                     recommendations.append(recommendation)
 
-            # 3. Package Discipline Violations
+            # 3. Package Discipline Violations,
             discipline_violations = violations_by_rule.get("Golden Rule 5: Package vs App Discipline", 0)
             if discipline_violations > 0:
                 affected_packages = {}
@@ -942,12 +942,12 @@ class RecommendationEngine:
 
                     recommendations.append(recommendation)
 
-            # 4. Interface Contract Violations
+            # 4. Interface Contract Violations,
             interface_violations = violations_by_rule.get("Golden Rule 7: Interface Contracts", 0)
-            if interface_violations > 20:  # Many missing type hints/docs
+            if interface_violations > 20:  # Many missing type hints/docs,
                 template = self.recommendation_templates["interface_contract_violations"]
 
-                # Find most affected package
+                # Find most affected package,
                 affected_packages = {}
                 for violation in violation_metrics:
                     if "Interface Contracts" in violation.tags.get("rule_name", ""):
@@ -983,7 +983,7 @@ class RecommendationEngine:
 
                     recommendations.append(recommendation)
 
-            # 5. Overall compliance recommendation if score is low
+            # 5. Overall compliance recommendation if score is low,
             if compliance_metrics:
                 latest_compliance = max(compliance_metrics, key=lambda x: x.timestamp)
                 compliance_score = float(latest_compliance.value)
@@ -1026,7 +1026,7 @@ class RecommendationEngine:
         recommendations = []
 
         try:
-            # Get business intelligence metrics
+            # Get business intelligence metrics,
             feature_metrics = await self.warehouse.query_metrics_async(
                 metric_types=[MetricType.FEATURE_ADOPTION], start_time=datetime.utcnow() - timedelta(days=7), limit=100
             )
@@ -1049,7 +1049,7 @@ class RecommendationEngine:
                 limit=100,
             )
 
-            # 1. Feature deprecation recommendations
+            # 1. Feature deprecation recommendations,
             for metric in feature_metrics:
                 if metric.tags.get("review_required") == "true":
                     feature_name = metric.tags.get("feature_name", "Unknown")
@@ -1081,7 +1081,7 @@ class RecommendationEngine:
 
                         recommendations.append(recommendation)
 
-            # 2. Feature promotion recommendations
+            # 2. Feature promotion recommendations,
             for metric in feature_metrics:
                 feature_name = metric.tags.get("feature_name", "Unknown")
                 adoption_rate = float(metric.value)
@@ -1112,7 +1112,7 @@ class RecommendationEngine:
 
                     recommendations.append(recommendation)
 
-            # 3. User experience optimization
+            # 3. User experience optimization,
             for metric in user_metrics:
                 if metric.metric_type == MetricType.USER_BEHAVIOR and metric.tags.get("priority") == "high":
                     workflow = metric.tags.get("workflow", "Unknown")
@@ -1148,11 +1148,11 @@ class RecommendationEngine:
 
                         recommendations.append(recommendation)
 
-            # 4. Customer health alerts
+            # 4. Customer health alerts,
             for metric in customer_metrics:
                 if (
-                    metric.metric_type == MetricType.CUSTOMER_SATISFACTION
-                    and "error_rate_change" in metric.unit
+                    metric.metric_type == MetricType.CUSTOMER_SATISFACTION,
+                    and "error_rate_change" in metric.unit,
                     and metric.tags.get("alert_level") == "critical"
                 ):
                     customer = metric.tags.get("customer", "Unknown")
@@ -1183,10 +1183,10 @@ class RecommendationEngine:
 
                     recommendations.append(recommendation)
 
-            # 5. Conversion optimization
+            # 5. Conversion optimization,
             for metric in business_metrics:
                 if (
-                    metric.metric_type == MetricType.CONVERSION_RATE
+                    metric.metric_type == MetricType.CONVERSION_RATE,
                     and metric.tags.get("performance") == "below_benchmark"
                 ):
                     conversion_rate = float(metric.value)
@@ -1218,7 +1218,7 @@ class RecommendationEngine:
 
                     recommendations.append(recommendation)
 
-            # 6. Revenue leakage optimization
+            # 6. Revenue leakage optimization,
             for metric in business_metrics:
                 if metric.metric_type == MetricType.BUSINESS_KPI and "cac" in metric.tags.get("metric_name", ""):
                     ltv_cac_ratio = float(metric.metadata.get("ltv_cac_ratio", 0))
@@ -1260,27 +1260,27 @@ class RecommendationEngine:
     ) -> RecommendationReport:
         """Create comprehensive recommendation report."""
 
-        # Categorize recommendations by priority
+        # Categorize recommendations by priority,
         critical = [r for r in recommendations if r.priority == Priority.CRITICAL]
         high = [r for r in recommendations if r.priority == Priority.HIGH]
         medium = [r for r in recommendations if r.priority == Priority.MEDIUM]
         low = [r for r in recommendations if r.priority == Priority.LOW]
 
-        # Calculate potential savings
-        total_savings = 0.0
+        # Calculate potential savings,
+        total_savings = 0.0,
         for rec in recommendations:
             if rec.recommendation_type == RecommendationType.COST_OPTIMIZATION:
-                # Extract savings from estimated_benefit
-                benefit = rec.estimated_benefit or ""
+                # Extract savings from estimated_benefit,
+                benefit = rec.estimated_benefit or "",
                 if "$" in benefit:
                     try:
-                        # Simple extraction - in real implementation, use proper parsing
+                        # Simple extraction - in real implementation, use proper parsing,
                         savings_str = benefit.split("$")[1].split("/")[0].replace(",", "")
                         total_savings += float(savings_str)
                     except (ValueError, IndexError):
                         pass
 
-        # Generate key insights
+        # Generate key insights,
         key_insights = []
 
         if critical:
@@ -1305,26 +1305,26 @@ class RecommendationEngine:
                 )
             )
 
-        # Immediate actions
+        # Immediate actions,
         immediate_actions = []
-        for rec in critical + high[:3]:  # Top critical and high priority
+        for rec in critical + high[:3]:  # Top critical and high priority,
             immediate_actions.extend(rec.implementation_steps[:2])  # First 2 steps
 
-        # Generate summary
-        summary = f"""
+        # Generate summary,
+        summary = f""",
         Generated {len(recommendations)} strategic recommendations based on platform analysis.
 
         Priority Breakdown:
-        - Critical: {len(critical)} recommendations
-        - High: {len(high)} recommendations
-        - Medium: {len(medium)} recommendations
+        - Critical: {len(critical)} recommendations,
+        - High: {len(high)} recommendations,
+        - Medium: {len(medium)} recommendations,
         - Low: {len(low)} recommendations
 
         Key Focus Areas:
-        - Cost optimization potential: ${total_savings:.2f}/month
-        - Performance improvements identified
-        - Predictive maintenance opportunities
-        - Developer productivity enhancements
+        - Cost optimization potential: ${total_savings:.2f}/month,
+        - Performance improvements identified,
+        - Predictive maintenance opportunities,
+        - Developer productivity enhancements,
         """
 
         return RecommendationReport(
@@ -1350,14 +1350,14 @@ class RecommendationEngine:
 
         for rec in recommendations:
             if rec.priority in [Priority.CRITICAL, Priority.HIGH]:
-                # Generate detailed issue body
+                # Generate detailed issue body,
                 issue_body = self._generate_github_issue_body(rec)
 
                 issue_data = {
                     "title": rec.github_issue_title or rec.title,
                     "body": issue_body,
                     "labels": rec.github_labels + [f"priority-{rec.priority.value}"],
-                    "assignees": [],  # Could be configured based on recommendation type
+                    "assignees": [],  # Could be configured based on recommendation type,
                 }
 
                 issues.append(issue_data)

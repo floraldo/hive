@@ -26,7 +26,7 @@ except ImportError:
             print(*args)
 
         def rule(self, title):
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f" {title}")
             print("=" * 60)
 
@@ -138,7 +138,7 @@ async def demo_architectural_oracle():
         metric_type=MetricType.GOLDEN_RULES_COMPLIANCE,
         source="architectural_validation",
         timestamp=datetime.utcnow(),
-        value=53.3,  # 8 out of 15 rules passing
+        value=53.3,  # 8 out of 15 rules passing,
         unit="percent",
         tags={"scan_type": "comprehensive", "total_rules": "15", "passed_rules": "8", "failed_rules": "7"},
         metadata={"all_passed": False, "scan_timestamp": datetime.utcnow().isoformat()},
@@ -151,7 +151,7 @@ async def demo_architectural_oracle():
         metric_type=MetricType.TECHNICAL_DEBT,
         source="architectural_validation",
         timestamp=datetime.utcnow(),
-        value=27,  # 27 violations * 10 = 270 debt points, capped at 100
+        value=27,  # 27 violations * 10 = 270 debt points, capped at 100,
         unit="debt_points",
         tags={"total_violations": "27", "debt_level": "medium"},
         metadata={"calculation": "violations * 10, capped at 100"},
@@ -248,13 +248,13 @@ async def demo_architectural_oracle():
         priority_color = "red" if rec["priority"] == "CRITICAL" else "yellow" if rec["priority"] == "HIGH" else "green"
 
         panel_content = f"""
-[bold]{rec['title']}[/bold]
+[bold]{rec["title"]}[/bold]
 
 📊 [bold]Impact Analysis:[/bold]
-• Priority: [{priority_color}]{rec['priority']}[/{priority_color}]
-• Expected Impact: {rec['impact']}
-• Estimated Effort: {rec['effort']}
-• Business Benefit: {rec['benefit']}
+• Priority: [{priority_color}]{rec["priority"]}[/{priority_color}]
+• Expected Impact: {rec["impact"]}
+• Estimated Effort: {rec["effort"]}
+• Business Benefit: {rec["benefit"]}
 
 🛠️  [bold]Implementation Plan:[/bold]
 """
@@ -285,7 +285,7 @@ async def demo_architectural_oracle():
     console.rule("🚀 Strategic Outcome: The Self-Aware Platform")
 
     strategic_panel = Panel(
-        """
+        """,
 [bold green]MISSION ACCOMPLISHED: The Oracle's First Mandate[/bold green]
 
 The Oracle has successfully evolved from Guardian to strategic intelligence:

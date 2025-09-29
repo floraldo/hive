@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hive_config import load_config
 
@@ -16,9 +16,9 @@ class APIConfig:
     workers: int = 4
     enable_docs: bool = True
     enable_cors: bool = True
-    cors_origins: List[str] = field(default_factory=lambda: ["*"])
-    cors_methods: List[str] = field(default_factory=lambda: ["*"])
-    cors_headers: List[str] = field(default_factory=lambda: ["*"])
+    cors_origins: list[str] = field(default_factory=lambda: ["*"])
+    cors_methods: list[str] = field(default_factory=lambda: ["*"])
+    cors_headers: list[str] = field(default_factory=lambda: ["*"])
     cors_credentials: bool = True
     max_request_size: int = 16 * 1024 * 1024  # 16MB
     request_timeout: float = 30.0
@@ -29,7 +29,7 @@ class DatabaseConfig:
     """Database configuration."""
 
     enabled: bool = False
-    url: Optional[str] = None
+    url: str | None = None
     pool_size: int = 10
     max_overflow: int = 20
     pool_timeout: float = 30.0
@@ -41,7 +41,7 @@ class CacheConfig:
     """Cache configuration."""
 
     enabled: bool = True
-    url: Optional[str] = None
+    url: str | None = None
     ttl_seconds: int = 3600
     max_size_mb: int = 100
     key_prefix: str = "hive"
@@ -67,11 +67,11 @@ class SecurityConfig:
 
     enable_auth: bool = False
     auth_provider: str = "jwt"
-    auth_secret_key: Optional[str] = None
+    auth_secret_key: str | None = None
     enable_rate_limiting: bool = True
     enable_request_validation: bool = True
     max_request_body_size: int = 16 * 1024 * 1024  # 16MB
-    allowed_hosts: List[str] = field(default_factory=list)
+    allowed_hosts: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -111,7 +111,7 @@ class HiveAppConfig:
     cost_control: CostControlConfig = field(default_factory=CostControlConfig)
 
     # Additional configuration
-    custom: Dict[str, Any] = field(default_factory=dict)
+    custom: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Post-initialization setup."""
@@ -175,7 +175,7 @@ class HiveAppConfig:
         return cls.from_dict(config_data)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "HiveAppConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "HiveAppConfig":
         """Create configuration from dictionary."""
         # Create config instance
         config = cls()
@@ -205,7 +205,7 @@ class HiveAppConfig:
     def from_environment(
         cls,
         prefix: str = "HIVE_",
-        config_file: Optional[str] = None,
+        config_file: str | None = None,
     ) -> "HiveAppConfig":
         """
         Load configuration from environment variables.
@@ -262,7 +262,7 @@ class HiveAppConfig:
         else:
             return value
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
         return {
             "app_name": self.app_name,
@@ -277,7 +277,7 @@ class HiveAppConfig:
             "custom": self.custom,
         }
 
-    def get_uvicorn_config(self) -> Dict[str, Any]:
+    def get_uvicorn_config(self) -> dict[str, Any]:
         """Get Uvicorn server configuration."""
         return {
             "host": self.api.host,

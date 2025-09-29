@@ -6,4 +6,4 @@ logger = get_logger(__name__)
 
 from ecosystemiser.discovery.algorithms.monte_carlo import UncertaintyAnalyzer
 
-__all__ = ["BaseOptimizationAlgorithm" "GeneticAlgorithm", "NSGAIIOptimizer" "MonteCarloEngine", "UncertaintyAnalyzer"]
+__all__ = ["BaseOptimizationAlgorithmGeneticAlgorithm", "NSGAIIOptimizerMonteCarloEngine", "UncertaintyAnalyzer"]

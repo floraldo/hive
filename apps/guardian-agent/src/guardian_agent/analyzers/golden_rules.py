@@ -2,11 +2,6 @@
 
 import time
 from pathlib import Path
-from typing import List, Optional
-
-from hive_logging import get_logger
-from hive_tests.ast_validator import ASTValidator
-from hive_tests.autofix import GoldenRulesAutoFixer
 
 from guardian_agent.core.interfaces import (
     AnalysisResult,
@@ -15,6 +10,9 @@ from guardian_agent.core.interfaces import (
     Violation,
     ViolationType,
 )
+from hive_logging import get_logger
+from hive_tests.ast_validator import ASTValidator
+from hive_tests.autofix import GoldenRulesAutoFixer
 
 logger = get_logger(__name__)
 
@@ -33,11 +31,11 @@ class GoldenRulesAnalyzer:
 
         # Map Golden Rules to severity levels
         self.severity_map = {
-            "rule-5": Severity.ERROR,  # Package vs App Discipline
-            "rule-6": Severity.ERROR,  # Dependency Direction
-            "rule-7": Severity.WARNING,  # Interface Contracts
-            "rule-8": Severity.ERROR,  # Error Handling
-            "rule-9": Severity.WARNING,  # Logging Standards
+            "rule-5": Severity.ERROR,  # Package vs App Discipline,
+            "rule-6": Severity.ERROR,  # Dependency Direction,
+            "rule-7": Severity.WARNING,  # Interface Contracts,
+            "rule-8": Severity.ERROR,  # Error Handling,
+            "rule-9": Severity.WARNING,  # Logging Standards,
             "rule-10": Severity.ERROR,  # Service Layer Discipline
             "rule-11": Severity.WARNING,  # Communication Patterns
             "rule-12": Severity.WARNING,  # Package Naming
@@ -122,7 +120,7 @@ class GoldenRulesAnalyzer:
         auto_fixable_rules = {"rule-14", "rule-9", "rule-8"}
         return rule_id in auto_fixable_rules
 
-    def _generate_suggestions(self, file_path: Path, violations: List[Violation]) -> List[Suggestion]:
+    def _generate_suggestions(self, file_path: Path, violations: list[Violation]) -> list[Suggestion]:
         """Generate improvement suggestions based on violations."""
         suggestions = []
 
@@ -188,7 +186,7 @@ class GoldenRulesAnalyzer:
 
         return suggestions
 
-    async def get_autofix_preview(self, file_path: Path) -> Optional[str]:
+    async def get_autofix_preview(self, file_path: Path) -> str | None:
         """
         Get a preview of what autofix would change.
 

@@ -11,7 +11,6 @@ These tests enforce the architectural principles established during the v3.0 ref
 
 import ast
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -38,12 +37,12 @@ class ImportChecker(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def check_file_imports(file_path: Path, forbidden_patterns: List[str]) -> List[str]:
+def check_file_imports(file_path: Path, forbidden_patterns: list[str]) -> list[str]:
     """Check if a file contains forbidden imports."""
     violations = []
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             tree = ast.parse(f.read())
 
         checker = ImportChecker()
@@ -98,7 +97,7 @@ def test_service_layer_decoupling():
     # StudyService should use JobFacade, not instantiate SimulationService directly
     study_service = services_dir / "study_service.py"
     if study_service.exists():
-        with open(study_service, "r") as f:
+        with open(study_service) as f:
             content = f.read()
             # Check for direct instantiation of SimulationService
             if "SimulationService()" in content:
@@ -123,7 +122,7 @@ def test_climate_validation_colocated():
 
     # Check that validation.py doesn't contain adapter-specific QCProfile classes
     if validation_file.exists():
-        with open(validation_file, "r") as f:
+        with open(validation_file) as f:
             content = f.read()
 
         # These classes should NOT be in validation.py
@@ -147,7 +146,7 @@ def test_climate_validation_colocated():
     for adapter_file, profile_class in expected_profiles.items():
         file_path = adapters_dir / adapter_file
         if file_path.exists():
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 content = f.read()
 
             # Check class exists and inherits from QCProfile
@@ -168,7 +167,7 @@ def test_reporting_service_centralized():
     # Check that CLI uses ReportingService for reports
     cli_file = SRC_ROOT / "cli.py"
     if cli_file.exists():
-        with open(cli_file, "r") as f:
+        with open(cli_file) as f:
             content = f.read()
 
         # CLI should use ReportingService
@@ -182,7 +181,7 @@ def test_reporting_service_centralized():
     # Check that Flask app uses ReportingService
     flask_app = SRC_ROOT / "reporting" / "app.py"
     if flask_app.exists():
-        with open(flask_app, "r") as f:
+        with open(flask_app) as f:
             content = f.read()
 
         # Flask should use ReportingService
@@ -204,7 +203,7 @@ def test_cli_layer_purity():
     if not cli_file.exists():
         pytest.skip("CLI file not found")
 
-    with open(cli_file, "r") as f:
+    with open(cli_file) as f:
         content = f.read()
 
     # CLI should NOT directly instantiate domain objects
@@ -274,7 +273,7 @@ def test_validation_file_size():
     if not validation_file.exists():
         pytest.skip("Validation file not found")
 
-    with open(validation_file, "r") as f:
+    with open(validation_file) as f:
         lines = f.readlines()
 
     line_count = len(lines)
@@ -292,7 +291,7 @@ def test_job_facade_exists():
 
     assert job_facade.exists(), "job_facade.py missing (required for service decoupling)"
 
-    with open(job_facade, "r") as f:
+    with open(job_facade) as f:
         content = f.read()
 
     # JobFacade should have key methods

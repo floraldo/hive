@@ -19,7 +19,7 @@ class TestServiceDiscoveryExceptions:
     def test_registration_exceptions(self):
         """Test service registration exceptions."""
         try:
-            from hive_service_discovery.exceptions import ServiceRegistrationError, DuplicateServiceError
+            from hive_service_discovery.exceptions import DuplicateServiceError, ServiceRegistrationError
 
             # Test registration error
             error = ServiceRegistrationError("Failed to register service")
@@ -105,8 +105,8 @@ class TestServiceDiscoveryExceptions:
         try:
             from hive_service_discovery.exceptions import (
                 ServiceDiscoveryError,
-                ServiceRegistrationError,
                 ServiceNotFoundError,
+                ServiceRegistrationError,
             )
 
             # Test inheritance

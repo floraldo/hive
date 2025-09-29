@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -42,17 +43,17 @@ class DiscoveryClient:
         self.health_monitor = HealthMonitor(config)
 
         # Service cache
-        self._service_cache: Dict[str, List[ServiceInfo]] = {}
-        self._cache_timestamps: Dict[str, float] = {}
+        self._service_cache: dict[str, list[ServiceInfo]] = {}
+        self._cache_timestamps: dict[str, float] = {}
 
         # Background tasks
         self._discovery_task = None
         self._running = False
 
         # Event callbacks
-        self._service_added_callbacks: List[Callable] = []
-        self._service_removed_callbacks: List[Callable] = []
-        self._service_health_changed_callbacks: List[Callable] = []
+        self._service_added_callbacks: list[Callable] = []
+        self._service_removed_callbacks: list[Callable] = []
+        self._service_health_changed_callbacks: list[Callable] = []
 
     async def initialize_async(self) -> None:
         """Initialize the discovery client."""
@@ -160,7 +161,7 @@ class DiscoveryClient:
         except Exception as e:
             logger.error(f"Failed to update health monitoring: {e}")
 
-    async def discover_service_async(self, service_name: str, refresh_cache: bool = False) -> List[ServiceInfo]:
+    async def discover_service_async(self, service_name: str, refresh_cache: bool = False) -> list[ServiceInfo]:
         """Discover instances of a service.
 
         Args:
@@ -182,7 +183,7 @@ class DiscoveryClient:
             logger.error(f"Failed to discover service {service_name}: {e}")
             raise ServiceNotFoundError(f"Service discovery failed: {e}", service_name=service_name)
 
-    async def get_healthy_services_async(self, service_name: str) -> List[ServiceInfo]:
+    async def get_healthy_services_async(self, service_name: str) -> list[ServiceInfo]:
         """Get only healthy instances of a service.
 
         Args:
@@ -338,7 +339,7 @@ class DiscoveryClient:
 
     # Utility methods
 
-    async def get_all_services_async(self) -> Dict[str, List[ServiceInfo]]:
+    async def get_all_services_async(self) -> dict[str, list[ServiceInfo]]:
         """Get all discovered services.
 
         Returns:
@@ -370,7 +371,7 @@ class DiscoveryClient:
         healthy_services = await self.get_healthy_services_async(service_name)
         return len(healthy_services)
 
-    def get_discovery_stats(self) -> Dict[str, Any]:
+    def get_discovery_stats(self) -> dict[str, Any]:
         """Get discovery client statistics.
 
         Returns:

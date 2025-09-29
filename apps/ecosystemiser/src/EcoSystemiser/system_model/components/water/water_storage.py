@@ -1,25 +1,17 @@
 """Water storage component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import cvxpy as cp
 import numpy as np
-from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    StorageTechnicalParams
-)
-from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseStorageOptimization,
-    BaseStoragePhysics
-)
-from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams
-)
+from pydantic import Field
+
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, StorageTechnicalParams
+from ecosystemiser.system_model.components.shared.base_classes import BaseStorageOptimization, BaseStoragePhysics
+from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -30,19 +22,18 @@ logger = get_logger(__name__)
 
 class WaterStorageTechnicalParams(StorageTechnicalParams):
     """Water storage-specific technical parameters extending storage archetype.
-from __future__ import annotations
+    from __future__ import annotations
 
 
-    This model inherits from StorageTechnicalParams and adds water storage-specific,
-    parameters for different fidelity levels.,
+        This model inherits from StorageTechnicalParams and adds water storage-specific,
+        parameters for different fidelity levels.,
     """
 
     # Water-specific parameters (in cubic meters and m³/h)
     storage_type: str = Field("tank", description="Type of water storage (tank, reservoir, cistern)")
     loss_rate_daily: float = Field(0.01, description="Daily loss rate (evaporation, leakage) [%]")
     water_quality_class: str | None = Field(
-        None
-        description="Water quality classification (potable, greywater, blackwater)"
+        None, description="Water quality classification (potable, greywater, blackwater)"
     )
 
     # Flow rate parameters
@@ -50,17 +41,17 @@ from __future__ import annotations
     max_discharge_rate: float = Field(2.0, description="Maximum outflow rate [m³/h]")
 
     # STANDARD fidelity additions
-    temperature_effects: Optional[Dict[str, float]] = Field(None, description="Temperature-dependent loss rates")
+    temperature_effects: Optional[dict[str, float]] = Field(None, description="Temperature-dependent loss rates")
     mixing_model: str | None = Field(None, description="Water mixing model (FIFO, LIFO, perfect_mix)")
 
     # DETAILED fidelity parameters
-    stratification_model: Optional[Dict[str, Any]] = Field(None, description="Thermal stratification in water storage")
-    water_quality_decay: Optional[Dict[str, float]] = Field(None, description="Water quality degradation parameters")
-    membrane_fouling: Optional[Dict[str, Any]] = Field(None, description="Membrane fouling model for advanced storage")
+    stratification_model: Optional[dict[str, Any]] = Field(None, description="Thermal stratification in water storage")
+    water_quality_decay: Optional[dict[str, float]] = Field(None, description="Water quality degradation parameters")
+    membrane_fouling: Optional[dict[str, Any]] = Field(None, description="Membrane fouling model for advanced storage")
 
     # RESEARCH fidelity parameters
-    cfd_model: Optional[Dict[str, Any]] = Field(None, description="Computational fluid dynamics model parameters")
-    biofilm_model: Optional[Dict[str, Any]] = Field(None, description="Biofilm growth and water quality modeling")
+    cfd_model: Optional[dict[str, Any]] = Field(None, description="Computational fluid dynamics model parameters")
+    biofilm_model: Optional[dict[str, Any]] = Field(None, description="Biofilm growth and water quality modeling")
 
 
 # =============================================================================
@@ -298,9 +289,9 @@ class WaterStorageParams(ComponentParams):
             initial_soc_pct=0.5,  # Start at 50% full,
             soc_min=0.05,  # Minimum 5% (emergency reserve),
             soc_max=1.0,  # Maximum 100%
-            fidelity_level=FidelityLevel.STANDARD
+            fidelity_level=FidelityLevel.STANDARD,
         ),
-        description="Technical parameters following the hierarchical archetype system"
+        description="Technical parameters following the hierarchical archetype system",
     )
 
 
@@ -417,7 +408,7 @@ class WaterStorage(Component):
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
-                f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, " f"outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
+                f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
             )
 
     def add_optimization_vars(self, N: int | None = None) -> None:
@@ -433,7 +424,7 @@ class WaterStorage(Component):
         self.flows["sink"]["Q_in"] = {"type": "water", "value": self.Q_in}
         self.flows["source"]["Q_out"] = {"type": "water", "value": self.Q_out}
 
-    def set_constraints(self) -> List:
+    def set_constraints(self) -> list:
         """Delegate constraint creation to optimization strategy."""
         return self.optimization.set_constraints()
 
@@ -485,6 +476,6 @@ class WaterStorage(Component):
         """String representation."""
         return (
             f"WaterStorage(name='{self.name}', ",
-            f"capacity={self.capacity_m3}m³, "
-            f"fidelity={self.technical.fidelity_level.value})"
+            f"capacity={self.capacity_m3}m³, ",
+            f"fidelity={self.technical.fidelity_level.value})",
         )

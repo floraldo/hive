@@ -1,16 +1,17 @@
 """Water demand component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import cvxpy as cp
 import numpy as np
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import DemandTechnicalParams, FidelityLevel
 from ecosystemiser.system_model.components.shared.base_classes import BaseDemandOptimization, BaseDemandPhysics
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -299,7 +300,7 @@ class WaterDemand(Component):
 
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, " f"demand={demand_output:.3f}m³/h")
+            logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, demand={demand_output:.3f}m³/h")
 
         return demand_output
 
@@ -326,5 +327,5 @@ class WaterDemand(Component):
         """String representation."""
         return (
             f"WaterDemand(name='{self.name}', ",
-            f"peak_demand={self.Q_max}m³/h, " f"fidelity={self.technical.fidelity_level.value})",
+            f"peak_demand={self.Q_max}m³/h, fidelity={self.technical.fidelity_level.value})",
         )

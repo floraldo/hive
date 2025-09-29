@@ -8,7 +8,7 @@ Centralizes configuration with environment variable support.
 """
 
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class HiveConfig:
@@ -17,8 +17,8 @@ class HiveConfig:
     # Default configuration values
     DEFAULTS = {
         # Worker spawning
-        "worker_spawn_timeout": 30,  # seconds
-        "worker_init_timeout": 10,  # seconds to wait for worker initialization
+        "worker_spawn_timeout": 30,  # seconds,
+        "worker_init_timeout": 10,  # seconds to wait for worker initialization,
         "worker_graceful_shutdown": 5,  # seconds to wait for graceful shutdown
         # Monitoring
         "status_refresh_seconds": 10,
@@ -36,7 +36,7 @@ class HiveConfig:
         "verbose_logging": False,
     }
 
-    def __init__(self, env_vars: Optional[Dict[str, str]] = None) -> None:
+    def __init__(self, env_vars: dict[str, str] | None = None) -> None:
         """Initialize configuration with defaults and optional environment overrides
 
         Args:
@@ -47,7 +47,7 @@ class HiveConfig:
         if env_vars:
             self._load_environment_overrides(env_vars)
 
-    def _load_environment_overrides(self, env_vars: Dict[str, str]) -> None:
+    def _load_environment_overrides(self, env_vars: dict[str, str]) -> None:
         """Load configuration from provided environment variables
 
         Args:
@@ -92,7 +92,7 @@ class HiveConfig:
         """Set configuration value"""
         self.config[key] = value
 
-    def get_all(self) -> Dict[str, Any]:
+    def get_all(self) -> dict[str, Any]:
         """Get all configuration values"""
         return self.config.copy()
 
@@ -104,7 +104,7 @@ class HiveConfig:
         """Check if verbose logging is enabled"""
         return self.config.get("verbose_logging", False)
 
-    def get_worker_config(self, worker_type: str) -> Dict[str, Any]:
+    def get_worker_config(self, worker_type: str) -> dict[str, Any]:
         """Get configuration specific to a worker type"""
         return {
             "max_parallel": self.config["max_parallel_per_role"].get(worker_type, 1),
@@ -113,11 +113,11 @@ class HiveConfig:
             "graceful_shutdown": self.config["worker_graceful_shutdown"],
         }
 
-    def get_database_config(self) -> Dict[str, Any]:
+    def get_database_config(self) -> dict[str, Any]:
         """Get database configuration for compatibility"""
         return {"max_connections": 25, "connection_timeout": 30.0, "min_connections": 3}
 
-    def get_claude_config(self) -> Dict[str, Any]:
+    def get_claude_config(self) -> dict[str, Any]:
         """Get Claude configuration for compatibility"""
         return {
             "mock_mode": False,
@@ -130,7 +130,7 @@ class HiveConfig:
         }
 
 
-def create_orchestrator_config(env_vars: Optional[Dict[str, str]] = None) -> HiveConfig:
+def create_orchestrator_config(env_vars: dict[str, str] | None = None) -> HiveConfig:
     """Create a new orchestrator configuration instance
 
     This replaces the global singleton pattern with explicit creation.

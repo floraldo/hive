@@ -4,14 +4,13 @@
 import ast
 import re
 from pathlib import Path
-from typing import Dict, List
 
 
-def check_n_plus_one_queries(file_path: Path) -> List[str]:
+def check_n_plus_one_queries(file_path: Path) -> list[str]:
     """Check for potential N+1 query patterns."""
     issues = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Look for loops with database queries
@@ -28,11 +27,11 @@ def check_n_plus_one_queries(file_path: Path) -> List[str]:
     return issues
 
 
-def check_memory_leaks(file_path: Path) -> List[str]:
+def check_memory_leaks(file_path: Path) -> list[str]:
     """Check for potential memory leaks."""
     issues = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Check for growing lists without cleanup
@@ -43,7 +42,7 @@ def check_memory_leaks(file_path: Path) -> List[str]:
             if ".append(" in line and not any(cleanup in content for cleanup in [".clear()", ".pop()", "del ", "= []"]):
                 # Check if it's in a class that might accumulate
                 if i > 0 and "self." in line:
-                    issues.append(f"Potential memory leak (growing list) in {file_path}:{i+1}")
+                    issues.append(f"Potential memory leak (growing list) in {file_path}:{i + 1}")
 
     # Check for unclosed resources
     patterns = [
@@ -59,12 +58,12 @@ def check_memory_leaks(file_path: Path) -> List[str]:
     return issues
 
 
-def check_inefficient_operations(file_path: Path) -> List[str]:
+def check_inefficient_operations(file_path: Path) -> list[str]:
     """Check for inefficient operations."""
     issues = []
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -111,11 +110,11 @@ def check_inefficient_operations(file_path: Path) -> List[str]:
     return issues
 
 
-def check_missing_indexes(file_path: Path) -> List[str]:
+def check_missing_indexes(file_path: Path) -> list[str]:
     """Check for queries that might benefit from indexes."""
     issues = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Look for WHERE clauses without corresponding indexes
@@ -130,11 +129,11 @@ def check_missing_indexes(file_path: Path) -> List[str]:
     return issues
 
 
-def check_caching_opportunities(file_path: Path) -> List[str]:
+def check_caching_opportunities(file_path: Path) -> list[str]:
     """Identify opportunities for caching."""
     issues = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Look for repeated expensive operations
@@ -151,7 +150,7 @@ def check_caching_opportunities(file_path: Path) -> List[str]:
     return issues
 
 
-def audit_performance(root_dir: Path) -> Dict[str, List[str]]:
+def audit_performance(root_dir: Path) -> dict[str, list[str]]:
     """Run performance audit on Python files."""
     results = {"n_plus_one": [], "memory_leaks": [], "inefficient_ops": [], "missing_indexes": [], "caching": []}
 

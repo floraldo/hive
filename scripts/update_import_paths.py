@@ -8,7 +8,6 @@ the new centralized path management system from hive-config.
 
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 # Add hive-config to path for this script
 project_root = Path(__file__).parent.parent
@@ -19,7 +18,7 @@ from hive_config import setup_hive_paths
 setup_hive_paths()
 
 
-def find_files_with_syspath_inserts() -> List[Path]:
+def find_files_with_syspath_inserts() -> list[Path]:
     """Find all files containing sys.path.insert patterns."""
     files = []
 
@@ -79,7 +78,7 @@ def analyze_file_imports(file_path: Path) -> dict:
         return {"error": str(e)}
 
 
-def generate_replacement_pattern(file_path: Path, analysis: dict) -> Tuple[str, str]:
+def generate_replacement_pattern(file_path: Path, analysis: dict) -> tuple[str, str]:
     """Generate old and new content patterns for a file."""
     if not analysis.get("needs_hive_config", False):
         return None, None

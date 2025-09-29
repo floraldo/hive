@@ -12,10 +12,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 from ..intelligence.oracle_service import OracleService
 from .analyzer import SemanticAnalyzer
@@ -61,9 +62,9 @@ class FeatureStub:
     dependencies: list[str] = field(default_factory=list)  # Required hive-* packages
 
     # Oracle intelligence
-    adoption_rate: Optional[float] = None  # Similar feature adoption in existing apps
-    revenue_impact: Optional[str] = None  # Potential revenue impact
-    user_engagement: Optional[str] = None  # User engagement metrics for similar features
+    adoption_rate: float | None = None  # Similar feature adoption in existing apps
+    revenue_impact: str | None = None  # Potential revenue impact
+    user_engagement: str | None = None  # User engagement metrics for similar features
 
     # Implementation guidance
     implementation_notes: list[str] = field(default_factory=list)
@@ -136,7 +137,7 @@ class GenesisAgent:
     application skeletons using the full power of the Oracle's intelligence.
     """
 
-    def __init__(self, config: GenesisConfig, oracle_service: Optional[OracleService] = None):
+    def __init__(self, config: GenesisConfig, oracle_service: OracleService | None = None):
         self.config = config
         self.oracle = oracle_service
         self.analyzer = SemanticAnalyzer(config)
@@ -144,7 +145,7 @@ class GenesisAgent:
 
         logger.info("Genesis Agent initialized - ready to create applications")
 
-    async def create_app_async(self, name: str, description: str, target_path: Optional[Path] = None) -> AppSpec:
+    async def create_app_async(self, name: str, description: str, target_path: Path | None = None) -> AppSpec:
         """
         Create a new Hive application with full Oracle intelligence integration.
 

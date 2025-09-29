@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import click
+
 from hive_errors import BaseError
 from hive_logging import get_logger
 
@@ -59,7 +60,7 @@ class HiveContext:
     """Shared context for Hive CLI commands."""
 
     def __init__(self) -> None:
-        self.config: Optional[Dict[str, Any]] = None
+        self.config: Optional[dict[str, Any]] = None
         self.debug: bool = False
         self.verbose: bool = False
         self.config_path: Path | None = None

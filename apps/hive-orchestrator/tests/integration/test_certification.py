@@ -17,7 +17,6 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
 
 # No sys.path manipulation needed - use Poetry workspace imports
 
@@ -49,7 +48,7 @@ class CertificationTestConductor:
                     proc.kill()
                     proc.wait()
 
-    def run_command(self, command: str, capture_output: bool = True, env=None) -> Tuple[int, str, str]:
+    def run_command(self, command: str, capture_output: bool = True, env=None) -> tuple[int, str, str]:
         """Run a command and return exit code, stdout, stderr."""
         self.log(f"Running: {command}", "DEBUG")
         if env is None:
@@ -134,7 +133,7 @@ class CertificationTestConductor:
         self.log("All services running", "SUCCESS")
         return True
 
-    def query_task_state(self, task_id: int) -> Optional[str]:
+    def query_task_state(self, task_id: int) -> str | None:
         """Query the database for task state."""
         conn = None
         try:

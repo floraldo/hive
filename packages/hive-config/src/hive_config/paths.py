@@ -101,10 +101,10 @@ def get_project_root() -> Path:
 
     # If we can't find the workspace root, raise an error with helpful information
     raise RuntimeError(
-        "Could not find the Hive project root. "
-        "Make sure this code is running within the Hive project directory, "
-        "or set the HIVE_PROJECT_ROOT environment variable to the project root path. "
-        f"Searched from: {Path.cwd()}, {Path(__file__).resolve().parent}"
+        "Could not find the Hive project root. ",
+        "Make sure this code is running within the Hive project directory, ",
+        "or set the HIVE_PROJECT_ROOT environment variable to the project root path. ",
+        f"Searched from: {Path.cwd()}, {Path(__file__).resolve().parent}",
     )
 
 

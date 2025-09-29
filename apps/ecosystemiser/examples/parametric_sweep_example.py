@@ -32,9 +32,9 @@ def create_example_system_config() -> dict[str, Any]:
                 "type": "storage",
                 "subtype": "battery",
                 "technical": {
-                    "capacity_nominal": 100.0,  # kWh
-                    "power_charge_max": 50.0,  # kW
-                    "power_discharge_max": 50.0,  # kW
+                    "capacity_nominal": 100.0,  # kWh,
+                    "power_charge_max": 50.0,  # kW,
+                    "power_discharge_max": 50.0,  # kW,
                     "efficiency_charge": 0.95,
                     "efficiency_discharge": 0.95,
                     "soc_min": 0.1,
@@ -47,7 +47,7 @@ def create_example_system_config() -> dict[str, Any]:
                 "type": "generator",
                 "subtype": "solar_pv",
                 "technical": {
-                    "capacity_nominal": 50.0,  # kW
+                    "capacity_nominal": 50.0,  # kW,
                     "efficiency": 0.18,
                     "degradation_rate": 0.005,
                 },
@@ -57,11 +57,11 @@ def create_example_system_config() -> dict[str, Any]:
                 "name": "grid",
                 "type": "grid",
                 "technical": {
-                    "power_import_max": 100.0,  # kW
+                    "power_import_max": 100.0,  # kW,
                     "power_export_max": 50.0,  # kW
                 },
                 "economic": {
-                    "price_import": 0.25,  # $/kWh
+                    "price_import": 0.25,  # $/kWh,
                     "price_export": 0.10,  # $/kWh
                 },
             },
@@ -130,9 +130,9 @@ def run_battery_capacity_sweep() -> Any:
     result = study_service.run_study(study_config)
 
     # Analyze results
-    logger.info(f"\n{'='*40}")
+    logger.info(f"\n{'=' * 40}")
     logger.info("RESULTS SUMMARY")
-    logger.info(f"{'='*40}")
+    logger.info(f"{'=' * 40}")
     logger.info(f"Total simulations: {result.num_simulations}")
     logger.info(f"Successful: {result.successful_simulations}")
     logger.info(f"Failed: {result.failed_simulations}")
@@ -145,7 +145,7 @@ def run_battery_capacity_sweep() -> Any:
         logger.info("\nOPTIMAL CONFIGURATION:")
         logger.info(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
         logger.info(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
-        logger.info(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
+        logger.info(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0) * 100:.1f}%")
 
     # Perform influence analysis
     analysis = ParametricSweepEnhancement.analyze_parameter_influence(result.model_dump())
@@ -170,7 +170,7 @@ def run_multi_parameter_sweep() -> Any:
         simulation_id="multi_sweep_base",
         system_config=system_config,
         profile_config={
-            "location": "Madrid",  # Sunnier location
+            "location": "Madrid",  # Sunnier location,
             "year": 2023,
             "resolution": "1H",
         },
@@ -217,9 +217,9 @@ def run_multi_parameter_sweep() -> Any:
     study_service = StudyService()
     result = study_service.run_study(study_config)
 
-    logger.info(f"\n{'='*40}")
+    logger.info(f"\n{'=' * 40}")
     logger.info("RESULTS SUMMARY")
-    logger.info(f"{'='*40}")
+    logger.info(f"{'=' * 40}")
     logger.info(f"Total simulations: {result.num_simulations}")
     logger.info(f"Successful: {result.successful_simulations}")
     logger.info(f"Execution time: {result.execution_time:.1f} seconds")
@@ -232,7 +232,7 @@ def run_multi_parameter_sweep() -> Any:
         logger.info(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
         logger.info(f"Solar capacity: {best_params.get('solar_pv.technical.capacity_nominal', 'N/A')} kW")
         logger.info(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
-        logger.info(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
+        logger.info(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0) * 100:.1f}%")
 
     # Create a simple visualization of the results
     if result.all_results:

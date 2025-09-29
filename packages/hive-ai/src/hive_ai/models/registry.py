@@ -7,8 +7,6 @@ dynamic registration and health monitoring.
 
 from __future__ import annotations
 
-from typing import Dict
-
 from hive_cache import CacheManager
 from hive_logging import get_logger
 
@@ -29,9 +27,9 @@ class ModelRegistry:
 
     def __init__(self, config: AIConfig) -> None:
         self.config = config
-        self._providers: Dict[str, ModelProviderInterface] = {}
-        self._provider_classes: Dict[str, Type[ModelProviderInterface]] = {}
-        self._health_status: Dict[str, bool] = {}
+        self._providers: dict[str, ModelProviderInterface] = {}
+        self._provider_classes: dict[str, Type[ModelProviderInterface]] = {}
+        self._health_status: dict[str, bool] = {}
         self._cache = CacheManager("model_registry")
 
     def register_provider(self, provider_name: str, provider_class: Type[ModelProviderInterface]) -> None:
@@ -100,7 +98,7 @@ class ModelRegistry:
             self._cache.set(cache_key, False, ttl=60)  # Cache failure for 1 minute
             return False
 
-    def refresh_health_status(self) -> Dict[str, bool]:
+    def refresh_health_status(self) -> dict[str, bool]:
         """Force refresh of all provider health status."""
         self._cache.clear()  # Clear cached health status
 
@@ -152,7 +150,7 @@ class ModelRegistry:
 
         return cheapest
 
-    def get_registry_stats(self) -> Dict[str, int]:
+    def get_registry_stats(self) -> dict[str, int]:
         """Get registry statistics."""
         total_models = len(self.config.models)
         healthy_models = len(self.list_healthy_models())

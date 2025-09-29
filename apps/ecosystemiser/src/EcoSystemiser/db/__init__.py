@@ -11,8 +11,9 @@ logger = get_logger(__name__)
 
 __all__ = [
     # Recommended - use these for new code,
-    "get_ecosystemiser_connection" "ecosystemiser_transaction",
-    "get_ecosystemiser_db_path" "validate_hive_integration"
+    "get_ecosystemiser_connectionecosystemiser_transaction",
+    "get_ecosystemiser_db_path"
+    "validate_hive_integration"
     # Legacy - for backward compatibility,
     "get_db_connection"
     # Schema management,

@@ -6,15 +6,15 @@ AI model usage, performance, and behavior patterns.
 """
 from __future__ import annotations
 
-
 import asyncio
 import json
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -57,7 +57,7 @@ class TelemetryEvent:
     duration_ms: float | None = None
     success: bool = True
     error_message: str | None = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     # Model-specific fields
     model_name: str | None = None
@@ -74,7 +74,7 @@ class TelemetryEvent:
     security_risk_level: str | None = None
     validation_result: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary for serialization."""
         return {
             "event_id": self.event_id,
@@ -108,7 +108,7 @@ class TelemetryBuffer:
             max_size: Maximum number of events to buffer.
         """
         self.max_size = max_size
-        self.events: List[TelemetryEvent] = []
+        self.events: list[TelemetryEvent] = []
         self.current_index = 0
         self.total_events = 0
         self._lock = asyncio.Lock()
@@ -131,7 +131,7 @@ class TelemetryBuffer:
 
     async def get_recent_events_async(
         self, count: int = 100, event_type: EventType | None = None
-    ) -> List[TelemetryEvent]:
+    ) -> list[TelemetryEvent]:
         """Get recent events from buffer.
 
         Args:
@@ -152,7 +152,7 @@ class TelemetryBuffer:
         events.sort(key=lambda e: e.timestamp, reverse=True),
         return events[:count]
 
-    async def get_buffer_stats_async(self) -> Dict[str, Any]:
+    async def get_buffer_stats_async(self) -> dict[str, Any]:
         """Get buffer statistics.
 
         Returns:
@@ -190,7 +190,7 @@ class TelemetryCollector:
     """Advanced telemetry collection and analysis system."""
 
     def __init__(
-        self
+        self,
         level: TelemetryLevel = TelemetryLevel.BASIC,
         buffer_size: int = 10000,
         export_interval_seconds: int = 300,
@@ -204,19 +204,19 @@ class TelemetryCollector:
             export_interval_seconds: How often to export events.,
             export_path: Path for exporting telemetry data.,
         """
-        self.level = level
+        self.level = level,
         self.buffer = TelemetryBuffer(buffer_size)
-        self.export_interval = export_interval_seconds
+        self.export_interval = export_interval_seconds,
         self.export_path = export_path or Path("telemetry_export")
 
-        # Event handlers
-        self.event_handlers: List[Callable[[TelemetryEvent], None]] = []
+        # Event handlers,
+        self.event_handlers: list[Callable[[TelemetryEvent], None]] = []
 
-        # Background export task
+        # Background export task,
         self.export_task: asyncio.Task | None = None,
         self.running = False
 
-        # Performance tracking
+        # Performance tracking,
         self.collection_start_time = datetime.utcnow()
         self.events_collected = 0
 
@@ -226,10 +226,10 @@ class TelemetryCollector:
             logger.info("Telemetry collection disabled")
             return
 
-        self.running = True
+        self.running = True,
         self.collection_start_time = datetime.utcnow()
 
-        # Start background export task
+        # Start background export task,
         if self.export_interval > 0:
             self.export_task = asyncio.create_task(self._export_loop_async())
 
@@ -242,11 +242,11 @@ class TelemetryCollector:
         if self.export_task:
             self.export_task.cancel()
             try:
-                await self.export_task
+                await self.export_task,
             except asyncio.CancelledError:
                 pass
 
-        # Final export
+        # Final export,
         await self.export_events_async()
         logger.info("Telemetry collection stopped")
 
@@ -254,16 +254,16 @@ class TelemetryCollector:
         """Record a telemetry event.
 
         Args:
-            event: Event to record.
+            event: Event to record.,
         """
         if self.level == TelemetryLevel.DISABLED or not self.running:
             return
 
-        # Add to buffer
+        # Add to buffer,
         await self.buffer.add_event_async(event)
         self.events_collected += 1
 
-        # Notify handlers
+        # Notify handlers,
         for handler in self.event_handlers:
             try:
                 handler(event)
@@ -271,12 +271,12 @@ class TelemetryCollector:
                 logger.warning(f"Event handler failed: {e}")
 
     async def record_model_request_async(
-        self
+        self,
         component: str,
         model_name: str,
         provider: str,
         prompt_length: int,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None
     ) -> str:
         """Record model request event.
 
@@ -296,9 +296,9 @@ class TelemetryCollector:
             event_id=event_id,
             event_type=EventType.MODEL_REQUEST,
             timestamp=datetime.utcnow(),
-            component=component
+            component=component,
             operation="model_request",
-            model_name=model_name
+            model_name=model_name,
             provider=provider,
             metadata={"prompt_length": prompt_length, **(metadata or {})}
         )
@@ -307,7 +307,7 @@ class TelemetryCollector:
         return event_id
 
     async def record_model_response_async(
-        self
+        self,
         request_id: str,
         component: str,
         model_name: str,
@@ -317,7 +317,7 @@ class TelemetryCollector:
         estimated_cost: float,
         success: bool = True,
         error_message: str | None = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None
     ) -> None:
         """Record model response event.
 
@@ -335,30 +335,30 @@ class TelemetryCollector:
         """
         event = TelemetryEvent(
             event_id=f"resp_{request_id}",
-            event_type=EventType.MODEL_RESPONSE
+            event_type=EventType.MODEL_RESPONSE,
             timestamp=datetime.utcnow(),
-            component=component
+            component=component,
             operation="model_response",
-            duration_ms=duration_ms
+            duration_ms=duration_ms,
             success=success,
-            error_message=error_message
+            error_message=error_message,
             model_name=model_name,
-            provider=provider
+            provider=provider,
             tokens_used=tokens_used,
-            estimated_cost=estimated_cost
+            estimated_cost=estimated_cost,
             metadata={"request_id": request_id, **(metadata or {})}
         )
 
         await self.record_event_async(event)
 
     async def record_performance_metric_async(
-        self
+        self,
         component: str,
         operation: str,
         duration_ms: float,
         memory_usage_mb: float | None = None,
         cpu_percent: float | None = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None
     ) -> None:
         """Record performance metric event.
 
@@ -372,25 +372,25 @@ class TelemetryCollector:
         """
         event = TelemetryEvent(
             event_id=f"perf_{int(time.time() * 1000)}_{id(self)}",
-            event_type=EventType.PERFORMANCE_METRIC
+            event_type=EventType.PERFORMANCE_METRIC,
             timestamp=datetime.utcnow(),
-            component=component
+            component=component,
             operation=operation,
-            duration_ms=duration_ms
+            duration_ms=duration_ms,
             memory_usage_mb=memory_usage_mb,
-            cpu_percent=cpu_percent
+            cpu_percent=cpu_percent,
             metadata=metadata or {}
         )
 
         await self.record_event_async(event)
 
     async def record_security_event_async(
-        self
+        self,
         component: str,
         operation: str,
         risk_level: str,
         validation_result: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None
     ) -> None:
         """Record security event.
 
@@ -403,18 +403,18 @@ class TelemetryCollector:
         """
         event = TelemetryEvent(
             event_id=f"sec_{int(time.time() * 1000)}_{id(self)}",
-            event_type=EventType.SECURITY_EVENT
+            event_type=EventType.SECURITY_EVENT,
             timestamp=datetime.utcnow(),
-            component=component
+            component=component,
             operation=operation,
-            security_risk_level=risk_level
+            security_risk_level=risk_level,
             validation_result=validation_result,
             metadata=metadata or {}
         )
 
         await self.record_event_async(event)
 
-    async def get_analytics_async(self, time_window_hours: int = 24) -> Dict[str, Any]:
+    async def get_analytics_async(self, time_window_hours: int = 24) -> dict[str, Any]:
         """Get comprehensive analytics for time window.
 
         Args:
@@ -425,14 +425,14 @@ class TelemetryCollector:
         """
         cutoff_time = datetime.utcnow() - timedelta(hours=time_window_hours)
 
-        # Get events in time window
+        # Get events in time window,
         all_events = await self.buffer.get_recent_events_async(count=10000)
         window_events = [e for e in all_events if e.timestamp >= cutoff_time]
 
         if not window_events:
             return {"message": "No events in time window"}
 
-        # Calculate analytics
+        # Calculate analytics,
         analytics = {
             "time_window_hours": time_window_hours,
             "total_events": len(window_events),
@@ -446,7 +446,7 @@ class TelemetryCollector:
 
         return analytics
 
-    def _analyze_event_types(self, events: List[TelemetryEvent]) -> Dict[str, Any]:
+    def _analyze_event_types(self, events: list[TelemetryEvent]) -> dict[str, Any]:
         """Analyze event type distribution."""
         type_counts = {}
         for event in events:
@@ -456,7 +456,7 @@ class TelemetryCollector:
         total = len(events)
         return {"counts": type_counts, "percentages": {k: (v / total) * 100 for k, v in type_counts.items()}}
 
-    def _analyze_performance(self, events: List[TelemetryEvent]) -> Dict[str, Any]:
+    def _analyze_performance(self, events: list[TelemetryEvent]) -> dict[str, Any]:
         """Analyze performance metrics."""
         perf_events = [e for e in events if e.duration_ms is not None]
 
@@ -479,7 +479,7 @@ class TelemetryCollector:
             "max_duration_ms": max(durations)
         }
 
-    def _analyze_model_usage(self, events: List[TelemetryEvent]) -> Dict[str, Any]:
+    def _analyze_model_usage(self, events: list[TelemetryEvent]) -> dict[str, Any]:
         """Analyze model usage patterns."""
         model_events = [e for e in events if e.model_name is not None]
 
@@ -506,7 +506,7 @@ class TelemetryCollector:
             "avg_tokens_per_request": total_tokens / len(model_events) if model_events else 0
         }
 
-    def _analyze_errors(self, events: List[TelemetryEvent]) -> Dict[str, Any]:
+    def _analyze_errors(self, events: list[TelemetryEvent]) -> dict[str, Any]:
         """Analyze error patterns."""
         total_events = len(events)
         error_events = [e for e in events if not e.success]
@@ -529,7 +529,7 @@ class TelemetryCollector:
             "error_by_operation": error_operations
         }
 
-    def _analyze_costs(self, events: List[TelemetryEvent]) -> Dict[str, Any]:
+    def _analyze_costs(self, events: list[TelemetryEvent]) -> dict[str, Any]:
         """Analyze cost patterns."""
         cost_events = [e for e in events if e.estimated_cost is not None]
 
@@ -549,7 +549,7 @@ class TelemetryCollector:
             "avg_cost_per_request": total_cost / len(cost_events)
         }
 
-    def _analyze_security(self, events: List[TelemetryEvent]) -> Dict[str, Any]:
+    def _analyze_security(self, events: list[TelemetryEvent]) -> dict[str, Any]:
         """Analyze security events."""
         security_events = [e for e in events if e.event_type == EventType.SECURITY_EVENT]
 
@@ -616,7 +616,7 @@ class TelemetryCollector:
         """
         self.event_handlers.append(handler)
 
-    async def get_collector_stats_async(self) -> Dict[str, Any]:
+    async def get_collector_stats_async(self) -> dict[str, Any]:
         """Get collector statistics.
 
         Returns:

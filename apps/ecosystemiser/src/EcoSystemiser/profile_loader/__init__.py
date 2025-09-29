@@ -13,16 +13,20 @@ logger = get_logger(__name__)
 
 __all__ = [
     # Unified interface,
-    "get_unified_profile_service" "get_climate_service",
-    "get_demand_service" "process_climate_request",
+    "get_unified_profile_serviceget_climate_service",
+    "get_demand_serviceprocess_climate_request",
     "process_demand_request"
     # Base models,
-    "BaseProfileRequest" "BaseProfileResponse",
-    "ProfileMode" "DataFrequency",
+    "BaseProfileRequest"
+    "BaseProfileResponse",
+    "ProfileModeDataFrequency",
     "LocationInfo"
     # Specific models,
-    "ClimateRequest" "ClimateResponse",
-    "DemandRequest" "DemandResponse"
+    "ClimateRequest"
+    "ClimateResponse",
+    "DemandRequest"
+    "DemandResponse"
     # Legacy compatibility,
-    "get_profile" "get_profile_sync",
+    "get_profile"
+    "get_profile_sync",
 ]

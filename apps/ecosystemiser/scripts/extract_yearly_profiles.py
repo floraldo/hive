@@ -133,14 +133,14 @@ def create_yearly_system_config() -> dict[str, Any]:
         "timesteps": 8760,
         "timestep_hours": 1.0,
         "components": {
-            # Grid configuration based on legacy
+            # Grid configuration based on legacy,
             "Grid": {
                 "type": "Grid",
                 "params": {
                     "technical": {
-                        "capacity_nominal": 800.0,  # kW - from legacy
-                        "import_tariff": 0.25,  # $/kWh
-                        "feed_in_tariff": 0.08,  # $/kWh - lower export price
+                        "capacity_nominal": 800.0,  # kW - from legacy,
+                        "import_tariff": 0.25,  # $/kWh,
+                        "feed_in_tariff": 0.08,  # $/kWh - lower export price,
                         "fidelity_level": "SIMPLE",
                     }
                 },
@@ -150,9 +150,9 @@ def create_yearly_system_config() -> dict[str, Any]:
                 "type": "Battery",
                 "params": {
                     "technical": {
-                        "capacity_nominal": 300.0,  # kWh - from legacy
-                        "max_charge_rate": 150.0,  # kW - from legacy
-                        "max_discharge_rate": 150.0,  # kW - from legacy
+                        "capacity_nominal": 300.0,  # kWh - from legacy,
+                        "max_charge_rate": 150.0,  # kW - from legacy,
+                        "max_discharge_rate": 150.0,  # kW - from legacy,
                         "efficiency_roundtrip": 0.95,
                         "initial_soc_pct": 0.5,
                         "fidelity_level": "SIMPLE",
@@ -164,7 +164,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                 "type": "SolarPV",
                 "params": {
                     "technical": {
-                        "capacity_nominal": 40.0,  # kW - from legacy
+                        "capacity_nominal": 40.0,  # kW - from legacy,
                         "efficiency_nominal": 1.0,
                         "fidelity_level": "SIMPLE",
                     }
@@ -176,7 +176,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                 "type": "PowerDemand",
                 "params": {
                     "technical": {
-                        "capacity_nominal": 15.0,  # kW - from legacy
+                        "capacity_nominal": 15.0,  # kW - from legacy,
                         "peak_demand": 15.0,
                         "load_profile_type": "variable",
                         "fidelity_level": "SIMPLE",
@@ -189,9 +189,9 @@ def create_yearly_system_config() -> dict[str, Any]:
                 "type": "HeatPump",
                 "params": {
                     "technical": {
-                        "capacity_nominal": 300.0,  # kW thermal - from legacy
-                        "cop_nominal": 4.0,  # from legacy
-                        "efficiency_nominal": 0.95,  # from legacy
+                        "capacity_nominal": 300.0,  # kW thermal - from legacy,
+                        "cop_nominal": 4.0,  # from legacy,
+                        "efficiency_nominal": 0.95,  # from legacy,
                         "fidelity_level": "SIMPLE",
                     }
                 },
@@ -201,7 +201,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                 "type": "HeatDemand",
                 "params": {
                     "technical": {
-                        "capacity_nominal": 15.0,  # kW - from legacy
+                        "capacity_nominal": 15.0,  # kW - from legacy,
                         "peak_demand": 15.0,
                         "demand_type": "space_heating",
                         "fidelity_level": "SIMPLE",
@@ -214,10 +214,10 @@ def create_yearly_system_config() -> dict[str, Any]:
                 "type": "HeatBuffer",
                 "params": {
                     "technical": {
-                        "capacity_nominal": 200.0,  # kWh - from legacy
-                        "max_charge_rate": 50.0,  # kW - from legacy
-                        "max_discharge_rate": 50.0,  # kW - from legacy
-                        "efficiency_roundtrip": 0.97,  # from legacy
+                        "capacity_nominal": 200.0,  # kWh - from legacy,
+                        "max_charge_rate": 50.0,  # kW - from legacy,
+                        "max_discharge_rate": 50.0,  # kW - from legacy,
+                        "efficiency_roundtrip": 0.97,  # from legacy,
                         "initial_soc_pct": 0.5,
                         "fidelity_level": "SIMPLE",
                     }
@@ -225,7 +225,7 @@ def create_yearly_system_config() -> dict[str, Any]:
             },
         },
         "connections": [
-            # Electrical connections
+            # Electrical connections,
             ["Grid", "PowerDemand", "electricity"],
             ["Grid", "Battery", "electricity"],
             ["Battery", "Grid", "electricity"],
@@ -233,8 +233,8 @@ def create_yearly_system_config() -> dict[str, Any]:
             ["SolarPV", "Battery", "electricity"],
             ["SolarPV", "Grid", "electricity"],
             ["Battery", "PowerDemand", "electricity"],
-            ["Grid", "HeatPump", "electricity"],  # Heat pump electrical input
-            # Thermal connections
+            ["Grid", "HeatPump", "electricity"],  # Heat pump electrical input,
+            # Thermal connections,
             ["HeatPump", "HeatDemand", "heat"],
             ["HeatPump", "HeatBuffer", "heat"],
             ["HeatBuffer", "HeatDemand", "heat"],
@@ -299,7 +299,7 @@ def save_profiles_and_config() -> None:
         "duration_days": n_hours / 24,
         "profiles_extracted": list(profiles.keys()),
         "profiles_saved": [
-            name
+            name,
             for name in profiles.keys()
             if name not in ["grid_import", "grid_export", "battery_charge", "battery_discharge"]
         ],

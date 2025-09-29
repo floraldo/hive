@@ -5,6 +5,7 @@ import time
 from typing import Any
 
 import numpy as np
+
 from ecosystemiser.solver.base import BaseSolver, SolverResult
 from hive_logging import get_logger
 

@@ -17,8 +17,9 @@ from rich.panel import Panel
 from rich.table import Table
 
 try:
-    from hive_logging import get_logger
     from hive_orchestrator.core.bus import EventSubscriber, get_event_bus
+
+    from hive_logging import get_logger
 except ImportError as e:
     logger.error(f"Failed to import Hive packages: {e}")
     sys.exit(1)
@@ -181,10 +182,10 @@ class EventDashboard:
                 last_seen_str = f"{time_since.seconds}s ago"
             elif time_since.seconds < 300:  # 5 minutes
                 status = "🟡 Idle"
-                last_seen_str = f"{time_since.seconds//60}m ago"
+                last_seen_str = f"{time_since.seconds // 60}m ago"
             else:
                 status = "🔴 Offline"
-                last_seen_str = f"{time_since.seconds//60}m ago"
+                last_seen_str = f"{time_since.seconds // 60}m ago"
 
             event_count = activity["event_count"]
             event_types = ", ".join(list(activity["event_types"])[:3])
@@ -218,7 +219,7 @@ class EventDashboard:
             last_update = wf_data["last_update"]
             duration = now - start_time
 
-            duration_str = f"{duration.seconds//60}m {duration.seconds%60}s"
+            duration_str = f"{duration.seconds // 60}m {duration.seconds % 60}s"
             event_count = len(wf_data["events"])
             last_activity = f"{(now - last_update).seconds}s ago"
 
@@ -255,11 +256,11 @@ class EventDashboard:
         active_workflows = sum(1 for wf_data in self.workflow_states.values() if wf_data["last_update"] > cutoff)
 
         stats_text = f"""
-🎯 Total Events: {self.system_stats['total_events']}
+🎯 Total Events: {self.system_stats["total_events"]}
 📈 Events/min: {events_per_minute:.1f}
 🔄 Active Workflows: {active_workflows}
-🤖 Agents Online: {len(self.system_stats['agents_online'])}
-⏰ Last Update: {self.system_stats['last_update'].strftime('%H:%M:%S')}
+🤖 Agents Online: {len(self.system_stats["agents_online"])}
+⏰ Last Update: {self.system_stats["last_update"].strftime("%H:%M:%S")}
         """.strip()
 
         return Panel(stats_text, title="System Statistics", border_style="green")

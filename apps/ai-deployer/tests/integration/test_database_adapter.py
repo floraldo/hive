@@ -23,11 +23,11 @@ def mock_connection():
 def sample_task_row():
     """Create a sample task row from database"""
     return [
-        "task-001",  # id
-        "Deploy App",  # title
-        "Deploy web application",  # description
-        "2024-01-15T10:00:00",  # created_at
-        "2024-01-15T10:30:00",  # updated_at
+        "task-001",  # id,
+        "Deploy App",  # title,
+        "Deploy web application",  # description,
+        "2024-01-15T10:00:00",  # created_at,
+        "2024-01-15T10:30:00",  # updated_at,
         "worker-001",  # worker_id
         1,  # priority
         '{"source_path": "/tmp/app"}',  # task_data

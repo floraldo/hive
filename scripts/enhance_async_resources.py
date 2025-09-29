@@ -13,7 +13,6 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from hive_logging import get_logger
 
@@ -39,7 +38,7 @@ class AsyncResourceAnalyzer:
         self.hive_root = hive_root or Path.cwd()
         self.issues = []
 
-    def find_python_files(self) -> List[Path]:
+    def find_python_files(self) -> list[Path]:
         """Find all Python files with async code"""
         python_files = []
 
@@ -52,7 +51,7 @@ class AsyncResourceAnalyzer:
             path_str = str(file_path).lower()
             if not any(exclude in path_str for exclude in ["__pycache__", "archive", "legacy", ".backup"]):
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         content = f.read()
                         if "async " in content or "asyncio" in content or "await " in content:
                             async_files.append(file_path)
@@ -61,12 +60,12 @@ class AsyncResourceAnalyzer:
 
         return async_files
 
-    def analyze_file(self, file_path: Path) -> List[AsyncIssue]:
+    def analyze_file(self, file_path: Path) -> list[AsyncIssue]:
         """Analyze a single file for async resource issues"""
         issues = []
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
                 lines = content.split("\n")
 
@@ -191,7 +190,7 @@ class AsyncResourceAnalyzer:
 
         return issues
 
-    def analyze_all(self) -> Tuple[int, Dict[str, int]]:
+    def analyze_all(self) -> tuple[int, dict[str, int]]:
         """Analyze all async files for resource management issues"""
         async_files = self.find_python_files()
         logger.info(f"Analyzing {len(async_files)} files with async code")
@@ -226,21 +225,21 @@ class AsyncResourceAnalyzer:
 
         report = f"""
 # Async Resource Management Report
-Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Summary
 - Files analyzed: {files_analyzed}
-- Total issues found: {stats['total']}
+- Total issues found: {stats["total"]}
 - High severity: {len(high_severity)}
 - Medium severity: {len(medium_severity)}
 - Low severity: {len(low_severity)}
 
 ## Issues by Type
-- Untracked tasks: {stats.get('untracked_task', 0)}
-- Missing context managers: {stats.get('missing_context_manager', 0)}
-- Missing finally blocks: {stats.get('missing_finally', 0)}
-- Unprotected shared state: {stats.get('unprotected_state', 0)}
-- Unsafe gather operations: {stats.get('unsafe_gather', 0)}
+- Untracked tasks: {stats.get("untracked_task", 0)}
+- Missing context managers: {stats.get("missing_context_manager", 0)}
+- Missing finally blocks: {stats.get("missing_finally", 0)}
+- Unprotected shared state: {stats.get("unprotected_state", 0)}
+- Unsafe gather operations: {stats.get("unsafe_gather", 0)}
 
 ## High Severity Issues
 """

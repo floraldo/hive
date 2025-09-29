@@ -71,7 +71,7 @@ class EcoSystemiserEventBus(BaseBus):
         with ecosystemiser_transaction() as conn:
             # Check if table exists and get its schema
             cursor = conn.execute(
-                """
+                """,
                 SELECT sql FROM sqlite_master,
                 WHERE type='table' AND name='ecosystemiser_events',
             """
@@ -111,7 +111,7 @@ class EcoSystemiserEventBus(BaseBus):
         """Create the events table with proper schema"""
         # EcoSystemiser events table with simulation-specific fields,
         conn.execute(
-            """
+            """,
             CREATE TABLE ecosystemiser_events (
                 event_id TEXT PRIMARY KEY,
                 event_type TEXT NOT NULL,
@@ -131,7 +131,7 @@ class EcoSystemiserEventBus(BaseBus):
         # EcoSystemiser-specific indexes for simulation queries,
         (
             conn.execute(
-                """
+                """,
             CREATE INDEX IF NOT EXISTS idx_ecosys_events_simulation,
             ON ecosystemiser_events(simulation_id, timestamp)
         """
@@ -184,7 +184,7 @@ class EcoSystemiserEventBus(BaseBus):
             # Store in EcoSystemiser database,
             with ecosystemiser_transaction() as conn:
                 conn.execute(
-                    """
+                    """,
                     INSERT INTO ecosystemiser_events (
                         event_id, event_type, timestamp, source_component,
                         correlation_id, simulation_id, analysis_id, optimization_id,

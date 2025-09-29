@@ -297,7 +297,7 @@ class SystemConfigEncoder(ParameterEncoder):
 
     @classmethod
     def from_config(
-        cls
+        cls,
         config_path: str | Path,
         component_selection: Optional[List[str]] = None,
         custom_bounds: Optional[Dict[str, Tuple[float, float]]] = None
@@ -319,7 +319,7 @@ class SystemConfigEncoder(ParameterEncoder):
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)
 
-        # Detect available components
+        # Detect available components,
         available_components = set()
         if "components" in config:
             available_components = set(config["components"].keys())
@@ -368,7 +368,7 @@ class SystemConfigEncoder(ParameterEncoder):
         """
         parameters = []
 
-        # Look for optimizable_parameters in component's technical section
+        # Look for optimizable_parameters in component's technical section,
         technical_config = component_config.get("technical", {})
         optimizable_config = technical_config.get("optimizable_parameters", {})
 
@@ -379,7 +379,7 @@ class SystemConfigEncoder(ParameterEncoder):
         # Convert each optimizable parameter to ParameterSpec,
         for param_name, param_config in optimizable_config.items():
             try:
-                # Extract required fields
+                # Extract required fields,
                 parameter_path = param_config.get("parameter_path")
                 bounds = param_config.get("bounds")
 
@@ -400,9 +400,9 @@ class SystemConfigEncoder(ParameterEncoder):
                 # Create ParameterSpec
                 param_spec = ParameterSpec(
                     name=f"{component_name}_{param_name}",
-                    component=component_name
+                    component=component_name,
                     parameter_path=parameter_path,
-                    bounds=bounds
+                    bounds=bounds,
                     parameter_type=param_config.get("parameter_type", "continuous"),
                     units=param_config.get("units")
                     description=param_config.get("description", f"{param_name} for {component_name}"),
@@ -418,7 +418,7 @@ class SystemConfigEncoder(ParameterEncoder):
 
         return parameters
 
-    @classmethod
+    @classmethod,
     def from_parameter_list(cls, parameter_definitions: List[Dict[str, Any]]) -> "SystemConfigEncoder":
         """Create encoder from parameter definition list.
 
@@ -453,8 +453,8 @@ class SystemConfigEncoder(ParameterEncoder):
             try:
                 current_value = self._extract_parameter_value(config, param_spec)
                 if current_value > 0:
-                    min_bound = current_value / scaling_factor
-                    max_bound = current_value * scaling_factor
+                    min_bound = current_value / scaling_factor,
+                    max_bound = current_value * scaling_factor,
                     suggested_bounds[param_spec.name] = (min_bound, max_bound)
                 else:
                     # Use default bounds for zero values,

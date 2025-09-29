@@ -6,9 +6,10 @@ import asyncio
 import random
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 from hive_async.resilience import AsyncCircuitBreaker
 from hive_logging import get_logger
@@ -47,7 +48,7 @@ class LoadBalancingAlgorithm(ABC):
 
     @abstractmethod
     async def select_service_async(
-        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
     ) -> ServiceInfo | None:
         """Select a service instance based on the algorithm."""
         pass
@@ -62,13 +63,13 @@ class RoundRobinAlgorithm(LoadBalancingAlgorithm):
     """Round-robin load balancing algorithm."""
 
     def __init__(self):
-        self._counters: Dict[str, int] = {}
+        self._counters: dict[str, int] = {}
 
     def _is_service_available(self, service: ServiceInfo) -> bool:
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -100,7 +101,7 @@ class LeastConnectionsAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -122,7 +123,7 @@ class RandomAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -143,7 +144,7 @@ class WeightedAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -170,7 +171,7 @@ class HealthBasedAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: List[ServiceInfo], metrics: Dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -225,18 +226,18 @@ class LoadBalancer:
         circuit_breaker_timeout: float = 60.0,
         enable_sticky_sessions: bool = False,
     ):
-        self.strategy = strategy
-        self.circuit_breaker_threshold = circuit_breaker_threshold
-        self.circuit_breaker_timeout = circuit_breaker_timeout
+        self.strategy = strategy,
+        self.circuit_breaker_threshold = circuit_breaker_threshold,
+        self.circuit_breaker_timeout = circuit_breaker_timeout,
         self.enable_sticky_sessions = enable_sticky_sessions
 
-        # Service metrics tracking
-        self._service_metrics: Dict[str, ServiceMetrics] = {}
+        # Service metrics tracking,
+        self._service_metrics: dict[str, ServiceMetrics] = {}
 
         # Sticky session mapping (session_id -> service_id)
-        self._sticky_sessions: Dict[str, str] = {}
+        self._sticky_sessions: dict[str, str] = {}
 
-        # Load balancing algorithms
+        # Load balancing algorithms,
         self._algorithms = {
             LoadBalancingStrategy.ROUND_ROBIN: RoundRobinAlgorithm(),
             LoadBalancingStrategy.LEAST_CONNECTIONS: LeastConnectionsAlgorithm(),
@@ -261,7 +262,7 @@ class LoadBalancer:
         return service.healthy and not self._is_circuit_breaker_open(service.service_id)
 
     async def select_service_async(
-        self, services: List[ServiceInfo], session_id: str | None = None
+        self, services: list[ServiceInfo], session_id: str | None = None
     ) -> ServiceInfo | None:
         """Select a service instance for load balancing.
 
@@ -326,34 +327,34 @@ class LoadBalancer:
 
         metrics = self._service_metrics[service_id]
 
-        # Track active connection
-        metrics.active_connections += 1
-        metrics.total_requests += 1
+        # Track active connection,
+        metrics.active_connections += 1,
+        metrics.total_requests += 1,
         metrics.last_request_time = time.time()
 
         start_time = time.time()
 
         try:
-            # Execute request through circuit breaker if available
+            # Execute request through circuit breaker if available,
             if metrics.circuit_breaker:
                 result = await metrics.circuit_breaker.call_async(request_func, *args, **kwargs)
             else:
                 result = await request_func(*args, **kwargs)
 
-            # Record success
-            metrics.successful_requests += 1
+            # Record success,
+            metrics.successful_requests += 1,
             response_time = time.time() - start_time
 
             # Update average response time (exponential moving average)
             if metrics.average_response_time == 0:
-                metrics.average_response_time = response_time
+                metrics.average_response_time = response_time,
             else:
                 metrics.average_response_time = 0.8 * metrics.average_response_time + 0.2 * response_time
 
             return result
 
         except Exception as e:
-            # Record failure
+            # Record failure,
             metrics.failed_requests += 1
 
             raise LoadBalancerError(
@@ -361,12 +362,12 @@ class LoadBalancer:
             ) from e
 
         finally:
-            # Decrement active connections
+            # Decrement active connections,
             metrics.active_connections = max(0, metrics.active_connections - 1)
 
     async def execute_with_retry_async(
         self,
-        services: List[ServiceInfo],
+        services: list[ServiceInfo],
         request_func: Callable,
         max_retries: int = 3,
         session_id: str | None = None,
@@ -384,17 +385,17 @@ class LoadBalancer:
             **kwargs: Keyword arguments for request function
 
         Returns:
-            Request result
+            Request result,
         """
-        last_exception = None
+        last_exception = None,
         attempted_services = set()
 
         for attempt in range(max_retries + 1):
             try:
                 # Select service (excluding already attempted services if possible)
                 available_services = [
-                    s
-                    for s in services
+                    s,
+                    for s in services,
                     if s.service_id not in attempted_services or len(attempted_services) >= len(services)
                 ]
 
@@ -435,7 +436,7 @@ class LoadBalancer:
         """
         return self._service_metrics.get(service_id)
 
-    def get_all_metrics(self) -> Dict[str, ServiceMetrics]:
+    def get_all_metrics(self) -> dict[str, ServiceMetrics]:
         """Get metrics for all services.
 
         Returns:
@@ -472,7 +473,7 @@ class LoadBalancer:
                 return True
         return False
 
-    def get_load_balancer_stats(self) -> Dict[str, Any]:
+    def get_load_balancer_stats(self) -> dict[str, Any]:
         """Get load balancer statistics.
 
         Returns:

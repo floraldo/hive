@@ -14,10 +14,9 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 
-def run_git_command(cmd: List[str]) -> str:
+def run_git_command(cmd: list[str]) -> str:
     """Run a git command and return output"""
     try:
         result = subprocess.run(["git"] + cmd, capture_output=True, text=True, check=True, cwd=Path.cwd())
@@ -28,7 +27,7 @@ def run_git_command(cmd: List[str]) -> str:
         return ""
 
 
-def get_all_branches() -> Dict[str, List[str]]:
+def get_all_branches() -> dict[str, list[str]]:
     """Get all branches categorized by type"""
     output = run_git_command(["branch", "-a"])
 
@@ -56,7 +55,7 @@ def get_all_branches() -> Dict[str, List[str]]:
     return branches
 
 
-def get_merged_branches() -> List[str]:
+def get_merged_branches() -> list[str]:
     """Get branches that have been merged into main"""
     output = run_git_command(["branch", "--merged", "main"])
     merged = []
@@ -83,7 +82,7 @@ def get_branch_last_commit_date(branch: str) -> datetime:
     return datetime.now()
 
 
-def analyze_branch_staleness(branches: List[str], days_threshold: int = 90) -> Dict[str, List[Tuple[str, int]]]:
+def analyze_branch_staleness(branches: list[str], days_threshold: int = 90) -> dict[str, list[tuple[str, int]]]:
     """Analyze branches for staleness"""
     cutoff_date = datetime.now() - timedelta(days=days_threshold)
 
@@ -108,7 +107,7 @@ def analyze_branch_staleness(branches: List[str], days_threshold: int = 90) -> D
     }
 
 
-def analyze_branch_naming_patterns(branches: List[str]) -> Dict[str, List[str]]:
+def analyze_branch_naming_patterns(branches: list[str]) -> dict[str, list[str]]:
     """Analyze branch naming consistency"""
     patterns = {"feature": [], "agent": [], "worker": [], "test": [], "cleanup": [], "other": []}
 

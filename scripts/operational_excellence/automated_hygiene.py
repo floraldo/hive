@@ -17,7 +17,6 @@ import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import List
 
 import requests
 
@@ -34,7 +33,7 @@ class RepositoryHygieneScanner:
         }
         self.stats = {"branches_analyzed": 0, "links_checked": 0, "files_scanned": 0, "todos_found": 0}
 
-    def run_git_command(self, cmd: List[str]) -> str:
+    def run_git_command(self, cmd: list[str]) -> str:
         """Run a git command and return output"""
         try:
             result = subprocess.run(["git"] + cmd, capture_output=True, text=True, check=True, cwd=self.repo_root)
@@ -112,7 +111,7 @@ class RepositoryHygieneScanner:
 
         for md_file in md_files:
             try:
-                with open(md_file, "r", encoding="utf-8") as f:
+                with open(md_file, encoding="utf-8") as f:
                     content = f.read()
 
                 self.stats["files_scanned"] += 1
@@ -194,7 +193,7 @@ class RepositoryHygieneScanner:
 
         for py_file in py_files:
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 self.stats["files_scanned"] += 1
@@ -255,7 +254,7 @@ class RepositoryHygieneScanner:
 
         for md_file in md_files:
             try:
-                with open(md_file, "r", encoding="utf-8") as f:
+                with open(md_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Basic checks

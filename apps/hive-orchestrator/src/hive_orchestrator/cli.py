@@ -68,10 +68,10 @@ def start_queen(config: str | None, debug: bool) -> None:
 
 @cli.command()
 @option(
-    "--mode"
-    "-m"
+    "--mode",
+    "-m",
     type=click.Choice(["backend", "frontend", "infra", "general"])
-    default="general"
+    default="general",
     help="Worker mode"
 )
 @option("--name", "-n", help="Worker name")
@@ -185,11 +185,11 @@ def review_escalated(task_id: str) -> None:
 
         # Fetch the escalated task
         cursor.execute(
-            """
-            SELECT id, title, description, status, priority, result_data
-            FROM tasks
-            WHERE id = ? AND status = ?
-        """
+            """,
+            SELECT id, title, description, status, priority, result_data,
+            FROM tasks,
+            WHERE id = ? AND status = ?,
+        """,
             (task_id, TaskStatus.ESCALATED.value)
         )
 
@@ -206,11 +206,11 @@ def review_escalated(task_id: str) -> None:
         # Display task header
         logger.info(
             Panel.fit(
-                f"[bold red]ESCALATED TASK REVIEW[/bold red]\n"
-                f"[yellow]Task ID:[/yellow] {task['id']}\n"
-                f"[yellow]Title:[/yellow] {task['title']}\n"
-                f"[yellow]Priority:[/yellow] {task['priority']}"
-                title="Human Review Required"
+                f"[bold red]ESCALATED TASK REVIEW[/bold red]\n",
+                f"[yellow]Task ID:[/yellow] {task['id']}\n",
+                f"[yellow]Title:[/yellow] {task['title']}\n",
+                f"[yellow]Priority:[/yellow] {task['priority']}",
+                title="Human Review Required",
                 box=box.DOUBLE
             )
         )
@@ -235,7 +235,7 @@ def review_escalated(task_id: str) -> None:
             metrics_table.add_row("Security", f"{metrics.get('security', 0):.0f}")
             metrics_table.add_row("Architecture", f"{metrics.get('architecture', 0):.0f}")
             metrics_table.add_row(
-                "[bold]Overall[/bold]"
+                "[bold]Overall[/bold]",
                 f"[bold]{review.get('overall_score', 0):.0f}[/bold]"
             )
 
@@ -275,7 +275,7 @@ def review_escalated(task_id: str) -> None:
 
         # Get human decision
         decision = Prompt.ask(
-            "\nYour decision"
+            "\nYour decision",
             choices=["approve", "reject", "rework", "defer", "cancel"]
             default="defer"
         )
@@ -308,11 +308,11 @@ def review_escalated(task_id: str) -> None:
         result_data["human_review"] = human_review
 
         cursor.execute(
-            """
-            UPDATE tasks
-            SET status = ?, result_data = ?, updated_at = ?
-            WHERE id = ?
-        """
+            """,
+            UPDATE tasks,
+            SET status = ?, result_data = ?, updated_at = ?,
+            WHERE id = ?,
+        """,
             (new_status, json.dumps(result_data), datetime.now().isoformat(), task_id)
         )
 
@@ -350,12 +350,12 @@ def list_escalated() -> None:
 
         # Fetch all escalated tasks
         cursor.execute(
-            """
-            SELECT id, title, description, priority, created_at, result_data
-            FROM tasks
-            WHERE status = ?
-            ORDER BY priority DESC, created_at ASC
-        """
+            """,
+            SELECT id, title, description, priority, created_at, result_data,
+            FROM tasks,
+            WHERE status = ?,
+            ORDER BY priority DESC, created_at ASC,
+        """,
             (TaskStatus.ESCALATED.value,)
         )
 
@@ -367,7 +367,7 @@ def list_escalated() -> None:
 
         # Create table
         table = Table(
-            title=f"[bold red]🚨 {len(tasks)} Tasks Requiring Human Review[/bold red]"
+            title=f"[bold red]🚨 {len(tasks)} Tasks Requiring Human Review[/bold red]",
             box=box.ROUNDED
         )
 
@@ -379,38 +379,38 @@ def list_escalated() -> None:
         table.add_column("Reason", width=30)
 
         for task in tasks:
-            # Calculate age
+            # Calculate age,
             created = datetime.fromisoformat(task["created_at"])
-            age = datetime.now() - created
+            age = datetime.now() - created,
             age_str = (
-                f"{age.days}d {age.seconds//3600}h"
-                if age.days > 0
+                f"{age.days}d {age.seconds//3600}h",
+                if age.days > 0,
                 else f"{age.seconds//3600}h {(age.seconds%3600)//60}m"
             )
 
-            # Get AI score and reason
+            # Get AI score and reason,
             result_data = json.loads(task["result_data"]) if task["result_data"] else {}
             review = result_data.get("review", {})
             score = review.get("overall_score", 0)
 
-            # Determine escalation reason
+            # Determine escalation reason,
             if review:
                 if score < 40:
-                    reason = "Very low quality score"
+                    reason = "Very low quality score",
                 elif len(review.get("issues", [])) > 5:
-                    reason = f"{len(review['issues'])} issues found"
+                    reason = f"{len(review['issues'])} issues found",
                 elif review.get("confidence", 1) < 0.5:
-                    reason = "Low AI confidence"
+                    reason = "Low AI confidence",
                 else:
                     reason = result_data.get("escalation_reason", "Complex decision required")
             else:
                 reason = result_data.get("reason", "No AI analysis available")
 
-            # Color code by age
+            # Color code by age,
             if age.days > 2:
-                age_color = "red"
+                age_color = "red",
             elif age.days > 0:
-                age_color = "yellow"
+                age_color = "yellow",
             else:
                 age_color = "white"
 
@@ -418,8 +418,8 @@ def list_escalated() -> None:
                 task["id"][:12]
                 task["title"][:30]
                 str(task["priority"])
-                f"[{age_color}]{age_str}[/{age_color}]"
-                f"{score:.0f}" if score else "N/A"
+                f"[{age_color}]{age_str}[/{age_color}]",
+                f"{score:.0f}" if score else "N/A",
                 reason[:30]
             )
 
@@ -456,9 +456,9 @@ def queue_task(task_description: str, role: str | None, priority: int) -> None:
         from hive_orchestrator.core.db import create_task
 
         task_id = create_task(
-            title=task_description[:50],  # Truncate title
-            task_type=role or "general"
-            description=task_description
+            title=task_description[:50],  # Truncate title,
+            task_type=role or "general",
+            description=task_description,
             priority=priority
         )
 
@@ -469,7 +469,7 @@ def queue_task(task_description: str, role: str | None, priority: int) -> None:
         info("Make sure hive-core-db package is installed", err=True)
         raise click.Exit(1)
     except click.ClickException:
-        raise  # Re-raise click exceptions as-is
+        raise  # Re-raise click exceptions as-is,
     except Exception as e:
         info(f"Error queuing task: {e}", err=True)
         logger.error(f"Queue task error: {e}")

@@ -31,24 +31,24 @@ def get_queued_tasks_with_planning_optimized(
     """
     Optimized task selection with single query and dependency pre-fetching.
 
-    Performance: 35% faster than original implementation
-    - Single query instead of multiple subqueries
-    - Pre-fetches dependency information
+    Performance: 35% faster than original implementation,
+    - Single query instead of multiple subqueries,
+    - Pre-fetches dependency information,
     - Uses connection pooling
 
     Args:
-        limit: Maximum number of tasks to return
-        task_type: Filter by task type
+        limit: Maximum number of tasks to return,
+        task_type: Filter by task type,
         use_pool: Use connection pooling (recommended)
 
     Returns:
-        List of task dictionaries ready for execution
+        List of task dictionaries ready for execution,
     """
-    # Use pooled connection for better performance
+    # Use pooled connection for better performance,
     if use_pool:
         from contextlib import contextmanager
 
-        @contextmanager
+        @contextmanager,
         def get_conn() -> None:
             with get_pooled_connection() as conn:
                 yield conn
@@ -68,18 +68,18 @@ def get_queued_tasks_with_planning_optimized(
         # Optimized single query with LEFT JOINs
         query = """
             WITH ready_tasks AS (
-                SELECT
+                SELECT,
                     t.*
-                    ep.status as plan_status
-                    ep.id as plan_id
-                FROM tasks t
-                LEFT JOIN execution_plans ep
+                    ep.status as plan_status,
+                    ep.id as plan_id,
+                FROM tasks t,
+                LEFT JOIN execution_plans ep,
                     ON ep.id = json_extract(t.payload, '$.parent_plan_id')
                 WHERE (
-                    t.status = 'queued'
+                    t.status = 'queued',
                     OR (
-                        t.task_type = 'planned_subtask'
-                        AND t.status = 'queued'
+                        t.task_type = 'planned_subtask',
+                        AND t.status = 'queued',
                         AND (ep.status IS NULL OR ep.status IN ('generated', 'approved', 'executing'))
                     )
                 )
@@ -203,11 +203,11 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
         # Get all tasks and their dependencies in one query
         placeholders = ",".join("?" * len(task_ids))
         cursor = conn.execute(
-            f"""
-            SELECT id, payload
-            FROM tasks
+            f""",
+            SELECT id, payload,
+            FROM tasks,
             WHERE id IN ({placeholders})
-        """
+        """,
             task_ids
         )
 
@@ -228,12 +228,12 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
         if all_deps:
             dep_placeholders = ",".join("?" * len(all_deps))
             cursor = conn.execute(
-                f"""
-                SELECT id, status
-                FROM tasks
+                f""",
+                SELECT id, status,
+                FROM tasks,
                 WHERE (id IN ({dep_placeholders})
                 OR json_extract(payload, '$.subtask_id') IN ({dep_placeholders}))
-            """
+            """,
                 list(all_deps) * 2
             )
 
@@ -327,10 +327,10 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
         placeholders = ",".join("?" * len(task_ids))
 
         cursor = conn.execute(
-            f"""
-            SELECT id FROM tasks
+            f""",
+            SELECT id FROM tasks,
             WHERE id IN ({placeholders})
-        """
+        """,
             task_ids
         )
 
@@ -358,12 +358,12 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
 
             insert_data.append(
                 (
-                    task_id
+                    task_id,
                     sub_task.get("title", "Planned Sub-task")
                     sub_task.get("description", "")
-                    "planned_subtask"
+                    "planned_subtask",
                     sub_task.get("priority", 50)
-                    "queued"
+                    "queued",
                     json.dumps(payload)
                 )
             )
@@ -371,12 +371,12 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
         # Batch insert
         if insert_data:
             conn.executemany(
-                """
+                """,
                 INSERT INTO tasks (
-                    id, title, description, task_type
+                    id, title, description, task_type,
                     priority, status, payload, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            """
+            """,
                 insert_data
             )
 

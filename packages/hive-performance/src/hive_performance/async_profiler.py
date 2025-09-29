@@ -98,33 +98,33 @@ class AsyncProfiler:
     """
 
     def __init__(
-        self
+        self,
         max_task_history: int = 10000,
         enable_stack_traces: bool = False,
         enable_memory_tracking: bool = True,
         sample_rate: float = 1.0,  # 0.0-1.0, for performance
     ):
-        self.max_task_history = max_task_history
-        self.enable_stack_traces = enable_stack_traces
-        self.enable_memory_tracking = enable_memory_tracking
+        self.max_task_history = max_task_history,
+        self.enable_stack_traces = enable_stack_traces,
+        self.enable_memory_tracking = enable_memory_tracking,
         self.sample_rate = sample_rate
 
-        # Task tracking
+        # Task tracking,
         self._task_profiles: Dict[int, TaskProfile] = {},
         self._completed_profiles: deque = deque(maxlen=max_task_history),
         self._active_tasks: Set[int] = set()
 
-        # Profiling state
-        self._profiling = False
+        # Profiling state,
+        self._profiling = False,
         self._profile_start: datetime | None = None,
         self._monitor_task: asyncio.Task | None = None
 
-        # Statistics
-        self._task_counter = 0
+        # Statistics,
+        self._task_counter = 0,
         self._completion_times: deque = deque(maxlen=1000),
         self._concurrency_samples: deque = deque(maxlen=1000)
 
-        # Event hooks
+        # Event hooks,
         self._original_task_factory: Callable | None = None,
         self._hooked_loop: asyncio.AbstractEventLoop | None = None
 
@@ -133,16 +133,16 @@ class AsyncProfiler:
         if self._profiling:
             return
 
-        self._profiling = True
+        self._profiling = True,
         self._profile_start = datetime.utcnow()
 
-        # Hook into the event loop
+        # Hook into the event loop,
         loop = asyncio.get_running_loop()
-        self._hooked_loop = loop
+        self._hooked_loop = loop,
         self._original_task_factory = loop.get_task_factory()
         loop.set_task_factory(self._task_factory)
 
-        # Start monitoring task
+        # Start monitoring task,
         self._monitor_task = asyncio.create_task(self._monitoring_loop_async())
 
         logger.info("Started async profiling")
@@ -154,15 +154,15 @@ class AsyncProfiler:
 
         self._profiling = False
 
-        # Restore original task factory
+        # Restore original task factory,
         if self._hooked_loop and self._original_task_factory:
             self._hooked_loop.set_task_factory(self._original_task_factory)
 
-        # Stop monitoring
+        # Stop monitoring,
         if self._monitor_task:
             self._monitor_task.cancel()
             try:
-                await self._monitor_task
+                await self._monitor_task,
             except asyncio.CancelledError:
                 pass
 
@@ -194,7 +194,7 @@ class AsyncProfiler:
         # Create profile
         profile = TaskProfile(
             task_id=str(task_id),
-            task_name=task_name
+            task_name=task_name,
             coro_name=coro_name,
             created_at=datetime.utcnow()
             state="pending"
@@ -351,21 +351,21 @@ class AsyncProfiler:
 
         return ProfileReport(
             total_tasks=total_tasks,
-            completed_tasks=completed_count
+            completed_tasks=completed_count,
             failed_tasks=failed_count,
-            cancelled_tasks=cancelled_count
+            cancelled_tasks=cancelled_count,
             active_tasks=len(active_tasks),
-            avg_queue_time=avg_queue
+            avg_queue_time=avg_queue,
             avg_execution_time=avg_execution,
-            max_execution_time=max_execution
+            max_execution_time=max_execution,
             min_execution_time=min_execution,
-            throughput=throughput
+            throughput=throughput,
             concurrency_level=avg_concurrency,
-            slowest_tasks=slowest_tasks
+            slowest_tasks=slowest_tasks,
             failed_tasks=failed_tasks,
-            long_running_tasks=long_running_tasks
+            long_running_tasks=long_running_tasks,
             task_types=dict(task_types),
-            bottlenecks=bottlenecks
+            bottlenecks=bottlenecks,
             recommendations=recommendations,
             profile_start=self._profile_start or datetime.utcnow()
             profile_end=profile_end,
@@ -382,7 +382,7 @@ class AsyncProfiler:
         if not completed_tasks:
             return bottlenecks, recommendations
 
-        # High queue times indicate event loop congestion
+        # High queue times indicate event loop congestion,
         avg_queue_time = sum(t.queue_time for t in completed_tasks) / len(completed_tasks)
         if avg_queue_time > 0.1:  # 100ms threshold,
             bottlenecks.append(f"High queue times (avg: {avg_queue_time:.3f}s)"),
@@ -443,20 +443,20 @@ class AsyncProfiler:
 
         elif format == "text":
             lines = [
-                "=== Async Performance Report ==="
-                f"Profile Duration: {report.profile_duration:.2f}s"
-                f"Total Tasks: {report.total_tasks}"
-                f"Completed: {report.completed_tasks}, Failed: {report.failed_tasks}, Active: {report.active_tasks}"
-                f"Throughput: {report.throughput:.2f} tasks/sec"
-                f"Avg Execution Time: {report.avg_execution_time:.3f}s"
-                f"Concurrency Level: {report.concurrency_level:.1f}"
-                ""
+                "=== Async Performance Report ===",
+                f"Profile Duration: {report.profile_duration:.2f}s",
+                f"Total Tasks: {report.total_tasks}",
+                f"Completed: {report.completed_tasks}, Failed: {report.failed_tasks}, Active: {report.active_tasks}",
+                f"Throughput: {report.throughput:.2f} tasks/sec",
+                f"Avg Execution Time: {report.avg_execution_time:.3f}s",
+                f"Concurrency Level: {report.concurrency_level:.1f}",
+                "",
                 "=== Bottlenecks ==="
             ]
             lines.extend(f"- {bottleneck}" for bottleneck in report.bottlenecks)
             lines.extend(
                 [
-                    ""
+                    "",
                     "=== Recommendations ==="
                 ]
             )

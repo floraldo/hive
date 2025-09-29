@@ -10,10 +10,9 @@ the entire Hive ecosystem.
 """
 
 from pathlib import Path
-from typing import Optional
 
 
-def find_hive_app_root(start_path: Optional[Path] = None) -> Optional[Path]:
+def find_hive_app_root(start_path: Path | None = None) -> Path | None:
     """
     Find the root directory of a Hive app by looking for hive-app.toml.
 
@@ -36,7 +35,7 @@ def find_hive_app_root(start_path: Optional[Path] = None) -> Optional[Path]:
     return None
 
 
-def find_hive_package_root(start_path: Optional[Path] = None) -> Optional[Path]:
+def find_hive_package_root(start_path: Path | None = None) -> Path | None:
     """
     Find the root directory of a Hive package by looking for pyproject.toml.
 

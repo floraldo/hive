@@ -1,14 +1,15 @@
 """Rainwater harvesting source component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any
+from typing import Any, Optional
 
 import cvxpy as cp
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, GenerationTechnicalParams
 from ecosystemiser.system_model.components.shared.base_classes import BaseGenerationOptimization, BaseGenerationPhysics
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -366,8 +367,8 @@ class RainwaterSource(Component):
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
-                f"{self.name} at t={t}: rainfall={rainfall_intensity:.3f}mm/h, "
-                f"collection={collection_output:.3f}m³/h"
+                f"{self.name} at t={t}: rainfall={rainfall_intensity:.3f}mm/h, ",
+                f"collection={collection_output:.3f}m³/h",
             )
 
         return collection_output
@@ -394,7 +395,7 @@ class RainwaterSource(Component):
         """String representation."""
         return (
             f"RainwaterSource(name='{self.name}', ",
-            f"area={self.catchment_area_m2}m², "
-            f"max_collection={self.Q_max}m³/h, "
+            f"area={self.catchment_area_m2}m², ",
+            f"max_collection={self.Q_max}m³/h, ",
             f"fidelity={self.technical.fidelity_level.value})",
         )

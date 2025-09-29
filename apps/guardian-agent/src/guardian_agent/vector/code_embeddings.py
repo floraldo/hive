@@ -3,7 +3,7 @@
 import ast
 import hashlib
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hive_ai.vector import EmbeddingModel
 from hive_cache import CacheClient
@@ -39,7 +39,7 @@ class CodeEmbeddingGenerator:
         content: str,
         chunk_size: int = 50,
         overlap: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Generate embeddings for a file using sliding window approach.
 
@@ -123,8 +123,8 @@ class CodeEmbeddingGenerator:
         self,
         pattern: str,
         pattern_type: str = "code",
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Generate embedding for a specific code pattern.
 
@@ -162,7 +162,7 @@ class CodeEmbeddingGenerator:
 
         return embedding_data
 
-    def _extract_structure(self, tree: ast.AST) -> Dict[str, Any]:
+    def _extract_structure(self, tree: ast.AST) -> dict[str, Any]:
         """Extract structural information from AST."""
         structure = {
             "classes": [],
@@ -204,7 +204,7 @@ class CodeEmbeddingGenerator:
         file_path: Path,
         start_line: int,
         end_line: int,
-        structure_info: Dict[str, Any],
+        structure_info: dict[str, Any],
     ) -> str:
         """Build enriched context for embedding generation."""
         # Include structural context
@@ -233,7 +233,7 @@ class CodeEmbeddingGenerator:
         self,
         pattern: str,
         pattern_type: str,
-        metadata: Optional[Dict[str, Any]],
+        metadata: dict[str, Any] | None,
     ) -> str:
         """Build context for pattern embedding."""
         context_parts = [

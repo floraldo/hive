@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import hive_db as hive_core_db
 from hive_logging import get_logger
@@ -24,7 +24,7 @@ class DatabaseAdapter:
         # Initialize the database
         hive_core_db.init_db()
 
-    def _parse_task_payload(self, task: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _parse_task_payload(self, task: dict[str, Any]) -> Optional[dict[str, Any]]:
         """
         Safely parse task payload from string or dict format.
 
@@ -50,7 +50,7 @@ class DatabaseAdapter:
             logger.warning(f"Unexpected payload type: {type(payload)}")
             return None
 
-    def get_pending_reviews(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_pending_reviews(self, limit: int = 10) -> list[dict[str, Any]]:
         """
         Get tasks pending review
 
@@ -69,7 +69,7 @@ class DatabaseAdapter:
             logger.error(f"Error fetching pending reviews: {e}")
             return []
 
-    def get_task_code_files(self, task_id: str) -> Dict[str, str]:
+    def get_task_code_files(self, task_id: str) -> dict[str, str]:
         """
         Retrieve code files associated with a task
 
@@ -110,7 +110,7 @@ class DatabaseAdapter:
             logger.error(f"Error fetching code files for task {task_id}: {e}")
             return {}
 
-    def get_test_results(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def get_test_results(self, task_id: str) -> Optional[dict[str, Any]]:
         """
         Retrieve test results for a task
 
@@ -185,7 +185,7 @@ class DatabaseAdapter:
             logger.error(f"Error fetching transcript for task {task_id}: {e}")
             return None
 
-    def update_task_status(self, task_id: str, new_status: str, review_data: Dict[str, Any]) -> bool:
+    def update_task_status(self, task_id: str, new_status: str, review_data: dict[str, Any]) -> bool:
         """
         Update task status after review
 
@@ -236,7 +236,7 @@ class DatabaseAdapter:
             logger.error(f"Error updating task {task_id} status: {e}")
             return False
 
-    def store_review_report(self, task_id: str, report: Dict[str, Any]) -> bool:
+    def store_review_report(self, task_id: str, report: dict[str, Any]) -> bool:
         """
         Store detailed review report
 
@@ -265,7 +265,7 @@ class DatabaseAdapter:
             logger.error(f"Error storing review report for task {task_id}: {e}")
             return False
 
-    def get_task_history(self, task_id: str) -> List[Dict[str, Any]]:
+    def get_task_history(self, task_id: str) -> list[dict[str, Any]]:
         """
         Get review history for a task
 
@@ -296,7 +296,7 @@ class DatabaseAdapter:
             logger.error(f"Error fetching history for task {task_id}: {e}")
             return []
 
-    def get_agent_statistics(self) -> Dict[str, Any]:
+    def get_agent_statistics(self) -> dict[str, Any]:
         """
         Get overall AI reviewer statistics
 

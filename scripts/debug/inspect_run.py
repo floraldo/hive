@@ -12,7 +12,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Add package paths
 sys.path.insert(0, str(Path(__file__).parent.parent / "packages" / "hive-core-db" / "src"))
@@ -78,7 +78,7 @@ class RunInspector:
         self.report["metrics"]["files_modified"] = len(modified_files)
         self.report["metrics"]["total_files"] = len(all_files)
 
-    def analyze_single_file(self, file_path: str) -> Optional[Dict[str, Any]]:
+    def analyze_single_file(self, file_path: str) -> dict[str, Any] | None:
         """Analyze a single file"""
         path = Path(file_path)
 
@@ -95,7 +95,7 @@ class RunInspector:
         # Count lines for text files
         if path.suffix in [".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".go", ".rs", ".cpp", ".c", ".h"]:
             try:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     lines = f.readlines()
                     analysis["lines"] = len(lines)
                     analysis["non_empty_lines"] = len([l for l in lines if l.strip()])
@@ -244,7 +244,7 @@ class RunInspector:
         else:
             return "rework"  # Needs significant improvement
 
-    def inspect(self) -> Dict[str, Any]:
+    def inspect(self) -> dict[str, Any]:
         """Run full inspection"""
         # Initialize database
         hive_core_db.init_db()

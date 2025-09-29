@@ -36,9 +36,9 @@ class TaskManager:
         self._task_counter = 0
 
     async def submit_task_async(
-        self
+        self,
         coro: Awaitable[T]
-        task_id: str | None = None
+        task_id: str | None = None,
         timeout: float | None = None
     ) -> str:
         """
@@ -130,8 +130,8 @@ class TaskManager:
 
         # Record cancellation
         self.completed_tasks[task_id] = TaskResult(
-            task_id=task_id
-            success=False
+            task_id=task_id,
+            success=False,
             error=asyncio.CancelledError("Task was cancelled")
         )
 
@@ -148,7 +148,7 @@ class TaskManager:
         return {
             "active_count": len(self.active_tasks)
             "completed_count": len(self.completed_tasks)
-            "max_concurrent": self.max_concurrent
+            "max_concurrent": self.max_concurrent,
             "active_tasks": list(self.active_tasks.keys())
             "success_rate": self._calculate_success_rate()
         }
@@ -204,8 +204,8 @@ async def gather_with_concurrency_async(
 
 async def run_with_timeout_and_retry_async(
     coro: Awaitable[T]
-    timeout: float
-    max_retries: int = 3
+    timeout: float,
+    max_retries: int = 3,
     backoff_factor: float = 1.0
 ) -> T:
     """

@@ -14,7 +14,7 @@ import statistics
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 def test_security_performance():
@@ -28,8 +28,8 @@ def test_security_performance():
     validator = InputValidator()
     test_prompts = [
         "Simple test",
-        "A" * 1000,  # 1KB
-        "A" * 10000,  # 10KB
+        "A" * 1000,  # 1KB,
+        "A" * 10000,  # 10KB,
         "javascript:alert('test')",  # Injection test
     ]
 
@@ -341,7 +341,7 @@ def run_performance_tests():
     return all_results
 
 
-def generate_summary(results: Dict[str, Any], total_duration: float) -> Dict[str, Any]:
+def generate_summary(results: dict[str, Any], total_duration: float) -> dict[str, Any]:
     """Generate performance summary with insights."""
     operations = []
     errors = []

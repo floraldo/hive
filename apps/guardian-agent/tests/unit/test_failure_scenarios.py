@@ -9,6 +9,7 @@ from guardian_agent.core.config import GuardianConfig
 from guardian_agent.learning.review_history import ReviewHistory
 from guardian_agent.review.engine import ReviewEngine
 from guardian_agent.webhooks.github_handler import GitHubWebhookHandler
+
 from hive_ai.exceptions import APIError, RateLimitError
 
 
@@ -187,9 +188,9 @@ class TestMalformedInput:
 
         # Missing required fields
         malformed_payloads = [
-            {},  # Empty
-            {"action": "opened"},  # Missing PR info
-            {"pull_request": {}},  # Missing action
+            {},  # Empty,
+            {"action": "opened"},  # Missing PR info,
+            {"pull_request": {}},  # Missing action,
             {"action": "opened", "pull_request": {"number": "not_a_number"}},
         ]
 
@@ -216,7 +217,7 @@ class TestMalformedInput:
         engine = ReviewEngine(config)
 
         # Binary content that can't be decoded as UTF-8
-        binary_content = b"\x00\x01\x02\x03\xFF\xFE"
+        binary_content = b"\x00\x01\x02\x03\xff\xfe"
 
         with patch(
             "builtins.open", MagicMock(side_effect=UnicodeDecodeError("utf-8", binary_content, 0, 1, "invalid"))

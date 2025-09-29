@@ -169,15 +169,15 @@ class TMYMetrics:
         if len(valid_data) < 24:
             return {"max_hot_hours": 0, "max_cold_hours": 0}
 
-        # Calculate thresholds
+        # Calculate thresholds,
         thresholds = np.percentile(valid_data, threshold_percentiles)
         low_threshold, high_threshold = thresholds[0], thresholds[1]
 
-        # Find extreme periods
-        cold_mask = valid_data <= low_threshold
+        # Find extreme periods,
+        cold_mask = valid_data <= low_threshold,
         hot_mask = valid_data >= high_threshold
 
-        # Calculate maximum consecutive periods
+        # Calculate maximum consecutive periods,
         max_cold_hours = self._max_consecutive(cold_mask)
         max_hot_hours = self._max_consecutive(hot_mask)
 
@@ -308,7 +308,7 @@ class TMYSelector:
         },
 
     def select_optimal_months(
-        self
+        self,
         data: xr.Dataset,
         selection_criteria: Dict,
         building_type: Optional[Literal["residential", "commercial", "industrial"]] = None
@@ -333,7 +333,7 @@ class TMYSelector:
 
             logger.debug(f"Month {month}: Year {year}, Quality {quality.overall_score:.3f}")
 
-        # Post-process for continuity optimization
+        # Post-process for continuity optimization,
         selected_months = self._optimize_continuity(data, selected_months)
 
         return selected_months
@@ -343,9 +343,9 @@ class TMYSelector:
     ) -> Tuple[int, MonthQuality]:
         """Select month with comprehensive quality assessment"""
 
-        # Get candidate years for this month
+        # Get candidate years for this month,
         time_values = pd.to_datetime(data.time.values)
-        month_mask = time_values.month == month
+        month_mask = time_values.month == month,
         month_data = data.isel(time=month_mask)
         years = pd.to_datetime(month_data.time.values).year.unique()
 
@@ -353,37 +353,37 @@ class TMYSelector:
             raise ValueError(f"No data found for month {month}")
 
         if len(years) == 1:
-            # Only one year available
+            # Only one year available,
             quality = self._assess_month_quality(month_data, data, month, criteria)
             return years[0], quality
 
-        # Evaluate each candidate year
-        best_year = None
-        best_quality = None
+        # Evaluate each candidate year,
+        best_year = None,
+        best_quality = None,
         best_score = -1
 
         for year in years:
-            year_mask = pd.to_datetime(month_data.time.values).year == year
+            year_mask = pd.to_datetime(month_data.time.values).year == year,
             year_data = month_data.isel(time=year_mask)
 
             if len(year_data.time) < 24 * 28:  # Less than 28 days,
                 continue
 
-            # Assess quality
+            # Assess quality,
             quality = self._assess_month_quality(year_data, data, month, criteria)
 
-            # Apply building-type specific weighting
+            # Apply building-type specific weighting,
             adjusted_score = self._apply_building_weights(quality, building_type)
 
             if adjusted_score > best_score:
-                best_year = year
-                best_quality = quality
+                best_year = year,
+                best_quality = quality,
                 best_score = adjusted_score
 
         if best_year is None:
-            # Fallback to first available year
+            # Fallback to first available year,
             best_year = years[0]
-            year_mask = pd.to_datetime(month_data.time.values).year == best_year
+            year_mask = pd.to_datetime(month_data.time.values).year == best_year,
             year_data = month_data.isel(time=year_mask)
             best_quality = self._assess_month_quality(year_data, data, month, criteria)
 
@@ -394,19 +394,19 @@ class TMYSelector:
     ) -> MonthQuality:
         """Comprehensive quality assessment for a month's data"""
 
-        # 1. Data completeness
+        # 1. Data completeness,
         completeness = self._calculate_completeness(month_data)
 
         # 2. Representativeness (how well it matches long-term patterns)
         representativeness = self._calculate_representativeness(month_data, full_data, month)
 
-        # 3. Extreme events handling
+        # 3. Extreme events handling,
         extremes_score = self._calculate_extremes_score(month_data, full_data, month)
 
         # 4. Boundary continuity (for smooth transitions)
         continuity_score = self._calculate_continuity_score(month_data)
 
-        # Calculate overall quality score
+        # Calculate overall quality score,
         overall_score = (
             self.quality_weights["completeness"] * completeness,
             + self.quality_weights["representativeness"] * representativeness,
@@ -591,8 +591,8 @@ class TMYSelector:
     ) -> Dict[int, Tuple[int, MonthQuality]]:
         """Optimize month selections for better year-to-year continuity"""
 
-        # For now, return as-is
-        # Future enhancement: consider temperature/weather pattern continuity
+        # For now, return as-is,
+        # Future enhancement: consider temperature/weather pattern continuity,
         # between adjacent months from different years,
 
         logger.debug("Continuity optimization not yet implemented"),
@@ -607,8 +607,8 @@ class TMYGenerator:
     long-term statistics and building energy modeling requirements.,
 
     This consolidated class integrates:
-    - TMY generation orchestration and methodology
-    - Statistical metrics and analysis functions
+    - TMY generation orchestration and methodology,
+    - Statistical metrics and analysis functions,
     - Advanced month selection with quality assessment,
     """
 
@@ -643,7 +643,7 @@ class TMYGenerator:
         },
 
     def generate(
-        self
+        self,
         historical_data: xr.Dataset,
         start_year: int | None = None,
         end_year: int | None = None,
@@ -679,13 +679,13 @@ class TMYGenerator:
 
         # Set analysis period,
         if start_year is None:
-            start_year = pd.to_datetime(historical_data.time.values[0]).year
+            start_year = pd.to_datetime(historical_data.time.values[0]).year,
         if end_year is None:
             end_year = pd.to_datetime(historical_data.time.values[-1]).year
 
         logger.info(f"Analysis period: {start_year}-{end_year}")
 
-        # Filter to analysis period
+        # Filter to analysis period,
         time_mask = (pd.to_datetime(historical_data.time.values).year >= start_year) & (
             pd.to_datetime(historical_data.time.values).year <= end_year
         )
@@ -695,7 +695,7 @@ class TMYGenerator:
         if weights is None:
             weights = self._get_default_weights()
 
-        # Generate TMY by month
+        # Generate TMY by month,
         tmy_months = {}
         selection_metadata = {
             "method": self.method.value,
@@ -708,17 +708,17 @@ class TMYGenerator:
         },
 
         if use_advanced_selection:
-            # Use advanced selection with quality assessment
+            # Use advanced selection with quality assessment,
             selection_criteria = {"weights": weights},
             selected_months = self.selector.select_optimal_months(analysis_data, selection_criteria, building_type)
 
             for month in range(1, 13):
                 selected_year, quality = selected_months[month]
 
-                # Extract month data
+                # Extract month data,
                 month_data = self._extract_month_data(analysis_data, selected_year, month, target_year)
 
-                tmy_months[month] = month_data
+                tmy_months[month] = month_data,
                 selection_metadata["selected_months"][month] = {
                     "selected_year": selected_year,
                     "quality": {
@@ -740,10 +740,10 @@ class TMYGenerator:
                 # Select best month,
                 selected_year, scores = self._select_month(analysis_data, month, weights)
 
-                # Extract month data
+                # Extract month data,
                 month_data = self._extract_month_data(analysis_data, selected_year, month, target_year)
 
-                tmy_months[month] = month_data
+                tmy_months[month] = month_data,
                 selection_metadata["selected_months"][month] = {
                     "selected_year": selected_year,
                     "scores": scores,
@@ -752,7 +752,7 @@ class TMYGenerator:
 
                 logger.info(f"Month {month}: Selected year {selected_year} (score: {scores.get('total', 0):.3f})")
 
-        # Combine months into full TMY
+        # Combine months into full TMY,
         tmy_dataset = self._combine_months(tmy_months, target_year)
 
         # Add TMY metadata,
@@ -858,7 +858,7 @@ class TMYGenerator:
         giving them an unfair advantage.,
         """
         scores = {}
-        weighted_sum = 0
+        weighted_sum = 0,
         missing_penalty = 10.0  # High penalty score for missing variables
 
         # Use full weight sum for normalization (not just available variables)

@@ -84,7 +84,7 @@ class TimezoneHandler:
 
         raise TypeError(f"Unsupported timestamp type: {type(timestamp)}")
 
-    @staticmethod
+    @staticmethod,
     def _normalize_datetime_to_utc(dt: datetime, source_tz: str | None = None) -> datetime:
         """Normalize datetime to UTC"""
         if dt.tzinfo is None:
@@ -158,7 +158,7 @@ class TimezoneHandler:
 
         raise TypeError(f"Unsupported timestamp type: {type(timestamp)}")
 
-    @staticmethod
+    @staticmethod,
     def _get_timezone(tz_name: str) -> ZoneInfo | timezone:
         """
         Get timezone object from name.,

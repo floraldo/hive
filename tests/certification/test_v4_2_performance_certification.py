@@ -6,10 +6,11 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import psutil
 import pytest
+
 from hive_async import AdvancedTimeoutManager, TimeoutConfig
 from hive_cache import HiveCacheClient
 from hive_errors import AsyncErrorHandler, MonitoringErrorReporter
@@ -29,9 +30,9 @@ class CertificationResult:
     passed: bool
     target_value: float
     actual_value: float
-    improvement_factor: Optional[float] = None
-    baseline_value: Optional[float] = None
-    details: Dict[str, Any] = None
+    improvement_factor: float | None = None
+    baseline_value: float | None = None
+    details: dict[str, Any] = None
 
 
 @dataclass
@@ -44,8 +45,8 @@ class CertificationReport:
     passed_tests: int
     failed_tests: int
     performance_improvement: float
-    results: List[CertificationResult]
-    system_metrics: Dict[str, Any]
+    results: list[CertificationResult]
+    system_metrics: dict[str, Any]
 
 
 class V4PerformanceCertification:
@@ -56,9 +57,9 @@ class V4PerformanceCertification:
     """
 
     def __init__(self):
-        self.results: List[CertificationResult] = []
-        self.monitoring_service: Optional[MonitoringService] = None
-        self.start_time: Optional[datetime] = None
+        self.results: list[CertificationResult] = []
+        self.monitoring_service: MonitoringService | None = None
+        self.start_time: datetime | None = None
 
         # Performance baselines (V4.0 values)
         self.baselines = {
@@ -535,7 +536,7 @@ class V4PerformanceCertification:
                 )
                 current_timeout = timeout_manager.get_timeout("test_operation")
                 timeout_improvements.append(current_timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
         # Check if timeouts adapted
@@ -709,9 +710,9 @@ async def test_v4_2_certification_suite():
     assert report.overall_passed, f"Certification failed: {report.failed_tests} tests failed"
 
     # Assert minimum performance improvement
-    assert (
-        report.performance_improvement >= 3.0
-    ), f"Performance improvement {report.performance_improvement:.1f}x below minimum 3.0x"
+    assert report.performance_improvement >= 3.0, (
+        f"Performance improvement {report.performance_improvement:.1f}x below minimum 3.0x"
+    )
 
     # Log detailed results
     for result in report.results:

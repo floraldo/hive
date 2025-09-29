@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Callable, Dict, Generic, Optional, TypeVar
+from typing import Generic, TypeVar
 
 from hive_logging import get_logger
 
@@ -31,8 +32,8 @@ class ConnectionPool(Generic[T]):
     def __init__(
         self,
         create_connection: Callable[[], T],
-        close_connection: Optional[Callable[[T], None]] = None,
-        health_check: Optional[Callable[[T], bool]] = None,
+        close_connection: Callable[[T], None] | None = None,
+        health_check: Callable[[T], bool] | None = None,
         config: PoolConfig | None = None,
     ):
         self.create_connection = create_connection
@@ -41,7 +42,7 @@ class ConnectionPool(Generic[T]):
         self.config = config or PoolConfig()
 
         self._pool: asyncio.Queue = (asyncio.Queue(maxsize=self.config.max_size),)
-        self._connections: Dict[T, float] = ({},)
+        self._connections: dict[T, float] = ({},)
         self._lock = asyncio.Lock()
         self._closed = False
         self._health_check_task: asyncio.Task | None = None
@@ -99,7 +100,7 @@ class ConnectionPool(Generic[T]):
 
             return conn
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Create new connection if pool is empty and under limit
             async with self._lock:
                 if len(self._connections) < self.config.max_size:
@@ -201,7 +202,7 @@ class AsyncConnectionManager:
     """Manages multiple connection pools."""
 
     def __init__(self) -> None:
-        self.pools: Dict[str, ConnectionPool] = {}
+        self.pools: dict[str, ConnectionPool] = {}
 
     def register_pool(self, name: str, pool: ConnectionPool) -> None:
         """Register a connection pool."""

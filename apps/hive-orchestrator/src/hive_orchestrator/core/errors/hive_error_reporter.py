@@ -34,25 +34,25 @@ class HiveErrorReporter(BaseErrorReporter):
     """
 
     def __init__(
-        self
-        log_to_file: bool = True
-        log_to_db: bool = True
-        error_log_path: Path | None = None
-        error_db_path: Path | None = None
+        self,
+        log_to_file: bool = True,
+        log_to_db: bool = True,
+        error_log_path: Path | None = None,
+        error_db_path: Path | None = None,
         config: Optional[Dict[str, Any]] = None
     ):
         """Initialize Hive error reporter with DI support
 
         Args:
-            log_to_file: Whether to log errors to file
-            log_to_db: Whether to log errors to database
-            error_log_path: Path to error log file
-            error_db_path: Path to error database
-            config: Optional configuration dictionary for DI
+            log_to_file: Whether to log errors to file,
+            log_to_db: Whether to log errors to database,
+            error_log_path: Path to error log file,
+            error_db_path: Path to error database,
+            config: Optional configuration dictionary for DI,
         """
         super().__init__(log_to_file, log_to_db, error_log_path, error_db_path)
 
-        # Hive-specific configuration via DI
+        # Hive-specific configuration via DI,
         self.config = config or {}
         self._setup_hive_error_tables()
 
@@ -67,23 +67,23 @@ class HiveErrorReporter(BaseErrorReporter):
 
             # Extend base error table with Hive-specific fields
             cursor.execute(
-                """
+                """,
                 CREATE TABLE IF NOT EXISTS hive_errors (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT
-                    timestamp TEXT NOT NULL
-                    error_type TEXT NOT NULL
-                    component TEXT NOT NULL
-                    operation TEXT
-                    message TEXT NOT NULL
-                    details TEXT
-                    context TEXT
-                    recovery_suggestions TEXT
-                    agent_id TEXT
-                    worker_id TEXT
-                    task_id TEXT
-                    workflow_id TEXT
-                    resolved BOOLEAN DEFAULT FALSE
-                    resolution_time TEXT
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    error_type TEXT NOT NULL,
+                    component TEXT NOT NULL,
+                    operation TEXT,
+                    message TEXT NOT NULL,
+                    details TEXT,
+                    context TEXT,
+                    recovery_suggestions TEXT,
+                    agent_id TEXT,
+                    worker_id TEXT,
+                    task_id TEXT,
+                    workflow_id TEXT,
+                    resolved BOOLEAN DEFAULT FALSE,
+                    resolution_time TEXT,
                     resolution_notes TEXT
                 )
             """
@@ -91,22 +91,22 @@ class HiveErrorReporter(BaseErrorReporter):
 
             # Hive-specific indexes for orchestration queries
             cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_hive_errors_agent
+                """,
+                CREATE INDEX IF NOT EXISTS idx_hive_errors_agent,
                 ON hive_errors(agent_id, timestamp DESC)
             """
             )
 
             cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_hive_errors_task
+                """,
+                CREATE INDEX IF NOT EXISTS idx_hive_errors_task,
                 ON hive_errors(task_id, timestamp DESC)
             """
             )
 
             cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_hive_errors_workflow
+                """,
+                CREATE INDEX IF NOT EXISTS idx_hive_errors_workflow,
                 ON hive_errors(workflow_id, timestamp DESC)
             """
             )
@@ -118,37 +118,37 @@ class HiveErrorReporter(BaseErrorReporter):
             logger.warning(f"Failed to setup Hive error tables: {e}")
 
     def report_error(
-        self
-        error: Exception
-        context: Optional[Dict[str, Any]] = None
+        self,
+        error: Exception,
+        context: Optional[Dict[str, Any]] = None,
         additional_info: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Report an error with Hive orchestration context.
 
         Args:
-            error: The exception to report
+            error: The exception to report,
             context: Error context (may include agent_id, task_id, workflow_id)
             additional_info: Additional information about the error
 
         Returns:
-            Error ID for tracking
+            Error ID for tracking,
         """
-        # Build error record with Hive extensions
+        # Build error record with Hive extensions,
         error_record = self._build_hive_error_record(error, context, additional_info)
 
-        # Update base metrics
+        # Update base metrics,
         self._update_metrics(error_record)
 
         # Log to file (base implementation)
         if self.log_to_file:
             self._log_to_file(error_record)
 
-        # Log to Hive database
+        # Log to Hive database,
         if self.log_to_db:
             self._log_to_hive_database(error_record)
 
-        # Add to history
+        # Add to history,
         self.error_history.append(error_record)
         if len(self.error_history) > 1000:
             self.error_history = self.error_history[-1000:]
@@ -156,28 +156,28 @@ class HiveErrorReporter(BaseErrorReporter):
         return error_record["error_id"]
 
     def _build_hive_error_record(
-        self
-        error: Exception
+        self,
+        error: Exception,
         context: Optional[Dict[str, Any]]
         additional_info: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Build error record with Hive-specific fields"""
-        # Start with base error record
+        # Start with base error record,
         record = self._build_error_record(error, context, additional_info)
 
-        # Extract Hive-specific context
+        # Extract Hive-specific context,
         if context:
             record["agent_id"] = context.get("agent_id")
             record["worker_id"] = context.get("worker_id")
             record["task_id"] = context.get("task_id")
             record["workflow_id"] = context.get("workflow_id")
 
-        # Add Hive-specific error analysis
+        # Add Hive-specific error analysis,
         if isinstance(error, HiveError):
             record["hive_error_details"] = {
-                "component": error.component
-                "operation": error.operation
-                "recovery_suggestions": error.recovery_suggestions
+                "component": error.component,
+                "operation": error.operation,
+                "recovery_suggestions": error.recovery_suggestions,
             }
 
         return record
@@ -189,13 +189,13 @@ class HiveErrorReporter(BaseErrorReporter):
             cursor = conn.cursor()
 
             cursor.execute(
-                """
+                """,
                 INSERT INTO hive_errors (
-                    timestamp, error_type, component, operation
-                    message, details, context, recovery_suggestions
+                    timestamp, error_type, component, operation,
+                    message, details, context, recovery_suggestions,
                     agent_id, worker_id, task_id, workflow_id
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
+            """,
                 (
                     error_record["timestamp"]
                     error_record["error_type"]
@@ -231,10 +231,10 @@ class HiveErrorReporter(BaseErrorReporter):
         return self._get_hive_errors(workflow_id=workflow_id, limit=limit)
 
     def _get_hive_errors(
-        self
-        agent_id: str | None = None
-        task_id: str | None = None
-        workflow_id: str | None = None
+        self,
+        agent_id: str | None = None,
+        task_id: str | None = None,
+        workflow_id: str | None = None,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
         """Query Hive errors with orchestration filters"""
@@ -269,7 +269,7 @@ class HiveErrorReporter(BaseErrorReporter):
 
             conn.close()
 
-            # Convert rows to dicts
+            # Convert rows to dicts,
             columns = [desc[0] for desc in cursor.description]
             return [dict(zip(columns, row)) for row in rows]
 
@@ -278,7 +278,7 @@ class HiveErrorReporter(BaseErrorReporter):
             return []
 
 
-# Global Hive error reporter instance
+# Global Hive error reporter instance,
 _hive_error_reporter: HiveErrorReporter | None = None
 
 
@@ -291,30 +291,30 @@ def get_hive_error_reporter() -> HiveErrorReporter:
 
 
 def report_hive_error(
-    error: Exception
-    agent_id: str | None = None
-    task_id: str | None = None
-    workflow_id: str | None = None
+    error: Exception,
+    agent_id: str | None = None,
+    task_id: str | None = None,
+    workflow_id: str | None = None,
     **kwargs
 ) -> str:
     """
     Convenience function to report a Hive error with orchestration context.
 
     Args:
-        error: The exception to report
-        agent_id: Agent where error occurred
-        task_id: Task where error occurred
-        workflow_id: Workflow where error occurred
+        error: The exception to report,
+        agent_id: Agent where error occurred,
+        task_id: Task where error occurred,
+        workflow_id: Workflow where error occurred,
         **kwargs: Additional context
 
     Returns:
-        Error ID for tracking
+        Error ID for tracking,
     """
     context = {
-        "agent_id": agent_id
-        "task_id": task_id
-        "workflow_id": workflow_id
-        **kwargs
+        "agent_id": agent_id,
+        "task_id": task_id,
+        "workflow_id": workflow_id,
+        **kwargs,
     }
 
     reporter = get_hive_error_reporter()

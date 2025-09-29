@@ -47,30 +47,30 @@ class AsyncDatabaseOperations:
     def _initialize_prepared_statements(self) -> None:
         """Initialize commonly used prepared statements"""
         self._prepared_statements = {
-            "get_task": "SELECT * FROM tasks WHERE task_id = ?"
-            "get_queued_tasks": """
-                SELECT * FROM tasks
-                WHERE status = 'queued'
-                ORDER BY priority DESC, created_at ASC
+            "get_task": "SELECT * FROM tasks WHERE task_id = ?",
+            "get_queued_tasks": """,
+                SELECT * FROM tasks,
+                WHERE status = 'queued',
+                ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
-            """
-            "update_task_status": """
-                UPDATE tasks
-                SET status = ?, updated_at = CURRENT_TIMESTAMP
+            """,
+            "update_task_status": """,
+                UPDATE tasks,
+                SET status = ?, updated_at = CURRENT_TIMESTAMP,
                 WHERE task_id = ?
-            """
-            "create_task": """
+            """,
+            "create_task": """,
                 INSERT INTO tasks (task_id, type, description, status, priority, metadata, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """
-            "get_tasks_by_status": """
-                SELECT * FROM tasks
+            """,
+            "get_tasks_by_status": """,
+                SELECT * FROM tasks,
                 WHERE status = ?
-                ORDER BY created_at DESC
-            """
-            "batch_update_status": """
-                UPDATE tasks
-                SET status = ?, updated_at = CURRENT_TIMESTAMP
+                ORDER BY created_at DESC,
+            """,
+            "batch_update_status": """,
+                UPDATE tasks,
+                SET status = ?, updated_at = CURRENT_TIMESTAMP,
                 WHERE task_id IN ({})
             """
         }
@@ -108,10 +108,10 @@ class AsyncDatabaseOperations:
     # Core Database Operations
 
     async def create_task_async(
-        self
-        task_type: str
-        description: str
-        priority: int = 5
+        self,
+        task_type: str,
+        description: str,
+        priority: int = 5,
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """
@@ -130,12 +130,12 @@ class AsyncDatabaseOperations:
                 await conn.execute(
                     self._prepared_statements["create_task"]
                     (
-                        task_id
-                        task_type
-                        description
-                        "queued"
-                        priority
-                        metadata_json
+                        task_id,
+                        task_type,
+                        description,
+                        "queued",
+                        priority,
+                        metadata_json,
                         datetime.now(timezone.utc).isoformat()
                     )
                 )
@@ -264,12 +264,12 @@ class AsyncDatabaseOperations:
                 metadata_json = json.dumps(task.get("metadata", {}))
                 batch_data.append(
                     (
-                        task_id
+                        task_id,
                         task["type"]
                         task["description"]
-                        "queued"
+                        "queued",
                         task.get("priority", 5)
-                        metadata_json
+                        metadata_json,
                         datetime.now(timezone.utc).isoformat()
                     )
                 )
@@ -349,8 +349,8 @@ class AsyncDatabaseOperations:
         """Get database performance statistics"""
         stats = await self.db_manager.get_all_stats_async()
         stats["circuit_breaker"] = {
-            "open": self._circuit_breaker_open
-            "failure_count": self._failure_count
+            "open": self._circuit_breaker_open,
+            "failure_count": self._failure_count,
             "threshold": self._failure_threshold
         }
         return stats

@@ -11,7 +11,6 @@ Implements hierarchical configuration loading with proper precedence:
 from __future__ import annotations
 
 import os
-from typing import Dict, List
 
 from hive_logging import get_logger
 
@@ -82,7 +81,7 @@ def load_config_for_app(app_name: str) -> AppConfig:
     return AppConfig(app_name=app_name, config=config, sources=sources)
 
 
-def get_required_keys(app_name: str, required: List[str]) -> Dict[str, str]:
+def get_required_keys(app_name: str, required: list[str]) -> dict[str, str]:
     """
     Get only required keys for an app, raising error if missing.
 
@@ -114,7 +113,7 @@ def get_required_keys(app_name: str, required: List[str]) -> Dict[str, str]:
     return result
 
 
-def get_global_api_keys() -> Dict[str, str | None]:
+def get_global_api_keys() -> dict[str, str | None]:
     """
     Get all global API keys that are available for sharing across apps.
 
@@ -146,7 +145,7 @@ def get_global_api_keys() -> Dict[str, str | None]:
         return {}
 
 
-def audit_app_config(app_name: str) -> Dict:
+def audit_app_config(app_name: str) -> dict:
     """
     Generate a security audit report for an app's configuration.
 
@@ -162,7 +161,7 @@ def audit_app_config(app_name: str) -> Dict:
 
         # Add security analysis
         sensitive_keys = [
-            key
+            key,
             for key in config.config.keys()
             if any(term in key.upper() for term in ["PASSWORD", "SECRET", "TOKEN", "API_KEY", "PRIVATE"])
         ]

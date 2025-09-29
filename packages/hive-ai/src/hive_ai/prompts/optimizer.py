@@ -9,7 +9,7 @@ import asyncio
 import statistics
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -38,10 +38,10 @@ class OptimizationResult:
     original_prompt: str
     optimized_prompt: str
     strategy: OptimizationStrategy
-    improvements: List[str]
+    improvements: list[str]
     estimated_improvement: float  # 0.0 to 1.0
     token_change: int  # Positive = more tokens, Negative = fewer tokens
-    suggestions: List[str] = field(default_factory=list)
+    suggestions: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -60,8 +60,8 @@ class PromptTestResult:
 
     prompt_a: str
     prompt_b: str
-    metrics_a: List[PerformanceMetric]
-    metrics_b: List[PerformanceMetric]
+    metrics_a: list[PerformanceMetric]
+    metrics_b: list[PerformanceMetric]
     winner: str  # "A", "B", or "TIE"
     confidence: float  # 0.0 to 1.0
     sample_size: int
@@ -80,10 +80,10 @@ class PromptOptimizer:
         self.cache = CacheManager("prompt_optimizer")
         self._optimization_templates = self._load_optimization_templates()
 
-    def _load_optimization_templates(self) -> Dict[OptimizationStrategy, str]:
+    def _load_optimization_templates(self) -> dict[OptimizationStrategy, str]:
         """Load optimization prompt templates for different strategies."""
         return {
-            OptimizationStrategy.CLARITY: """
+            OptimizationStrategy.CLARITY: """,
 Analyze and improve this prompt for clarity and specificity:
 
 Original prompt: {{ original_prompt }}
@@ -191,7 +191,7 @@ Context-aware prompt:""",
         self,
         prompt: str,
         strategy: OptimizationStrategy = OptimizationStrategy.CLARITY,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> OptimizationResult:
         """
         Optimize a prompt using specified strategy.
@@ -318,8 +318,8 @@ Context-aware prompt:""",
         self,
         prompt_a: str,
         prompt_b: str,
-        test_inputs: List[Dict[str, Any]],
-        evaluation_criteria: List[str],
+        test_inputs: list[dict[str, Any]],
+        evaluation_criteria: list[str],
         sample_size: int = 10,
     ) -> PromptTestResult:
         """
@@ -398,7 +398,7 @@ Context-aware prompt:""",
         except Exception as e:
             raise PromptError(f"A/B testing failed: {str(e)}") from e
 
-    async def _evaluate_responses_async(self, responses: List[str], criteria: List[str]) -> List[PerformanceMetric]:
+    async def _evaluate_responses_async(self, responses: list[str], criteria: list[str]) -> list[PerformanceMetric]:
         """Evaluate responses against criteria."""
         metrics = []
 
@@ -442,8 +442,8 @@ Context-aware prompt:""",
         return metrics
 
     def _determine_winner(
-        self, metrics_a: List[PerformanceMetric], metrics_b: List[PerformanceMetric]
-    ) -> Tuple[str, float]:
+        self, metrics_a: list[PerformanceMetric], metrics_b: list[PerformanceMetric]
+    ) -> tuple[str, float]:
         """Determine winner and confidence level."""
         # Simple scoring based on success rate
         score_a = 0.0
@@ -478,9 +478,9 @@ Context-aware prompt:""",
 
     async def batch_optimize_async(
         self,
-        prompts: List[str],
+        prompts: list[str],
         strategy: OptimizationStrategy = OptimizationStrategy.CLARITY,
-    ) -> List[OptimizationResult]:
+    ) -> list[OptimizationResult]:
         """
         Optimize multiple prompts in batch.
 
@@ -508,7 +508,7 @@ Context-aware prompt:""",
         (logger.info(f"Batch optimization completed: {len(successful_results)}/{len(prompts)} successful"),)
         return successful_results
 
-    def get_optimization_stats(self) -> Dict[str, Any]:
+    def get_optimization_stats(self) -> dict[str, Any]:
         """Get optimization statistics and insights."""
         # This would track optimization history and effectiveness
         return {

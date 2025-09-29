@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -89,9 +89,9 @@ class OptimizationOpportunity:
 
     # Identification
     file_path: str
-    line_number: Optional[int] = None
-    function_name: Optional[str] = None
-    class_name: Optional[str] = None
+    line_number: int | None = None
+    function_name: str | None = None
+    class_name: str | None = None
 
     # Opportunity details
     integration_type: IntegrationType
@@ -100,9 +100,9 @@ class OptimizationOpportunity:
 
     # Impact assessment
     impact_level: OptimizationImpact
-    performance_gain: Optional[str] = None
-    reliability_gain: Optional[str] = None
-    maintainability_gain: Optional[str] = None
+    performance_gain: str | None = None
+    reliability_gain: str | None = None
+    maintainability_gain: str | None = None
 
     # Implementation guidance
     required_packages: list[str] = field(default_factory=list)
@@ -146,7 +146,7 @@ class CrossPackageAnalyzer:
         """Initialize the comprehensive library of integration patterns."""
 
         patterns = [
-            # Caching Integration Patterns
+            # Caching Integration Patterns,
             IntegrationPattern(
                 name="API Response Caching",
                 description="Replace direct API calls with cached responses using hive-cache",
@@ -155,11 +155,11 @@ class CrossPackageAnalyzer:
                 detection_pattern=r"requests\.(get|post|put|delete)",
                 context_indicators=["requests", "http", "api", "fetch"],
                 required_import="from hive_cache import ClaudeAPICache",
-                replacement_code="""
-# Before: Direct API call
+                replacement_code=""",
+# Before: Direct API call,
 response = requests.get(url, headers=headers)
 
-# After: Cached API call
+# After: Cached API call,
 cache = ClaudeAPICache()
 response = await cache.get_or_fetch_async(
     key=f"api:{url}",
@@ -181,14 +181,14 @@ response = await cache.get_or_fetch_async(
                 detection_pattern=r"openai\.chat\.completions\.create|anthropic\.messages\.create",
                 context_indicators=["openai", "anthropic", "model", "llm", "chat"],
                 required_import="from hive_cache import ModelResponseCache",
-                replacement_code="""
-# Before: Direct model call
+                replacement_code=""",
+# Before: Direct model call,
 response = client.chat.completions.create(
     model="gpt-4",
     messages=messages
 )
 
-# After: Cached model call
+# After: Cached model call,
 cache = ModelResponseCache()
 response = await cache.get_or_generate_async(
     messages=messages,
@@ -202,7 +202,7 @@ response = await cache.get_or_generate_async(
                 estimated_effort="45-60 minutes",
                 success_rate=0.92,
             ),
-            # Error Handling Integration Patterns
+            # Error Handling Integration Patterns,
             IntegrationPattern(
                 name="Structured Exception Handling",
                 description="Replace generic exceptions with structured hive-errors types",
@@ -211,30 +211,30 @@ response = await cache.get_or_generate_async(
                 detection_pattern=r"except\s+Exception|raise\s+Exception",
                 context_indicators=["except", "raise", "error", "exception"],
                 required_import="from hive_errors import ValidationError, ConnectionError, ProcessingError",
-                replacement_code="""
-# Before: Generic exception
+                replacement_code=""",
+# Before: Generic exception,
 try:
     result = process_data(data)
 except Exception as e:
     logger.error(f"Processing failed: {e}")
     raise
 
-# After: Structured exception
+# After: Structured exception,
 try:
     result = process_data(data)
 except ValidationError as e:
     logger.error(f"Data validation failed: {e}")
-    raise
+    raise,
 except ConnectionError as e:
     logger.error(f"Connection failed: {e}")
-    raise ProcessingError("Unable to process due to connection issues") from e
+    raise ProcessingError("Unable to process due to connection issues") from e,
 """,
                 reliability_improvement="Better error categorization and handling",
                 maintainability_improvement="Structured error information for monitoring",
                 estimated_effort="20-30 minutes",
                 success_rate=0.88,
             ),
-            # Async Patterns Integration
+            # Async Patterns Integration,
             IntegrationPattern(
                 name="Robust Retry Logic",
                 description="Replace manual retry with hive-async decorators",
@@ -243,18 +243,18 @@ except ConnectionError as e:
                 detection_pattern=r"time\.sleep.*retry|for.*attempt.*range",
                 context_indicators=["time.sleep", "retry", "attempt", "backoff"],
                 required_import="from hive_async import async_retry, ExponentialBackoff",
-                replacement_code="""
-# Before: Manual retry logic
+                replacement_code=""",
+# Before: Manual retry logic,
 for attempt in range(3):
     try:
         result = call_external_service()
-        break
+        break,
     except Exception as e:
         if attempt == 2:
-            raise
+            raise,
         time.sleep(2 ** attempt)
 
-# After: Robust retry decorator
+# After: Robust retry decorator,
 @async_retry(
     max_attempts=3,
     backoff=ExponentialBackoff(base=2.0),
@@ -268,7 +268,7 @@ async def call_external_service_with_retry():
                 estimated_effort="45 minutes",
                 success_rate=0.91,
             ),
-            # Logging Integration Patterns
+            # Logging Integration Patterns,
             IntegrationPattern(
                 name="Standardized Logging",
                 description="Replace manual logging setup with hive-logging",
@@ -277,21 +277,21 @@ async def call_external_service_with_retry():
                 detection_pattern=r"logging\.getLogger|logger\s*=\s*logging",
                 context_indicators=["logging.getLogger", "logging.basicConfig"],
                 required_import="from hive_logging import get_logger",
-                replacement_code="""
-# Before: Manual logging setup
-import logging
+                replacement_code=""",
+# Before: Manual logging setup,
+import logging,
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# After: Standardized logging
-from hive_logging import get_logger
-logger = get_logger(__name__)  # Automatic configuration
+# After: Standardized logging,
+from hive_logging import get_logger,
+logger = get_logger(__name__)  # Automatic configuration,
 """,
                 maintainability_improvement="Consistent logging format and configuration",
                 estimated_effort="15 minutes",
                 success_rate=0.98,
             ),
-            # Database Integration Patterns
+            # Database Integration Patterns,
             IntegrationPattern(
                 name="Connection Pool Management",
                 description="Replace direct SQLite connections with hive-db connection management",
@@ -300,28 +300,28 @@ logger = get_logger(__name__)  # Automatic configuration
                 detection_pattern=r"sqlite3\.connect",
                 context_indicators=["sqlite3", "database", "connection", "cursor"],
                 required_import="from hive_db import get_async_session",
-                replacement_code="""
-# Before: Direct connection
-import sqlite3
+                replacement_code=""",
+# Before: Direct connection,
+import sqlite3,
 conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
 cursor.execute("SELECT * FROM table")
 results = cursor.fetchall()
 conn.close()
 
-# After: Managed connection
-from hive_db import get_async_session
+# After: Managed connection,
+from hive_db import get_async_session,
 async with get_async_session() as session:
     result = await session.execute("SELECT * FROM table")
     results = await result.fetchall()
-    # Automatic connection management and cleanup
+    # Automatic connection management and cleanup,
 """,
                 reliability_improvement="Connection pooling and automatic cleanup",
                 maintainability_improvement="Transaction management and error handling",
                 estimated_effort="1-2 hours",
                 success_rate=0.85,
             ),
-            # Configuration Integration Patterns
+            # Configuration Integration Patterns,
             IntegrationPattern(
                 name="Centralized Configuration",
                 description="Replace hardcoded values with hive-config management",
@@ -330,24 +330,24 @@ async with get_async_session() as session:
                 detection_pattern=r"['\"][a-zA-Z0-9._-]+['\"].*=.*['\"][^'\"]*['\"]",
                 context_indicators=["config", "settings", "env", "parameter"],
                 required_import="from hive_config import get_config",
-                replacement_code="""
-# Before: Hardcoded values
-API_KEY = "sk-1234567890"
-MAX_RETRIES = 3
+                replacement_code=""",
+# Before: Hardcoded values,
+API_KEY = "sk-1234567890",
+MAX_RETRIES = 3,
 TIMEOUT = 30
 
-# After: Centralized configuration
-from hive_config import get_config
+# After: Centralized configuration,
+from hive_config import get_config,
 config = get_config()
-API_KEY = config.api_key
-MAX_RETRIES = config.max_retries
-TIMEOUT = config.timeout_seconds
+API_KEY = config.api_key,
+MAX_RETRIES = config.max_retries,
+TIMEOUT = config.timeout_seconds,
 """,
                 maintainability_improvement="Environment-specific configuration",
                 estimated_effort="30 minutes",
                 success_rate=0.87,
             ),
-            # AI Integration Patterns
+            # AI Integration Patterns,
             IntegrationPattern(
                 name="Model Pool Optimization",
                 description="Route AI model calls through hive-ai ModelPool for cost optimization",
@@ -356,14 +356,14 @@ TIMEOUT = config.timeout_seconds
                 detection_pattern=r"openai\.chat\.completions\.create",
                 context_indicators=["openai", "model", "gpt", "completion"],
                 required_import="from hive_ai import ModelPool",
-                replacement_code="""
-# Before: Direct model call
+                replacement_code=""",
+# Before: Direct model call,
 response = openai.chat.completions.create(
     model="gpt-4",
     messages=messages
 )
 
-# After: Optimized model routing
+# After: Optimized model routing,
 pool = ModelPool()
 response = await pool.generate_async(
     messages=messages,
@@ -561,14 +561,14 @@ response = await pool.generate_async(
                     )
                     self.opportunities.append(opportunity)
 
-                # Check for time.sleep in retry contexts
+                # Check for time.sleep in retry contexts,
                 if (
                     isinstance(node.func, ast.Attribute)
                     and isinstance(node.func.value, ast.Name)
-                    and node.func.value.id == "time"
+                    and node.func.value.id == "time",
                     and node.func.attr == "sleep"
                 ):
-                    # Look for retry patterns in surrounding context
+                    # Look for retry patterns in surrounding context,
                     if self._is_in_retry_context(node, content):
                         opportunity = OptimizationOpportunity(
                             file_path=file_path,
@@ -633,10 +633,10 @@ response = await pool.generate_async(
                     )
 
                 if context_match:
-                    # Calculate line number
+                    # Calculate line number,
                     line_number = content[: match.start()].count("\n") + 1
 
-                    # Determine impact level based on pattern characteristics
+                    # Determine impact level based on pattern characteristics,
                     impact_level = self._assess_pattern_impact(pattern, content)
 
                     opportunity = OptimizationOpportunity(
@@ -739,7 +739,7 @@ response = await pool.generate_async(
         # Check for AI model calls without optimization
         if (
             ("openai" in content or "anthropic" in content)
-            and "hive_ai" not in current_hive_imports
+            and "hive_ai" not in current_hive_imports,
             and "hive_cache" not in current_hive_imports
         ):
             missing.append(
@@ -905,12 +905,12 @@ response = await pool.generate_async(
                     "effort": opp.estimated_effort,
                     "business_value": opp.business_value,
                 }
-                for opp in top_opportunities
+                for opp in top_opportunities,
             ],
             "quick_wins": [
                 {"file": opp.file_path, "suggestion": opp.suggested_pattern, "effort": opp.estimated_effort}
-                for opp in opportunities
-                if opp.estimated_effort.startswith(("15", "30")) and opp.confidence > 0.9
+                for opp in opportunities,
+                if opp.estimated_effort.startswith(("15", "30")) and opp.confidence > 0.9,
             ][:5],
         }
 
@@ -940,3 +940,4 @@ response = await pool.generate_async(
                     total_hours += 0.5
 
         return total_hours
+

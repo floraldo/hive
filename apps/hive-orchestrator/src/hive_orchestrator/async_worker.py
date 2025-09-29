@@ -17,11 +17,11 @@ from typing import Any, Dict, List
 
 # Hive utilities
 from hive_config.paths import (
-    LOGS_DIR
-    PROJECT_ROOT
-    WORKTREES_DIR
-    ensure_directory
-    get_task_log_dir
+    LOGS_DIR,
+    PROJECT_ROOT,
+    WORKTREES_DIR,
+    ensure_directory,
+    get_task_log_dir,
     get_worker_workspace_dir
 )
 from hive_logging import get_logger, setup_logging
@@ -46,54 +46,54 @@ class AsyncWorker:
     """
 
     def __init__(
-        self
-        worker_id: str
-        task_id: str | None = None
-        run_id: str | None = None
-        workspace: str | None = None
-        phase: str = "apply"
-        mode: str = "fresh"
-        live_output: bool = False
+        self,
+        worker_id: str,
+        task_id: str | None = None,
+        run_id: str | None = None,
+        workspace: str | None = None,
+        phase: str = "apply",
+        mode: str = "fresh",
+        live_output: bool = False,
         config: Optional[Dict[str, Any]] = None
     ):
         """Initialize AsyncWorker with async-first architecture"""
-        self.worker_id = worker_id
-        self.task_id = task_id
-        self.run_id = run_id
-        self.phase = phase
-        self.mode = mode
-        self.live_output = live_output
+        self.worker_id = worker_id,
+        self.task_id = task_id,
+        self.run_id = run_id,
+        self.phase = phase,
+        self.mode = mode,
+        self.live_output = live_output,
         self.config = config or {}
 
-        # Async components
-        self.db_ops: AsyncDatabaseOperations | None = None
+        # Async components,
+        self.db_ops: AsyncDatabaseOperations | None = None,
         self.event_bus = None
 
-        # Logging
+        # Logging,
         self.log = get_logger(__name__)
 
-        # Paths
-        self.project_root = PROJECT_ROOT
-        self.logs_dir = LOGS_DIR
+        # Paths,
+        self.project_root = PROJECT_ROOT,
+        self.logs_dir = LOGS_DIR,
         self.root = PROJECT_ROOT
 
-        # Workspace setup
+        # Workspace setup,
         if workspace:
             self.workspace = Path(workspace).resolve()
             self.workspace.mkdir(parents=True, exist_ok=True)
         else:
             self.workspace = self._create_workspace()
 
-        # Performance metrics
+        # Performance metrics,
         self.metrics = {
             "start_time": datetime.now(timezone.utc)
-            "operations": 0
-            "file_operations": 0
-            "subprocess_calls": 0
-            "db_operations": 0
+            "operations": 0,
+            "file_operations": 0,
+            "subprocess_calls": 0,
+            "db_operations": 0,
         }
 
-        # Claude command discovery
+        # Claude command discovery,
         self.claude_cmd = self.find_claude_cmd()
 
         self.log.info(f"AsyncWorker {worker_id} initialized")
@@ -106,33 +106,33 @@ class AsyncWorker:
 
     async def initialize_async(self) -> None:
         """Async initialization of database and event bus"""
-        # Initialize async database operations
+        # Initialize async database operations,
         self.db_ops = await get_async_db_operations()
         self.log.info("Async database operations initialized")
 
-        # Initialize async event bus
+        # Initialize async event bus,
         self.event_bus = await get_async_event_bus()
         self.log.info("Async event bus initialized")
 
-        # Register worker
+        # Register worker,
         await self._register_worker_async()
 
     async def _register_worker_async(self) -> None:
         """Register worker in database"""
         try:
             await self.db_ops.register_worker_async(
-                worker_id=f"async-{self.worker_id}-{self.run_id}"
-                role=self.worker_id
+                worker_id=f"async-{self.worker_id}-{self.run_id}",
+                role=self.worker_id,
                 capabilities=[
-                    "async_execution"
-                    "high_performance"
+                    "async_execution",
+                    "high_performance",
                     "non_blocking_io"
                 ]
                 metadata={
-                    "version": "4.0.0"
-                    "type": "AsyncWorker"
-                    "phase": self.phase
-                    "task_id": self.task_id
+                    "version": "4.0.0",
+                    "type": "AsyncWorker",
+                    "phase": self.phase,
+                    "task_id": self.task_id,
                 }
             )
             self.log.info("Worker registered in database")
@@ -164,8 +164,8 @@ class AsyncWorker:
 
         # Check common locations
         candidates = [
-            "claude"
-            "claude.exe"
+            "claude",
+            "claude.exe",
             str(Path.home() / ".local" / "bin" / "claude")
             str(Path.home() / ".npm-global" / "bin" / "claude")
         ]
@@ -188,8 +188,8 @@ class AsyncWorker:
             self.log.info("Claude not available - simulating response")
             await asyncio.sleep(1)  # Simulate processing time
             return {
-                "status": "simulated"
-                "output": f"Simulated response for: {prompt[:100]}"
+                "status": "simulated",
+                "output": f"Simulated response for: {prompt[:100]}",
                 "files_created": []
                 "files_modified": []
             }
@@ -211,9 +211,9 @@ class AsyncWorker:
         try:
             # Create async subprocess
             process = await asyncio.create_subprocess_exec(
-                *cmd
-                stdout=asyncio.subprocess.PIPE
-                stderr=asyncio.subprocess.PIPE
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 cwd=str(self.workspace)
             )
 
@@ -224,29 +224,29 @@ class AsyncWorker:
                 process.kill()
                 await process.wait()
                 return {
-                    "status": "timeout"
+                    "status": "timeout",
                     "error": "Claude execution timed out after 5 minutes"
                 }
 
             # Parse output
             if process.returncode == 0:
                 return {
-                    "status": "success"
-                    "output": stdout.decode() if stdout else ""
+                    "status": "success",
+                    "output": stdout.decode() if stdout else "",
                     "files_created": self._parse_created_files(stdout.decode() if stdout else "")
                     "files_modified": self._parse_modified_files(stdout.decode() if stdout else "")
                 }
             else:
                 return {
-                    "status": "error"
-                    "error": stderr.decode() if stderr else "Unknown error"
+                    "status": "error",
+                    "error": stderr.decode() if stderr else "Unknown error",
                     "return_code": process.returncode
                 }
 
         except Exception as e:
             self.log.error(f"Failed to execute Claude: {e}")
             return {
-                "status": "error"
+                "status": "error",
                 "error": str(e)
             }
 
@@ -314,9 +314,9 @@ class AsyncWorker:
 
             # Publish completion event
             await self.event_bus.publish_async(
-                event_type=f"worker.{self.phase}.completed"
-                task_id=self.task_id
-                worker_id=self.worker_id
+                event_type=f"worker.{self.phase}.completed",
+                task_id=self.task_id,
+                worker_id=self.worker_id,
                 result=result.get("status")
                 priority=2
             )
@@ -326,7 +326,7 @@ class AsyncWorker:
         except Exception as e:
             self.log.error(f"Phase execution failed: {e}")
             return {
-                "status": "error"
+                "status": "error",
                 "error": str(e)
                 "phase": self.phase
             }
@@ -432,13 +432,13 @@ class AsyncWorker:
         try:
             # Run pytest asynchronously
             process = await asyncio.create_subprocess_exec(
-                sys.executable
-                "-m"
-                "pytest"
-                "-v"
-                "--tb=short"
-                stdout=asyncio.subprocess.PIPE
-                stderr=asyncio.subprocess.PIPE
+                sys.executable,
+                "-m",
+                "pytest",
+                "-v",
+                "--tb=short",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 cwd=str(self.workspace)
             )
 
@@ -446,24 +446,24 @@ class AsyncWorker:
 
             if process.returncode == 0:
                 return {
-                    "passed": True
+                    "passed": True,
                     "output": stdout.decode() if stdout else ""
                 }
             else:
                 return {
-                    "passed": False
-                    "output": stdout.decode() if stdout else ""
+                    "passed": False,
+                    "output": stdout.decode() if stdout else "",
                     "error": stderr.decode() if stderr else ""
                 }
 
         except asyncio.TimeoutError:
             return {
-                "passed": False
+                "passed": False,
                 "error": "Test execution timed out after 1 minute"
             }
         except Exception as e:
             return {
-                "passed": False
+                "passed": False,
                 "error": str(e)
             }
 
@@ -477,11 +477,11 @@ class AsyncWorker:
 
             # Save result
             await self.db_ops.update_run_async(
-                run_id=self.run_id
+                run_id=self.run_id,
                 status=result.get("status", "unknown")
-                result=result
+                result=result,
                 metadata={
-                    "execution_time": execution_time
+                    "execution_time": execution_time,
                     "operations": self.metrics["operations"]
                     "file_operations": self.metrics["file_operations"]
                     "subprocess_calls": self.metrics["subprocess_calls"]
@@ -505,9 +505,9 @@ class AsyncWorker:
 
             # Log final metrics
             self.log.info(
-                f"[METRICS] Operations: {self.metrics['operations']} | "
-                f"Files: {self.metrics['file_operations']} | "
-                f"Subprocesses: {self.metrics['subprocess_calls']} | "
+                f"[METRICS] Operations: {self.metrics['operations']} | ",
+                f"Files: {self.metrics['file_operations']} | ",
+                f"Subprocesses: {self.metrics['subprocess_calls']} | ",
                 f"DB: {self.metrics['db_operations']}"
             )
 
@@ -550,16 +550,16 @@ async def main_async() -> None:
 
     # Create worker
     worker = AsyncWorker(
-        worker_id=args.role
-        task_id=args.task_id
-        run_id=args.run_id
-        workspace=args.workspace
-        phase=args.phase
-        mode=args.mode
+        worker_id=args.role,
+        task_id=args.task_id,
+        run_id=args.run_id,
+        workspace=args.workspace,
+        phase=args.phase,
+        mode=args.mode,
         live_output=args.live
     )
 
-    # Run worker
+    # Run worker,
     exit_code = await worker.run_async()
     sys.exit(exit_code)
 

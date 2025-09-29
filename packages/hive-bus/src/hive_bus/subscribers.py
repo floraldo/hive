@@ -10,8 +10,8 @@ in any event-driven system.
 """
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from .base_events import BaseEvent
 

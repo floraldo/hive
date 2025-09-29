@@ -25,7 +25,7 @@ class PoolConfig:
 import asyncio
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -110,7 +110,7 @@ class EnhancedAsyncPool:
         finally:
             await self.release_async(conn)
 
-    def get_metrics(self) -> Dict[str, int]:
+    def get_metrics(self) -> dict[str, int]:
         """Get pool metrics"""
         return {
             **self._metrics,

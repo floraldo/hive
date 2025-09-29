@@ -21,6 +21,7 @@ from ecosystemiser.system_model.components.energy.grid import Grid
 from ecosystemiser.system_model.components.energy.power_demand import PowerDemand
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV
 from ecosystemiser.system_model.system import System
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -96,7 +97,7 @@ class TestProductionIntegration:
             name="GRID",
             import_price=import_price,
             export_price=export_price,
-            max_import=10.0,  # 10 kW max import
+            max_import=10.0,  # 10 kW max import,
             max_export=10.0,  # 10 kW max export
         )
         system.add_component(grid)
@@ -106,9 +107,9 @@ class TestProductionIntegration:
 
         battery = Battery(
             name="BATTERY",
-            capacity_kWh=13.5,  # Tesla Powerwall capacity
-            power_kW=5.0,  # 5 kW charge/discharge
-            efficiency=0.95,  # 95% round-trip efficiency
+            capacity_kWh=13.5,  # Tesla Powerwall capacity,
+            power_kW=5.0,  # 5 kW charge/discharge,
+            efficiency=0.95,  # 95% round-trip efficiency,
             initial_soc=0.5,  # Start at 50% charge
         )
         system.add_component(battery)

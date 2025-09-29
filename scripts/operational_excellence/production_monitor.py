@@ -18,7 +18,6 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import requests
 from pydantic import BaseModel, HttpUrl, ValidationError
@@ -43,19 +42,19 @@ class MonitoringResult(BaseModel):
     service_name: str
     endpoint: str
     environment: str
-    status_code: Optional[int] = None
-    response_time_ms: Optional[float] = None
+    status_code: int | None = None
+    response_time_ms: float | None = None
     is_healthy: bool = False
-    error_message: Optional[str] = None
+    error_message: str | None = None
     timestamp: str
-    response_body: Optional[str] = None
+    response_body: str | None = None
 
 
 class ProductionMonitor:
-    def __init__(self, config_path: Optional[Path] = None):
+    def __init__(self, config_path: Path | None = None):
         self.config_path = config_path or Path("production_monitoring_config.json")
-        self.endpoints: List[ServiceEndpoint] = []
-        self.results: List[MonitoringResult] = []
+        self.endpoints: list[ServiceEndpoint] = []
+        self.results: list[MonitoringResult] = []
         self.load_configuration()
 
     def load_configuration(self) -> None:
@@ -85,7 +84,7 @@ class ProductionMonitor:
         # Load from local config file if available
         if self.config_path.exists():
             try:
-                with open(self.config_path, "r") as f:
+                with open(self.config_path) as f:
                     config_data = json.load(f)
 
                 for endpoint_config in config_data.get("endpoints", []):
@@ -222,7 +221,7 @@ class ProductionMonitor:
 
             print()
 
-    def analyze_results(self) -> Dict:
+    def analyze_results(self) -> dict:
         """Analyze monitoring results and generate summary"""
         total_endpoints = len(self.results)
         healthy_count = sum(1 for r in self.results if r.is_healthy)
@@ -272,7 +271,7 @@ class ProductionMonitor:
                 return endpoint.critical
         return True  # Default to critical if not found
 
-    def generate_monitoring_report(self, analysis: Dict) -> str:
+    def generate_monitoring_report(self, analysis: dict) -> str:
         """Generate detailed monitoring report"""
         report_lines = []
 
@@ -405,7 +404,7 @@ class ProductionMonitor:
 
         return "\n".join(report_lines)
 
-    def save_results(self, analysis: Dict) -> None:
+    def save_results(self, analysis: dict) -> None:
         """Save monitoring results for GitHub Actions"""
         # Save JSON results for GitHub Actions
         results_path = Path("production_monitoring_results.json")

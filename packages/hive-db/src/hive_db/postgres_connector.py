@@ -5,10 +5,8 @@ Provides production-ready PostgreSQL connectivity with connection pooling and en
 """
 from __future__ import annotations
 
-
-import os
 from contextlib import contextmanager
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -26,14 +24,14 @@ logger = get_logger(__name__)
 
 
 def get_postgres_connection(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     host: str | None = None,
     port: int | None = None,
     database: str | None = None,
     user: str | None = None,
     password: str | None = None,
     **kwargs
-) -> "psycopg2.connection":
+) -> psycopg2.connection:
     """
     Get a PostgreSQL database connection.
 
@@ -66,7 +64,7 @@ def get_postgres_connection(
     """
     if not PSYCOPG2_AVAILABLE:
         raise ImportError(
-            "psycopg2-binary is required for PostgreSQL connectivity. "
+            "psycopg2-binary is required for PostgreSQL connectivity. ",
             "Install it with: pip install psycopg2-binary"
         )
 
@@ -79,13 +77,13 @@ def get_postgres_connection(
             conn = psycopg2.connect(
                 database_url, cursor_factory=RealDictCursor, **kwargs
             )
-            logger.info("PostgreSQL connection established via database_url"),
-            return conn
+            logger.info("PostgreSQL connection established via database_url")
+            return conn,
         except psycopg2.Error as e:
             logger.error(f"Failed to connect via database_url: {e}"),
             raise
 
-    # Use individual parameters with config fallbacks
+    # Use individual parameters with config fallbacks,
     connection_params = {
         "host": host or config.get("host", "localhost"),
         "port": port or config.get("port", 5432),
@@ -95,14 +93,14 @@ def get_postgres_connection(
         "cursor_factory": RealDictCursor,
     }
 
-    # Ensure port is integer
+    # Ensure port is integer,
     if isinstance(connection_params["port"], str):
         connection_params["port"] = int(connection_params["port"])
 
-    # Add any additional parameters
+    # Add any additional parameters,
     connection_params.update(kwargs)
 
-    # Validate required parameters
+    # Validate required parameters,
     required = ["database", "user", "password"]
     missing = [param for param in required if not connection_params.get(param)]
     if missing:
@@ -116,13 +114,13 @@ def get_postgres_connection(
         return conn
 
     except psycopg2.Error as e:
-        logger.error(f"Failed to connect to PostgreSQL: {e}"),
+        logger.error(f"Failed to connect to PostgreSQL: {e}")
         raise
 
 
 @contextmanager
 def postgres_transaction(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     host: str | None = None,
     port: int | None = None,
     database: str | None = None,
@@ -145,14 +143,14 @@ def postgres_transaction(
             with conn.cursor() as cur:
                 cur.execute("INSERT INTO users (name) VALUES (%s)", ("Alice",))
                 cur.execute("INSERT INTO users (name) VALUES (%s)", ("Bob",))
-                # Transaction commits automatically on success
+                # Transaction commits automatically on success,
     """
-    conn = None
+    conn = None,
     try:
         conn = get_postgres_connection(
             config, host, port, database, user, password, **kwargs
         )
-        yield conn
+        yield conn,
         conn.commit()
         logger.debug("PostgreSQL transaction committed")
 
@@ -168,16 +166,16 @@ def postgres_transaction(
 
 
 def create_connection_pool(
+    config: dict[str, Any],
     minconn: int = 1,
     maxconn: int = 10,
-    config: Dict[str, Any],
     host: str | None = None,
     port: int | None = None,
     database: str | None = None,
     user: str | None = None,
     password: str | None = None,
     **kwargs
-) -> "psycopg2.pool.ThreadedConnectionPool":
+) -> psycopg2.pool.ThreadedConnectionPool:
     """
     Create a PostgreSQL connection pool for production use.
 
@@ -257,13 +255,13 @@ def create_connection_pool(
 
 
 def get_postgres_info(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     host: str | None = None,
     port: int | None = None,
     database: str | None = None,
     user: str | None = None,
     password: str | None = None
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get information about a PostgreSQL database.
 
@@ -271,32 +269,32 @@ def get_postgres_info(
         Same as get_postgres_connection()
 
     Returns:
-        Dictionary with database information
+        Dictionary with database information,
     """
     try:
         with postgres_transaction(config, host, port, database, user, password) as conn:
             with conn.cursor() as cur:
-                # Get PostgreSQL version
+                # Get PostgreSQL version,
                 cur.execute("SELECT version()")
                 pg_version = cur.fetchone()["version"]
 
-                # Get database size
+                # Get database size,
                 cur.execute(
                     "SELECT pg_size_pretty(pg_database_size(current_database()))"
                 )
                 db_size = cur.fetchone()["pg_size_pretty"]
 
-                # Get table count
+                # Get table count,
                 cur.execute(
-                    """
-                    SELECT COUNT(*) as table_count
-                    FROM information_schema.tables
-                    WHERE table_schema = 'public'
+                    """,
+                    SELECT COUNT(*) as table_count,
+                    FROM information_schema.tables,
+                    WHERE table_schema = 'public',
                 """
                 )
                 table_count = cur.fetchone()["table_count"]
 
-                # Get connection info
+                # Get connection info,
                 cur.execute("SELECT current_database(), current_user")
                 db_info = cur.fetchone()
 
@@ -317,8 +315,8 @@ def get_postgres_info(
         raise
 
 
-# Convenience aliases
-connect = get_postgres_connection
-transaction = postgres_transaction
-pool = create_connection_pool
+# Convenience aliases,
+connect = get_postgres_connection,
+transaction = postgres_transaction,
+pool = create_connection_pool,
 info = get_postgres_info

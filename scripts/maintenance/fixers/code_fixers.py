@@ -25,10 +25,9 @@ import argparse
 import re
 import sys
 from pathlib import Path
-from typing import List
 
 
-def fix_type_hints(files: List[Path], dry_run: bool = False) -> int:
+def fix_type_hints(files: list[Path], dry_run: bool = False) -> int:
     """Fix missing type hints in files"""
     fixes = 0
     print("Fixing type hints...")
@@ -64,7 +63,7 @@ def fix_type_hints(files: List[Path], dry_run: bool = False) -> int:
     return fixes
 
 
-def fix_logging(files: List[Path], dry_run: bool = False) -> int:
+def fix_logging(files: list[Path], dry_run: bool = False) -> int:
     """Fix logging violations"""
     fixes = 0
     print("Fixing logging violations...")
@@ -101,7 +100,7 @@ def fix_logging(files: List[Path], dry_run: bool = False) -> int:
     return fixes
 
 
-def fix_global_state(files: List[Path], dry_run: bool = False) -> int:
+def fix_global_state(files: list[Path], dry_run: bool = False) -> int:
     """Fix global state issues"""
     fixes = 0
     print("Fixing global state issues...")

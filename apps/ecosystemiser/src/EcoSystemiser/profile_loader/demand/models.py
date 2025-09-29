@@ -25,17 +25,17 @@ DemandType = Literal["electricity", "heating", "cooling", "hot_water", "process_
 
 # Building types for standard profiles
 BuildingType = Literal[
-    "residential_single"
+    "residential_single",
     "residential_multi",
-    "office"
+    "office",
     "retail",
-    "industrial"
+    "industrial",
     "warehouse",
-    "school"
+    "school",
     "hospital",
-    "hotel"
+    "hotel",
     "restaurant",
-    "data_center"
+    "data_center",
     "mixed_use"
 ],
 

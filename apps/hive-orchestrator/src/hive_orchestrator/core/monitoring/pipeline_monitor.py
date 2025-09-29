@@ -9,9 +9,9 @@ autonomous task execution pipeline to ensure reliable operation.
 import asyncio
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -77,7 +77,7 @@ class PipelineMetrics:
     # Timestamps
     last_updated: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert metrics to dictionary"""
         return asdict(self)
 
@@ -89,7 +89,7 @@ class PipelineAlert:
     severity: HealthStatus
     stage: PipelineStage
     message: str
-    details: Dict[str, Any]
+    details: dict[str, Any]
     timestamp: str
     alert_id: str
 
@@ -97,7 +97,7 @@ class PipelineAlert:
 class PipelineMonitor:
     """Comprehensive monitor for the AI Planner -> Queen -> Worker pipeline"""
 
-    def __init__(self, alert_thresholds: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, alert_thresholds: dict[str, Any] | None = None) -> None:
         """
         Initialize pipeline monitor
 
@@ -112,9 +112,9 @@ class PipelineMonitor:
             "queue_backup_count": 20,
         }
 
-        self.alerts: List[PipelineAlert] = []
-        self.metrics_history: List[PipelineMetrics] = []
-        self.last_check_time = datetime.now(timezone.utc)
+        self.alerts: list[PipelineAlert] = []
+        self.metrics_history: list[PipelineMetrics] = []
+        self.last_check_time = datetime.now(UTC)
 
         logger.info("Pipeline monitor initialized")
 
@@ -126,8 +126,8 @@ class PipelineMonitor:
 
                 # Planning Queue Metrics
                 cursor = conn.execute(
-                    """
-                    SELECT status, COUNT(*) FROM planning_queue GROUP BY status
+                    """,
+                    SELECT status, COUNT(*) FROM planning_queue GROUP BY status,
                 """
                 )
                 for status, count in cursor.fetchall():
@@ -142,8 +142,8 @@ class PipelineMonitor:
 
                 # Execution Plan Metrics
                 cursor = conn.execute(
-                    """
-                    SELECT status, COUNT(*) FROM execution_plans GROUP BY status
+                    """,
+                    SELECT status, COUNT(*) FROM execution_plans GROUP BY status,
                 """
                 )
                 for status, count in cursor.fetchall():
@@ -158,10 +158,10 @@ class PipelineMonitor:
 
                 # Subtask Metrics
                 cursor = conn.execute(
-                    """
-                    SELECT status, COUNT(*) FROM tasks
-                    WHERE task_type = 'planned_subtask'
-                    GROUP BY status
+                    """,
+                    SELECT status, COUNT(*) FROM tasks,
+                    WHERE task_type = 'planned_subtask',
+                    GROUP BY status,
                 """
                 )
                 for status, count in cursor.fetchall():
@@ -186,22 +186,22 @@ class PipelineMonitor:
                 metrics.error_rate_percentage = self._calculate_error_rate(conn)
                 metrics.pipeline_throughput_per_hour = self._calculate_throughput(conn)
 
-                metrics.last_updated = datetime.now(timezone.utc).isoformat()
+                metrics.last_updated = datetime.now(UTC).isoformat()
 
                 return metrics
 
         except Exception as e:
             logger.error(f"Error collecting pipeline metrics: {e}")
-            return PipelineMetrics(last_updated=datetime.now(timezone.utc).isoformat())
+            return PipelineMetrics(last_updated=datetime.now(UTC).isoformat())
 
     def _calculate_avg_planning_time(self, conn) -> float:
         """Calculate average time from planning queue to execution plan"""
         cursor = conn.execute(
-            """
+            """,
             SELECT AVG(
                 (julianday(ep.generated_at) - julianday(pq.created_at)) * 24 * 60
-            ) as avg_minutes
-            FROM execution_plans ep
+            ) as avg_minutes,
+            FROM execution_plans ep,
             JOIN planning_queue pq ON ep.planning_task_id = pq.id
             WHERE ep.generated_at IS NOT NULL
             AND pq.created_at > datetime('now', '-24 hours')
@@ -213,11 +213,11 @@ class PipelineMonitor:
     def _calculate_avg_execution_time(self, conn) -> float:
         """Calculate average execution time for subtasks"""
         cursor = conn.execute(
-            """
+            """,
             SELECT AVG(
                 (julianday(completed_at) - julianday(started_at)) * 24 * 60
-            ) as avg_minutes
-            FROM tasks
+            ) as avg_minutes,
+            FROM tasks,
             WHERE task_type = 'planned_subtask'
             AND status = 'completed'
             AND started_at IS NOT NULL
@@ -231,8 +231,8 @@ class PipelineMonitor:
     def _calculate_avg_plan_completion(self, conn) -> float:
         """Calculate average completion percentage for active plans"""
         cursor = conn.execute(
-            """
-            SELECT ep.id FROM execution_plans ep
+            """,
+            SELECT ep.id FROM execution_plans ep,
             WHERE ep.status IN ('executing', 'completed')
         """
         )
@@ -252,10 +252,10 @@ class PipelineMonitor:
         """Count tasks that appear to be stuck"""
         stuck_threshold_minutes = self.alert_thresholds["stuck_task_minutes"]
         cursor = conn.execute(
-            """
-            SELECT COUNT(*) FROM tasks
+            """,
+            SELECT COUNT(*) FROM tasks,
             WHERE status IN ('assigned', 'in_progress')
-            AND started_at IS NOT NULL
+            AND started_at IS NOT NULL,
             AND (julianday('now') - julianday(started_at)) * 24 * 60 > ?
         """,
             (stuck_threshold_minutes,),
@@ -265,11 +265,11 @@ class PipelineMonitor:
     def _calculate_error_rate(self, conn) -> float:
         """Calculate error rate percentage over last 24 hours"""
         cursor = conn.execute(
-            """
-            SELECT
+            """,
+            SELECT,
                 SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_count,
-                COUNT(*) as total_count
-            FROM tasks
+                COUNT(*) as total_count,
+            FROM tasks,
             WHERE task_type = 'planned_subtask'
             AND created_at > datetime('now', '-24 hours')
         """
@@ -285,16 +285,16 @@ class PipelineMonitor:
     def _calculate_throughput(self, conn) -> float:
         """Calculate pipeline throughput (completed tasks per hour)"""
         cursor = conn.execute(
-            """
-            SELECT COUNT(*) FROM tasks
-            WHERE task_type = 'planned_subtask'
-            AND status = 'completed'
+            """,
+            SELECT COUNT(*) FROM tasks,
+            WHERE task_type = 'planned_subtask',
+            AND status = 'completed',
             AND completed_at > datetime('now', '-1 hour')
         """
         )
         return float(cursor.fetchone()[0])
 
-    def check_health(self, metrics: PipelineMetrics) -> Tuple[HealthStatus, List[PipelineAlert]]:
+    def check_health(self, metrics: PipelineMetrics) -> tuple[HealthStatus, list[PipelineAlert]]:
         """
         Check pipeline health and generate alerts
 
@@ -319,7 +319,7 @@ class PipelineMonitor:
                         "stuck_count": metrics.stuck_tasks_count,
                         "threshold_minutes": self.alert_thresholds["stuck_task_minutes"],
                     },
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"stuck_tasks_{int(time.time())}",
                 )
             )
@@ -339,7 +339,7 @@ class PipelineMonitor:
                         "error_rate": metrics.error_rate_percentage,
                         "threshold": self.alert_thresholds["error_rate_percentage"],
                     },
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"error_rate_{int(time.time())}",
                 )
             )
@@ -358,7 +358,7 @@ class PipelineMonitor:
                         "throughput": metrics.pipeline_throughput_per_hour,
                         "threshold": self.alert_thresholds["low_throughput_per_hour"],
                     },
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"throughput_{int(time.time())}",
                 )
             )
@@ -378,7 +378,7 @@ class PipelineMonitor:
                         "pending_count": total_pending,
                         "threshold": self.alert_thresholds["queue_backup_count"],
                     },
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     alert_id=f"queue_backup_{int(time.time())}",
                 )
             )
@@ -402,14 +402,14 @@ class PipelineMonitor:
         self,
         metrics: PipelineMetrics,
         health: HealthStatus,
-        alerts: List[PipelineAlert],
+        alerts: list[PipelineAlert],
     ) -> str:
         """Generate human-readable pipeline status report"""
         report_lines = [
             "=" * 70,
             "AI PLANNER -> QUEEN -> WORKER PIPELINE STATUS REPORT",
             "=" * 70,
-            f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+            f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}",
             f"Overall Health: {health.value.upper()}",
             "",
         ]
@@ -493,8 +493,8 @@ class PipelineMonitor:
         self,
         metrics: PipelineMetrics,
         health: HealthStatus,
-        alerts: List[PipelineAlert],
-    ) -> List[str]:
+        alerts: list[PipelineAlert],
+    ) -> list[str]:
         """Generate actionable recommendations based on current state"""
         recommendations = []
 
@@ -538,7 +538,7 @@ class PipelineMonitor:
                 self.metrics_history.append(metrics)
 
                 # Keep only last 24 hours of metrics
-                cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+                cutoff_time = datetime.now(UTC) - timedelta(hours=24)
                 self.metrics_history = [
                     m for m in self.metrics_history if datetime.fromisoformat(m.last_updated) > cutoff_time
                 ]
@@ -604,7 +604,7 @@ class PipelineMonitor:
 pipeline_monitor = PipelineMonitor()
 
 
-def get_pipeline_status() -> Dict[str, Any]:
+def get_pipeline_status() -> dict[str, Any]:
     """Get current pipeline status (convenience function)"""
     metrics = pipeline_monitor.collect_metrics()
     health, alerts = pipeline_monitor.check_health(metrics)
@@ -613,7 +613,7 @@ def get_pipeline_status() -> Dict[str, Any]:
         "health": health.value,
         "metrics": metrics.to_dict(),
         "alerts": [asdict(alert) for alert in alerts],
-        "last_updated": datetime.now(timezone.utc).isoformat(),
+        "last_updated": datetime.now(UTC).isoformat(),
     }
 
 

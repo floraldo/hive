@@ -16,10 +16,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 from .data_unification import MetricType, UnifiedMetric
 from .oracle_service import OracleService
@@ -70,7 +71,7 @@ class DesignIntent:
     document_path: str
 
     # Technical requirements
-    expected_load: Optional[str] = None
+    expected_load: str | None = None
     data_requirements: list[str] = field(default_factory=list)
     api_endpoints: list[str] = field(default_factory=list)
     integration_points: list[str] = field(default_factory=list)
@@ -79,8 +80,8 @@ class DesignIntent:
     target_users: str = ""
     business_value: str = ""
     success_metrics: list[str] = field(default_factory=list)
-    timeline: Optional[str] = None
-    budget_constraints: Optional[str] = None
+    timeline: str | None = None
+    budget_constraints: str | None = None
 
     # Technical details
     preferred_technologies: list[str] = field(default_factory=list)
@@ -119,10 +120,10 @@ class ArchitecturalProphecy:
     preventive_patterns: list[str] = field(default_factory=list)
 
     # Business impact
-    cost_implications: Optional[str] = None
-    performance_impact: Optional[str] = None
-    maintenance_impact: Optional[str] = None
-    business_risk: Optional[str] = None
+    cost_implications: str | None = None
+    performance_impact: str | None = None
+    maintenance_impact: str | None = None
+    business_risk: str | None = None
 
     # Oracle intelligence
     oracle_reasoning: str = ""
@@ -137,7 +138,7 @@ class ArchitecturalProphecy:
     # Metadata
     generated_at: datetime = field(default_factory=datetime.utcnow)
     reviewed_by_human: bool = False
-    prophecy_accuracy: Optional[float] = None  # Set later when outcome is known
+    prophecy_accuracy: float | None = None  # Set later when outcome is known
 
 
 @dataclass
@@ -163,7 +164,7 @@ class ProphecyReport:
     # Business intelligence
     estimated_development_time: str = ""
     estimated_operational_cost: str = ""
-    roi_projection: Optional[str] = None
+    roi_projection: str | None = None
     market_opportunity_assessment: str = ""
 
     # Oracle insights
@@ -213,7 +214,7 @@ class ProphecyEngine:
     architectural knowledge accumulated across the platform.
     """
 
-    def __init__(self, config: ProphecyEngineConfig, oracle: Optional[OracleService] = None):
+    def __init__(self, config: ProphecyEngineConfig, oracle: OracleService | None = None):
         self.config = config
         self.oracle = oracle
         self.data_layer = oracle.data_layer if oracle else None
@@ -320,7 +321,7 @@ class ProphecyEngine:
             await self._store_prophecy_report_async(report)
 
             logger.info(
-                f"🔮 Prophecy analysis complete: {len(prophecies)} prophecies, "
+                f"🔮 Prophecy analysis complete: {len(prophecies)} prophecies, ",
                 f"risk level: {overall_risk.value}, duration: {analysis_duration:.1f}s"
             )
 
@@ -375,7 +376,7 @@ class ProphecyEngine:
             )
 
             logger.info(
-                f"Extracted design intent for '{design_intent.project_name}' "
+                f"Extracted design intent for '{design_intent.project_name}' ",
                 f"(confidence: {design_intent.confidence_score:.1%})"
             )
 
@@ -416,7 +417,7 @@ class ProphecyEngine:
         """Extract project name from document content."""
         # Look for title patterns
         title_patterns = [
-            r"#\s+(.+)",  # Markdown H1
+            r"#\s+(.+)",  # Markdown H1,
             r"Project:\s*(.+)",
             r"Application:\s*(.+)",
             r"Service:\s*(.+)",
@@ -616,8 +617,8 @@ class ProphecyEngine:
 
             # Filter by confidence threshold
             filtered_prophecies = [
-                p
-                for p in prophecies
+                p,
+                for p in prophecies,
                 if self._get_confidence_score(p.confidence) >= self.config.min_confidence_threshold
             ]
 
@@ -644,7 +645,7 @@ class ProphecyEngine:
 
         # Database bottleneck prophecy
         if (
-            "data_persistence" in design_intent.data_requirements
+            "data_persistence" in design_intent.data_requirements,
             and "high_performance" in design_intent.performance_requirements
         ):
             prophecy = ArchitecturalProphecy(
@@ -671,7 +672,7 @@ class ProphecyEngine:
             )
             prophecies.append(prophecy)
 
-        # Real-time processing prophecy
+        # Real-time processing prophecy,
         if "real_time_data" in design_intent.data_requirements:
             prophecy = ArchitecturalProphecy(
                 prophecy_id=f"perf_realtime_{design_intent.project_name}",
@@ -693,7 +694,7 @@ class ProphecyEngine:
         """Generate cost-related prophecies."""
         prophecies = []
 
-        # AI model cost prophecy
+        # AI model cost prophecy,
         if any("ai" in tech.lower() or "ml" in tech.lower() for tech in design_intent.preferred_technologies):
             prophecy = ArchitecturalProphecy(
                 prophecy_id=f"cost_ai_overrun_{design_intent.project_name}",
@@ -721,7 +722,7 @@ class ProphecyEngine:
         """Generate scalability-related prophecies."""
         prophecies = []
 
-        # Monolithic architecture prophecy
+        # Monolithic architecture prophecy,
         if len(design_intent.api_endpoints) > 10 and "microservice" not in design_intent.preferred_technologies:
             prophecy = ArchitecturalProphecy(
                 prophecy_id=f"scale_monolith_{design_intent.project_name}",
@@ -743,7 +744,7 @@ class ProphecyEngine:
         """Generate compliance-related prophecies."""
         prophecies = []
 
-        # Golden Rules violation prophecy
+        # Golden Rules violation prophecy,
         if not any("hive-" in tech for tech in design_intent.preferred_technologies):
             prophecy = ArchitecturalProphecy(
                 prophecy_id=f"compliance_golden_rules_{design_intent.project_name}",
@@ -770,9 +771,9 @@ class ProphecyEngine:
         """Generate security-related prophecies."""
         prophecies = []
 
-        # Authentication prophecy
+        # Authentication prophecy,
         if (
-            "authentication" in design_intent.integration_points
+            "authentication" in design_intent.integration_points,
             and "security" not in design_intent.preferred_technologies
         ):
             prophecy = ArchitecturalProphecy(
@@ -795,7 +796,7 @@ class ProphecyEngine:
         """Generate maintenance-related prophecies."""
         prophecies = []
 
-        # Technical debt prophecy
+        # Technical debt prophecy,
         if design_intent.timeline and "urgent" in design_intent.timeline.lower():
             prophecy = ArchitecturalProphecy(
                 prophecy_id=f"maint_tech_debt_{design_intent.project_name}",
@@ -818,7 +819,7 @@ class ProphecyEngine:
         """Generate integration-related prophecies."""
         prophecies = []
 
-        # External API dependency prophecy
+        # External API dependency prophecy,
         if len(design_intent.integration_points) > 3:
             prophecy = ArchitecturalProphecy(
                 prophecy_id=f"integration_deps_{design_intent.project_name}",
@@ -840,7 +841,7 @@ class ProphecyEngine:
         """Generate business-related prophecies."""
         prophecies = []
 
-        # Market misalignment prophecy
+        # Market misalignment prophecy,
         if not design_intent.business_value or "not specified" in design_intent.business_value:
             prophecy = ArchitecturalProphecy(
                 prophecy_id=f"business_alignment_{design_intent.project_name}",
@@ -928,7 +929,7 @@ class ProphecyEngine:
 
             if high_severity_prophecies:
                 guidance_parts.append(
-                    f"⚠️ {len(high_severity_prophecies)} critical architectural risks identified. "
+                    f"⚠️ {len(high_severity_prophecies)} critical architectural risks identified. ",
                     "Immediate attention required to prevent future issues."
                 )
 
@@ -937,19 +938,19 @@ class ProphecyEngine:
 
             if ProphecyType.PERFORMANCE_BOTTLENECK in prophecy_types:
                 guidance_parts.append(
-                    "🚀 Performance optimization is critical. Consider event-driven architecture "
+                    "🚀 Performance optimization is critical. Consider event-driven architecture ",
                     "and caching strategies from the start."
                 )
 
             if ProphecyType.COST_OVERRUN in prophecy_types:
                 guidance_parts.append(
-                    "💰 Cost management is essential. Implement intelligent resource pooling "
+                    "💰 Cost management is essential. Implement intelligent resource pooling ",
                     "and usage monitoring early."
                 )
 
             if ProphecyType.COMPLIANCE_VIOLATION in prophecy_types:
                 guidance_parts.append(
-                    "📋 Compliance violations detected. Follow Hive Golden Rules strictly "
+                    "📋 Compliance violations detected. Follow Hive Golden Rules strictly ",
                     "to ensure CI/CD pipeline compatibility."
                 )
 
@@ -1029,7 +1030,7 @@ class ProphecyEngine:
                 # Convert report to metrics for storage
                 metrics = [
                     UnifiedMetric(
-                        metric_type=MetricType.GOLDEN_RULES_COMPLIANCE,  # Reuse existing type
+                        metric_type=MetricType.GOLDEN_RULES_COMPLIANCE,  # Reuse existing type,
                         source="prophecy_engine",
                         timestamp=report.generated_at,
                         value=report.oracle_confidence * 100,
@@ -1140,3 +1141,4 @@ class ProphecyEngine:
         summary_parts.append("🔮 The Oracle has spoken. The future is revealed.")
 
         return "\n".join(summary_parts)
+

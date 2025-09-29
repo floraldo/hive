@@ -16,7 +16,6 @@ import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List
 
 import requests
 
@@ -35,7 +34,7 @@ class CIPerfomanceAnalyzer:
             "optimization_recommendations": [],
         }
 
-    def get_workflow_runs(self, days_back: int = 30) -> List[Dict]:
+    def get_workflow_runs(self, days_back: int = 30) -> list[dict]:
         """Get workflow runs from the last N days"""
         since_date = (datetime.now() - timedelta(days=days_back)).isoformat()
 
@@ -68,7 +67,7 @@ class CIPerfomanceAnalyzer:
 
         return all_runs
 
-    def get_workflow_jobs(self, run_id: int) -> List[Dict]:
+    def get_workflow_jobs(self, run_id: int) -> list[dict]:
         """Get jobs for a specific workflow run"""
         url = f"{self.base_url}/repos/{self.repo_owner}/{self.repo_name}/actions/runs/{run_id}/jobs"
 
@@ -210,7 +209,7 @@ class CIPerfomanceAnalyzer:
 
         for dockerfile_path in dockerfile_paths:
             try:
-                with open(dockerfile_path, "r", encoding="utf-8") as f:
+                with open(dockerfile_path, encoding="utf-8") as f:
                     content = f.read()
 
                 issues = self._analyze_dockerfile_content(content, dockerfile_path)
@@ -223,7 +222,7 @@ class CIPerfomanceAnalyzer:
             except Exception as e:
                 print(f"Error analyzing {dockerfile_path}: {e}")
 
-    def _analyze_dockerfile_content(self, content: str, filepath: Path) -> List[Dict]:
+    def _analyze_dockerfile_content(self, content: str, filepath: Path) -> list[dict]:
         """Analyze Dockerfile content for common issues"""
         issues = []
         lines = content.split("\n")
@@ -391,7 +390,9 @@ class CIPerfomanceAnalyzer:
                 status_emoji = (
                     "🔴"
                     if workflow["avg_duration_minutes"] > 20
-                    else "🟡" if workflow["avg_duration_minutes"] > 10 else "🟢"
+                    else "🟡"
+                    if workflow["avg_duration_minutes"] > 10
+                    else "🟢"
                 )
                 report_lines.append(
                     f"{status_emoji} **{workflow['name']}**: {workflow['avg_duration_minutes']:.1f}min avg "

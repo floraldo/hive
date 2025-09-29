@@ -3,6 +3,7 @@
 import json
 
 import numpy as np
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

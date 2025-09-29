@@ -3,16 +3,14 @@
 Remote utility functions for Hive Deployment.
 Adapted from SmartHoodsOptimisationTool Apper project.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import fnmatch
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, ListTuple
-
-from hive_logging import get_logger
+from typing import Any
 
 from .ssh_client import SSHClient
 
@@ -32,7 +30,7 @@ def parse_deployignore(local_dir: str) -> List[str]:
 
     if os.path.exists(deployignore_path):
         try:
-            with open(deployignore_path, "r", encoding="utf-8") as f:
+            with open(deployignore_path, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#"):
@@ -121,10 +119,10 @@ def find_available_port(ssh: SSHClient, start_port: int, max_search: int) -> int
 def run_remote_command(
     ssh_client: SSHClient,
     command: str,
-    config: Dict[str, Any],
+    config: dict[str, Any],
     sudo: bool = False,
     check: bool = True,
-    log_output: bool = True
+    log_output: bool = True,
 ) -> Tuple[int, str, str]:
     """
     Executes a command on the remote server using the provided SSH client.
@@ -149,19 +147,19 @@ def run_remote_command(
     exit_code, stdout, stderr = ssh_client.execute_command(command, sudo=sudo)
 
     if exit_code != 0:
-        logging.warning(f"Remote command failed (Exit Code: {exit_code}): {sudo_prefix}{command}"),
+        (logging.warning(f"Remote command failed (Exit Code: {exit_code}): {sudo_prefix}{command}"),)
         if stdout and log_output:
-            logging.warning(f"  STDOUT: {stdout}"),
+            (logging.warning(f"  STDOUT: {stdout}"),)
         if stderr and log_output:
-            logging.warning(f"  STDERR: {stderr}"),
+            (logging.warning(f"  STDERR: {stderr}"),)
         if check:
             raise Exception(
                 f"Remote command failed with exit code {exit_code}: {sudo_prefix}{command}. Stderr: {stderr}"
             )
     else:
-        logging.debug(f"Remote command succeeded (Exit Code: 0): {sudo_prefix}{command}"),
+        (logging.debug(f"Remote command succeeded (Exit Code: 0): {sudo_prefix}{command}"),)
         if stdout and log_output:
-            logging.debug(f"  STDOUT: {stdout}"),
+            (logging.debug(f"  STDOUT: {stdout}"),)
         if stderr and log_output:
             logging.debug(f"  STDERR: {stderr}")
 
@@ -169,11 +167,7 @@ def run_remote_command(
 
 
 def upload_directory(
-    ssh_client: SSHClient,
-    local_dir: str,
-    remote_dir: str,
-    config: Dict[str, Any],
-    sudo_upload: bool = False
+    ssh_client: SSHClient, local_dir: str, remote_dir: str, config: dict[str, Any], sudo_upload: bool = False
 ) -> bool:
     """
     Uploads a local directory to a remote server via SFTP.
@@ -190,7 +184,7 @@ def upload_directory(
     """
     local_path = Path(local_dir)
     if not local_path.is_dir():
-        logging.error(f"Local directory not found: {local_dir}"),
+        (logging.error(f"Local directory not found: {local_dir}"),)
         return False
 
     # Parse .deployignore patterns
@@ -202,20 +196,15 @@ def upload_directory(
         if not ssh_client.sftp:
             ssh_client.sftp = ssh_client.client.open_sftp()
 
-        logging.info(f"Creating remote directory (if needed): {remote_dir}"),
+        (logging.info(f"Creating remote directory (if needed): {remote_dir}"),)
         # Use run_remote_command for directory creation
         exit_code, _, stderr = run_remote_command(
-            ssh_client
-            f"mkdir -p '{remote_dir}'",
-            config
-            sudo=sudo_upload,
-            check=False,
-            log_output=False
+            ssh_client, f"mkdir -p '{remote_dir}'", config, sudo=sudo_upload, check=False, log_output=False
         )
         if exit_code != 0:
             # Check if error is "File exists" - that's okay
             if "File exists" not in stderr:
-                logging.error(f"Failed to create remote directory {remote_dir}: {stderr}"),
+                (logging.error(f"Failed to create remote directory {remote_dir}: {stderr}"),)
                 return False
 
         # Walk through the local directory
@@ -226,21 +215,16 @@ def upload_directory(
 
             # Check if this directory should be ignored
             if relative_path_str != "." and should_ignore_path(relative_path_str + "/", ignore_patterns):
-                logging.debug(f"Ignoring directory: {relative_path_str}"),
+                (logging.debug(f"Ignoring directory: {relative_path_str}"),)
                 dirs.clear()  # Don't walk into subdirectories
                 continue
 
             remote_root = os.path.join(remote_dir, str(relative_path)).replace("\\\\", "/")
 
             if relative_path != Path("."):  # Don't try to create the base dir again,
-                logging.debug(f"Creating remote subdirectory: {remote_root}"),
+                (logging.debug(f"Creating remote subdirectory: {remote_root}"),)
                 exit_code, _, stderr = run_remote_command(
-                    ssh_client
-                    f"mkdir -p '{remote_root}'",
-                    config
-                    sudo=sudo_upload,
-                    check=False,
-                    log_output=False
+                    ssh_client, f"mkdir -p '{remote_root}'", config, sudo=sudo_upload, check=False, log_output=False
                 )
                 # Again, ignore "File exists" type errors
                 if exit_code != 0 and "File exists" not in stderr:
@@ -251,7 +235,7 @@ def upload_directory(
                 # Check if this file should be ignored
                 file_relative_path = os.path.join(relative_path_str, filename).replace("\\\\", "/")
                 if should_ignore_path(file_relative_path, ignore_patterns):
-                    logging.debug(f"Ignoring file: {file_relative_path}"),
+                    (logging.debug(f"Ignoring file: {file_relative_path}"),)
                     continue
 
                 local_file_path = os.path.join(root, filename)
@@ -266,7 +250,7 @@ def upload_directory(
         return True
 
     except Exception as e:
-        logging.error(f"Error during directory upload: {e}", exc_info=True),
+        (logging.error(f"Error during directory upload: {e}", exc_info=True),)
         return False
 
 

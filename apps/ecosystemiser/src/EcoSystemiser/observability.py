@@ -60,7 +60,7 @@ http_request_duration_seconds = Histogram(
     registry=registry
 )
 
-# Adapter metrics
+# Adapter metrics,
 adapter_requests_total = Counter(
     "climate_adapter_requests_total",
     "Total adapter requests",
@@ -80,7 +80,7 @@ adapter_data_points_total = Counter(
     registry=registry
 )
 
-# Cache metrics
+# Cache metrics,
 cache_hits_total = Counter(
     "climate_cache_hits_total",
     "Total cache hits",
@@ -104,7 +104,7 @@ rate_limit_tokens_remaining = Gauge(
     registry=registry
 )
 
-# Job queue metrics
+# Job queue metrics,
 job_queue_depth = Gauge(
     "climate_job_queue_depth",
     "Current job queue depth",
@@ -124,7 +124,7 @@ job_errors_total = Counter(
     registry=registry
 )
 
-# Data quality metrics
+# Data quality metrics,
 data_quality_score = Histogram(
     "climate_data_quality_score",
     "Data quality score (0-100)",
@@ -138,7 +138,7 @@ data_gaps_total = Counter(
     registry=registry
 )
 
-# System metrics
+# System metrics,
 memory_usage_bytes = Gauge("climate_memory_usage_bytes", "Memory usage in bytes", registry=registry)
 active_connections = Gauge(
     "climate_active_connections",
@@ -147,8 +147,8 @@ active_connections = Gauge(
     registry=registry
 )
 
-# =============================================================================
-# OpenTelemetry Setup
+# =============================================================================,
+# OpenTelemetry Setup,
 # =============================================================================,
 
 
@@ -361,7 +361,7 @@ def trace_span(
         attributes: Span attributes,
         record_exception: Whether to record exceptions,
     """
-    tracer = _observability_manager.tracer
+    tracer = _observability_manager.tracer,
     if not tracer:
         yield None,
         return,
@@ -514,21 +514,21 @@ class ClimateMetricsCollector:
 
 # Export main components
 __all__ = [
-    "init_observability"
+    "init_observability",
     "shutdown_observability",
-    "get_metrics"
+    "get_metrics",
     "track_time",
-    "count_calls"
+    "count_calls",
     "trace_span",
-    "track_adapter_request"
+    "track_adapter_request",
     "track_cache_operation",
-    "ClimateMetricsCollector"
+    "ClimateMetricsCollector",
     "http_requests_total",
-    "http_request_duration_seconds"
+    "http_request_duration_seconds",
     "adapter_requests_total",
-    "adapter_latency_seconds"
+    "adapter_latency_seconds",
     "cache_hits_total",
-    "cache_misses_total"
+    "cache_misses_total",
     "job_queue_depth",
     "job_processing_duration_seconds"
 ]

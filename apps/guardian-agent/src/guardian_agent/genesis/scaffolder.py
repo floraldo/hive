@@ -4,12 +4,14 @@ Hive Scaffolder - Application Structure Generator
 Generates complete, Golden Rules-compliant application structures
 based on Oracle-advised specifications.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
 from textwrap import dedent
 
 import toml
+
 from hive_logging import get_logger
 
 from .genesis_agent import AppSpec, FeatureStub, Priority
@@ -181,21 +183,21 @@ class HiveScaffolder:
         """Generate application-specific configuration."""
 
         config_content = dedent(
-            f'''
-            """
+            f''',
+            """,
             Configuration for {app_spec.name}
 
             Oracle-optimized configuration based on business intelligence.
             """
 
-            from hive_config import BaseConfig, ConfigField
+            from hive_config import BaseConfig, ConfigField,
             from typing import Optional
 
 
             class {self._to_class_name(app_spec.name)}Config(BaseConfig):
                 """Configuration for {app_spec.name} application."""
 
-                # Application settings
+                # Application settings,
                 app_name: str = ConfigField(default="{app_spec.name}")
                 debug: bool = ConfigField(default=False, env="DEBUG")
 
@@ -210,12 +212,12 @@ class HiveScaffolder:
                 {"ai_model: str = ConfigField(default='gpt-4', env='AI_MODEL')" if "hive-ai" in app_spec.recommended_packages else "# No AI settings needed"}
                 {"ai_temperature: float = ConfigField(default=0.7, env='AI_TEMPERATURE')" if "hive-ai" in app_spec.recommended_packages else ""}
 
-                # Oracle recommendations
+                # Oracle recommendations,
                 # {app_spec.market_opportunity[:80] + "..." if len(app_spec.market_opportunity) > 80 else app_spec.market_opportunity}
         '''
         ).strip()
 
-        config_path = target_path / "config" / "config.py"
+        config_path = target_path / "config" / "config.py",
         with open(config_path, "w") as f:
             f.write(config_content)
 
@@ -226,13 +228,13 @@ class HiveScaffolder:
 
         src_path = target_path / "src" / app_spec.name.replace("-", "_")
 
-        # Generate __init__.py
+        # Generate __init__.py,
         await self._generate_init_file(src_path, app_spec)
 
-        # Generate main application file
+        # Generate main application file,
         await self._generate_main_file(src_path, app_spec)
 
-        # Generate feature stubs
+        # Generate feature stubs,
         for feature in app_spec.features:
             await self._generate_feature_stub(src_path, feature, app_spec)
 
@@ -240,8 +242,8 @@ class HiveScaffolder:
         """Generate package __init__.py file."""
 
         init_content = dedent(
-            f'''
-            """
+            f''',
+            """,
             {app_spec.name} - {app_spec.description}
 
             Oracle-generated application with strategic business intelligence integration.
@@ -250,7 +252,7 @@ class HiveScaffolder:
             Oracle Confidence: {app_spec.oracle_confidence:.1%}
             """
 
-            __version__ = "0.1.0"
+            __version__ = "0.1.0",
             __description__ = "{app_spec.description}"
 
             # Oracle Strategic Insights:
@@ -259,7 +261,7 @@ class HiveScaffolder:
         '''
         ).strip()
 
-        init_path = src_path / "__init__.py"
+        init_path = src_path / "__init__.py",
         with open(init_path, "w") as f:
             f.write(init_content)
 
@@ -275,7 +277,7 @@ class HiveScaffolder:
         else:
             main_content = self._generate_service_main(class_name, app_spec)
 
-        main_path = src_path / "main.py"
+        main_path = src_path / "main.py",
         with open(main_path, "w") as f:
             f.write(main_content)
 
@@ -285,15 +287,15 @@ class HiveScaffolder:
         """Generate web application main file."""
 
         return dedent(
-            f'''
-            """
+            f''',
+            """,
             {app_spec.name} - Web Application Main Entry Point
 
             Oracle-optimized web application with strategic feature prioritization.
             """
 
-            from fastapi import FastAPI
-            from hive_logging import get_logger
+            from fastapi import FastAPI,
+            from hive_logging import get_logger,
             {"from hive_db import DatabaseManager" if "hive-db" in app_spec.recommended_packages else ""}
 
             logger = get_logger(__name__)
@@ -322,14 +324,14 @@ class HiveScaffolder:
                 async def health_check():
                     return {{"status": "healthy", "service": "{app_spec.name}"}}
 
-                # TODO: Implement feature endpoints based on Oracle prioritization
+                # TODO: Implement feature endpoints based on Oracle prioritization,
                 {self._generate_feature_todos(app_spec.features)}
 
                 return app
 
 
             if __name__ == "__main__":
-                import uvicorn
+                import uvicorn,
                 app = create_app()
                 uvicorn.run(app, host="0.0.0.0", port=8000)
         '''
@@ -339,14 +341,14 @@ class HiveScaffolder:
         """Generate CLI application main file."""
 
         return dedent(
-            f'''
-            """
+            f''',
+            """,
             {app_spec.name} - CLI Application Main Entry Point
 
             Oracle-optimized CLI tool with strategic feature prioritization.
             """
 
-            import click
+            import click,
             from hive_logging import get_logger
 
             logger = get_logger(__name__)
@@ -355,23 +357,23 @@ class HiveScaffolder:
             @click.group()
             @click.version_option(version="0.1.0")
             def cli():
-                """
+                """,
                 {app_spec.description}
 
                 Oracle Confidence: {app_spec.oracle_confidence:.1%}
-                """
+                """,
                 pass
 
 
             @cli.command()
             def status():
-                """Show application status."""
+                """Show application status.""",
                 click.echo(f"{{'{app_spec.name}' Status: Ready}}")
                 click.echo(f"Oracle Confidence: {app_spec.oracle_confidence:.1%}")
                 click.echo(f"Features to implement: {len(app_spec.features)}")
 
 
-            # TODO: Implement CLI commands based on Oracle prioritization
+            # TODO: Implement CLI commands based on Oracle prioritization,
             {self._generate_feature_todos(app_spec.features)}
 
 
@@ -384,14 +386,14 @@ class HiveScaffolder:
         """Generate service application main file."""
 
         return dedent(
-            f'''
-            """
+            f''',
+            """,
             {app_spec.name} - Service Main Entry Point
 
             Oracle-optimized service with strategic feature prioritization.
             """
 
-            import asyncio
+            import asyncio,
             from hive_logging import get_logger
 
             logger = get_logger(__name__)
@@ -401,12 +403,12 @@ class HiveScaffolder:
                 """Main service class for {app_spec.name}."""
 
                 def __init__(self):
-                    self.running = False
+                    self.running = False,
                     logger.info("Initializing {app_spec.name} service")
 
                 async def start_async(self):
-                    """Start the service."""
-                    self.running = True
+                    """Start the service.""",
+                    self.running = True,
                     logger.info("{app_spec.name} service started")
 
                     # Oracle Strategic Insight: {app_spec.market_opportunity or "Focus on core functionality"}
@@ -421,19 +423,19 @@ class HiveScaffolder:
                         await self.stop_async()
 
                 async def stop_async(self):
-                    """Stop the service."""
-                    self.running = False
+                    """Stop the service.""",
+                    self.running = False,
                     logger.info("{app_spec.name} service stopped")
 
                 async def _process_cycle(self):
-                    """Process one service cycle."""
-                    # TODO: Implement service logic based on Oracle prioritization
+                    """Process one service cycle.""",
+                    # TODO: Implement service logic based on Oracle prioritization,
                     {self._generate_feature_todos(app_spec.features)}
                     pass
 
 
             async def main():
-                """Main entry point."""
+                """Main entry point.""",
                 service = {class_name}Service()
                 await service.start_async()
 
@@ -477,8 +479,8 @@ class HiveScaffolder:
         class_name = self._to_class_name(feature.name)
 
         stub_content = dedent(
-            f'''
-            """
+            f''',
+            """,
             {feature.name} - {feature.description}
 
             Priority: {feature.priority.value.upper()}
@@ -489,7 +491,7 @@ class HiveScaffolder:
             {self._format_oracle_recommendations(feature.oracle_recommendations)}
             """
 
-            from hive_logging import get_logger
+            from hive_logging import get_logger,
             {"from hive_db import DatabaseManager" if "hive-db" in app_spec.recommended_packages and "data" in feature.name.lower() else ""}
             {"from hive_ai import AIService" if "hive-ai" in app_spec.recommended_packages and "ai" in feature.name.lower() else ""}
 
@@ -497,7 +499,7 @@ class HiveScaffolder:
 
 
             class {class_name}:
-                """
+                """,
                 {feature.description}
 
                 This feature has {feature.priority.value} priority based on Oracle analysis.
@@ -508,11 +510,11 @@ class HiveScaffolder:
                     # TODO: Initialize {feature.name} components
 
                 async def implement_async(self):
-                    """
+                    """,
                     Implement {feature.name} functionality.
 
                     Oracle Insight: {feature.business_value}
-                    """
+                    """,
                     # TODO [{feature.priority.value.upper()}]: Implement {feature.name}
                     # Estimated effort: {feature.estimated_effort}
 
@@ -522,7 +524,7 @@ class HiveScaffolder:
                     raise NotImplementedError("Feature not yet implemented")
 
 
-            # TODO: Add tests for {class_name} in tests/test_{module_name}.py
+            # TODO: Add tests for {class_name} in tests/test_{module_name}.py,
             # Oracle recommends: {feature.oracle_recommendations[0] if feature.oracle_recommendations else "Standard testing patterns"}
         '''
         ).strip()
@@ -546,61 +548,61 @@ class HiveScaffolder:
 
         if "auth" in feature_lower or "login" in feature_lower:
             return dedent(
-                """
-                # Authentication implementation template
-                # 1. Set up user model and database schema
-                # 2. Implement password hashing and verification
-                # 3. Create login/logout endpoints
-                # 4. Add JWT token management
-                # 5. Implement role-based access control
+                """,
+                # Authentication implementation template,
+                # 1. Set up user model and database schema,
+                # 2. Implement password hashing and verification,
+                # 3. Create login/logout endpoints,
+                # 4. Add JWT token management,
+                # 5. Implement role-based access control,
             """
             ).strip()
 
         elif "upload" in feature_lower or "file" in feature_lower:
             return dedent(
-                """
-                # File upload implementation template
+                """,
+                # File upload implementation template,
                 # 1. Set up file storage (local or cloud)
-                # 2. Implement file validation and security checks
-                # 3. Create upload endpoint with progress tracking
-                # 4. Add file metadata storage
-                # 5. Implement file retrieval and serving
+                # 2. Implement file validation and security checks,
+                # 3. Create upload endpoint with progress tracking,
+                # 4. Add file metadata storage,
+                # 5. Implement file retrieval and serving,
             """
             ).strip()
 
         elif "search" in feature_lower:
             return dedent(
-                """
-                # Search implementation template
-                # 1. Design search index structure
-                # 2. Implement full-text search capability
-                # 3. Add filtering and sorting options
-                # 4. Create search API endpoints
-                # 5. Optimize search performance and relevance
+                """,
+                # Search implementation template,
+                # 1. Design search index structure,
+                # 2. Implement full-text search capability,
+                # 3. Add filtering and sorting options,
+                # 4. Create search API endpoints,
+                # 5. Optimize search performance and relevance,
             """
             ).strip()
 
         elif "ai" in feature_lower or "smart" in feature_lower:
             return dedent(
-                """
-                # AI feature implementation template
+                """,
+                # AI feature implementation template,
                 # 1. Set up AI service integration (hive-ai)
-                # 2. Design prompt templates and model selection
-                # 3. Implement AI processing pipeline
-                # 4. Add result caching and optimization
-                # 5. Monitor AI costs and performance
+                # 2. Design prompt templates and model selection,
+                # 3. Implement AI processing pipeline,
+                # 4. Add result caching and optimization,
+                # 5. Monitor AI costs and performance,
             """
             ).strip()
 
         else:
             return dedent(
-                f"""
-                # {feature.name} implementation template
-                # 1. Define feature requirements and specifications
-                # 2. Design data models and API interfaces
-                # 3. Implement core business logic
-                # 4. Add error handling and validation
-                # 5. Create comprehensive tests
+                f""",
+                # {feature.name} implementation template,
+                # 1. Define feature requirements and specifications,
+                # 2. Design data models and API interfaces,
+                # 3. Implement core business logic,
+                # 4. Add error handling and validation,
+                # 5. Create comprehensive tests,
             """
             ).strip()
 
@@ -625,15 +627,15 @@ class HiveScaffolder:
         """Generate main application test file."""
 
         test_content = dedent(
-            f'''
-            """
+            f''',
+            """,
             Tests for {app_spec.name} main application.
 
-            Golden Rules Compliance: These tests ensure the application
+            Golden Rules Compliance: These tests ensure the application,
             meets all architectural requirements.
             """
 
-            import pytest
+            import pytest,
             from {app_spec.name.replace("-", "_")}.main import *
 
 
@@ -641,37 +643,37 @@ class HiveScaffolder:
                 """Test suite for main application functionality."""
 
                 def test_application_initialization(self):
-                    """Test that the application initializes correctly."""
-                    # TODO: Implement initialization test
+                    """Test that the application initializes correctly.""",
+                    # TODO: Implement initialization test,
                     assert True  # Placeholder
 
                 def test_health_check(self):
-                    """Test health check endpoint."""
-                    # TODO: Implement health check test
+                    """Test health check endpoint.""",
+                    # TODO: Implement health check test,
                     assert True  # Placeholder
 
-                # TODO: Add tests for each feature based on Oracle prioritization
+                # TODO: Add tests for each feature based on Oracle prioritization,
                 {self._generate_test_todos(app_spec.features)}
 
 
-            # Golden Rules Compliance Tests
+            # Golden Rules Compliance Tests,
             class TestGoldenRulesCompliance:
                 """Ensure the application meets Golden Rules requirements."""
 
                 def test_no_global_state_access(self):
-                    """Test that no global state is accessed inappropriately."""
-                    # TODO: Implement global state check
+                    """Test that no global state is accessed inappropriately.""",
+                    # TODO: Implement global state check,
                     assert True  # Placeholder
 
                 def test_proper_error_handling(self):
-                    """Test that errors are handled according to standards."""
-                    # TODO: Implement error handling test
+                    """Test that errors are handled according to standards.""",
+                    # TODO: Implement error handling test,
                     assert True  # Placeholder
 
                 def test_logging_standards(self):
-                    """Test that logging follows Hive standards."""
-                    # TODO: Implement logging standards test
-                    assert True  # Placeholder
+                    """Test that logging follows Hive standards.""",
+                    # TODO: Implement logging standards test,
+                    assert True  # Placeholder,
         '''
         ).strip()
 
@@ -702,41 +704,41 @@ class HiveScaffolder:
         class_name = self._to_class_name(feature.name)
 
         test_content = dedent(
-            f'''
-            """
+            f''',
+            """,
             Tests for {feature.name} feature.
 
             Priority: {feature.priority.value.upper()}
             Oracle Business Value: {feature.business_value}
             """
 
-            import pytest
+            import pytest,
             from {app_spec.name.replace("-", "_")}.{module_name} import {class_name}
 
 
             class Test{class_name}:
                 """Test suite for {feature.name} functionality."""
 
-                @pytest.fixture
+                @pytest.fixture,
                 def {module_name}(self):
-                    """Create {class_name} instance for testing."""
+                    """Create {class_name} instance for testing.""",
                     return {class_name}()
 
                 def test_{module_name}_initialization(self, {module_name}):
-                    """Test {feature.name} initialization."""
-                    assert {module_name} is not None
+                    """Test {feature.name} initialization.""",
+                    assert {module_name} is not None,
                     # TODO: Add specific initialization tests
 
-                @pytest.mark.asyncio
+                @pytest.mark.asyncio,
                 async def test_{module_name}_implementation(self, {module_name}):
-                    """Test {feature.name} core functionality."""
-                    # TODO [{feature.priority.value.upper()}]: Implement {feature.name} tests
+                    """Test {feature.name} core functionality.""",
+                    # TODO [{feature.priority.value.upper()}]: Implement {feature.name} tests,
                     # Oracle recommends: {feature.oracle_recommendations[0] if feature.oracle_recommendations else "Standard testing patterns"}
 
                     with pytest.raises(NotImplementedError):
                         await {module_name}.implement_async()
 
-                # TODO: Add comprehensive test cases based on feature requirements
+                # TODO: Add comprehensive test cases based on feature requirements,
                 # Estimated test effort: {feature.estimated_effort}
         '''
         ).strip()
@@ -747,20 +749,20 @@ class HiveScaffolder:
     async def _generate_documentation(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate comprehensive documentation."""
 
-        # Generate README.md
+        # Generate README.md,
         await self._generate_readme(target_path, app_spec)
 
-        # Generate architecture documentation
+        # Generate architecture documentation,
         await self._generate_architecture_docs(target_path, app_spec)
 
-        # Generate feature documentation
+        # Generate feature documentation,
         await self._generate_feature_docs(target_path, app_spec)
 
     async def _generate_readme(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate comprehensive README.md."""
 
         readme_content = dedent(
-            f"""
+            f""",
             # {app_spec.name}
 
             {app_spec.description}
@@ -784,18 +786,18 @@ class HiveScaffolder:
 
             ## 🚀 Quick Start
 
-            1. **Install dependencies:**
-               ```bash
+            1. **Install dependencies:**,
+               ```bash,
                pip install -e .
                ```
 
-            2. **Run the application:**
-               ```bash
+            2. **Run the application:**,
+               ```bash,
                {"python -m " + app_spec.name.replace("-", "_") + ".main" if app_spec.category.value != "cli_tool" else app_spec.name.replace("-", "_") + " --help"}
                ```
 
-            3. **Run tests:**
-               ```bash
+            3. **Run tests:**,
+               ```bash,
                pytest tests/
                ```
 
@@ -811,31 +813,31 @@ class HiveScaffolder:
 
             ## 🔧 Development
 
-            ### Prerequisites
+            ### Prerequisites,
             - Python 3.11+
             - Hive platform packages
 
-            ### Development Setup
-            ```bash
-            # Install development dependencies
+            ### Development Setup,
+            ```bash,
+            # Install development dependencies,
             pip install -e ".[dev]"
 
-            # Run linting
+            # Run linting,
             black src/ tests/
             ruff check src/ tests/
 
-            # Type checking
+            # Type checking,
             mypy src/
             ```
 
             ### Golden Rules Compliance
 
             This application is generated to be 100% compliant with Hive Golden Rules:
-            - ✅ Package vs App Discipline
-            - ✅ Dependency Direction
-            - ✅ Interface Contracts
-            - ✅ Error Handling Standards
-            - ✅ No Global State Access
+            - ✅ Package vs App Discipline,
+            - ✅ Dependency Direction,
+            - ✅ Interface Contracts,
+            - ✅ Error Handling Standards,
+            - ✅ No Global State Access,
             - ✅ Test-to-Source File Mapping
 
             ## 📈 Oracle Recommendations
@@ -846,9 +848,9 @@ class HiveScaffolder:
 
             ## 🤝 Contributing
 
-            1. Follow Hive Golden Rules
-            2. Implement features by Oracle priority
-            3. Add comprehensive tests
+            1. Follow Hive Golden Rules,
+            2. Implement features by Oracle priority,
+            3. Add comprehensive tests,
             4. Update documentation
 
             ---
@@ -857,7 +859,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        readme_path = target_path / "README.md"
+        readme_path = target_path / "README.md",
         with open(readme_path, "w") as f:
             f.write(readme_content)
 
@@ -948,7 +950,7 @@ class HiveScaffolder:
         docs_path = target_path / "docs"
 
         arch_content = dedent(
-            f"""
+            f""",
             # Architecture Documentation
 
             ## Overview
@@ -958,7 +960,7 @@ class HiveScaffolder:
             ## Oracle Strategic Decisions
 
             - **Storage Strategy:** {app_spec.storage_recommendation}
-            - **Package Selection:** Based on feature analysis and business intelligence
+            - **Package Selection:** Based on feature analysis and business intelligence,
             - **Feature Prioritization:** Driven by ROI analysis and adoption rates
 
             ## Component Architecture
@@ -976,23 +978,23 @@ class HiveScaffolder:
             The application is designed for deployment using `hive-deployment` with the following characteristics:
 
             - **Scalability:** {self._assess_scalability(app_spec)}
-            - **Performance:** Optimized based on Oracle business intelligence
+            - **Performance:** Optimized based on Oracle business intelligence,
             - **Cost Efficiency:** Aligned with platform cost optimization goals
 
             ## Golden Rules Compliance
 
             This architecture ensures 100% compliance with Hive Golden Rules:
 
-            1. **Package Discipline:** Clear separation between application and infrastructure
-            2. **Dependency Direction:** Proper dependency flow from app to packages
-            3. **Interface Contracts:** Well-defined APIs with type hints
-            4. **Error Handling:** Consistent error handling patterns
-            5. **No Global State:** All state managed through proper dependency injection
-            6. **Test Coverage:** Complete test-to-source file mapping
+            1. **Package Discipline:** Clear separation between application and infrastructure,
+            2. **Dependency Direction:** Proper dependency flow from app to packages,
+            3. **Interface Contracts:** Well-defined APIs with type hints,
+            4. **Error Handling:** Consistent error handling patterns,
+            5. **No Global State:** All state managed through proper dependency injection,
+            6. **Test Coverage:** Complete test-to-source file mapping,
         """
         ).strip()
 
-        arch_path = docs_path / "ARCHITECTURE.md"
+        arch_path = docs_path / "ARCHITECTURE.md",
         with open(arch_path, "w") as f:
             f.write(arch_content)
 
@@ -1023,20 +1025,20 @@ class HiveScaffolder:
 
         if "hive-db" in app_spec.recommended_packages:
             return dedent(
-                """
-                1. **Input Layer:** Receives requests/data from users or external systems
-                2. **Validation Layer:** Validates input according to business rules
-                3. **Business Logic:** Processes data according to application requirements
-                4. **Data Layer:** Persists data using hive-db components
-                5. **Response Layer:** Returns processed results to clients
+                """,
+                1. **Input Layer:** Receives requests/data from users or external systems,
+                2. **Validation Layer:** Validates input according to business rules,
+                3. **Business Logic:** Processes data according to application requirements,
+                4. **Data Layer:** Persists data using hive-db components,
+                5. **Response Layer:** Returns processed results to clients,
             """
             ).strip()
         else:
             return dedent(
-                """
-                1. **Input Layer:** Receives requests/data from users or external systems
-                2. **Processing Layer:** Processes data according to application logic
-                3. **Output Layer:** Returns processed results to clients
+                """,
+                1. **Input Layer:** Receives requests/data from users or external systems,
+                2. **Processing Layer:** Processes data according to application logic,
+                3. **Output Layer:** Returns processed results to clients,
             """
             ).strip()
 
@@ -1056,12 +1058,12 @@ class HiveScaffolder:
         docs_path = target_path / "docs"
 
         features_content = dedent(
-            f"""
+            f""",
             # Feature Documentation
 
             ## Oracle-Prioritized Features
 
-            This document outlines the features identified by the Oracle's semantic analysis
+            This document outlines the features identified by the Oracle's semantic analysis,
             and prioritized based on business intelligence.
 
             {self._generate_detailed_feature_docs(app_spec.features)}
@@ -1078,7 +1080,7 @@ class HiveScaffolder:
         """
         ).strip()
 
-        features_path = docs_path / "FEATURES.md"
+        features_path = docs_path / "FEATURES.md",
         with open(features_path, "w") as f:
             f.write(features_content)
 
@@ -1164,59 +1166,59 @@ class HiveScaffolder:
         """Generate Dockerfile for the application."""
 
         dockerfile_content = dedent(
-            f"""
+            f""",
             FROM python:3.11-slim
 
-            # Set working directory
+            # Set working directory,
             WORKDIR /app
 
-            # Install system dependencies
+            # Install system dependencies,
             RUN apt-get update && apt-get install -y \\
                 gcc \\
                 && rm -rf /var/lib/apt/lists/*
 
-            # Copy requirements and install Python dependencies
+            # Copy requirements and install Python dependencies,
             COPY pyproject.toml .
             RUN pip install --no-cache-dir -e .
 
-            # Copy application code
+            # Copy application code,
             COPY src/ src/
             COPY config/ config/
 
-            # Create non-root user
-            RUN useradd --create-home --shell /bin/bash app
+            # Create non-root user,
+            RUN useradd --create-home --shell /bin/bash app,
             USER app
 
             # Expose port (if web application)
             {"EXPOSE 8000" if app_spec.category.value in ["web_application", "api_service"] else "# No port exposure needed"}
 
-            # Health check
+            # Health check,
             {"HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \\\n  CMD curl -f http://localhost:8000/health || exit 1" if app_spec.category.value in ["web_application", "api_service"] else "# No health check for non-web services"}
 
-            # Run application
-            CMD ["python", "-m", "{app_spec.name.replace('-', '_')}.main"]
+            # Run application,
+            CMD ["python", "-m", "{app_spec.name.replace("-", "_")}.main"]
         """
         ).strip()
 
-        dockerfile_path = target_path / "Dockerfile"
+        dockerfile_path = target_path / "Dockerfile",
         with open(dockerfile_path, "w") as f:
             f.write(dockerfile_content)
 
     async def _generate_k8s_manifests(self, k8s_path: Path, app_spec: AppSpec) -> None:
         """Generate Kubernetes deployment manifests."""
 
-        # Generate deployment.yaml
+        # Generate deployment.yaml,
         deployment_content = dedent(
-            f"""
-            apiVersion: apps/v1
-            kind: Deployment
+            f""",
+            apiVersion: apps/v1,
+            kind: Deployment,
             metadata:
               name: {app_spec.name}
               labels:
                 app: {app_spec.name}
-                oracle-generated: "true"
+                oracle-generated: "true",
             spec:
-              replicas: 1
+              replicas: 1,
               selector:
                 matchLabels:
                   app: {app_spec.name}
@@ -1227,12 +1229,12 @@ class HiveScaffolder:
                 spec:
                   containers:
                   - name: {app_spec.name}
-                    image: {app_spec.name}:latest
+                    image: {app_spec.name}:latest,
                     {"ports:" if app_spec.category.value in ["web_application", "api_service"] else "# No ports needed"}
                     {"- containerPort: 8000" if app_spec.category.value in ["web_application", "api_service"] else ""}
                     env:
-                    - name: ENVIRONMENT
-                      value: "production"
+                    - name: ENVIRONMENT,
+                      value: "production",
                     {"- name: DATABASE_URL" if "hive-db" in app_spec.recommended_packages else ""}
                     {"  valueFrom:" if "hive-db" in app_spec.recommended_packages else ""}
                     {"    secretKeyRef:" if "hive-db" in app_spec.recommended_packages else ""}
@@ -1240,50 +1242,50 @@ class HiveScaffolder:
                     {"      key: url" if "hive-db" in app_spec.recommended_packages else ""}
                     resources:
                       requests:
-                        memory: "128Mi"
-                        cpu: "100m"
+                        memory: "128Mi",
+                        cpu: "100m",
                       limits:
-                        memory: "512Mi"
-                        cpu: "500m"
+                        memory: "512Mi",
+                        cpu: "500m",
         """
         ).strip()
 
-        deployment_path = k8s_path / "deployment.yaml"
+        deployment_path = k8s_path / "deployment.yaml",
         with open(deployment_path, "w") as f:
             f.write(deployment_content)
 
         # Generate service.yaml (if web application)
         if app_spec.category.value in ["web_application", "api_service"]:
             service_content = dedent(
-                f"""
-                apiVersion: v1
-                kind: Service
+                f""",
+                apiVersion: v1,
+                kind: Service,
                 metadata:
-                  name: {app_spec.name}-service
+                  name: {app_spec.name}-service,
                   labels:
                     app: {app_spec.name}
                 spec:
                   selector:
                     app: {app_spec.name}
                   ports:
-                  - protocol: TCP
-                    port: 80
-                    targetPort: 8000
-                  type: ClusterIP
+                  - protocol: TCP,
+                    port: 80,
+                    targetPort: 8000,
+                  type: ClusterIP,
             """
             ).strip()
 
-            service_path = k8s_path / "service.yaml"
+            service_path = k8s_path / "service.yaml",
             with open(service_path, "w") as f:
                 f.write(service_content)
 
     async def _generate_deployment_scripts(self, scripts_path: Path, app_spec: AppSpec) -> None:
         """Generate deployment helper scripts."""
 
-        # Generate build script
+        # Generate build script,
         build_script = dedent(
-            f"""
-            #!/bin/bash
+            f""",
+            #!/bin/bash,
             # Build script for {app_spec.name}
             # Generated by Hive Genesis Agent
 
@@ -1291,25 +1293,25 @@ class HiveScaffolder:
 
             echo "Building {app_spec.name}..."
 
-            # Build Docker image
+            # Build Docker image,
             docker build -t {app_spec.name}:latest .
 
             # Tag for registry (customize as needed)
             # docker tag {app_spec.name}:latest your-registry/{app_spec.name}:latest
 
-            echo "Build complete!"
+            echo "Build complete!",
         """
         ).strip()
 
-        build_path = scripts_path / "build.sh"
+        build_path = scripts_path / "build.sh",
         with open(build_path, "w") as f:
             f.write(build_script)
         build_path.chmod(0o755)  # Make executable
 
-        # Generate deploy script
+        # Generate deploy script,
         deploy_script = dedent(
-            f"""
-            #!/bin/bash
+            f""",
+            #!/bin/bash,
             # Deploy script for {app_spec.name}
             # Generated by Hive Genesis Agent
 
@@ -1317,20 +1319,20 @@ class HiveScaffolder:
 
             echo "Deploying {app_spec.name}..."
 
-            # Apply Kubernetes manifests
+            # Apply Kubernetes manifests,
             kubectl apply -f k8s/
 
-            # Wait for deployment to be ready
+            # Wait for deployment to be ready,
             kubectl rollout status deployment/{app_spec.name}
 
             {"# Get service URL" if app_spec.category.value in ["web_application", "api_service"] else ""}
             {"kubectl get service {app_spec.name}-service" if app_spec.category.value in ["web_application", "api_service"] else ""}
 
-            echo "Deployment complete!"
+            echo "Deployment complete!",
         """
         ).strip()
 
-        deploy_path = scripts_path / "deploy.sh"
+        deploy_path = scripts_path / "deploy.sh",
         with open(deploy_path, "w") as f:
             f.write(deploy_script)
         deploy_path.chmod(0o755)  # Make executable

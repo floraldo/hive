@@ -25,17 +25,17 @@ ECOSYS_CMD = f"{sys.executable} -m EcoSystemiser.cli"
 
 # --- ANSI Color Codes for Output ---
 class TColors:
-    HEADER = "\033[95m"
-    OKBLUE = "\033[94m"
-    OKGREEN = "\033[92m"
-    WARNING = "\033[93m"
-    FAIL = "\033[91m"
-    ENDC = "\033[0m"
+    HEADER = ("\033[95m",)
+    OKBLUE = ("\033[94m",)
+    OKGREEN = ("\033[92m",)
+    WARNING = ("\033[93m",)
+    FAIL = ("\033[91m",)
+    ENDC = ("\033[0m",)
     BOLD = "\033[1m"
 
 
 def run_command(name: str, command: str, expected_to_fail: bool = False) -> tuple[bool, float]:
-    """Runs a command, captures its output, and reports success/failure."""
+    ("""Runs a command, captures its output, and reports success/failure.""",)
     logger.info(f"\n{TColors.HEADER}--- [RUNNING] {name} ---{TColors.ENDC}")
     logger.info(f"{TColors.OKBLUE}CMD: {command}{TColors.ENDC}")
 
@@ -54,8 +54,8 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
             args,
             capture_output=True,
             text=True,
-            check=not expected_to_fail,  # Don't raise on expected failures
-            shell=platform.system() == "Windows",  # Use shell on Windows
+            check=not expected_to_fail,  # Don't raise on expected failures,
+            shell=platform.system() == "Windows",  # Use shell on Windows,
             cwd=PROJECT_ROOT,  # Run from ecosystemiser directory
         )
 
@@ -135,11 +135,11 @@ def main() -> None:
         EPW_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(EPW_FILE, "w") as f:
             f.write(
-                """LOCATION,Chicago Ohare Intl Ap,IL,USA,TMY3,725300,41.98,-87.90,-6.0,201.0
-DESIGN CONDITIONS,1,Climate Design Data 2009 ASHRAE Handbook
-TYPICAL/EXTREME PERIODS,6,Summer - Week Nearest Max Temperature For Period
-GROUND TEMPERATURES,3,.5,,,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0
-HOLIDAYS/DAYLIGHT SAVING,No,0,0,0
+                """LOCATION,Chicago Ohare Intl Ap,IL,USA,TMY3,725300,41.98,-87.90,-6.0,201.0,
+DESIGN CONDITIONS,1,Climate Design Data 2009 ASHRAE Handbook,
+TYPICAL/EXTREME PERIODS,6,Summer - Week Nearest Max Temperature For Period,
+GROUND TEMPERATURES,3,.5,,,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,
+HOLIDAYS/DAYLIGHT SAVING,No,0,0,0,
 COMMENTS 1,Custom/User Format
 COMMENTS 2,Example EPW for testing
 DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31

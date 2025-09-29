@@ -140,7 +140,7 @@ async def demo_architectural_oracle():
     print_header("🚀 Strategic Outcome: The Self-Aware Platform")
 
     print(
-        """
+        """,
 🏆 MISSION ACCOMPLISHED: The Oracle's First Mandate
 
 The Oracle has successfully evolved from Guardian to strategic intelligence:

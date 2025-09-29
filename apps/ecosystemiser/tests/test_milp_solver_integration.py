@@ -11,6 +11,7 @@ eco_path = Path(__file__).parent.parent / "src"
 from ecosystemiser.services.results_io import ResultsIO
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.system_model.system import System
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -30,7 +31,7 @@ def test_milp_solver_produces_valid_flows():
         logger.info("Using minimal test configuration")
         config = {
             "system_id": "test_milp_validation",
-            "timesteps": 168,  # 7 days
+            "timesteps": 168,  # 7 days,
             "components": [
                 {
                     "name": "GRID",
@@ -159,7 +160,7 @@ def test_milp_vs_rule_based_comparison():
     # Create a simple test system
     config = {
         "system_id": "solver_comparison",
-        "timesteps": 24,  # 1 day for quick comparison
+        "timesteps": 24,  # 1 day for quick comparison,
         "components": [
             {
                 "name": "GRID",

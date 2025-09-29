@@ -7,11 +7,9 @@ This script consolidates the best patterns from 12+ comma fixers into one robust
 """
 
 import ast
-import glob
 import re
 import shutil
 from pathlib import Path
-from typing import List, Tuple
 
 
 class MasterSyntaxFixer:
@@ -35,97 +33,79 @@ class MasterSyntaxFixer:
         # Pattern 1: Missing comma after dictionary value before next key
         # "id": row[0]
         # "title": row[1]  <- Missing comma after row[0]
-        content = re.sub(
-            r'(\s*"[^"]+"\s*:\s*[^,\n}]+)(\n\s*"[^"]+"\s*:)',
-            r'\1,\2',
-            content,
-            flags=re.MULTILINE
-        )
+        content = re.sub(r'(\s*"[^"]+"\s*:\s*[^,\n}]+)(\n\s*"[^"]+"\s*:)', r"\1,\2", content, flags=re.MULTILINE)
 
         # Pattern 2: Missing comma after single-quoted keys
-        content = re.sub(
-            r"(\s*'[^']+'\s*:\s*[^,\n}]+)(\n\s*'[^']+'\s*:)",
-            r'\1,\2',
-            content,
-            flags=re.MULTILINE
-        )
+        content = re.sub(r"(\s*'[^']+'\s*:\s*[^,\n}]+)(\n\s*'[^']+'\s*:)", r"\1,\2", content, flags=re.MULTILINE)
 
         # Pattern 3: Missing comma in function call arguments
         # port=int(settings.queue.redis_url.split(":")[-1].split("/")[0])
         # host="localhost"  <- Missing comma
-        content = re.sub(
-            r'(\w+=\s*[^,\n)]+)(\n\s*\w+=)',
-            r'\1,\2',
-            content,
-            flags=re.MULTILINE
-        )
+        content = re.sub(r"(\w+=\s*[^,\n)]+)(\n\s*\w+=)", r"\1,\2", content, flags=re.MULTILINE)
 
         return content
 
     def fix_function_call_commas(self, content: str) -> str:
         """Fix missing commas in function calls."""
         # Pattern: Missing comma between function arguments
-        lines = content.split('\n')
+        lines = content.split("\n")
         fixed_lines = []
         in_function_call = False
         paren_count = 0
 
         for line in lines:
             # Detect if we're in a multi-line function call
-            paren_count += line.count('(') - line.count(')')
+            paren_count += line.count("(") - line.count(")")
 
-            if '(' in line and paren_count > 0:
+            if "(" in line and paren_count > 0:
                 in_function_call = True
             elif paren_count == 0:
                 in_function_call = False
 
             # If we're in a function call and line doesn't end with comma or parenthesis
             # and next line starts with a parameter, add comma
-            if in_function_call and line.strip() and not line.strip().endswith((',', '(', ')')):
+            if in_function_call and line.strip() and not line.strip().endswith((",", "(", ")")):
                 # Check if this looks like a parameter line
                 stripped = line.strip()
-                if ('=' in stripped or
-                    stripped.startswith('"') or
-                    stripped.startswith("'") or
-                    stripped.endswith(']') or
-                    stripped.endswith(')')):
-                    line = line.rstrip() + ','
+                if (
+                    "=" in stripped
+                    or stripped.startswith('"')
+                    or stripped.startswith("'")
+                    or stripped.endswith("]")
+                    or stripped.endswith(")")
+                ):
+                    line = line.rstrip() + ","
 
             fixed_lines.append(line)
 
-        return '\n'.join(fixed_lines)
+        return "\n".join(fixed_lines)
 
     def fix_list_commas(self, content: str) -> str:
         """Fix missing commas in list literals."""
         # Pattern: Missing comma in list items
-        content = re.sub(
-            r'(\s*["\'][^"\']*["\'])(\n\s*["\'][^"\']*["\'])',
-            r'\1,\2',
-            content,
-            flags=re.MULTILINE
-        )
+        content = re.sub(r'(\s*["\'][^"\']*["\'])(\n\s*["\'][^"\']*["\'])', r"\1,\2", content, flags=re.MULTILINE)
         return content
 
     def remove_duplicate_commas(self, content: str) -> str:
         """Remove any duplicate commas that might have been introduced."""
         # Remove double commas
-        content = re.sub(r',,+', ',', content)
+        content = re.sub(r",,+", ",", content)
         # Remove comma before closing braces/brackets/parentheses if it's the last item
-        content = re.sub(r',(\s*[}\]\)])', r'\1', content)
+        content = re.sub(r",(\s*[}\]\)])", r"\1", content)
         return content
 
     def fix_file(self, filepath: Path) -> bool:
         """Fix all syntax errors in a single file."""
         try:
             # First, try to parse - if it's already valid, skip
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding="utf-8") as f:
                 original_content = f.read()
 
             try:
                 ast.parse(original_content)
                 return True  # Already valid
             except SyntaxError as e:
-                if 'comma' not in str(e).lower():
+                if "comma" not in str(e).lower():
                     return False  # Not a comma error, skip
 
             print(f"Fixing {filepath}")
@@ -143,7 +123,7 @@ class MasterSyntaxFixer:
                 ast.parse(fixed_content)
                 # Write only if we made changes and they're valid
                 if fixed_content != original_content:
-                    with open(filepath, 'w', encoding='utf-8') as f:
+                    with open(filepath, "w", encoding="utf-8") as f:
                         f.write(fixed_content)
                     self.fixed_files += 1
                     print(f"  [OK] Fixed syntax errors in {filepath}")
@@ -152,7 +132,7 @@ class MasterSyntaxFixer:
             except SyntaxError as e:
                 print(f"  [FAIL] Fix didn't resolve syntax error in {filepath}: {e}")
                 # Restore original content
-                with open(filepath, 'w', encoding='utf-8') as f:
+                with open(filepath, "w", encoding="utf-8") as f:
                     f.write(original_content)
                 self.failed_files += 1
                 return False
@@ -162,22 +142,21 @@ class MasterSyntaxFixer:
             self.failed_files += 1
             return False
 
-    def scan_and_fix_all(self) -> Tuple[int, int]:
+    def scan_and_fix_all(self) -> tuple[int, int]:
         """Scan and fix all Python files in the codebase."""
         print("=" * 80)
         print("THE ONE TRUE SYNTAX FIXER")
         print("Consolidating the power of 12+ comma fixers into one robust tool")
         print("=" * 80)
 
-        patterns = ['apps/**/*.py', 'packages/**/*.py', 'scripts/**/*.py']
+        patterns = ["apps/**/*.py", "packages/**/*.py", "scripts/**/*.py"]
         all_files = []
 
         for pattern in patterns:
-            files = list(Path('.').glob(pattern))
+            files = list(Path(".").glob(pattern))
             # Filter out test files, __pycache__, .venv, etc.
             filtered_files = [
-                f for f in files
-                if not any(skip in str(f) for skip in ['.venv', '__pycache__', '.git', 'test_'])
+                f for f in files if not any(skip in str(f) for skip in [".venv", "__pycache__", ".git", "test_"])
             ]
             all_files.extend(filtered_files)
 
@@ -188,11 +167,11 @@ class MasterSyntaxFixer:
         syntax_error_files = []
         for filepath in all_files:
             try:
-                with open(filepath, 'r', encoding='utf-8') as f:
+                with open(filepath, encoding="utf-8") as f:
                     content = f.read()
                 ast.parse(content)
             except SyntaxError as e:
-                if 'comma' in str(e).lower() or 'perhaps you forgot' in str(e).lower():
+                if "comma" in str(e).lower() or "perhaps you forgot" in str(e).lower():
                     syntax_error_files.append(filepath)
                     self.errors_found += 1
 
@@ -251,4 +230,5 @@ def main():
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

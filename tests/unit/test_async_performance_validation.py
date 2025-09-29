@@ -17,7 +17,6 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
 
 
 @dataclass
@@ -40,7 +39,7 @@ class AsyncPerformanceValidator:
     def __init__(self):
         self.temp_dir = None
         self.test_db_path = None
-        self.metrics: List[PerformanceMetrics] = []
+        self.metrics: list[PerformanceMetrics] = []
 
     def setup(self):
         """Set up test environment"""
@@ -487,7 +486,7 @@ class AsyncPerformanceValidator:
 
     def _print_detailed_results(self):
         """Print detailed performance results"""
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("📊 DETAILED PERFORMANCE RESULTS")
         print("=" * 70)
 

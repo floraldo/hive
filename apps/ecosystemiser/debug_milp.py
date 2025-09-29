@@ -17,6 +17,7 @@ from ecosystemiser.system_model.components.energy.grid import (
 )
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -32,7 +33,7 @@ def create_debug_system() -> System:
         technical=GridTechnicalParams(
             capacity_nominal=50.0,
             import_tariff=0.30,
-            feed_in_tariff=0.05,  # Changed to feed_in_tariff
+            feed_in_tariff=0.05,  # Changed to feed_in_tariff,
             fidelity_level=FidelityLevel.SIMPLE,
         )
     )

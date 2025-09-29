@@ -12,7 +12,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -27,8 +27,8 @@ class PipelineMetrics:
     successful_executions: int = 0
     failed_executions: int = 0
     total_duration_ms: float = 0.0
-    stage_durations: Dict[str, float] = field(default_factory=dict)
-    error_counts: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    stage_durations: dict[str, float] = field(default_factory=dict)
+    error_counts: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     last_execution_time: datetime | None = None
 
     @property
@@ -45,7 +45,7 @@ class PipelineMetrics:
             return 0.0
         return self.total_duration_ms / self.total_executions
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return {
             "total_executions": self.total_executions,
@@ -93,10 +93,10 @@ class PipelineMonitor:
         self.pipeline_name = pipeline_name
         self.retention_hours = retention_hours
         self.metrics = PipelineMetrics()
-        self.stage_metrics: Dict[str, StageMetrics] = {}
+        self.stage_metrics: dict[str, StageMetrics] = {}
         self.execution_history: deque = deque(maxlen=1000)
         self.lock = Lock()
-        self._active_executions: Dict[str, float] = {}
+        self._active_executions: dict[str, float] = {}
 
     def start_execution(self, execution_id: str) -> None:
         """Start tracking a pipeline execution"""
@@ -161,7 +161,7 @@ class PipelineMonitor:
 
             logger.debug(f"Stage {stage_name} executed: duration={duration_ms:.2f}ms, success={success}")
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get current pipeline metrics"""
         with self.lock:
             metrics = self.metrics.to_dict()
@@ -179,7 +179,7 @@ class PipelineMonitor:
             }
             return metrics
 
-    def get_recent_executions(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_executions(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent execution history"""
         with self.lock:
             recent = list(self.execution_history)[-limit:]
@@ -201,7 +201,7 @@ class PipelineMonitor:
                 f"Cleared old history for pipeline {self.pipeline_name}, kept {len(self.execution_history)} records"
             )
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get pipeline health status"""
         with self.lock:
             # Determine health based on recent performance
@@ -234,7 +234,7 @@ class BaseMonitoringService(ABC):
     """
 
     @abstractmethod
-    def get_or_create_monitor(self, pipeline_name: str) -> "PipelineMonitor":
+    def get_or_create_monitor(self, pipeline_name: str) -> PipelineMonitor:
         """Get existing monitor or create new one for pipeline."""
         pass
 
@@ -244,12 +244,12 @@ class BaseMonitoringService(ABC):
         pass
 
     @abstractmethod
-    def get_monitor_status(self, pipeline_name: str) -> Dict[str, Any] | None:
+    def get_monitor_status(self, pipeline_name: str) -> dict[str, Any] | None:
         """Get current status of pipeline monitor."""
         pass
 
     @abstractmethod
-    def get_all_monitors_status(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_monitors_status(self) -> dict[str, dict[str, Any]]:
         """Get status of all active monitors."""
         pass
 
@@ -258,7 +258,7 @@ class MonitoringService(BaseMonitoringService):
     """Service for managing multiple pipeline monitors"""
 
     def __init__(self) -> None:
-        self.monitors: Dict[str, PipelineMonitor] = {}
+        self.monitors: dict[str, PipelineMonitor] = {}
         self.lock = Lock()
 
     def get_or_create_monitor(self, pipeline_name: str) -> PipelineMonitor:
@@ -269,12 +269,12 @@ class MonitoringService(BaseMonitoringService):
                 logger.info(f"Created new monitor for pipeline: {pipeline_name}")
             return self.monitors[pipeline_name]
 
-    def get_all_metrics(self) -> Dict[str, Any]:
+    def get_all_metrics(self) -> dict[str, Any]:
         """Get metrics for all pipelines"""
         with self.lock:
             return {name: monitor.get_metrics() for name, monitor in self.monitors.items()}
 
-    def get_health_summary(self) -> Dict[str, Any]:
+    def get_health_summary(self) -> dict[str, Any]:
         """Get health summary for all pipelines"""
         with self.lock:
             summary = {"healthy": 0, "degraded": 0, "unhealthy": 0, "pipelines": {}}
@@ -295,14 +295,14 @@ class MonitoringService(BaseMonitoringService):
                 return True
             return False
 
-    def get_monitor_status(self, pipeline_name: str) -> Dict[str, Any] | None:
+    def get_monitor_status(self, pipeline_name: str) -> dict[str, Any] | None:
         """Get current status of pipeline monitor."""
         with self.lock:
             if pipeline_name in self.monitors:
                 return self.monitors[pipeline_name].get_health_status()
             return None
 
-    def get_all_monitors_status(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_monitors_status(self) -> dict[str, dict[str, Any]]:
         """Get status of all active monitors."""
         with self.lock:
             return {name: monitor.get_health_status() for name, monitor in self.monitors.items()}

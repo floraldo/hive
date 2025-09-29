@@ -8,7 +8,6 @@ AI Reviewer Configuration Management.
 Extends hive-config with reviewer-specific settings following the inherit→extend pattern.
 """
 
-from typing import List
 
 try:
     from hive_config import HiveConfig
@@ -73,7 +72,7 @@ class NotificationConfig(BaseModel):
     send_on_approval: bool = True
     send_on_rejection: bool = True
     send_on_error: bool = True
-    webhook_urls: List[str] = Field(default_factory=list)
+    webhook_urls: list[str] = Field(default_factory=list)
 
 
 class AIReviewerConfig(HiveConfig):

@@ -37,6 +37,7 @@ from ecosystemiser.system_model.components.energy.solar_pv import (
 )
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -78,9 +79,9 @@ def create_yearly_system() -> System:
     # Create Grid component (from legacy: 800 kW capacity)
     grid_params = GridParams(
         technical=GridTechnicalParams(
-            capacity_nominal=800.0,  # kW - legacy value
-            import_tariff=0.25,  # $/kWh
-            feed_in_tariff=0.08,  # $/kWh
+            capacity_nominal=800.0,  # kW - legacy value,
+            import_tariff=0.25,  # $/kWh,
+            feed_in_tariff=0.08,  # $/kWh,
             fidelity_level=FidelityLevel.SIMPLE,
         )
     )
@@ -89,9 +90,9 @@ def create_yearly_system() -> System:
     # Create Battery component (from legacy: 300 kWh, 150 kW)
     battery_params = BatteryParams(
         technical=BatteryTechnicalParams(
-            capacity_nominal=300.0,  # kWh - legacy value
-            max_charge_rate=150.0,  # kW - legacy value
-            max_discharge_rate=150.0,  # kW - legacy value
+            capacity_nominal=300.0,  # kWh - legacy value,
+            max_charge_rate=150.0,  # kW - legacy value,
+            max_discharge_rate=150.0,  # kW - legacy value,
             efficiency_roundtrip=0.95,
             initial_soc_pct=0.5,
             fidelity_level=FidelityLevel.SIMPLE,
@@ -102,7 +103,7 @@ def create_yearly_system() -> System:
     # Create Solar PV component (from legacy: 40 kW)
     solar_params = SolarPVParams(
         technical=SolarPVTechnicalParams(
-            capacity_nominal=40.0,  # kW - legacy value
+            capacity_nominal=40.0,  # kW - legacy value,
             efficiency_nominal=1.0,
             fidelity_level=FidelityLevel.SIMPLE,
         )
@@ -113,7 +114,7 @@ def create_yearly_system() -> System:
     # Create Power Demand component (from legacy: 15 kW peak)
     demand_params = PowerDemandParams(
         technical=PowerDemandTechnicalParams(
-            capacity_nominal=15.0,  # kW - legacy value
+            capacity_nominal=15.0,  # kW - legacy value,
             peak_demand=15.0,
             load_profile_type="variable",
             fidelity_level=FidelityLevel.SIMPLE,

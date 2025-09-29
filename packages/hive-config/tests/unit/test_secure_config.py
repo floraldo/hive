@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from hive_config.secure_config import SecureConfigLoader, generate_master_key
 
 

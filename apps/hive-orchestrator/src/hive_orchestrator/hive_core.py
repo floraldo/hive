@@ -122,12 +122,12 @@ class HiveCore:
     def ensure_directories(self) -> None:
         """Create all required directories"""
         dirs = [
-            self.hive_dir
-            self.tasks_dir
-            self.results_dir
-            self.bus_dir
-            self.worktrees_dir
-            self.logs_dir
+            self.hive_dir,
+            self.tasks_dir,
+            self.results_dir,
+            self.bus_dir,
+            self.worktrees_dir,
+            self.logs_dir,
             self.workers_dir
         ]
         for d in dirs:
@@ -244,25 +244,25 @@ class HiveCore:
 
                 # Extract payload (other task data)
                 payload_keys = {
-                    "id"
-                    "title"
-                    "description"
-                    "task_type"
-                    "priority"
-                    "max_retries"
-                    "tags"
-                    "status"
+                    "id",
+                    "title",
+                    "description",
+                    "task_type",
+                    "priority",
+                    "max_retries",
+                    "tags",
+                    "status",
                     "assignee"
                 }
                 payload = {k: v for k, v in task.items() if k not in payload_keys}
 
                 new_task_id = hive_core_db.create_task(
-                    title=title
-                    task_type=task_type
-                    description=description
-                    payload=payload
-                    priority=priority
-                    max_retries=max_retries
+                    title=title,
+                    task_type=task_type,
+                    description=description,
+                    payload=payload,
+                    priority=priority,
+                    max_retries=max_retries,
                     tags=tags
                 )
 
@@ -303,10 +303,10 @@ class HiveCore:
 
                 # Remove assignment details - ALWAYS clear worktree in fresh mode
                 for key in [
-                    "assignee"
-                    "assigned_at"
-                    "started_at"
-                    "worktree"
+                    "assignee",
+                    "assigned_at",
+                    "started_at",
+                    "worktree",
                     "workspace_type"
                 ]:
                     if key in task:
@@ -391,10 +391,10 @@ class HiveCore:
         task["status"] = "queued"
         task["current_phase"] = "plan"
         for key in [
-            "assignee"
-            "assigned_at"
-            "started_at"
-            "worktree"
+            "assignee",
+            "assigned_at",
+            "started_at",
+            "worktree",
             "workspace_type"
         ]:
             if key in task:
@@ -869,9 +869,9 @@ def main() -> None:
     # Review next task command (for AI reviewer)
     review_next_parser = subparsers.add_parser("review-next-task", help="Get the next task awaiting review")
     review_next_parser.add_argument(
-        "--format"
-        choices=["json", "summary"]
-        default="summary"
+        "--format",
+        choices=["json", "summary"],
+        default="summary",
         help="Output format for review task"
     )
     review_next_parser.set_defaults(func=cmd_review_next_task)
@@ -880,9 +880,9 @@ def main() -> None:
     complete_review_parser = subparsers.add_parser("complete-review", help="Complete review of a task")
     complete_review_parser.add_argument("task_id", help="Task ID to complete review for")
     complete_review_parser.add_argument(
-        "--decision"
-        choices=["approve", "reject", "rework"]
-        required=True
+        "--decision",
+        choices=["approve", "reject", "rework"],
+        required=True,
         help="Review decision"
     )
     complete_review_parser.add_argument("--reason", help="Reason for the decision")

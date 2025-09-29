@@ -105,37 +105,37 @@ class WorkflowOrchestrator:
     def __init__(
         self, config: WorkflowConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None
     ):
-        self.config = config
-        self.model_client = model_client
+        self.config = config,
+        self.model_client = model_client,
         self.metrics = metrics_collector
 
-        # Workflow identity
+        # Workflow identity,
         self.id = str(uuid.uuid4())
         self.created_at = datetime.utcnow()
         self.status = WorkflowStatus.CREATED
 
-        # Execution tracking
+        # Execution tracking,
         self.start_time: datetime | None = None,
         self.end_time: datetime | None = None,
         self.current_iteration = 0
 
-        # Workflow components
+        # Workflow components,
         self.agents: Dict[str, BaseAgent] = {},
         self.tasks: Dict[str, BaseTask] = {},
         self.task_sequences: Dict[str, TaskSequence] = {},
         self.steps: Dict[str, WorkflowStep] = {}
 
-        # Execution state
+        # Execution state,
         self.step_results: Dict[str, Any] = {},
         self.failed_steps: Set[str] = set(),
         self.completed_steps: Set[str] = set(),
         self.running_steps: Set[str] = set()
 
-        # Communication
+        # Communication,
         self.message_broker: List[AgentMessage] = [],
         self.message_handlers: Dict[str, Callable] = {}
 
-        # Checkpointing
+        # Checkpointing,
         self.checkpoints: List[Dict[str, Any]] = [],
         self.cache = CacheManager(f"workflow_{self.id}")
 
@@ -164,7 +164,7 @@ class WorkflowOrchestrator:
         return step.id
 
     def create_step(
-        self
+        self,
         name: str,
         agent_id: str,
         task_id: str | None = None,
@@ -175,9 +175,9 @@ class WorkflowOrchestrator:
         """Create and add a workflow step."""
         step = WorkflowStep(
             id=str(uuid.uuid4()),
-            name=name
+            name=name,
             agent_id=agent_id,
-            task_id=task_id
+            task_id=task_id,
             task_sequence_id=task_sequence_id,
             dependencies=dependencies or []
             timeout_seconds=timeout_seconds
@@ -353,7 +353,7 @@ class WorkflowOrchestrator:
             # End metrics tracking
             if self.metrics and operation_id:
                 self.metrics.end_operation(
-                    operation_id
+                    operation_id,
                     success=self.status == WorkflowStatus.COMPLETED,
                     additional_metadata={
                         "completed_steps": len(self.completed_steps),
@@ -378,7 +378,7 @@ class WorkflowOrchestrator:
             )
 
             logger.info(
-                f"Workflow {self.id} finished: {self.status.value} "
+                f"Workflow {self.id} finished: {self.status.value} ",
                 f"({len(self.completed_steps)}/{len(self.steps)} steps completed)"
             )
 
@@ -393,9 +393,9 @@ class WorkflowOrchestrator:
             if self.metrics and operation_id:
                 duration = (self.end_time - self.start_time).total_seconds()
                 self.metrics.end_operation(
-                    operation_id
+                    operation_id,
                     success=False,
-                    error_type=type(e).__name__
+                    error_type=type(e).__name__,
                     additional_metadata={
                         "completed_steps": len(self.completed_steps),
                         "failed_steps": len(self.failed_steps)
@@ -566,17 +566,17 @@ class WorkflowOrchestrator:
 
         return {
             "workflow_id": self.id,
-            "name": self.config.name
+            "name": self.config.name,
             "status": self.status.value,
             "created_at": self.created_at.isoformat()
             "start_time": self.start_time.isoformat() if self.start_time else None,
-            "end_time": self.end_time.isoformat() if self.end_time else None
+            "end_time": self.end_time.isoformat() if self.end_time else None,
             "duration_seconds": duration,
             "total_steps": len(self.steps)
             "completed_steps": len(self.completed_steps),
             "failed_steps": len(self.failed_steps)
             "running_steps": len(self.running_steps),
-            "success_rate": len(self.completed_steps) / len(self.steps) if self.steps else 0
+            "success_rate": len(self.completed_steps) / len(self.steps) if self.steps else 0,
             "agents": len(self.agents),
             "tasks": len(self.tasks)
             "task_sequences": len(self.task_sequences),
@@ -601,7 +601,7 @@ class WorkflowOrchestrator:
             "execution_data": {
                 "status": self.status.value,
                 "start_time": self.start_time.isoformat() if self.start_time else None,
-                "end_time": self.end_time.isoformat() if self.end_time else None
+                "end_time": self.end_time.isoformat() if self.end_time else None,
                 "completed_steps": list(self.completed_steps),
                 "failed_steps": list(self.failed_steps)
                 "step_results": self.step_results

@@ -45,7 +45,7 @@ class TestCorePerformance:
 
             try:
                 # Read data back
-                with open(temp_file, "r") as f:
+                with open(temp_file) as f:
                     loaded_data = json.load(f)
                 return len(loaded_data)
             finally:

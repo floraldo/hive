@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 from hive_cache import CacheManager
 from hive_db import get_async_session
@@ -84,7 +84,7 @@ class UnifiedMetric:
     timestamp: datetime
 
     # Metric data
-    value: Union[float, int, str, dict[str, Any]]
+    value: float | int | str | dict[str, Any]
     unit: str
 
     # Context and metadata
@@ -92,7 +92,7 @@ class UnifiedMetric:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     # Relationships
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
     related_metrics: list[str] = field(default_factory=list)
 
     # Quality indicators
@@ -109,7 +109,7 @@ class DataSource:
     location: str  # path, connection string, url
     collection_interval: int  # seconds
     enabled: bool = True
-    transform_function: Optional[str] = None
+    transform_function: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -121,7 +121,7 @@ class MetricsWarehouse:
     data retention policies, and analytics capabilities.
     """
 
-    def __init__(self, storage_path: Optional[Path] = None):
+    def __init__(self, storage_path: Path | None = None):
         self.storage_path = storage_path or Path("data/intelligence")
         self.storage_path.mkdir(parents=True, exist_ok=True)
 
@@ -138,13 +138,13 @@ class MetricsWarehouse:
         try:
             async with get_async_session() as session:
                 await session.execute(
-                    """
+                    """,
                     CREATE TABLE IF NOT EXISTS unified_metrics (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         metric_type TEXT NOT NULL,
                         source TEXT NOT NULL,
                         timestamp DATETIME NOT NULL,
-                        value TEXT NOT NULL,  -- JSON-encoded
+                        value TEXT NOT NULL,  -- JSON-encoded,
                         unit TEXT NOT NULL,
                         tags TEXT,  -- JSON-encoded
                         metadata TEXT,  -- JSON-encoded
@@ -207,7 +207,7 @@ class MetricsWarehouse:
             async with get_async_session() as session:
                 for metric in self._metrics_buffer:
                     await session.execute(
-                        """
+                        """,
                         INSERT INTO unified_metrics (
                             metric_type, source, timestamp, value, unit,
                             tags, metadata, correlation_id, confidence, data_quality
@@ -237,11 +237,11 @@ class MetricsWarehouse:
 
     async def query_metrics_async(
         self,
-        metric_types: Optional[list[MetricType]] = None,
-        sources: Optional[list[str]] = None,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-        tags: Optional[dict[str, str]] = None,
+        metric_types: list[MetricType] | None = None,
+        sources: list[str] | None = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+        tags: dict[str, str] | None = None,
         limit: int = 1000,
     ) -> list[UnifiedMetric]:
         """Query metrics with flexible filtering."""
@@ -311,9 +311,7 @@ class MetricsWarehouse:
             logger.error(f"Failed to query metrics: {e}")
             return []
 
-    async def get_latest_metrics_async(
-        self, metric_type: MetricType, source: Optional[str] = None
-    ) -> list[UnifiedMetric]:
+    async def get_latest_metrics_async(self, metric_type: MetricType, source: str | None = None) -> list[UnifiedMetric]:
         """Get the most recent metrics of a specific type."""
         return await self.query_metrics_async(
             metric_types=[metric_type], sources=[source] if source else None, limit=100
@@ -354,7 +352,7 @@ class DataUnificationLayer:
                 name="production_shield",
                 source_type="file",
                 location="logs/production_monitoring.json",
-                collection_interval=300,  # 5 minutes
+                collection_interval=300,  # 5 minutes,
                 transform_function="transform_production_shield",
             )
         )
@@ -365,7 +363,7 @@ class DataUnificationLayer:
                 name="hive_ai_metrics",
                 source_type="database",
                 location="ai_metrics",
-                collection_interval=60,  # 1 minute
+                collection_interval=60,  # 1 minute,
                 transform_function="transform_ai_metrics",
             )
         )
@@ -376,7 +374,7 @@ class DataUnificationLayer:
                 name="guardian_reviews",
                 source_type="database",
                 location="guardian_reviews",
-                collection_interval=300,  # 5 minutes
+                collection_interval=300,  # 5 minutes,
                 transform_function="transform_guardian_reviews",
             )
         )
@@ -387,7 +385,7 @@ class DataUnificationLayer:
                 name="system_performance",
                 source_type="api",
                 location="internal://system_metrics",
-                collection_interval=60,  # 1 minute
+                collection_interval=60,  # 1 minute,
                 transform_function="transform_system_metrics",
             )
         )
@@ -398,7 +396,7 @@ class DataUnificationLayer:
                 name="architectural_validation",
                 source_type="api",
                 location="internal://architectural_scan",
-                collection_interval=21600,  # 6 hours - comprehensive scan
+                collection_interval=21600,  # 6 hours - comprehensive scan,
                 transform_function="transform_architectural_violations",
             )
         )
@@ -409,7 +407,7 @@ class DataUnificationLayer:
                 name="compliance_monitoring",
                 source_type="api",
                 location="internal://compliance_check",
-                collection_interval=3600,  # 1 hour - quick compliance check
+                collection_interval=3600,  # 1 hour - quick compliance check,
                 transform_function="transform_compliance_metrics",
             )
         )
@@ -422,7 +420,7 @@ class DataUnificationLayer:
                 name="user_analytics",
                 source_type="api",
                 location="internal://user_analytics",
-                collection_interval=1800,  # 30 minutes - user behavior changes frequently
+                collection_interval=1800,  # 30 minutes - user behavior changes frequently,
                 transform_function="transform_user_analytics",
             )
         )
@@ -433,7 +431,7 @@ class DataUnificationLayer:
                 name="feature_metrics",
                 source_type="api",
                 location="internal://feature_usage",
-                collection_interval=3600,  # 1 hour - feature usage patterns
+                collection_interval=3600,  # 1 hour - feature usage patterns,
                 transform_function="transform_feature_metrics",
             )
         )
@@ -444,7 +442,7 @@ class DataUnificationLayer:
                 name="business_intelligence",
                 source_type="api",
                 location="internal://business_kpis",
-                collection_interval=14400,  # 4 hours - business metrics are more stable
+                collection_interval=14400,  # 4 hours - business metrics are more stable,
                 transform_function="transform_business_metrics",
             )
         )
@@ -455,7 +453,7 @@ class DataUnificationLayer:
                 name="customer_health",
                 source_type="api",
                 location="internal://customer_metrics",
-                collection_interval=7200,  # 2 hours - customer health monitoring
+                collection_interval=7200,  # 2 hours - customer health monitoring,
                 transform_function="transform_customer_metrics",
             )
         )
@@ -468,7 +466,7 @@ class DataUnificationLayer:
                 name="certification_audit",
                 source_type="api",
                 location="internal://certification_audit",
-                collection_interval=43200,  # 12 hours - comprehensive certification assessment
+                collection_interval=43200,  # 12 hours - comprehensive certification assessment,
                 transform_function="transform_certification_metrics",
             )
         )
@@ -479,7 +477,7 @@ class DataUnificationLayer:
                 name="code_quality_scan",
                 source_type="api",
                 location="internal://code_quality",
-                collection_interval=7200,  # 2 hours - code quality monitoring
+                collection_interval=7200,  # 2 hours - code quality monitoring,
                 transform_function="transform_code_quality_metrics",
             )
         )
@@ -490,7 +488,7 @@ class DataUnificationLayer:
                 name="deployment_readiness",
                 source_type="api",
                 location="internal://deployment_check",
-                collection_interval=10800,  # 3 hours - deployment readiness assessment
+                collection_interval=10800,  # 3 hours - deployment readiness assessment,
                 transform_function="transform_deployment_metrics",
             )
         )
@@ -501,7 +499,7 @@ class DataUnificationLayer:
                 name="toolkit_compliance",
                 source_type="api",
                 location="internal://toolkit_usage",
-                collection_interval=21600,  # 6 hours - toolkit utilization analysis
+                collection_interval=21600,  # 6 hours - toolkit utilization analysis,
                 transform_function="transform_toolkit_metrics",
             )
         )
@@ -514,7 +512,7 @@ class DataUnificationLayer:
                 name="design_intent_ingestion",
                 source_type="file",
                 location="docs/designs/",
-                collection_interval=1800,  # 30 minutes - monitor for new design docs
+                collection_interval=1800,  # 30 minutes - monitor for new design docs,
                 transform_function="transform_design_intent_metrics",
             )
         )
@@ -525,7 +523,7 @@ class DataUnificationLayer:
                 name="prophecy_tracking",
                 source_type="api",
                 location="internal://prophecy_engine",
-                collection_interval=7200,  # 2 hours - prophecy analysis
+                collection_interval=7200,  # 2 hours - prophecy analysis,
                 transform_function="transform_prophecy_metrics",
             )
         )
@@ -536,7 +534,7 @@ class DataUnificationLayer:
                 name="prophecy_validation",
                 source_type="api",
                 location="internal://prophecy_validation",
-                collection_interval=86400,  # 24 hours - daily accuracy assessment
+                collection_interval=86400,  # 24 hours - daily accuracy assessment,
                 transform_function="transform_prophecy_accuracy_metrics",
             )
         )
@@ -771,7 +769,7 @@ class DataUnificationLayer:
                                     metric_type=MetricType.ARCHITECTURAL_VIOLATION,
                                     source=source_name,
                                     timestamp=timestamp,
-                                    value=1,  # Each violation counts as 1
+                                    value=1,  # Each violation counts as 1,
                                     unit="violation",
                                     tags={
                                         "rule_name": rule_name,
@@ -925,7 +923,7 @@ class DataUnificationLayer:
                         metric_type=MetricType.USER_ENGAGEMENT,
                         source=source_name,
                         timestamp=timestamp,
-                        value=78.5,  # Daily Active Users percentage
+                        value=78.5,  # Daily Active Users percentage,
                         unit="percent",
                         tags={"metric_name": "daily_active_users", "period": "24h", "user_segment": "all"},
                         metadata={"total_users": 1250, "active_users": 982, "trend": "increasing"},
@@ -957,7 +955,7 @@ class DataUnificationLayer:
                     metric_type=MetricType.USER_RETENTION,
                     source=source_name,
                     timestamp=timestamp,
-                    value=85.2,  # 7-day retention rate
+                    value=85.2,  # 7-day retention rate,
                     unit="percent",
                     tags={"retention_period": "7_days", "user_segment": "new_users", "cohort": "2025_09"},
                     metadata={"cohort_size": 234, "retained_users": 199, "benchmark": 75.0},
@@ -984,7 +982,7 @@ class DataUnificationLayer:
                     "adoption_rate": 95.0,
                     "usage_frequency": "daily",
                     "user_segment": "enterprise",
-                    "operational_cost": 450.0,  # Monthly cost in USD
+                    "operational_cost": 450.0,  # Monthly cost in USD,
                     "satisfaction_score": 4.8,
                 },
                 {
@@ -992,7 +990,7 @@ class DataUnificationLayer:
                     "adoption_rate": 2.0,
                     "usage_frequency": "rare",
                     "user_segment": "all",
-                    "operational_cost": 1200.0,  # Monthly cost in USD
+                    "operational_cost": 1200.0,  # Monthly cost in USD,
                     "satisfaction_score": 2.1,
                 },
                 {
@@ -1000,7 +998,7 @@ class DataUnificationLayer:
                     "adoption_rate": 67.5,
                     "usage_frequency": "weekly",
                     "user_segment": "professional",
-                    "operational_cost": 680.0,  # Monthly cost in USD
+                    "operational_cost": 680.0,  # Monthly cost in USD,
                     "satisfaction_score": 4.2,
                 },
                 {
@@ -1008,7 +1006,7 @@ class DataUnificationLayer:
                     "adoption_rate": 45.0,
                     "usage_frequency": "daily",
                     "user_segment": "enterprise",
-                    "operational_cost": 320.0,  # Monthly cost in USD
+                    "operational_cost": 320.0,  # Monthly cost in USD,
                     "satisfaction_score": 4.5,
                 },
             ]
@@ -1058,12 +1056,12 @@ class DataUnificationLayer:
                         metric_type=MetricType.REVENUE_METRICS,
                         source=source_name,
                         timestamp=timestamp,
-                        value=47500.0,  # Monthly Recurring Revenue
+                        value=47500.0,  # Monthly Recurring Revenue,
                         unit="usd",
                         tags={"metric_name": "mrr", "period": "monthly", "currency": "usd"},
                         metadata={
-                            "growth_rate": 0.12,  # 12% month-over-month
-                            "churn_rate": 0.05,  # 5% monthly churn
+                            "growth_rate": 0.12,  # 12% month-over-month,
+                            "churn_rate": 0.05,  # 5% monthly churn,
                             "new_revenue": 6800.0,
                         },
                     ),
@@ -1089,8 +1087,8 @@ class DataUnificationLayer:
                         unit="usd",
                         tags={"metric_name": "cac", "user_segment": "enterprise", "period": "monthly"},
                         metadata={
-                            "ltv_cac_ratio": 3.2,  # Lifetime Value to CAC ratio
-                            "payback_period": 8.5,  # months
+                            "ltv_cac_ratio": 3.2,  # Lifetime Value to CAC ratio,
+                            "payback_period": 8.5,  # months,
                             "target_cac": 100.0,
                         },
                     ),
@@ -1117,7 +1115,7 @@ class DataUnificationLayer:
                         metric_type=MetricType.CUSTOMER_SATISFACTION,
                         source=source_name,
                         timestamp=timestamp,
-                        value=8.2,  # Net Promoter Score
+                        value=8.2,  # Net Promoter Score,
                         unit="nps_score",
                         tags={"metric_name": "nps", "survey_period": "quarterly", "user_segment": "all"},
                         metadata={"responses": 187, "promoters": 112, "detractors": 23, "industry_benchmark": 7.5},
@@ -1150,7 +1148,7 @@ class DataUnificationLayer:
                     metric_type=MetricType.CUSTOMER_SATISFACTION,
                     source=source_name,
                     timestamp=timestamp,
-                    value=0.5,  # 50% increase in API errors
+                    value=0.5,  # 50% increase in API errors,
                     unit="error_rate_change",
                     tags={
                         "customer": "AlphaCorp",
@@ -2070,11 +2068,11 @@ class DataUnificationLayer:
                             metric_type=MetricType.DESIGN_INTENT,
                             source=source_name,
                             timestamp=timestamp,
-                            value=1.0,  # Document presence indicator
+                            value=1.0,  # Document presence indicator,
                             unit="document",
                             tags={
                                 "document_name": doc_file.stem,
-                                "document_type": doc_file.suffix[1:],  # Remove dot
+                                "document_type": doc_file.suffix[1:],  # Remove dot,
                                 "complexity_level": self._categorize_complexity(complexity_score),
                                 "oracle_component": "design_ingestion",
                             },
@@ -2115,7 +2113,7 @@ class DataUnificationLayer:
                             metric_type=MetricType.DESIGN_COMPLEXITY,
                             source=source_name,
                             timestamp=timestamp,
-                            value=min(complexity_score / 5.0, 1.0),  # Normalize to 0-1
+                            value=min(complexity_score / 5.0, 1.0),  # Normalize to 0-1,
                             unit="complexity_ratio",
                             tags={
                                 "document_name": doc_file.stem,
@@ -2259,8 +2257,8 @@ class DataUnificationLayer:
                     "prophecy_id": "prophecy_analytics_dashboard_performance",
                     "predicted_outcome": "database_bottleneck",
                     "actual_outcome": "database_bottleneck",
-                    "accuracy": 1.0,  # Perfect prediction
-                    "days_to_manifestation": 25,  # Predicted 30, actual 25
+                    "accuracy": 1.0,  # Perfect prediction,
+                    "days_to_manifestation": 25,  # Predicted 30, actual 25,
                     "business_impact": "high",
                 },
                 {
@@ -2268,7 +2266,7 @@ class DataUnificationLayer:
                     "predicted_outcome": "cost_overrun_200%",
                     "actual_outcome": "cost_overrun_150%",
                     "accuracy": 0.8,  # Close prediction
-                    "days_to_manifestation": 65,  # Predicted 60, actual 65
+                    "days_to_manifestation": 65,  # Predicted 60, actual 65,
                     "business_impact": "medium",
                 },
                 {
@@ -2276,7 +2274,7 @@ class DataUnificationLayer:
                     "predicted_outcome": "security_vulnerability",
                     "actual_outcome": "no_issues_found",
                     "accuracy": 0.0,  # False positive
-                    "days_to_manifestation": None,  # Never manifested
+                    "days_to_manifestation": None,  # Never manifested,
                     "business_impact": "low",
                 },
             ]

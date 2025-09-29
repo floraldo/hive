@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class Severity(Enum):
@@ -37,10 +37,10 @@ class Violation:
     message: str
     file_path: Path
     line_number: int
-    column: Optional[int] = None
-    snippet: Optional[str] = None
-    fix_suggestion: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    column: int | None = None
+    snippet: str | None = None
+    fix_suggestion: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -52,9 +52,9 @@ class Suggestion:
     file_path: Path
     line_range: tuple[int, int]
     confidence: float
-    example: Optional[str] = None
-    rationale: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    example: str | None = None
+    rationale: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -62,11 +62,11 @@ class AnalysisResult:
     """Result from a specific analyzer."""
 
     analyzer_name: str
-    violations: List[Violation] = field(default_factory=list)
-    suggestions: List[Suggestion] = field(default_factory=list)
-    metrics: Dict[str, Any] = field(default_factory=dict)
+    violations: list[Violation] = field(default_factory=list)
+    suggestions: list[Suggestion] = field(default_factory=list)
+    metrics: dict[str, Any] = field(default_factory=dict)
     execution_time_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass
@@ -74,17 +74,17 @@ class ReviewResult:
     """Complete result from a code review."""
 
     file_path: Path
-    analysis_results: List[AnalysisResult]
+    analysis_results: list[AnalysisResult]
     overall_score: float
     summary: str
-    violations_count: Dict[Severity, int]
+    violations_count: dict[Severity, int]
     suggestions_count: int
     auto_fixable_count: int
     ai_confidence: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
-    def all_violations(self) -> List[Violation]:
+    def all_violations(self) -> list[Violation]:
         """Get all violations from all analyzers."""
         violations = []
         for result in self.analysis_results:
@@ -92,7 +92,7 @@ class ReviewResult:
         return violations
 
     @property
-    def all_suggestions(self) -> List[Suggestion]:
+    def all_suggestions(self) -> list[Suggestion]:
         """Get all suggestions from all analyzers."""
         suggestions = []
         for result in self.analysis_results:

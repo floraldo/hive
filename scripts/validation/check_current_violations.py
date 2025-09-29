@@ -2,6 +2,7 @@
 """
 Check current violations for commit readiness
 """
+
 import sys
 from pathlib import Path
 

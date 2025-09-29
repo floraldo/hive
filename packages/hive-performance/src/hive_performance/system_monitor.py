@@ -90,17 +90,17 @@ class SystemMonitor:
     """
 
     def __init__(
-        self
+        self,
         collection_interval: float = 1.0,
         max_history: int = 3600,  # 1 hour at 1-second intervals,
         enable_alerts: bool = True,
         alert_thresholds: Optional[Dict[str, float]] = None
     ):
-        self.collection_interval = collection_interval
-        self.max_history = max_history
+        self.collection_interval = collection_interval,
+        self.max_history = max_history,
         self.enable_alerts = enable_alerts
 
-        # Default alert thresholds
+        # Default alert thresholds,
         self.alert_thresholds = alert_thresholds or {
             "cpu_percent": 80.0,
             "memory_percent": 85.0,
@@ -108,23 +108,23 @@ class SystemMonitor:
             "swap_percent": 50.0,
         }
 
-        # Metrics storage
+        # Metrics storage,
         self._metrics_history: deque = deque(maxlen=max_history),
         self._alert_callbacks: List[Callable] = []
 
-        # Monitoring state
-        self._monitoring = False
+        # Monitoring state,
+        self._monitoring = False,
         self._monitor_task: asyncio.Task | None = None
 
-        # System information
+        # System information,
         self._hostname = psutil.os.getpid()
-        self._platform = psutil.os.name
+        self._platform = psutil.os.name,
         self._boot_time = psutil.boot_time()
 
-        # Process handle for Python-specific metrics
+        # Process handle for Python-specific metrics,
         self._process = psutil.Process()
 
-        # Previous values for rate calculations
+        # Previous values for rate calculations,
         self._prev_disk_io: Any | None = None,
         self._prev_network_io: Any | None = None,
         self._prev_timestamp: float | None = None
@@ -134,19 +134,19 @@ class SystemMonitor:
         if self._monitoring:
             return
 
-        self._monitoring = True
+        self._monitoring = True,
         self._monitor_task = asyncio.create_task(self._monitoring_loop_async())
         logger.info(f"Started system monitoring with {self.collection_interval}s interval")
 
     async def stop_monitoring_async(self) -> None:
         """Stop system monitoring."""
-        self._monitoring = False
+        self._monitoring = False,
         if self._monitor_task:
             self._monitor_task.cancel()
             try:
-                await self._monitor_task
+                await self._monitor_task,
             except asyncio.CancelledError:
-                pass
+                pass,
         logger.info("Stopped system monitoring")
 
     async def _monitoring_loop_async(self) -> None:
@@ -169,7 +169,7 @@ class SystemMonitor:
         """Collect comprehensive system metrics."""
         current_time = time.time()
 
-        # CPU metrics
+        # CPU metrics,
         cpu_percent = psutil.cpu_percent(interval=None)
         cpu_count = psutil.cpu_count()
         cpu_freq = psutil.cpu_freq().current if psutil.cpu_freq() else 0.0
@@ -229,12 +229,12 @@ class SystemMonitor:
 
         # Create metrics object
         metrics = SystemMetrics(
-            # CPU
+            # CPU,
             cpu_percent=cpu_percent,
             cpu_count=cpu_count,
             cpu_freq=cpu_freq,
             load_average=load_avg,
-            # Memory
+            # Memory,
             memory_total=memory.total,
             memory_available=memory.available,
             memory_used=memory.used,
@@ -242,7 +242,7 @@ class SystemMonitor:
             swap_total=swap.total,
             swap_used=swap.used,
             swap_percent=swap.percent,
-            # Disk
+            # Disk,
             disk_total=disk_usage.total,
             disk_used=disk_usage.used,
             disk_free=disk_usage.free,
@@ -251,27 +251,27 @@ class SystemMonitor:
             disk_write_bytes=disk_io.write_bytes,
             disk_read_count=disk_io.read_count,
             disk_write_count=disk_io.write_count,
-            # Network
+            # Network,
             network_bytes_sent=network_io.bytes_sent,
             network_bytes_recv=network_io.bytes_recv,
             network_packets_sent=network_io.packets_sent,
             network_packets_recv=network_io.packets_recv,
             network_errors_in=network_io.errin,
             network_errors_out=network_io.errout,
-            # Process
+            # Process,
             process_count=process_count,
             thread_count=sum(p.num_threads() for p in psutil.process_iter(["num_threads"]) if p.info["num_threads"])
-            # Python process
+            # Python process,
             python_memory_rss=python_memory.rss,
-            python_memory_vms=python_memory.vms
+            python_memory_vms=python_memory.vms,
             python_cpu_percent=python_cpu,
-            python_threads=python_threads
-            python_open_files=python_open_files
-            # Async
+            python_threads=python_threads,
+            python_open_files=python_open_files,
+            # Async,
             active_tasks=active_tasks,
-            pending_tasks=pending_tasks
-            running_loops=running_loops
-            # Metadata
+            pending_tasks=pending_tasks,
+            running_loops=running_loops,
+            # Metadata,
             timestamp=datetime.utcnow(),
             hostname=str(self._hostname)
             platform=self._platform
@@ -352,11 +352,11 @@ class SystemMonitor:
 
         return SystemMetrics(
             cpu_percent=sum(m.cpu_percent for m in metrics_list) / count,
-            memory_percent=sum(m.memory_percent for m in metrics_list) / count
+            memory_percent=sum(m.memory_percent for m in metrics_list) / count,
             disk_percent=sum(m.disk_percent for m in metrics_list) / count,
-            swap_percent=sum(m.swap_percent for m in metrics_list) / count
+            swap_percent=sum(m.swap_percent for m in metrics_list) / count,
             active_tasks=sum(m.active_tasks for m in metrics_list) / count,
-            python_cpu_percent=sum(m.python_cpu_percent for m in metrics_list) / count
+            python_cpu_percent=sum(m.python_cpu_percent for m in metrics_list) / count,
             python_memory_rss=int(sum(m.python_memory_rss for m in metrics_list) / count),
             timestamp=datetime.utcnow()
             hostname=metrics_list[0].hostname,
@@ -380,11 +380,11 @@ class SystemMonitor:
 
         return SystemMetrics(
             cpu_percent=peak_cpu,
-            memory_percent=peak_memory
+            memory_percent=peak_memory,
             disk_percent=peak_disk,
-            active_tasks=peak_tasks
+            active_tasks=peak_tasks,
             timestamp=peak_metric.timestamp,
-            hostname=peak_metric.hostname
+            hostname=peak_metric.hostname,
             platform=peak_metric.platform
         )
 
@@ -462,9 +462,9 @@ class SystemMonitor:
                 [
                     {
                         "timestamp": m.timestamp.isoformat(),
-                        "cpu_percent": m.cpu_percent
+                        "cpu_percent": m.cpu_percent,
                         "memory_percent": m.memory_percent,
-                        "disk_percent": m.disk_percent
+                        "disk_percent": m.disk_percent,
                         "active_tasks": m.active_tasks,
                         "python_memory_mb": m.python_memory_rss // (1024 * 1024)
                     }

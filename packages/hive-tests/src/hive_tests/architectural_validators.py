@@ -11,12 +11,11 @@ gravity across the entire platform.
 
 import ast
 from pathlib import Path
-from typing import List, Tuple
 
 import toml
 
 
-def validate_app_contracts(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_app_contracts(project_root: Path) -> tuple[bool, list[str]]:
     """
     Validate that all apps have proper hive-app.toml contracts.
 
@@ -60,7 +59,7 @@ def validate_app_contracts(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_colocated_tests(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_colocated_tests(project_root: Path) -> tuple[bool, list[str]]:
     """
     Validate that all apps and packages have co-located tests directories.
 
@@ -87,7 +86,7 @@ def validate_colocated_tests(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_no_syspath_hacks(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_no_syspath_hacks(project_root: Path) -> tuple[bool, list[str]]:
     """
     Validate that no sys.path hacks exist in the codebase.
 
@@ -112,7 +111,7 @@ def validate_no_syspath_hacks(project_root: Path) -> Tuple[bool, List[str]]:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for actual sys.path manipulation (not just strings)
@@ -131,7 +130,7 @@ def validate_no_syspath_hacks(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_single_config_source(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_single_config_source(project_root: Path) -> tuple[bool, list[str]]:
     """
     Validate that pyproject.toml is the single source of configuration truth.
 
@@ -144,8 +143,8 @@ def validate_single_config_source(project_root: Path) -> Tuple[bool, List[str]]:
     forbidden_config = project_root / "packages" / "hive-db" / "src" / "hive_db" / "config.py"
     if forbidden_config.exists():
         violations.append(
-            "CRITICAL: Duplicate configuration source detected - "
-            "packages/hive-db/src/hive_db/config.py should not exist. "
+            "CRITICAL: Duplicate configuration source detected - ",
+            "packages/hive-db/src/hive_db/config.py should not exist. ",
             "Use hive-config package exclusively."
         )
 
@@ -180,7 +179,7 @@ def validate_single_config_source(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_package_app_discipline(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_package_app_discipline(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 5: Package vs App Discipline
 
@@ -250,7 +249,7 @@ def validate_package_app_discipline(project_root: Path) -> Tuple[bool, List[str]
     return len(violations) == 0, violations
 
 
-def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_dependency_direction(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 6: Dependency Direction
 
@@ -293,7 +292,7 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                         continue
 
                     try:
-                        with open(py_file, "r", encoding="utf-8") as f:
+                        with open(py_file, encoding="utf-8") as f:
                             content = f.read()
 
                         # Check for imports from apps (always forbidden for packages)
@@ -333,7 +332,7 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                         continue
 
                     try:
-                        with open(py_file, "r", encoding="utf-8") as f:
+                        with open(py_file, encoding="utf-8") as f:
                             content = f.read()
 
                         # Get list of other apps
@@ -402,7 +401,7 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_service_layer_discipline(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_service_layer_discipline(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 10: Service Layer Discipline
 
@@ -450,7 +449,7 @@ def validate_service_layer_discipline(project_root: Path) -> Tuple[bool, List[st
                                 continue
 
                             try:
-                                with open(py_file, "r", encoding="utf-8") as f:
+                                with open(py_file, encoding="utf-8") as f:
                                     content = f.read()
 
                                 # Check for business logic indicators
@@ -495,7 +494,7 @@ def validate_service_layer_discipline(project_root: Path) -> Tuple[bool, List[st
     return len(violations) == 0, violations
 
 
-def validate_communication_patterns(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_communication_patterns(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 11: Communication Patterns
 
@@ -554,7 +553,7 @@ def validate_communication_patterns(project_root: Path) -> Tuple[bool, List[str]
                         continue
 
                     try:
-                        with open(py_file, "r", encoding="utf-8") as f:
+                        with open(py_file, encoding="utf-8") as f:
                             content = f.read()
 
                         # Check for raw socket usage (forbidden unless in infrastructure)
@@ -562,7 +561,7 @@ def validate_communication_patterns(project_root: Path) -> Tuple[bool, List[str]
                             "socket.socket(",
                             "multiprocessing.Queue(",
                             "multiprocessing.Pipe(",
-                            "mmap.mmap(",  # Memory-mapped files
+                            "mmap.mmap(",  # Memory-mapped files,
                             "SharedMemory(",  # Shared memory
                         ]
 
@@ -578,7 +577,7 @@ def validate_communication_patterns(project_root: Path) -> Tuple[bool, List[str]
     return len(violations) == 0, violations
 
 
-def validate_interface_contracts(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_interface_contracts(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 7: Interface Contracts
 
@@ -606,7 +605,7 @@ def validate_interface_contracts(project_root: Path) -> Tuple[bool, List[str]]:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Parse the AST
@@ -649,7 +648,7 @@ def validate_interface_contracts(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_error_handling_standards(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_error_handling_standards(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 8: Error Handling Standards
 
@@ -672,7 +671,7 @@ def validate_error_handling_standards(project_root: Path) -> Tuple[bool, List[st
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for bare except clauses (except: without any exception type)
@@ -703,7 +702,7 @@ def validate_error_handling_standards(project_root: Path) -> Tuple[bool, List[st
     return len(violations) == 0, violations
 
 
-def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_no_hardcoded_env_values(project_root: Path) -> tuple[bool, list[str]]:
     """
     Validate that packages don't contain hardcoded environment-specific values.
 
@@ -752,7 +751,7 @@ def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Check each hardcoded pattern
@@ -776,8 +775,8 @@ def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str
                             continue
 
                         violations.append(
-                            f"Hardcoded environment value ({description}): "
-                            f"{py_file.relative_to(project_root)}:{line_num} "
+                            f"Hardcoded environment value ({description}): ",
+                            f"{py_file.relative_to(project_root)}:{line_num} ",
                             f"- Found: {match.group()}"
                         )
 
@@ -788,7 +787,7 @@ def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str
     return len(violations) == 0, violations
 
 
-def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_logging_standards(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 9: Logging Standards
 
@@ -823,7 +822,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for print statements in non-test, non-demo files
@@ -833,7 +832,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                         'if __name__ == "__main__":' in content
                         or "def main(" in content
                         or "secure_config.py" in str(py_file)
-                        or "cli.py" in str(py_file)  # CLI config tool
+                        or "cli.py" in str(py_file)
                         or "command" in str(py_file)
                     )
 
@@ -864,12 +863,12 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                             if stripped_line.startswith(("+", "-")):
                                 continue
                             if (
-                                not stripped_line.startswith("from ")  # Exclude import statements
-                                and not stripped_line.startswith("import ")  # Exclude import statements
-                                and not stripped_line.startswith("#")  # Already excluded comments
-                                and not stripped_line.startswith('"')  # Exclude string literals
-                                and not stripped_line.startswith("'")  # Exclude string literals
-                                and not (is_cli_tool and in_main_section)  # Exclude CLI tool main sections
+                                not stripped_line.startswith("from ")
+                                and not stripped_line.startswith("import ")
+                                and not stripped_line.startswith("#")
+                                and not stripped_line.startswith('"')
+                                and not stripped_line.startswith("'")
+                                and not (is_cli_tool and in_main_section)
                             ):
                                 violations.append(
                                     f"Print statement in production code: {py_file.relative_to(project_root)}:{line_num}"
@@ -928,7 +927,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_inherit_extend_pattern(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 10: Inherit → Extend Pattern
 
@@ -976,7 +975,7 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
 
                     if check_file.exists():
                         try:
-                            with open(check_file, "r", encoding="utf-8") as f:
+                            with open(check_file, encoding="utf-8") as f:
                                 content = f.read()
 
                             # Check for proper import
@@ -1005,7 +1004,7 @@ def validate_inherit_extend_pattern(project_root: Path) -> Tuple[bool, List[str]
     return len(violations) == 0, violations
 
 
-def validate_package_naming_consistency(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_package_naming_consistency(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 12: Package Naming Consistency
 
@@ -1056,7 +1055,7 @@ def validate_package_naming_consistency(project_root: Path) -> Tuple[bool, List[
 
 def validate_development_tools_consistency(
     project_root: Path,
-) -> Tuple[bool, List[str]]:
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 13: Development Tools Consistency
 
@@ -1106,7 +1105,7 @@ def validate_development_tools_consistency(
     return len(violations) == 0, violations
 
 
-def validate_async_pattern_consistency(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_async_pattern_consistency(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 14: Async Pattern Consistency
 
@@ -1127,7 +1126,7 @@ def validate_async_pattern_consistency(project_root: Path) -> Tuple[bool, List[s
             continue
 
         try:
-            with open(py_file, "r", encoding="utf-8") as f:
+            with open(py_file, encoding="utf-8") as f:
                 content = f.read()
 
             tree = ast.parse(content)
@@ -1159,7 +1158,7 @@ def validate_async_pattern_consistency(project_root: Path) -> Tuple[bool, List[s
     return len(violations) == 0, violations
 
 
-def validate_cli_pattern_consistency(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_cli_pattern_consistency(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 15: CLI Pattern Consistency
 
@@ -1185,7 +1184,7 @@ def validate_cli_pattern_consistency(project_root: Path) -> Tuple[bool, List[str
 
     for cli_file in cli_files:
         try:
-            with open(cli_file, "r", encoding="utf-8") as f:
+            with open(cli_file, encoding="utf-8") as f:
                 content = f.read()
 
             rel_path = cli_file.relative_to(project_root)
@@ -1208,7 +1207,7 @@ def validate_cli_pattern_consistency(project_root: Path) -> Tuple[bool, List[str
     return len(violations) == 0, violations
 
 
-def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_no_global_state_access(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 16: No Global State Access
 
@@ -1263,7 +1262,7 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
             is_config_file = any(config_file in py_file.name for config_file in config_related_files)
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 rel_path = py_file.relative_to(project_root)
@@ -1434,14 +1433,14 @@ def _uses_comprehensive_testing(package_dir: Path) -> bool:
 
     # Look for comprehensive testing indicators
     indicators = [
-        tests_dir / "property_based",  # Property-based testing directory
+        tests_dir / "property_based",  # Property-based testing directory,
         tests_dir / "integration",  # Integration testing directory
     ]
 
     # Check for Hypothesis usage (property-based testing)
     for py_file in tests_dir.rglob("*.py"):
         try:
-            with open(py_file, "r", encoding="utf-8") as f:
+            with open(py_file, encoding="utf-8") as f:
                 content = f.read()
                 if "hypothesis" in content.lower() or "@given" in content:
                     return True
@@ -1452,7 +1451,7 @@ def _uses_comprehensive_testing(package_dir: Path) -> bool:
     return any(indicator.exists() and indicator.is_dir() for indicator in indicators)
 
 
-def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> List[str]:
+def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> list[str]:
     """Validate comprehensive testing package (ADR-005)."""
     violations = []
     tests_dir = package_dir / "tests"
@@ -1469,8 +1468,8 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> Lis
     # For comprehensive testing packages, require at least one advanced testing approach
     if not existing_dirs:
         violations.append(
-            f"Package '{package_name}' uses comprehensive testing but lacks property_based/ "
-            f"or integration/ test directories"
+            f"Package '{package_name}' uses comprehensive testing but lacks property_based/ ",
+            "or integration/ test directories"
         )
 
     # Check for property-based testing quality
@@ -1479,7 +1478,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> Lis
         has_hypothesis = False
         for py_file in property_dir.rglob("*.py"):
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
                     if "hypothesis" in content.lower() and "@given" in content:
                         has_hypothesis = True
@@ -1500,7 +1499,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> Lis
     return violations
 
 
-def validate_test_coverage_mapping(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_test_coverage_mapping(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 17: Test-to-Source File Mapping
 
@@ -1588,7 +1587,7 @@ def validate_test_coverage_mapping(project_root: Path) -> Tuple[bool, List[str]]
 
             if not test_file_found:
                 violations.append(
-                    f"Missing test file for {package_name}:{src_file} - "
+                    f"Missing test file for {package_name}:{src_file} - ",
                     f"expected {test_file_name} in tests/unit/ or tests/"
                 )
 
@@ -1620,14 +1619,14 @@ def validate_test_coverage_mapping(project_root: Path) -> Tuple[bool, List[str]]
 
                     if not test_exists:
                         violations.append(
-                            f"Missing test for core module {app_dir.name}:core/{rel_path} - "
-                            f"core business logic should have unit tests"
+                            f"Missing test for core module {app_dir.name}:core/{rel_path} - ",
+                            "core business logic should have unit tests"
                         )
 
     return len(violations) == 0, violations
 
 
-def validate_test_file_quality(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_test_file_quality(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 18: Test File Quality Standards
 
@@ -1658,7 +1657,7 @@ def validate_test_file_quality(project_root: Path) -> Tuple[bool, List[str]]:
 
     for test_file in test_files:
         try:
-            with open(test_file, "r", encoding="utf-8") as f:
+            with open(test_file, encoding="utf-8") as f:
                 content = f.read()
 
             # Check if file has actual test functions
@@ -1693,7 +1692,7 @@ def validate_test_file_quality(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
-def validate_pyproject_dependency_usage(project_root: Path) -> Tuple[bool, List[str]]:
+def validate_pyproject_dependency_usage(project_root: Path) -> tuple[bool, list[str]]:
     """
     Golden Rule 19: PyProject Dependency Usage Validation
 
@@ -1753,7 +1752,7 @@ def validate_pyproject_dependency_usage(project_root: Path) -> Tuple[bool, List[
                 imported_packages = set()
                 for py_file in python_files:
                     try:
-                        with open(py_file, "r", encoding="utf-8", errors="ignore") as f:
+                        with open(py_file, encoding="utf-8", errors="ignore") as f:
                             content = f.read()
 
                         # Parse AST to find imports
@@ -1808,7 +1807,64 @@ def validate_pyproject_dependency_usage(project_root: Path) -> Tuple[bool, List[
     return len(violations) == 0, violations
 
 
-def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
+def validate_unified_tool_configuration(project_root: Path) -> tuple[bool, list[str]]:
+    """
+    Golden Rule 21: Unified Tool Configuration
+
+    Enforces that all tool configurations (ruff, black, mypy, isort) are centralized
+    in the root pyproject.toml. Sub-packages should NOT define their own tool configs.
+
+    This prevents the config fragmentation that causes AI agents to generate
+    inconsistent code and systematic syntax errors.
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    # Check for forbidden tool sections in sub-package pyproject.toml files
+    forbidden_sections = ["tool.ruff", "tool.black", "tool.mypy", "tool.isort"]
+
+    for toml_path in project_root.rglob("pyproject.toml"):
+        # Skip root pyproject.toml
+        if toml_path == project_root / "pyproject.toml":
+            continue
+
+        # Skip venv and archive
+        if ".venv" in str(toml_path) or "archive" in str(toml_path):
+            continue
+
+        try:
+            config = toml.load(toml_path)
+
+            # Check for forbidden tool sections
+            if "tool" in config:
+                for tool_name in ["ruff", "black", "mypy", "isort"]:
+                    if tool_name in config["tool"]:
+                        rel_path = toml_path.relative_to(project_root)
+                        violations.append(
+                            f"{rel_path} contains [tool.{tool_name}] section - "
+                            f"tool configs must be unified in root pyproject.toml"
+                        )
+        except Exception as e:
+            violations.append(f"Error reading {toml_path}: {e}")
+
+    # Verify root pyproject.toml has the required sections
+    root_toml = project_root / "pyproject.toml"
+    if root_toml.exists():
+        try:
+            root_config = toml.load(root_toml)
+            if "tool" not in root_config or "ruff" not in root_config["tool"]:
+                violations.append("Root pyproject.toml missing [tool.ruff] configuration")
+        except Exception as e:
+            violations.append(f"Error reading root pyproject.toml: {e}")
+    else:
+        violations.append("Root pyproject.toml does not exist")
+
+    return len(violations) == 0, violations
+
+
+def run_all_golden_rules(project_root: Path) -> tuple[bool, dict]:
     """
     Run all Golden Rules validation.
 
@@ -1845,6 +1901,7 @@ def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
         ("Golden Rule 18: Test-to-Source File Mapping", validate_test_coverage_mapping),
         ("Golden Rule 19: Test File Quality Standards", validate_test_file_quality),
         ("Golden Rule 20: PyProject Dependency Usage", validate_pyproject_dependency_usage),
+        ("Golden Rule 21: Unified Tool Configuration", validate_unified_tool_configuration),
     ]
 
     for rule_name, validator_func in golden_rules:

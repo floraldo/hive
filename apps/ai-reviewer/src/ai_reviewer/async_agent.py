@@ -26,9 +26,9 @@ from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewDecision, ReviewEngine
 from hive_logging import get_logger
 from hive_orchestrator.core.bus import (
-    TaskEventType
-    create_task_event
-    get_async_event_bus
+    TaskEventType,
+    create_task_event,
+    get_async_event_bus,
     publish_event_async
 )
 
@@ -107,27 +107,27 @@ class AsyncReviewEngine:
         # Generate detailed review analysis
         analysis = {
             "code_quality": {
-                "score": 85 if decision == ReviewDecision.APPROVE else 65
+                "score": 85 if decision == ReviewDecision.APPROVE else 65,
                 "issues": []
-                if decision == ReviewDecision.APPROVE
+                if decision == ReviewDecision.APPROVE,
                 else ["Code structure could be improved", "Missing error handling in some areas"]
                 "strengths": ["Clear variable naming", "Good separation of concerns"]
-                if decision == ReviewDecision.APPROVE
+                if decision == ReviewDecision.APPROVE,
                 else []
             }
             "test_coverage": {
-                "score": 80 if decision == ReviewDecision.APPROVE else 45
+                "score": 80 if decision == ReviewDecision.APPROVE else 45,
                 "missing_tests": []
-                if decision == ReviewDecision.APPROVE
+                if decision == ReviewDecision.APPROVE,
                 else ["Edge case testing", "Error handling tests"]
             }
             "security": {
-                "score": 90
+                "score": 90,
                 "vulnerabilities": []
                 "recommendations": ["Use parameterized queries", "Validate input data"]
             }
             "performance": {
-                "score": 75
+                "score": 75,
                 "bottlenecks": []
                 "optimizations": ["Consider caching", "Optimize database queries"]
             }
@@ -142,14 +142,14 @@ class AsyncReviewEngine:
             feedback = "Implementation needs improvements in code quality and test coverage."
 
         return {
-            "decision": decision
-            "confidence": 0.85 if decision == ReviewDecision.APPROVE else 0.75
-            "summary": summary
-            "feedback": feedback
-            "analysis": analysis
-            "review_time": time.time() - (time.time() - 1.0),  # Mock review time
+            "decision": decision,
+            "confidence": 0.85 if decision == ReviewDecision.APPROVE else 0.75,
+            "summary": summary,
+            "feedback": feedback,
+            "analysis": analysis,
+            "review_time": time.time() - (time.time() - 1.0),  # Mock review time,
             "files_reviewed": len(files_created) + len(files_modified)
-            "reviewer_id": "async-ai-reviewer"
+            "reviewer_id": "async-ai-reviewer",
             "review_timestamp": datetime.now(timezone.utc).isoformat()
         }
 
@@ -179,11 +179,11 @@ class AsyncReviewEngine:
 
             # Use async version of Claude bridge
             review_result = await self._call_claude_async(
-                task_id=task_id
-                task_description=task_description
-                code_files=code_files
-                test_results=test_results
-                objective_analysis=objective_analysis
+                task_id=task_id,
+                task_description=task_description,
+                code_files=code_files,
+                test_results=test_results,
+                objective_analysis=objective_analysis,
                 transcript=transcript
             )
 
@@ -194,19 +194,19 @@ class AsyncReviewEngine:
             logger.error(f"Claude review failed for task {task_id}: {e}")
             # Fallback to escalation
             return {
-                "decision": "escalate"
-                "confidence": 0.0
-                "summary": f"Review failed: {str(e)}"
-                "feedback": "Manual review required due to Claude integration error"
+                "decision": "escalate",
+                "confidence": 0.0,
+                "summary": f"Review failed: {str(e)}",
+                "feedback": "Manual review required due to Claude integration error",
                 "analysis": {
                     "code_quality": {"score": 0, "issues": [str(e)]}
                     "test_coverage": {"score": 0, "missing_tests": []}
                     "security": {"score": 0, "vulnerabilities": [], "recommendations": []}
                     "performance": {"score": 0, "bottlenecks": [], "optimizations": []}
                 }
-                "review_time": 0
-                "files_reviewed": 0
-                "reviewer_id": "async-ai-reviewer-claude"
+                "review_time": 0,
+                "files_reviewed": 0,
+                "reviewer_id": "async-ai-reviewer-claude",
                 "review_timestamp": datetime.now(timezone.utc).isoformat()
             }
 
@@ -239,12 +239,12 @@ class AsyncReviewEngine:
         return code_files
 
     async def _call_claude_async(
-        self
-        task_id: str
-        task_description: str
+        self,
+        task_id: str,
+        task_description: str,
         code_files: Dict[str, str]
-        test_results: Optional[Dict[str, Any]] = None
-        objective_analysis: Optional[Dict[str, Any]] = None
+        test_results: Optional[Dict[str, Any]] = None,
+        objective_analysis: Optional[Dict[str, Any]] = None,
         transcript: str | None = None
     ) -> Dict[str, Any]:
         """Call Claude CLI asynchronously for code review"""
@@ -262,9 +262,9 @@ class AsyncReviewEngine:
         # Execute Claude CLI asynchronously with timeout
         try:
             process = await asyncio.create_subprocess_exec(
-                claude_cmd, "--print", "--dangerously-skip-permissions", prompt
-                stdout=asyncio.subprocess.PIPE
-                stderr=asyncio.subprocess.PIPE
+                claude_cmd, "--print", "--dangerously-skip-permissions", prompt,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 stdin=asyncio.subprocess.DEVNULL
             )
 
@@ -289,8 +289,8 @@ class AsyncReviewEngine:
         """Find Claude CLI command asynchronously"""
         # Check common locations first (fast path)
         possible_paths = [
-            Path.home() / ".npm-global" / "claude.cmd"
-            Path.home() / ".npm-global" / "claude"
+            Path.home() / ".npm-global" / "claude.cmd",
+            Path.home() / ".npm-global" / "claude",
             Path("claude.cmd")
             Path("claude")
         ]
@@ -302,8 +302,8 @@ class AsyncReviewEngine:
         # Check system PATH asynchronously
         try:
             process = await asyncio.create_subprocess_exec(
-                "where" if sys.platform == "win32" else "which", "claude"
-                stdout=asyncio.subprocess.PIPE
+                "where" if sys.platform == "win32" else "which", "claude",
+                stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
 
@@ -319,8 +319,8 @@ class AsyncReviewEngine:
         return None
 
     def _create_claude_prompt(
-        self
-        task_description: str
+        self,
+        task_description: str,
         code_files: Dict[str, str]
         test_results: Optional[Dict[str, Any]]
         objective_analysis: Optional[Dict[str, Any]]
@@ -328,17 +328,17 @@ class AsyncReviewEngine:
     ) -> str:
         """Create comprehensive prompt for Claude review"""
 
-        # Prepare code context
-        code_context = ""
+        # Prepare code context,
+        code_context = "",
         for filename, content in code_files.items():
             code_context += f"\n=== {filename} ===\n{content}\n"
 
-        # Prepare additional context
-        test_context = ""
+        # Prepare additional context,
+        test_context = "",
         if test_results:
             test_context = f"\nTest Results: {json.dumps(test_results, indent=2)[:500]}"
 
-        objective_context = ""
+        objective_context = "",
         if objective_analysis and not objective_analysis.get("error"):
             metrics = objective_analysis.get("metrics", {})
             objective_context = f"\nObjective Metrics: {json.dumps(metrics, indent=2)}"
@@ -354,25 +354,25 @@ Code Files:
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
 {{
-  "decision": "approve" or "reject" or "rework" or "escalate"
-  "summary": "One sentence summary of your review"
+  "decision": "approve" or "reject" or "rework" or "escalate",
+  "summary": "One sentence summary of your review",
   "issues": ["List of specific issues found", "Or empty list if none"]
   "suggestions": ["List of improvement suggestions", "Or empty list if none"]
-  "quality_score": 75
+  "quality_score": 75,
   "metrics": {{
-    "code_quality": 80
-    "security": 85
-    "testing": 70
-    "architecture": 75
-    "documentation": 60
+    "code_quality": 80,
+    "security": 85,
+    "testing": 70,
+    "architecture": 75,
+    "documentation": 60,
   }}
-  "confidence": 0.8
+  "confidence": 0.8,
 }}
 
 Decision guidelines:
-- approve: score >= 80, no critical issues
-- rework: score 50-79, minor issues
-- reject: score < 50, major issues
+- approve: score >= 80, no critical issues,
+- rework: score 50-79, minor issues,
+- reject: score < 50, major issues,
 - escalate: complex cases needing human review
 
 Respond with ONLY the JSON object, no other text."""
@@ -391,8 +391,8 @@ Respond with ONLY the JSON object, no other text."""
 
         # Strategy 2: Extract from code blocks
         code_block_patterns = [
-            r"```json\s*(.*?)\s*```"
-            r"```\s*(.*?)\s*```"
+            r"```json\s*(.*?)\s*```",
+            r"```\s*(.*?)\s*```",
             r"`(.*?)`"
         ]
 
@@ -418,16 +418,16 @@ Respond with ONLY the JSON object, no other text."""
         # Fallback: create minimal response
         logger.warning(f"Could not parse Claude response, using fallback")
         return {
-            "decision": "escalate"
-            "summary": "Failed to parse review response"
+            "decision": "escalate",
+            "summary": "Failed to parse review response",
             "issues": ["Invalid response format"]
             "suggestions": ["Manual review required"]
-            "quality_score": 0
+            "quality_score": 0,
             "metrics": {
-                "code_quality": 0
-                "security": 0
-                "testing": 0
-                "architecture": 0
+                "code_quality": 0,
+                "security": 0,
+                "testing": 0,
+                "architecture": 0,
                 "documentation": 0
             }
             "confidence": 0.0
@@ -439,9 +439,9 @@ Respond with ONLY the JSON object, no other text."""
 
         # Map decision strings to ReviewDecision enum
         decision_map = {
-            "approve": ReviewDecision.APPROVE
-            "reject": ReviewDecision.REJECT
-            "rework": ReviewDecision.REWORK
+            "approve": ReviewDecision.APPROVE,
+            "reject": ReviewDecision.REJECT,
+            "rework": ReviewDecision.REWORK,
             "escalate": ReviewDecision.REWORK  # Treat escalate as rework for now
         }
 
@@ -451,7 +451,7 @@ Respond with ONLY the JSON object, no other text."""
         metrics = claude_response.get("metrics", {})
 
         return {
-            "decision": decision
+            "decision": decision,
             "confidence": claude_response.get("confidence", 0.8)
             "summary": claude_response.get("summary", "Claude review completed")
             "feedback": claude_response.get("summary", "Claude review completed")
@@ -476,9 +476,9 @@ Respond with ONLY the JSON object, no other text."""
                     "optimizations": claude_response.get("suggestions", [])
                 }
             }
-            "review_time": time.time() - (time.time() - 2.0),  # Estimated time
-            "files_reviewed": len(claude_response.get("files", [])) if "files" in claude_response else 1
-            "reviewer_id": "async-ai-reviewer-claude"
+            "review_time": time.time() - (time.time() - 2.0),  # Estimated time,
+            "files_reviewed": len(claude_response.get("files", [])) if "files" in claude_response else 1,
+            "reviewer_id": "async-ai-reviewer-claude",
             "review_timestamp": datetime.now(timezone.utc).isoformat()
         }
 
@@ -516,13 +516,13 @@ class AsyncAIReviewer:
 
         # Performance metrics
         self.metrics = {
-            "reviews_completed": 0
-            "approved": 0
-            "rejected": 0
-            "rework_requested": 0
-            "total_review_time": 0
-            "average_review_time": 0
-            "concurrent_peak": 0
+            "reviews_completed": 0,
+            "approved": 0,
+            "rejected": 0,
+            "rework_requested": 0,
+            "total_review_time": 0,
+            "average_review_time": 0,
+            "concurrent_peak": 0,
             "errors": 0
         }
 
@@ -558,18 +558,18 @@ class AsyncAIReviewer:
         """Register agent in the database"""
         try:
             await self.db_ops.register_worker_async(
-                worker_id=self.agent_id
-                role="ai_reviewer"
+                worker_id=self.agent_id,
+                role="ai_reviewer",
                 capabilities=[
-                    "async_review"
-                    "code_analysis"
-                    "quality_assurance"
+                    "async_review",
+                    "code_analysis",
+                    "quality_assurance",
                     "automated_feedback"
                 ]
                 metadata={
-                    "version": "4.2.0"
-                    "type": "AsyncAIReviewer"
-                    "max_concurrent": self.max_concurrent_reviews
+                    "version": "4.2.0",
+                    "type": "AsyncAIReviewer",
+                    "max_concurrent": self.max_concurrent_reviews,
                     "performance": "3-5x"
                 }
             )
@@ -622,8 +622,8 @@ class AsyncAIReviewer:
 
                 # Mark task as under review
                 await self.db_ops.update_task_status_async(
-                    task_id
-                    "review_in_progress"
+                    task_id,
+                    "review_in_progress",
                     {"reviewer_id": self.agent_id, "review_start": datetime.now(timezone.utc).isoformat()}
                 )
 
@@ -657,15 +657,15 @@ class AsyncAIReviewer:
                     self.metrics["rework_requested"] += 1
 
                 await self.db_ops.update_task_status_async(
-                    task_id
-                    new_status
+                    task_id,
+                    new_status,
                     {
-                        "review_decision": decision.value
+                        "review_decision": decision.value,
                         "review_summary": review_result["summary"]
                         "review_feedback": review_result["feedback"]
                         "review_analysis": review_result["analysis"]
-                        "review_time": review_time
-                        "reviewer_id": self.agent_id
+                        "review_time": review_time,
+                        "reviewer_id": self.agent_id,
                         "reviewed_at": datetime.now(timezone.utc).isoformat()
                     }
                 )
@@ -679,14 +679,14 @@ class AsyncAIReviewer:
 
                 # Publish review completion event
                 await self.event_bus.publish_async(
-                    event_type="task.review_completed"
-                    task_id=task_id
-                    priority=2
+                    event_type="task.review_completed",
+                    task_id=task_id,
+                    priority=2,
                     payload={
-                        "review_decision": decision.value
+                        "review_decision": decision.value,
                         "review_summary": review_result["summary"]
-                        "review_time": review_time
-                        "reviewer_id": self.agent_id
+                        "review_time": review_time,
+                        "reviewer_id": self.agent_id,
                         "confidence": review_result.get("confidence", 0.8)
                     }
                 )
@@ -694,9 +694,9 @@ class AsyncAIReviewer:
                 logger.info(f"# OK Review completed for {task_id}: " f"{decision.value} in {review_time:.1f}s")
 
                 return {
-                    "success": True
-                    "decision": decision.value
-                    "review_time": review_time
+                    "success": True,
+                    "decision": decision.value,
+                    "review_time": review_time,
                     "confidence": review_result.get("confidence", 0.8)
                 }
 
@@ -767,11 +767,11 @@ class AsyncAIReviewer:
             await asyncio.sleep(60)  # Every minute
 
             logger.info(
-                f"[METRICS] Reviews: {self.metrics['reviews_completed']} | "
-                f"Approved: {self.metrics['approved']} | "
-                f"Rework: {self.metrics['rework_requested']} | "
-                f"Avg Time: {self.metrics['average_review_time']:.1f}s | "
-                f"Active: {len(self.active_reviews)} | "
+                f"[METRICS] Reviews: {self.metrics['reviews_completed']} | ",
+                f"Approved: {self.metrics['approved']} | ",
+                f"Rework: {self.metrics['rework_requested']} | ",
+                f"Avg Time: {self.metrics['average_review_time']:.1f}s | ",
+                f"Active: {len(self.active_reviews)} | ",
                 f"Errors: {self.metrics['errors']}"
             )
 
@@ -826,10 +826,10 @@ class AsyncAIReviewer:
         # Final metrics
         approval_rate = self.metrics["approved"] / max(self.metrics["reviews_completed"], 1) * 100
         logger.info(
-            f"Shutdown complete. Final metrics: "
-            f"Reviews: {self.metrics['reviews_completed']}, "
-            f"Approval Rate: {approval_rate:.1f}%, "
-            f"Avg Time: {self.metrics['average_review_time']:.1f}s, "
+            f"Shutdown complete. Final metrics: ",
+            f"Reviews: {self.metrics['reviews_completed']}, ",
+            f"Approval Rate: {approval_rate:.1f}%, ",
+            f"Avg Time: {self.metrics['average_review_time']:.1f}s, ",
             f"Errors: {self.metrics['errors']}"
         )
 

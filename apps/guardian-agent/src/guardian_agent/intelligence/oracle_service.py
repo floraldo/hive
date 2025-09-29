@@ -11,11 +11,12 @@ import asyncio
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 from .analytics_engine import AnalyticsEngine, InsightGenerator
 from .data_unification import DataUnificationLayer, MetricsWarehouse
@@ -102,7 +103,7 @@ class OracleService:
     - Performance improvement suggestions
     """
 
-    def __init__(self, config: Optional[OracleConfig] = None):
+    def __init__(self, config: OracleConfig | None = None):
         self.config = config or OracleConfig()
 
         # Initialize core components
@@ -124,7 +125,7 @@ class OracleService:
         else:
             self.prophecy = None
 
-        # Genesis Mandate Phase 2 - Symbiosis Engine
+        # Genesis Mandate Phase 2 - Symbiosis Engine,
         if self.config.enable_symbiosis_engine:
             symbiosis_config = SymbiosisEngineConfig(
                 enable_automated_pr_generation=self.config.enable_automated_prs,
@@ -136,7 +137,7 @@ class OracleService:
         else:
             self.symbiosis = None
 
-        # Operation Unification - Unified Intelligence Core
+        # Operation Unification - Unified Intelligence Core,
         if self.config.enable_unified_intelligence:
             uic_config = UnifiedIntelligenceCoreConfig(
                 storage_path=self.config.uic_storage_path,
@@ -148,16 +149,16 @@ class OracleService:
         else:
             self.unified_intelligence = None
 
-        # Service state
-        self._running = False
+        # Service state,
+        self._running = False,
         self._tasks: list[asyncio.Task] = []
 
-        # Cache for expensive operations
+        # Cache for expensive operations,
         self.cache = CacheManager("oracle_service")
 
-        # Last analysis timestamps
-        self._last_analysis: Optional[datetime] = None
-        self._last_report: Optional[datetime] = None
+        # Last analysis timestamps,
+        self._last_analysis: datetime | None = None,
+        self._last_report: datetime | None = None
 
         logger.info("Oracle Service initialized - Guardian Agent evolved to Oracle")
 
@@ -167,13 +168,13 @@ class OracleService:
             logger.warning("Oracle Service already running")
             return
 
-        self._running = True
+        self._running = True,
         logger.info("🔮 Starting Hive Oracle Service - Platform Intelligence Active")
 
-        # Start data collection
+        # Start data collection,
         await self.data_layer.start_collection_async()
 
-        # Start periodic tasks
+        # Start periodic tasks,
         self._tasks = [
             asyncio.create_task(self._analysis_loop_async()),
             asyncio.create_task(self._reporting_loop_async()),
@@ -188,17 +189,17 @@ class OracleService:
         if not self._running:
             return
 
-        self._running = False
+        self._running = False,
         logger.info("Stopping Oracle Service...")
 
-        # Stop data collection
+        # Stop data collection,
         await self.data_layer.stop_collection_async()
 
-        # Cancel all tasks
+        # Cancel all tasks,
         for task in self._tasks:
             task.cancel()
 
-        # Wait for tasks to complete
+        # Wait for tasks to complete,
         await asyncio.gather(*self._tasks, return_exceptions=True)
         self._tasks.clear()
 
@@ -236,7 +237,7 @@ class OracleService:
 
         while self._running:
             try:
-                # Force refresh dashboard data
+                # Force refresh dashboard data,
                 await self.dashboard.get_dashboard_data_async(force_refresh=True)
                 await asyncio.sleep(self.config.dashboard_refresh_interval)
 
@@ -264,30 +265,30 @@ class OracleService:
         start_time = datetime.utcnow()
 
         try:
-            # Generate insights
+            # Generate insights,
             insights = await self.insight_generator.generate_insights_async(hours=self.config.prediction_horizon_hours)
 
-            # Filter high-confidence insights
+            # Filter high-confidence insights,
             critical_insights = [
-                i
-                for i in insights
+                i,
+                for i in insights,
                 if i.confidence >= self.config.min_confidence_threshold and i.severity.value in ["critical", "high"]
             ]
 
             if critical_insights:
                 logger.warning(f"Oracle detected {len(critical_insights)} critical insights")
 
-                # Cache critical insights
+                # Cache critical insights,
                 await self.cache.set_async(
                     "critical_insights",
                     [insight.__dict__ for insight in critical_insights],
                     ttl=self.config.cache_ttl_seconds,
                 )
 
-            # Update analysis timestamp
+            # Update analysis timestamp,
             self._last_analysis = start_time
 
-            # Log analysis summary
+            # Log analysis summary,
             analysis_time = (datetime.utcnow() - start_time).total_seconds()
             logger.info(f"Oracle analysis completed in {analysis_time:.2f}s - {len(insights)} insights generated")
 
@@ -299,12 +300,12 @@ class OracleService:
         logger.info("Generating Oracle strategic report...")
 
         try:
-            # Generate recommendations
+            # Generate recommendations,
             report = await self.recommendation_engine.generate_recommendations_async(
                 hours=24, include_predictive=self.config.enable_predictive_analysis
             )
 
-            # Save report
+            # Save report,
             report_path = Path("data/intelligence/reports")
             report_path.mkdir(parents=True, exist_ok=True)
 
@@ -633,7 +634,7 @@ class OracleService:
                 "overall_accuracy": overall_accuracy,
                 "total_prophecies_validated": len(accuracy_scores),
                 "accuracy_categories": accuracy_categories,
-                "learning_recommendations": learning_actions[:5],  # Top 5
+                "learning_recommendations": learning_actions[:5],  # Top 5,
                 "prophecy_engine_performance": {
                     "excellent_predictions": accuracy_categories.get("excellent", 0),
                     "good_predictions": accuracy_categories.get("good", 0),
@@ -795,7 +796,7 @@ class OracleService:
             logger.error(f"Failed to analyze ecosystem optimizations: {e}")
             return {"error": f"Ecosystem analysis failed: {str(e)}", "optimizations": [], "recommendations": []}
 
-    async def generate_autonomous_prs_async(self, max_prs: Optional[int] = None) -> dict[str, Any]:
+    async def generate_autonomous_prs_async(self, max_prs: int | None = None) -> dict[str, Any]:
         """
         Generate autonomous pull requests for high-confidence optimizations.
 
@@ -892,8 +893,8 @@ class OracleService:
                 "oracle_assessment": {
                     "success_probability": validation_results["oracle_confidence"],
                     "recommendation": (
-                        "Continue with similar optimizations"
-                        if validation_results["overall_status"] == "passed"
+                        "Continue with similar optimizations",
+                        if validation_results["overall_status"] == "passed",
                         else "Review optimization strategy"
                     ),
                     "learning_value": "High" if validation_results["overall_status"] == "passed" else "Medium",
@@ -902,8 +903,8 @@ class OracleService:
                     "Monitor optimization impact over next 7 days",
                     "Update optimization confidence models based on results",
                     (
-                        "Consider similar optimizations in other packages"
-                        if validation_results["overall_status"] == "passed"
+                        "Consider similar optimizations in other packages",
+                        if validation_results["overall_status"] == "passed",
                         else "Review and adjust optimization criteria"
                     ),
                 ],
@@ -945,10 +946,10 @@ class OracleService:
             # Note: In a real implementation, this would query actual metrics
             status["autonomous_operations"].update(
                 {
-                    "ecosystem_health_score": 85.2,  # Mock data
-                    "optimization_success_rate": 78.5,  # Mock data
-                    "average_pr_merge_time": "2.3 days",  # Mock data
-                    "cost_savings_this_month": "$1,250",  # Mock data
+                    "ecosystem_health_score": 85.2,  # Mock data,
+                    "optimization_success_rate": 78.5,  # Mock data,
+                    "average_pr_merge_time": "2.3 days",  # Mock data,
+                    "cost_savings_this_month": "$1,250",  # Mock data,
                     "performance_improvements": "12% average",  # Mock data
                 }
             )
@@ -975,7 +976,7 @@ class OracleService:
     # Operation Unification - Unified Intelligence Core Methods
 
     async def analyze_unified_intelligence_async(
-        self, design_doc_path: Optional[str] = None, code_path: Optional[str] = None, query_type: str = "unified"
+        self, design_doc_path: str | None = None, code_path: str | None = None, query_type: str = "unified"
     ) -> dict[str, Any]:
         """
         Perform unified intelligence analysis combining prophecy and symbiosis.
@@ -1026,7 +1027,7 @@ class OracleService:
 
             unified_result = await self.unified_intelligence.query_unified_intelligence_async(query)
 
-            # Phase 3: Generate unified response
+            # Phase 3: Generate unified response,
             response = {
                 "unified_analysis": {
                     "analysis_type": query_type,
@@ -1042,8 +1043,8 @@ class OracleService:
                     "symbiosis_data_ingested": symbiosis_data is not None,
                     "unified_patterns_found": len(
                         [
-                            n
-                            for n in unified_result.nodes
+                            n,
+                            for n in unified_result.nodes,
                             if n.node_type in [NodeType.CODE_PATTERN, NodeType.SOLUTION_PATTERN]
                         ]
                     ),
@@ -1062,11 +1063,11 @@ class OracleService:
             logger.error(f"Failed to perform unified intelligence analysis: {e}")
             return {"error": f"Unified analysis failed: {str(e)}", "recommendations": []}
 
-    async def query_oracle_wisdom_async(self, semantic_query: str, context: Optional[dict] = None) -> dict[str, Any]:
+    async def query_oracle_wisdom_async(self, semantic_query: str, context: dict | None = None) -> dict[str, Any]:
         """
         Query the Oracle's unified wisdom using natural language.
 
-        This method allows natural language queries against the Oracle's complete
+        This method allows natural language queries against the Oracle's complete,
         knowledge graph, synthesizing insights from prophecy and symbiosis.
         """
         if not self.unified_intelligence:
@@ -1075,7 +1076,7 @@ class OracleService:
         try:
             logger.info(f"🔮 Oracle processing wisdom query: {semantic_query}")
 
-            # Create knowledge query from natural language
+            # Create knowledge query from natural language,
             query = KnowledgeQuery(
                 query_id=f"wisdom_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
                 query_type="unified",
@@ -1084,7 +1085,7 @@ class OracleService:
                 max_depth=4,
             )
 
-            # Add context if provided
+            # Add context if provided,
             if context:
                 if "node_types" in context:
                     query.target_node_types = [NodeType(nt) for nt in context["node_types"]]
@@ -1093,10 +1094,10 @@ class OracleService:
                 if "min_confidence" in context:
                     query.min_confidence = context["min_confidence"]
 
-            # Execute wisdom query
+            # Execute wisdom query,
             result = await self.unified_intelligence.query_unified_intelligence_async(query)
 
-            # Format wisdom response
+            # Format wisdom response,
             wisdom_response = {
                 "query": semantic_query,
                 "oracle_wisdom": {
@@ -1115,14 +1116,14 @@ class OracleService:
                         "confidence": edge.confidence,
                         "evidence": edge.evidence,
                     }
-                    for edge in result.edges[:10]  # Top 10 relationships
+                    for edge in result.edges[:10]  # Top 10 relationships,
                 ],
                 "actionable_recommendations": self._extract_actionable_recommendations(result),
                 "oracle_assessment": {
                     "complexity": "high" if result.total_nodes > 20 else "medium" if result.total_nodes > 10 else "low",
                     "certainty": (
-                        "high"
-                        if result.confidence_score > 0.8
+                        "high",
+                        if result.confidence_score > 0.8,
                         else "medium" if result.confidence_score > 0.6 else "low"
                     ),
                     "urgency": self._assess_urgency(result),
@@ -1141,7 +1142,7 @@ class OracleService:
         """
         Provide feedback to the unified intelligence for continuous learning.
 
-        This creates the critical feedback loop that makes the Oracle smarter
+        This creates the critical feedback loop that makes the Oracle smarter,
         with every prophecy validated and every action taken.
         """
         if not self.unified_intelligence:
@@ -1150,10 +1151,10 @@ class OracleService:
         try:
             logger.info("🧠 Oracle processing unified feedback for continuous learning...")
 
-            # Process feedback through UIC
+            # Process feedback through UIC,
             await self.unified_intelligence.learn_from_feedback_async(feedback)
 
-            # Generate learning insights
+            # Generate learning insights,
             learning_insights = {
                 "feedback_processed": True,
                 "feedback_type": feedback.get("type", "unknown"),
@@ -1197,21 +1198,21 @@ class OracleService:
             }
 
             if not self.unified_intelligence:
-                base_status["message"] = "Unified Intelligence Core not available"
+                base_status["message"] = "Unified Intelligence Core not available",
                 return base_status
 
-            # Get detailed UIC status
+            # Get detailed UIC status,
             uic_status = await self.unified_intelligence.get_unified_status_async()
 
-            # Merge statuses
+            # Merge statuses,
             unified_status = {**base_status, **uic_status}
 
-            # Add Oracle-specific insights
+            # Add Oracle-specific insights,
             unified_status["oracle_synthesis"] = {
                 "wisdom_synthesis_active": True,
                 "prophecy_symbiosis_correlation": (
-                    "strong"
-                    if uic_status.get("strategic_intelligence", {}).get("prophecy_symbiosis_correlations", 0) > 5
+                    "strong",
+                    if uic_status.get("strategic_intelligence", {}).get("prophecy_symbiosis_correlations", 0) > 5,
                     else "moderate"
                 ),
                 "autonomous_learning_enabled": self.config.enable_cross_correlation,
@@ -1227,7 +1228,7 @@ class OracleService:
     # Helper methods for unified intelligence
 
     def _generate_wisdom_synthesis(
-        self, unified_result: KnowledgeResult, prophecy_data: Optional[dict], symbiosis_data: Optional[dict]
+        self, unified_result: KnowledgeResult, prophecy_data: dict | None, symbiosis_data: dict | None
     ) -> dict[str, Any]:
         """Generate wisdom synthesis from unified analysis results."""
 
@@ -1238,20 +1239,20 @@ class OracleService:
             "strategic_alignment": "unknown",
         }
 
-        # Analyze prophecy-symbiosis correlations
+        # Analyze prophecy-symbiosis correlations,
         if prophecy_data and symbiosis_data:
             synthesis["unified_insights"].append(
                 "Cross-correlation analysis reveals strong alignment between predicted risks and existing optimization patterns"
             )
 
-            # Check for solution patterns
+            # Check for solution patterns,
             solution_edges = [e for e in unified_result.edges if e.edge_type == EdgeType.SOLVES]
             if solution_edges:
                 synthesis["prophecy_validation"].append(
                     f"Found {len(solution_edges)} existing solution patterns that address predicted architectural risks"
                 )
 
-            # Check for optimization opportunities
+            # Check for optimization opportunities,
             optimization_nodes = [n for n in unified_result.nodes if n.node_type == NodeType.OPTIMIZATION_OPPORTUNITY]
             if optimization_nodes:
                 synthesis["symbiosis_enhancement"].append(
@@ -1356,9 +1357,9 @@ class OracleService:
 
         # Calculate consciousness score
         consciousness_score = (
-            min(total_nodes / 1000, 1.0) * 0.3
-            + min(total_edges / 5000, 1.0) * 0.3
-            + min(total_feedback / 100, 1.0) * 0.2
+            min(total_nodes / 1000, 1.0) * 0.3,
+            + min(total_edges / 5000, 1.0) * 0.3,
+            + min(total_feedback / 100, 1.0) * 0.2,
             + min(correlations / 50, 1.0) * 0.2
         )
 

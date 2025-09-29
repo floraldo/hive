@@ -119,7 +119,7 @@ class AdapterCapabilities:
     data_products: List[str] = field(default_factory=list)  # TMY, statistics, etc.
 
     def can_fulfill_request(
-        self
+        self,
         variables: List[str],
         start_date: datetime,
         end_date: datetime,
@@ -134,7 +134,7 @@ class AdapterCapabilities:
         """
         reasons = []
 
-        # Check variables
+        # Check variables,
         unsupported_vars = set(variables) - set(self.supported_variables)
         if unsupported_vars:
             reasons.append(f"Unsupported variables: {unsupported_vars}")

@@ -5,12 +5,13 @@ Tests mathematical properties and invariants using Hypothesis.
 """
 
 import pytest
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
+
 from hive_ai.core.config import AIConfig, ModelConfig
 from hive_ai.core.interfaces import TokenUsage
 from hive_ai.models.metrics import ModelMetrics
 from hive_ai.models.registry import ModelRegistry
-from hypothesis import assume, given, settings
-from hypothesis import strategies as st
 
 
 @settings(max_examples=50, deadline=1000)

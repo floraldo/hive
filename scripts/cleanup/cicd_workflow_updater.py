@@ -8,7 +8,6 @@ consolidated script paths instead of the old ones.
 
 import re
 from pathlib import Path
-from typing import List
 
 
 class WorkflowUpdater:
@@ -54,7 +53,7 @@ class WorkflowUpdater:
             "scripts/setup_github_secrets.sh": "scripts/setup/setup_github_secrets.sh",
         }
 
-    def scan_workflow_files(self) -> List[Path]:
+    def scan_workflow_files(self) -> list[Path]:
         """Find all GitHub workflow files"""
         if not self.workflows_dir.exists():
             print(f"[WARNING] No .github/workflows directory found at {self.workflows_dir}")
@@ -145,13 +144,13 @@ class WorkflowUpdater:
         """Generate workflow update report"""
         report = f"""# CI/CD Workflow Update Report
 
-**Generated**: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Generated**: {__import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Summary
 
 - **Workflows Scanned**: {len(self.scan_workflow_files())}
 - **Workflows Updated**: {len(self.updates_made)}
-- **Total Script References Updated**: {sum(update['updates'] for update in self.updates_made)}
+- **Total Script References Updated**: {sum(update["updates"] for update in self.updates_made)}
 
 ## Updated Files
 

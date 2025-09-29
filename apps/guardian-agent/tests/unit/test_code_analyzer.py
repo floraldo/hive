@@ -137,9 +137,9 @@ def function_with_unused():
         """Test handling of malformed/unparseable code."""
         malformed_code = """
 def broken_function(
-    print("This is broken"
+    print("This is broken",
     if True
-        return
+        return,
 """
 
         result = await analyzer.analyze(Path("test.py"), malformed_code)

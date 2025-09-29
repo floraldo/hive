@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any
 
 import numpy as np
+
 from ecosystemiser.solver.base import BaseSolver, SolverConfig, SolverResult
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.system_model.system import System
@@ -104,7 +105,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         storage_violations = []
 
         for window_idx, window in enumerate(windows):
-            logger.info(f"Solving window {window_idx + 1}/{len(windows)}: " f"t={window['start']} to t={window['end']}")
+            logger.info(f"Solving window {window_idx + 1}/{len(windows)}: t={window['start']} to t={window['end']}")
 
             try:
                 # Create window system
@@ -613,7 +614,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 },
             )
 
-            (logger.info(f"Reconstructed solution for {len(solution)-1} components"),)
+            (logger.info(f"Reconstructed solution for {len(solution) - 1} components"),)
 
         except Exception as e:
             logger.error(f"Failed to reconstruct full solution: {e}")

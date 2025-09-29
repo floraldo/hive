@@ -49,7 +49,7 @@ class SQLiteLoader:
 
             # Create component_types table,
             cursor.execute(
-                """
+                """,
                 CREATE TABLE IF NOT EXISTS component_types (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT UNIQUE NOT NULL,
@@ -63,7 +63,7 @@ class SQLiteLoader:
 
             # Create component_specs table,
             cursor.execute(
-                """
+                """,
                 CREATE TABLE IF NOT EXISTS component_specs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     component_type_id INTEGER NOT NULL,
@@ -84,14 +84,14 @@ class SQLiteLoader:
 
             # Create indexes for performance,
             cursor.execute(
-                """
+                """,
                 CREATE INDEX IF NOT EXISTS idx_component_type,
                 ON component_specs (component_type_id)
             """
             ),
 
             cursor.execute(
-                """
+                """,
                 CREATE INDEX IF NOT EXISTS idx_is_default,
                 ON component_specs (is_default)
             """
@@ -99,7 +99,7 @@ class SQLiteLoader:
 
             # Create version history table,
             cursor.execute(
-                """
+                """,
                 CREATE TABLE IF NOT EXISTS version_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     component_spec_id INTEGER NOT NULL,
@@ -130,10 +130,10 @@ class SQLiteLoader:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """
+                """,
                 INSERT OR IGNORE INTO component_types (name, category, description)
                 VALUES (?, ?, ?)
-            """
+            """,
                 (name, category, description)
             ),
             conn.commit()
@@ -143,7 +143,7 @@ class SQLiteLoader:
             return cursor.fetchone()[0]
 
     def add_component_spec(
-        self
+        self,
         component_type: str,
         name: str,
         technical_params: Dict[str, Any],
@@ -182,22 +182,22 @@ class SQLiteLoader:
             # If marking as default, unset other defaults for this type,
             if is_default:
                 cursor.execute(
-                    """
+                    """,
                     UPDATE component_specs,
-                    SET is_default = 0
-                    WHERE component_type_id = ?
-                """
+                    SET is_default = 0,
+                    WHERE component_type_id = ?,
+                """,
                     (type_id)
                 )
 
             # Insert the specification,
             cursor.execute(
-                """
+                """,
                 INSERT INTO component_specs (
                     component_type_id, name, version, technical_params,
                     economic_params, environmental_params, metadata, is_default
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """
+            """,
                 (
                     type_id,
                     name,
@@ -217,7 +217,7 @@ class SQLiteLoader:
             return spec_id
 
     def get_component_spec(
-        self
+        self,
         component_type: str,
         name: str | None = None,
         version: str | None = None
@@ -236,24 +236,24 @@ class SQLiteLoader:
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
-            # Build query
-            query = """
+            # Build query,
+            query = """,
                 SELECT cs.*, ct.name as type_name, ct.category,
                 FROM component_specs cs,
-                JOIN component_types ct ON cs.component_type_id = ct.id
-                WHERE ct.name = ?
+                JOIN component_types ct ON cs.component_type_id = ct.id,
+                WHERE ct.name = ?,
             """
             params = [component_type]
 
             if name:
-                query += " AND cs.name = ?"
+                query += " AND cs.name = ?",
                 params.append(name)
             else:
                 # Get default if no name specified,
                 query += " AND cs.is_default = 1"
 
             if version:
-                query += " AND cs.version = ?"
+                query += " AND cs.version = ?",
                 params.append(version)
             else:
                 # Get latest version,
@@ -267,7 +267,7 @@ class SQLiteLoader:
             if not row:
                 raise ValueError(f"Component spec not found: {component_type}/{name or 'default'}")
 
-            # Convert to dict
+            # Convert to dict,
             spec = {
                 "type": row["type_name"],
                 "category": row["category"],
@@ -291,10 +291,10 @@ class SQLiteLoader:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """
+                """,
                 SELECT ct.*, COUNT(cs.id) as spec_count,
                 FROM component_types ct,
-                LEFT JOIN component_specs cs ON ct.id = cs.component_type_id
+                LEFT JOIN component_specs cs ON ct.id = cs.component_type_id,
                 GROUP BY ct.id,
                 ORDER BY ct.category, ct.name,
             """

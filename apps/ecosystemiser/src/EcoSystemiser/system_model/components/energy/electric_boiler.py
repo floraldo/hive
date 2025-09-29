@@ -3,12 +3,13 @@
 from typing import Any
 
 import cvxpy as cp
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, GenerationTechnicalParams
 from ecosystemiser.system_model.components.shared.base_classes import BaseConversionOptimization, BaseConversionPhysics
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 

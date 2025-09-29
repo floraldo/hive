@@ -232,7 +232,7 @@ def test_service_with_mock() -> None:
             location=(51.5, -0.1),
             variables=["temp_air"],
             period={"start": "2023-01-01", "end": "2023-01-02"},
-            source="nasa_power",  # Will fail but shows the flow
+            source="nasa_power",  # Will fail but shows the flow,
             mode="observed",
         )
 

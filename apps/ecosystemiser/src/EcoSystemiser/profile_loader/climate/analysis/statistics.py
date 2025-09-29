@@ -2,8 +2,9 @@
 
 import numpy as np
 import xarray as xr
-from hive_logging import get_logger
 from scipy import stats
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

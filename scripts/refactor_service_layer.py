@@ -6,12 +6,11 @@ and update CLIs to use hive-cli utilities
 
 import re
 from pathlib import Path
-from typing import Tuple
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def extract_business_logic_from_service(service_file: Path) -> Tuple[str, str]:
+def extract_business_logic_from_service(service_file: Path) -> tuple[str, str]:
     """Extract business logic from service layer and create implementation file"""
 
     service_content = service_file.read_text(encoding="utf-8")

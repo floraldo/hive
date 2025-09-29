@@ -31,11 +31,11 @@ from __future__ import annotations
     Returns:
         Clearness index (0-1)
     """
-    # Calculate extraterrestrial radiation
-    # Solar constant
+    # Calculate extraterrestrial radiation,
+    # Solar constant,
     Gsc = 1367  # W/m2
 
-    # Day of year
+    # Day of year,
     time_pd = pd.DatetimeIndex(time.values)
     doy = time_pd.dayofyear
 
@@ -47,8 +47,8 @@ from __future__ import annotations
 
     # Apply longitude correction if available,
     if longitude is not None:
-        # Solar time correction
-        lstm = 15 * round(longitude / 15)  # Local standard time meridian
+        # Solar time correction,
+        lstm = 15 * round(longitude / 15)  # Local standard time meridian,
         eot = equation_of_time(doy)  # Equation of time in minutes
         time_correction = 4 * (longitude - lstm) + eot
         solar_hour = hour + time_correction / 60.0
@@ -103,11 +103,11 @@ def calculate_solar_position(
     time_pd = pd.DatetimeIndex(time.values)
     doy = time_pd.dayofyear
 
-    # Solar declination
+    # Solar declination,
     decl = np.radians(23.45) * np.sin(np.radians(360 * (284 + doy) / 365))
 
-    # Solar time
-    hour = time_pd.hour + time_pd.minute / 60.0 + time_pd.second / 3600.0
+    # Solar time,
+    hour = time_pd.hour + time_pd.minute / 60.0 + time_pd.second / 3600.0,
     lstm = 15 * round(longitude / 15)
     eot = equation_of_time(doy)
     time_correction = 4 * (longitude - lstm) + eot
@@ -133,7 +133,7 @@ def calculate_solar_position(
 
     # Create DataArrays
     elevation_da = xr.DataArray(
-        elevation
+        elevation,
         coords={"time": time},
         dims=["time"]
         attrs={
@@ -143,7 +143,7 @@ def calculate_solar_position(
         }
     )
     azimuth_da = xr.DataArray(
-        azimuth
+        azimuth,
         coords={"time": time},
         dims=["time"]
         attrs={
@@ -185,7 +185,7 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
         am = am.clip(0, 40)  # Practical limits
 
     ds_solar["air_mass"] = xr.DataArray(
-        am
+        am,
         coords={"time": ds.time},
         dims=["time"]
         attrs={

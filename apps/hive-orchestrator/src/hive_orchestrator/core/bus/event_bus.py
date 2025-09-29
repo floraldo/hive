@@ -18,8 +18,8 @@ from typing import Any, Callable, Dict, List
 from hive_db import get_sqlite_connection
 from hive_logging import get_logger
 from hive_orchestrator.core.errors.hive_exceptions import (
-    EventBusError
-    EventPublishError
+    EventBusError,
+    EventPublishError,
     EventSubscribeError
 )
 
@@ -69,15 +69,15 @@ class EventBus:
 
             # Events table
             cursor.execute(
-                """
+                """,
                 CREATE TABLE IF NOT EXISTS events (
-                    event_id TEXT PRIMARY KEY
-                    event_type TEXT NOT NULL
-                    timestamp TEXT NOT NULL
-                    source_agent TEXT NOT NULL
-                    correlation_id TEXT
-                    payload TEXT NOT NULL
-                    metadata TEXT NOT NULL
+                    event_id TEXT PRIMARY KEY,
+                    event_type TEXT NOT NULL,
+                    timestamp TEXT NOT NULL,
+                    source_agent TEXT NOT NULL,
+                    correlation_id TEXT,
+                    payload TEXT NOT NULL,
+                    metadata TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """
@@ -85,13 +85,13 @@ class EventBus:
 
             # Event subscriptions table (for persistent subscriptions)
             cursor.execute(
-                """
+                """,
                 CREATE TABLE IF NOT EXISTS event_subscriptions (
-                    subscription_id TEXT PRIMARY KEY
-                    event_pattern TEXT NOT NULL
-                    subscriber_agent TEXT NOT NULL
-                    callback_info TEXT
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    subscription_id TEXT PRIMARY KEY,
+                    event_pattern TEXT NOT NULL,
+                    subscriber_agent TEXT NOT NULL,
+                    callback_info TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     active INTEGER DEFAULT 1
                 )
             """
@@ -99,22 +99,22 @@ class EventBus:
 
             # Indexes for performance
             cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_events_type_timestamp
+                """,
+                CREATE INDEX IF NOT EXISTS idx_events_type_timestamp,
                 ON events(event_type, timestamp)
             """
             )
 
             cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_events_correlation
+                """,
+                CREATE INDEX IF NOT EXISTS idx_events_correlation,
                 ON events(correlation_id)
             """
             )
 
             cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_events_source_agent
+                """,
+                CREATE INDEX IF NOT EXISTS idx_events_source_agent,
                 ON events(source_agent)
             """
             )
@@ -148,18 +148,18 @@ class EventBus:
             with get_sqlite_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    """
+                    """,
                     INSERT INTO events (
-                        event_id, event_type, timestamp, source_agent
+                        event_id, event_type, timestamp, source_agent,
                         correlation_id, payload, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """
+                """,
                     (
-                        event.event_id
-                        event.event_type
+                        event.event_id,
+                        event.event_type,
                         event.timestamp.isoformat()
-                        event.source_agent
-                        event.correlation_id
+                        event.source_agent,
+                        event.correlation_id,
                         json.dumps(event.payload)
                         json.dumps(event.metadata)
                     )
@@ -176,8 +176,8 @@ class EventBus:
             raise EventPublishError(f"Failed to publish event: {e}") from e
 
     def subscribe(
-        self
-        event_pattern: str
+        self,
+        event_pattern: str,
         callback: Callable[[Event], None]
         subscriber_name: str = "anonymous"
     ) -> str:
@@ -186,16 +186,16 @@ class EventBus:
 
         Args:
             event_pattern: Event type pattern (supports wildcards)
-            callback: Function to call when event matches
+            callback: Function to call when event matches,
             subscriber_name: Name of the subscribing agent
 
         Returns:
-            Subscription ID
+            Subscription ID,
         """
         try:
             subscriber = EventSubscriber(
-                pattern=event_pattern
-                callback=callback
+                pattern=event_pattern,
+                callback=callback,
                 subscriber_name=subscriber_name
             )
 
@@ -251,25 +251,25 @@ class EventBus:
         return False
 
     def get_events(
-        self
-        event_type: str | None = None
-        correlation_id: str | None = None
-        source_agent: str | None = None
-        since: datetime | None = None
+        self,
+        event_type: str | None = None,
+        correlation_id: str | None = None,
+        source_agent: str | None = None,
+        since: datetime | None = None,
         limit: int = 100
     ) -> List[Event]:
         """
         Query events from the bus
 
         Args:
-            event_type: Filter by event type
-            correlation_id: Filter by correlation ID
-            source_agent: Filter by source agent
-            since: Only events after this timestamp
+            event_type: Filter by event type,
+            correlation_id: Filter by correlation ID,
+            source_agent: Filter by source agent,
+            since: Only events after this timestamp,
             limit: Maximum number of events to return
 
         Returns:
-            List of matching events
+            List of matching events,
         """
         query_parts = ["SELECT * FROM events WHERE 1=1"]
         params = []
@@ -344,18 +344,18 @@ class EventBus:
                 # Store event in database asynchronously
                 async with get_async_connection() as conn:
                     await conn.execute(
-                        """
+                        """,
                         INSERT INTO events (
-                            event_id, event_type, timestamp, source_agent
+                            event_id, event_type, timestamp, source_agent,
                             correlation_id, payload, metadata
                         ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """
+                    """,
                         (
-                            event.event_id
-                            event.event_type
+                            event.event_id,
+                            event.event_type,
                             event.timestamp.isoformat()
-                            event.source_agent
-                            event.correlation_id
+                            event.source_agent,
+                            event.correlation_id,
                             json.dumps(event.payload)
                             json.dumps(event.metadata)
                         )
@@ -373,10 +373,10 @@ class EventBus:
                 raise EventPublishError(f"Async event publishing failed: {e}") from e
 
         async def get_events_async(
-            self
-            event_type: str = None
-            correlation_id: str = None
-            source_agent: str = None
+            self,
+            event_type: str = None,
+            correlation_id: str = None,
+            source_agent: str = None,
             limit: int = 100
         ) -> List[Event]:
             """
@@ -413,12 +413,12 @@ class EventBus:
 
                 async with get_async_connection() as conn:
                     cursor = await conn.execute(
-                        f"""
-                        SELECT * FROM events
+                        f""",
+                        SELECT * FROM events,
                         WHERE {where_sql}
-                        ORDER BY timestamp DESC
+                        ORDER BY timestamp DESC,
                         LIMIT ?
-                    """
+                    """,
                         params
                     )
 
@@ -450,11 +450,11 @@ class EventBus:
             try:
                 async with get_async_connection() as conn:
                     cursor = await conn.execute(
-                        """
-                        SELECT * FROM events
-                        WHERE correlation_id = ?
-                        ORDER BY timestamp ASC
-                    """
+                        """,
+                        SELECT * FROM events,
+                        WHERE correlation_id = ?,
+                        ORDER BY timestamp ASC,
+                    """,
                         (correlation_id,)
                     )
 

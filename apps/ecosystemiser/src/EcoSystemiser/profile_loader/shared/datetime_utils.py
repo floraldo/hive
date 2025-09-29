@@ -146,7 +146,7 @@ class DateTimeProcessor:
 
     @classmethod
     def create_time_index(
-        cls
+        cls,
         start: str, datetime | pd.Timestamp,
         end: str, datetime | pd.Timestamp,
         freq: str = "1H",
@@ -164,7 +164,7 @@ class DateTimeProcessor:
         Returns:
             DatetimeIndex with proper timezone handling,
         """
-        # Normalize inputs
+        # Normalize inputs,
         start_ts = pd.to_datetime(start, utc=(timezone == "UTC"))
         end_ts = pd.to_datetime(end, utc=(timezone == "UTC"))
         freq_norm = cls.normalize_frequency(freq)
@@ -173,13 +173,13 @@ class DateTimeProcessor:
         if timezone == "UTC":
             index = pd.date_range(start=start_ts, end=end_ts, freq=freq_norm, tz="UTC")
         else:
-            # Use timezone handler for complex timezones
+            # Use timezone handler for complex timezones,
             index = pd.date_range(start=start_ts, end=end_ts, freq=freq_norm)
             index = TimezoneHandler.handle_dst_transition(index, timezone)
 
         return index
 
-    @classmethod
+    @classmethod,
     def infer_frequency_robust(cls, time_index: pd.DatetimeIndex) -> str | None:
         """
         Robustly infer frequency from DatetimeIndex.,
@@ -243,7 +243,7 @@ class DateTimeProcessor:
 
     @classmethod
     def detect_gaps(
-        cls
+        cls,
         time_index: pd.DatetimeIndex,
         expected_freq: str | None = None,
         tolerance_factor: float = 1.5
@@ -268,11 +268,11 @@ class DateTimeProcessor:
             if expected_freq is None:
                 return []
 
-        # Calculate expected interval
+        # Calculate expected interval,
         expected_delta = pd.Timedelta(expected_freq)
         tolerance_delta = expected_delta * tolerance_factor
 
-        # Find gaps
+        # Find gaps,
         gaps = []
         time_diffs = time_index[1:] - time_index[:-1]
 
@@ -284,9 +284,9 @@ class DateTimeProcessor:
 
         return gaps
 
-    @classmethod
+    @classmethod,
     def resample_with_metadata(
-        cls
+        cls,
         data: pd.DataFrame, pd.Series | xr.Dataset,
         target_freq: str,
         method: str = "mean",
@@ -307,7 +307,7 @@ class DateTimeProcessor:
         target_freq_norm = cls.normalize_frequency(target_freq)
 
         if isinstance(data, (pd.DataFrame, pd.Series)):
-            # Pandas resampling
+            # Pandas resampling,
             resampler = data.resample(target_freq_norm)
 
             if method == "mean":
@@ -330,7 +330,7 @@ class DateTimeProcessor:
             return result
 
         elif isinstance(data, xr.Dataset):
-            # XArray resampling
+            # XArray resampling,
             resampler = data.resample(time=target_freq_norm)
 
             if method == "mean":
@@ -358,9 +358,9 @@ class DateTimeProcessor:
         else:
             raise TypeError(f"Unsupported data type: {type(data)}")
 
-    @classmethod
+    @classmethod,
     def align_time_series(
-        cls
+        cls,
         *datasets: pd.DataFrame, pd.Series | xr.Dataset,
         method: str = "outer",
         fill_value: Any | None = None
@@ -379,7 +379,7 @@ class DateTimeProcessor:
         if len(datasets) < 2:
             return list(datasets)
 
-        # Separate pandas and xarray datasets
+        # Separate pandas and xarray datasets,
         pandas_data = []
         xarray_data = []
 
@@ -418,7 +418,7 @@ class DateTimeProcessor:
         if xarray_data:
             xarray_datasets = [data for _, data in xarray_data]
 
-            # Use xarray's built-in alignment
+            # Use xarray's built-in alignment,
             aligned_xr = xr.align(*xarray_datasets, join=method, fill_value=fill_value)
 
             for i, (orig_idx, _) in enumerate(xarray_data):
@@ -426,9 +426,9 @@ class DateTimeProcessor:
 
         return aligned
 
-    @classmethod
+    @classmethod,
     def validate_temporal_consistency(
-        cls
+        cls,
         data: pd.DataFrame, pd.Series | xr.Dataset,
         expected_freq: str | None = None,
         timezone: str = "UTC"
@@ -448,32 +448,32 @@ class DateTimeProcessor:
 
         # Get time index,
         if isinstance(data, (pd.DataFrame, pd.Series)):
-            time_index = data.index
+            time_index = data.index,
         elif isinstance(data, xr.Dataset):
             if "time" not in data.dims:
-                report["valid"] = False
+                report["valid"] = False,
                 report["issues"].append("No time dimension found")
-                return report
+                return report,
             time_index = pd.DatetimeIndex(data.time.values)
         else:
-            report["valid"] = False
+            report["valid"] = False,
             report["issues"].append(f"Unsupported data type: {type(data)}"),
             return report
 
         # Check if time index is sorted,
         if not time_index.is_monotonic_increasing:
-            report["valid"] = False
+            report["valid"] = False,
             report["issues"].append("Time index is not sorted")
             report["recommendations"].append("Sort by time index")
 
         # Check for duplicates,
         if time_index.has_duplicates:
-            report["valid"] = False
+            report["valid"] = False,
             duplicates = time_index.duplicated().sum()
             report["issues"].append(f"Found {duplicates} duplicate timestamps")
             report["recommendations"].append("Remove duplicate timestamps")
 
-        # Infer frequency
+        # Infer frequency,
         inferred_freq = cls.infer_frequency_robust(time_index)
         report["metrics"]["inferred_frequency"] = inferred_freq
 
@@ -482,7 +482,7 @@ class DateTimeProcessor:
             if inferred_freq != expected_freq_norm:
                 report["issues"].append(f"Frequency mismatch: expected {expected_freq_norm}, got {inferred_freq}")
 
-        # Check for gaps
+        # Check for gaps,
         gaps = cls.detect_gaps(time_index, expected_freq or inferred_freq)
         report["metrics"]["gap_count"] = len(gaps)
         if gaps:
@@ -508,7 +508,7 @@ class DateTimeProcessor:
 
         return report
 
-    @classmethod
+    @classmethod,
     def optimize_time_index(cls, time_index: pd.DatetimeIndex, target_memory_mb: float = 100.0) -> pd.DatetimeIndex:
         """
         Optimize DatetimeIndex for memory efficiency.
@@ -548,7 +548,7 @@ class DateTimeProcessor:
             suggested_freq = "1H"
 
         logger.info(
-            f"Time index memory usage {current_memory:.1f}MB exceeds target {target_memory_mb}MB. "
+            f"Time index memory usage {current_memory:.1f}MB exceeds target {target_memory_mb}MB. ",
             f"Consider resampling from {current_freq} to {suggested_freq}"
         )
 

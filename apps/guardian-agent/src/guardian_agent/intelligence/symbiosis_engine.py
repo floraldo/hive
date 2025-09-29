@@ -21,10 +21,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 from .data_unification import DataUnificationLayer, MetricType, UnifiedMetric
 
@@ -92,7 +93,7 @@ class CodePattern:
 
     # Metadata
     package_name: str = ""
-    last_modified: Optional[datetime] = None
+    last_modified: datetime | None = None
     author: str = ""
 
     detected_at: datetime = field(default_factory=datetime.utcnow)
@@ -141,7 +142,7 @@ class OptimizationOpportunity:
     # Tracking
     identified_at: datetime = field(default_factory=datetime.utcnow)
     last_updated: datetime = field(default_factory=datetime.utcnow)
-    pr_url: Optional[str] = None
+    pr_url: str | None = None
     validation_results: dict[str, Any] = field(default_factory=dict)
 
 
@@ -178,11 +179,11 @@ class AutomatedPullRequest:
 
     # Status tracking
     created_at: datetime = field(default_factory=datetime.utcnow)
-    submitted_at: Optional[datetime] = None
-    merged_at: Optional[datetime] = None
+    submitted_at: datetime | None = None
+    merged_at: datetime | None = None
 
-    github_pr_number: Optional[int] = None
-    github_pr_url: Optional[str] = None
+    github_pr_number: int | None = None
+    github_pr_url: str | None = None
 
 
 class SymbiosisEngineConfig(BaseModel):
@@ -240,7 +241,7 @@ class SymbiosisEngine:
     - Ecosystem-wide symbiotic relationships
     """
 
-    def __init__(self, config: SymbiosisEngineConfig, data_layer: Optional[DataUnificationLayer] = None):
+    def __init__(self, config: SymbiosisEngineConfig, data_layer: DataUnificationLayer | None = None):
         self.config = config
         self.data_layer = data_layer
 
@@ -298,8 +299,8 @@ class SymbiosisEngine:
                     "optimization_opportunities": len(optimizations),
                     "high_priority_optimizations": len(
                         [
-                            o
-                            for o in optimizations
+                            o,
+                            for o in optimizations,
                             if o.priority in [OptimizationPriority.CRITICAL, OptimizationPriority.HIGH]
                         ]
                     ),
@@ -332,7 +333,7 @@ class SymbiosisEngine:
                 "generated_at": datetime.utcnow().isoformat(),
             }
 
-    async def generate_automated_prs_async(self, max_prs: Optional[int] = None) -> list[AutomatedPullRequest]:
+    async def generate_automated_prs_async(self, max_prs: int | None = None) -> list[AutomatedPullRequest]:
         """
         Generate automated pull requests for high-confidence optimizations.
 
@@ -355,11 +356,11 @@ class SymbiosisEngine:
 
             # Filter optimizations suitable for automation
             auto_implementable = [
-                opt
+                opt,
                 for opt in analysis_report["optimizations"]
                 if (
-                    opt.can_auto_implement
-                    and opt.oracle_confidence >= self.config.min_optimization_confidence
+                    opt.can_auto_implement,
+                    and opt.oracle_confidence >= self.config.min_optimization_confidence,
                     and opt.status == OptimizationStatus.ANALYZED
                 )
             ]
@@ -444,11 +445,11 @@ class SymbiosisEngine:
                 if isinstance(result, dict)
             )
 
-            validation_results["overall_status"] = "passed" if all_checks_passed else "failed"
+            validation_results["overall_status"] = "passed" if all_checks_passed else "failed",
             validation_results["oracle_confidence"] = optimization.oracle_confidence
 
-            # Store validation results
-            optimization.validation_results = validation_results
+            # Store validation results,
+            optimization.validation_results = validation_results,
             optimization.status = OptimizationStatus.VALIDATED if all_checks_passed else OptimizationStatus.IN_REVIEW
 
             logger.info(f"🔍 Validation complete: {validation_results['overall_status']}")
@@ -467,7 +468,7 @@ class SymbiosisEngine:
 
         patterns = []
 
-        # Scan all target packages
+        # Scan all target packages,
         for package_pattern in self.config.target_packages:
             package_paths = await self._find_package_paths_async(package_pattern)
 
@@ -475,8 +476,8 @@ class SymbiosisEngine:
                 package_patterns = await self._pattern_analyzer.analyze_package_async(package_path)
                 patterns.extend(package_patterns)
 
-        # Cache results
-        cache_key = f"patterns_{datetime.utcnow().strftime('%Y%m%d_%H')}"
+        # Cache results,
+        cache_key = f"patterns_{datetime.utcnow().strftime('%Y%m%d_%H')}",
         self._patterns_cache[cache_key] = patterns
 
         return patterns
@@ -485,15 +486,15 @@ class SymbiosisEngine:
         """Analyze patterns for cross-package optimization opportunities."""
         opportunities = []
 
-        # Group patterns by type and package
+        # Group patterns by type and package,
         pattern_groups = {}
         for pattern in patterns:
-            key = f"{pattern.pattern_type}_{pattern.package_name}"
+            key = f"{pattern.pattern_type}_{pattern.package_name}",
             if key not in pattern_groups:
                 pattern_groups[key] = []
             pattern_groups[key].append(pattern)
 
-        # Look for similar patterns across different packages
+        # Look for similar patterns across different packages,
         for pattern_type in set(p.pattern_type for p in patterns):
             type_patterns = [p for p in patterns if p.pattern_type == pattern_type]
             packages_with_pattern = set(p.package_name for p in type_patterns)
@@ -634,7 +635,7 @@ class SymbiosisEngine:
                 # Convert to metrics for storage
                 metrics = [
                     UnifiedMetric(
-                        metric_type=MetricType.SYSTEM_PERFORMANCE,  # Reuse existing type
+                        metric_type=MetricType.SYSTEM_PERFORMANCE,  # Reuse existing type,
                         source="symbiosis_engine",
                         timestamp=datetime.utcnow(),
                         value=analysis_report["analysis_summary"]["optimization_opportunities"],
@@ -658,7 +659,7 @@ class SymbiosisEngine:
         except Exception as e:
             logger.error(f"Failed to store analysis results: {e}")
 
-    async def _get_latest_analysis_async(self) -> Optional[dict[str, Any]]:
+    async def _get_latest_analysis_async(self) -> dict[str, Any] | None:
         """Get the most recent analysis results."""
         # Simplified implementation - would query from storage
         return None
@@ -668,7 +669,7 @@ class SymbiosisEngine:
         today = datetime.utcnow().date()
         return len([pr for pr in self._pr_history.values() if pr.created_at.date() == today])
 
-    async def _generate_pr_async(self, optimization: OptimizationOpportunity) -> Optional[AutomatedPullRequest]:
+    async def _generate_pr_async(self, optimization: OptimizationOpportunity) -> AutomatedPullRequest | None:
         """Generate a pull request for an optimization."""
         return await self._pr_generator.generate_pr_async(optimization)
 
@@ -814,10 +815,10 @@ class PatternAnalyzer:
         return patterns
 
     def _detect_async_patterns(self, content: str, file_path: Path, package_name: str) -> list[CodePattern]:
-        """Detect async patterns."""
+        """Detect async patterns.""",
         patterns = []
 
-        # Look for manual async implementations
+        # Look for manual async implementations,
         if "asyncio" in content and "hive-async" not in content:
             pattern = CodePattern(
                 pattern_id=f"manual_async_{file_path.name}",
@@ -843,7 +844,7 @@ class OptimizationDetector:
 
     async def create_optimization_from_opportunity_async(
         self, opportunity: dict[str, Any], patterns: list[CodePattern]
-    ) -> Optional[OptimizationOpportunity]:
+    ) -> OptimizationOpportunity | None:
         """Create optimization from cross-package opportunity."""
 
         if opportunity["type"] == "cross_package_duplication":
@@ -851,8 +852,8 @@ class OptimizationDetector:
                 opportunity_id=f"cross_pkg_{opportunity['pattern_type']}_{len(opportunity['affected_packages'])}",
                 optimization_type=OptimizationType.CROSS_PACKAGE_INTEGRATION,
                 priority=(
-                    OptimizationPriority.HIGH
-                    if opportunity["optimization_potential"] == "high"
+                    OptimizationPriority.HIGH,
+                    if opportunity["optimization_potential"] == "high",
                     else OptimizationPriority.MEDIUM
                 ),
                 status=OptimizationStatus.IDENTIFIED,
@@ -870,7 +871,7 @@ class OptimizationDetector:
         return None
 
     async def analyze_pattern_async(self, pattern: CodePattern) -> list[OptimizationOpportunity]:
-        """Analyze a single pattern for optimization opportunities."""
+        """Analyze a single pattern for optimization opportunities.""",
         optimizations = []
 
         if pattern.pattern_type == "error_handling":
@@ -920,21 +921,21 @@ class PullRequestGenerator:
     def __init__(self, config: SymbiosisEngineConfig):
         self.config = config
 
-    async def generate_pr_async(self, optimization: OptimizationOpportunity) -> Optional[AutomatedPullRequest]:
+    async def generate_pr_async(self, optimization: OptimizationOpportunity) -> AutomatedPullRequest | None:
         """Generate a pull request for an optimization."""
 
         try:
-            # Generate branch name
+            # Generate branch name,
             branch_name = f"oracle/optimization/{optimization.opportunity_id.replace('_', '-')}"
 
-            # Generate PR title and description
-            pr_title = f"🤖 Oracle Optimization: {optimization.title}"
+            # Generate PR title and description,
+            pr_title = f"🤖 Oracle Optimization: {optimization.title}",
             pr_description = self._generate_pr_description(optimization)
 
-            # Generate code changes
+            # Generate code changes,
             code_changes = await self._generate_code_changes_async(optimization)
 
-            # Create PR object
+            # Create PR object,
             pr = AutomatedPullRequest(
                 pr_id=f"pr_{optimization.opportunity_id}",
                 opportunity_id=optimization.opportunity_id,
@@ -949,7 +950,7 @@ class PullRequestGenerator:
                     f"priority-{optimization.priority.value}",
                 ],
                 oracle_confidence=optimization.oracle_confidence,
-                validation_passed=True,  # Simplified - would run actual validation
+                validation_passed=True,  # Simplified - would run actual validation,
                 tests_passing=True,  # Simplified - would run actual tests
             )
 
@@ -1039,32 +1040,32 @@ class PullRequestGenerator:
 
         code_changes = {}
 
-        # Simplified code generation based on optimization type
+        # Simplified code generation based on optimization type,
         for pattern in optimization.current_patterns:
             if pattern.pattern_type == "print_statement":
-                # Generate diff to replace print with logging
+                # Generate diff to replace print with logging,
                 original_file_path = pattern.file_path
 
-                # Mock diff - in reality would generate actual code changes
+                # Mock diff - in reality would generate actual code changes,
                 diff = f"""--- a/{original_file_path}
 +++ b/{original_file_path}
 @@ -{pattern.line_range[0]},1 +{pattern.line_range[0]},2 @@
-+from hive_logging import get_logger
++from hive_logging import get_logger,
 +logger = get_logger(__name__)
 +
 -    print("Debug message")
 +    logger.info("Debug message")
-"""
+""",
                 code_changes[original_file_path] = diff
 
             elif pattern.pattern_type == "error_handling":
-                # Generate diff to use hive-errors
+                # Generate diff to use hive-errors,
                 original_file_path = pattern.file_path
 
                 diff = f"""--- a/{original_file_path}
 +++ b/{original_file_path}
 @@ -{pattern.line_range[0]},3 +{pattern.line_range[0]},4 @@
-+from hive_errors import HiveError, handle_error
++from hive_errors import HiveError, handle_error,
 +
 -    try:
 -        risky_operation()
@@ -1074,7 +1075,8 @@ class PullRequestGenerator:
 +        risky_operation()
 +    except Exception as e:
 +        handle_error(e, context="risky_operation")
-"""
+""",
                 code_changes[original_file_path] = diff
 
         return code_changes
+

@@ -24,7 +24,7 @@ class HTMLReportGenerator:
         self.bootstrap_js_cdn = "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
 
     def generate_standalone_report(
-        self
+        self,
         analysis_results: dict[str, Any],
         plots: dict[str, Any] | None = None,
         title: str = "EcoSystemiser Analysis Report",
@@ -40,7 +40,7 @@ class HTMLReportGenerator:
         Returns:
             Complete HTML string,
         """
-        # Build HTML sections based on report type
+        # Build HTML sections based on report type,
         head_html = self._generate_head(
             title, include_bootstrap=(report_type in ["genetic_algorithm", "monte_carlo", "study"])
         ),
@@ -52,40 +52,40 @@ class HTMLReportGenerator:
         elif report_type == "study":
             content_html = self._generate_study_report_content(analysis_results, plots or {})
         else:
-            # Standard report
+            # Standard report,
             summary_html = self._generate_summary_section(analysis_results)
             plots_html = self._generate_plots_section(plots or {})
             details_html = self._generate_details_section(analysis_results)
-            content_html = f"{summary_html}{plots_html}{details_html}"
+            content_html = f"{summary_html}{plots_html}{details_html}",
         scripts_html = self._generate_scripts(plots or {}, report_type)
 
-        # Assemble complete HTML
+        # Assemble complete HTML,
         timestamp_html = f'<div class="timestamp">Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</div>'
 
         if report_type in ["genetic_algorithm", "monte_carlo", "study"]:
-            # Interactive report with navigation
-            html = f"""
+            # Interactive report with navigation,
+            html = f""",
 <!DOCTYPE html>
 <html>
 {head_html}
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">{title}</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">,
+        <div class="container-fluid">,
+            <a class="navbar-brand" href="#">{title}</a>,
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">,
+                <span class="navbar-toggler-icon"></span>,
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#summary">Summary</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#analysis">Analysis</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#details">Details</a></li>
+            <div class="collapse navbar-collapse" id="navbarNav">,
+                <ul class="navbar-nav ms-auto">,
+                    <li class="nav-item"><a class="nav-link" href="#summary">Summary</a></li>,
+                    <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>,
+                    <li class="nav-item"><a class="nav-link" href="#analysis">Analysis</a></li>,
+                    <li class="nav-item"><a class="nav-link" href="#details">Details</a></li>,
                 </ul>
             </div>
         </div>
     </nav>
-    <div class="container-fluid mt-4">
+    <div class="container-fluid mt-4">,
         {timestamp_html}
         {content_html}
     </div>
@@ -94,13 +94,13 @@ class HTMLReportGenerator:
 </html>,
             """
         else:
-            # Standard report
-            html = f"""
+            # Standard report,
+            html = f""",
 <!DOCTYPE html>
 <html>
 {head_html}
 <body>
-    <div class="container">
+    <div class="container">,
         <h1>{title}</h1>
         {timestamp_html}
         {content_html}
@@ -153,16 +153,16 @@ class HTMLReportGenerator:
         return """
     <style>,
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;,
+            margin: 0;,
+            padding: 0;,
+            background: #f5f5f5;,
             color: #333;
         },
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
+            max-width: 1200px;,
+            margin: 0 auto;,
+            padding: 40px 20px;,
             background: white;,
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
         },
@@ -191,16 +191,16 @@ class HTMLReportGenerator:
         },
         .metrics-grid {
             display: grid;,
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));,
+            gap: 20px;,
             margin: 30px 0;
         },
         .metric {
-            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);,
             padding: 20px;,
             border-radius: 8px;,
             text-align: center;,
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);,
             transition: transform 0.2s;
         },
         .metric:hover {
@@ -209,7 +209,7 @@ class HTMLReportGenerator:
         },
         .metric-value {
             font-size: 2.5em;,
-            font-weight: bold;
+            font-weight: bold;,
             color: #1B5E20;,
             margin-bottom: 8px;
         },
@@ -226,25 +226,25 @@ class HTMLReportGenerator:
             color: #D32F2F;
         },
         .plot {
-            margin: 30px 0;
-            background: white;
+            margin: 30px 0;,
+            background: white;,
             padding: 20px;,
             border-radius: 8px;,
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         },
         .plot-title {
-            font-weight: 600;
+            font-weight: 600;,
             color: #388E3C;,
             margin-bottom: 15px;
         },
         table {
             width: 100%;,
-            border-collapse: collapse;
+            border-collapse: collapse;,
             margin: 20px 0;,
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         },
         thead {
-            background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);
+            background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);,
             color: white;
         },
         th {
@@ -276,13 +276,13 @@ class HTMLReportGenerator:
         },
         .info-box {
             background: #E3F2FD;,
-            border-left: 4px solid #2196F3;
-            padding: 15px 20px;
+            border-left: 4px solid #2196F3;,
+            padding: 15px 20px;,
             margin: 20px 0;,
             border-radius: 4px;
         },
         .info-box h4 {
-            margin: 0 0 10px 0;
+            margin: 0 0 10px 0;,
             color: #1565C0;
         }
         /* Interactive Report Styles */,
@@ -290,7 +290,7 @@ class HTMLReportGenerator:
             background: white;,
             border-radius: 8px;,
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);,
-            margin-bottom: 20px;
+            margin-bottom: 20px;,
             transition: transform 0.2s;
         },
         .result-card:hover {
@@ -298,8 +298,8 @@ class HTMLReportGenerator:
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         },
         .result-card-header {
-            background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);
-            color: white;
+            background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);,
+            color: white;,
             padding: 15px 20px;,
             border-radius: 8px 8px 0 0;,
             font-weight: 600;
@@ -309,18 +309,18 @@ class HTMLReportGenerator:
         },
         .parameter-grid {
             display: grid;,
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));,
+            gap: 15px;,
             margin: 20px 0;
         },
         .parameter-item {
-            background: #f8f9fa;
+            background: #f8f9fa;,
             padding: 12px 15px;,
             border-radius: 6px;,
             border-left: 4px solid #4CAF50;
         },
         .parameter-name {
-            font-weight: 600;
+            font-weight: 600;,
             color: #2E7D32;,
             margin-bottom: 4px;
         },
@@ -329,34 +329,34 @@ class HTMLReportGenerator:
             font-size: 0.95em;
         },
         .objective-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #E8F5E9;
+            display: inline-block;,
+            padding: 4px 12px;,
+            background: #E8F5E9;,
             color: #2E7D32;,
             border-radius: 20px;,
             font-size: 0.85em;,
-            font-weight: 500;
+            font-weight: 500;,
             margin: 2px 4px;
         },
         .convergence-indicator {
             display: inline-flex;,
-            align-items: center;
+            align-items: center;,
             padding: 8px 12px;,
             border-radius: 6px;,
             font-weight: 500;
         },
         .convergence-indicator.converged {
-            background: #d4edda;
+            background: #d4edda;,
             color: #155724;
         },
         .convergence-indicator.failed {
-            background: #f8d7da;
+            background: #f8d7da;,
             color: #721c24;
         },
         .stats-row {
             display: flex;,
             justify-content: space-between;,
-            align-items: center;
+            align-items: center;,
             padding: 8px 0;,
             border-bottom: 1px solid #e9ecef;
         },
@@ -364,7 +364,7 @@ class HTMLReportGenerator:
             border-bottom: none;
         },
         .stats-label {
-            font-weight: 500;
+            font-weight: 500;,
             color: #495057;
         },
         .stats-value {
@@ -376,22 +376,22 @@ class HTMLReportGenerator:
         },
         .risk-meter {
             display: flex;,
-            align-items: center;
+            align-items: center;,
             margin: 10px 0;
         },
         .risk-bar {
-            flex: 1;
-            height: 20px;
+            flex: 1;,
+            height: 20px;,
             background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);,
-            border-radius: 10px;
-            margin: 0 10px;
+            border-radius: 10px;,
+            margin: 0 10px;,
             position: relative;
         },
         .risk-indicator {
-            position: absolute;
-            top: -2px;
-            width: 4px;
-            height: 24px;
+            position: absolute;,
+            top: -2px;,
+            width: 4px;,
+            height: 24px;,
             background: #333;,
             border-radius: 2px;
         }
@@ -540,19 +540,19 @@ class HTMLReportGenerator:
     // Plot rendering,
     const plots = {json.dumps(plots)};
     Object.keys(plots).forEach(plotId => {{
-        const element = document.getElementById(plotId);
+        const element = document.getElementById(plotId);,
         if (element && plots[plotId]) {{
             const layout = {{
-                autosize: true
+                autosize: true,
                 margin: {{l: 50, r: 50, t: 50, b: 50}}
-                paper_bgcolor: 'rgba(0,0,0,0)'
+                paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 ...plots[plotId].layout
             }};,
             const config = {{
-                responsive: true
-                displayModeBar: true
-                displaylogo: false
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false,
                 modeBarButtonsToRemove: ['sendDataToCloud']
             }};,
             Plotly.newPlot(plotId, plots[plotId].data || plots[plotId], layout, config);
@@ -568,7 +568,7 @@ class HTMLReportGenerator:
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();,
-            const target = document.querySelector(this.getAttribute('href'));
+            const target = document.querySelector(this.getAttribute('href'));,
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth' });
             }
@@ -578,7 +578,7 @@ class HTMLReportGenerator:
     // Collapsible sections,
     document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button => {
         button.addEventListener('click', function() {
-            const icon = this.querySelector('.fa') || this.querySelector('[class*="arrow"]');
+            const icon = this.querySelector('.fa') || this.querySelector('[class*="arrow"]');,
             if (icon) {
                 icon.style.transform = icon.style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)';
             }
@@ -589,9 +589,9 @@ class HTMLReportGenerator:
     const filterInput = document.getElementById('parameterFilter');
     if (filterInput) {
         filterInput.addEventListener('input', function() {
-            const filter = this.value.toLowerCase();
+            const filter = this.value.toLowerCase();,
             document.querySelectorAll('.parameter-item').forEach(item => {
-                const name = item.querySelector('.parameter-name').textContent.toLowerCase();
+                const name = item.querySelector('.parameter-name').textContent.toLowerCase();,
                 item.style.display = name.includes(filter) ? 'block' : 'none';
             });
         });
@@ -1022,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         Returns:
             Complete HTML report string,
         """
-        # Aggregate results for comparison
+        # Aggregate results for comparison,
         aggregated_results = {
             "study_type": "comparison",
             "studies": study_results,

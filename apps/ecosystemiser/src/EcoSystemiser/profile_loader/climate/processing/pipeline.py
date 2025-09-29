@@ -137,10 +137,10 @@ class ProcessingPipeline:
 
         # 1. Quality control (always enabled),
         self.add_preprocessing_step(
-            "quality_control"
-            apply_quality_control
+            "quality_control",
+            apply_quality_control,
             config={"comprehensive": True, "source": None},
-            enabled=True
+            enabled=True,
             required=True
         )
 
@@ -148,11 +148,11 @@ class ProcessingPipeline:
         gap_fill_enabled = profile_config.gap_fill_enabled if profile_config else True
         if gap_fill_enabled:
             self.add_preprocessing_step(
-                "gap_filling"
-                smart_fill_gaps
+                "gap_filling",
+                smart_fill_gaps,
                 config={
                     "max_linear_gap": (
-                        profile_config.gap_fill_max_hours // 8
+                        profile_config.gap_fill_max_hours // 8,
                         if profile_config and hasattr(profile_config, "gap_fill_max_hours"),
                         else 3
                     ),
@@ -168,7 +168,7 @@ class ProcessingPipeline:
 
         # 3. Resampling (disabled by default, enabled on-demand),
         self.add_preprocessing_step(
-            "resample"
+            "resample",
             lambda ds, **kw: resample_dataset(ds, kw.get("resolution", "H"))
             config={"resolution": "H"},
             enabled=False,  # Only enabled when resolution is requested
@@ -176,8 +176,8 @@ class ProcessingPipeline:
 
         # 4. Timezone conversion (disabled by default, enabled on-demand),
         self.add_preprocessing_step(
-            "timezone_conversion"
-            lambda ds, **kw: ds,  # Placeholder for timezone conversion
+            "timezone_conversion",
+            lambda ds, **kw: ds,  # Placeholder for timezone conversion,
             config={"target_tz": "UTC"},
             enabled=False,  # Only enabled when timezone is requested
         )
@@ -204,12 +204,12 @@ class ProcessingPipeline:
             # Placeholder for future postprocessing steps,
             self.add_postprocessing_step(
                 "placeholder_postprocessing",
-                lambda ds, **kw: ds,  # No-op for now
+                lambda ds, **kw: ds,  # No-op for now,
                 enabled=False
             )
 
     def add_preprocessing_step(
-        self
+        self,
         name: str,
         function: Callable,
         config: Dict | None = None,
@@ -228,7 +228,7 @@ class ProcessingPipeline:
         self.preprocessing_steps.append(step)
 
     def add_postprocessing_step(
-        self
+        self,
         name: str,
         function: Callable,
         config: Dict | None = None,
@@ -287,7 +287,7 @@ class ProcessingPipeline:
         return ds_processed
 
     def execute(
-        self
+        self,
         ds: xr.Dataset,
         skip_preprocessing: bool = False,
         skip_postprocessing: bool = False

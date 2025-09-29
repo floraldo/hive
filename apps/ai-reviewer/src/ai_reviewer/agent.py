@@ -6,7 +6,7 @@ import argparse
 import asyncio
 import signal
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 # Import hive logging
 from hive_logging import get_logger
@@ -147,8 +147,8 @@ class ReviewAgent:
         logger.info("AI Reviewer Agent started")
         logger.info(
             Panel.fit(
-                "[bold green]AI Reviewer Agent Active[/bold green]\n"
-                f"Polling interval: {self.polling_interval}s\n"
+                "[bold green]AI Reviewer Agent Active[/bold green]\n",
+                f"Polling interval: {self.polling_interval}s\n",
                 f"Mode: {'TEST' if self.test_mode else 'PRODUCTION'}",
                 title="AI Reviewer Status",
             )
@@ -190,7 +190,7 @@ class ReviewAgent:
             logger.error(f"Error processing review queue: {e}")
             self.stats["errors"] += 1
 
-    async def _review_task_async(self, task: Dict[str, Any]) -> None:
+    async def _review_task_async(self, task: dict[str, Any]) -> None:
         """Review a single task"""
         try:
             console.logger.info(
@@ -259,7 +259,7 @@ class ReviewAgent:
                     error_type=type(e).__name__,
                 )
 
-    def _display_review_result(self, result: Dict[str, Any]) -> None:
+    def _display_review_result(self, result: dict[str, Any]) -> None:
         """Display review results in a nice format"""
         # Create metrics table
         metrics_table = Table(title="Quality Metrics")
@@ -285,8 +285,8 @@ class ReviewAgent:
 
         logger.info(
             Panel(
-                f"[bold {decision_color}]Decision: {result.decision.value.upper()}[/bold {decision_color}]\n\n"
-                f"{result.summary}\n\n"
+                f"[bold {decision_color}]Decision: {result.decision.value.upper()}[/bold {decision_color}]\n\n",
+                f"{result.summary}\n\n",
                 f"Confidence: {result.confidence:.0%}",
                 title="Review Decision",
             )
@@ -303,7 +303,7 @@ class ReviewAgent:
             for suggestion in result.suggestions:
                 console.logger.info(f"  • {suggestion}")
 
-    async def _execute_decision_async(self, task: Dict[str, Any], result) -> None:
+    async def _execute_decision_async(self, task: dict[str, Any], result) -> None:
         """Execute the review decision"""
         new_status = {
             ReviewDecision.APPROVE: TaskStatus.APPROVED,
@@ -340,7 +340,7 @@ class ReviewAgent:
 
         logger.info(f"Task {task['id']} review completed: {result.decision.value}")
 
-    async def _trigger_next_phase_async(self, task: Dict[str, Any]) -> None:
+    async def _trigger_next_phase_async(self, task: dict[str, Any]) -> None:
         """Trigger next phase for approved tasks"""
         # This would integrate with the broader Hive system
         # For now, just log it
@@ -397,11 +397,11 @@ class ReviewAgent:
             runtime = (datetime.now() - self.stats["start_time"]).total_seconds()
             logger.info(
                 Panel(
-                    f"Session Summary:\n"
-                    f"Runtime: {runtime:.0f} seconds\n"
-                    f"Tasks Reviewed: {self.stats['tasks_reviewed']}\n"
-                    f"Approved: {self.stats['approved']}\n"
-                    f"Rejected: {self.stats['rejected']}\n"
+                    "Session Summary:\n",
+                    f"Runtime: {runtime:.0f} seconds\n",
+                    f"Tasks Reviewed: {self.stats['tasks_reviewed']}\n",
+                    f"Approved: {self.stats['approved']}\n",
+                    f"Rejected: {self.stats['rejected']}\n",
                     f"Errors: {self.stats['errors']}",
                     title="AI Reviewer Session Complete",
                 )
@@ -440,7 +440,7 @@ class ReviewAgent:
             logger.warning(f"Failed to publish async task event {event_type} for task {task_id}: {e}")
             return ""
 
-    async def _get_pending_reviews_async(self) -> List[Dict[str, Any]]:
+    async def _get_pending_reviews_async(self) -> List[dict[str, Any]]:
         """Async version of getting pending review tasks."""
         if not ASYNC_DB_AVAILABLE:
             # Fallback to sync version
@@ -456,7 +456,7 @@ class ReviewAgent:
             logger.error(f"Error retrieving async pending reviews: {e}")
             return []
 
-    async def _update_task_status_async(self, task_id: str, status: str, metadata: Dict[str, Any] = None) -> bool:
+    async def _update_task_status_async(self, task_id: str, status: str, metadata: dict[str, Any] = None) -> bool:
         """Async version of updating task status."""
         if not ASYNC_DB_AVAILABLE:
             # Fallback to sync version
@@ -493,7 +493,7 @@ class ReviewAgent:
             logger.error(f"Error processing async review queue: {e}")
             self.stats["errors"] += 1
 
-    async def _review_task_async(self, task: Dict[str, Any]) -> None:
+    async def _review_task_async(self, task: dict[str, Any]) -> None:
         """Async version of reviewing a single task."""
         try:
             console.logger.info(
@@ -562,7 +562,7 @@ class ReviewAgent:
                     error_type=type(e).__name__,
                 )
 
-    async def _execute_decision_async(self, task: Dict[str, Any], result) -> None:
+    async def _execute_decision_async(self, task: dict[str, Any], result) -> None:
         """Async version of executing review decision."""
         from ai_reviewer.database_adapter import TaskStatus
         from ai_reviewer.reviewer import ReviewDecision
@@ -619,10 +619,10 @@ class ReviewAgent:
         logger.info("AI Reviewer Agent started in async mode")
         logger.info(
             Panel.fit(
-                "[bold green]AI Reviewer Agent Active (Async Mode)[/bold green]\n"
-                f"Polling interval: {self.polling_interval}s\n"
-                f"Mode: {'TEST' if self.test_mode else 'PRODUCTION'}\n"
-                f"Async DB: {'✓' if ASYNC_DB_AVAILABLE else '✗'}\n"
+                "[bold green]AI Reviewer Agent Active (Async Mode)[/bold green]\n",
+                f"Polling interval: {self.polling_interval}s\n",
+                f"Mode: {'TEST' if self.test_mode else 'PRODUCTION'}\n",
+                f"Async DB: {'✓' if ASYNC_DB_AVAILABLE else '✗'}\n",
                 f"Async Events: {'✓' if ASYNC_EVENTS_AVAILABLE else '✗'}",
                 title="AI Reviewer Status",
             )

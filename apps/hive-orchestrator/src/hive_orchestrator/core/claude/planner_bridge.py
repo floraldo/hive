@@ -93,43 +93,43 @@ class PlanningResponseValidator(PydanticValidator):
         task_description = context.get("task_description", "Unknown task")
 
         return ClaudePlanningResponse(
-            plan_id=f"fallback-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-            plan_name=f"Fallback Plan: {task_description[:50]}..."
-            plan_summary="Fallback plan generated due to Claude unavailability"
+            plan_id=f"fallback-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+            plan_name=f"Fallback Plan: {task_description[:50]}...",
+            plan_summary="Fallback plan generated due to Claude unavailability",
             sub_tasks=[
                 SubTask(
-                    id="fallback-001"
-                    title="Analyze Requirements"
-                    description=f"Analyze and understand: {task_description}"
-                    assignee="worker:backend"
-                    estimated_duration=30
-                    complexity="medium"
+                    id="fallback-001",
+                    title="Analyze Requirements",
+                    description=f"Analyze and understand: {task_description}",
+                    assignee="worker:backend",
+                    estimated_duration=30,
+                    complexity="medium",
                     dependencies=[]
-                    workflow_phase="analysis"
+                    workflow_phase="analysis",
                     required_skills=["analysis"]
                     deliverables=["requirements.md"]
                 )
                 SubTask(
-                    id="fallback-002"
-                    title="Implement Solution"
-                    description="Implement the requested functionality"
-                    assignee="worker:backend"
-                    estimated_duration=120
-                    complexity="medium"
+                    id="fallback-002",
+                    title="Implement Solution",
+                    description="Implement the requested functionality",
+                    assignee="worker:backend",
+                    estimated_duration=120,
+                    complexity="medium",
                     dependencies=["fallback-001"]
-                    workflow_phase="implementation"
+                    workflow_phase="implementation",
                     required_skills=["programming"]
                     deliverables=["implementation.py"]
                 )
                 SubTask(
-                    id="fallback-003"
-                    title="Test and Validate"
-                    description="Test the implementation and validate requirements"
-                    assignee="worker:backend"
-                    estimated_duration=60
-                    complexity="simple"
+                    id="fallback-003",
+                    title="Test and Validate",
+                    description="Test the implementation and validate requirements",
+                    assignee="worker:backend",
+                    estimated_duration=60,
+                    complexity="simple",
                     dependencies=["fallback-002"]
-                    workflow_phase="testing"
+                    workflow_phase="testing",
                     required_skills=["testing"]
                     deliverables=["test_results.md"]
                 )
@@ -146,7 +146,7 @@ class PlanningResponseValidator(PydanticValidator):
                 lifecycle_phases=["analysis", "implementation", "testing"]
                 phase_transitions={
                     "analysis": "implementation",
-                    "implementation": "testing"
+                    "implementation": "testing",
                 }
                 validation_gates={
                     "analysis": ["requirements_clear"],
@@ -156,19 +156,19 @@ class PlanningResponseValidator(PydanticValidator):
                 rollback_strategy="manual rollback with git revert"
             )
             metrics=PlanningMetrics(
-                total_estimated_duration=210
-                critical_path_duration=210
+                total_estimated_duration=210,
+                critical_path_duration=210,
                 complexity_breakdown={"simple": 1, "medium": 2, "complex": 0}
                 skill_requirements={"programming": 2, "testing": 1, "analysis": 1}
-                confidence_score=0.6
+                confidence_score=0.6,
                 risk_factors=["claude_unavailable", "simplified_planning"]
             )
             recommendations=[
-                "Validate requirements before implementation"
+                "Validate requirements before implementation",
                 "Test thoroughly before deployment"
             ]
             considerations=[
-                "This is a fallback plan - consider human review"
+                "This is a fallback plan - consider human review",
                 "Claude integration should be restored for better planning"
             ]
         )
@@ -182,23 +182,23 @@ class ClaudePlannerBridge(BaseClaludeBridge):
         self.validator = PlanningResponseValidator()
 
     def generate_execution_plan(
-        self
-        task_description: str
-        context_data: Dict[str, Any] = None
-        priority: int = 50
+        self,
+        task_description: str,
+        context_data: Dict[str, Any] = None,
+        priority: int = 50,
         requestor: str = "system"
     ) -> Dict[str, Any]:
         """
         Generate intelligent execution plan using Claude API
 
         Args:
-            task_description: High-level task description
-            context_data: Additional context and constraints
+            task_description: High-level task description,
+            context_data: Additional context and constraints,
             priority: Task priority (0-100)
             requestor: Who requested the task
 
         Returns:
-            Validated planning response or fallback on failure
+            Validated planning response or fallback on failure,
         """
         prompt = self._create_planning_prompt(task_description, context_data or {}, priority, requestor)
 
@@ -206,23 +206,23 @@ class ClaudePlannerBridge(BaseClaludeBridge):
             "task_description": task_description,
             "priority": priority,
             "requestor": requestor,
-            "context_data": context_data
+            "context_data": context_data,
         }
 
         return self.call_claude(prompt, validator=self.validator, context=context)
 
     def _create_planning_prompt(
-        self
-        task_description: str
+        self,
+        task_description: str,
         context_data: Dict[str, Any]
-        priority: int
+        priority: int,
         requestor: str
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
 
-        context_info = ""
+        context_info = "",
         if context_data:
-            context_info = f"""
+            context_info = f""",
 ## Context Information:
 - Files affected: {context_data.get('files_affected', 'unknown')}
 - Dependencies: {context_data.get('dependencies', [])}
@@ -237,7 +237,7 @@ You are an expert Senior Software Architect with deep experience in system desig
 
 ## Task Analysis:
 **Primary Objective:** {task_description}
-**Priority Level:** {priority}/100
+**Priority Level:** {priority}/100,
 **Requestor:** {requestor}
 {context_info}
 
@@ -248,14 +248,14 @@ Transform this high-level requirement into a detailed, executable plan with prop
 You MUST respond with a valid JSON object that strictly follows the schema. Do not include any text before or after the JSON.
 
 Generate a JSON response with the following structure:
-- plan_id: unique identifier
+- plan_id: unique identifier,
 - plan_name: human-readable name (max 100 chars)
 - plan_summary: executive summary (max 500 chars)
-- sub_tasks: array of tasks with id, title, description, assignee, estimated_duration, complexity, dependencies, workflow_phase, required_skills, deliverables
-- dependencies: object with critical_path, parallel_groups, blocking_dependencies
-- workflow: object with lifecycle_phases, phase_transitions, validation_gates, rollback_strategy
-- metrics: object with total_estimated_duration, critical_path_duration, complexity_breakdown, skill_requirements, confidence_score, risk_factors
-- recommendations: array of strategic recommendations
+- sub_tasks: array of tasks with id, title, description, assignee, estimated_duration, complexity, dependencies, workflow_phase, required_skills, deliverables,
+- dependencies: object with critical_path, parallel_groups, blocking_dependencies,
+- workflow: object with lifecycle_phases, phase_transitions, validation_gates, rollback_strategy,
+- metrics: object with total_estimated_duration, critical_path_duration, complexity_breakdown, skill_requirements, confidence_score, risk_factors,
+- recommendations: array of strategic recommendations,
 - considerations: array of important considerations
 
 Generate the execution plan now:"""
@@ -267,19 +267,19 @@ Generate the execution plan now:"""
         import uuid
 
         mock_plan = ClaudePlanningResponse(
-            plan_id=f"mock-plan-{uuid.uuid4().hex[:8]}"
-            plan_name="Mock Execution Plan"
-            plan_summary="Mock plan for testing purposes"
+            plan_id=f"mock-plan-{uuid.uuid4().hex[:8]}",
+            plan_name="Mock Execution Plan",
+            plan_summary="Mock plan for testing purposes",
             sub_tasks=[
                 SubTask(
-                    id="mock-001"
-                    title="Mock Analysis Task"
-                    description="Mock task for testing"
-                    assignee="worker:backend"
-                    estimated_duration=30
-                    complexity="medium"
+                    id="mock-001",
+                    title="Mock Analysis Task",
+                    description="Mock task for testing",
+                    assignee="worker:backend",
+                    estimated_duration=30,
+                    complexity="medium",
                     dependencies=[]
-                    workflow_phase="analysis"
+                    workflow_phase="analysis",
                     required_skills=["testing"]
                     deliverables=["mock_output.txt"]
                 )
@@ -292,11 +292,11 @@ Generate the execution plan now:"""
                 rollback_strategy="mock rollback"
             )
             metrics=PlanningMetrics(
-                total_estimated_duration=30
-                critical_path_duration=30
+                total_estimated_duration=30,
+                critical_path_duration=30,
                 complexity_breakdown={"simple": 0, "medium": 1, "complex": 0}
                 skill_requirements={"testing": 1}
-                confidence_score=0.9
+                confidence_score=0.9,
                 risk_factors=["mock_risk"]
             )
             recommendations=["Mock recommendation"]

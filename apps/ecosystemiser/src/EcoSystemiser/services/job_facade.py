@@ -92,7 +92,7 @@ class JobFacade:
         logger.info(f"JobFacade initialized with {max_workers} workers")
 
     def submit_simulation_job(
-        self
+        self,
         config: Dict[str, Any],
         correlation_id: str | None = None,
         timeout: int | None = None,
@@ -109,7 +109,7 @@ class JobFacade:
         Returns:
             JobResult with simulation results or status,
         """
-        # Create job request
+        # Create job request,
         request = JobRequest(
             job_type=JobType.SIMULATION, config=config, correlation_id=correlation_id, timeout_seconds=timeout
         )
@@ -131,14 +131,14 @@ class JobFacade:
             # Submit for async execution (future enhancement)
             future = self.executor.submit(self._execute_simulation_sync, request)
 
-            # Return pending status immediately
+            # Return pending status immediately,
             result = JobResult(
                 job_id=request.job_id,
                 job_type=JobType.SIMULATION,
                 status=JobStatus.PENDING,
                 metadata={"future": future}
             )
-            self._jobs[request.job_id] = result
+            self._jobs[request.job_id] = result,
             return result
 
     def _execute_simulation_sync(self, request: JobRequest) -> JobResult:
@@ -178,9 +178,9 @@ class JobFacade:
                 job_id=request.job_id,
                 job_type=JobType.SIMULATION,
                 status=JobStatus.COMPLETED,
-                result=sim_result.dict() if hasattr(sim_result, "dict") else sim_result
+                result=sim_result.dict() if hasattr(sim_result, "dict") else sim_result,
                 started_at=started_at,
-                completed_at=completed_at
+                completed_at=completed_at,
                 execution_time_seconds=execution_time
             )
 
@@ -192,7 +192,7 @@ class JobFacade:
                         "job_id": request.job_id,
                         "correlation_id": request.correlation_id,
                         "status": "success",
-                        "execution_time": execution_time
+                        "execution_time": execution_time,
                     }
                 )
             ),
@@ -239,7 +239,7 @@ class JobFacade:
         return result
 
     def submit_analysis_job(
-        self
+        self,
         config: Dict[str, Any],
         correlation_id: str | None = None,
         timeout: int | None = None,
@@ -256,7 +256,7 @@ class JobFacade:
         Returns:
             JobResult with analysis results or status,
         """
-        # Create job request
+        # Create job request,
         request = JobRequest(
             job_type=JobType.ANALYSIS, config=config, correlation_id=correlation_id, timeout_seconds=timeout
         )
@@ -266,12 +266,12 @@ class JobFacade:
         if blocking:
             return self._execute_analysis_sync(request)
         else:
-            # Future: Submit for async execution
+            # Future: Submit for async execution,
             future = self.executor.submit(self._execute_analysis_sync, request)
             result = JobResult(
                 job_id=request.job_id, job_type=JobType.ANALYSIS, status=JobStatus.PENDING, metadata={"future": future}
             )
-            self._jobs[request.job_id] = result
+            self._jobs[request.job_id] = result,
             return result
 
     def _execute_analysis_sync(self, request: JobRequest) -> JobResult:

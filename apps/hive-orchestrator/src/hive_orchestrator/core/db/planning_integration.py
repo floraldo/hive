@@ -9,8 +9,8 @@ AI Planner and Queen to enable reliable autonomous task execution.
 import asyncio
 import json
 from contextlib import contextmanager
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any
 
 # Hive logging system
 from hive_logging import get_logger
@@ -49,7 +49,7 @@ class PlanningIntegration:
             finally:
                 conn.close()
 
-    def get_ready_planned_subtasks(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_ready_planned_subtasks(self, limit: int = 20) -> list[dict[str, Any]]:
         """
         Get planned subtasks that are ready for execution with enhanced dependency checking.
 
@@ -68,11 +68,11 @@ class PlanningIntegration:
             # Single optimized query that joins tasks, execution_plans, and checks dependencies
             query = """
                 WITH plan_subtasks AS (
-                    SELECT
+                    SELECT,
                         t.*,
                         ep.status as plan_status,
                         ep.id as plan_id,
-                        ep.plan_data
+                        ep.plan_data,
                     FROM tasks t
                     INNER JOIN execution_plans ep
                         ON ep.id = json_extract(t.payload, '$.parent_plan_id')
@@ -85,16 +85,16 @@ class PlanningIntegration:
                         ps.*,
                         CASE
                             WHEN json_extract(ps.payload, '$.dependencies') IS NULL
-                                OR json_array_length(json_extract(ps.payload, '$.dependencies')) = 0
+                                OR json_array_length(json_extract(ps.payload, '$.dependencies')) = 0,
                             THEN 1
                             ELSE (
                                 SELECT COUNT(*) = (
                                     SELECT COUNT(*)
-                                    FROM json_each(json_extract(ps.payload, '$.dependencies')) as dep
+                                    FROM json_each(json_extract(ps.payload, '$.dependencies')) as dep,
                                     WHERE EXISTS (
-                                        SELECT 1 FROM tasks t2
+                                        SELECT 1 FROM tasks t2,
                                         WHERE (
-                                            t2.id = dep.value
+                                            t2.id = dep.value,
                                             OR json_extract(t2.payload, '$.subtask_id') = dep.value
                                         )
                                         AND t2.status = 'completed'
@@ -147,7 +147,7 @@ class PlanningIntegration:
             logger.debug(f"Retrieved {len(subtasks)} ready planned subtasks")
             return subtasks
 
-    def _build_subtask_dict(self, row) -> Dict[str, Any]:
+    def _build_subtask_dict(self, row) -> dict[str, Any]:
         """Build subtask dictionary from database row"""
         return {
             "id": row[0],
@@ -166,7 +166,7 @@ class PlanningIntegration:
             "retry_count": row[13] if len(row) > 13 else 0,
         }
 
-    def monitor_planning_queue_changes(self) -> List[Dict[str, Any]]:
+    def monitor_planning_queue_changes(self) -> list[dict[str, Any]]:
         """
         Monitor planning_queue for new tasks that AI Planner should process.
 
@@ -175,11 +175,11 @@ class PlanningIntegration:
         """
         with self._get_connection() as conn:
             cursor = conn.execute(
-                """
-                SELECT * FROM planning_queue
-                WHERE status = 'pending'
-                ORDER BY priority DESC, created_at ASC
-                LIMIT 10
+                """,
+                SELECT * FROM planning_queue,
+                WHERE status = 'pending',
+                ORDER BY priority DESC, created_at ASC,
+                LIMIT 10,
             """
             )
 
@@ -199,7 +199,7 @@ class PlanningIntegration:
 
             return tasks
 
-    def update_execution_plan_progress(self, plan_id: str, subtask_updates: Dict[str, str]) -> bool:
+    def update_execution_plan_progress(self, plan_id: str, subtask_updates: dict[str, str]) -> bool:
         """
         Update execution plan progress based on subtask completions.
 
@@ -230,7 +230,7 @@ class PlanningIntegration:
                         new_status = subtask_updates[subtask_id]
                         if old_status != new_status:
                             subtask["status"] = new_status
-                            subtask["updated_at"] = datetime.now(timezone.utc).isoformat()
+                            subtask["updated_at"] = datetime.now(UTC).isoformat()
                             updated = True
                             logger.debug(f"Updated subtask {subtask_id}: {old_status} -> {new_status}")
 
@@ -248,10 +248,10 @@ class PlanningIntegration:
 
                     # Update plan data and status
                     conn.execute(
-                        """
-                        UPDATE execution_plans
-                        SET plan_data = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-                        WHERE id = ?
+                        """,
+                        UPDATE execution_plans,
+                        SET plan_data = ?, status = ?, updated_at = CURRENT_TIMESTAMP,
+                        WHERE id = ?,
                     """,
                         (json.dumps(plan_data), plan_status, plan_id),
                     )
@@ -280,9 +280,9 @@ class PlanningIntegration:
             with self._get_connection() as conn:
                 # Get subtask info
                 cursor = conn.execute(
-                    """
-                    SELECT payload FROM tasks
-                    WHERE id = ? AND task_type = 'planned_subtask'
+                    """,
+                    SELECT payload FROM tasks,
+                    WHERE id = ? AND task_type = 'planned_subtask',
                 """,
                     (task_id,),
                 )
@@ -305,7 +305,7 @@ class PlanningIntegration:
             logger.error(f"Error syncing subtask status to plan: {e}")
             return False
 
-    def get_plan_completion_status(self, plan_id: str) -> Dict[str, Any]:
+    def get_plan_completion_status(self, plan_id: str) -> dict[str, Any]:
         """
         Get detailed completion status for an execution plan.
 
@@ -328,10 +328,10 @@ class PlanningIntegration:
 
             # Get actual subtask statuses from tasks table
             cursor = conn.execute(
-                """
-                SELECT json_extract(payload, '$.subtask_id'), status
-                FROM tasks
-                WHERE task_type = 'planned_subtask'
+                """,
+                SELECT json_extract(payload, '$.subtask_id'), status,
+                FROM tasks,
+                WHERE task_type = 'planned_subtask',
                 AND json_extract(payload, '$.parent_plan_id') = ?
             """,
                 (plan_id,),
@@ -439,10 +439,10 @@ class PlanningIntegration:
 
                 # Update plan status to executing
                 cursor = conn.execute(
-                    """
-                    UPDATE execution_plans
-                    SET status = 'executing', updated_at = CURRENT_TIMESTAMP
-                    WHERE id = ?
+                    """,
+                    UPDATE execution_plans,
+                    SET status = 'executing', updated_at = CURRENT_TIMESTAMP,
+                    WHERE id = ?,
                 """,
                     (plan_id,),
                 )
@@ -470,13 +470,11 @@ class PlanningIntegration:
             with self._get_connection() as conn:
                 # Find old completed plans
                 cursor = conn.execute(
-                    """
-                    SELECT id FROM execution_plans
-                    WHERE status = 'completed'
-                    AND datetime(updated_at) < datetime('now', '-{} days')
-                """.format(
-                        max_age_days
-                    )
+                    f""",
+                    SELECT id FROM execution_plans,
+                    WHERE status = 'completed',
+                    AND datetime(updated_at) < datetime('now', '-{max_age_days} days')
+                """
                 )
 
                 plan_ids = [row[0] for row in cursor.fetchall()]
@@ -487,9 +485,9 @@ class PlanningIntegration:
                 # Delete subtasks first (foreign key constraint)
                 placeholders = ",".join("?" * len(plan_ids))
                 cursor = conn.execute(
-                    f"""
-                    DELETE FROM tasks
-                    WHERE task_type = 'planned_subtask'
+                    f""",
+                    DELETE FROM tasks,
+                    WHERE task_type = 'planned_subtask',
                     AND json_extract(payload, '$.parent_plan_id') IN ({placeholders})
                 """,
                     plan_ids,
@@ -499,7 +497,7 @@ class PlanningIntegration:
 
                 # Delete plans
                 cursor = conn.execute(
-                    f"""
+                    f""",
                     DELETE FROM execution_plans WHERE id IN ({placeholders})
                 """,
                     plan_ids,
@@ -525,7 +523,7 @@ planning_integration = PlanningIntegration()
 class AsyncPlanningIntegration:
     """Async version of planning integration for high-performance scenarios"""
 
-    async def get_ready_planned_subtasks_async(self, limit: int = 20) -> List[Dict[str, Any]]:
+    async def get_ready_planned_subtasks_async(self, limit: int = 20) -> list[dict[str, Any]]:
         """Async version of get_ready_planned_subtasks"""
         # This would use async database operations when available
         # For now, run sync version in thread pool to avoid blocking

@@ -21,8 +21,8 @@ from typing import Any, Dict, List
 
 try:
     from hive_di.interfaces import (
-        IClaudeService
-        IConfigurationService
+        IClaudeService,
+        IConfigurationService,
         IErrorReportingService
     )
 
@@ -54,30 +54,30 @@ class ClaudeServiceDI:
     """
 
     def __init__(
-        self
-        configuration_service: "IConfigurationService"
-        error_reporting_service: "IErrorReportingService"
-        config: ClaudeBridgeConfig | None = None
-        rate_config: RateLimitConfig | None = None
+        self,
+        configuration_service: "IConfigurationService",
+        error_reporting_service: "IErrorReportingService",
+        config: ClaudeBridgeConfig | None = None,
+        rate_config: RateLimitConfig | None = None,
         cache_ttl: int | None = None
     ):
         """
         Initialize Claude service with dependency injection
 
         Args:
-            configuration_service: Configuration service for getting settings
-            error_reporting_service: Error reporting service for error handling
-            config: Optional bridge configuration override
-            rate_config: Optional rate limiting configuration override
-            cache_ttl: Optional cache TTL override
+            configuration_service: Configuration service for getting settings,
+            error_reporting_service: Error reporting service for error handling,
+            config: Optional bridge configuration override,
+            rate_config: Optional rate limiting configuration override,
+            cache_ttl: Optional cache TTL override,
         """
-        self._config_service = configuration_service
+        self._config_service = configuration_service,
         self._error_service = error_reporting_service
 
-        # Get configuration
+        # Get configuration,
         claude_config = self._config_service.get_claude_config()
 
-        # Use provided config or create from centralized config
+        # Use provided config or create from centralized config,
         if config is None:
             config = ClaudeBridgeConfig(
                 mock_mode=claude_config.get("mock_mode", False)
@@ -92,56 +92,56 @@ class ClaudeServiceDI:
                 burst_size=claude_config.get("burst_size", 10)
             )
 
-        self.config = config
-        self.rate_config = rate_config
+        self.config = config,
+        self.rate_config = rate_config,
         self.cache_ttl = cache_ttl or claude_config.get("cache_ttl", 300)
 
-        # Service state
+        # Service state,
         self._rate_limiter = RateLimiter(rate_config)
         self._cache: Dict[str, Any] = {}
         self._cache_timestamps: Dict[str, float] = {}
         self._lock = threading.RLock()
         self._initialized = True
 
-        # Statistics
-        self._total_requests = 0
-        self._successful_requests = 0
-        self._failed_requests = 0
+        # Statistics,
+        self._total_requests = 0,
+        self._successful_requests = 0,
+        self._failed_requests = 0,
         self._cached_requests = 0
 
     def send_message(
-        self
-        message: str
-        model: str = "claude-3-sonnet"
-        max_tokens: int = 1000
-        temperature: float = 0.7
+        self,
+        message: str,
+        model: str = "claude-3-sonnet",
+        max_tokens: int = 1000,
+        temperature: float = 0.7,
         system_prompt: str | None = None
     ) -> ClaudeResponse:
         """
         Send a message to Claude
 
         Args:
-            message: Message to send
-            model: Claude model to use
-            max_tokens: Maximum tokens in response
-            temperature: Sampling temperature
+            message: Message to send,
+            model: Claude model to use,
+            max_tokens: Maximum tokens in response,
+            temperature: Sampling temperature,
             system_prompt: Optional system prompt
 
         Returns:
-            Claude response
+            Claude response,
         """
         try:
             with self._lock:
                 self._total_requests += 1
 
-            # Check rate limits
+            # Check rate limits,
             if not self._rate_limiter.can_make_request():
                 error = RuntimeError("Rate limit exceeded")
                 self._error_service.report_error(
-                    error
+                    error,
                     context={
-                        "component": "claude_service_di"
-                        "operation": "send_message"
+                        "component": "claude_service_di",
+                        "operation": "send_message",
                         "additional_data": {
                             "message_length": len(message)
                             "model": model
@@ -179,13 +179,13 @@ class ClaudeServiceDI:
 
             # Report error
             error_id = self._error_service.report_error(
-                e
+                e,
                 context={
-                    "component": "claude_service_di"
-                    "operation": "send_message"
+                    "component": "claude_service_di",
+                    "operation": "send_message",
                     "additional_data": {
                         "message_length": len(message)
-                        "model": model
+                        "model": model,
                         "max_tokens": max_tokens
                     }
                 }
@@ -196,11 +196,11 @@ class ClaudeServiceDI:
             raise RuntimeError(f"Claude service error (ID: {error_id}): {str(e)}")
 
     async def send_message_async(
-        self
-        message: str
-        model: str = "claude-3-sonnet"
-        max_tokens: int = 1000
-        temperature: float = 0.7
+        self,
+        message: str,
+        model: str = "claude-3-sonnet",
+        max_tokens: int = 1000,
+        temperature: float = 0.7,
         system_prompt: str | None = None
     ) -> ClaudeResponse:
         """Send message asynchronously"""
@@ -209,17 +209,17 @@ class ClaudeServiceDI:
         return self.send_message(message, model, max_tokens, temperature, system_prompt)
 
     def _generate_cache_key(
-        self
-        message: str
-        model: str
-        max_tokens: int
-        temperature: float
+        self,
+        message: str,
+        model: str,
+        max_tokens: int,
+        temperature: float,
         system_prompt: str | None
     ) -> str:
         """Generate cache key for request"""
         import hashlib
 
-        key_data = f"{message}:{model}:{max_tokens}:{temperature}:{system_prompt or ''}"
+        key_data = f"{message}:{model}:{max_tokens}:{temperature}:{system_prompt or ''}",
         return hashlib.md5(key_data.encode()).hexdigest()
 
     def _get_cached_response(self, cache_key: str) -> ClaudeResponse | None:
@@ -244,27 +244,27 @@ class ClaudeServiceDI:
     def _create_mock_response(self, message: str, model: str, max_tokens: int) -> ClaudeResponse:
         """Create mock response for testing"""
         return ClaudeResponse(
-            content=f"Mock response to: {message[:50]}..."
+            content=f"Mock response to: {message[:50]}...",
             usage={
                 "input_tokens": len(message.split())
                 "output_tokens": min(50, max_tokens)
                 "total_tokens": len(message.split()) + min(50, max_tokens)
             }
-            model=model
+            model=model,
             timestamp=datetime.now(timezone.utc)
             success=True
         )
 
     def _make_real_request(
-        self
-        message: str
-        model: str
-        max_tokens: int
-        temperature: float
+        self,
+        message: str,
+        model: str,
+        max_tokens: int,
+        temperature: float,
         system_prompt: str | None
     ) -> ClaudeResponse:
         """Make actual request to Claude API"""
-        # This would be the actual Claude API integration
+        # This would be the actual Claude API integration,
         # For now, return a placeholder response
 
         import time
@@ -272,13 +272,13 @@ class ClaudeServiceDI:
         await asyncio.sleep(0.1)  # Simulate API call delay
 
         return ClaudeResponse(
-            content=f"Processed message: {message[:50]}..."
+            content=f"Processed message: {message[:50]}...",
             usage={
                 "input_tokens": len(message.split())
                 "output_tokens": min(100, max_tokens)
                 "total_tokens": len(message.split()) + min(100, max_tokens)
             }
-            model=model
+            model=model,
             timestamp=datetime.now(timezone.utc)
             success=True
         )
@@ -287,12 +287,12 @@ class ClaudeServiceDI:
         """Get Claude service status"""
         with self._lock:
             return {
-                "initialized": self._initialized
-                "mock_mode": self.config.mock_mode
-                "total_requests": self._total_requests
-                "successful_requests": self._successful_requests
-                "failed_requests": self._failed_requests
-                "cached_requests": self._cached_requests
+                "initialized": self._initialized,
+                "mock_mode": self.config.mock_mode,
+                "total_requests": self._total_requests,
+                "successful_requests": self._successful_requests,
+                "failed_requests": self._failed_requests,
+                "cached_requests": self._cached_requests,
                 "cache_size": len(self._cache)
                 "rate_limiter_status": self._rate_limiter.get_status()
                 "success_rate": (self._successful_requests / self._total_requests if self._total_requests > 0 else 0.0)
@@ -364,8 +364,8 @@ class RateLimiter:
             return {
                 "requests_this_minute": len(self._minute_requests)
                 "requests_this_hour": len(self._hour_requests)
-                "max_per_minute": self.config.max_calls_per_minute
-                "max_per_hour": self.config.max_calls_per_hour
+                "max_per_minute": self.config.max_calls_per_minute,
+                "max_per_hour": self.config.max_calls_per_hour,
                 "can_make_request": self.can_make_request()
             }
 

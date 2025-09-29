@@ -68,7 +68,7 @@ class TestLoadBalancer:
         # Mock services with health status
         services = [
             {"id": "svc-1", "healthy": True},
-            {"id": "svc-2", "healthy": False},  # Unhealthy
+            {"id": "svc-2", "healthy": False},  # Unhealthy,
             {"id": "svc-3", "healthy": True},
         ]
 
@@ -87,7 +87,7 @@ class TestLoadBalancer:
         # Services with different weights
         services = [
             {"id": "svc-1", "weight": 1},
-            {"id": "svc-2", "weight": 3},  # Higher weight
+            {"id": "svc-2", "weight": 3},  # Higher weight,
             {"id": "svc-3", "weight": 1},
         ]
 

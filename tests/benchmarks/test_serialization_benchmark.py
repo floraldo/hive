@@ -9,7 +9,6 @@ import json
 import statistics
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 import msgpack
 
@@ -95,7 +94,7 @@ class SerializationBenchmark:
             },
         }
 
-    def benchmark_serializers(self) -> List[BenchmarkResult]:
+    def benchmark_serializers(self) -> list[BenchmarkResult]:
         """Benchmark different serialization libraries."""
         results = []
 
@@ -141,7 +140,7 @@ class SerializationBenchmark:
 
         return results
 
-    def benchmark_cache_simulation(self) -> List[BenchmarkResult]:
+    def benchmark_cache_simulation(self) -> list[BenchmarkResult]:
         """Simulate complete cache operations (serialize + hypothetical network + deserialize)."""
         results = []
 
@@ -200,7 +199,7 @@ class SerializationBenchmark:
 
         return results
 
-    def run_all_benchmarks(self) -> Dict[str, List[BenchmarkResult]]:
+    def run_all_benchmarks(self) -> dict[str, list[BenchmarkResult]]:
         """Run all serialization benchmarks."""
         print("Starting serialization performance benchmark...")
 
@@ -222,7 +221,7 @@ class SerializationBenchmark:
 
         return results
 
-    def print_results(self, all_results: Dict[str, List[BenchmarkResult]]):
+    def print_results(self, all_results: dict[str, list[BenchmarkResult]]):
         """Print formatted benchmark results."""
         print("\n" + "=" * 90)
         print("SERIALIZATION PERFORMANCE BENCHMARK RESULTS")
@@ -257,7 +256,11 @@ class SerializationBenchmark:
                     status = (
                         "FAST"
                         if result.p95_ms < 0.1
-                        else "OK" if result.p95_ms < 1.0 else "SLOW" if result.p95_ms < 5.0 else "CRITICAL"
+                        else "OK"
+                        if result.p95_ms < 1.0
+                        else "SLOW"
+                        if result.p95_ms < 5.0
+                        else "CRITICAL"
                     )
 
                     if result.p95_ms > 1.0:

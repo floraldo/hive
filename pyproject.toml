@@ -11,24 +11,57 @@ packages = []
 
 [tool.ruff]
 line-length = 120
-target-version = "py38"
-exclude = [ ".git", "__pycache__", "dist", "build", ".venv", "archive",]
-select = [ "E", "W", "F", "I", "B", "C4", "UP",]
-ignore = [ "E501", "B008", "C901",]
+target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    "dist",
+    "build",
+    ".venv",
+    "archive",
+    "templates",
+    "tests/factory_acceptance",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["hive_logging", "hive_config", "hive_db", "hive_cache", "hive_errors", "hive_bus", "hive_async", "hive_performance", "hive_ai", "hive_deployment", "hive_service_discovery", "hive_tests", "hive_models", "hive_algorithms", "hive_cli", "hive_app_toolkit"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
 [tool.black]
 line-length = 120
-target-version = [ "py38", "py39", "py310", "py311",]
+target-version = ["py311"]
 include = "\\.pyi?$"
 extend-exclude = "/(\n  # directories\n  \\.eggs\n  | \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | build\n  | dist\n  | archive\n)/\n"
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
-exclude = [ "archive/", "legacy/", "tests/",]
+exclude = ["archive/", "legacy/", "tests/"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -40,12 +73,6 @@ ai-reviewer = "ai_reviewer.agent:main"
 ai-planner = "ai_planner.agent:main"
 ai-deployer = "ai_deployer.agent:main"
 golden-test = "hive_tests.golden_runner:main"
-
-[tool.ruff.lint]
-select = [ "E4", "E7", "E9", "F", "I",]
-
-[tool.ruff.format]
-quote-style = "double"
 
 [tool.pytest.ini_options]
 testpaths = [ "apps", "packages", "tests",]

@@ -136,7 +136,7 @@ class AsyncSimulationService:
                 self.simulation_metrics["failed_simulations"] += 1
                 return SimulationResult(
                     simulation_id=config.simulation_id,
-                    status="timeout"
+                    status="timeout",
                     error=f"Simulation timed out after {timeout} seconds"
                 )
 
@@ -182,9 +182,9 @@ class AsyncSimulationService:
 
         return SimulationResult(
             simulation_id=config.simulation_id,
-            status=solver_result.status
+            status=solver_result.status,
             results_path=results_path,
-            kpis=kpis
+            kpis=kpis,
             solver_metrics={
                 "solve_time": solver_result.solve_time,
                 "iterations": solver_result.iterations,
@@ -266,9 +266,9 @@ class AsyncSimulationService:
 
             return SimulationResult(
                 simulation_id=config.simulation_id,
-                status="optimal" if all_success else "feasible"
+                status="optimal" if all_success else "feasible",
                 results_path=Path(config.output_config.get("directory", "outputs")),
-                kpis=aggregated_kpis
+                kpis=aggregated_kpis,
                 solver_metrics={
                     "solve_time": total_solve_time,
                     "stages": stage_results,
@@ -346,7 +346,7 @@ class AsyncSimulationService:
         return stage_groups
 
     async def _execute_single_stage_async(
-        self
+        self,
         stage: StageConfig,
         config: SimulationConfig,
         base_profiles: dict[str, Any],
@@ -382,19 +382,19 @@ class AsyncSimulationService:
         # Build and solve this stage's system
         stage_config = SimulationConfig(
             simulation_id=f"{config.simulation_id}_{stage.stage_name}",
-            system_config_path=stage.system_config_path
+            system_config_path=stage.system_config_path,
             solver_type=stage.solver_type,
-            solver_config=config.solver_config
+            solver_config=config.solver_config,
             output_config=config.output_config
         )
 
-        # Build system for this stage
+        # Build system for this stage,
         stage_system = await self._build_system_async(stage_config, stage_profiles)
 
-        # Run solver for this stage
+        # Run solver for this stage,
         stage_solver_result = await self._run_solver_async(stage_system, stage_config)
 
-        # Calculate stage KPIs
+        # Calculate stage KPIs,
         stage_kpis = await self._calculate_kpis_async(stage_system)
 
         # Save stage results,
@@ -412,7 +412,7 @@ class AsyncSimulationService:
         """Extract outputs from a completed stage.
 
         Args:
-            stage: Stage configuration
+            stage: Stage configuration,
             stage_result: Result from stage execution
 
         Returns:
@@ -421,7 +421,7 @@ class AsyncSimulationService:
         outputs = {}
 
         if not stage.outputs_to_pass or "system" not in stage_result:
-            return outputs
+            return outputs,
         stage_system = stage_result["system"]
 
         for output_spec in stage.outputs_to_pass:
@@ -613,7 +613,7 @@ class AsyncSimulationService:
             system,
             config.simulation_id,
             output_dir,
-            output_format
+            output_format,
             metadata={
                 "solver_type": config.solver_type,
                 "solver_status": solver_result.status,
@@ -719,7 +719,7 @@ class AsyncSimulationService:
                 final_results.append(
                     SimulationResult(
                         simulation_id=configs[i].simulation_id,
-                        status="error"
+                        status="error",
                         error=f"Batch execution failed: {result}"
                     )
                 )

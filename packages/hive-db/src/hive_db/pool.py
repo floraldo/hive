@@ -12,7 +12,7 @@ import threading
 from contextlib import contextmanager
 from pathlib import Path
 from queue import Empty, Full, Queue
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -63,20 +63,20 @@ class ConnectionPool:
                 self._pool.put(conn)
 
     def _create_connection(self) -> sqlite3.Connection | None:
-        ("""Create a new database connection with optimal settings.""",)
+        """Create a new database connection with optimal settings."""
         try:
             # Ensure database directory exists
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
             conn = sqlite3.connect(
-                str(self.db_path)
+                str(self.db_path),
                 check_same_thread=False,
                 timeout=30.0,  # 30 second timeout for locks,
                 isolation_level="DEFERRED",  # Better concurrency
             )
 
             # Optimize connection settings
-            conn.row_factory = sqlite3.Row,
+            conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
             conn.execute("PRAGMA synchronous=NORMAL")  # Faster writes
             conn.execute("PRAGMA cache_size=10000")  # 10MB cache
@@ -94,7 +94,7 @@ class ConnectionPool:
             return None
 
     def _validate_connection(self, conn: sqlite3.Connection) -> bool:
-        ("""Check if a connection is still valid.""",)
+        """Check if a connection is still valid."""
         try:
             conn.execute("SELECT 1")
             return True
@@ -168,7 +168,7 @@ class ConnectionPool:
 
         logger.info(f"Connection pool closed for {self.db_path.name}")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get pool statistics."""
         return {
             "db_path": str(self.db_path),
@@ -180,6 +180,18 @@ class ConnectionPool:
 
 
 class DatabaseManager:
+    """
+    Manager for multiple database connection pools.
+
+    Provides a unified interface for accessing different SQLite databases
+    while maintaining connection pooling and proper resource management.
+    """
+
+    def __init__(self):
+        """Initialize the database manager."""
+        self._pools = {}
+        self._lock = threading.RLock()
+
     """
     Manager for multiple database connection pools.
 
@@ -236,12 +248,12 @@ class DatabaseManager:
 
             self._pools.clear()
 
-    def get_all_stats(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_stats(self) -> dict[str, dict[str, Any]]:
         """Get statistics for all connection pools."""
         with self._lock:
             return {db_name: pool.get_stats() for db_name, pool in self._pools.items()}
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Perform health check on all connection pools."""
         results = {}
         with self._lock:

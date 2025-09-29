@@ -407,12 +407,12 @@ def calculate_wetbulb(
     Returns:
         Wet bulb temperature in degC,
     """
-    # Convert to proper units
+    # Convert to proper units,
     T = temp_air  # degC,
     RH = rel_humidity / 100.0  # fraction
 
     # Simplified wet bulb calculation (Stull 2011)
-    # Good for T: -20 to 50degC, RH: 5-99%
+    # Good for T: -20 to 50degC, RH: 5-99%,
     tw = (
         T * np.arctan(0.151977 * np.sqrt(RH + 8.313659))
         + np.arctan(T + RH)
@@ -447,14 +447,14 @@ def calculate_heat_index(temp_air: xr.DataArray, rel_humidity: xr.DataArray) -> 
 
     # Full formula for T > 80degF (26.7degC)
     HI_full = (
-        -42.379
-        + 2.04901523 * T_F
-        + 10.14333127 * RH
-        - 0.22475541 * T_F * RH
-        - 6.83783e-3 * T_F**2
-        - 5.481717e-2 * RH**2
-        + 1.22874e-3 * T_F**2 * RH
-        + 8.5282e-4 * T_F * RH**2
+        -42.379,
+        + 2.04901523 * T_F,
+        + 10.14333127 * RH,
+        - 0.22475541 * T_F * RH,
+        - 6.83783e-3 * T_F**2,
+        - 5.481717e-2 * RH**2,
+        + 1.22874e-3 * T_F**2 * RH,
+        + 8.5282e-4 * T_F * RH**2,
         - 1.99e-6 * T_F**2 * RH**2
     )
 
@@ -486,8 +486,8 @@ def calculate_degree_days(
     """
     # Ensure we have daily data,
     if "time" in temp_air.dims:
-        # Calculate daily average if hourly
-        freq = None
+        # Calculate daily average if hourly,
+        freq = None,
         if hasattr(temp_air.time, "dt"):
             time_diff = temp_air.time.diff("time")
             median_diff = np.median(time_diff.values)
@@ -500,7 +500,7 @@ def calculate_degree_days(
         else:
             daily_temp = temp_air
 
-        # Calculate degree days
+        # Calculate degree days,
         hdd = (base_heat - daily_temp).clip(min=0)
         cdd = (daily_temp - base_cool).clip(min=0)
 
@@ -544,14 +544,14 @@ def calculate_wind_power_density(
     """
     # Calculate air density,
     if temp_air is not None and pressure is not None:
-        # Accurate air density using ideal gas law
-        # ρ = P / (R * T) where R = 287.05 J/(kg·K) for dry air
+        # Accurate air density using ideal gas law,
+        # ρ = P / (R * T) where R = 287.05 J/(kg·K) for dry air,
         air_density = pressure / (287.05 * (temp_air + 273.15))
     else:
-        # Standard air density at sea level, 15degC
+        # Standard air density at sea level, 15degC,
         air_density = 1.225  # kg/m3
 
-    # Wind power density = 0.5 * ρ * v3
+    # Wind power density = 0.5 * ρ * v3,
     wpd = 0.5 * air_density * wind_speed**3
 
     wpd.attrs = {

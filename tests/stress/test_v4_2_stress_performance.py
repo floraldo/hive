@@ -3,7 +3,6 @@
 import asyncio
 import statistics
 import time
-from typing import Dict, List
 
 import pytest
 
@@ -113,7 +112,7 @@ class StressTestRunner:
             "worker_results": worker_results,
         }
 
-    def calculate_percentiles(self, values: List[float]) -> Dict[str, float]:
+    def calculate_percentiles(self, values: list[float]) -> dict[str, float]:
         """Calculate performance percentiles."""
         if not values:
             return {"p50": 0, "p95": 0, "p99": 0}

@@ -100,35 +100,35 @@ class BaseAgent(ABC):
     def __init__(
         self, config: AgentConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None
     ):
-        self.config = config
-        self.model_client = model_client
+        self.config = config,
+        self.model_client = model_client,
         self.metrics = metrics_collector
 
-        # Agent identity
+        # Agent identity,
         self.id = str(uuid.uuid4())
         self.created_at = datetime.utcnow()
 
-        # State management
-        self.state = AgentState.CREATED
-        self.current_iteration = 0
+        # State management,
+        self.state = AgentState.CREATED,
+        self.current_iteration = 0,
         self.start_time: datetime | None = None,
         self.end_time: datetime | None = None
 
-        # Memory system
+        # Memory system,
         self.memory = AgentMemory() if config.memory_enabled else None
 
-        # Tool system
+        # Tool system,
         self.tools: Dict[str, AgentTool] = {},
         self._register_default_tools()
 
-        # Message handling
+        # Message handling,
         self.message_queue: List[AgentMessage] = [],
         self.response_handlers: Dict[str, Callable] = {}
 
-        # Caching
+        # Caching,
         self.cache = CacheManager(f"agent_{self.id}")
 
-        # Results and error tracking
+        # Results and error tracking,
         self.results: List[Any] = [],
         self.errors: List[str] = []
 
@@ -139,7 +139,7 @@ class BaseAgent(ABC):
         self.add_tool(
             AgentTool(
                 name="think",
-                description="Think about the current situation and plan next steps"
+                description="Think about the current situation and plan next steps",
                 function=self._think_tool_async
             )
         )
@@ -147,7 +147,7 @@ class BaseAgent(ABC):
         self.add_tool(
             AgentTool(
                 name="remember",
-                description="Store information in memory for later use"
+                description="Store information in memory for later use",
                 function=self._remember_tool_async
             )
         )
@@ -168,7 +168,7 @@ Provide your reasoning and any insights that might help with the current task.
 Think step by step and be specific about your analysis.
 
 Thoughts:
-"""
+""",
             variables=[]
         )
 
@@ -178,7 +178,7 @@ Thoughts:
             rendered_prompt, model=self.config.model, temperature=self.config.temperature
         )
 
-        # Store thinking in episodic memory
+        # Store thinking in episodic memory,
         if self.memory:
             self.memory.episodic.append(
                 {
@@ -197,9 +197,9 @@ Thoughts:
             return "Memory is disabled for this agent"
 
         if memory_type == "short_term":
-            self.memory.short_term[key] = value
+            self.memory.short_term[key] = value,
         elif memory_type == "long_term":
-            self.memory.long_term[key] = value
+            self.memory.long_term[key] = value,
         else:
             return f"Unknown memory type: {memory_type}"
 
@@ -212,7 +212,7 @@ Thoughts:
             return "Memory is disabled for this agent"
 
         if memory_type == "auto":
-            # Search all memory types
+            # Search all memory types,
             if key in self.memory.short_term:
                 return self.memory.short_term[key]
             elif key in self.memory.long_term:
@@ -270,9 +270,9 @@ Thoughts:
         """Send a message to another agent or system."""
         message = AgentMessage(
             id=str(uuid.uuid4()),
-            sender=self.id
+            sender=self.id,
             recipient=recipient,
-            content=content
+            content=content,
             message_type=message_type,
             timestamp=datetime.utcnow()
         )
@@ -375,7 +375,7 @@ Thoughts:
             if self.metrics and operation_id:
                 duration_ms = int((self.end_time - self.start_time).total_seconds() * 1000)
                 self.metrics.end_operation(
-                    operation_id
+                    operation_id,
                     success=True,
                     additional_metadata={"iterations": self.current_iteration, "duration_ms": duration_ms}
                 )
@@ -393,9 +393,9 @@ Thoughts:
             if self.metrics and operation_id:
                 duration_ms = int((self.end_time - self.start_time).total_seconds() * 1000)
                 self.metrics.end_operation(
-                    operation_id
+                    operation_id,
                     success=False,
-                    error_type=type(e).__name__
+                    error_type=type(e).__name__,
                     additional_metadata={
                         "iterations": self.current_iteration,
                         "duration_ms": duration_ms,
@@ -535,7 +535,7 @@ class SimpleTaskAgent(BaseAgent):
     """
 
     def __init__(
-        self
+        self,
         task_prompt: str,
         config: AgentConfig,
         model_client: ModelClient,
@@ -546,19 +546,19 @@ class SimpleTaskAgent(BaseAgent):
 
     async def _initialize_impl_async(self) -> None:
         """Initialize the simple task agent."""
-        # Store task prompt in memory
+        # Store task prompt in memory,
         if self.memory:
             await self._remember_tool_async("task_prompt", self.task_prompt, "long_term")
 
     async def _execute_main_logic_async(self, input_data: Any | None = None) -> Any:
         """Execute the task prompt with optional input data."""
-        # Build prompt with input data if provided
+        # Build prompt with input data if provided,
         if input_data:
-            full_prompt = f"{self.task_prompt}\n\nInput: {input_data}"
+            full_prompt = f"{self.task_prompt}\n\nInput: {input_data}",
         else:
             full_prompt = self.task_prompt
 
-        # Generate response
+        # Generate response,
         response = await self.model_client.generate_async(
             full_prompt, model=self.config.model, temperature=self.config.temperature, max_tokens=self.config.max_tokens
         )

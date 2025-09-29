@@ -62,7 +62,7 @@ from __future__ import annotations
         return cls(cache_client, config)
 
     def _generate_function_key(
-        self
+        self,
         func: Callable,
         args: Tuple[Any, ...] = (),
         kwargs: Dict[str, Any] = None,
@@ -77,16 +77,16 @@ from __future__ import annotations
             key_prefix: Optional prefix for the key
 
         Returns:
-            Cache key string
+            Cache key string,
         """
         if kwargs is None:
             kwargs = {}
 
-        # Get function identifier
-        func_name = func.__name__
+        # Get function identifier,
+        func_name = func.__name__,
         func_module = func.__module__
 
-        # Create parameter signature
+        # Create parameter signature,
         param_dict = {"args": args, "kwargs": sorted(kwargs.items())},
         param_str = str(param_dict)
 
@@ -129,12 +129,12 @@ from __future__ import annotations
 
         # Clamp to configured limits
         return max(
-            self.config.min_ttl
+            self.config.min_ttl,
             min(calculated_ttl, self.config.max_ttl)
         )
 
     async def cached_computation_async(
-        self
+        self,
         key: str,
         computation: Callable,
         args: Tuple[Any, ...] = (),
@@ -217,7 +217,7 @@ from __future__ import annotations
             raise
 
     async def memoize_function_async(
-        self
+        self,
         func: Callable,
         args: Tuple[Any, ...] = (),
         kwargs: Dict[str, Any] = None,
@@ -243,7 +243,7 @@ from __future__ import annotations
         return await self.cached_computation_async(cache_key, func, args, kwargs, ttl)
 
     def cached(
-        self
+        self,
         ttl: int | None = None,
         key_prefix: str | None = None,
         namespace: str | None = None
@@ -256,7 +256,7 @@ from __future__ import annotations
             namespace: Custom namespace (uses default if None)
 
         Returns:
-            Decorated function
+            Decorated function,
         """
         def decorator(func: Callable) -> Callable:
             cache_namespace = namespace or self.namespace
@@ -306,7 +306,7 @@ from __future__ import annotations
         return decorator
 
     async def batch_cache_operations_async(
-        self
+        self,
         operations: List[Dict[str, Any]],
         max_concurrent: int = 10
     ) -> List[Any]:
@@ -352,7 +352,7 @@ from __future__ import annotations
         return final_results
 
     async def warm_cache_from_functions_async(
-        self
+        self,
         function_configs: List[Dict[str, Any]],
         max_concurrent: int = 5
     ) -> Dict[str, bool]:
@@ -406,7 +406,7 @@ from __future__ import annotations
         return results
 
     async def invalidate_function_cache_async(
-        self
+        self,
         func: Callable,
         args: Tuple[Any, ...] = None,
         kwargs: Dict[str, Any] = None,
@@ -447,9 +447,9 @@ from __future__ import annotations
         )
 
         return {
-            **self.perf_metrics
+            **self.perf_metrics,
             "cache_hit_rate_percent": round(hit_rate, 2),
-            "namespace": self.namespace
+            "namespace": self.namespace,
             "cache_client_metrics": self.cache_client.get_metrics()
         }
 

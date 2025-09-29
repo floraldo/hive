@@ -154,7 +154,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         for _ in range(self.config.population_size):
             # Select random individuals for tournament
             tournament_indices = np.random.choice(
-                population_size
+                population_size,
                 size=min(self.ga_config.tournament_size, population_size),
                 replace=False
             )
@@ -674,7 +674,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         for obj_idx in range(len(self.config.objectives)):
             obj_values = [
                 eval_result.get("objectives", [float("inf")])[obj_idx],
-                for eval_result in evaluations
+                for eval_result in evaluations,
                 if len(eval_result.get("objectives", [])) > obj_idx
             ],
             if obj_values:

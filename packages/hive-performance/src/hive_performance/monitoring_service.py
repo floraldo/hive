@@ -5,10 +5,10 @@
 
 from __future__ import annotations
 
-
 import asyncio
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -71,10 +71,10 @@ class MonitoringService:
         # Service state
         self._monitoring = (False,)
         self._analysis_task: asyncio.Task | None = (None,)
-        self._alert_callbacks: List[Callable] = []
+        self._alert_callbacks: list[Callable] = []
 
         # Analysis history
-        self._analysis_history: List[AnalysisReport] = []
+        self._analysis_history: list[AnalysisReport] = []
 
     async def start_monitoring_async(self) -> None:
         """Start comprehensive monitoring."""
@@ -182,7 +182,7 @@ class MonitoringService:
         if alert_conditions:
             await self._trigger_alerts_async(alert_conditions, report)
 
-    async def _trigger_alerts_async(self, conditions: List[str], report: AnalysisReport) -> None:
+    async def _trigger_alerts_async(self, conditions: list[str], report: AnalysisReport) -> None:
         """Trigger alert callbacks."""
         for callback in self._alert_callbacks:
             try:
@@ -198,7 +198,7 @@ class MonitoringService:
         self._alert_callbacks.append(callback)
         logger.info(f"Added alert callback: {callback.__name__}")
 
-    def get_current_status(self) -> Dict[str, Any]:
+    def get_current_status(self) -> dict[str, Any]:
         """Get current monitoring status."""
         current_metrics = self.system_monitor.get_current_metrics()
         latest_analysis = self._analysis_history[-1] if self._analysis_history else None
@@ -232,7 +232,7 @@ class MonitoringService:
             "analysis_history_count": len(self._analysis_history),
         }
 
-    async def get_health_check_async(self) -> Dict[str, Any]:
+    async def get_health_check_async(self) -> dict[str, Any]:
         """Get comprehensive health check."""
         status = self.get_current_status()
         current_metrics = self.system_monitor.get_current_metrics()
@@ -285,7 +285,7 @@ class MonitoringService:
 
     async def benchmark_system_async(
         self, operation_func: Callable, iterations: int = 100, concurrency: int = 10
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run system benchmark."""
         logger.info(f"Starting system benchmark: {iterations} iterations, concurrency {concurrency}")
 
@@ -324,7 +324,7 @@ class MonitoringService:
 
     def get_analysis_history(
         self, time_window: timedelta | None = None, limit: int | None = None
-    ) -> List[AnalysisReport]:
+    ) -> list[AnalysisReport]:
         """Get historical analysis reports."""
         reports = self._analysis_history.copy()
 
@@ -337,7 +337,7 @@ class MonitoringService:
 
         return reports
 
-    def get_performance_trends(self, days: int = 7) -> Dict[str, Any]:
+    def get_performance_trends(self, days: int = 7) -> dict[str, Any]:
         """Get performance trends over specified days."""
         time_window = timedelta(days=days)
         historical_reports = self.get_analysis_history(time_window)
@@ -351,7 +351,7 @@ class MonitoringService:
         error_rates = [r.error_rate for r in historical_reports]
         throughputs = [r.throughput for r in historical_reports]
 
-        def calculate_trend(values: List[float]) -> float:
+        def calculate_trend(values: list[float]) -> float:
             if len(values) < 2:
                 return 0.0
             return (values[-1] - values[0]) / len(values)
@@ -368,7 +368,7 @@ class MonitoringService:
             "worst_score": min(scores) if scores else 0.0,
         }
 
-    async def optimize_performance_async(self) -> Dict[str, Any]:
+    async def optimize_performance_async(self) -> dict[str, Any]:
         """Run automated performance optimization analysis."""
         logger.info("Running performance optimization analysis")
 

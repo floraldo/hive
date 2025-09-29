@@ -8,7 +8,6 @@ print() statements with proper logger calls throughout the codebase.
 
 import re
 from pathlib import Path
-from typing import List, Tuple
 
 
 class LoggingViolationsFixer:
@@ -20,7 +19,7 @@ class LoggingViolationsFixer:
         self.files_processed = 0
         self.total_fixes = 0
 
-    def find_python_files(self) -> List[Path]:
+    def find_python_files(self) -> list[Path]:
         """Find all Python files in production code (apps and packages)"""
         python_files = []
 
@@ -41,7 +40,7 @@ class LoggingViolationsFixer:
         print(f"Found {len(filtered_files)} production Python files to process")
         return filtered_files
 
-    def analyze_file_for_violations(self, file_path: Path) -> List[Tuple[int, str]]:
+    def analyze_file_for_violations(self, file_path: Path) -> list[tuple[int, str]]:
         """Analyze a file for print statement violations"""
         violations = []
 
@@ -209,7 +208,7 @@ class LoggingViolationsFixer:
         """Generate logging violations fix report"""
         report = f"""# Logging Violations Fix Report
 
-**Generated**: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Generated**: {__import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Summary
 

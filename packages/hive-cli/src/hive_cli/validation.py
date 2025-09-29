@@ -6,7 +6,7 @@ logger = get_logger(__name__)
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import click
 import yaml
@@ -23,17 +23,17 @@ def validate_path(ctx, param, value):
     return path
 
 
-def validate_config(config_path: Path) -> Dict[str, Any]:
+def validate_config(config_path: Path) -> dict[str, Any]:
     """Validate and load configuration file."""
     if not config_path.exists():
         raise click.BadParameter(f"Configuration file not found: {config_path}")
 
     try:
         if config_path.suffix.lower() in [".yaml", ".yml"]:
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 return yaml.safe_load(f)
         elif config_path.suffix.lower() == ".json":
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 return json.load(f)
         else:
             raise click.BadParameter(f"Unsupported config format: {config_path.suffix}")

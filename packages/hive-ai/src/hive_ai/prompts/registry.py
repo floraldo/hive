@@ -34,20 +34,20 @@ class PromptRegistry:
     """
 
     def __init__(
-        self
+        self,
         storage_path: str = "prompts/",
         cache_enabled: bool = True
     ):
         self.storage_path = Path(storage_path)
-        self.cache = CacheManager("prompt_registry") if cache_enabled else None
+        self.cache = CacheManager("prompt_registry") if cache_enabled else None,
         self._templates: Dict[str, PromptTemplate] = {},
         self._categories: Dict[str, Set[str]] = {}  # category -> template names,
         self._tags: Dict[str, Set[str]] = {}  # tag -> template names
 
-        # Ensure storage directory exists
+        # Ensure storage directory exists,
         self.storage_path.mkdir(parents=True, exist_ok=True)
 
-        # Load existing templates
+        # Load existing templates,
         asyncio.create_task(self._load_templates_async())
 
     async def _load_templates_async(self) -> None:
@@ -104,7 +104,7 @@ class PromptRegistry:
             self._categories[category].add(name)
 
     async def register_template_async(
-        self
+        self,
         template: PromptTemplate,
         name: str | None = None,
         overwrite: bool = False
@@ -165,7 +165,7 @@ class PromptRegistry:
             ) from e
 
     async def _save_template_async(
-        self
+        self,
         name: str,
         template: PromptTemplate
     ) -> None:
@@ -214,7 +214,7 @@ class PromptRegistry:
         return template
 
     def list_templates(
-        self
+        self,
         category: str | None = None,
         tags: Optional[List[str]] = None,
         search: str | None = None
@@ -228,7 +228,7 @@ class PromptRegistry:
             search: Search in template names and descriptions
 
         Returns:
-            List of template names matching criteria
+            List of template names matching criteria,
         """
         template_names = set(self._templates.keys())
 
@@ -258,8 +258,8 @@ class PromptRegistry:
                     continue
 
                 # Search in description
-                if (template.metadata and
-                    template.metadata.description and
+                if (template.metadata and,
+                    template.metadata.description and,
                     search_lower in template.metadata.description.lower()):
                     filtered_names.append(name)
                     continue
@@ -331,7 +331,7 @@ class PromptRegistry:
             ) from e
 
     async def clone_template_async(
-        self
+        self,
         source_name: str,
         new_name: str,
         modifications: Optional[Dict[str, Any]] = None
@@ -373,7 +373,7 @@ class PromptRegistry:
         return await self.register_template_async(cloned_template, new_name)
 
     async def export_templates_async(
-        self
+        self,
         output_path: str,
         template_names: Optional[List[str]] = None
     ) -> Dict[str, Any]:
@@ -424,7 +424,7 @@ class PromptRegistry:
             ) from e
 
     async def import_templates_async(
-        self
+        self,
         import_path: str,
         overwrite: bool = False
     ) -> Dict[str, Any]:
@@ -508,7 +508,7 @@ class PromptRegistry:
                 # Basic validation
                 template.get_required_variables()
                 template.render(**{
-                    var.name: var.default or "test_value"
+                    var.name: var.default or "test_value",
                     for var in template.get_all_variables()
                     if var.required
                 })

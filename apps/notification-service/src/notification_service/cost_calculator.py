@@ -1,6 +1,6 @@
 """Custom cost calculator for notification operations."""
 
-from typing import Any, Dict
+from typing import Any
 
 from hive_app_toolkit.cost import ResourceCost, ResourceType
 
@@ -11,9 +11,9 @@ class NotificationCostCalculator:
     # Cost per notification by provider and priority
     COSTS = {
         "email": {
-            "low": 0.001,  # $0.001 per low priority email
-            "normal": 0.002,  # $0.002 per normal email
-            "high": 0.005,  # $0.005 per high priority email
+            "low": 0.001,  # $0.001 per low priority email,
+            "normal": 0.002,  # $0.002 per normal email,
+            "high": 0.005,  # $0.005 per high priority email,
             "urgent": 0.010,  # $0.010 per urgent email
         },
         "slack": {
@@ -30,7 +30,7 @@ class NotificationCostCalculator:
         },
     }
 
-    def calculate_cost(self, operation: str, parameters: Dict[str, Any]) -> ResourceCost:
+    def calculate_cost(self, operation: str, parameters: dict[str, Any]) -> ResourceCost:
         """Calculate cost based on provider and priority."""
         provider = parameters.get("provider", "email")
         priority = parameters.get("priority", "normal")
@@ -48,7 +48,7 @@ class NotificationCostCalculator:
 
         return ResourceCost(
             resource_type=resource_type,
-            units=1,  # One notification
+            units=1,  # One notification,
             cost_per_unit=cost_per_unit,
             metadata={
                 "provider": provider,

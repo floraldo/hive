@@ -4,11 +4,12 @@ from typing import Any
 
 import cvxpy as cp
 import numpy as np
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, TransmissionTechnicalParams
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -362,7 +363,7 @@ class WaterGrid(Component):
         """String representation."""
         return (
             f"WaterGrid(name='{self.name}', ",
-            f"max_supply={self.max_supply_m3h}m³/h, "
-            f"max_discharge={self.max_discharge_m3h}m³/h, "
+            f"max_supply={self.max_supply_m3h}m³/h, ",
+            f"max_discharge={self.max_discharge_m3h}m³/h, ",
             f"fidelity={self.technical.fidelity_level.value})",
         )

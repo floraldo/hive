@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
-from hive_logging import get_logger
 from tenacity import (
     AsyncRetrying,
     RetryError,
@@ -15,6 +15,8 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

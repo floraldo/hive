@@ -11,7 +11,7 @@ These are pure, business-logic-free exception patterns that can be used
 to build robust error handling for any system.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class BaseError(Exception):
@@ -31,8 +31,8 @@ class BaseError(Exception):
         message: str,
         component: str = "unknown",
         operation: str | None = None,
-        details: Optional[Dict[str, Any]] = None,
-        recovery_suggestions: Optional[List[str]] = None,
+        details: dict[str, Any] | None = None,
+        recovery_suggestions: list[str] | None = None,
         original_error: Exception | None = None,
     ):
         super().__init__(message)
@@ -43,7 +43,7 @@ class BaseError(Exception):
         self.recovery_suggestions = recovery_suggestions or []
         self.original_error = original_error
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary for serialization"""
         return {
             "error_type": self.__class__.__name__,
@@ -107,7 +107,7 @@ class CircuitBreakerOpenError(BaseError):
         self.failure_count = failure_count
         self.recovery_time = recovery_time
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary with circuit breaker details"""
         result = super().to_dict()
         result.update({"failure_count": self.failure_count, "recovery_time": self.recovery_time})
@@ -135,7 +135,7 @@ class AsyncTimeoutError(BaseError):
         self.timeout_duration = timeout_duration
         self.elapsed_time = elapsed_time
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary with timeout details"""
         result = super().to_dict()
         result.update({"timeout_duration": self.timeout_duration, "elapsed_time": self.elapsed_time})
@@ -165,7 +165,7 @@ class RetryExhaustedError(BaseError):
         self.attempt_count = attempt_count
         self.last_error = last_error
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary with retry details"""
         result = super().to_dict()
         result.update(
@@ -199,7 +199,7 @@ class PoolExhaustedError(BaseError):
         self.pool_size = pool_size
         self.active_connections = active_connections
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary with pool details"""
         result = super().to_dict()
         result.update({"pool_size": self.pool_size, "active_connections": self.active_connections})

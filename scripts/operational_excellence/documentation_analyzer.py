@@ -15,12 +15,11 @@ import re
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import requests
 
 
-def find_all_markdown_files(root_dir: Path = None) -> List[Path]:
+def find_all_markdown_files(root_dir: Path = None) -> list[Path]:
     """Find all markdown files in the repository"""
     if root_dir is None:
         root_dir = Path.cwd()
@@ -35,7 +34,7 @@ def find_all_markdown_files(root_dir: Path = None) -> List[Path]:
     return sorted(md_files)
 
 
-def find_all_python_files(root_dir: Path = None) -> List[Path]:
+def find_all_python_files(root_dir: Path = None) -> list[Path]:
     """Find all Python files in the repository"""
     if root_dir is None:
         root_dir = Path.cwd()
@@ -50,10 +49,10 @@ def find_all_python_files(root_dir: Path = None) -> List[Path]:
     return sorted(py_files)
 
 
-def extract_links_from_markdown(file_path: Path) -> Dict[str, List[Tuple[str, int]]]:
+def extract_links_from_markdown(file_path: Path) -> dict[str, list[tuple[str, int]]]:
     """Extract all links from a markdown file"""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
     except Exception as e:
         return {"error": [f"Could not read file: {e}"]}
@@ -98,7 +97,7 @@ def check_internal_link(link: str, base_file: Path) -> bool:
         return False
 
 
-def check_external_link(url: str, timeout: int = 5) -> Tuple[bool, str]:
+def check_external_link(url: str, timeout: int = 5) -> tuple[bool, str]:
     """Check if an external link is accessible"""
     try:
         response = requests.head(url, timeout=timeout, allow_redirects=True)
@@ -112,10 +111,10 @@ def check_external_link(url: str, timeout: int = 5) -> Tuple[bool, str]:
         return False, f"Error: {str(e)[:100]}"
 
 
-def find_todo_comments(file_path: Path) -> List[Tuple[str, int, str]]:
+def find_todo_comments(file_path: Path) -> list[tuple[str, int, str]]:
     """Find TODO/FIXME/HACK comments in a Python file"""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
     except Exception:
         return []
@@ -139,7 +138,7 @@ def find_todo_comments(file_path: Path) -> List[Tuple[str, int, str]]:
     return todos
 
 
-def analyze_documentation_redundancy(md_files: List[Path]) -> Dict[str, List[Path]]:
+def analyze_documentation_redundancy(md_files: list[Path]) -> dict[str, list[Path]]:
     """Analyze documentation for potential redundancy"""
     categories = {
         "certification": [],

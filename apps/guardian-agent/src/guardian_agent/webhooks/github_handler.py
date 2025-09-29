@@ -3,13 +3,12 @@
 import hmac
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-from hive_async import AsyncExecutor
-from hive_logging import get_logger
+from typing import Any
 
 from guardian_agent.core.config import GuardianConfig
 from guardian_agent.review.engine import ReviewEngine
+from hive_async import AsyncExecutor
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -24,9 +23,9 @@ class GitHubWebhookHandler:
 
     def __init__(
         self,
-        config: Optional[GuardianConfig] = None,
-        github_token: Optional[str] = None,
-        webhook_secret: Optional[str] = None,
+        config: GuardianConfig | None = None,
+        github_token: str | None = None,
+        webhook_secret: str | None = None,
     ) -> None:
         """Initialize the webhook handler."""
         self.config = config or GuardianConfig()
@@ -40,9 +39,9 @@ class GitHubWebhookHandler:
 
     async def handle_webhook(
         self,
-        payload: Dict[str, Any],
-        headers: Dict[str, str],
-    ) -> Dict[str, Any]:
+        payload: dict[str, Any],
+        headers: dict[str, str],
+    ) -> dict[str, Any]:
         """
         Handle incoming GitHub webhook.
 
@@ -71,7 +70,7 @@ class GitHubWebhookHandler:
             logger.info("Ignoring event type: %s", event_type)
             return {"message": f"Event type {event_type} not handled"}, 200
 
-    async def _handle_pull_request(self, payload: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
+    async def _handle_pull_request(self, payload: dict[str, Any]) -> Tuple[dict[str, Any], int]:
         """Handle pull request events."""
         action = payload.get("action", "")
         pr = payload.get("pull_request", {})
@@ -122,7 +121,7 @@ class GitHubWebhookHandler:
 
         return {"message": f"Reviewed {len(review_results)} files"}, 200
 
-    async def _handle_review_comment(self, payload: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
+    async def _handle_review_comment(self, payload: dict[str, Any]) -> Tuple[dict[str, Any], int]:
         """Handle review comment events for learning."""
         action = payload.get("action", "")
         if action != "created":
@@ -139,7 +138,7 @@ class GitHubWebhookHandler:
 
         return {"message": "Feedback processed"}, 200
 
-    async def _handle_issue_comment(self, payload: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
+    async def _handle_issue_comment(self, payload: dict[str, Any]) -> Tuple[dict[str, Any], int]:
         """Handle issue comments that might trigger reviews."""
         comment = payload.get("comment", {})
         issue = payload.get("issue", {})
@@ -155,8 +154,8 @@ class GitHubWebhookHandler:
 
     def _verify_signature(
         self,
-        payload: Dict[str, Any],
-        headers: Dict[str, str],
+        payload: dict[str, Any],
+        headers: dict[str, str],
     ) -> bool:
         """Verify webhook signature."""
         signature = headers.get("X-Hub-Signature-256", "")
@@ -164,12 +163,12 @@ class GitHubWebhookHandler:
             return False
 
         expected = (
-            "sha256="
-            + hmac.new(
+            "sha256=",
+            +hmac.new(
                 self.webhook_secret.encode(),
                 json.dumps(payload).encode(),
                 "sha256",
-            ).hexdigest()
+            ).hexdigest(),
         )
 
         return hmac.compare_digest(expected, signature)
@@ -178,7 +177,7 @@ class GitHubWebhookHandler:
         self,
         repo: str,
         pr_number: int,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get list of changed files in PR."""
         # In real implementation, would use GitHub API
         # For now, return mock data
@@ -211,8 +210,8 @@ class GitHubWebhookHandler:
         self,
         repo: str,
         pr_number: int,
-        file_info: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        file_info: dict[str, Any],
+    ) -> dict[str, Any]:
         """Review a single file in the PR."""
         filename = file_info["filename"]
 
@@ -238,8 +237,8 @@ class GitHubWebhookHandler:
     def _generate_line_comments(
         self,
         review_result,
-        file_info: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
+        file_info: dict[str, Any],
+    ) -> list[dict[str, Any]]:
         """Generate line-specific comments from review."""
         comments = []
 
@@ -270,7 +269,7 @@ class GitHubWebhookHandler:
         repo: str,
         pr_number: int,
         commit_sha: str,
-        review_results: List[Dict[str, Any]],
+        review_results: list[dict[str, Any]],
     ) -> None:
         """Post review comment to PR."""
         # Format overall review
@@ -288,7 +287,7 @@ class GitHubWebhookHandler:
             len(comments),
         )
 
-    def _format_review_body(self, review_results: List[Dict[str, Any]]) -> str:
+    def _format_review_body(self, review_results: list[dict[str, Any]]) -> str:
         """Format the main review comment body."""
         lines = [
             "## 🤖 Guardian Agent Review",
@@ -314,20 +313,20 @@ class GitHubWebhookHandler:
             for result in review_results:
                 review = result["review"]
                 status = "✅" if not review.has_blocking_issues else "❌"
-                lines.append(f"- {status} **{result['path']}** " f"(Score: {review.overall_score:.0f}/100)")
+                lines.append(f"- {status} **{result['path']}** (Score: {review.overall_score:.0f}/100)")
             lines.append("")
 
         # Footer
         lines.extend(
             [
                 "---",
-                "*Generated by Guardian Agent | " "[Documentation](https://github.com/hive/guardian-agent)*",
+                "*Generated by Guardian Agent | [Documentation](https://github.com/hive/guardian-agent)*",
             ]
         )
 
         return "\n".join(lines)
 
-    def _extract_feedback(self, comment: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _extract_feedback(self, comment: dict[str, Any]) -> dict[str, Any] | None:
         """Extract feedback from comment for learning."""
         body = comment.get("body", "")
 
@@ -347,7 +346,7 @@ class GitHubWebhookHandler:
 
         return None
 
-    async def _process_feedback(self, feedback: Dict[str, Any]) -> None:
+    async def _process_feedback(self, feedback: dict[str, Any]) -> None:
         """Process feedback for learning system."""
         # Would integrate with learning system
         logger.info(

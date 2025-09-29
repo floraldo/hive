@@ -20,7 +20,6 @@ import re
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Set
 
 
 @dataclass
@@ -31,7 +30,7 @@ class AutofixResult:
     rule_id: str
     rule_name: str
     fixes_applied: int
-    changes_made: List[str]
+    changes_made: list[str]
     backup_created: bool
     success: bool
     error_message: str | None = None
@@ -52,9 +51,9 @@ class GoldenRulesAutoFixer:
         self.project_root = project_root
         self.dry_run = dry_run
         self.create_backups = create_backups
-        self.results: List[AutofixResult] = []
+        self.results: list[AutofixResult] = []
 
-    def fix_all_violations(self, target_rules: Optional[Set[str]] = None) -> List[AutofixResult]:
+    def fix_all_violations(self, target_rules: set[str] | None = None) -> list[AutofixResult]:
         """
         Fix all mechanical violations across the project.
 
@@ -107,7 +106,7 @@ class GoldenRulesAutoFixer:
 
         return self.results
 
-    def _get_python_files(self) -> List[Path]:
+    def _get_python_files(self) -> list[Path]:
         """Get all Python files to process"""
         files = []
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
@@ -136,7 +135,7 @@ class GoldenRulesAutoFixer:
         Renames async functions to end with '_async' suffix.
         """
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Parse AST
@@ -211,7 +210,7 @@ class GoldenRulesAutoFixer:
         Replaces print() calls with logger.info() calls.
         """
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Skip test files and CLI files
@@ -322,7 +321,7 @@ class GoldenRulesAutoFixer:
         Updates custom exception classes to inherit from BaseError.
         """
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Parse AST to find exception classes

@@ -139,8 +139,8 @@ class RobustClaudePlannerBridge:
         """Find Claude CLI command - same implementation as AI reviewer"""
         # Check common locations
         possible_paths = [
-            Path.home() / ".npm-global" / "claude.cmd"
-            Path.home() / ".npm-global" / "claude"
+            Path.home() / ".npm-global" / "claude.cmd",
+            Path.home() / ".npm-global" / "claude",
             Path("claude.cmd")
             Path("claude")
         ]
@@ -154,17 +154,17 @@ class RobustClaudePlannerBridge:
         claude_path = (
             subprocess.run(
                 ["where" if os.name == "nt" else "which", "claude"]
-                capture_output=True
+                capture_output=True,
                 text=True
             )
             .stdout.strip()
             .split("\n")[0]
             if subprocess.run(
                 ["where" if os.name == "nt" else "which", "claude"]
-                capture_output=True
+                capture_output=True,
                 text=True
-            ).returncode
-            == 0
+            ).returncode,
+            == 0,
             else None
         )
 
@@ -175,17 +175,17 @@ class RobustClaudePlannerBridge:
         return None
 
     def _create_planning_prompt(
-        self
-        task_description: str
+        self,
+        task_description: str,
         context_data: Dict[str, Any]
-        priority: int
+        priority: int,
         requestor: str
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
 
-        context_info = ""
+        context_info = "",
         if context_data:
-            context_info = f"""
+            context_info = f""",
 ## Context Information:
 - Files affected: {context_data.get('files_affected', 'unknown')}
 - Dependencies: {context_data.get('dependencies', [])}
@@ -200,7 +200,7 @@ You are an expert Senior Software Architect with deep experience in system desig
 
 ## Task Analysis:
 **Primary Objective:** {task_description}
-**Priority Level:** {priority}/100
+**Priority Level:** {priority}/100,
 **Requestor:** {requestor}
 {context_info}
 
@@ -210,7 +210,7 @@ Transform this high-level requirement into a detailed, executable plan with prop
 ## Response Requirements:
 You MUST respond with a valid JSON object that strictly follows this schema. Do not include any text before or after the JSON.
 
-```json
+```json,
 {{
     "plan_id": "unique-plan-identifier",
     "plan_name": "Human-readable plan name (max 100 chars)",
@@ -243,7 +243,7 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
             "analysis": "design",
             "design": "implementation",
             "implementation": "testing",
-            "testing": "validation"
+            "testing": "validation",
         }}
         "validation_gates": {{
             "design": ["architecture_review", "stakeholder_approval"]
@@ -251,7 +251,7 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
             "testing": ["integration_tests_pass", "performance_benchmarks"]
             "validation": ["user_acceptance", "deployment_ready"]
         }}
-        "rollback_strategy": "checkpoint-based rollback with automated reversion"
+        "rollback_strategy": "checkpoint-based rollback with automated reversion",
     }}
     "metrics": {{
         "total_estimated_duration": 240,
@@ -262,31 +262,31 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
         "risk_factors": ["external_api_dependency", "complex_data_migration"]
     }}
     "recommendations": [
-        "Start with architecture review to validate approach"
-        "Implement robust error handling early"
+        "Start with architecture review to validate approach",
+        "Implement robust error handling early",
         "Set up comprehensive monitoring"
     ]
     "considerations": [
-        "Performance impact on existing systems"
-        "Security implications of new endpoints"
+        "Performance impact on existing systems",
+        "Security implications of new endpoints",
         "Backwards compatibility requirements"
     ]
 }}
 ```
 
 ## Planning Guidelines:
-1. **Decomposition**: Break down into 3-15 discrete, actionable sub-tasks
+1. **Decomposition**: Break down into 3-15 discrete, actionable sub-tasks,
 2. **Assignees**: Use realistic assignees (worker:backend, worker:frontend, app:ecosystemiser, worker:infra)
-3. **Dependencies**: Map realistic dependencies - avoid circular dependencies
+3. **Dependencies**: Map realistic dependencies - avoid circular dependencies,
 4. **Estimates**: Provide realistic time estimates (5-480 minutes per task)
-5. **Workflow**: Define clear lifecycle phases with validation gates
+5. **Workflow**: Define clear lifecycle phases with validation gates,
 6. **Risk Assessment**: Identify potential risks and mitigation strategies
 
 ## Quality Standards:
-- Each sub-task must be independently executable
+- Each sub-task must be independently executable,
 - Dependencies must form a valid DAG (Directed Acyclic Graph)
-- Estimates should account for complexity and unknowns
-- Assignees must align with their expertise domains
+- Estimates should account for complexity and unknowns,
+- Assignees must align with their expertise domains,
 - Workflow phases should follow software engineering best practices
 
 Generate the execution plan now:"""
@@ -297,12 +297,12 @@ Generate the execution plan now:"""
             self, response_text: str) -> Optional[Dict[str, Any]]:
         """Extract JSON from Claude response with robust parsing"""
         try:
-            # Try direct JSON parsing first
+            # Try direct JSON parsing first,
             return json.loads(response_text.strip())
         except json.JSONDecodeError:
             pass
 
-        # Try to find JSON within markdown code blocks
+        # Try to find JSON within markdown code blocks,
         json_match = re.search(
             r"```json\s*(\{.*?\})\s*```",
             response_text,
@@ -313,7 +313,7 @@ Generate the execution plan now:"""
             except json.JSONDecodeError:
                 pass
 
-        # Try to find JSON within the response
+        # Try to find JSON within the response,
         json_match = re.search(r"\{.*\}", response_text, re.DOTALL)
         if json_match:
             try:
@@ -330,45 +330,45 @@ Generate the execution plan now:"""
 
         logger.warning(f"Creating fallback response due to: {error_message}")
 
-        # Generate a simple, rule-based plan as fallback
+        # Generate a simple, rule-based plan as fallback,
         fallback_response = ClaudePlanningResponse(
-            plan_id=f"fallback-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-            plan_name=f"Fallback Plan: {task_description[:50]}..."
-            plan_summary="Fallback plan generated due to Claude unavailability"
+            plan_id=f"fallback-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+            plan_name=f"Fallback Plan: {task_description[:50]}...",
+            plan_summary="Fallback plan generated due to Claude unavailability",
             sub_tasks=[
                 SubTask(
-                    id="fallback-001"
-                    title="Analyze Requirements"
-                    description=f"Analyze and understand: {task_description}"
-                    assignee="worker:backend"
-                    estimated_duration=30
-                    complexity="medium"
+                    id="fallback-001",
+                    title="Analyze Requirements",
+                    description=f"Analyze and understand: {task_description}",
+                    assignee="worker:backend",
+                    estimated_duration=30,
+                    complexity="medium",
                     dependencies=[]
-                    workflow_phase="analysis"
+                    workflow_phase="analysis",
                     required_skills=["analysis"]
                     deliverables=["requirements.md"]
                 )
                 SubTask(
-                    id="fallback-002"
-                    title="Implement Solution"
-                    description="Implement the requested functionality"
-                    assignee="worker:backend"
-                    estimated_duration=120
-                    complexity="medium"
+                    id="fallback-002",
+                    title="Implement Solution",
+                    description="Implement the requested functionality",
+                    assignee="worker:backend",
+                    estimated_duration=120,
+                    complexity="medium",
                     dependencies=["fallback-001"]
-                    workflow_phase="implementation"
+                    workflow_phase="implementation",
                     required_skills=["programming"]
                     deliverables=["implementation.py"]
                 )
                 SubTask(
-                    id="fallback-003"
-                    title="Test and Validate"
-                    description="Test the implementation and validate requirements"
-                    assignee="worker:backend"
-                    estimated_duration=60
-                    complexity="simple"
+                    id="fallback-003",
+                    title="Test and Validate",
+                    description="Test the implementation and validate requirements",
+                    assignee="worker:backend",
+                    estimated_duration=60,
+                    complexity="simple",
                     dependencies=["fallback-002"]
-                    workflow_phase="testing"
+                    workflow_phase="testing",
                     required_skills=["testing"]
                     deliverables=["test_results.md"]
                 )
@@ -385,7 +385,7 @@ Generate the execution plan now:"""
                 lifecycle_phases=["analysis", "implementation", "testing"]
                 phase_transitions={
                     "analysis": "implementation",
-                    "implementation": "testing"
+                    "implementation": "testing",
                 }
                 validation_gates={
                     "analysis": ["requirements_clear"],
@@ -395,19 +395,19 @@ Generate the execution plan now:"""
                 rollback_strategy="manual rollback with git revert"
             )
             metrics=PlanningMetrics(
-                total_estimated_duration=210
-                critical_path_duration=210
+                total_estimated_duration=210,
+                critical_path_duration=210,
                 complexity_breakdown={"simple": 1, "medium": 2, "complex": 0}
                 skill_requirements={"programming": 2, "testing": 1, "analysis": 1}
-                confidence_score=0.6
+                confidence_score=0.6,
                 risk_factors=["claude_unavailable", "simplified_planning"]
             )
             recommendations=[
-                "Validate requirements before implementation"
+                "Validate requirements before implementation",
                 "Test thoroughly before deployment"
             ]
             considerations=[
-                "This is a fallback plan - consider human review"
+                "This is a fallback plan - consider human review",
                 "Claude integration should be restored for better planning"
             ]
         )
@@ -415,44 +415,44 @@ Generate the execution plan now:"""
         return fallback_response.dict()
 
     def generate_execution_plan(
-        self
-        task_description: str
-        context_data: Dict[str, Any] = None
-        priority: int = 50
+        self,
+        task_description: str,
+        context_data: Dict[str, Any] = None,
+        priority: int = 50,
         requestor: str = "system"
     ) -> Dict[str, Any]:
         """
         Generate intelligent execution plan using Claude API
 
         Args:
-            task_description: High-level task description
-            context_data: Additional context and constraints
+            task_description: High-level task description,
+            context_data: Additional context and constraints,
             priority: Task priority (0-100)
             requestor: Who requested the task
 
         Returns:
-            Validated planning response or fallback on failure
+            Validated planning response or fallback on failure,
         """
         if self.mock_mode:
-            # Return a mock response for testing
+            # Return a mock response for testing,
             logger.info(
                 f"Mock mode: generating mock plan for: {task_description}")
             import uuid
 
             mock_response = ClaudePlanningResponse(
-                plan_id=f"mock-plan-{uuid.uuid4().hex[:8]}"
-                plan_name="Mock Execution Plan"
-                plan_summary="Mock plan for testing purposes"
+                plan_id=f"mock-plan-{uuid.uuid4().hex[:8]}",
+                plan_name="Mock Execution Plan",
+                plan_summary="Mock plan for testing purposes",
                 sub_tasks=[
                     SubTask(
-                        id="mock-001"
-                        title="Mock Analysis Task"
-                        description="Mock task for testing"
-                        assignee="worker:backend"
-                        estimated_duration=30
-                        complexity="medium"
+                        id="mock-001",
+                        title="Mock Analysis Task",
+                        description="Mock task for testing",
+                        assignee="worker:backend",
+                        estimated_duration=30,
+                        complexity="medium",
                         dependencies=[]
-                        workflow_phase="analysis"
+                        workflow_phase="analysis",
                         required_skills=["testing"]
                         deliverables=["mock_output.txt"]
                     )
@@ -469,11 +469,11 @@ Generate the execution plan now:"""
                     rollback_strategy="mock rollback"
                 )
                 metrics=PlanningMetrics(
-                    total_estimated_duration=30
-                    critical_path_duration=30
+                    total_estimated_duration=30,
+                    critical_path_duration=30,
                     complexity_breakdown={"simple": 0, "medium": 1, "complex": 0}
                     skill_requirements={"testing": 1}
-                    confidence_score=0.9
+                    confidence_score=0.9,
                     risk_factors=["mock_risk"]
                 )
                 recommendations=["Mock recommendation"]
@@ -496,8 +496,8 @@ Generate the execution plan now:"""
                 f"Calling Claude for planning: {task_description[:100]}...")
             result = subprocess.run(
                 [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt]
-                capture_output=True
-                text=True
+                capture_output=True,
+                text=True,
                 timeout=120,  # 2 minute timeout for complex planning
             )
 

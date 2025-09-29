@@ -4,12 +4,13 @@ import logging
 from typing import Any
 
 import cvxpy as cp
+from pydantic import Field
+
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, StorageTechnicalParams
 from ecosystemiser.system_model.components.shared.base_classes import BaseStorageOptimization, BaseStoragePhysics
 from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -372,9 +373,9 @@ class HeatBuffer(Component):
         # Log for debugging if needed,
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
-                f"{self.name} at t={t}: charge={charge_power:.3f}kW, "
-                f"discharge={discharge_power:.3f}kW, initial={initial_level:.3f}kWh, "
-                f"E[{t}]={self.E[t]:.3f}kWh"
+                f"{self.name} at t={t}: charge={charge_power:.3f}kW, ",
+                f"discharge={discharge_power:.3f}kW, initial={initial_level:.3f}kWh, ",
+                f"E[{t}]={self.E[t]:.3f}kWh",
             )
 
     def add_optimization_vars(self, N: int | None = None) -> None:

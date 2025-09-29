@@ -1,9 +1,10 @@
 """Base FastAPI application with Hive platform standards."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from hive_logging import get_logger
 
 from ..config.app_config import HiveAppConfig
@@ -36,7 +37,7 @@ class HiveApp:
         title: str,
         description: str,
         version: str = "1.0.0",
-        config: Optional[HiveAppConfig] = None,
+        config: HiveAppConfig | None = None,
     ) -> None:
         """Initialize Hive application."""
         self.config = config or HiveAppConfig()
@@ -90,11 +91,11 @@ def create_hive_app(
     title: str,
     description: str,
     version: str = "1.0.0",
-    config: Optional[HiveAppConfig] = None,
-    cost_calculator: Optional[Any] = None,
+    config: HiveAppConfig | None = None,
+    cost_calculator: Any | None = None,
     daily_cost_limit: float = 100.0,
     monthly_cost_limit: float = 2000.0,
-    rate_limits: Optional[Dict[str, int]] = None,
+    rate_limits: dict[str, int] | None = None,
     enable_cors: bool = False,
     enable_metrics: bool = True,
     **kwargs: Any,

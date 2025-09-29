@@ -116,7 +116,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     # Set up stdlib logging,
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        stream=sys.stdout
+        stream=sys.stdout,
         level=getattr(logging, level.upper())
     )
 
@@ -127,11 +127,11 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
         # Add adapter context,
         AdapterContextProcessor()
         # Filter by level,
-        structlog.stdlib.filter_by_level
+        structlog.stdlib.filter_by_level,
         # Add logger name,
-        structlog.stdlib.add_logger_name
+        structlog.stdlib.add_logger_name,
         # Add log level,
-        structlog.stdlib.add_log_level
+        structlog.stdlib.add_log_level,
         # Handle positional arguments,
         structlog.processors.PositionalArgumentsFormatter()
         # Add timestamp,
@@ -147,7 +147,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
         ErrorContextProcessor()
         # Format stack traces,
         structlog.processors.StackInfoRenderer()
-        structlog.processors.format_exc_info
+        structlog.processors.format_exc_info,
         # Decode unicode,
         structlog.processors.UnicodeDecoder()
     ]
@@ -164,9 +164,9 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     # Configure structlog,
     structlog.configure(
         processors=processors,
-        context_class=dict
+        context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger
+        wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=True
     ),
 

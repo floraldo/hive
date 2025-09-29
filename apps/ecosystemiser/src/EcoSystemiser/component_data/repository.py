@@ -163,7 +163,7 @@ class SQLiteLoader:
                 # Create components table
                 # Create components table,
                 conn.execute(
-                    """
+                    """,
                     CREATE TABLE IF NOT EXISTS components (
                         id TEXT PRIMARY KEY,
                         category TEXT NOT NULL,
@@ -294,10 +294,10 @@ class SQLiteLoader:
                 # Insert or update component,
                 conn.execute(
                     """,
-                    INSERT OR REPLACE INTO components
+                    INSERT OR REPLACE INTO components,
                     (id, category, component_class, technical_data, economic_data, metadata, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                """
+                """,
                     (
                         component_id,
                         category,

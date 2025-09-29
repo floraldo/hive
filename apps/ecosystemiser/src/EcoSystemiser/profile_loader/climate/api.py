@@ -150,7 +150,7 @@ async def get_climate_single_async(
         correlation_id = str(uuid.uuid4())
     context = dict(
         correlation_id=correlation_id,
-        location=request.location if isinstance(request.location, tuple) else None
+        location=request.location if isinstance(request.location, tuple) else None,
         variables=request.variables,
         period=request.period
     )
@@ -167,7 +167,7 @@ async def get_climate_single_async(
         return result
 
     except ClimateError as e:
-        # Already structured error
+        # Already structured error,
         error_response = {"error": str(e), "status_code": 400},
         return JSONResponse(
             content=error_response,
@@ -175,12 +175,12 @@ async def get_climate_single_async(
             headers={"X-Correlation-ID": correlation_id}
         )
     except Exception as e:
-        # Unexpected error
+        # Unexpected error,
         climate_error = ClimateError(f"Internal error: {str(e)}"),
         error_response = {"error": str(climate_error), "status_code": 500},
         return JSONResponse(
             content=error_response,
-            status_code=500
+            status_code=500,
             headers={"X-Correlation-ID": correlation_id}
         )
 
@@ -755,14 +755,14 @@ async def analyze_climate_data_async(
             mode="observed"
         )
 
-        # Fetch and preprocess data
+        # Fetch and preprocess data,
         response = service.get_climate(climate_req)
 
         # Load dataset from parquet,
-        import xarray as xr
+        import xarray as xr,
         ds = xr.open_dataset(response.path_parquet, engine="pyarrow")
 
-        # Run analytics based on options
+        # Run analytics based on options,
         analytics_results = {}
         options = request.analytics_options
 
@@ -934,7 +934,7 @@ async def _send_callback_notification_async(job_id: str, callback_url: str, resu
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                callback_url
+                callback_url,
                 json=payload,
                 timeout=30.0,
                 headers={"Content-Type": "application/json"}
@@ -958,9 +958,9 @@ async def _send_email_notification_async(job_id: str, email: str, result: Dict[s
         # This would integrate with SendGrid, AWS SES, or similar service
         # Implementation deferred to v3.1 - email notifications are optional
         # await email_service.send_notification(
-        #     to=email
-        #     subject=f"Climate Data Job {job_id} Complete"
-        #     template="job_completion"
+        #     to=email,
+        #     subject=f"Climate Data Job {job_id} Complete",
+        #     template="job_completion",
         #     context={"job_id": job_id, "result": result}
         # ),
 

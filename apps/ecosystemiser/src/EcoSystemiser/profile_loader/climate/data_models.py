@@ -8,8 +8,9 @@ logger = get_logger(__name__)
 
 from typing import Any, Literal
 
-from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse, ProfileMode
 from pydantic import Field
+
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse, ProfileMode
 
 # Climate-specific types for validation
 ClimateSource = Literal["nasa_power", "meteostat", "pvgis", "era5", "file_epw"]

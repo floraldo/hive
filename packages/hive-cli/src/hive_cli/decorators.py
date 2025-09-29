@@ -4,9 +4,9 @@ logger = get_logger(__name__)
 
 """Common CLI decorators for Hive applications."""
 
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Callable
 
 import click
 

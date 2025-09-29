@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Launch the Hive Queen daemon."""
+
 import sys
 from pathlib import Path
 

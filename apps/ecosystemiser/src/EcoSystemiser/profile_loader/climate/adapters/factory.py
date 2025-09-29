@@ -187,9 +187,9 @@ def _auto_register_adapters() -> None:
 
 # Export main functions
 __all__ = [
-    "register_adapter"
+    "register_adapter",
     "get_adapter",
-    "list_available_adapters"
+    "list_available_adapters",
     "get_enabled_adapters",
     "cleanup"
 ]

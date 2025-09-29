@@ -101,10 +101,11 @@ class TestSSHDeploymentStrategy:
         """Test successful pre-deployment checks"""
         strategy = SSHDeploymentStrategy({})
 
-        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
-            strategy, "_check_ssh_connectivity", return_value=True
-        ), patch.object(strategy, "_check_remote_permissions", return_value=True), patch(
-            "pathlib.Path.exists", return_value=True
+        with (
+            patch.object(strategy, "validate_configuration", return_value=True),
+            patch.object(strategy, "_check_ssh_connectivity", return_value=True),
+            patch.object(strategy, "_check_remote_permissions", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
         ):
             result = await strategy.pre_deployment_checks(ssh_task)
 
@@ -116,8 +117,9 @@ class TestSSHDeploymentStrategy:
         """Test pre-deployment checks with SSH connectivity failure"""
         strategy = SSHDeploymentStrategy({})
 
-        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
-            strategy, "_check_ssh_connectivity", return_value=False
+        with (
+            patch.object(strategy, "validate_configuration", return_value=True),
+            patch.object(strategy, "_check_ssh_connectivity", return_value=False),
         ):
             result = await strategy.pre_deployment_checks(ssh_task)
 
@@ -129,9 +131,11 @@ class TestSSHDeploymentStrategy:
         """Test pre-deployment checks with missing source path"""
         strategy = SSHDeploymentStrategy({})
 
-        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
-            strategy, "_check_ssh_connectivity", return_value=True
-        ), patch("pathlib.Path.exists", return_value=False):
+        with (
+            patch.object(strategy, "validate_configuration", return_value=True),
+            patch.object(strategy, "_check_ssh_connectivity", return_value=True),
+            patch("pathlib.Path.exists", return_value=False),
+        ):
             result = await strategy.pre_deployment_checks(ssh_task)
 
             assert result["success"] is False
@@ -145,17 +149,19 @@ class TestSSHDeploymentStrategy:
         mock_ssh_client = Mock()
         mock_ssh_client.close = Mock()
 
-        with patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client), patch.object(
-            strategy, "_create_backup", return_value={"backup_id": "backup-123"}
-        ), patch.object(
-            strategy,
-            "_deploy_application",
-            return_value={"success": True, "files_count": 25},
-        ), patch.object(
-            strategy, "_manage_services", return_value=True
-        ), patch(
-            "ai_deployer.strategies.ssh.determine_deployment_paths",
-            return_value={"remote_app_dir": "/apps/web-app"},
+        with (
+            patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client),
+            patch.object(strategy, "_create_backup", return_value={"backup_id": "backup-123"}),
+            patch.object(
+                strategy,
+                "_deploy_application",
+                return_value={"success": True, "files_count": 25},
+            ),
+            patch.object(strategy, "_manage_services", return_value=True),
+            patch(
+                "ai_deployer.strategies.ssh.determine_deployment_paths",
+                return_value={"remote_app_dir": "/apps/web-app"},
+            ),
         ):
             result = await strategy.deploy(ssh_task, "deploy-123")
 
@@ -183,12 +189,12 @@ class TestSSHDeploymentStrategy:
         mock_ssh_client = Mock()
         mock_ssh_client.close = Mock()
 
-        with patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client), patch.object(
-            strategy, "_create_backup", return_value={"backup_id": "backup-123"}
-        ), patch.object(strategy, "_deploy_application", return_value={"success": True}), patch.object(
-            strategy, "_manage_services", return_value=False
-        ), patch(
-            "ai_deployer.strategies.ssh.determine_deployment_paths", return_value={}
+        with (
+            patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client),
+            patch.object(strategy, "_create_backup", return_value={"backup_id": "backup-123"}),
+            patch.object(strategy, "_deploy_application", return_value={"success": True}),
+            patch.object(strategy, "_manage_services", return_value=False),
+            patch("ai_deployer.strategies.ssh.determine_deployment_paths", return_value={}),
         ):
             result = await strategy.deploy(ssh_task, "deploy-123")
 
@@ -205,9 +211,11 @@ class TestSSHDeploymentStrategy:
 
         previous_deployment = {"backup": {"backup_id": "backup-123", "backup_path": "/tmp/backup"}}
 
-        with patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client), patch.object(
-            strategy, "_restore_from_backup", return_value=True
-        ), patch.object(strategy, "_manage_services", return_value=True):
+        with (
+            patch.object(strategy, "_connect_to_server", return_value=mock_ssh_client),
+            patch.object(strategy, "_restore_from_backup", return_value=True),
+            patch.object(strategy, "_manage_services", return_value=True),
+        ):
             result = await strategy.rollback(ssh_task, "deploy-456", previous_deployment)
 
             assert result["success"] is True
@@ -250,9 +258,11 @@ class TestDockerDeploymentStrategy:
         """Test successful Docker pre-deployment checks"""
         strategy = DockerDeploymentStrategy({})
 
-        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
-            strategy, "_check_docker_daemon", return_value=True
-        ), patch.object(strategy, "_validate_docker_image", return_value=True):
+        with (
+            patch.object(strategy, "validate_configuration", return_value=True),
+            patch.object(strategy, "_check_docker_daemon", return_value=True),
+            patch.object(strategy, "_validate_docker_image", return_value=True),
+        ):
             result = await strategy.pre_deployment_checks(docker_task)
 
             assert result["success"] is True
@@ -263,8 +273,9 @@ class TestDockerDeploymentStrategy:
         """Test Docker pre-deployment checks with Docker daemon unavailable"""
         strategy = DockerDeploymentStrategy({})
 
-        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
-            strategy, "_check_docker_daemon", return_value=False
+        with (
+            patch.object(strategy, "validate_configuration", return_value=True),
+            patch.object(strategy, "_check_docker_daemon", return_value=False),
         ):
             result = await strategy.pre_deployment_checks(docker_task)
 
@@ -276,18 +287,20 @@ class TestDockerDeploymentStrategy:
         """Test successful Docker deployment"""
         strategy = DockerDeploymentStrategy({})
 
-        with patch.object(
-            strategy,
-            "_prepare_docker_image",
-            return_value={"success": True, "image_name": "web-app:deploy-123"},
-        ), patch.object(strategy, "_stop_existing_containers", return_value=True), patch.object(
-            strategy,
-            "_run_container",
-            return_value={"success": True, "container_id": "container-123"},
-        ), patch.object(
-            strategy, "_wait_for_container_health", return_value=True
-        ), patch.object(
-            strategy, "_update_load_balancer", return_value=True
+        with (
+            patch.object(
+                strategy,
+                "_prepare_docker_image",
+                return_value={"success": True, "image_name": "web-app:deploy-123"},
+            ),
+            patch.object(strategy, "_stop_existing_containers", return_value=True),
+            patch.object(
+                strategy,
+                "_run_container",
+                return_value={"success": True, "container_id": "container-123"},
+            ),
+            patch.object(strategy, "_wait_for_container_health", return_value=True),
+            patch.object(strategy, "_update_load_balancer", return_value=True),
         ):
             result = await strategy.deploy(docker_task, "deploy-123")
 
@@ -315,18 +328,20 @@ class TestDockerDeploymentStrategy:
         """Test Docker deployment with container health check failure"""
         strategy = DockerDeploymentStrategy({})
 
-        with patch.object(
-            strategy,
-            "_prepare_docker_image",
-            return_value={"success": True, "image_name": "web-app:deploy-123"},
-        ), patch.object(strategy, "_stop_existing_containers", return_value=True), patch.object(
-            strategy,
-            "_run_container",
-            return_value={"success": True, "container_id": "container-123"},
-        ), patch.object(
-            strategy, "_wait_for_container_health", return_value=False
-        ), patch.object(
-            strategy, "_stop_container", return_value=True
+        with (
+            patch.object(
+                strategy,
+                "_prepare_docker_image",
+                return_value={"success": True, "image_name": "web-app:deploy-123"},
+            ),
+            patch.object(strategy, "_stop_existing_containers", return_value=True),
+            patch.object(
+                strategy,
+                "_run_container",
+                return_value={"success": True, "container_id": "container-123"},
+            ),
+            patch.object(strategy, "_wait_for_container_health", return_value=False),
+            patch.object(strategy, "_stop_container", return_value=True),
         ):
             result = await strategy.deploy(docker_task, "deploy-123")
 
@@ -345,12 +360,15 @@ class TestDockerDeploymentStrategy:
             }
         }
 
-        with patch.object(strategy, "_stop_container", return_value=True), patch.object(
-            strategy,
-            "_run_container",
-            return_value={"success": True, "container_id": "rollback-container"},
-        ), patch.object(strategy, "_wait_for_container_health", return_value=True), patch.object(
-            strategy, "_update_load_balancer", return_value=True
+        with (
+            patch.object(strategy, "_stop_container", return_value=True),
+            patch.object(
+                strategy,
+                "_run_container",
+                return_value={"success": True, "container_id": "rollback-container"},
+            ),
+            patch.object(strategy, "_wait_for_container_health", return_value=True),
+            patch.object(strategy, "_update_load_balancer", return_value=True),
         ):
             result = await strategy.rollback(docker_task, "deploy-456", previous_deployment)
 
@@ -382,12 +400,12 @@ class TestKubernetesDeploymentStrategy:
         """Test successful Kubernetes pre-deployment checks"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
-            strategy, "_check_cluster_connectivity", return_value=True
-        ), patch.object(strategy, "_validate_manifests", return_value=True), patch.object(
-            strategy, "_check_namespace_access", return_value=True
-        ), patch.object(
-            strategy, "_check_image_access", return_value=True
+        with (
+            patch.object(strategy, "validate_configuration", return_value=True),
+            patch.object(strategy, "_check_cluster_connectivity", return_value=True),
+            patch.object(strategy, "_validate_manifests", return_value=True),
+            patch.object(strategy, "_check_namespace_access", return_value=True),
+            patch.object(strategy, "_check_image_access", return_value=True),
         ):
             result = await strategy.pre_deployment_checks(k8s_task)
 
@@ -399,8 +417,9 @@ class TestKubernetesDeploymentStrategy:
         """Test Kubernetes pre-deployment checks with cluster unavailable"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
-            strategy, "_check_cluster_connectivity", return_value=False
+        with (
+            patch.object(strategy, "validate_configuration", return_value=True),
+            patch.object(strategy, "_check_cluster_connectivity", return_value=False),
         ):
             result = await strategy.pre_deployment_checks(k8s_task)
 
@@ -412,10 +431,11 @@ class TestKubernetesDeploymentStrategy:
         """Test Kubernetes pre-deployment checks with namespace access denied"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(strategy, "validate_configuration", return_value=True), patch.object(
-            strategy, "_check_cluster_connectivity", return_value=True
-        ), patch.object(strategy, "_validate_manifests", return_value=True), patch.object(
-            strategy, "_check_namespace_access", return_value=False
+        with (
+            patch.object(strategy, "validate_configuration", return_value=True),
+            patch.object(strategy, "_check_cluster_connectivity", return_value=True),
+            patch.object(strategy, "_validate_manifests", return_value=True),
+            patch.object(strategy, "_check_namespace_access", return_value=False),
         ):
             result = await strategy.pre_deployment_checks(k8s_task)
 
@@ -427,16 +447,16 @@ class TestKubernetesDeploymentStrategy:
         """Test successful Kubernetes deployment"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(
-            strategy,
-            "_apply_manifests",
-            return_value={"success": True, "pods_count": 3},
-        ), patch.object(
-            strategy, "_wait_for_deployment_ready", return_value=True
-        ), patch.object(strategy, "_execute_canary_deployment", return_value={"success": True}), patch.object(
-            strategy, "_update_ingress", return_value=True
-        ), patch.object(
-            strategy, "_wait_for_health_checks", return_value=True
+        with (
+            patch.object(
+                strategy,
+                "_apply_manifests",
+                return_value={"success": True, "pods_count": 3},
+            ),
+            patch.object(strategy, "_wait_for_deployment_ready", return_value=True),
+            patch.object(strategy, "_execute_canary_deployment", return_value={"success": True}),
+            patch.object(strategy, "_update_ingress", return_value=True),
+            patch.object(strategy, "_wait_for_health_checks", return_value=True),
         ):
             result = await strategy.deploy(k8s_task, "deploy-123")
 
@@ -465,14 +485,15 @@ class TestKubernetesDeploymentStrategy:
         """Test Kubernetes deployment with canary failure"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(strategy, "_apply_manifests", return_value={"success": True}), patch.object(
-            strategy, "_wait_for_deployment_ready", return_value=True
-        ), patch.object(
-            strategy,
-            "_execute_canary_deployment",
-            return_value={"success": False, "error": "Canary metrics failed"},
-        ), patch.object(
-            strategy, "_cleanup_failed_deployment", return_value=None
+        with (
+            patch.object(strategy, "_apply_manifests", return_value={"success": True}),
+            patch.object(strategy, "_wait_for_deployment_ready", return_value=True),
+            patch.object(
+                strategy,
+                "_execute_canary_deployment",
+                return_value={"success": False, "error": "Canary metrics failed"},
+            ),
+            patch.object(strategy, "_cleanup_failed_deployment", return_value=None),
         ):
             result = await strategy.deploy(k8s_task, "deploy-123")
 
@@ -486,9 +507,11 @@ class TestKubernetesDeploymentStrategy:
 
         previous_deployment = {"deployment_info": {"manifests_applied": ["deployment.yaml", "service.yaml"]}}
 
-        with patch.object(strategy, "_rollback_deployment", return_value=True), patch.object(
-            strategy, "_wait_for_deployment_ready", return_value=True
-        ), patch.object(strategy, "_wait_for_health_checks", return_value=True):
+        with (
+            patch.object(strategy, "_rollback_deployment", return_value=True),
+            patch.object(strategy, "_wait_for_deployment_ready", return_value=True),
+            patch.object(strategy, "_wait_for_health_checks", return_value=True),
+        ):
             result = await strategy.rollback(k8s_task, "deploy-456", previous_deployment)
 
             assert result["success"] is True
@@ -501,10 +524,11 @@ class TestKubernetesDeploymentStrategy:
 
         previous_deployment = {"deployment_info": {"manifests_applied": ["deployment.yaml", "service.yaml"]}}
 
-        with patch.object(strategy, "_rollback_deployment", return_value=False), patch.object(
-            strategy, "_apply_previous_manifests", return_value=True
-        ), patch.object(strategy, "_wait_for_deployment_ready", return_value=True), patch.object(
-            strategy, "_wait_for_health_checks", return_value=True
+        with (
+            patch.object(strategy, "_rollback_deployment", return_value=False),
+            patch.object(strategy, "_apply_previous_manifests", return_value=True),
+            patch.object(strategy, "_wait_for_deployment_ready", return_value=True),
+            patch.object(strategy, "_wait_for_health_checks", return_value=True),
         ):
             result = await strategy.rollback(k8s_task, "deploy-456", previous_deployment)
 
@@ -516,9 +540,11 @@ class TestKubernetesDeploymentStrategy:
         """Test canary deployment execution"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(strategy, "_deploy_canary_version", return_value=None), patch.object(
-            strategy, "_monitor_canary_metrics", return_value=True
-        ), patch.object(strategy, "_gradually_increase_traffic", return_value=True):
+        with (
+            patch.object(strategy, "_deploy_canary_version", return_value=None),
+            patch.object(strategy, "_monitor_canary_metrics", return_value=True),
+            patch.object(strategy, "_gradually_increase_traffic", return_value=True),
+        ):
             result = await strategy._execute_canary_deployment(k8s_task, "deploy-123")
 
             assert result["success"] is True
@@ -529,8 +555,9 @@ class TestKubernetesDeploymentStrategy:
         """Test canary deployment with metrics failure"""
         strategy = KubernetesDeploymentStrategy({})
 
-        with patch.object(strategy, "_deploy_canary_version", return_value=None), patch.object(
-            strategy, "_monitor_canary_metrics", return_value=False
+        with (
+            patch.object(strategy, "_deploy_canary_version", return_value=None),
+            patch.object(strategy, "_monitor_canary_metrics", return_value=False),
         ):
             result = await strategy._execute_canary_deployment(k8s_task, "deploy-123")
 

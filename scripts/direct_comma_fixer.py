@@ -8,8 +8,8 @@ This approach:
 3. Adds comma if missing
 """
 
-import re
 from pathlib import Path
+
 
 def should_have_comma(line: str, next_line: str) -> bool:
     """Check if current line should have comma based on next line."""
@@ -17,11 +17,11 @@ def should_have_comma(line: str, next_line: str) -> bool:
     next_line = next_line.strip()
 
     # Skip if line already has comma, or is empty, or is comment
-    if not line or line.endswith(',') or line.startswith('#'):
+    if not line or line.endswith(",") or line.startswith("#"):
         return False
 
     # Skip certain endings that shouldn't have commas
-    if line.endswith(('{', '(', '[', ':', '\\', '+', '-', '*', '/', '=', '==')):
+    if line.endswith(("{", "(", "[", ":", "\\", "+", "-", "*", "/", "=", "==")):
         return False
 
     # Check if next line indicates we're in a structure that needs commas
@@ -29,33 +29,34 @@ def should_have_comma(line: str, next_line: str) -> bool:
         # Dictionary/object patterns
         '"',  # "key":
         "'",  # 'key':
-
         # Function call patterns
-        'datetime.now()',
-        'json.dumps(',
-
+        "datetime.now()",
+        "json.dumps(",
         # Variable names (common in tuples/function calls)
-        'task_id',
-        'event_type',
-        'details',
-        'timestamp',
+        "task_id",
+        "event_type",
+        "details",
+        "timestamp",
     ]
 
     # If current line looks like a value and next line has comma indicator
     if any(indicator in next_line for indicator in comma_indicators):
         # Additional checks for common patterns
-        if ('"' in line and ':' in line) or \
-           ("'" in line and ':' in line) or \
-           line.endswith(']') or \
-           line.endswith(')') or \
-           ('row[' in line and ']' in line):
+        if (
+            ('"' in line and ":" in line)
+            or ("'" in line and ":" in line)
+            or line.endswith("]")
+            or line.endswith(")")
+            or ("row[" in line and "]" in line)
+        ):
             return True
 
     return False
 
+
 def add_missing_commas(content: str) -> str:
     """Add missing commas to content."""
-    lines = content.split('\n')
+    lines = content.split("\n")
     result_lines = []
 
     for i, line in enumerate(lines):
@@ -65,17 +66,18 @@ def add_missing_commas(content: str) -> str:
 
             if should_have_comma(line, next_line):
                 # Add comma
-                line = line.rstrip() + ','
+                line = line.rstrip() + ","
 
         result_lines.append(line)
 
-    return '\n'.join(result_lines)
+    return "\n".join(result_lines)
+
 
 def fix_file_direct(filepath: Path) -> bool:
     """Fix file by adding missing commas."""
     try:
         # Read file
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             original = f.read()
 
         # Apply fix
@@ -83,7 +85,7 @@ def fix_file_direct(filepath: Path) -> bool:
 
         if fixed != original:
             # Write back
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(fixed)
 
             print(f"FIXED: {filepath}")
@@ -95,6 +97,7 @@ def fix_file_direct(filepath: Path) -> bool:
     except Exception as e:
         print(f"ERROR: {filepath} - {e}")
         return False
+
 
 if __name__ == "__main__":
     import sys

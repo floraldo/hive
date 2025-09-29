@@ -3,6 +3,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+
 from hive_cache.claude_cache import ClaudeCache
 
 

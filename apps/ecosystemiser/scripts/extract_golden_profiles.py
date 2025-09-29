@@ -48,7 +48,7 @@ logger = get_logger(__name__)
             "solar_generation_kw": solar_generation,
             "power_demand_kw": total_demand,
             "solar_normalized": solar_generation / max(solar_generation)
-            if max(solar_generation) > 0
+            if max(solar_generation) > 0,
             else solar_generation,
             "demand_normalized": total_demand / max(total_demand) if max(total_demand) > 0 else total_demand,
         }

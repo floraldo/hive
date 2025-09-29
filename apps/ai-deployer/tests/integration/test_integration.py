@@ -274,9 +274,10 @@ class TestDeploymentIntegration:
     @pytest.mark.asyncio
     async def test_event_bus_integration_async(self, sample_integration_task):
         """Test event bus integration for deployment notifications"""
-        with patch("ai_deployer.agent.get_event_bus") as mock_get_bus, patch(
-            "ai_deployer.agent.create_task_event"
-        ) as mock_create_event:
+        with (
+            patch("ai_deployer.agent.get_event_bus") as mock_get_bus,
+            patch("ai_deployer.agent.create_task_event") as mock_create_event,
+        ):
             # Setup event bus mocks
             mock_bus = Mock()
             mock_get_bus.return_value = mock_bus
@@ -390,7 +391,7 @@ class TestDeploymentIntegration:
                 "metrics": {
                     "deployment_time": 45.7,
                     "files_deployed": 128,
-                    "bytes_transferred": 1024 * 1024 * 5,  # 5MB
+                    "bytes_transferred": 1024 * 1024 * 5,  # 5MB,
                     "services_restarted": 3,
                 },
             }

@@ -5,6 +5,7 @@ from typing import Any
 
 import numpy as np
 import yaml
+
 from ecosystemiser.component_data.repository import ComponentRepository
 
 # Import all components to ensure they are registered

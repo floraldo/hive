@@ -7,7 +7,6 @@ logger = get_logger(__name__)
 """Configuration for service discovery components."""
 
 import os
-from typing import List
 
 from pydantic import BaseModel, Field, validator
 
@@ -101,7 +100,7 @@ class ServiceDiscoveryConfig(BaseModel):
         return v
 
     @classmethod
-    def from_env(cls) -> "ServiceDiscoveryConfig":
+    def from_env(cls) -> ServiceDiscoveryConfig:
         """Create configuration from environment variables."""
         env_config = {}
 
@@ -151,14 +150,14 @@ class ServiceDiscoveryConfig(BaseModel):
 
         return cls(**env_config)
 
-    def get_service_tags(self, additional_tags: List[str] = None) -> List[str]:
+    def get_service_tags(self, additional_tags: list[str] = None) -> list[str]:
         """Get standard service tags with optional additional tags."""
         tags = [
-            f"environment:{self.environment}"
-            f"datacenter:{self.datacenter}"
-            f"region:{self.region}"
-            f"version:1.0.0"
-            "platform:hive"
+            f"environment:{self.environment}",
+            f"datacenter:{self.datacenter}",
+            f"region:{self.region}",
+            "version:1.0.0",
+            "platform:hive",
         ]
 
         if additional_tags:

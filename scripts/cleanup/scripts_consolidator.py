@@ -12,7 +12,6 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 
 @dataclass
@@ -21,9 +20,9 @@ class ConsolidationPlan:
 
     group_name: str
     target_path: str
-    source_scripts: List[str]
+    source_scripts: list[str]
     consolidation_method: str  # merge, archive, replace
-    new_features: List[str]
+    new_features: list[str]
 
 
 @dataclass
@@ -44,15 +43,15 @@ class ScriptsConsolidator:
         self.project_root = scripts_root.parent
         self.metadata_file = metadata_file
         self.metadata_map = self._load_metadata()
-        self.consolidation_plans: List[ConsolidationPlan] = []
-        self.file_operations: List[FileOperation] = []
+        self.consolidation_plans: list[ConsolidationPlan] = []
+        self.file_operations: list[FileOperation] = []
 
-    def _load_metadata(self) -> Dict:
+    def _load_metadata(self) -> dict:
         """Load metadata from Phase 1 analysis"""
-        with open(self.metadata_file, "r") as f:
+        with open(self.metadata_file) as f:
             return json.load(f)
 
-    def create_consolidation_plans(self) -> List[ConsolidationPlan]:
+    def create_consolidation_plans(self) -> list[ConsolidationPlan]:
         """Create detailed plans for each consolidation group"""
         print("Phase 2a: Creating Consolidation Plans")
         print("=" * 50)
@@ -151,7 +150,7 @@ class ScriptsConsolidator:
         print(f"\n[OK] Created {len(self.consolidation_plans)} consolidation plans")
         return self.consolidation_plans
 
-    def _find_matching_scripts(self, group_name: str) -> List[str]:
+    def _find_matching_scripts(self, group_name: str) -> list[str]:
         """Find scripts matching a consolidation group"""
         group_keywords = {
             "cleanup_scripts": ["cleanup", "clean", "comprehensive_cleanup", "targeted_cleanup", "hive_clean"],
@@ -321,7 +320,7 @@ class ScriptsConsolidator:
 
         print(f"[PLAN] Planned {len(self.file_operations)} file operations")
 
-    def _find_script_path(self, script_name: str) -> Optional[str]:
+    def _find_script_path(self, script_name: str) -> str | None:
         """Find the full path of a script by name"""
         for script_path in self.metadata_map.keys():
             if Path(script_path).name == script_name:
@@ -332,7 +331,7 @@ class ScriptsConsolidator:
         """Generate detailed dry-run plan"""
         plan = f"""# Scripts Refactoring Dry-Run Plan
 
-**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Generated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 **Total Operations**: {len(self.file_operations)}
 
 ## Summary
@@ -341,10 +340,10 @@ class ScriptsConsolidator:
 {chr(10).join(f"- **{plan.group_name}**: {len(plan.source_scripts)} scripts -> {plan.target_path}" for plan in self.consolidation_plans)}
 
 ### Operation Types
-- **Create**: {len([op for op in self.file_operations if op.operation == 'create'])}
-- **Move**: {len([op for op in self.file_operations if op.operation == 'move'])}
-- **Copy**: {len([op for op in self.file_operations if op.operation == 'copy'])}
-- **Delete**: {len([op for op in self.file_operations if op.operation == 'delete'])}
+- **Create**: {len([op for op in self.file_operations if op.operation == "create"])}
+- **Move**: {len([op for op in self.file_operations if op.operation == "move"])}
+- **Copy**: {len([op for op in self.file_operations if op.operation == "copy"])}
+- **Delete**: {len([op for op in self.file_operations if op.operation == "delete"])}
 
 ## Detailed Operations
 

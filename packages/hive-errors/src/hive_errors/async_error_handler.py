@@ -3,9 +3,10 @@
 import asyncio
 import time
 from collections import defaultdict, deque
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, AsyncGenerator, Dict, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -22,13 +23,13 @@ class ErrorContext:
     operation_name: str
     component: str
     start_time: datetime = field(default_factory=datetime.utcnow)
-    timeout_duration: Optional[float] = None
+    timeout_duration: float | None = None
     retry_attempt: int = 0
     max_retries: int = 0
-    correlation_id: Optional[str] = None
-    user_id: Optional[str] = None
-    request_id: Optional[str] = None
-    custom_context: Dict[str, Any] = field(default_factory=dict)
+    correlation_id: str | None = None
+    user_id: str | None = None
+    request_id: str | None = None
+    custom_context: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -36,11 +37,11 @@ class ErrorStats:
     """Error statistics for monitoring."""
 
     total_errors: int = 0
-    errors_by_type: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
-    errors_by_component: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    errors_by_type: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    errors_by_component: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     recent_errors: deque = field(default_factory=lambda: deque(maxlen=100))
     error_rate_per_minute: float = 0.0
-    last_error_time: Optional[datetime] = None
+    last_error_time: datetime | None = None
 
 
 class AsyncErrorHandler:
@@ -58,26 +59,26 @@ class AsyncErrorHandler:
 
     def __init__(
         self,
-        error_reporter: Optional[BaseErrorReporter] = None,
+        error_reporter: BaseErrorReporter | None = None,
         enable_monitoring: bool = True,
         max_error_history: int = 1000,
     ):
-        self.error_reporter = error_reporter
-        self.enable_monitoring = enable_monitoring
+        self.error_reporter = error_reporter,
+        self.enable_monitoring = enable_monitoring,
         self.max_error_history = max_error_history
 
-        # Error tracking
+        # Error tracking,
         self._error_stats = ErrorStats()
         self._error_history: deque = (deque(maxlen=max_error_history),)
-        self._component_health: Dict[str, float] = defaultdict(lambda: 1.0)  # 0.0-1.0
+        self._component_health: dict[str, float] = defaultdict(lambda: 1.0)  # 0.0-1.0
 
-        # Performance tracking
-        self._operation_times: Dict[str, deque] = (defaultdict(lambda: deque(maxlen=100)),)
-        self._success_rates: Dict[str, float] = defaultdict(lambda: 1.0)
+        # Performance tracking,
+        self._operation_times: dict[str, deque] = (defaultdict(lambda: deque(maxlen=100)),)
+        self._success_rates: dict[str, float] = defaultdict(lambda: 1.0)
 
     async def handle_error(
         self, error: Exception, context: ErrorContext, suppress: bool = False
-    ) -> Optional[Exception]:
+    ) -> Exception | None:
         """
         Handle an error with full context and monitoring.
 
@@ -87,33 +88,33 @@ class AsyncErrorHandler:
             suppress: Whether to suppress the error (return None)
 
         Returns:
-            The processed error or None if suppressed
+            The processed error or None if suppressed,
         """
-        # Record error occurrence
+        # Record error occurrence,
         error_record = await self._record_error(error, context)
 
-        # Update statistics
+        # Update statistics,
         await self._update_error_stats(error, context)
 
-        # Update component health
+        # Update component health,
         await self._update_component_health(context.component, success=False)
 
-        # Report error if reporter available
+        # Report error if reporter available,
         if self.error_reporter:
             try:
                 await self._report_error_async(error, context, error_record)
             except Exception as e:
                 logger.error(f"Failed to report error: {e}")
 
-        # Log error with context
+        # Log error with context,
         await self._log_error(error, context)
 
-        # Return processed error
+        # Return processed error,
         if suppress:
-            return None
+            return None,
         return error
 
-    async def _record_error(self, error: Exception, context: ErrorContext) -> Dict[str, Any]:
+    async def _record_error(self, error: Exception, context: ErrorContext) -> dict[str, Any]:
         """Record error details for analysis."""
         error_record = {
             "timestamp": datetime.utcnow(),
@@ -129,7 +130,7 @@ class AsyncErrorHandler:
             "custom_context": context.custom_context,
         }
 
-        # Add enhanced error details for BaseError instances
+        # Add enhanced error details for BaseError instances,
         if isinstance(error, BaseError):
             error_record.update(
                 {
@@ -142,12 +143,12 @@ class AsyncErrorHandler:
         self._error_history.append(error_record)
         return error_record
 
-    async def _report_error_async(self, error: Exception, context: ErrorContext, error_record: Dict[str, Any]) -> None:
+    async def _report_error_async(self, error: Exception, context: ErrorContext, error_record: dict[str, Any]) -> None:
         """Report error asynchronously if reporter supports it."""
         if hasattr(self.error_reporter, "report_error_async"):
             await self.error_reporter.report_error_async(error, context=context.__dict__, additional_info=error_record)
         else:
-            # Fallback to synchronous reporting
+            # Fallback to synchronous reporting,
             self.error_reporter.report_error(error, context=context.__dict__, additional_info=error_record)
 
     async def _log_error(self, error: Exception, context: ErrorContext) -> None:
@@ -167,7 +168,7 @@ class AsyncErrorHandler:
         else:
             logger.error(f"Error in {context.operation_name}: {error}", extra=log_data)
 
-    def get_error_statistics(self) -> Dict[str, Any]:
+    def get_error_statistics(self) -> dict[str, Any]:
         """Get comprehensive error statistics."""
         return {
             "total_errors": self._error_stats.total_errors,
@@ -181,7 +182,7 @@ class AsyncErrorHandler:
             ),
         }
 
-    def get_operation_stats(self, operation: str) -> Dict[str, Any]:
+    def get_operation_stats(self, operation: str) -> dict[str, Any]:
         """Get statistics for a specific operation."""
         times = list(self._operation_times[operation])
         return {
@@ -192,7 +193,7 @@ class AsyncErrorHandler:
             "max_execution_time": max(times) if times else 0.0,
         }
 
-    async def predict_failure_risk(self, component: str, operation: str) -> Dict[str, Any]:
+    async def predict_failure_risk(self, component: str, operation: str) -> dict[str, Any]:
         """Predict failure risk based on recent patterns."""
         component_health = self.get_component_health(component)
         operation_stats = self.get_operation_stats(operation)
@@ -227,9 +228,9 @@ async def error_context(
     handler: AsyncErrorHandler,
     operation_name: str,
     component: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     suppress_errors: bool = False,
-    correlation_id: Optional[str] = None,
+    correlation_id: str | None = None,
     **context_kwargs,
 ) -> AsyncGenerator[ErrorContext, None]:
     """Context manager for automatic async error handling."""
@@ -246,15 +247,15 @@ async def error_context(
     try:
         if timeout:
             async with asyncio.timeout(timeout):
-                yield context
+                yield context,
         else:
             yield context
 
-        # Record success
-        execution_time = time.perf_counter() - start_time
+        # Record success,
+        execution_time = time.perf_counter() - start_time,
         await handler.handle_success(context, execution_time)
 
-    except asyncio.TimeoutError as e:
+    except TimeoutError as e:
         timeout_error = AsyncTimeoutError(
             message=f"Operation {operation_name} timed out after {timeout}s",
             component=component,
@@ -273,12 +274,12 @@ async def error_context(
             raise processed_error
 
 
-# Decorator for automatic async error handling
+# Decorator for automatic async error handling,
 def handle_async_errors(
     handler: AsyncErrorHandler,
     component: str,
-    operation_name: Optional[str] = None,
-    timeout: Optional[float] = None,
+    operation_name: str | None = None,
+    timeout: float | None = None,
     suppress_errors: bool = False,
     max_retries: int = 0,
     retry_delay: float = 1.0,
@@ -314,15 +315,15 @@ def handle_async_errors(
                     last_error = e
 
                     if attempt < max_retries:
-                        # Calculate delay with optional exponential backoff
-                        delay = retry_delay
+                        # Calculate delay with optional exponential backoff,
+                        delay = retry_delay,
                         if exponential_backoff:
                             delay *= 2**attempt
 
                         logger.info(f"Retrying {operation_name} in {delay}s (attempt {attempt + 1}/{max_retries})")
                         await asyncio.sleep(delay)
                     else:
-                        # All retries exhausted
+                        # All retries exhausted,
                         retry_error = RetryExhaustedError(
                             message=f"All {max_retries} retry attempts failed for {operation_name}",
                             component=component,
@@ -343,13 +344,13 @@ def handle_async_errors(
     return decorator
 
 
-# Utility function for creating error contexts
+# Utility function for creating error contexts,
 def create_error_context(
     operation_name: str,
     component: str,
-    correlation_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    request_id: Optional[str] = None,
+    correlation_id: str | None = None,
+    user_id: str | None = None,
+    request_id: str | None = None,
     **custom_context,
 ) -> ErrorContext:
     """Create an error context with common parameters."""

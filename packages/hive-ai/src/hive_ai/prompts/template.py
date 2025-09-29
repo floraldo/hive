@@ -7,12 +7,14 @@ formatting, and integration with the AI model system.
 from __future__ import annotations
 
 
+import hashlib
 import json
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
+from hive_cache import CacheManager
 from hive_config import BaseConfig
 from hive_logging import get_logger
 
@@ -56,24 +58,29 @@ class PromptTemplate(PromptTemplateInterface):
     """
 
     def __init__(
-        self
+        self,
         template: str,
         variables: Optional[List[PromptVariable]] = None,
         metadata: PromptMetadata | None = None,
         variable_prefix: str = "{{",
-        variable_suffix: str = "}}"
+        variable_suffix: str = "}}",
+        enable_caching: bool = True
     ):
         self.template = template,
         self.variables = {var.name: var for var in (variables or [])},
-        self.metadata = metadata
-        self.variable_prefix = variable_prefix
-        self.variable_suffix = variable_suffix
+        self.metadata = metadata,
+        self.variable_prefix = variable_prefix,
+        self.variable_suffix = variable_suffix,
+        self.enable_caching = enable_caching
 
-        # Extract variables from template if not provided
+        # Initialize cache manager for render results,
+        self._cache = CacheManager("prompt_templates") if enable_caching else None
+
+        # Extract variables from template if not provided,
         if not variables:
             self._extract_variables_from_template()
 
-        # Validate template syntax
+        # Validate template syntax,
         self._validate_template()
 
     def _extract_variables_from_template(self) -> None:
@@ -99,7 +106,7 @@ class PromptTemplate(PromptTemplateInterface):
 
             if open_count != close_count:
                 raise PromptError(
-                    f"Unbalanced template delimiters: {open_count} opening, {close_count} closing"
+                    f"Unbalanced template delimiters: {open_count} opening, {close_count} closing",
                     template_name=self.metadata.name if self.metadata else "unknown"
                 )
 
@@ -111,7 +118,7 @@ class PromptTemplate(PromptTemplateInterface):
 
         except Exception as e:
             raise PromptError(
-                f"Template validation failed: {str(e)}"
+                f"Template validation failed: {str(e)}",
                 template_name=self.metadata.name if self.metadata else "unknown"
             ) from e
 
@@ -127,6 +134,14 @@ class PromptTemplate(PromptTemplateInterface):
         }
         return type_map.get(var_type, "default_value")
 
+    def _generate_cache_key(self, **kwargs) -> str:
+        """Generate deterministic cache key for template and variables."""
+        # Create deterministic representation of kwargs
+        sorted_kwargs = json.dumps(kwargs, sort_keys=True)
+        # Hash template + variables for cache key
+        content = f"{self.template}|{sorted_kwargs}"
+        return hashlib.md5(content.encode("utf-8")).hexdigest()
+
     def render(self, **kwargs) -> str:
         """
         Render template with provided variables.
@@ -135,22 +150,38 @@ class PromptTemplate(PromptTemplateInterface):
             **kwargs: Variable values for template rendering
 
         Returns:
-            Rendered template string
+            Rendered template string (cached if enable_caching=True)
 
         Raises:
             PromptError: Variable validation or rendering failed
         """
+        # Check cache first if enabled
+        if self.enable_caching and self._cache:
+            cache_key = self._generate_cache_key(**kwargs)
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                logger.debug(f"Cache hit for template render: {cache_key[:8]}")
+                return cached_result
+
         # Validate provided variables
         if not self.validate_variables(**kwargs):
             missing = self.get_missing_variables(**kwargs)
             raise PromptError(
-                f"Template rendering failed: missing required variables"
+                f"Template rendering failed: missing required variables",
                 template_name=self.metadata.name if self.metadata else "unknown",
                 missing_variables=missing
             )
 
         try:
-            return self._render_internal(kwargs)
+            result = self._render_internal(kwargs)
+
+            # Cache the result if enabled
+            if self.enable_caching and self._cache:
+                cache_key = self._generate_cache_key(**kwargs)
+                self._cache.set(cache_key, result, ttl=3600)  # 1 hour TTL
+                logger.debug(f"Cached template render result: {cache_key[:8]}")
+
+            return result
 
         except Exception as e:
             raise PromptError(
@@ -213,11 +244,11 @@ class PromptTemplate(PromptTemplateInterface):
         """Validate value type against expected type."""
         type_validators = {
             "str": lambda v: isinstance(v, str),
-            "int": lambda v: isinstance(v, int)
+            "int": lambda v: isinstance(v, int),
             "float": lambda v: isinstance(v, (int, float)),
-            "bool": lambda v: isinstance(v, bool)
+            "bool": lambda v: isinstance(v, bool),
             "list": lambda v: isinstance(v, list),
-            "dict": lambda v: isinstance(v, dict)
+            "dict": lambda v: isinstance(v, dict),
             "any": lambda v: True
         }
 
@@ -257,17 +288,17 @@ class PromptTemplate(PromptTemplateInterface):
         if self.metadata:
             new_metadata = PromptMetadata(
                 name=new_name or f"{self.metadata.name}_copy",
-                description=self.metadata.description
+                description=self.metadata.description,
                 author=self.metadata.author,
-                version=self.metadata.version
+                version=self.metadata.version,
                 tags=self.metadata.tags.copy()
             )
 
         return PromptTemplate(
             template=self.template,
-            variables=list(self.variables.values())
+            variables=list(self.variables.values()),
             metadata=new_metadata,
-            variable_prefix=self.variable_prefix
+            variable_prefix=self.variable_prefix,
             variable_suffix=self.variable_suffix
         )
 
@@ -278,22 +309,20 @@ class PromptTemplate(PromptTemplateInterface):
             "variables": [
                 {
                     "name": var.name,
-                    "type": var.type
+                    "type": var.type,
                     "required": var.required,
-                    "default": var.default
+                    "default": var.default,
                     "description": var.description
                 }
                 for var in self.variables.values()
-            ]
-            "metadata": {
+            ],
+            "metadata": ({
                 "name": self.metadata.name,
                 "description": self.metadata.description,
                 "author": self.metadata.author,
                 "version": self.metadata.version,
                 "tags": self.metadata.tags
-            }
-            if self.metadata
-            else None
+            } if self.metadata else None),
             "variable_prefix": self.variable_prefix,
             "variable_suffix": self.variable_suffix
         }
@@ -318,7 +347,7 @@ class PromptTemplate(PromptTemplateInterface):
 
         return cls(
             template=data["template"],
-            variables=variables
+            variables=variables,
             metadata=metadata,
             variable_prefix=data.get("variable_prefix", "{{"),
             variable_suffix=data.get("variable_suffix", "}}")
@@ -350,7 +379,7 @@ class PromptChain:
 
             # Log chain structure
             logger.debug(
-                f"Chain step {i + 1}: {current_template.metadata.name if current_template.metadata else 'unnamed'} "
+                f"Chain step {i + 1}: {current_template.metadata.name if current_template.metadata else 'unnamed'} ",
                 f"-> {next_template.metadata.name if next_template.metadata else 'unnamed'}"
             )
 
